@@ -51,6 +51,7 @@
 	    <i class="fa fa-bell fa-fw" aria-hidden="true"></i> <i class="material-icons right">arrow_drop_down</i></a>
      </li>
     <li><a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown1"><i class="fa fa-user fa-fw"></i> <b><?php echo $_SESSION['logged_counselor']['name']?></b> <i class="material-icons right">arrow_drop_down</i></a></li>
+   
   </ul>
 </nav>
 <!-- Dropdown Structure -->
@@ -58,6 +59,8 @@
   <!-- <li><a href="#"><i class="fa fa-user fa-fw"></i> My Profile</a> </li>
   <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a> </li> -->
   <li><a href="<?php echo base_url(); ?>logout?r=<?php echo base64_encode('logged_counselor'); ?>"><i class="fa fa-sign-out fa-fw"></i> Logout</a> </li>
+ <li><a href="<?php echo base_url(); ?>employees/edit_center?employee_number=<?php echo $_SESSION['logged_counselor']['employee_number']?>"><i class="fa fa-user fa-fw"></i>Change Center </a></li>
+  
 </ul>
 
 <ul id="dropdown4" class="dropdown-content dropdown-tasks w250 taskList notification_list">
@@ -72,18 +75,7 @@
 <!--/. NAV TOP  -->
 <nav class="navbar-default navbar-side" style="overflow:scroll;height:100%" role="navigation">
   <div class="sidebar-collapse">
-    <select id="change_center" class="form-control">
-    <option value="">-- Select Center --</option>
-    <?php if(!empty($centers)): ?>
-        <?php foreach ($centers as $c): ?>
-            <option value="<?= $c['id']; ?>" <?= ($active_center == $c['id']) ? 'selected' : ''; ?>>
-                <?= htmlspecialchars($c['center_name']); ?>
-            </option>
-        <?php endforeach; ?>
-    <?php else: ?>
-        <option value="">No Centers Found</option>
-    <?php endif; ?>
-</select>
+   
 
     <ul class="nav" id="main-menu">
       <li> <a class="active-menu waves-effect waves-dark" href="<?php echo base_url(); ?>"><i class="fa fa-dashboard"></i> Dashboard</a> </li>
@@ -174,19 +166,3 @@
 		echo '<div class="col-sm-12 col-xs-12 '.base64_decode($_GET['t']).'"><h4>'.base64_decode($_GET['m']).'</h4></div>';
 	}
 ?>
-
-<script>
-$('#change_center').on('change', function() {
-    var center_id = $(this).val();
-    if(center_id !== '') {
-        $.post("<?= base_url('Welcome/change_center'); ?>", {center_id: center_id}, function(resp) {
-            if(resp.status){
-                location.reload();
-            } else {
-                alert('Failed to switch center');
-            }
-        }, 'json');
-    }
-});
-
-</script>

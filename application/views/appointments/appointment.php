@@ -123,7 +123,37 @@
                      <td><?php echo $vl['reason_of_visit']?></td>
                      <td><?php echo $vl['lead_source']?></td>
                       <td><?php echo $vl['agent']?></td>
-                       <td><?php echo $vl['councellor']?></td>
+                       <td><?php echo $vl['councellor']?>
+                    <select class="form-control councellor-select" name="councellor" data-appointment-id="<?php echo $vl['ID']?>">
+    <option value="">--Select Counselor--</option>
+    <?php
+    if (!empty($counselors_grouped)) {
+        foreach ($counselors_grouped as $center_id => $counselors) {
+            foreach ($counselors as $counselor) {
+                
+                // --- FIX APPLIED HERE ---
+                // 1. Convert the displayed name to lowercase for the option text.
+                $display_name_lower = strtolower($counselor['name']);
+                
+                // 2. The value sent to the server (option value) should also be lowercase 
+                //    to match your AJAX code's expectation, unless you want to do the conversion
+                //    in JavaScript (which you were doing previously).
+                $option_value_lower = strtolower($counselor['name']);
+                
+                // Check selection against the original case (or lowercase, depending on how $selected_counselor is stored)
+                // For safety, let's assume $selected_counselor is compared to the original value first.
+                $selected = (isset($selected_counselor) && $selected_counselor == $counselor['name']) ? 'selected' : '';
+                
+                // Output the <option> tag
+                echo '<option value="' . htmlspecialchars($option_value_lower) . '" ' . $selected . '>' .
+                        htmlspecialchars($display_name_lower) . '</option>';
+            }
+        }
+    } else {
+        echo '<option value="">No counselors available</option>';
+    }
+    ?>
+</select></td>
                      <td class="role appint_td_<?php echo $vl['ID']?>">
                         <?php if($vl['status'] == 'consultation_done'){echo 'Consultation Done';}
                            else{ 
@@ -241,6 +271,8 @@
       </form>
    </div>
 </div>
+
+
 <script>
    $( function() {
        $( ".particular_date_filter" ).datepicker({
@@ -431,6 +463,50 @@
    			}
    		});
    });
+   
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+    // 🎯 Target the CLASS instead of the ID
+    $('.councellor-select').on('change', function() {
+        
+        // 'this' refers to the specific dropdown that was just changed
+        var new_counselor_name = $(this).val(); 
+        
+        // Read the appointment ID from the data attribute of the specific element
+        var appointment_id = $(this).data('appointment-id'); 
+        
+        // Only proceed if a counselor is selected and we have an ID
+        if (new_counselor_name && appointment_id) {
+            $.ajax({
+                url: '<?php echo site_url("Appointmentcontroller/update_counselor"); ?>', // CI Controller/Method
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    ID: appointment_id,
+                    councellor: new_counselor_name // Sending the counselor name
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        // Success notification
+                        console.log('Update successful for Appointment ID: ' + appointment_id);
+                        alert('Counselor updated successfully for Appointment ID: ' + appointment_id);
+                    } else {
+                        // Error notification
+                        console.error('Update failed:', response.message);
+                        alert('Error updating counselor: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error:", status, error);
+                    alert('An error occurred during the request. Check the console for details.');
+                }
+            });
+        }
+    });
+});
 </script>
 <style >
    .custom-pagination{

@@ -131,4 +131,36 @@ class Employees extends CI_Controller {
 		return $data;
 	}
 
+
+	public function edit_center()
+	{
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			if(isset($_GET['employee_number'])){ $item_id = $_GET['employee_number']; }
+			if(isset($_POST['employee_number'])) { $item_id = $_POST['employee_number']; }
+
+			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'update_center'){
+				unset($_POST['action']);
+				$data = $this->employee_model->update_employee_center($_POST, $item_id);
+				if($data > 0){
+					header("location:" .base_url(). "employees/edit_center?m=".base64_encode('Employee updated successfully !').'&t='.base64_encode('success').'&employee_number='.$item_id);
+					die();
+				}else{
+					header("location:" .base_url(). "employees/edit_center?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error').'&employee_number='.$item_id);
+					die();
+				}				
+			}
+			$data['centers'] = $this->employee_model->get_employee_center();
+			$data['data'] = $this->employee_model->get_employee_center_data($item_id);
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('employees/edit_center', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
 } 

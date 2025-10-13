@@ -594,23 +594,51 @@ class Appointment_model extends CI_Model
         return $this->db->affected_rows() > 0;
     }
 
-    public function get_counselors_grouped_by_center()
+public function get_counselors_grouped_by_center()
 {
+    // Get the center from session
+    $center_id = $_SESSION['logged_counselor']['center'] ?? null;
+    
+    // Validate center_id
+    if (empty($center_id)) {
+        return []; // Return empty array if no center_id
+    }
+    
     $this->db->select('center_id, id, name');
     $this->db->from('hms_employees');
     $this->db->where('role', 'counselor');
     $this->db->where('status', '1');
-    $this->db->order_by('center_id, name');
+    $this->db->where('center_id', $center_id); // Use the variable here
+    $this->db->order_by('name'); // Only order by name since all are same center
+    
     $query = $this->db->get();
-
     $result = $query->result_array();
 
-    // Group by center_id
+    // Since all counselors are from the same center, grouping might not be needed
+    // But return in the same format for consistency
     $grouped = [];
-    foreach ($result as $row) {
-        $grouped[$row['center_id']][] = $row;
+    if (!empty($result)) {
+        $grouped[$center_id] = $result;
     }
+    
     return $grouped;
 }
+
+public function update_appointment($appointment_id, $data) {
+    // 1. Sets the WHERE clause: WHERE `ID` = '20025'
+    $this->db->where('ID', $appointment_id); 
+    
+    // 2. Executes the UPDATE: SET `councellor` = 'Harse'
+    return $this->db->update('hms_appointments', $data); 
+}  
+
+// ... existing code in Appointment_model.php
+
+public function log_change($log_data) {
+    // Generates: INSERT INTO `hms_appointment_logs` (...) VALUES (...)
+    return $this->db->insert('hms_appointment_logs', $log_data);
+}
+
+// ... rest of the model
 
 }

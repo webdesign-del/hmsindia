@@ -101,7 +101,7 @@ class Appointmentcontroller extends CI_Controller {
 			$data["crm_id"] = $crm_id;
 			$data["lead_source"] = $lead_source;
 			$data["lead_sources"] = $this->appointment_model->get_all_lead_sources();
-			$data["lead_sources"] = $this->appointment_model->get_counselors_grouped_by_center();
+			$data["counselors_grouped"] = $this->appointment_model->get_counselors_grouped_by_center();
 			
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
@@ -1225,5 +1225,119 @@ class Appointmentcontroller extends CI_Controller {
 		}
 	}
 
-	
+public function update_counselor() {
+    // 1. Get data from the AJAX payload
+    $appointment_id = $this->input->post('ID');        
+    $counselor_name = $this->input->post('councellor');  
+
+    // 2. Check for missing data
+    if (empty($appointment_id) || empty($counselor_name)) {
+        echo json_encode(['status' => 'error', 'message' => 'Missing data.']);
+        return;
+    }
+
+    // 3. First, get the current appointment data for comparison
+    $this->db->select('ID, crm_id, councellor');
+    $this->db->from('hms_appointments');
+    $this->db->where('ID', $appointment_id);
+    $appointment = $this->db->get()->row_array();
+
+    if (empty($appointment)) {
+        echo json_encode(['status' => 'error', 'message' => 'Appointment not found.']);
+        return;
+    }
+
+    // Capture old counselor name for logging
+    $old_counselor_name = $appointment['councellor'];
+
+    // CHECK: If the counselor name is the same, stop the update to save resources
+    if ($old_counselor_name === $counselor_name) {
+        echo json_encode([
+            'status' => 'info',
+            'message' => 'Counselor name is already set to ' . $counselor_name . '. No update needed.'
+        ]);
+        return;
+    }
+
+    // 4. Data array for the update model
+    $data_to_update = ['councellor' => $counselor_name];
+
+    // 5. Call the model to run the update query
+    $result = $this->appointment_model->update_appointment($appointment_id, $data_to_update);
+
+    // 6. If update successful, run logging and API call
+    if ($result) {
+        // --- LOGGING ACTION ---
+        $log_data = [
+            'appointment_id' => $appointment_id,
+            'field_changed'  => 'councellor',
+            'old_value'      => $old_counselor_name,
+            'new_value'      => $counselor_name,
+            'updated_by'     => $this->session->userdata('user_id') ?? 'System/Unknown', // Use logged-in user ID or a default
+            'created_at'     => date('Y-m-d H:i:s')
+        ];
+        $this->appointment_model->log_change($log_data); // Insert log record
+        // ----------------------
+
+        // Send to external API
+        $api_response = $this->send_to_external_api($appointment['crm_id'], $counselor_name);
+        
+        // Final Success Response
+        echo json_encode([
+            'status' => 'success', 
+            'message' => 'Counselor updated and log recorded.',
+            'api_response' => $api_response
+        ]);
+    } else {
+        // Database Error/No Rows Affected handling
+        $message = ($this->db->affected_rows() == 0) ? 
+                    'Update query ran, but no changes were made.' : 
+                    'Database error occurred.';
+        echo json_encode(['status' => 'error', 'message' => $message]);
+    }
+}
+// The send_to_external_api function remains the same.
+
+// Function to send data to external API
+private function send_to_external_api($crm_id, $coordinator_name) {
+    $curl = curl_init();
+
+    $post_data = json_encode([
+        "lead_id" => $crm_id,
+        "coordinator_name" => $coordinator_name
+    ]);
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => 'https://flertility.in/appointment/hms-update-coordinator/',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'PATCH',
+        CURLOPT_POSTFIELDS => $post_data,
+        CURLOPT_HTTPHEADER => array(
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($post_data)
+        ),
+    ));
+
+
+
+    $response = curl_exec($curl);
+	print_r($response);die();
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($curl);
+    
+    curl_close($curl);
+
+    return [
+        'http_code' => $http_code,
+        'response' => $response,
+        'curl_error' => $curl_error
+    ];
+}
+
+
 } 

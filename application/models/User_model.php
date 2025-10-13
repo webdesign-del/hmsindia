@@ -258,20 +258,6 @@ class User_model extends CI_Model
 		$this->db->query($new_sql);
 		return $this->db->affected_rows();
 	}
-
-public function get_user_centers($username)
-{
-   echo $sql = "SELECT c.id, c.center_name 
-            FROM ".$this->config->item('db_prefix')."centers AS c
-            INNER JOIN ".$this->config->item('db_prefix')."employees AS e
-                ON c.center_number = e.center_id
-            WHERE e.username = '".$username."'";
-    
-    $q = $this->db->query($sql);
-    return $q->result_array();
-}
-
-
 }
 
 /* End of file Menu_model.php */

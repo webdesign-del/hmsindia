@@ -199,6 +199,54 @@ class Employee_model extends CI_Model
         }
         return $result;
 	}
+
+    function get_employee_center_data($item){
+		$result = array();
+		$sql_condition = '';
+		$sql = "Select * from ".$this->config->item('db_prefix')."employees where employee_number='".$item."'";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result[0];
+        }
+        else
+        {
+            return $result;
+        }
+	}
+
+    	public function update_employee_center($data, $item)
+    {	
+		if(empty($data['password'])){ unset($data['password']);}
+		else{$password = md5($data['password']); unset($data['password']); $data['password'] = $password;}
+
+        $sql = "UPDATE " . config_item('db_prefix') . "employees SET ";
+		foreach( $data as $key=> $value )
+		{
+			$sqlArr[] = " $key = '".$value."'"	;
+		}
+		$sql .= implode(',' , $sqlArr);
+		$sql .= " WHERE employee_number = '".$item."'";
+        $this->db->query($sql);
+        return 1;
+    }
+
+    public function get_employee_center(){
+		$result = array();
+		$sql_condition = '';
+		$sql = "Select * from ".$this->config->item('db_prefix')."centers where status='1' ORDER by ID ASC";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result;
+        }
+        else
+        {
+            return $result;
+        }
+	}
 }
 // END Stock_model class
 
