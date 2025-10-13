@@ -46,6 +46,8 @@
 	    <i class="fa fa-bell fa-fw" aria-hidden="true"></i> <i class="material-icons right">arrow_drop_down</i></a>
      </li>
     <li><a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown1"><i class="fa fa-user fa-fw"></i> <b><?php echo $_SESSION['logged_billing_manager']['name']?></b> <i class="material-icons right">arrow_drop_down</i></a></li>
+  <li><a href="<?php echo base_url(); ?>employees/edit_center?employee_number=<?php echo $_SESSION['logged_billing_manager']['employee_number']?>"><i class="fa fa-user fa-fw"></i>Change Center </a></li>
+ 
   </ul>
 </nav>
 <!-- Dropdown Structure -->

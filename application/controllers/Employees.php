@@ -143,13 +143,34 @@ class Employees extends CI_Controller {
 			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'update_center'){
 				unset($_POST['action']);
 				$data = $this->employee_model->update_employee_center($_POST, $item_id);
-				if($data > 0){
+				/*if($data > 0){
 					header("location:" .base_url(). "employees/edit_center?m=".base64_encode('Employee updated successfully !').'&t='.base64_encode('success').'&employee_number='.$item_id);
 					die();
 				}else{
 					header("location:" .base_url(). "employees/edit_center?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error').'&employee_number='.$item_id);
 					die();
-				}				
+				}*/
+				
+				if($data > 0){
+                // 2. DATA UPDATE SUCCESSFUL
+                
+                // --- LOGOUT IMPLEMENTATION ---
+                // Destroy the user session
+                $this->session->sess_destroy();
+
+                // Redirect the user to the login page (or any desired page)
+                // Use the base URL or your specific login controller route
+                header("location:" . base_url() . "?m=" . base64_encode('Employee data updated successfully! You have been logged out.').'&t='.base64_encode('success'));
+                die();
+                // --- LOGOUT IMPLEMENTATION END ---
+                
+            }else{
+                // Update failed or no rows affected
+                header("location:" .base_url(). "employees/edit_center?m=".base64_encode('Update failed or no changes were made.').'&t='.base64_encode('error').'&employee_number='.$item_id);
+                die();
+            }  
+
+
 			}
 			$data['centers'] = $this->employee_model->get_employee_center();
 			$data['data'] = $this->employee_model->get_employee_center_data($item_id);
