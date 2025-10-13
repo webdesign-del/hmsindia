@@ -1480,22 +1480,19 @@ class Doctors extends CI_Controller {
 	public function consultation_done($appointment_id){
 		$logg = checklogin();
 		if($logg['status'] == true){
-			
 			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_consultation_done'){
 				unset($_POST['action']);
-				
 				$redirect_url = "doctor_appointments";
 				if($_SESSION['logged_doctor']['junior_doctor'] == 1){
 					$redirect_url = "jd_appointments";
 				}
-
 				if(isset($_POST['medicine_suggestion'])){
 					$male_med_array = $female_med_array = array();
 					foreach($_POST as $key => $val){
-						if (substr( $key, 0, 19 ) === "male_medicine_name_") {
+						if (substr( $key, 0, 19 ) === "male_medicine_name_" && substr( $key, 19, 4 ) !== "ipd_") {
 							$male_med_array[] = $key;
 						}
-						if (substr( $key, 0, 21 ) === "female_medicine_name_") {
+						if (substr( $key, 0, 21 ) === "female_medicine_name_" && substr( $key, 21, 4 ) !== "ipd_") {
 							$female_med_array[] = $key;
 						}
 					}
@@ -1559,6 +1556,75 @@ class Doctors extends CI_Controller {
 					$female_medicine_suggestion_list = serialize($female_medicine_suggestion_list);
 					$_POST['female_medicine_suggestion_list'] = $female_medicine_suggestion_list;
 				}
+				if(isset($_POST['medicine_suggestion_ipd'])){
+					$male_med_array_ipd = $female_med_array_ipd = array();
+					foreach($_POST as $key => $val){
+						if (substr( $key, 0, 23 ) === "male_medicine_name_ipd_") {
+							$male_med_array_ipd[] = $key;
+						}
+						if (substr( $key, 0, 25 ) === "female_medicine_name_ipd_") {
+							$female_med_array_ipd[] = $key;
+						}
+					}
+					$male_med_number_ipd = $female_med_number_ipd = array();
+					foreach($male_med_array_ipd as $key => $val){
+							$explode = explode('male_medicine_name_ipd_', $val);
+							$male_med_number_ipd[] = $explode[1];
+					}
+					foreach($female_med_array_ipd as $key => $val){
+							$explode = explode('female_medicine_name_ipd_', $val);
+							$female_med_number_ipd[] = $explode[1];
+					}
+					$male_med_number_ipd = array_unique($male_med_number_ipd);
+					$female_med_number_ipd = array_unique($female_med_number_ipd);
+					
+					$male_medicine_suggestion_list_ipd = $female_medicine_suggestion_list_ipd = array();
+					
+					foreach($male_med_number_ipd as $key => $val){
+						$male_medicine_suggestion_list_ipd[] = array(
+							 'male_medicine_name' => $_POST['male_medicine_name_ipd_'.$val],
+							 'male_medicine_dosage' => $_POST['male_medicine_dosage_ipd_'.$val],
+							 'male_medicine_when_start' => $_POST['male_medicine_when_start_ipd_'.$val],
+							 'male_medicine_days' => $_POST['male_medicine_days_ipd_'.$val],
+							 'male_medicine_route' => $_POST['male_medicine_route_ipd_'.$val],
+							 'male_medicine_frequency' => $_POST['male_medicine_frequency_ipd_'.$val],
+							 'male_medicine_timing' => $_POST['male_medicine_timing_ipd_'.$val],
+							 'male_medicine_take' => $_POST['male_medicine_take_ipd_'.$val]
+							);
+						unset($_POST['male_medicine_name_ipd_'.$val]);
+						unset($_POST['male_medicine_dosage_ipd_'.$val]);
+						unset($_POST['male_medicine_when_start_ipd_'.$val]);
+						unset($_POST['male_medicine_days_ipd_'.$val]);
+						unset($_POST['male_medicine_route_ipd_'.$val]);
+						unset($_POST['male_medicine_frequency_ipd_'.$val]);
+						unset($_POST['male_medicine_timing_ipd_'.$val]);
+						unset($_POST['male_medicine_take_ipd_'.$val]);
+					}
+					$male_medicine_suggestion_list_ipd = serialize($male_medicine_suggestion_list_ipd);
+					$_POST['male_medicine_suggestion_list_ipd'] = $male_medicine_suggestion_list_ipd;
+					foreach($female_med_number_ipd as $key => $val){
+						$female_medicine_suggestion_list_ipd[] = array(
+							 'female_medicine_name' => $_POST['female_medicine_name_ipd_'.$val],
+							 'female_medicine_dosage' => $_POST['female_medicine_dosage_ipd_'.$val],
+							 'female_medicine_when_start' => $_POST['female_medicine_when_start_ipd_'.$val],
+							 'female_medicine_days' => $_POST['female_medicine_days_ipd_'.$val],
+							 'female_medicine_route' => $_POST['female_medicine_route_ipd_'.$val],
+							 'female_medicine_frequency' => $_POST['female_medicine_frequency_ipd_'.$val],
+							 'female_medicine_timing' => $_POST['female_medicine_timing_ipd_'.$val],
+							 'female_medicine_take' => $_POST['female_medicine_take_ipd_'.$val]
+						);
+						unset($_POST['female_medicine_name_ipd_'.$val]);
+						unset($_POST['female_medicine_dosage_ipd_'.$val]);
+						unset($_POST['female_medicine_when_start_ipd_'.$val]);
+						unset($_POST['female_medicine_days_ipd_'.$val]);
+						unset($_POST['female_medicine_route_ipd_'.$val]);
+						unset($_POST['female_medicine_frequency_ipd_'.$val]);
+						unset($_POST['female_medicine_timing_ipd_'.$val]);
+						unset($_POST['female_medicine_take_ipd_'.$val]);
+					}
+					$female_medicine_suggestion_list_ipd = serialize($female_medicine_suggestion_list_ipd);
+					$_POST['female_medicine_suggestion_list_ipd'] = $female_medicine_suggestion_list_ipd;
+				}
 				
 				if(isset($_POST['provisional_diagnosis'])){
 					if(!empty($_POST['male_provisional_diagnosis_list'])){
@@ -1573,7 +1639,6 @@ class Doctors extends CI_Controller {
 					}	
 					
 				}
-				
 				if(isset($_POST['investigation_suggestion'])){
 					if(!empty($_POST['male_investigation_suggestion_list'])){
 						$male_investigation_suggestion_list = array();
@@ -1614,10 +1679,7 @@ class Doctors extends CI_Controller {
 					$prescription = base_url().'assets/patient_files/'.$NewImageName;
 					move_uploaded_file($_FILES['prescription']['tmp_name'], $destination.$NewImageName);
 				}
-
-				//var_dump($_POST);die;
 				$consultation_post = array();
-
 				if($_POST['submit_type'] == "save_exit"){
 					$consultation_post['edit_mode'] = 1;
 					$consultation_post['final_mode'] = 0;
@@ -1629,9 +1691,7 @@ class Doctors extends CI_Controller {
 					$consultation_post['disapproval_reason'] = ''; unset($_POST['disapproval_reason']);
 				}
 				unset($_POST['submit_type']);
-				
 				$consultation_post['appointment_id'] = $_POST['appointment_id'];
-				//$consultation_post['doctor_id'] = $_POST['doctor_id'];
 				$consultation_post['patient_id'] = $_POST['patient_id'];
 				$consultation_post['wife_phone'] = $_POST['wife_phone'];
 				$consultation_post['doctor_id'] = $_POST['doctor_id']; unset($_POST['doctor_id']);
@@ -1640,7 +1700,6 @@ class Doctors extends CI_Controller {
 				$consultation_post['follow_up_date'] = isset($_POST['follow_up_date'])?$_POST['follow_up_date']:"";unset($_POST['follow_up_date']);
 				$consultation_post['follow_slot'] = isset($_POST['appoitmented_slot'])?$_POST['appoitmented_slot']:"";unset($_POST['appoitmented_slot']);
 				$consultation_post['follow_up_purpose'] = isset($_POST['follow_up_purpose'])?$_POST['follow_up_purpose']:""; unset($_POST['follow_up_purpose']);
-				
 				if(isset($_POST['medicine_suggestion'])){
 					$consultation_post['medicine_suggestion'] = $_POST['medicine_suggestion']; unset($_POST['medicine_suggestion']);
 					if(isset($male_medicine_suggestion_list) && !empty($male_medicine_suggestion_list)){
@@ -1650,6 +1709,15 @@ class Doctors extends CI_Controller {
 						$consultation_post['female_medicine_suggestion_list'] = $female_medicine_suggestion_list; 
 					}unset($_POST['female_medicine_suggestion_list']);
 					
+				}
+				if(isset($_POST['medicine_suggestion_ipd'])){
+					$consultation_post['medicine_suggestion_ipd'] = $_POST['medicine_suggestion_ipd']; unset($_POST['medicine_suggestion_ipd']);
+					if(isset($male_medicine_suggestion_list_ipd) && !empty($male_medicine_suggestion_list_ipd)){
+						$consultation_post['male_medicine_suggestion_list_ipd'] = $male_medicine_suggestion_list_ipd;
+					} unset($_POST['male_medicine_suggestion_list_ipd']);
+					if(isset($female_medicine_suggestion_list_ipd) && !empty($female_medicine_suggestion_list_ipd)){
+						$consultation_post['female_medicine_suggestion_list_ipd'] = $female_medicine_suggestion_list_ipd; 
+					}unset($_POST['female_medicine_suggestion_list_ipd']);
 				}
 				if(isset($_POST['investigation_suggestion'])){
 					$consultation_post['investation_suggestion'] = $_POST['investigation_suggestion']; unset($_POST['investigation_suggestion']);
@@ -1678,19 +1746,15 @@ class Doctors extends CI_Controller {
 				$_POST['prescription'] = $prescription;
 				$consultation_post['prescription'] = $prescription;
 				$consultation_post['consultation_date'] = date("Y-m-d H:i:s");
-	
-			
 				if($consultation_post['follow_up'] == 1){
 				    if(empty($_POST['appoitment_for']) && empty($consultation_post['follow_up_date']) && empty($_POST['appoitmented_doctor']) && empty($consultation_post['follow_slot'])){
     				    header("location:" .base_url().$redirect_url."?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
     					die();
     				}
-				    
 					$patient_details  = get_patient_detail($consultation_post['patient_id']);
 					$doctor_details = doctor_details($consultation_post['doctor_id']);
 					$appointment_arr = array();
 					$appointment_arr['paitent_type'] = 'exist_patient';
-					//$appointment_arr['doctor_id'] = $consultation_post['doctor_id'];
 					$appointment_arr['paitent_id'] = $consultation_post['patient_id'];
 					$appointment_arr['wife_name'] = $patient_details['wife_name'];
 					$appointment_arr['wife_phone'] = $consultation_post['wife_phone'];
@@ -1704,7 +1768,6 @@ class Doctors extends CI_Controller {
 					$appointment_arr['follow_up_appointment'] = 1;
 					$appointment_arr['previous_appointment'] = $consultation_post['appointment_id'];
 					$appointment_arr['appointment_added'] = date('Y-m-d H:i:s');
-					
 					$appointment = $this->billingmodel_model->insert_appointments($appointment_arr);
 					if($appointment > 0){
 						$doctor_details = doctor_details($appointment_arr['appoitmented_doctor']);
@@ -1727,48 +1790,36 @@ class Doctors extends CI_Controller {
 					}
 
 				}
-				//var_dump($_POST);die;
 				$consultation_done = $this->doctors_model->consultation_done($consultation_post);
-				
 				$female_ids_serialized = $consultation_post['female_minvestigation_suggestion_list'];
 				$unserializedArray = unserialize($female_ids_serialized);
-
 				$investigation_names = [];
-
 				if (is_array($unserializedArray)) {
 					foreach ($unserializedArray as $key => $value) {
 						$value = (int)$value; // ensure it's safe
 						$sql2 = "SELECT * FROM `hms_master_investigations` WHERE ID = $value";
 						$select_result9 = run_select_query($sql2);
-
 						if (!empty($select_result9) && isset($select_result9['investigation_name'])) {
 							$investigation_names[] = $select_result9['investigation_name'];
 						}
 					}
 				}
-				
 				$male_ids_serialized = $consultation_post['male_minvestigation_suggestion_list'];
 				$unserializedArray = unserialize($male_ids_serialized);
-
 				$investigation_male_names = [];
-
 				if (is_array($unserializedArray)) {
 					foreach ($unserializedArray as $key => $value) {
 						$value = (int)$value; // ensure it's safe
 						$sql_male = "SELECT * FROM `hms_master_investigations` WHERE ID = $value";
 						$select_male_result = run_select_query($sql_male);
-
 						if (!empty($select_male_result) && isset($select_male_result['investigation_name'])) {
 							$investigation_male_names[] = $select_male_result['investigation_name'];
 						}
 					}
 				}
-				
 				$procedure_ids_serialized = $consultation_post['sub_procedure_suggestion_list'];
 				$unserializedArray = unserialize($procedure_ids_serialized);
-
 				$procedure_name = [];
-
 				if (is_array($unserializedArray)) {
 					foreach ($unserializedArray as $key => $value) {
 						$value = (int)$value; // ensure it's safe
@@ -1997,6 +2048,7 @@ class Doctors extends CI_Controller {
 			$data = array();
 			$data['appointments'] = $this->appointment_model->doctor_appointment_details($appointment_id);
 			$data['consultation_medicine'] = $this->doctors_model->consultation_medicine();
+		    $data['consultation_medicine_ipd'] = $this->doctors_model->consultation_medicine_ipd();
 			$data['consultation_provisional_diagnosis'] = $this->doctors_model->consultation_provisional_diagnosis();
 			$data['investigations'] = $this->investigation_model->get_investigations_list();
 			$data['master_investigations'] = $this->investigation_model->get_master_investigations_list();
@@ -2201,6 +2253,18 @@ class Doctors extends CI_Controller {
 					} unset($_POST['female_medicine_suggestion_list']);
 					
 				}
+				
+				// Process IPD Medicine Suggestions for consultation_post (second occurrence)
+				if(isset($_POST['medicine_suggestion_ipd'])){
+					$consultation_post['medicine_suggestion_ipd'] = $_POST['medicine_suggestion_ipd']; unset($_POST['medicine_suggestion_ipd']);
+					if(isset($male_medicine_suggestion_list_ipd) && !empty($male_medicine_suggestion_list_ipd)){
+						$consultation_post['male_medicine_suggestion_list_ipd'] = $male_medicine_suggestion_list_ipd;
+					} unset($_POST['male_medicine_suggestion_list_ipd']);
+					if(isset($female_medicine_suggestion_list_ipd) && !empty($female_medicine_suggestion_list_ipd)){
+						$consultation_post['female_medicine_suggestion_list_ipd'] = $female_medicine_suggestion_list_ipd; 
+					}unset($_POST['female_medicine_suggestion_list_ipd']);
+				}
+				
 				if(isset($_POST['investigation_suggestion'])){
 					$consultation_post['investation_suggestion'] = $_POST['investigation_suggestion']; unset($_POST['investigation_suggestion']);
 					if(isset($_POST['male_investigation_suggestion_list']) && !empty($_POST['male_investigation_suggestion_list'])){

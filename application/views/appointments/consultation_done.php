@@ -1,4 +1,11 @@
-<?php $all_method =&get_instance();
+<?php 
+if (isset($select_result2) && is_array($select_result2) && isset($select_result2['center_id'])) {
+    $center_number = $select_result2['center_id'];
+} else {
+    $center_number = '';
+}
+
+$all_method =&get_instance();
 $consultation_data = $all_method->get_consultation($appointments['ID']);
 $patient_data = get_patient_detail($consultation_data['patient_id']);
 //var_dump($patient_data);die;
@@ -15,29 +22,108 @@ $countdownDuration = 7200; // 5 minutes
 
 
 <style>
+	/* Bootstrap 3 Enhanced Styles */
+	.panel-primary {
+		border-color: #337ab7;
+	}
+	.panel-primary > .panel-heading {
+		background-color: #337ab7;
+		border-color: #337ab7;
+		color: #fff;
+	}
+	.form-group {
+		margin-bottom: 15px;
+	}
+	.form-control {
+		border-radius: 4px;
+		border: 1px solid #ccc;
+		padding: 6px 12px;
+		font-size: 14px;
+		line-height: 1.42857143;
+	}
+	.form-control:focus {
+		border-color: #66afe9;
+		outline: 0;
+		box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6);
+	}
 	.table > thead > tr > th {
 		vertical-align: top;
+		background-color: #f5f5f5;
+		border-bottom: 2px solid #ddd;
+		font-weight: bold;
 	}
-	td {
-		width: auto;
+	.table > tbody > tr > td {
+		border-top: 1px solid #ddd;
+		padding: 8px;
+		vertical-align: middle;
 	}
-	.border-field input.form-control {
-		border: 1px solid;
-		padding: 0;
+	.table-bordered {
+		border: 1px solid #ddd;
 	}
-	[type="radio"]:checked+label:before, [type="radio"]:checked+label:after, [type="radio"]:not(:checked)+label:before, [type="radio"]:not(:checked)+label:after{display:none!important;}
-	[type="radio"]:not(:checked), [type="radio"]:checked { position: relative!important;  left: 0!important; opacity: 1!important; }
-	[type="radio"]:not(:checked)+label, [type="radio"]:checked+label{padding-left:0px!important; padding-right:5px!important;}
+	.table-bordered > thead > tr > th,
+	.table-bordered > tbody > tr > td {
+		border: 1px solid #ddd;
+	}
+	.btn-primary {
+		background-color: #337ab7;
+		border-color: #2e6da4;
+		color: #fff;
+	}
+	.btn-primary:hover {
+		background-color: #286090;
+		border-color: #204d74;
+	}
+	.btn-success {
+		background-color: #5cb85c;
+		border-color: #4cae4c;
+		color: #fff;
+	}
+	.btn-success:hover {
+		background-color: #449d44;
+		border-color: #398439;
+	}
+	.medicine-section {
+		background-color: #f9f9f9;
+		border: 1px solid #e3e3e3;
+		border-radius: 4px;
+		padding: 15px;
+		margin-bottom: 20px;
+	}
+	.medicine-section h4 {
+		color: #337ab7;
+		margin-top: 0;
+		margin-bottom: 15px;
+		border-bottom: 2px solid #337ab7;
+		padding-bottom: 5px;
+	}
+	.medicine-table {
+		background-color: #fff;
+		border-radius: 4px;
+		overflow: hidden;
+	}
+	.medicine-table th {
+		background-color: #337ab7;
+		color: #fff;
+		border: none;
+		padding: 12px 8px;
+		font-size: 12px;
+		text-align: center;
+	}
+	.medicine-table td {
+		border: 1px solid #ddd;
+		padding: 8px;
+		vertical-align: middle;
+	}
+	.medicine-table input,
+	.medicine-table select {
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		padding: 4px 6px;
+		font-size: 12px;
+		width: 100%;
+	}
 	.multiselect-container>li>a>label {
 		padding: 4px 20px 3px 20px;
-	}
-	table#SOCIAl_DRUG_INTAKE_HISTORY td, #table_dentures td {
-		width: 55%;
-	}
-	input[type="checkbox"] {
-		position: relative!important;
-		left: 2px!important;
-		opacity: 1!important;
 	}
 	.open > .dropdown-menu {
 		width: 350px;
@@ -57,12 +143,30 @@ $countdownDuration = 7200; // 5 minutes
 	select#center {
     display: block!important;
     }
+	td {
+		width: auto;
+	}
+	.border-field input.form-control {
+		border: 1px solid;
+		padding: 0;
+	}
+	[type="radio"]:checked+label:before, [type="radio"]:checked+label:after, [type="radio"]:not(:checked)+label:before, [type="radio"]:not(:checked)+label:after{display:none!important;}
+	[type="radio"]:not(:checked), [type="radio"]:checked { position: relative!important;  left: 0!important; opacity: 1!important; }
+	[type="radio"]:not(:checked)+label, [type="radio"]:checked+label{padding-left:0px!important; padding-right:5px!important;}
+	table#SOCIAl_DRUG_INTAKE_HISTORY td, #table_dentures td {
+		width: 55%;
+	}
+	input[type="checkbox"] {
+		position: relative!important;
+		left: 2px!important;
+		opacity: 1!important;
+    }
 	#example1{background:#fff;}
 </style>
 
 
 
-<form class="col-sm-12 col-xs-12" method="post" id="consultation_done_form" onsubmit="return submitForm(this);" action="" enctype="multipart/form-data" >
+<form class="form-horizontal" method="post" id="consultation_done_form" onsubmit="return submitForm(this);" action="" enctype="multipart/form-data" >
 
 <input type="hidden" name="action" value="add_consultation_done" />
 
@@ -80,82 +184,51 @@ $countdownDuration = 7200; // 5 minutes
 
 <input type="hidden" name="doctor" id="doctor" value="<?php echo $_SESSION['logged_doctor']['doctor_id']?>" />
 
-<input type="hidden" name="center_number" id="center_number" value="<?php echo $select_result2['center_id']; ?>" />
-
-<section class="content">
+<input type="hidden" name="center_number" id="center_number" value="<?php echo htmlspecialchars($center_number); ?>" />
 
 	<div class="container-fluid">
-
 		<div class="row">
-
-			<!-- left column -->
-
 			<div class="col-md-12">
-
-					<!-- general form elements -->
-
-					<div class="card card-primary">
-
-						<!--   <div class="card-header">
-
-							<h3 class="card-title">Quick Example</h3>
-
-						</div> -->
-
-						<!-- /.card-header -->
-
-						<!-- form start -->
-
+			<!-- Patient Information Panel -->
+			<div class="panel panel-primary">
+				<div class="panel-heading">
+					<h3 class="panel-title"><i class="fa fa-user"></i> Patient Consultation Form</h3>
+				</div>
+				<div class="panel-body">
 						<table id="example1" class="table table-bordered table-striped">
-
 							<thead>
-
+							<tr>
 								<th></th>
-
-								<th style="color: red;">Patient</th>
-
-								<th style="color: red;">Spouse</th>
-
+								<th style="color: #d9534f; font-weight: bold;">Patient</th>
+								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
 								</tr>
-
 							</thead>
-
-							<thead>
-
-								<tr>
-
-									<th style="color: red;">NAME</th>
-
-									<td>
-
-									<input type="text" class="form-control" name="female_name" readonly value="<?php echo $patient_data['wife_name']?>"  id="exampleInputEmail1" placeholder="Enter name">
-
+						<tbody>
+							<tr>
+								<th style="color: #d9534f; font-weight: bold;">NAME</th>
+								<td>
+									<div class="form-group">
+										<input type="text" class="form-control" name="female_name" readonly value="<?php echo $patient_data['wife_name']?>" id="exampleInputEmail1" placeholder="Enter name">
+									</div>
 									</td>
-
 									<td>
-
+									<div class="form-group">
 									<input type="text" class="form-control" name="male_name" value="<?php echo !empty($patient_medical_info['male_name'])?$patient_medical_info['male_name']:"";?>" id="exampleInputEmail1" placeholder="Enter name" required>
-
+									</div>
 									</td>
-
 								</tr>
-
 								<tr>
-
-									<th style="color: red;">AGE (YEARS)</th>
-
+								<th style="color: #d9534f; font-weight: bold;">AGE (YEARS)</th>
 									<td>
-
+									<div class="form-group">
                        <input type="number" class="form-control" value="<?php echo !empty($patient_medical_info['female_age'])?$patient_medical_info['female_age']:""; ?>" name="female_age" id="exampleInputEmail1" placeholder="Enter your age" required>
-
+									</div>
                     </td>
-
                     <td>
-
+									<div class="form-group">
                       <input type="number" class="form-control" value="<?php echo !empty($patient_medical_info['male_age'])?$patient_medical_info['male_age']:""; ?>" name="male_age" id="exampleInputEmail1" placeholder="Enter your age" required>
-
+									</div>
                     </td>
-
                     </tr>
 
                     <tr>
@@ -4710,8 +4783,11 @@ if (!empty($package)) {
 								<?php  } } ?>
 							</select>
 							<script type='text/javascript'>
-								$('#female_provisional_diagnosis_list').val(<?php echo json_encode($female_provisional_diagnosis_list); ?>);
+								$('#female_provisional_diagnosis_list').val(
+									<?php echo isset($female_provisional_diagnosis_list) ? json_encode($female_provisional_diagnosis_list) : '""'; ?> 
+								);
 							</script>
+
 						</div>
 						
 						</td>
@@ -4728,7 +4804,9 @@ if (!empty($package)) {
 									<?php  } } ?>
 								</select>
 								<script type='text/javascript'>
-								$('#male_provisional_diagnosis_list').val(<?php echo json_encode($male_provisional_diagnosis_list); ?>);
+									$('#male_provisional_diagnosis_list').val(
+										<?php echo isset($male_provisional_diagnosis_list) ? json_encode($male_provisional_diagnosis_list) : '""'; ?>
+									);
 								</script>
 							</div>
 						</td>
@@ -4822,7 +4900,6 @@ if (!empty($package)) {
 							<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['investation_suggestion']) && $patient_doctor_consultation['investation_suggestion'] == "1"){
 									$female_minvestigation_suggestion_list = unserialize($patient_doctor_consultation['female_minvestigation_suggestion_list']); 
 									$disabled = "";
-									//var_dump($sub_procedure_suggestion_list);die;
 							}?>
 							<select class="multidselect_dropdown_1" multiple id="female_minvestigation_suggestion_list" <?php echo $disabled; ?> name="female_minvestigation_suggestion_list[]"  >
 								<?php if(!empty($master_investigations)) { foreach($master_investigations as $key => $val) { ?>
@@ -4830,19 +4907,17 @@ if (!empty($package)) {
 								<?php  } } ?>
 							</select>
 							<script type='text/javascript'>
-								$('#female_minvestigation_suggestion_list').val(<?php echo json_encode($female_minvestigation_suggestion_list); ?>);
+								$('#female_minvestigation_suggestion_list').val(
+									<?php echo isset($female_minvestigation_suggestion_list) ? json_encode($female_minvestigation_suggestion_list) : '""'; ?>
+								);
 							</script>
 						</div>
-						<!-- <script type='text/javascript'>
-							$('#female_investigation_suggestion_list').val(<?php echo "";//json_encode($sub_procedure_suggestion_list); ?>);
-						</script> -->
 						</td>
 						<td>
 							<div class="col-sm-12 col-xs-12 role">
 								<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['investation_suggestion']) && $patient_doctor_consultation['investation_suggestion'] == "1"){
 										$male_minvestigation_suggestion_list = unserialize($patient_doctor_consultation['male_minvestigation_suggestion_list']); 
 										$disabled = "";
-										//var_dump($sub_procedure_suggestion_list);die;
 								}?>
 								<select class="multidselect_dropdown_1" multiple id="male_minvestigation_suggestion_list" <?php echo $disabled; ?> name="male_minvestigation_suggestion_list[]">
 									<?php if(!empty($master_investigations)) { foreach($master_investigations as $key => $val) { ?>
@@ -4850,7 +4925,9 @@ if (!empty($package)) {
 									<?php  } } ?>
 								</select>
 								<script type='text/javascript'>
-								$('#male_minvestigation_suggestion_list').val(<?php echo json_encode($male_minvestigation_suggestion_list); ?>);
+									$('#male_minvestigation_suggestion_list').val(
+										<?php echo isset($male_minvestigation_suggestion_list) ? json_encode($male_minvestigation_suggestion_list) : '""'; ?>
+									);
 								</script>
 							</div>
 						</td>
@@ -4873,17 +4950,12 @@ if (!empty($package)) {
 							<?php  $cis++; } } ?>
 							
 						</div>
-						<!-- <script type='text/javascript'>
-							$('#female_investigation_suggestion_list').val(<?php echo "";//json_encode($sub_procedure_suggestion_list); ?>);
-						</script> -->
 						</td>
 						<td>
 							<div class="col-sm-12 col-xs-12 role">
 									<?php $male_minvestigation_suggestion_list=array();
 									 if(isset($patient_doctor_consultation['investation_suggestion']) && $patient_doctor_consultation['investation_suggestion'] == "1"){
 											$male_minvestigation_suggestion_list = unserialize($patient_doctor_consultation['male_minvestigation_suggestion_list']); 
-											
-											//var_dump($sub_procedure_suggestion_list);die;
 									}
 								?>
 								<?php if(!empty($male_minvestigation_suggestion_list)) {
@@ -4896,153 +4968,79 @@ if (!empty($package)) {
 						</td>
 					</tr>
 					<?php } ?>
-
 					<?php if($appointments['partial_billing'] == 0){ ?>
 						<tr>
-							<th>MEDICINES ADVISED  <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="medicine_suggestion" value="1" <?php if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){echo 'checked="checked"';}?> name="medicine_suggestion"   /></th>
-
+							<th>MEDICINES ADVISED Opd <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="medicine_suggestion" value="1" <?php if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){echo 'checked="checked"';}?> name="medicine_suggestion"   /></th>
 							<td style="padding: 0;">
-
 								<div class="col-sm-12 col-xs-12">
-
 									<?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
-
 										if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){
-
 											$female_medicine_suggestion_list = unserialize($patient_doctor_consultation['female_medicine_suggestion_list']); 
-
 											$disabled = "";
-
 											$display="block";
-
 											if(!empty($female_medicine_suggestion_list['female_medicine_suggestion_list']) && isset($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
-
 												foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
-
-													//var_dump($val);die;
-
 													$female_medicine_suggestion_arr[] = $val['female_medicine_name'];
-
 												}
-
 											}
-
 									}?>
-
 									<select class="multidselect_dropdown" multiple id="female_medicine_suggestion_list" <?php echo $disabled; ?>  >
-
 										<?php if(!empty($consultation_medicine)) { foreach($consultation_medicine as $key => $val) { ?>
-
 												<option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
-
 										<?php  } } ?>
-
 									</select>
-
 									<hr/>
-
 									<table id="female_medicine_table" style="width:100%; border:1px solid #000; display:<?php echo $display;?>;" border='1'>
-
 											<thead>
-
 												<tr>
-
 													<th style="border:1px solid #000; padding:10px;">Medicine</th>
-
 													<th style="border:1px solid #000; padding:10px;">Dosage</th>
-
 													<th style="border:1px solid #000; padding:10px;">Start on</th>
-
 													<th style="border:1px solid #000; padding:10px;">Days</th>
-
 													<th style="border:1px solid #000; padding:10px;">Route</th>
-
 													<th style="border:1px solid #000; padding:10px;">Frequency</th>
-
 													<th style="border:1px solid #000; padding:10px;">Timing</th>
-													
 													<th style="border:1px solid #000; padding:10px;">Take</th>
-
 												</tr>
-
 												<tbody id="female_medicine_suggestion_table">
-
 													<?php if(!empty($female_medicine_suggestion_arr )){
-
 														$fmd_count = 1;
-
 														foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
-
-															//var_dump($val);die;?>
-
+														?>
 														<tr style='border:1px solid #000;' count="<?php echo $fmd_count; ?>">
-
 															<td style='border:1px solid #000;'><?php echo get_medicine_name($val['female_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['female_medicine_name']?>' style='margin:0;padding:0;' name='female_medicine_name_<?php echo $fmd_count; ?>' id='female_medicine_name_<?php echo $fmd_count; ?>'></td>
-
 															<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['female_medicine_dosage']?>" style='margin:0;padding:0;' name='female_medicine_dosage_<?php echo $fmd_count; ?>'   id='female_medicine_dosage_<?php echo $fmd_count; ?>'></td>
-
 															<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['female_medicine_when_start']?>" style='margin:0;padding:0;' name='female_medicine_when_start_<?php echo $fmd_count; ?>' id='female_medicine_when_start_<?php echo $fmd_count; ?>'  ></td>
-
 															<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['female_medicine_days']?>" style='margin:0;padding:0;' name='female_medicine_days_<?php echo $fmd_count; ?>'   id='female_medicine_days_<?php echo $fmd_count; ?>'></td>
-
 															<td style='border:1px solid #000;' class='role'>
-
 																<select style='margin:0;padding:0;' name='female_medicine_route_<?php echo $fmd_count; ?>' id='female_medicine_route_<?php echo $fmd_count; ?>'  >
-
 																	<option value='PO' <?php if($val['female_medicine_route'] == "PO"){echo 'selected="selected"';}?> >PO</option> 
-
 																	<option value='IM' <?php if($val['female_medicine_route'] == "IM"){echo 'selected="selected"';}?>>IM</option>
-
 																	<option value='SC' <?php if($val['female_medicine_route'] == "SC"){echo 'selected="selected"';}?>>SC</option>
-
 																	<option value='VAGINA-LY' <?php if($val['female_medicine_route'] == "VAGINA-LY"){echo 'selected="selected"';}?>>VAGINA-LY</option>
-
 																	<option value='IV' <?php if($val['female_medicine_route'] == "IV"){echo 'selected="selected"';}?>>IV</option>
-
 																	<option value='LOCAL' <?php if($val['female_medicine_route'] == "LOCAL"){echo 'selected="selected"';}?>>LOCAL</option>
-
 																	<option value='NASALY' <?php if($val['female_medicine_route'] == "NASALY"){echo 'selected="selected"';}?>>NASALY</option>
-
 																</select>
-
 															</td>
-
 															<td style='border:1px solid #000;' class='role'>
-
 																<select style='margin:0;padding:0;' name='female_medicine_frequency_<?php echo $fmd_count; ?>' id='female_medicine_frequency_<?php echo $fmd_count; ?>'  >
-
 																	<option value='OD ( दिन में एक बार )' <?php if($val['female_medicine_frequency'] == "OD ( दिन में एक बार )"){echo 'selected="selected"';}?>>OD ( दिन में एक बार )</option> 
-
 																	<option value='BD ( दिन में  दो बार )' <?php if($val['female_medicine_frequency'] == "BD ( दिन में  दो बार )"){echo 'selected="selected"';}?>>BD ( दिन में  दो बार )</option> 
-
 																	<option value='TDS ( दिन में 3 बार)' <?php if($val['female_medicine_frequency'] == "TDS ( दिन में 3बार)"){echo 'selected="selected"';}?>>TDS ( दिन में 3बार)</option> 
-
 																	<option value='QID ( दिन में 4 बार)' <?php if($val['female_medicine_frequency'] == "QID ( दिन में 4 बार)"){echo 'selected="selected"';}?>>QID ( दिन में 4 बार)</option> 
-
 																	<option value='SOS ( लक्षण होने पर )' <?php if($val['female_medicine_frequency'] == "SOS ( लक्षण होने पर )"){echo 'selected="selected"';}?>>SOS ( लक्षण होने पर )</option>
-
 																	<option value='HS ( रात में )' <?php if($val['female_medicine_frequency'] == "HS ( रात में )"){echo 'selected="selected"';}?>>HS ( रात में )</option>
-
 																</select>
-
 															</td>
-
 															<td style='border:1px solid #000;' class='role'>
-
 																<select style='margin:0;padding:0;' name='female_medicine_timing_<?php echo $fmd_count; ?>' id='female_medicine_timing_<?php echo $fmd_count; ?>'  > 
-
 																	<option value='EMPTY STOMACH' <?php if($val['female_medicine_timing'] == "EMPTY STOMACH"){echo 'selected="selected"';}?>>EMPTY STOMACH</option>
-
 																	<option value='BEFORE MEAL' <?php if($val['female_medicine_timing'] == "BEFORE MEAL"){echo 'selected="selected"';}?>>BEFORE MEAL</option> 
-
 																	<option value='AFTER MEAL' <?php if($val['female_medicine_timing'] == "AFTER MEAL"){echo 'selected="selected"';}?>>AFTER MEAL</option>
-
 																</select>
-
 															</td>
-															
 															<td style='border:1px solid #000;' class='role'>
-
 																<select style='margin:0;padding:0;' name='female_medicine_take_<?php echo $fmd_count; ?>' id='female_medicine_take_<?php echo $fmd_count; ?>'  >
                                                                     <option value='Daily' <?php if(isset($val['female_medicine_take']) && $val['female_medicine_take'] == "Daily"){echo 'selected="selected"';}?>>Daily</option>
                                                                     <option value='Biweekly' <?php if(isset($val['female_medicine_take']) && $val['female_medicine_take'] == "Biweekly"){echo 'selected="selected"';}?>>Biweekly</option>
@@ -5050,173 +5048,87 @@ if (!empty($package)) {
                                                                     <option value='Blank' <?php if(isset($val['female_medicine_take']) && $val['female_medicine_take'] == "Blank"){echo 'selected="selected"';}?>>Blank</option>
                                                                     <option value='Alternate Day' <?php if(isset($val['female_medicine_take']) && $val['female_medicine_take'] == "Alternate Day"){echo 'selected="selected"';}?>>Alternate Day</option>
 																</select>
-
 															</td>
-
 														</tr>
-
 													<?php $fmd_count++; }} ?>
-
 												</tbody>
-
 											</thead>
-
 									</table>
-
 									<script type='text/javascript'>
-
 										$('#female_medicine_suggestion_list').val(<?php echo json_encode($female_medicine_suggestion_arr); ?>);
-
 									</script>
-
 								</div>
-
 							</td>
-
 							<td style="padding: 0;">
-
 								<div class="col-sm-12 col-xs-12">
-
 									<?php $disabled = "disabled"; $display="none"; $male_medicine_suggestion_arr = array(); 
-
 									if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){
-
 											$male_medicine_suggestion_list = unserialize($patient_doctor_consultation['male_medicine_suggestion_list']); 
-
 											$disabled = "";
-
 											$display="block";
-
-											//var_dump($male_medicine_suggestion_list);die;
-
 											if(!empty($male_medicine_suggestion_list['male_medicine_suggestion_list']) && isset($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
-
 												foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
-
-													//var_dump($val);die;
-
 													$male_medicine_suggestion_arr[] = $val['male_medicine_name'];
-
 												}
-
 											}
-
 									}?>
-
 									<select class="multidselect_dropdown" multiple id="male_medicine_suggestion_list" <?php echo $disabled; ?>>
-
 										<?php if(!empty($consultation_medicine)) { foreach($consultation_medicine as $key => $val) { ?>
-
 												<option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
-
 										<?php  } } ?>
-
 									</select>
-
 									<hr/>
-
 									<table style="width:100%; border:1px solid #000; display:<?php echo $display;?>;" id="male_medicine_table" border='1'>
-
 											<thead>
-
 												<tr>
-
 													<th style="border:1px solid #000; padding:10px;">Medicine</th>
-
 													<th style="border:1px solid #000; padding:10px;">Dosage</th>
-
 													<th style="border:1px solid #000; padding:10px;">Start on</th>
-
 													<th style="border:1px solid #000; padding:10px;">Days</th>
-
 													<th style="border:1px solid #000; padding:10px;">Route</th>
-
 													<th style="border:1px solid #000; padding:10px;">Frequency</th>
-
 													<th style="border:1px solid #000; padding:10px;">Timing</th>
-													
 													<th style="border:1px solid #000; padding:10px;">Take</th>
-
 												</tr>
-
 												<tbody id="male_medicine_suggestion_table">
-
 													<?php if(!empty($male_medicine_suggestion_arr )){
-
 														$mmd_count = 1;
-
 														foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
-
-															//var_dump($val);die;?>
-
+														?>
 														<tr style='border:1px solid #000;' count="<?php echo $mmd_count; ?>">
-
 															<td style='border:1px solid #000;'><?php echo get_medicine_name($val['male_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['male_medicine_name']?>' style='margin:0;padding:0;' name='male_medicine_name_<?php echo $mmd_count; ?>' id='male_medicine_name_<?php echo $mmd_count; ?>'></td>
-
 															<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['male_medicine_dosage']?>" style='margin:0;padding:0;' name='male_medicine_dosage_<?php echo $mmd_count; ?>'   id='male_medicine_dosage_<?php echo $mmd_count; ?>'></td>
-
 															<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['male_medicine_when_start']?>" style='margin:0;padding:0;' name='male_medicine_when_start_<?php echo $mmd_count; ?>' id='male_medicine_when_start_<?php echo $mmd_count; ?>'  ></td>
-
 															<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['male_medicine_days']?>" style='margin:0;padding:0;' name='male_medicine_days_<?php echo $mmd_count; ?>'   id='male_medicine_days_<?php echo $mmd_count; ?>'></td>
-
 															<td style='border:1px solid #000;' class='role'>
-
 																<select style='margin:0;padding:0;' name='male_medicine_route_<?php echo $mmd_count; ?>' id='male_medicine_route_<?php echo $mmd_count; ?>'  >
-
 																	<option value='PO' <?php if($val['male_medicine_route'] == "PO"){echo 'selected="selected"';}?> >PO</option> 
-
 																	<option value='IM' <?php if($val['male_medicine_route'] == "IM"){echo 'selected="selected"';}?>>IM</option>
-
 																	<option value='SC' <?php if($val['male_medicine_route'] == "SC"){echo 'selected="selected"';}?>>SC</option>
-
 																	<option value='VAGINA-LY' <?php if($val['male_medicine_route'] == "VAGINA-LY"){echo 'selected="selected"';}?>>VAGINA-LY</option>
-
 																	<option value='IV' <?php if($val['male_medicine_route'] == "IV"){echo 'selected="selected"';}?>>IV</option>
-
 																	<option value='LOCAL' <?php if($val['male_medicine_route'] == "LOCAL"){echo 'selected="selected"';}?>>LOCAL</option>
-
 																	<option value='NASALY' <?php if($val['male_medicine_route'] == "NASALY"){echo 'selected="selected"';}?>>NASALY</option>
-
 																</select>
-
 															</td>
-
 															<td style='border:1px solid #000;' class='role'>
-
 																<select style='margin:0;padding:0;' name='male_medicine_frequency_<?php echo $mmd_count; ?>' id='male_medicine_frequency_<?php echo $mmd_count; ?>'  >
-
 																	<option value='OD (दिन में एक बार )' <?php if($val['female_medicine_frequency'] == "OD (दिन में एक बार )"){echo 'selected="selected"';}?>>OD (दिन में एक बार )</option> 
-
 																	<option value='BD (दिन में  दो बार )' <?php if($val['female_medicine_frequency'] == "BD (दिन में  दो बार )"){echo 'selected="selected"';}?>>BD (दिन में  दो बार )</option> 
-
 																	<option value='TDS (दिन में 3 बार)' <?php if($val['female_medicine_frequency'] == "TDS (दिन में 3बार)"){echo 'selected="selected"';}?>>TDS (दिन में 3बार)</option> 
-
 																	<option value='QID (दिन में 4 बार)' <?php if($val['female_medicine_frequency'] == "QID (दिन में 4 बार)"){echo 'selected="selected"';}?>>QID (दिन में 4 बार)</option> 
-
 																	<option value='SOS (लक्षण होने पर )' <?php if($val['female_medicine_frequency'] == "SOS (लक्षण होने पर )"){echo 'selected="selected"';}?>>SOS (लक्षण होने पर )</option>
-
 																	<option value='HS (रात में )' <?php if($val['female_medicine_frequency'] == "HS (रात में )"){echo 'selected="selected"';}?>>HS (रात में )</option>
-
 																</select>
-
 															</td>
-
 															<td style='border:1px solid #000;' class='role'>
-
 																<select style='margin:0;padding:0;' name='male_medicine_timing_<?php echo $mmd_count; ?>' id='male_medicine_timing_<?php echo $mmd_count; ?>'  > 
-
 																	<option value='EMPTY STOMACH' <?php if($val['male_medicine_timing'] == "EMPTY STOMACH"){echo 'selected="selected"';}?>>EMPTY STOMACH</option>
-
 																	<option value='BEFORE MEAL' <?php if($val['male_medicine_timing'] == "BEFORE MEAL"){echo 'selected="selected"';}?>>BEFORE MEAL</option> 
-
 																	<option value='AFTER MEAL' <?php if($val['male_medicine_timing'] == "AFTER MEAL"){echo 'selected="selected"';}?>>AFTER MEAL</option>
-
 																</select>
-
 															</td>
-															
 															<td style='border:1px solid #000;' class='role'>
-
 																<select style='margin:0;padding:0;' name='male_medicine_take_<?php echo $fmd_count; ?>' id='male_medicine_take_<?php echo $fmd_count; ?>'  >
                                                                     <option value='Daily' <?php if(isset($val['male_medicine_take']) && $val['male_medicine_take'] == "Daily"){echo 'selected="selected"';}?>>Daily</option>
                                                                     <option value='Biweekly' <?php if(isset($val['male_medicine_take']) && $val['male_medicine_take'] == "Biweekly"){echo 'selected="selected"';}?>>Biweekly</option>
@@ -5224,34 +5136,203 @@ if (!empty($package)) {
                                                                     <option value='Blank' <?php if(isset($val['male_medicine_take']) && $val['male_medicine_take'] == "Blank"){echo 'selected="selected"';}?>>Blank</option>
                                                                     <option value='Alternate Day' <?php if(isset($val['male_medicine_take']) && $val['male_medicine_take'] == "Alternate Day"){echo 'selected="selected"';}?>>Alternate Day</option>
 																</select>
-
 															</td>
-
-
 														</tr>
-
 													<?php $mmd_count++; }} ?>										
-
 												</tbody>
-
 											</thead>
-
 									</table>
-
 									<script type='text/javascript'>
-
 										$('#male_medicine_suggestion_list').val(<?php echo json_encode($male_medicine_suggestion_arr); ?>);
-
 									</script>
-
 								</div>
-
 							</td>
-
 						</tr>
+							<tr>
+							<!-- start  medicine advised ipd  -->
+								<th>MEDICINES ADVISED Ipd <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="medicine_suggestion_ipd" value="1" <?php if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == "1"){echo 'checked="checked"';}?> name="medicine_suggestion_ipd"   /></th>
+								<td style="padding: 0;">
+									<div class="col-sm-12 col-xs-12">
+										<?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
+											if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == "1"){
+												$female_medicine_suggestion_list = unserialize($patient_doctor_consultation['female_medicine_suggestion_list_ipd']); 
+												$disabled = "";
+												$display="block";
+												if(!empty($female_medicine_suggestion_list['female_medicine_suggestion_list']) && isset($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
+													foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
+														$female_medicine_suggestion_arr[] = $val['female_medicine_name'];
+													}
+												}
+										}?>
+										<select class="multidselect_dropdown" multiple id="female_medicine_suggestion_list_ipd" <?php echo $disabled; ?>  >
+											<?php if(!empty($consultation_medicine_ipd)) { foreach($consultation_medicine_ipd as $key => $val) { ?>
+													<option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
+											<?php  } } ?>
+										</select>
+										<hr/>
+										<table id="female_medicine_table_ipd" style="width:100%; border:1px solid #000; display:<?php echo $display;?>;" border='1'>
+												<thead>
+													<tr>
+														<th style="border:1px solid #000; padding:10px;">Medicine</th>
+														<th style="border:1px solid #000; padding:10px;">Dosage</th>
+														<th style="border:1px solid #000; padding:10px;">Start on</th>
+														<th style="border:1px solid #000; padding:10px;">Days</th>
+														<th style="border:1px solid #000; padding:10px;">Route</th>
+														<th style="border:1px solid #000; padding:10px;">Frequency</th>
+														<th style="border:1px solid #000; padding:10px;">Timing</th>
+														<th style="border:1px solid #000; padding:10px;">Take</th>
+													</tr>
+													<tbody id="female_medicine_suggestion_table_ipd">
+														<?php if(!empty($female_medicine_suggestion_arr )){
+															$fmd_count = 1;
+															foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
+															?>
+															<tr style='border:1px solid #000;' count="<?php echo $fmd_count; ?>">
+																<td style='border:1px solid #000;'><?php echo get_medicine_name($val['female_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['female_medicine_name']?>' style='margin:0;padding:0;' name='female_medicine_name_ipd_<?php echo $fmd_count; ?>' id='female_medicine_name_ipd_<?php echo $fmd_count; ?>'></td>
+																<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['female_medicine_dosage']?>" style='margin:0;padding:0;' name='female_medicine_dosage_ipd_<?php echo $fmd_count; ?>'   id='female_medicine_dosage_ipd_<?php echo $fmd_count; ?>'></td>
+																<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['female_medicine_when_start']?>" style='margin:0;padding:0;' name='female_medicine_when_start_ipd_<?php echo $fmd_count; ?>' id='female_medicine_when_start_ipd_<?php echo $fmd_count; ?>'  ></td>
+																<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['female_medicine_days']?>" style='margin:0;padding:0;' name='female_medicine_days_ipd_<?php echo $fmd_count; ?>'   id='female_medicine_days_ipd_<?php echo $fmd_count; ?>'></td>
+																<td style='border:1px solid #000;' class='role'>
+																	<select style='margin:0;padding:0;' name='female_medicine_route_ipd_<?php echo $fmd_count; ?>' id='female_medicine_route_ipd_<?php echo $fmd_count; ?>'  >
+																		<option value='PO' <?php if($val['female_medicine_route'] == "PO"){echo 'selected="selected"';}?> >PO</option> 
+																		<option value='IM' <?php if($val['female_medicine_route'] == "IM"){echo 'selected="selected"';}?>>IM</option>
+																		<option value='SC' <?php if($val['female_medicine_route'] == "SC"){echo 'selected="selected"';}?>>SC</option>
+																		<option value='VAGINA-LY' <?php if($val['female_medicine_route'] == "VAGINA-LY"){echo 'selected="selected"';}?>>VAGINA-LY</option>
+																		<option value='IV' <?php if($val['female_medicine_route'] == "IV"){echo 'selected="selected"';}?>>IV</option>
+																		<option value='LOCAL' <?php if($val['female_medicine_route'] == "LOCAL"){echo 'selected="selected"';}?>>LOCAL</option>
+																		<option value='NASALY' <?php if($val['female_medicine_route'] == "NASALY"){echo 'selected="selected"';}?>>NASALY</option>
+																	</select>
+																</td>
+																<td style='border:1px solid #000;' class='role'>
+																	<select style='margin:0;padding:0;' name='female_medicine_frequency_ipd_<?php echo $fmd_count; ?>' id='female_medicine_frequency_ipd_<?php echo $fmd_count; ?>'  >
+																		<option value='OD ( दिन में एक बार )' <?php if($val['female_medicine_frequency'] == "OD ( दिन में एक बार )"){echo 'selected="selected"';}?>>OD ( दिन में एक बार )</option> 
+																		<option value='BD ( दिन में  दो बार )' <?php if($val['female_medicine_frequency'] == "BD ( दिन में  दो बार )"){echo 'selected="selected"';}?>>BD ( दिन में  दो बार )</option> 
+																		<option value='TDS ( दिन में 3 बार)' <?php if($val['female_medicine_frequency'] == "TDS ( दिन में 3बार)"){echo 'selected="selected"';}?>>TDS ( दिन में 3बार)</option> 
+																		<option value='QID ( दिन में 4 बार)' <?php if($val['female_medicine_frequency'] == "QID ( दिन में 4 बार)"){echo 'selected="selected"';}?>>QID ( दिन में 4 बार)</option> 
+																		<option value='SOS ( लक्षण होने पर )' <?php if($val['female_medicine_frequency'] == "SOS ( लक्षण होने पर )"){echo 'selected="selected"';}?>>SOS ( लक्षण होने पर )</option>
+																		<option value='HS ( रात में )' <?php if($val['female_medicine_frequency'] == "HS ( रात में )"){echo 'selected="selected"';}?>>HS ( रात में )</option>
+																	</select>
+																</td>
+																<td style='border:1px solid #000;' class='role'>
+																	<select style='margin:0;padding:0;' name='female_medicine_timing_ipd_<?php echo $fmd_count; ?>' id='female_medicine_timing_ipd_<?php echo $fmd_count; ?>'  > 
+																		<option value='EMPTY STOMACH' <?php if($val['female_medicine_timing'] == "EMPTY STOMACH"){echo 'selected="selected"';}?>>EMPTY STOMACH</option>
+																		<option value='BEFORE MEAL' <?php if($val['female_medicine_timing'] == "BEFORE MEAL"){echo 'selected="selected"';}?>>BEFORE MEAL</option> 
+																		<option value='AFTER MEAL' <?php if($val['female_medicine_timing'] == "AFTER MEAL"){echo 'selected="selected"';}?>>AFTER MEAL</option>
+																	</select>
+																</td>
+																<td style='border:1px solid #000;' class='role'>
+																	<select style='margin:0;padding:0;' name='female_medicine_take_ipd_<?php echo $fmd_count; ?>' id='female_medicine_take_ipd_<?php echo $fmd_count; ?>'  >
+																		<option value='Daily' <?php if(isset($val['female_medicine_take']) && $val['female_medicine_take'] == "Daily"){echo 'selected="selected"';}?>>Daily</option>
+																		<option value='Biweekly' <?php if(isset($val['female_medicine_take']) && $val['female_medicine_take'] == "Biweekly"){echo 'selected="selected"';}?>>Biweekly</option>
+																		<option value='Weekly' <?php if(isset($val['female_medicine_take']) && $val['female_medicine_take'] == "Weekly"){echo 'selected="selected"';}?>>Weekly</option> 
+																		<option value='Blank' <?php if(isset($val['female_medicine_take']) && $val['female_medicine_take'] == "Blank"){echo 'selected="selected"';}?>>Blank</option>
+																		<option value='Alternate Day' <?php if(isset($val['female_medicine_take']) && $val['female_medicine_take'] == "Alternate Day"){echo 'selected="selected"';}?>>Alternate Day</option>
+																	</select>
+																</td>
+															</tr>
+														<?php $fmd_count++; }} ?>
+													</tbody>
+												</thead>
+										</table>
+										<script type='text/javascript'>
+											$('#female_medicine_suggestion_list_ipd').val(<?php echo json_encode($female_medicine_suggestion_arr); ?>);
+										</script>
+									</div>
+								</td>
+								<td style="padding: 0;">
+									<div class="col-sm-12 col-xs-12">
+										<?php $disabled = "disabled"; $display="none"; $male_medicine_suggestion_arr = array(); 
+										if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == "1"){
+												$male_medicine_suggestion_list = unserialize($patient_doctor_consultation['male_medicine_suggestion_list_ipd']); 
+												$disabled = "";
+												$display="block";
+												if(!empty($male_medicine_suggestion_list['male_medicine_suggestion_list']) && isset($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
+													foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
+														$male_medicine_suggestion_arr[] = $val['male_medicine_name'];
+													}
+												}
+										}?>
+										<select class="multidselect_dropdown" multiple id="male_medicine_suggestion_list_ipd" <?php echo $disabled; ?>>
+											<?php if(!empty($consultation_medicine_ipd)) { foreach($consultation_medicine_ipd as $key => $val) { ?>
+													<option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
+											<?php  } } ?>
+										</select>
+										<hr/>
+										<table style="width:100%; border:1px solid #000; display:<?php echo $display;?>;" id="male_medicine_table_ipd" border='1'>
+												<thead>
+													<tr>
+														<th style="border:1px solid #000; padding:10px;">Medicine</th>
+														<th style="border:1px solid #000; padding:10px;">Dosage</th>
+														<th style="border:1px solid #000; padding:10px;">Start on</th>
+														<th style="border:1px solid #000; padding:10px;">Days</th>
+														<th style="border:1px solid #000; padding:10px;">Route</th>
+														<th style="border:1px solid #000; padding:10px;">Frequency</th>
+														<th style="border:1px solid #000; padding:10px;">Timing</th>
+														<th style="border:1px solid #000; padding:10px;">Take</th>
+													</tr>
+													<tbody id="male_medicine_suggestion_table_ipd">
+														<?php if(!empty($male_medicine_suggestion_arr )){
+															$mmd_count = 1;
+															foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
+															?>
+															<tr style='border:1px solid #000;' count="<?php echo $mmd_count; ?>">
+																<td style='border:1px solid #000;'><?php echo get_medicine_name($val['male_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['male_medicine_name']?>' style='margin:0;padding:0;' name='male_medicine_name_ipd_<?php echo $mmd_count; ?>' id='male_medicine_name_ipd_<?php echo $mmd_count; ?>'></td>
+																<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['male_medicine_dosage']?>" style='margin:0;padding:0;' name='male_medicine_dosage_ipd_<?php echo $mmd_count; ?>'   id='male_medicine_dosage_ipd_<?php echo $mmd_count; ?>'></td>
+																<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['male_medicine_when_start']?>" style='margin:0;padding:0;' name='male_medicine_when_start_ipd_<?php echo $mmd_count; ?>' id='male_medicine_when_start_ipd_<?php echo $mmd_count; ?>'  ></td>
+																<td style='border:1px solid #000;'><input type='number' value="<?php echo $val['male_medicine_days']?>" style='margin:0;padding:0;' name='male_medicine_days_ipd_<?php echo $mmd_count; ?>'   id='male_medicine_days_ipd_<?php echo $mmd_count; ?>'></td>
+																<td style='border:1px solid #000;' class='role'>
+																	<select style='margin:0;padding:0;' name='male_medicine_route_ipd_<?php echo $mmd_count; ?>' id='male_medicine_route_ipd_<?php echo $mmd_count; ?>'  >
+																		<option value='PO' <?php if($val['male_medicine_route'] == "PO"){echo 'selected="selected"';}?> >PO</option> 
+																		<option value='IM' <?php if($val['male_medicine_route'] == "IM"){echo 'selected="selected"';}?>>IM</option>
+																		<option value='SC' <?php if($val['male_medicine_route'] == "SC"){echo 'selected="selected"';}?>>SC</option>
+																		<option value='VAGINA-LY' <?php if($val['male_medicine_route'] == "VAGINA-LY"){echo 'selected="selected"';}?>>VAGINA-LY</option>
+																		<option value='IV' <?php if($val['male_medicine_route'] == "IV"){echo 'selected="selected"';}?>>IV</option>
+																		<option value='LOCAL' <?php if($val['male_medicine_route'] == "LOCAL"){echo 'selected="selected"';}?>>LOCAL</option>
+																		<option value='NASALY' <?php if($val['male_medicine_route'] == "NASALY"){echo 'selected="selected"';}?>>NASALY</option>
+																	</select>
+																</td>
+																<td style='border:1px solid #000;' class='role'>
+																	<select style='margin:0;padding:0;' name='male_medicine_frequency_ipd_<?php echo $mmd_count; ?>' id='male_medicine_frequency_ipd_<?php echo $mmd_count; ?>'  >
+																		<option value='OD (दिन में एक बार )' <?php if($val['male_medicine_frequency'] == "OD (दिन में एक बार )"){echo 'selected="selected"';}?>>OD (दिन में एक बार )</option> 
+																		<option value='BD (दिन में  दो बार )' <?php if($val['male_medicine_frequency'] == "BD (दिन में  दो बार )"){echo 'selected="selected"';}?>>BD (दिन में  दो बार )</option> 
+																		<option value='TDS (दिन में 3 बार)' <?php if($val['male_medicine_frequency'] == "TDS (दिन में 3बार)"){echo 'selected="selected"';}?>>TDS (दिन में 3बार)</option> 
+																		<option value='QID (दिन में 4 बार)' <?php if($val['male_medicine_frequency'] == "QID (दिन में 4 बार)"){echo 'selected="selected"';}?>>QID (दिन में 4 बार)</option> 
+																		<option value='SOS (लक्षण होने पर )' <?php if($val['male_medicine_frequency'] == "SOS (लक्षण होने पर )"){echo 'selected="selected"';}?>>SOS (लक्षण होने पर )</option>
+																		<option value='HS (रात में )' <?php if($val['male_medicine_frequency'] == "HS (रात में )"){echo 'selected="selected"';}?>>HS (रात में )</option>
+																	</select>
+																</td>
+																<td style='border:1px solid #000;' class='role'>
+																	<select style='margin:0;padding:0;' name='male_medicine_timing_ipd_<?php echo $mmd_count; ?>' id='male_medicine_timing_ipd_<?php echo $mmd_count; ?>'  > 
+																		<option value='EMPTY STOMACH' <?php if($val['male_medicine_timing'] == "EMPTY STOMACH"){echo 'selected="selected"';}?>>EMPTY STOMACH</option>
+																		<option value='BEFORE MEAL' <?php if($val['male_medicine_timing'] == "BEFORE MEAL"){echo 'selected="selected"';}?>>BEFORE MEAL</option> 
+																		<option value='AFTER MEAL' <?php if($val['male_medicine_timing'] == "AFTER MEAL"){echo 'selected="selected"';}?>>AFTER MEAL</option>
+																	</select>
+																</td>
+																<td style='border:1px solid #000;' class='role'>
+																	<select style='margin:0;padding:0;' name='male_medicine_take_ipd_<?php echo $mmd_count; ?>' id='male_medicine_take_ipd_<?php echo $mmd_count; ?>'  >
+																		<option value='Daily' <?php if(isset($val['male_medicine_take']) && $val['male_medicine_take'] == "Daily"){echo 'selected="selected"';}?>>Daily</option>
+																		<option value='Biweekly' <?php if(isset($val['male_medicine_take']) && $val['male_medicine_take'] == "Biweekly"){echo 'selected="selected"';}?>>Biweekly</option>
+																		<option value='Weekly' <?php if(isset($val['male_medicine_take']) && $val['male_medicine_take'] == "Weekly"){echo 'selected="selected"';}?>>Weekly</option> 
+																		<option value='Blank' <?php if(isset($val['male_medicine_take']) && $val['male_medicine_take'] == "Blank"){echo 'selected="selected"';}?>>Blank</option>
+																		<option value='Alternate Day' <?php if(isset($val['male_medicine_take']) && $val['male_medicine_take'] == "Alternate Day"){echo 'selected="selected"';}?>>Alternate Day</option>
+																	</select>
+																</td>
+															</tr>
+														<?php $mmd_count++; }} ?>										
+													</tbody>
+												</thead>
+										</table>
+										<script type='text/javascript'>
+											$('#male_medicine_suggestion_list_ipd').val(<?php echo json_encode($male_medicine_suggestion_arr); ?>);
+										</script>
+									</div>
+								</td>
+							</tr>
+							<!-- end medicine advised ipd -->
 					<?php }else{ ?>
+
 						<tr>
-                            <th>MEDICINES ADVISED</th>
+                            <th>MEDICINES ADVISED OPD</th>
                             <td style="padding: 0;">
                                 <div class="col-sm-12 col-xs-12">
                                     <?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
@@ -5261,12 +5342,10 @@ if (!empty($package)) {
                                             $display="block";
                                             if(!empty($female_medicine_suggestion_list['female_medicine_suggestion_list']) && isset($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
                                                 foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
-                                                    //var_dump($val);die;
                                                     $female_medicine_suggestion_arr[] = $val['female_medicine_name'];
                                                 }
                                             }
                                     }?>
-                        
                                     <table id="female_medicine_table" style="width:100%; border:1px solid #000; display:<?php echo $display;?>;" border='1'>
                                             <thead>
                                                 <tr>
@@ -5283,7 +5362,7 @@ if (!empty($package)) {
                                                     <?php if(!empty($female_medicine_suggestion_arr )){
                                                         $fmd_count = 1;
                                                         foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
-                                                            //var_dump($val);die;?>
+                                                            ?>
                                                         <tr style='border:1px solid #000;' count="<?php echo $fmd_count; ?>">
                                                             <td style='border:1px solid #000;'><?php echo get_medicine_name($val['female_medicine_name']);?></td>
                                                             <td style='border:1px solid #000;'><?php echo $val['female_medicine_dosage']?></td>
@@ -5308,7 +5387,6 @@ if (!empty($package)) {
                                     </table>
                                 </div>
                             </td>
-                        
                             <td style="padding: 0;">
                                 <div class="col-sm-12 col-xs-12">
                                     <?php $disabled = "disabled"; $display="none"; $male_medicine_suggestion_arr = array(); 
@@ -5316,15 +5394,12 @@ if (!empty($package)) {
                                             $male_medicine_suggestion_list = unserialize($patient_doctor_consultation['male_medicine_suggestion_list']); 
                                             $disabled = "";
                                             $display="block";
-                                            //var_dump($male_medicine_suggestion_list);die;
                                             if(!empty($male_medicine_suggestion_list['male_medicine_suggestion_list']) && isset($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
                                                 foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
-                                                    //var_dump($val);die;
                                                     $male_medicine_suggestion_arr[] = $val['male_medicine_name'];
                                                 }
                                             }
                                     }?>
-                                    
                                     <table style="width:100%; border:1px solid #000; display:<?php echo $display;?>;" id="male_medicine_table" border='1'>
                                             <thead>
                                                 <tr>
@@ -5368,91 +5443,34 @@ if (!empty($package)) {
                             </td>
                         </tr>
 					<?php } ?>
-
 					<tr>
-
 						<th>NEXT FOLLOW UP <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="hidden" id="follow_up" checked value="1" name="follow_up" /></th>
-
-						
-
 						<td colspan="2">
-
-							<!-- <div class="col-sm-12 col-xs-12">
-
-								<input type="text" placeholder="yy-mm-dd" autocomplete="off" disabled="disabled" id="follow_up_date" name="follow_up_date" />
-
-							</div>
-
-							<div class="row appoitmented_slot" style="display:none;">            
-
-								<div class="form-group col-sm-6 col-xs-12 role">
-
-									<label for="statuss">Follow up slot (Required)</label>
-
-									<select name="appoitmented_slot" class="empty-field" id="appoitmented_slot">
-
-										<option value="">Select</option>
-
-									</select>
-
-								</div>
-
-							</div> -->
-
 							<div class="row">            
-
 								<div class="form-group col-sm-6 col-xs-12 role">
-
 									<label for="statuss">Centre (Required)</label>
-
 									<select name="appoitment_for"   class="empty-field" id="appoitment_for">
-
 										<option value="<?php echo $center['center_number']; ?>"><?php echo $center['center_name']; ?></option>
-
 										<?php $center = $all_method->get_center_list(); foreach($center as $key => $center){?>
-
 										<option value="<?php echo $center['center_number']; ?>"><?php echo $center['center_name']; ?></option>
-
 										<?php } ?>
-
 									</select>
-
 								</div>
-
 							</div>
-
-         
-
 								<div class="row appoitmented_doctor" style="display:none;">            
-
 									<div class="form-group col-sm-6 col-xs-12 role">
-
 										<label for="statuss">Doctor (Required)</label>
-
 										<select name="appoitmented_doctor" disabled class="empty-field" id="appoitmented_doctor">
-
 											<option value="">Select</option>
-
 										</select>
-
 									</div>
-
 								</div>
-
-								
-
 								<div class="row appoitmented_date" style="display:none;">            
-
 									<div class="form-group col-sm-6 col-xs-12 role">
-
 										<label for="statuss">Appointment date (Required)</label>
-
 										<input value="" id="appoitmented_date" disabled autocomplete="off" name="follow_up_date" type="text" class="form-control empty-field validate" >
-
 									</div>
-
 								</div>
-
 								
 
 								<div class="row appoitmented_slot" style="display:none;">            
@@ -5474,23 +5492,11 @@ if (!empty($package)) {
 								</div>
 
 							</div>
-
-
-
 						</td>
-
-						
-
 					</tr><br>
-
 					<tr>
-
 						<th>PURPOSE OF NEXT FOLLOWUP</th>
-
 						<td colspan="2">
-							<!-- <input type="radio" name="follow_up_purpose" value="FIRST CONSULTATION">
-							<label>FIRST CONSULTATION</label> -->
-							
 							<input type="radio" name="follow_up_purpose" value="TVS">
 							<label>TVS</label>
 							<input type="radio" name="follow_up_purpose" checked value="FOLLOW UP VISIT">
@@ -5500,15 +5506,8 @@ if (!empty($package)) {
 						</td>
                      <input type="hidden" id="time_remaining" name="time_remaining" readonly>
 					</tr>
-
             </thead>
-
-
-
               </table>
-
-			<!-- /.card-body -->
-
 			<div class="card-footer">
 
 				<button type="button" id="save_exit-button" class="btn btn-primary">Save & Exit</button>
@@ -5618,23 +5617,15 @@ $("#save_exit-button").click(function(){
     //submit if fail never got set to true
 
     if ( ! fail ) {
-
         if(confirm("Are you sure you want to save this?")){
-
 			$('#submit_type').val('save_exit');
-
 			$("form#consultation_done_form").submit();
 
 		}else{
-
 			return false;
-
 		}
-
     } else {
-
         alert( fail_log );
-
     }
 
 });
@@ -5644,25 +5635,12 @@ $("#save_exit-button").click(function(){
 $("#exit-button").click(function(){
 
     event.preventDefault();
-
-
-
-	//validate fields
-
 	var fail = false;
-
 	var fail_log = '';
-
 	var name;
-
 	$( 'form#consultation_done_form' ).find( 'select, textarea, input' ).each(function(){
-
         if( ! $( this ).prop( ' ' )){
-
-
-
         } else {
-
             if ( ! $( this ).val() ) {
 
                 fail = true;
@@ -5708,63 +5686,57 @@ $("#exit-button").click(function(){
 $(function() {
 
 $('#male_medicine_suggestion_list').change(function(e) {
-
 	$("table#male_medicine_table").hide();
-
 	var brands = $('#male_medicine_suggestion_list option:selected');
-
 	var selected = "";
-
 	var countr=1;
-
 	$("tbody#male_medicine_suggestion_table").empty();
-
 	$(brands).each(function(index, brand){
-
 		$("tbody#male_medicine_suggestion_table").append("<tr style='border:1px solid #000;' count='"+countr+"'><td style='border:1px solid #000;'>"+$(this).attr('medicine')+"<input type='hidden'   readonly value='"+$(this).val()+"' style='margin:0;padding:0;' name='male_medicine_name_"+countr+"' id='male_medicine_name_"+countr+"'></td><td style='border:1px solid #000;'><input type='text' style='margin:0;padding:0;' name='male_medicine_dosage_"+countr+"'   id='male_medicine_dosage_"+countr+"'></td><td style='border:1px solid #000;'><input  type='text' placeholder='DD-MM-YYYY' style='margin:0;padding:0;' name='male_medicine_when_start_"+countr+"' id='male_medicine_when_start_"+countr+"'  ></td><td style='border:1px solid #000;'><input type='number' style='margin:0;padding:0;' name='male_medicine_days_"+countr+"'   id='male_medicine_days_"+countr+"'></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='male_medicine_route_"+countr+"' id='male_medicine_route_"+countr+"'  > <option value='PO'>PO</option> <option value='IM'>IM</option> <option value='SC'>SC</option> <option value='VAGINA-LY'>VAGINA-LY</option> <option value='IV'>IV</option> <option value='LOCAL'>LOCAL</option> <option value='NASALY'>NASALY</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='male_medicine_frequency_"+countr+"' id='male_medicine_frequency_"+countr+"'  > <option value='OD'>OD</option> <option value='BD'>BD</option> <option value='TDS'>TDS</option> <option value='QID'>QID</option> <option value='SOS'>SOS</option> <option value='HS'>HS</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='male_medicine_timing_"+countr+"' id='male_medicine_timing_"+countr+"'  > <option value='EMPTY STOMACH'>EMPTY STOMACH</option> <option value='BEFORE MEAL'>BEFORE MEAL</option> <option value='AFTER MEAL'>AFTER MEAL</option><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='male_medicine_take_"+countr+"' id='male_medicine_take_"+countr+"'  > <option value='Daily'>Daily</option> <option value='Biweekly'>Biweekly</option> <option value='Weekly'>Weekly</option> <option value='Blank'>Blank</option> <option value='Alternate Day'>Alternate Day</option></select></td></select></td></tr>");
-
 		countr++;
-
-		//selected.push([$(this).val()+"--------"+$(this).attr('medicine')]);
-
 	});
-
 	$("table#male_medicine_table").show();
-
-	//console.log(selected);
-
 }); 
-
-
 
 $('#female_medicine_suggestion_list').change(function(e) {
-
 	$("table#female_medicine_table").hide();
-
 	var brands = $('#female_medicine_suggestion_list option:selected');
-
 	var selected = "";
-
 	var countr=1;
-
 	$("tbody#female_medicine_suggestion_table").empty();
-
 	$(brands).each(function(index, brand){
-
 		$("tbody#female_medicine_suggestion_table").append("<tr style='border:1px solid #000;' count='"+countr+"'><td style='border:1px solid #000;'>"+$(this).attr('medicine')+"<input type='hidden'   readonly value='"+$(this).val()+"' style='margin:0;padding:0;' name='female_medicine_name_"+countr+"' id='female_medicine_name_"+countr+"'></td><td style='border:1px solid #000;'><input type='text' style='margin:0;padding:0;' name='female_medicine_dosage_"+countr+"'   id='female_medicine_dosage_"+countr+"'></td><td style='border:1px solid #000;'><input type='text' placeholder='DD-MM-YYYY' style='margin:0;padding:0;' name='female_medicine_when_start_"+countr+"' id='female_medicine_when_start_"+countr+"'  ></td><td style='border:1px solid #000;'><input type='number' style='margin:0;padding:0;' name='female_medicine_days_"+countr+"'   id='female_medicine_days_"+countr+"'></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='female_medicine_route_"+countr+"' id='female_medicine_route_"+countr+"'  > <option value='PO'>PO</option> <option value='IM'>IM</option> <option value='SC'>SC</option> <option value='VAGINA-LY'>VAGINA-LY</option> <option value='IV'>IV</option> <option value='LOCAL'>LOCAL</option> <option value='NASALY'>NASALY</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='female_medicine_frequency_"+countr+"' id='female_medicine_frequency_"+countr+"'  > <option value='OD'>OD</option> <option value='BD'>BD</option> <option value='TDS'>TDS</option> <option value='QID'>QID</option> <option value='SOS'>SOS</option> <option value='HS'>HS</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='female_medicine_timing_"+countr+"' id='female_medicine_timing_"+countr+"'  > <option value='EMPTY STOMACH'>EMPTY STOMACH</option> <option value='BEFORE MEAL'>BEFORE MEAL</option> <option value='AFTER MEAL'>AFTER MEAL</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='female_medicine_take_"+countr+"' id='female_medicine_take_"+countr+"'  > <option value='Daily'>Daily</option> <option value='Biweekly'>Biweekly</option> <option value='Weekly'>Weekly</option> <option value='Blank'>Blank</option> <option value='Alternate Day'>Alternate Day</option></select></td></tr>");
-
 		countr++;
-
-		//selected.push([$(this).val()+"--------"+$(this).attr('medicine')]);
-
 	});
-
-	//console.log(selected);
-
 	$("table#female_medicine_table").show();
-
 }); 
 
+// IPD Medicine Change Handlers
+$('#female_medicine_suggestion_list_ipd').change(function(e) {
+	$("table#female_medicine_table_ipd").hide();
+	var brands = $('#female_medicine_suggestion_list_ipd option:selected');
+	var selected = "";
+	var countr=1;
+	$("tbody#female_medicine_suggestion_table_ipd").empty();
+	$(brands).each(function(index, brand){
+		$("tbody#female_medicine_suggestion_table_ipd").append("<tr style='border:1px solid #000;' count='"+countr+"'><td style='border:1px solid #000;'>"+$(this).attr('medicine')+"<input type='hidden'   readonly value='"+$(this).val()+"' style='margin:0;padding:0;' name='female_medicine_name_ipd_"+countr+"' id='female_medicine_name_ipd_"+countr+"'></td><td style='border:1px solid #000;'><input type='text' style='margin:0;padding:0;' name='female_medicine_dosage_ipd_"+countr+"'   id='female_medicine_dosage_ipd_"+countr+"'></td><td style='border:1px solid #000;'><input type='text' placeholder='DD-MM-YYYY' style='margin:0;padding:0;' name='female_medicine_when_start_ipd_"+countr+"' id='female_medicine_when_start_ipd_"+countr+"'  ></td><td style='border:1px solid #000;'><input type='number' style='margin:0;padding:0;' name='female_medicine_days_ipd_"+countr+"'   id='female_medicine_days_ipd_"+countr+"'></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='female_medicine_route_ipd_"+countr+"' id='female_medicine_route_ipd_"+countr+"'  > <option value='PO'>PO</option> <option value='IM'>IM</option> <option value='SC'>SC</option> <option value='VAGINA-LY'>VAGINA-LY</option> <option value='IV'>IV</option> <option value='LOCAL'>LOCAL</option> <option value='NASALY'>NASALY</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='female_medicine_frequency_ipd_"+countr+"' id='female_medicine_frequency_ipd_"+countr+"'  > <option value='OD'>OD</option> <option value='BD'>BD</option> <option value='TDS'>TDS</option> <option value='QID'>QID</option> <option value='SOS'>SOS</option> <option value='HS'>HS</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='female_medicine_timing_ipd_"+countr+"' id='female_medicine_timing_ipd_"+countr+"'  > <option value='EMPTY STOMACH'>EMPTY STOMACH</option> <option value='BEFORE MEAL'>BEFORE MEAL</option> <option value='AFTER MEAL'>AFTER MEAL</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='female_medicine_take_ipd_"+countr+"' id='female_medicine_take_ipd_"+countr+"'  > <option value='Daily'>Daily</option> <option value='Biweekly'>Biweekly</option> <option value='Weekly'>Weekly</option> <option value='Blank'>Blank</option> <option value='Alternate Day'>Alternate Day</option></select></td></tr>");
+		countr++;
+	});
+	$("table#female_medicine_table_ipd").show();
+}); 
+
+$('#male_medicine_suggestion_list_ipd').change(function(e) {
+	$("table#male_medicine_table_ipd").hide();
+	var brands = $('#male_medicine_suggestion_list_ipd option:selected');
+	var selected = "";
+	var countr=1;
+	$("tbody#male_medicine_suggestion_table_ipd").empty();
+	$(brands).each(function(index, brand){
+		$("tbody#male_medicine_suggestion_table_ipd").append("<tr style='border:1px solid #000;' count='"+countr+"'><td style='border:1px solid #000;'>"+$(this).attr('medicine')+"<input type='hidden'   readonly value='"+$(this).val()+"' style='margin:0;padding:0;' name='male_medicine_name_ipd_"+countr+"' id='male_medicine_name_ipd_"+countr+"'></td><td style='border:1px solid #000;'><input type='text' style='margin:0;padding:0;' name='male_medicine_dosage_ipd_"+countr+"'   id='male_medicine_dosage_ipd_"+countr+"'></td><td style='border:1px solid #000;'><input type='text' placeholder='DD-MM-YYYY' style='margin:0;padding:0;' name='male_medicine_when_start_ipd_"+countr+"' id='male_medicine_when_start_ipd_"+countr+"'  ></td><td style='border:1px solid #000;'><input type='number' style='margin:0;padding:0;' name='male_medicine_days_ipd_"+countr+"'   id='male_medicine_days_ipd_"+countr+"'></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='male_medicine_route_ipd_"+countr+"' id='male_medicine_route_ipd_"+countr+"'  > <option value='PO'>PO</option> <option value='IM'>IM</option> <option value='SC'>SC</option> <option value='VAGINA-LY'>VAGINA-LY</option> <option value='IV'>IV</option> <option value='LOCAL'>LOCAL</option> <option value='NASALY'>NASALY</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='male_medicine_frequency_ipd_"+countr+"' id='male_medicine_frequency_ipd_"+countr+"'  > <option value='OD'>OD</option> <option value='BD'>BD</option> <option value='TDS'>TDS</option> <option value='QID'>QID</option> <option value='SOS'>SOS</option> <option value='HS'>HS</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='male_medicine_timing_ipd_"+countr+"' id='male_medicine_timing_ipd_"+countr+"'  > <option value='EMPTY STOMACH'>EMPTY STOMACH</option> <option value='BEFORE MEAL'>BEFORE MEAL</option> <option value='AFTER MEAL'>AFTER MEAL</option></select></td><td style='border:1px solid #000;' class='role'><select style='margin:0;padding:0;' name='male_medicine_take_ipd_"+countr+"' id='male_medicine_take_ipd_"+countr+"'  > <option value='Daily'>Daily</option> <option value='Biweekly'>Biweekly</option> <option value='Weekly'>Weekly</option> <option value='Blank'>Blank</option> <option value='Alternate Day'>Alternate Day</option></select></td></tr>");
+		countr++;
+	});
+	$("table#male_medicine_table_ipd").show();
+}); 
 });
 
 
@@ -6073,7 +6045,7 @@ $('option', $('#male_medicine_suggestion_list')).each(function(element) {
 
 $("#male_medicine_suggestion_list").multiselect('refresh');	
 
-$("select#male_medicine_suggestion_list").prop(' ',false);
+$("select#male_medicine_suggestion_list").prop('disabled',false);
 
 //Female Investigation
 
@@ -6091,7 +6063,7 @@ $('option', $('#female_medicine_suggestion_list')).each(function(element) {
 
 $("#female_medicine_suggestion_list").multiselect('refresh');	
 
-$("select#female_medicine_suggestion_list").prop(' ',false);
+$("select#female_medicine_suggestion_list").prop('disabled',false);
 
 
 
@@ -6099,7 +6071,7 @@ if(this.checked) {
 
 	//Male Investigation
 
-	$("select#male_medicine_suggestion_list").prop(' ',false);
+	$("select#male_medicine_suggestion_list").prop('disabled',false);
 
 	$("select#male_medicine_suggestion_list").prop('disabled',false);
 
@@ -6109,13 +6081,80 @@ if(this.checked) {
 
 	//Female Investigation
 
-	$("select#female_medicine_suggestion_list").prop(' ',true);
+	$("select#female_medicine_suggestion_list").prop('disabled',true);
 
 	$("select#female_medicine_suggestion_list").prop('disabled',false);
 
 	$("select#female_medicine_suggestion_list").parent().find('button').prop('disabled',false);
 
 	$("select#female_medicine_suggestion_list").parent().find('button').removeClass('disabled');
+
+}
+
+});
+
+// IPD Medicine Suggestion Handler
+$("#medicine_suggestion_ipd").change(function() {
+
+//Male Investigation
+
+$("select#male_medicine_suggestion_list_ipd").prop('disabled',true);
+
+$("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',true);
+
+$("select#male_medicine_suggestion_list_ipd").parent().find('button').addClass('disabled');
+
+$('option', $('#male_medicine_suggestion_list_ipd')).each(function(element) {
+
+	$(this).removeAttr('selected').prop('selected', false);
+
+});
+
+$("#male_medicine_suggestion_list_ipd").multiselect('refresh');	
+
+$("select#male_medicine_suggestion_list_ipd").prop('disabled',false);
+
+//Female Investigation
+
+$("select#female_medicine_suggestion_list_ipd").prop('disabled',true);
+
+$("select#female_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',true);
+
+$("select#female_medicine_suggestion_list_ipd").parent().find('button').addClass('disabled');
+
+$('option', $('#female_medicine_suggestion_list_ipd')).each(function(element) {
+
+	$(this).removeAttr('selected').prop('selected', false);
+
+});
+
+$("#female_medicine_suggestion_list_ipd").multiselect('refresh');	
+
+$("select#female_medicine_suggestion_list_ipd").prop('disabled',false);
+
+
+
+if(this.checked) {
+
+	//Male Investigation
+
+	$("select#male_medicine_suggestion_list_ipd").prop('disabled',false);
+
+	$("select#male_medicine_suggestion_list_ipd").prop('disabled',false);
+
+	$("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',false);
+
+	$("select#male_medicine_suggestion_list_ipd").parent().find('button').removeClass('disabled');
+
+	//Female Investigation
+
+	$("select#female_medicine_suggestion_list_ipd").prop('disabled',false);
+
+	$("select#female_medicine_suggestion_list_ipd").prop('disabled',false);
+
+	$("select#female_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',false);
+
+	$("select#female_medicine_suggestion_list_ipd").parent().find('button').removeClass('disabled');
 
 }
 
