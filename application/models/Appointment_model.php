@@ -596,28 +596,38 @@ class Appointment_model extends CI_Model
 
 public function get_counselors_grouped_by_center()
 {
-    // Get the center from session
-    $center_id = $_SESSION['logged_counselor']['center'] ?? null;
+    // Initialize center_id
+    $center_id = null;
+
+    // 1. Try to get the center from the counselor session data
+    if (isset($_SESSION['logged_counselor']['center'])) {
+        $center_id = $_SESSION['logged_counselor']['center'];
+    } 
+    // 2. If not found, try to get it from the billing manager session data
+    elseif (isset($_SESSION['logged_billing_manager']['center'])) {
+        $center_id = $_SESSION['logged_billing_manager']['center'];
+    }
     
     // Validate center_id
     if (empty($center_id)) {
-        return []; // Return empty array if no center_id
+        return []; // Return empty array if no valid center_id is found
     }
     
+    // Database Query
     $this->db->select('center_id, id, name');
     $this->db->from('hms_employees');
     $this->db->where('role', 'counselor');
     $this->db->where('status', '1');
-    $this->db->where('center_id', $center_id); // Use the variable here
-    $this->db->order_by('name'); // Only order by name since all are same center
+    $this->db->where('center_id', $center_id); 
+    $this->db->order_by('name');
     
     $query = $this->db->get();
     $result = $query->result_array();
 
-    // Since all counselors are from the same center, grouping might not be needed
-    // But return in the same format for consistency
+    // Grouping the result (as requested by the function name)
     $grouped = [];
     if (!empty($result)) {
+        // Group all results under the single retrieved center_id key
         $grouped[$center_id] = $result;
     }
     

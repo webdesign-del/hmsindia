@@ -272,20 +272,21 @@
    </div>
 </div>
 
-
 <script>
    $( function() {
-       $( ".particular_date_filter" ).datepicker({
-   			dateFormat: 'yy-mm-dd',
-   			changeMonth: true,
-   			changeYear: true,
-   			onSelect: function(dateStr) {
-   				$('#loader_div').hide();				
-   				var startDate = $.datepicker.formatDate("yy-mm-dd", $(this).datepicker('getDate'));
-   				var data = {appointment_date:startDate, type:'particular_date_filter'};
-   			}
-   		});
+     $( ".particular_date_filter" ).datepicker({
+       dateFormat: 'yy-mm-dd',
+       changeMonth: true,
+       changeYear: true,
+       onSelect: function(dateStr) {
+         $('#loader_div').hide();				
+         var startDate = $.datepicker.formatDate("yy-mm-dd", $(this).datepicker('getDate'));
+         var data = {appointment_date:startDate, type:'particular_date_filter'};
+       }
+     });
    });
+</script>
+<script>
    $( "#load_pop_close" ).click(function() {
    	$('#load_pop').hide();
    });
@@ -465,8 +466,6 @@
    });
    
 </script>
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
 $(document).ready(function() {
     // 🎯 Target the CLASS instead of the ID

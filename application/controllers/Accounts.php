@@ -1905,7 +1905,7 @@ public function procedure_reports(){
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Consultation-Reports-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
-				$headers = 'UHID, IIC ID, Patient Name,Receipt number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type,Reason OF Visit, Date, Status, Lead ID, Lead Source,Agent,councellor, Doctor Name,';
+				$headers = 'UHID, IIC ID, Patient Name,Receipt number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type,Reason OF Visit, Date, Status, Lead ID, Lead Source,Agent,councellor, Doctor Name,Booking Status';
 				//Add the headers
 				fwrite($fp, $headers. "\r\n");
 				foreach ($data as $key => $val) {//var_dump($val);die;
@@ -1935,13 +1935,67 @@ public function procedure_reports(){
 					//$crm_id = get_lead($val['patient_id']);
 					$agent = $select_result3['agent']; 
 					$councellor = $select_result3['councellor']; 
-					
+
+					/*$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $vl['patient_id'] . "'";
+					$select_result4 = run_select_query($sql4);  
+
+					$booking_status = '';
+					if (!empty($select_result4) && count($select_result4) > 0) {
+						$booking_status = 'booked';
+						
+					} else { 
+						$booking_status = 'not booked';
+						
+					}*/
+
+$booking_status = 'not booked'; // Default status if no data or procedure found
+
+$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $vl['patient_id'] . "'";
+$select_result4 = run_select_query($sql4);
+
+// Check if 'data' exists and is not empty before proceeding
+if (!empty($select_result4['data'])) {
+    
+    $unserialized_data = unserialize($select_result4['data']);
+
+    // 1. CRITICAL CORRECTION: Access the array structure using index [0]
+    // The serialized data shows ['patient_procedures'] is an array of procedures, so use [0].
+    if (isset($unserialized_data['patient_procedures'][0]['sub_procedure'])) {
+        
+        $sub_procedure = $unserialized_data['patient_procedures'][0]['sub_procedure'];
+        
+        // 2. CRITICAL CORRECTION: Use the correct SQL variable ($sql5)
+        $sql5 = "SELECT * FROM hms_procedures WHERE ID='" . $sub_procedure . "'"; 
+        $select_result5 = run_select_query($sql5); 
+        
+        // Reset $booking_status to 'not found' before checking procedure category
+        $booking_status_category = 'not found'; 
+        
+        // 3. CRITICAL CORRECTION: Access query result via [0] if it's an array of rows
+        // Assumes run_select_query returns an array of rows, and 'category' is the column name.
+        if (!empty($select_result5) && isset($select_result5[0]['category'])) {
+             $booking_status_category = $select_result5[0]['category']; 
+        }
+        
+        // Set the final $booking_status variable based on the category name
+        if($booking_status_category == 'IVF with Bed'){
+            $booking_status = 'booked';
+            // echo ' booked'; // Use this if you want output, but removed to clean up code
+        } else {
+            $booking_status = 'not booked';
+            // echo ' not booked'; // Use this if you want output
+        }
+    } 
+    // If the data is present but the specific keys (patient_procedures[0]) are missing, 
+    // $booking_status retains its initial 'not booked' value.
+} 
+				
 					$sql1 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$val['doctor_id']."'";
 	                $select_appoint = run_select_query($sql1);
 
 					$doctor = $select_appoint['name'];
 					
-					$lead_arr = array($uhid, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $lead_id, $lead_source, $agent, $councellor, $doctor);
+					$lead_arr = array($uhid, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $lead_id, $lead_source, $agent, $councellor, $doctor,$booking_status);
 					fputcsv($fp, $lead_arr);
 				}
 				$final_arr = array("", "", "", "", $total_package, $discounted_package, $paid_amount, "", "", "", "", "", "", "");
