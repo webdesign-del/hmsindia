@@ -184,4 +184,37 @@ class Employees extends CI_Controller {
 		}
 	}
 
+	public function edit_doctor_center()
+	{
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			if(isset($_GET['ID'])){ $item_id = $_GET['ID']; }
+			if(isset($_POST['ID'])) { $item_id = $_POST['ID']; }
+
+			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'update_doctor_center'){
+				unset($_POST['action']);
+				$data = $this->employee_model->update_doctor_center($_POST, $item_id);
+				if($data > 0){
+                $this->session->sess_destroy();
+                header("location:" . base_url() . "doctor-login?m=" . base64_encode('Doctor Center updated successfully! You have been logged out.').'&t='.base64_encode('success'));
+                die();
+                
+            }else{
+                header("location:" .base_url(). "employees/edit_doctor_center?m=".base64_encode('Update failed or no changes were made.').'&t='.base64_encode('error').'&employee_number='.$item_id);
+                die();
+            }  
+			}
+			$data['centers'] = $this->employee_model->get_employee_center();
+			$data['data'] = $this->employee_model->get_doctor_center_data($item_id);
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('employees/edit_doctor_center', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
 } 

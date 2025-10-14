@@ -247,6 +247,36 @@ class Employee_model extends CI_Model
             return $result;
         }
 	}
+
+    function get_doctor_center_data($item){
+		$result = array();
+		$sql_condition = '';
+		$sql = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$item."'";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result[0];
+        }
+        else
+        {
+            return $result;
+        }
+	}
+
+    	public function update_doctor_center($data, $item)
+    {	
+		$sql = "UPDATE " . config_item('db_prefix') . "doctors SET ";
+		foreach( $data as $key=> $value )
+		{
+			$sqlArr[] = " $key = '".$value."'"	;
+		}
+		$sql .= implode(',' , $sqlArr);
+		$sql .= " WHERE ID = '".$item."'";
+        $this->db->query($sql);
+        return 1;
+    }
+
 }
 // END Stock_model class
 

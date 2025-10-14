@@ -2701,9 +2701,15 @@ function export_investigation_data($start, $status, $end, $center, $type, $payme
 		 if(!empty($reason_of_visit)){
 			$conditions .= ' and reason_of_visit="'.$reason_of_visit.'"';
         }
-		if(!empty($start) && !empty($end)){
-            $conditions .= " and on_date between '".$start."' AND '".$end."' ";
-        }
+		if (!empty($start_date) && !empty($end_date)){
+        $conditions .= " AND on_date BETWEEN '".$start_date."' AND '".$end_date."'";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " AND on_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " AND on_date='$end_date'";
+		}
 		
 	    $consultation_sql = "Select DISTINCT patient_id, receipt_number, totalpackage,doctor_id, fees as discounted_package,payment_done,remaining_amount,payment_method,billing_from,billing_at,reason_of_visit,on_date as date,status from ".$this->config->item('db_prefix')."consultation where 1 $conditions order by on_date desc";
         $consultation_q = $this->db->query($consultation_sql);
@@ -5768,9 +5774,9 @@ function get_available_lead_sources_for_consultations(){
 	}
 
         
-	function get_lead_source($patient_id){
+	function get_lead_source($paitent_id){
         $result = array();
-        $select_query = "SELECT * FROM hms_appointments WHERE paitent_id='$patient_id'";
+        $select_query = "SELECT * FROM hms_appointments WHERE paitent_id='$paitent_id'";
         $select_result = run_select_query($select_query); 
         $sql = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result['wife_phone']."' AND paitent_type='new_patient'";
         $q = $this->db->query($sql);
@@ -5784,7 +5790,23 @@ function get_available_lead_sources_for_consultations(){
             return $result;
         }
     }
-	function get_counselor_name($appointment_id) {
+
+	function get_lead($paitent_id){
+        $result = array();
+         $sql = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$paitent_id."' AND paitent_type='new_patient'";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result[0]['lead_source'];
+        }
+        else
+        {
+            return $result;
+        }
+    }
+
+function get_counselor_name($appointment_id) {
     $sql = "SELECT * 
             FROM ".$this->config->item('db_prefix')."doctor_consultation 
             WHERE appointment_id='".$appointment_id."' 

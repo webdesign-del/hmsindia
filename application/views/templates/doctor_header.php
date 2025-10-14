@@ -60,6 +60,7 @@ ul.nav.nav-second-level.collapse.in li {
 	    <i class="fa fa-bell fa-fw" aria-hidden="true"></i> <i class="material-icons right">arrow_drop_down</i></a>
      </li>
     <li><a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown1"><i class="fa fa-user fa-fw"></i> <b><?php echo $_SESSION['logged_doctor']['name']?></b> <i class="material-icons right">arrow_drop_down</i></a></li>
+  
   </ul>
 </nav>
 <!-- Dropdown Structure -->
@@ -67,6 +68,8 @@ ul.nav.nav-second-level.collapse.in li {
   <!-- <li><a href="#"><i class="fa fa-user fa-fw"></i> My Profile</a> </li>
   <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a> </li> -->
   <li><a href="<?php echo base_url(); ?>logout?r=<?php echo base64_encode('logged_doctor'); ?>"><i class="fa fa-sign-out fa-fw"></i> Logout</a> </li>
+<li><a href="<?php echo base_url(); ?>employees/edit_doctor_center?ID=<?php echo $_SESSION['logged_doctor']['doctor_id']?>"><i class="fa fa-user fa-fw"></i>Change Center </a></li>
+ 
 </ul>
 <ul id="dropdown4" class="dropdown-content dropdown-tasks w250 taskList notification_list">
 	 <?php //var_dump($notice);die;

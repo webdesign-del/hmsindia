@@ -1905,7 +1905,7 @@ public function procedure_reports(){
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Consultation-Reports-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
-				$headers = 'UHID,Lead ID, Lead Source,Doctor Name, IIC ID, Patient Name,Receipt number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type,Reason OF Visit, Date, Status';
+				$headers = 'UHID, IIC ID, Patient Name,Receipt number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type,Reason OF Visit, Date, Status, Lead ID, Lead Source,Agent,councellor, Doctor Name,';
 				//Add the headers
 				fwrite($fp, $headers. "\r\n");
 				foreach ($data as $key => $val) {//var_dump($val);die;
@@ -1929,15 +1929,19 @@ public function procedure_reports(){
                     					
                     $uhid = $select_result4['center_code']."/".$select_result3['uhid'];
 
-					$lead_id = $select_result['crm_id']; 
-					$lead_source = $select_result['lead_source']; 
+					$lead_id = $select_result3['crm_id']; 
+					$lead_source = $select_result3['lead_source']; 
+
+					//$crm_id = get_lead($val['patient_id']);
+					$agent = $select_result3['agent']; 
+					$councellor = $select_result3['councellor']; 
 					
 					$sql1 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$val['doctor_id']."'";
 	                $select_appoint = run_select_query($sql1);
 
 					$doctor = $select_appoint['name'];
 					
-					$lead_arr = array($uhid, $lead_id,$lead_source,$doctor, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status']);
+					$lead_arr = array($uhid, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $lead_id, $lead_source, $agent, $councellor, $doctor);
 					fputcsv($fp, $lead_arr);
 				}
 				$final_arr = array("", "", "", "", $total_package, $discounted_package, $paid_amount, "", "", "", "", "", "", "");
@@ -3113,13 +3117,45 @@ public function moulist(){
 
 	}
 
-	function get_leadsource_list($patient_id){
+	function get_lead($paitent_id){
 
-		$name = $this->accounts_model->get_leadsource_list($patient_id);
+		$crm_id = $this->accounts_model->get_lead($paitent_id);
+
+		return $crm_id;
+
+	}
+/*
+	function get_agent_name($paitent_id){
+
+		$name = $this->accounts_model->get_councellor($paitent_id);
 
 		return $name;
 
-	}	
+	}
+
+	function get_leadsource_list($paitent_id){
+
+		$name = $this->accounts_model->get_leadsource_list($paitent_id);
+
+		return $name;
+
+	}	*/
+
+ 	function get_lead_source($paitent_id){
+        $name = $this->accounts_model->get_lead_source($paitent_id);
+        return $name;
+    }
+
+	/*function get_counselor($appointment_id){
+        $name = $this->accounts_model->get_counselor_name($appointment_id);
+        return $name;
+    }*/
+
+	function get_counselor_name($appointment_id){
+        $name = $this->accounts_model->get_counselor_name($appointment_id);
+        return $name;
+    }
+
 /*
 	function get_center_list($patient_id){
 
@@ -7560,14 +7596,7 @@ public function partial_procedure(){
 		$this->load->view('accounts/my_approvals', $data);
 		$this->load->view($template['footer']);
 	}
-    function get_lead_source($patient_id){
-        $name = $this->accounts_model->get_lead_source($patient_id);
-        return $name;
-    }
-	function get_counselor_name($appointment_id){
-        $name = $this->accounts_model->get_counselor_name($appointment_id);
-        return $name;
-    }
+   
 	public function daily_sales_reporting(){
 		$logg = checklogin();
 		error_reporting(0);
