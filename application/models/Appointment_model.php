@@ -649,6 +649,8 @@ public function log_change($log_data) {
     return $this->db->insert('hms_appointment_logs', $log_data);
 }
 
+
+
 // ... rest of the model
 
 }

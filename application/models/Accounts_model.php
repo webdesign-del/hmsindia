@@ -2895,7 +2895,7 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
     return $q->row_array(); // returns array with both counts
 }
 
- function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit){
+/* function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit){
         $conditions = '';
 
         if (!empty($center)){
@@ -2927,7 +2927,84 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
 
         $q = $this->db->query($consultation_sql);
         return $q->row_array();
+    } */
+
+public function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit)
+{
+    $conditions = '';
+
+    // 1. Build the Consultation Filters
+    if (!empty($center)){
+        $conditions .= " AND billing_at='$center'";
     }
+    if (!empty($patient_id)){
+        $conditions .= " AND patient_id='$patient_id'";
+    }
+    if (!empty($reason_of_visit)){
+        $conditions .= " AND reason_of_visit='$reason_of_visit'";
+    }
+    if (!empty($start_date) && !empty($end_date)){
+        $conditions .= " AND on_date BETWEEN '".$start_date."' AND '".$end_date."'";
+    } else if (!empty($start_date) && empty($end_date)){
+        $conditions .= " AND on_date='$start_date'";
+    } else if (empty($start_date) && !empty($end_date)){
+        $conditions .= " AND on_date='$end_date'";
+    }
+
+    // 2. SQL to get UNIQUE Patient IDs based on Consultation Filters
+    $patient_id_sql = "SELECT DISTINCT patient_id
+        FROM hms_consultation
+        WHERE 1 " . $conditions;
+
+    $q = $this->db->query($patient_id_sql);
+    $patients_from_consultation = $q->result_array();
+
+    if (empty($patients_from_consultation)) {
+        return 0; // No patients met the initial consultation criteria
+    }
+
+    $booked_patient_count = 0;
+
+    // 3. Loop through each patient and apply the 'Booked' logic
+    foreach ($patients_from_consultation as $patient) {
+        $patient_id = $patient['patient_id'];
+        $category = 'not booked'; // Default value
+
+        // Fetch procedure data for the current patient
+        // NOTE: You must have a global function run_select_query() or access the DB directly here.
+        $sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $patient_id . "'";
+        $select_result4 = $this->db->query($sql4)->row_array(); // Use CI DB method for robustness
+
+        // Check if 'data' exists and is not empty
+        if (!empty($select_result4['data'])) {
+            
+            $unserialized_data = unserialize($select_result4['data']);
+
+            // Correct array access: [0] is critical here
+            if (isset($unserialized_data['patient_procedures'][0]['sub_procedure'])) {
+                
+                $sub_procedure = $unserialized_data['patient_procedures'][0]['sub_procedure'];
+                
+                // Fetch procedure category
+                $sql5 = "SELECT category FROM hms_procedures WHERE ID='" . $sub_procedure . "'"; 
+                $select_result5 = $this->db->query($sql5)->row_array();
+                
+                // Check if a category was found
+                if (!empty($select_result5) && isset($select_result5['category'])) {
+                    $category = $select_result5['category']; 
+                }
+            }
+        }
+        
+        // 4. Increment count ONLY if the patient is "booked"
+        if ($category == 'IVF with Bed') {
+            $booked_patient_count++;
+        }
+    }
+
+    // 5. Return the final count
+    return $booked_patient_count;
+}		
 
 public function get_lead_source_dropdown_data() {
     $this->db->select("mapped_bucket, GROUP_CONCAT(original_lead_source) as sources");

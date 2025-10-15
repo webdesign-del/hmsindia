@@ -106,10 +106,17 @@
                   </tr>
                </thead>
                <tbody id="appointment_body">
-                  <?php $count = 1; foreach($appointments as $ky => $vl){ ?>
+                  <?php $count = 1; foreach($appointments as $ky => $vl){
+                     $sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $vl['paitent_id'] . "'";
+					      $appoint_result = run_select_query($sql);
+
+                     $sql3 = "SELECT * FROM hms_appointments WHERE wife_phone='" . $appoint_result['wife_phone'] . "' and paitent_type='new_patient'";
+					      $select_result3 = run_select_query($sql3);
+                     
+                     ?>
                   <tr class="odd gradeX">
                      <td><?php echo $count; ?></td>
-                     <td><?php echo $vl['crm_id']?></td>
+                     <td><?php echo $select_result3['crm_id']; ?></td>
                      <td>
                         <?php if($vl['paitent_type'] == 'exist_patient'){ $patient_data = get_patient_detail($vl['paitent_id']);?>
                         <a target="_blank" href="<?php echo base_url()?>patient_details/<?php echo $vl['paitent_id'];?>"><?php echo  strtoupper($patient_data['wife_name']); ?></a>
@@ -121,9 +128,12 @@
                      <td><?php echo $vl['appoitmented_date']?></td>
                      <td><?php echo $vl['appoitmented_slot']?></td>
                      <td><?php echo $vl['reason_of_visit']?></td>
-                     <td><?php echo $vl['lead_source']?></td>
-                      <td><?php echo $vl['agent']?></td>
-                       <td><?php echo $vl['councellor']?>
+                     <td><?php echo $select_result3['lead_source']; ?></td>
+                      <td><?php echo $select_result3['agent']; ?></td>
+                       <td> <?php
+                       if($vl['status'] == 'consultation_done'){
+                         echo $select_result3['councellor']; 
+                         }else{ ?>
                     <select class="form-control councellor-select" name="councellor" data-appointment-id="<?php echo $vl['ID']?>">
     <option value="">--Select Counselor--</option>
     <?php
@@ -153,7 +163,7 @@
         echo '<option value="">No counselors available</option>';
     }
     ?>
-</select></td>
+</select><?php } ?></td>
                      <td class="role appint_td_<?php echo $vl['ID']?>">
                         <?php if($vl['status'] == 'consultation_done'){echo 'Consultation Done';}
                            else{ 

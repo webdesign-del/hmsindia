@@ -30,15 +30,17 @@
             </div>
 			<div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Reason For Visit </label>
-                <select class="form-control" id="reason_of_visit" name="reason_of_visit">
-				    <option value=''>--Select From--</option>
-					<option value="First Visit" mode="First Visit">First Visit</option>
-                    <option value="Consulted Not Booked" mode="Consulted Not Booked">Consulted Not Booked</option>
-                    <option value="FOLLOW UP VISIT" mode="FOLLOW UP VISIT">Follow up Visit</option>
-					<option value="PROCEDURE" mode="PROCEDURE">Procedure</option>
-                    <option value="TVS" mode="TVS">TVS</option>
-                    
-                </select>
+               <select class="form-control" id="reason_of_visit" name="reason_of_visit">
+    <option value="">--Select From--</option>
+    <option value="First Visit" <?= ($selectedReason === 'First Visit') ? 'selected' : '' ?>>First Visit</option>
+    <option value="Consulted Not Booked" <?= ($selectedReason === 'Consulted Not Booked') ? 'selected' : '' ?>>Consulted Not Booked</option>
+    <option value="FOLLOW UP VISIT" <?= ($selectedReason === 'FOLLOW UP VISIT') ? 'selected' : '' ?>>Follow up Visit</option>
+    <option value="PROCEDURE" <?= ($selectedReason === 'PROCEDURE') ? 'selected' : '' ?>>Procedure</option>
+    <option value="TVS" <?= ($selectedReason === 'TVS') ? 'selected' : '' ?>>TVS</option>
+</select>
+<?php echo '<pre>Selected Reason: '.$selectedReason.'</pre>'; ?>
+
+
             </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Start Date</label>
@@ -156,51 +158,44 @@
                   <td><?php echo $all_method->get_center_name($vl['billing_at']); ?></td>
                   <td><?php echo $vl['reason_of_visit']?></td>
 				  <td><?php echo $all_method->get_doctor_name($vl['doctor_id']); ?></td>
-				  <td><?php echo $vl['lead_source']; ?></td>
+				  <td><?php echo $select_result3['lead_source'];  ?></td>
 				  <td><?php echo $all_method->get_counselor_name($vl['appointment_id']); ?></td>
 
 <td><?php
- $sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $vl['patient_id'] . "'";
-$select_result4 = run_select_query($sql4);  
-if (!empty($select_result4) && count($select_result4) > 0) {
-     echo '<span class="badge badge-success">booked</span>'; 
-    } else { 
-        echo '<span class="badge badge-danger">not booked</span>'; 
-    }
-/*
-if (!empty($select_result4)) {
-    foreach ($select_result4 as $procedure_row) {
 
-        if (!empty($procedure_row['data'])) {
-            $unserialized_data = unserialize($procedure_row['data']);
+$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $vl['patient_id'] . "'";
+$select_result4 = run_select_query($sql4);
 
-            if (!empty($unserialized_data['patient_procedures']) && is_array($unserialized_data['patient_procedures'])) {
-                foreach ($unserialized_data['patient_procedures'] as $procedure) {
-                    $sub_procedure = $procedure['sub_procedure']; // e.g. 138
+// Check if 'data' exists and is not empty before proceeding
+if (!empty($select_result4['data'])) {
+    
+    $unserialized_data = unserialize($select_result4['data']);
 
-                    echo  $sub_procedure;
-
-                    // Get category from hms_procedure
-                   echo $sql5 = "SELECT category FROM hms_procedure WHERE ID IN ($sub_procedure)";
-                    $select_result5 = run_select_query($sql5);
-
-                    if (!empty($select_result5) && isset($select_result5['category'])) {
-                        $category = $select_result5['category'];
-
-                         echo $category = $select_result5['category'];
-
-                        // Check the condition
-                        if ($category == 'IVF with Bed') {
-                            echo '<span class="badge badge-success">Booked</span>';
-                        } else {
-                            echo '<span class="badge badge-danger">Not Booked</span>';
-                        }
-                    }
-                }
-            }
+    // 1. CRITICAL CORRECTION: Access the array structure using index [0]
+    if (isset($unserialized_data['patient_procedures'][0]['sub_procedure'])) {
+        
+        $sub_procedure = $unserialized_data['patient_procedures'][0]['sub_procedure'];
+        
+        // 2. CRITICAL CORRECTION: Use the correct SQL variable ($sql5)
+        $sql5 = "SELECT * FROM hms_procedures WHERE ID='" . $sub_procedure . "'"; 
+        $select_result5 = run_select_query($sql5);
+        
+        $category = 'not found';
+        if (!empty($select_result5) && isset($select_result5['category'])) {
+             // 4. Assuming the category is in the first result row and named 'category_column_name'
+             $category = $select_result5['category']; 
         }
-    }
-}*/
+        
+        // 5. CRITICAL CORRECTION: Use DOUBLE EQUALS (==) for comparison, not single equals (=) for assignment.
+        if($category == 'IVF with Bed'){
+            echo ' booked';
+        } else {
+            echo ' not booked';
+        }
+                       
+    } 
+
+} 
 ?>
 </td>
 
@@ -304,6 +299,17 @@ if (!empty($select_result4)) {
            $('#billing_at').trigger('change');
        }
    });
+</script>
+<script>
+$(document).ready(function() {
+    // Initialize Select2 on the element with ID 'reason_of_visit'
+    $('#reason_of_visit').select2({
+        placeholder: "--Select From--", // Use the placeholder from your first option
+        allowClear: true // Allows the user to clear the selection (optional)
+    });
+
+    // NOTE: Select2 automatically respects the 'selected' attribute set by PHP.
+});
 </script>
 <style >
    .custom-pagination{
