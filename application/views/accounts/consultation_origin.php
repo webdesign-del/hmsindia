@@ -38,7 +38,6 @@
     <option value="PROCEDURE" <?= ($selectedReason === 'PROCEDURE') ? 'selected' : '' ?>>Procedure</option>
     <option value="TVS" <?= ($selectedReason === 'TVS') ? 'selected' : '' ?>>TVS</option>
 </select>
-<?php echo '<pre>Selected Reason: '.$selectedReason.'</pre>'; ?>
 
 
             </div>

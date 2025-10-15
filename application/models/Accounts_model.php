@@ -2895,7 +2895,7 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
     return $q->row_array(); // returns array with both counts
 }
 
-/* function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit){
+function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit){
         $conditions = '';
 
         if (!empty($center)){
@@ -2927,7 +2927,7 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
 
         $q = $this->db->query($consultation_sql);
         return $q->row_array();
-    } */
+    } /*
 
 public function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit)
 {
@@ -3004,7 +3004,7 @@ public function patient_procedure_consultation_count($center, $start_date, $end_
 
     // 5. Return the final count
     return $booked_patient_count;
-}		
+}	*/	
 
 public function get_lead_source_dropdown_data() {
     $this->db->select("mapped_bucket, GROUP_CONCAT(original_lead_source) as sources");

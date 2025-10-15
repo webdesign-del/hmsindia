@@ -2006,8 +2006,6 @@ public function procedure_reports(){
 			$data['reason_counts'] = $this->accounts_model->patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source);
 			$data['booked_count'] = $this->accounts_model->patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id,$reason_of_visit);
 			$data['lead_sources'] = $this->accounts_model->get_lead_source_dropdown_data();
-			$selectedReason = $this->input->post('reason_of_visit'); // or fetch from DB if editing
-$data['selectedReason'] = $selectedReason ?? '';
 
 			$data['booked_patient_count'] = $booked_count; 
 			$data["billing_at"] = $center;
