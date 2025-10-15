@@ -49,14 +49,14 @@
             	<label>End Date</label>
                 <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
             </div>
-         <!--   <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+          <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Start Booking Date</label>
               <input type="text" class="particular_date_filter form-control" id="start_date" name="start_date" value="<?php echo $start_date;?>" />
             </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>End Booking Date</label>
                 <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
-            </div>-->
+            </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>IIC ID </label>
                 <input type="text" class="form-control" id="iic_id" name="iic_id" value="<?php echo $patient_id;?>" />
@@ -180,38 +180,106 @@ if (!empty($counselor_name)) {
 <td><?php
 
 $sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $vl['patient_id'] . "'";
+
 $select_result4 = run_select_query($sql4);
 
 // Check if 'data' exists and is not empty before proceeding
-if (!empty($select_result4['data'])) {
-    
-    $unserialized_data = unserialize($select_result4['data']);
 
-    // 1. CRITICAL CORRECTION: Access the array structure using index [0]
-    if (isset($unserialized_data['patient_procedures'][0]['sub_procedure'])) {
-        
-        $sub_procedure = $unserialized_data['patient_procedures'][0]['sub_procedure'];
-        
-        // 2. CRITICAL CORRECTION: Use the correct SQL variable ($sql5)
-        $sql5 = "SELECT * FROM hms_procedures WHERE ID='" . $sub_procedure . "'"; 
-        $select_result5 = run_select_query($sql5);
-        
-        $category = 'not found';
-        if (!empty($select_result5) && isset($select_result5['category'])) {
-             // 4. Assuming the category is in the first result row and named 'category_column_name'
-             $category = $select_result5['category']; 
-        }
-        
-        // 5. CRITICAL CORRECTION: Use DOUBLE EQUALS (==) for comparison, not single equals (=) for assignment.
-        if($category == 'IVF with Bed'){
-            echo ' booked';
-        } else {
-            echo ' not booked';
-        }
-                       
-    } 
+if (!empty($select_result4['data'])) {
+
+$unserialized_data = unserialize($select_result4['data']);
+
+// 1. CRITICAL CORRECTION: Access the array structure using index [0]
+
+if (isset($unserialized_data['patient_procedures'][0]['sub_procedure'])) {
+
+
+$sub_procedure = $unserialized_data['patient_procedures'][0]['sub_procedure'];
+
+
+// 2. CRITICAL CORRECTION: Use the correct SQL variable ($sql5)
+
+ $sql5 = "SELECT * FROM hms_procedures WHERE ID='" . $sub_procedure . "'";
+
+$select_result5 = run_select_query($sql5);
+
+
+$category = 'not found';
+
+if (!empty($select_result5) && isset($select_result5['category'])) {
+
+// 4. Assuming the category is in the first result row and named 'category_column_name'
+
+$category = $select_result5['category'];
+
+}
+
+
+// 5. CRITICAL CORRECTION: Use DOUBLE EQUALS (==) for comparison, not single equals (=) for assignment.
+
+if($category == 'IVF with Bed'){
+
+echo ' booked';
+
+} else {
+
+echo ' not booked';
+
+}
+
+
+}
+
+
 
 } 
+
+
+// Fetch all procedures for the patient
+$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $vl['patient_id'] . "'";
+$select_result4 = run_select_query($sql4);
+
+$booking_status = []; // <-- Store all results here
+
+if (!empty($select_result4['data'])) {
+    $unserialized_data = unserialize($select_result4['data']);
+
+    if (!empty($unserialized_data['patient_procedures'])) {
+        foreach ($unserialized_data['patient_procedures'] as $procedure_item) {
+
+            if (isset($procedure_item['sub_procedure'])) {
+                $sub_procedure = $procedure_item['sub_procedure'];
+
+                // Get procedure info
+                $sql5 = "SELECT * FROM hms_procedures WHERE ID='" . $sub_procedure . "'";
+                $select_result5 = run_select_query($sql5);
+
+                // Safely extract category
+                $category = 'not found';
+                if (!empty($select_result5['data']['category'])) {
+                    $category = $select_result5['data']['category'];
+                }
+
+                // Store in array instead of printing
+                if ($category == 'IVF with Bed') {
+                    $booking_status[] = 'booked';
+                } else {
+                    $booking_status[] = '';
+                }
+            }
+        }
+    }
+}
+
+// 🔹 Print results *outside* the loop
+if (!empty($booking_status)) {
+    foreach ($booking_status as $status) {
+        echo $status . "<br>";
+    }
+} else {
+    echo "not booked";
+}
+
 ?>
 </td>
 
