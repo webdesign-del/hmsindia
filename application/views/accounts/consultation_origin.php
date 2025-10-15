@@ -49,6 +49,14 @@
             	<label>End Date</label>
                 <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
             </div>
+         <!--   <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            	<label>Start Booking Date</label>
+              <input type="text" class="particular_date_filter form-control" id="start_date" name="start_date" value="<?php echo $start_date;?>" />
+            </div>
+            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            	<label>End Booking Date</label>
+                <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
+            </div>-->
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>IIC ID </label>
                 <input type="text" class="form-control" id="iic_id" name="iic_id" value="<?php echo $patient_id;?>" />
@@ -122,7 +130,8 @@
                    <th>Reason For Visit</th>
 				          <th>Doctor Name</th>
 				          <th>Lead Source</th>
-				          <th>Counselor Name</th>
+				           <th>Agent</th>
+                            <th>Counselor Name</th>
                   <td>Status</td>
 				</tr>
               </thead>
@@ -158,7 +167,15 @@
                   <td><?php echo $vl['reason_of_visit']?></td>
 				  <td><?php echo $all_method->get_doctor_name($vl['doctor_id']); ?></td>
 				  <td><?php echo $select_result3['lead_source'];  ?></td>
-				  <td><?php echo $all_method->get_counselor_name($vl['appointment_id']); ?></td>
+                  <td><?php echo $select_result3['agent'];  ?></td>
+				  <td><?php $counselor_name = $all_method->get_counselor_name($vl['appointment_id']);
+
+if (!empty($counselor_name)) {
+    echo $counselor_name;
+} else {
+    // If no counselor is found, print the agent name from $select_result3
+    echo $select_result3['councellor'];
+} ?></td>
 
 <td><?php
 

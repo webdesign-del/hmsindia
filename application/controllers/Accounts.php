@@ -2004,10 +2004,10 @@ public function procedure_reports(){
         	$data["links"] = $this->pagination->create_links();
 			$data['consultation_result'] = $this->accounts_model->patient_consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id,$lead_source);
 			$data['reason_counts'] = $this->accounts_model->patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source);
-			$data['booked_count'] = $this->accounts_model->patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id,$reason_of_visit);
+			$data['patient_counts'] = $this->accounts_model->patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id,$reason_of_visit);
 			$data['lead_sources'] = $this->accounts_model->get_lead_source_dropdown_data();
 
-			$data['booked_patient_count'] = $booked_count; 
+			//$data['booked_patient_count'] = $booked_count; 
 			$data["billing_at"] = $center;
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;

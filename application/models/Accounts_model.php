@@ -2836,15 +2836,16 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
     
     // Build the SQL query dynamically
   // Build the SQL query dynamically
- $consultation_sql = "SELECT DISTINCT
+  $consultation_sql = "
+SELECT
     T1.patient_id,
-    T2.lead_source,
+    MAX(T2.lead_source) AS lead_source, 
     T1.on_date,
     T1.reason_of_visit,
-	T1.totalpackage,
-	T1.payment_done,
-	T1.discount_amount,
-	T1.appointment_id,
+    T1.totalpackage,
+    T1.payment_done,
+    T1.discount_amount,
+    T1.appointment_id,
     T1.doctor_id,
     T1.billing_at
 FROM
@@ -2854,6 +2855,16 @@ INNER JOIN
 WHERE
     T2.billed = '1' 
     $conditions
+GROUP BY
+    T1.patient_id,
+    T1.on_date,
+    T1.reason_of_visit,
+    T1.totalpackage,
+    T1.payment_done,
+    T1.discount_amount,
+    T1.appointment_id,
+    T1.doctor_id,
+    T1.billing_at
 ORDER BY T1.on_date DESC, T1.id DESC
 LIMIT $offset, $limit";
     
@@ -2917,7 +2928,7 @@ function patient_procedure_consultation_count($center, $start_date, $end_date, $
             $conditions .= " AND on_date='$end_date'";
         }
 
-        $consultation_sql = "SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
+       $consultation_sql = "SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
         FROM hms_patient_procedure AS T1
         INNER JOIN (
             SELECT patient_id
