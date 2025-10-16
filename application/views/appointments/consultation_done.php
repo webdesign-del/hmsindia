@@ -4970,7 +4970,7 @@ if (!empty($package)) {
 					<?php } ?>
 					<?php if($appointments['partial_billing'] == 0){ ?>
 						<tr>
-							<th>MEDICINES ADVISED Opd <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="medicine_suggestion" value="1" <?php if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){echo 'checked="checked"';}?> name="medicine_suggestion"   /></th>
+							<th>MEDICINES ADVISED  <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="medicine_suggestion" value="1" <?php if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){echo 'checked="checked"';}?> name="medicine_suggestion"   /></th>
 							<td style="padding: 0;">
 								<div class="col-sm-12 col-xs-12">
 									<?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
@@ -5150,7 +5150,7 @@ if (!empty($package)) {
 						</tr>
 							<tr>
 							<!-- start  medicine advised ipd  -->
-								<th>MEDICINES ADVISED Ipd <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="medicine_suggestion_ipd" value="1" <?php if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == "1"){echo 'checked="checked"';}?> name="medicine_suggestion_ipd"   /></th>
+								<!-- <th>MEDICINES ADVISED Ipd <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="medicine_suggestion_ipd" value="1" <?php if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == "1"){echo 'checked="checked"';}?> name="medicine_suggestion_ipd"   /></th>
 								<td style="padding: 0;">
 									<div class="col-sm-12 col-xs-12">
 										<?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
@@ -5326,13 +5326,13 @@ if (!empty($package)) {
 											$('#male_medicine_suggestion_list_ipd').val(<?php echo json_encode($male_medicine_suggestion_arr); ?>);
 										</script>
 									</div>
-								</td>
+								</td> -->
 							</tr>
 							<!-- end medicine advised ipd -->
 					<?php }else{ ?>
 
 						<tr>
-                            <th>MEDICINES ADVISED OPD</th>
+                            <th>MEDICINES ADVISED </th>
                             <td style="padding: 0;">
                                 <div class="col-sm-12 col-xs-12">
                                     <?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 

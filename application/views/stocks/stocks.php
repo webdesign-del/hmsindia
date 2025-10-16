@@ -170,7 +170,7 @@
             <th class="col-quantity">Quantity</th>
             <th class="col-expiry">Expiry</th>
             <th class="col-safety-stock">Safety Stock</th>
-            <th class="col-medicine-type">Medicine Type</th>
+            <!-- <th class="col-medicine-type">Medicine Type</th> -->
             <th class="col-status">Status</th>
             <th class="col-actions">Actions</th>
           </tr>
@@ -252,7 +252,7 @@
               <td class="col-safety-stock">
                 <span class="safety-stock"><?php echo $vl['safety_stock']; ?></span>
               </td>
-              <td class="col-medicine-type">
+              <!-- <td class="col-medicine-type">
                 <div class="medicine-type-container">
                   <label class="medicine-type-toggle">
                     <input type="checkbox" class="medicine-type-checkbox" 
@@ -263,7 +263,7 @@
                     </span>
                   </label>
                 </div>
-              </td>
+              </td> -->
               <td class="col-status">
                 <?php if($vl['status'] == '1'){ ?>
                   <span class="status-badge status-active">Active</span>
@@ -294,12 +294,12 @@
       <button type="button" id="bulk_deactivate" class="btn btn-reset-modern" style="min-width:unset; padding:8px 16px;">
         <i class="fa fa-ban"></i> Deactivate Selected
       </button>
-      <button type="button" id="bulk_set_ipd" class="btn btn-success" style="min-width:unset; padding:8px 16px;">
+      <!-- <button type="button" id="bulk_set_ipd" class="btn btn-success" style="min-width:unset; padding:8px 16px;">
         <i class="fa fa-hospital-o"></i> Set Selected to IPD
       </button>
       <button type="button" id="bulk_set_opd" class="btn btn-danger" style="min-width:unset; padding:8px 16px;">
         <i class="fa fa-user-md"></i> Set Selected to OPD
-      </button>
+      </button> -->
     </div>
     
     <!-- Modern Pagination -->

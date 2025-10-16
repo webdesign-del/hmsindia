@@ -438,7 +438,7 @@
             <!-- Medication Section opd -->
             <div class="section-card">
                <div class="section-header">
-                  <i class="fa fa-medkit"></i> Medication Advised Opd
+                  <i class="fa fa-medkit"></i> Medication Advised 
                   <label class="checkbox-enhanced pull-right">
                   <input type="checkbox" id="medicine_suggestion" value="1" name="medicine_suggestion" />
                   Enable Medication
@@ -508,7 +508,7 @@
                </div>
             </div>
             <!-- Medication Section ipd -->
-            <div class="section-card">
+            <!-- <div class="section-card">
                <div class="section-header">
                   <i class="fa fa-medkit"></i> Medication Advised Ipd
                   <label class="checkbox-enhanced pull-right">
@@ -578,7 +578,7 @@
                      </div>
                   </div>
                </div>
-            </div>
+            </div> -->
             <!-- Management Section -->
             <div class="section-card">
                <div class="section-header">

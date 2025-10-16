@@ -5410,19 +5410,12 @@ function follow_medical_info($patient_id, $appointment_id){
         <table style="width:100%; border:1px solid #000;" border="1">
         
         <tr style="border:1px solid #000; width:100%;" colspan="2">
-            <td style="border:0px solid #000; padding:10px;">Medicines Opd</td>
+            <td style="border:0px solid #000; padding:10px;">Medicines</td>
         </tr>
     
         <tr style="border:1px solid #000; width:100%;">
             <td colspan="2">'.$female_medicine_html.'</td>
             <td>'.$male_medicine_html.'</td>
-        </tr>
-        <tr style="border:1px solid #000; width:100%;" colspan="2">
-            <td style="border:0px solid #000; padding:10px;">Medicines Ipd</td>
-        </tr>
-          <tr style="border:1px solid #000; width:100%;">
-            <td colspan="2">'.$female_medicine_html_ipd.'</td>
-            <td>'.$male_medicine_html_ipd.'</td>
         </tr>
         
         <tr style="border:1px solid #000; width:100%;">
@@ -5978,14 +5971,9 @@ function print_follow_medical_info_html($patient_id, $appointment_id){
         </tr>
 
         <tr>
-            <th>Medicines Opd</th>
+            <th>Medicines </th>
             <td>'.$female_medicine_html.'</td>
             <td>'.$male_medicine_html.'</td>
-        </tr>
-        <tr>
-            <th>Medicines Ipd</th>
-            <td>'.$female_medicine_html_ipd.'</td>
-            <td>'.$male_medicine_html_ipd.'</td>
         </tr>
         <tr>
             <th>Investigations</th>
@@ -7718,12 +7706,9 @@ die();*/
     </tr>
     
     <tr style="border:1px solid #000; width:100%;">
-    <th style="border:1px solid #000; padding:10px;">Medicines Opd</th>
+    <th style="border:1px solid #000; padding:10px;">Medicines </th>
         <td>'.$female_medicine_html.'</td>
         <td>'.$male_medicine_html.'</td>
-    <th style="border:1px solid #000; padding:10px;">Medicines Ipd</th>
-        <td>'.$female_medicine_html_ipd.'</td>
-        <td>'.$male_medicine_html_ipd.'</td>
     </tr>
     
     <tr style="border:1px solid #000; width:100%;">
@@ -12196,20 +12181,12 @@ function patient_medical_info($patient_id){
 </tr>
 
 <tr style="border:1px solid #000; width:100%;">
-    <td style="border:1px solid #000; padding:10px;" colspan="3">Medicines Opd</td>
+    <td style="border:1px solid #000; padding:10px;" colspan="3">Medicines </td>
 </tr>
 
 <tr style="border:1px solid #000; width:100%;">
     <td colspan="2">'.$female_medicine_html.'</td>
     <td>'.$male_medicine_html.'</td>
-</tr>
-<tr style="border:1px solid #000; width:100%;">
-    <td style="border:1px solid #000; padding:10px;" colspan="3">Medicines Ipd</td>
-</tr>
-
-<tr style="border:1px solid #000; width:100%;">
-    <td colspan="2">'.$female_medicine_html_ipd.'</td>
-    <td>'.$male_medicine_html_ipd.'</td>
 </tr>
 <tr style="border:1px solid #000; width:100%;">
     <td style="border:1px solid #000; padding:10px;" colspan="3">IIC Investigations</td>

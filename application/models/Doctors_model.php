@@ -56,7 +56,8 @@ class Doctors_model extends CI_Model
 	function consultation_medicine(){
 		$result = array();
 		$sql_condition = '';
-	  	$sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."stocks where status='1' and medicine_type='opd' GROUP BY item_name, item_number";
+	  	$sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."stocks where status='1' GROUP BY item_name, item_number";
+	  	// $sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."stocks where status='1' and medicine_type='opd' GROUP BY item_name, item_number";
 		$q = $this->db->query($sql);
         $result = $q->result_array();
         if (!empty($result))
