@@ -391,7 +391,7 @@
                 </select>
            </div>
          </div>
-          <div class="row" >            
+         <!-- <div class="row" >            
             <div class="form-group col-sm-6 col-xs-12 role">
             	<label for="item_name">Counsellor Name</label>
                 <select id="councellor" name="councellor" class="empty-field" required>
@@ -401,7 +401,7 @@
                     <option value="Anamika">Anamika</option>
             </select>
             </div>
-		</div>
+		</div>-->
          <div class="row">            
             <div class="form-group col-sm-6 col-xs-12 role">
                 <label for="statuss">Centre (Required)</label>
