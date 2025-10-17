@@ -438,7 +438,7 @@
             <!-- Medication Section opd -->
             <div class="section-card">
                <div class="section-header">
-                  <i class="fa fa-medkit"></i> Medication Advised 
+                  <i class="fa fa-medkit"></i> Medication Advised  Opd
                   <label class="checkbox-enhanced pull-right">
                   <input type="checkbox" id="medicine_suggestion" value="1" name="medicine_suggestion" />
                   Enable Medication
@@ -508,7 +508,7 @@
                </div>
             </div>
             <!-- Medication Section ipd -->
-            <!-- <div class="section-card">
+            <div class="section-card">
                <div class="section-header">
                   <i class="fa fa-medkit"></i> Medication Advised Ipd
                   <label class="checkbox-enhanced pull-right">
@@ -551,7 +551,7 @@
                         <div class="form-group-enhanced">
                            <label><i class="fa fa-male"></i> Spouse Medication</label>
                            <select class="form-control multidselect_dropdown" multiple id="male_medicine_suggestion_list_ipd" name="male_medicine_suggestion_list_ipd[]" disabled>
-                              <?php if(!empty($consultation_medicine)) { foreach($consultation_medicine as $key => $val) { ?>
+                              <?php if(!empty($consultation_medicine)) { foreach($consultation_medicine_ipd as $key => $val) { ?>
                               <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
                               <?php  } } ?>
                               <option value="0" medicine="NA">NA</option>
@@ -578,7 +578,7 @@
                      </div>
                   </div>
                </div>
-            </div> -->
+            </div>
             <!-- Management Section -->
             <div class="section-card">
                <div class="section-header">
