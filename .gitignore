@@ -45,6 +45,8 @@ desktop.ini
 application/config/config.php
 application/config/constants.php
 application/config/development/email.php
+application/config/production/email.php
+application/config/testing/email.php
 # Keep example configs
 !application/config/database.php.example
 !application/config/config.php.example
