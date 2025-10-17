@@ -262,6 +262,7 @@
 	  <li> <a href="<?php echo base_url(); ?>my_appointments" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Appointments</a></li>
 	  <li> <a href="<?php echo base_url(); ?>accounts/patient_center_wise_report" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Patient Report</a></li>
 	  <li> <a href="<?php echo base_url(); ?>logs" class="waves-effect waves-dark"><i class="fa fa-list-alt"></i>System Logs</a></li>
+     <li> <a href="<?php echo base_url(); ?>patients/timeline_view" class="waves-effect waves-dark"><i class="fa fa-list-alt"></i>Consultation Timeline</a></li>
 	  <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Doctor Referral<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>accounts/add_doctor_referral">Add Doctor Referral</a> </li>
