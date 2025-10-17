@@ -475,18 +475,67 @@ class Patients_model extends CI_Model
 		return $embryo_semen_analysis_result;
 	}
 
-	function get_patient_timeline_count($patient_id){
+
+	function export_consultation_data($start_date, $end_date, $paitent_id, $crm_id){
+		$consultation_result = $response = array();
+        $conditions = '';
+		if(!empty($paitent_id)){
+			$conditions .= ' and paitent_id="'.$paitent_id.'"';
+        }
+		 if(!empty($crm_id)){
+			$conditions .= ' and crm_id="'.$crm_id.'"';
+        }
+		if (!empty($start_date) && !empty($end_date)){
+        $conditions .= " AND appoitmented_date BETWEEN '".$start_date."' AND '".$end_date."'";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " AND appoitmented_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " AND appoitmented_date='$end_date'";
+		}
+		
+	    $consultation_sql = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_type='new_patient' and 1 $conditions order by appoitmented_date desc";
+        $consultation_q = $this->db->query($consultation_sql);
+        $consultation_result = $consultation_q->result_array();
+        if(!empty($consultation_result)){
+            foreach($consultation_result as $key => $val){
+				//$patient_name = $this->get_patient_name($val['patient_id']);
+				$response[] = array(
+                        'crm_id' => $val['crm_id'],
+                       // 'wife_name' => $patient_name,
+						'agent' => $val['agent'],
+				        'appoitmented_date' => $val['appoitmented_date'],
+                        'billing_type' => 'Appointment',
+                );
+            }
+        }    
+		return $response;
+    }
+	function get_patient_timeline_count($start_date, $end_date, $paitent_id, $crm_id){
 		$semen_analysis_result = array();
 		$conditions = '';
-		if (!empty($patient_id)){
-			$conditions .= " and patient_id='$patient_id'";
+		if (!empty($crm_id)){
+			$conditions .= " and crm_id='$crm_id'";
 		}
-		$semen_analysis_sql = "Select * from hms_patient_timeline where 1 ".$conditions."";
+		if (!empty($paitent_id)){
+			$conditions .= " and paitent_id='$paitent_id'";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			$conditions .= " and appoitmented_date between '".$start_date."' AND '".$end_date."' ";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " and appoitmented_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " and appoitmented_date='$end_date'";
+		}
+		$semen_analysis_sql = "Select * from hms_appointments where 1 ".$conditions."";
 		$q = $this->db->query($semen_analysis_sql);
 		return $q->num_rows();
 	}
 	
-	function get_patient_timeline($limit, $page, $patient_id){
+	function get_patient_timeline($limit, $page, $start_date, $end_date, $paitent_id, $crm_id){
 		$semen_analysis_result = array();
 		$conditions = '';
 		if(empty($page)){
@@ -494,10 +543,22 @@ class Patients_model extends CI_Model
 		}else{
 			$offset = ($page - 1) * $limit;
 		}
-		if (!empty($patient_id)){
-			$conditions .= " and patient_id='$patient_id'";
+		if (!empty($crm_id)){
+			$conditions .= " and crm_id='$crm_id'";
 		}
-		$semen_analysis_sql = "Select * from hms_patient_timeline where 1".$conditions." order by event_date desc limit ". $limit." OFFSET ".$offset."";
+		if (!empty($paitent_id)){
+			$conditions .= " and paitent_id='$paitent_id'";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			$conditions .= " and appoitmented_date between '".$start_date."' AND '".$end_date."' ";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " and appoitmented_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " and appoitmented_date='$end_date'";
+		}
+		$semen_analysis_sql = "Select * from hms_appointments where  paitent_type='new_patient' and 1".$conditions." order by appoitmented_date desc limit ". $limit." OFFSET ".$offset."";
 		$semen_analysis_q = $this->db->query($semen_analysis_sql);
 		$embryo_semen_analysis_result = $semen_analysis_q->result_array();
 		return $embryo_semen_analysis_result;

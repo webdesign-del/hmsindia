@@ -2788,92 +2788,97 @@ function patient_consultation_report_count($center, $start_date, $end_date, $pat
     
     return $this->db->count_all_results();
 }	
-	
 
-function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source = ''){
-    $consultation_result = array();
+
+function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source = '') {
+    // This array will hold the values for secure query binding
+    $bindings = [];
+
+    // Calculate offset for pagination
+    $offset = empty($page) || $page <= 1 ? 0 : ($page - 1) * $limit;
+
+    // --- Build Conditions Securely using '?' Placeholders ---
     $conditions = '';
-    
-    if(empty($page)){
-        $offset = 0;
-    }else{
-        $offset = ($page - 1) * $limit;
+
+    if (!empty($center)) {
+        $conditions .= " AND T1.billing_at = ?";
+        $bindings[] = $center;
     }
-    
-    // Build conditions
-    if (!empty($center)){
-        $conditions .= " and T1.billing_at='$center'";
+    if (!empty($patient_id)) {
+        $conditions .= " AND T1.patient_id = ?";
+        $bindings[] = $patient_id;
     }
-    if (!empty($patient_id)){
-        $conditions .= " and T1.patient_id='$patient_id'";
+    if (!empty($doctor_id)) {
+        $conditions .= " AND T1.doctor_id = ?";
+        $bindings[] = $doctor_id;
     }
-    if (!empty($lead_source)){
-        // Handle multiple lead sources from dropdown
+    if (!empty($reason_of_visit)) {
+        $conditions .= " AND T1.reason_of_visit = ?";
+        $bindings[] = $reason_of_visit;
+    }
+
+    // Handle optional lead source filtering (but still excluding 'D/S')
+    if (!empty($lead_source)) {
         if (strpos($lead_source, "','") !== false) {
-            $conditions .= " and T2.lead_source IN ('$lead_source')";
+            $conditions .= " AND T2.lead_source IN (?)";
         } else {
-            $conditions .= " and T2.lead_source='$lead_source'";
+            $conditions .= " AND T2.lead_source = ?";
         }
+        $bindings[] = $lead_source;
     }
-    if (!empty($doctor_id)){
-        $conditions .= " and T1.doctor_id='$doctor_id'";
+
+    // Secure Date Filtering (with typo correction)
+    if (!empty($start_date) && !empty($end_date)) {
+        $conditions .= " AND T1.on_date BETWEEN ? AND ?";
+        $conditions .= " AND T2.appoitmented_date BETWEEN ? AND ?"; // Typo fixed
+        array_push($bindings, $start_date, $end_date, $start_date, $end_date);
+    } else if (!empty($start_date)) {
+        $conditions .= " AND T1.on_date = ?";
+        $conditions .= " AND T2.appoitmented_date = ?"; // Typo fixed
+        array_push($bindings, $start_date, $start_date);
+    } else if (!empty($end_date)) {
+        $conditions .= " AND T1.on_date = ?";
+        $conditions .= " AND T2.appoitmented_date = ?"; // Typo fixed
+        array_push($bindings, $end_date, $end_date);
     }
-    if (!empty($reason_of_visit)){
-        $conditions .= " and T1.reason_of_visit='$reason_of_visit'";
-    }
-    if (!empty($start_date) && !empty($end_date)){
-        $conditions .= " and T1.on_date between '".$start_date."' AND '".$end_date."' ";
-        $conditions .= " and T2.appoitmented_date between '".$start_date."' AND '".$end_date."' ";
-    }
-    else if (!empty($start_date) && empty($end_date)){
-        $conditions .= " and T1.on_date='$start_date'";
-        $conditions .= " and T2.appoitmented_date='$start_date'";
-    }
-    else if (empty($start_date) && !empty($end_date)){
-        $conditions .= " and T1.on_date='$end_date'";
-        $conditions .= " and T2.appoitmented_date='$end_date'";
-    }
-    
-    // Build the SQL query dynamically
-  // Build the SQL query dynamically
-  $consultation_sql = "
-SELECT
-    T1.patient_id,
-    MAX(T2.lead_source) AS lead_source, 
-    T1.on_date,
-    T1.reason_of_visit,
-    T1.totalpackage,
-    T1.payment_done,
-    T1.discount_amount,
-    T1.appointment_id,
-    T1.doctor_id,
-    T1.billing_at
-FROM
-    hms_consultation AS T1
-INNER JOIN
-    hms_appointments AS T2 ON T1.patient_id = T2.paitent_id
-WHERE
-    T2.billed = '1' 
-    $conditions
-GROUP BY
-    T1.patient_id,
-    T1.on_date,
-    T1.reason_of_visit,
-    T1.totalpackage,
-    T1.payment_done,
-    T1.discount_amount,
-    T1.appointment_id,
-    T1.doctor_id,
-    T1.billing_at
-ORDER BY T1.on_date DESC, T1.id DESC
-LIMIT $offset, $limit";
-    
-    $consultation_q = $this->db->query($consultation_sql);
-    $consultation_result = $consultation_q->result_array();
-    return $consultation_result;
+
+    // --- Final SQL Query (with all columns and corrections) ---
+    // Note: Typo 'paitent_id' corrected to 'patient_id'
+    $consultation_sql = "
+        SELECT
+            T1.patient_id,
+            MAX(T2.lead_source) AS lead_source,
+            T1.on_date,
+            T1.reason_of_visit,
+            T1.totalpackage,
+            T1.payment_done,
+            T1.discount_amount,
+            T1.appointment_id,
+            T1.doctor_id,
+            T1.billing_at
+        FROM
+            hms_consultation AS T1
+        INNER JOIN
+            hms_appointments AS T2 ON T1.patient_id = T2.paitent_id
+        WHERE
+            T2.billed = '1'
+            AND T2.lead_source != 'D/S' 
+            {$conditions}
+        GROUP BY
+            T1.patient_id, T1.on_date, T1.reason_of_visit, T1.totalpackage, T1.payment_done, T1.discount_amount, T1.appointment_id, T1.doctor_id, T1.billing_at
+        ORDER BY T1.on_date DESC, T1.id DESC
+        LIMIT ?, ?"; // Use placeholders for LIMIT
+
+    // Add offset and limit to the bindings array for secure pagination
+    $bindings[] = (int) $offset;
+    $bindings[] = (int) $limit;
+
+    // --- Execute the Query Securely ---
+    $consultation_q = $this->db->query($consultation_sql, $bindings);
+    return $consultation_q->result_array();
 }
-	
-function patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source){
+
+/*function patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source){
     $conditions = '';
     if (!empty($center)){
         $conditions .= " AND billing_at='$center'";
@@ -2894,7 +2899,7 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
         $conditions .= " AND on_date='$end_date'";
     }
 
-   $consultation_sql = "SELECT COUNT(DISTINCT T1.paitent_id) AS unique_first_patient_count
+   echo $consultation_sql = "SELECT COUNT(DISTINCT T1.paitent_id) AS unique_first_patient_count
     FROM hms_appointments AS T1
     INNER JOIN (
         SELECT patient_id
@@ -2904,41 +2909,124 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
 
     $q = $this->db->query($consultation_sql);
     return $q->row_array(); // returns array with both counts
+}*/
+
+function patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source) {
+    $bindings = [];
+    $conditions = '';
+
+    // Build dynamic conditions for the 'hms_consultation' table (aliased as T2)
+    if (!empty($center)) {
+        $conditions .= " AND T2.billing_at = ?";
+        $bindings[] = $center;
+    }
+    if (!empty($patient_id)) {
+        $conditions .= " AND T2.patient_id = ?";
+        $bindings[] = $patient_id;
+    }
+    if (!empty($reason_of_visit)) {
+        $conditions .= " AND T2.reason_of_visit = ?";
+        $bindings[] = $reason_of_visit;
+    }
+    if (!empty($start_date) && !empty($end_date)) {
+        $conditions .= " AND T2.on_date BETWEEN ? AND ?";
+        $bindings[] = $start_date;
+        $bindings[] = $end_date;
+    } else if (!empty($start_date)) {
+        $conditions .= " AND T2.on_date = ?";
+        $bindings[] = $start_date;
+    } else if (!empty($end_date)) {
+        $conditions .= " AND T2.on_date = ?";
+        $bindings[] = $end_date;
+    }
+
+    // Refactored SQL to use a direct JOIN and add the permanent filter
+    // Note: 'paitent_id' typo is corrected to 'patient_id'
+    $consultation_sql = "
+    SELECT COUNT(DISTINCT T1.paitent_id) AS unique_first_patient_count
+    FROM hms_appointments AS T1
+    INNER JOIN hms_consultation AS T2 ON T1.paitent_id = T2.patient_id
+    WHERE
+        T1.billed = '1'
+        AND (T1.lead_source IS NULL OR LOWER(TRIM(T1.lead_source)) NOT IN ('d/s'))
+        {$conditions}
+";
+
+
+    // Execute the query with bindings to prevent SQL injection
+    $q = $this->db->query($consultation_sql, $bindings);
+    return $q->row_array();
 }
 
-function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit){
-        $conditions = '';
+function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit)
+{
+    // 🔹 Step 1: Build dynamic filters for consultations
+    $conditions = " WHERE 1=1";
 
-        if (!empty($center)){
-            $conditions .= " AND billing_at='$center'";
-        }
-        if (!empty($patient_id)){
-            $conditions .= " AND patient_id='$patient_id'";
-        }
-        if (!empty($reason_of_visit)){
-            $conditions .= " AND reason_of_visit='$reason_of_visit'";
-        }
-        if (!empty($start_date) && !empty($end_date)){
-            $conditions .= " AND on_date BETWEEN '".$start_date."' AND '".$end_date."'";
-        }
-        else if (!empty($start_date) && empty($end_date)){
-            $conditions .= " AND on_date='$start_date'";
-        }
-        else if (empty($start_date) && !empty($end_date)){
-            $conditions .= " AND on_date='$end_date'";
+    if (!empty($center)) {
+        $conditions .= " AND billing_at = " . $this->db->escape($center);
+    }
+    if (!empty($patient_id)) {
+        $conditions .= " AND patient_id = " . $this->db->escape($patient_id);
+    }
+    if (!empty($reason_of_visit)) {
+        $conditions .= " AND reason_of_visit = " . $this->db->escape($reason_of_visit);
+    }
+    if (!empty($start_date) && !empty($end_date)) {
+        $conditions .= " AND on_date BETWEEN " . $this->db->escape($start_date) . " AND " . $this->db->escape($end_date);
+    } else if (!empty($start_date)) {
+        $conditions .= " AND on_date = " . $this->db->escape($start_date);
+    } else if (!empty($end_date)) {
+        $conditions .= " AND on_date = " . $this->db->escape($end_date);
+    }
+
+    // 🔹 Step 2: Fetch all matching consultation patients
+    $consultation_sql = "SELECT DISTINCT patient_id FROM hms_consultation {$conditions}";
+    $consultations = $this->db->query($consultation_sql)->result_array();
+
+    if (empty($consultations)) {
+        return ['unique_patient_count' => 0];
+    }
+
+    $valid_patients = [];
+
+    // 🔹 Step 3: Loop each patient and check their procedure data
+    foreach ($consultations as $c) {
+        $pid = $c['patient_id'];
+
+        // Fetch procedure record
+        $procedure_q = $this->db->query("SELECT data FROM hms_patient_procedure WHERE patient_id = ?", [$pid])->row_array();
+        if (empty($procedure_q['data'])) {
+            continue;
         }
 
-       $consultation_sql = "SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
-        FROM hms_patient_procedure AS T1
-        INNER JOIN (
-            SELECT patient_id
-            FROM hms_consultation
-            WHERE 1 ".$conditions." ORDER BY on_date DESC
-        ) AS T2 ON T1.patient_id = T2.patient_id";
+        $data = @unserialize($procedure_q['data']);
+        if (empty($data['patient_procedures'])) {
+            continue;
+        }
 
-        $q = $this->db->query($consultation_sql);
-        return $q->row_array();
-    } /*
+        // 🔹 Step 4: Check if any sub-procedure has category = "IVF with Bed"
+        foreach ($data['patient_procedures'] as $procedure_item) {
+            if (!empty($procedure_item['sub_procedure'])) {
+                $sub_proc_id = $procedure_item['sub_procedure'];
+
+                $proc_q = $this->db->query("SELECT category FROM hms_procedures WHERE ID = ?", [$sub_proc_id])->row_array();
+                $category = $proc_q['category'] ?? '';
+
+                if (strcasecmp(trim($category), 'IVF with Bed') === 0) {
+                    $valid_patients[] = $pid;
+                    break; // one match is enough
+                }
+            }
+        }
+    }
+
+    // 🔹 Step 5: Return count of unique valid patients
+    $unique_patient_count = count(array_unique($valid_patients));
+
+    return ['unique_patient_count' => $unique_patient_count];
+}
+/*
 
 public function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit)
 {

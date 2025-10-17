@@ -253,6 +253,7 @@ class Api extends CI_Controller {
 				$appoint_arr['appoitmented_slot'] = $appoitmented_slot;
 				$appoint_arr['appointment_added'] = date('Y-m-d H:i:s');
 				$appointment = $this->billingmodel_model->insert_appointments($appoint_arr);
+
 				
 				/*$data = "\n".date("d-m-y H:i:s")."-------------".json_encode($appointment)."\n";
                         $fp = fopen('app_data.txt', 'a');
