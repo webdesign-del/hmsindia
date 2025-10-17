@@ -2899,7 +2899,7 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
         $conditions .= " AND on_date='$end_date'";
     }
 
-   echo $consultation_sql = "SELECT COUNT(DISTINCT T1.paitent_id) AS unique_first_patient_count
+   $consultation_sql = "SELECT COUNT(DISTINCT T1.paitent_id) AS unique_first_patient_count
     FROM hms_appointments AS T1
     INNER JOIN (
         SELECT patient_id
