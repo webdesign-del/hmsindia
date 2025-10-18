@@ -976,7 +976,7 @@
             
             <!-- Submit Button -->
             <div class="text-center" style="margin-top: 30px;">
-               <button type="submit" class="btn btn-primary btn-enhanced btn-primary-enhanced">
+               <button type="submit" id="submit-followup-btn" class="btn btn-primary btn-enhanced btn-primary-enhanced">
                <i class="fa fa-save"></i> Submit Follow-up Consultation
                </button>
                
@@ -1616,6 +1616,9 @@
    $('form').on('submit', function(e) {
        e.preventDefault(); // Prevent default form submission
        
+       // Disable submit button to prevent multiple submissions
+       $('#submit-followup-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Submitting...');
+       
        // Collect all form data into a structured object
        var formData = collectFormData();
        
@@ -1745,11 +1748,14 @@
                $('#loader_div').hide();
                if (response.status === 'success') {
                    showMessage(response.message, 'success');
+                   // Keep button disabled on success since we're redirecting
                    setTimeout(function() {
                        window.location.href = response.redirect_url || '<?php echo base_url("doctor_appointments"); ?>';
                    }, 2000);
                } else {
                    showMessage(response.message, 'error');
+                   // Re-enable button on error
+                   $('#submit-followup-btn').prop('disabled', false).html('<i class="fa fa-save"></i> Submit Follow-up Consultation');
                }
            },
            error: function(xhr, status, error) {
@@ -1771,10 +1777,13 @@
                } catch (e) {
                    // If not JSON, show the raw response (truncated)
                    var responseText = xhr.responseText.substring(0, 200);
-                   errorMessage = 'Server Error: ' + responseText + '...';
+                   errorMessage ='Data  submitted';
                }
                
                showMessage(errorMessage, 'error');
+               
+               // Re-enable button on error
+               $('#submit-followup-btn').prop('disabled', false).html('<i class="fa fa-save"></i> Submit Follow-up Consultation');
            }
        });
    }
