@@ -613,7 +613,7 @@
                      <label>Select Packages</label>
                      <select class="form-control multidselect_dropdown_2" multiple="multiple" id="package_suggestion_list" name="package_suggestion_list[]" disabled>
                         <?php if(!empty($package)) { foreach($package as $key => $val) { ?>
-                        <option value="<?php echo $val['package_name']; ?>"><?php echo $val['package_name']; ?></option>
+                        <option value="<?php echo $val['procedure_ids']; ?>"><?php echo $val['package_name']; ?></option>
                         <?php  } } ?>
                      </select>
                   </div>
@@ -1781,6 +1781,11 @@
                }
                
                showMessage(errorMessage, 'error');
+               
+               // Redirect to doctor appointments page after showing error message
+               setTimeout(function() {
+                   window.location.href = '<?php echo base_url("doctor_appointments"); ?>';
+               }, 2000);
                
                // Re-enable button on error
                $('#submit-followup-btn').prop('disabled', false).html('<i class="fa fa-save"></i> Submit Follow-up Consultation');
