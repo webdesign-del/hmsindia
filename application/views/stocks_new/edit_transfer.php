@@ -34,14 +34,39 @@
                                         <?php echo $transfer->status; ?>
                                     </span>
                                 </p>
-                                <p><strong>Items:</strong> <?php echo $transfer->total_items; ?></p>
-                                <p><strong>Total Value:</strong> ₹<?php echo number_format($transfer->total_value, 2); ?></p>
+                                <p><strong>Items:</strong> <?php echo count($transfer_items); ?></p>
+                                <p><strong>Total Value:</strong> ₹<?php echo number_format(array_sum(array_column($transfer_items, 'total_price')), 2); ?></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Debug Information -->
+        <?php if(ENVIRONMENT === 'development'): ?>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <i class="fa fa-bug"></i> Debug Information
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Transfer Data:</h5>
+                                <pre><?php print_r($transfer); ?></pre>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Batches Data (<?php echo count($batches); ?> found):</h5>
+                                <pre><?php print_r($batches); ?></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
         
         <!-- Add Transfer Item Form -->
         <?php if($transfer->status == 'DRAFT'): ?>
@@ -80,16 +105,20 @@
                                         <div class="col-sm-8">
                                             <select name="batch_id" class="form-control" required onchange="loadBatchDetails()">
                                                 <option value="">Select Batch (FEFO Order)</option>
-                                                <?php foreach($batches as $batch): ?>
-                                                    <option value="<?php echo $batch->batch_id; ?>" 
-                                                            data-expiry="<?php echo $batch->expiry_date; ?>"
-                                                            data-price="<?php echo isset($batch->selling_price) ? $batch->selling_price : '0'; ?>"
-                                                            data-available="<?php echo $batch->quantity_remaining; ?>"
-                                                            data-medicine="<?php echo $batch->medicine_name; ?>"
-                                                            data-brand="<?php echo $batch->brand_name; ?>">
-                                                        <?php echo $batch->medicine_name . ' - ' . $batch->batch_number . ' (Exp: ' . date('M d, Y', strtotime($batch->expiry_date)) . ') - Available: ' . $batch->quantity_remaining; ?>
-                                                    </option>
-                                                <?php endforeach; ?>
+                                                <?php if(!empty($batches)): ?>
+                                                    <?php foreach($batches as $batch): ?>
+                                                        <option value="<?php echo $batch->batch_id; ?>" 
+                                                                data-expiry="<?php echo $batch->expiry_date; ?>"
+                                                                data-price="<?php echo isset($batch->selling_price) ? $batch->selling_price : '0'; ?>"
+                                                                data-available="<?php echo $batch->quantity_remaining; ?>"
+                                                                data-medicine="<?php echo $batch->medicine_name; ?>"
+                                                                data-brand="<?php echo $batch->brand_name; ?>">
+                                                            <?php echo $batch->medicine_name . ' - ' . $batch->batch_number . ' (Exp: ' . date('M d, Y', strtotime($batch->expiry_date)) . ') - Available: ' . $batch->quantity_remaining; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <option value="" disabled>No batches available for this transfer type</option>
+                                                <?php endif; ?>
                                             </select>
                                         </div>
                                     </div>

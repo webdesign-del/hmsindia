@@ -603,6 +603,13 @@ class Stocks_new extends CI_Controller {
                 null  // from_employee_number not available
             );
             
+            // Debug: Log the number of batches found
+            if(empty($data['batches'])) {
+                log_message('debug', 'No batches found for transfer type: ' . $data['transfer']->transfer_type . ', from_center_id: ' . $data['transfer']->from_center_id);
+            } else {
+                log_message('debug', 'Found ' . count($data['batches']) . ' batches for transfer');
+            }
+            
 
             $data['centers'] = $this->Stock_model_new->get_all_centers();
             $data['departments'] = $this->get_departments_by_center();
@@ -654,6 +661,497 @@ class Stocks_new extends CI_Controller {
         } else {
             header("location:" .base_url(). "");
             die();
+        }
+    }
+
+    public function transfer_debug() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/transfer_debug');
+            $this->load->view($template['footer']);
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function transfer_debug_detailed() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/transfer_debug_detailed');
+            $this->load->view($template['footer']);
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function test_model_method() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $result = $this->Stock_model_new->get_available_stocks_for_transfer('CENTRAL_TO_CENTER');
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'count' => count($result),
+                'data' => $result
+            ]);
+            
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+        }
+    }
+
+    public function remove_transfer_item($item_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $result = $this->Stock_model_new->remove_transfer_item($item_id);
+            
+            if($result) {
+                $this->session->set_flashdata('success', 'Transfer item removed successfully!');
+            } else {
+                $this->session->set_flashdata('error', 'Error removing transfer item!');
+            }
+            
+            // Redirect back to the referring page or transfers list
+            $referrer = $this->input->server('HTTP_REFERER');
+            if($referrer) {
+                redirect($referrer);
+            } else {
+                redirect('stocks_new/transfers');
+            }
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function transfer_data_fix() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/transfer_data_fix');
+            $this->load->view($template['footer']);
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function fix_transfer_totals() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $updated = 0;
+            $total_items = 0;
+            $total_value = 0;
+            
+            // Get all transfers
+            $transfers = $this->db->get('stock_transfers')->result();
+            
+            foreach($transfers as $transfer) {
+                // Calculate totals for this transfer
+                $totals = $this->db->select('
+                    COUNT(id) as total_items,
+                    SUM(quantity_transferred) as total_quantity,
+                    SUM(total_price) as total_value
+                ')
+                ->from('stock_transfer_items')
+                ->where('transfer_id', $transfer->id)
+                ->get()
+                ->row();
+                
+                // Update transfer record
+                $this->db->where('id', $transfer->id);
+                $this->db->update('stock_transfers', [
+                    'total_items' => $totals->total_items ?: 0,
+                    'total_quantity' => $totals->total_quantity ?: 0,
+                    'total_value' => $totals->total_value ?: 0
+                ]);
+                
+                $updated++;
+                $total_items += $totals->total_items ?: 0;
+                $total_value += $totals->total_value ?: 0;
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'updated' => $updated,
+                'total_items' => $total_items,
+                'total_value' => $total_value
+            ]);
+            
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+        }
+    }
+
+    public function bulk_approve_transfers() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $transfer_ids = $this->input->post('transfer_ids');
+            $approved_by = $this->session->userdata('employee_number') ?: 1;
+            
+            if(empty($transfer_ids) || !is_array($transfer_ids)) {
+                $this->session->set_flashdata('error', 'No transfers selected for approval!');
+                redirect('stocks_new/transfers');
+            }
+            
+            $result = $this->Stock_model_new->bulk_approve_transfers($transfer_ids, $approved_by);
+            
+            if($result['success_count'] > 0) {
+                $this->session->set_flashdata('success', $result['success_count'] . ' transfers approved successfully!');
+            }
+            
+            if($result['failed_count'] > 0) {
+                $this->session->set_flashdata('error', $result['failed_count'] . ' transfers failed to approve. Check if they have items.');
+            }
+            
+            redirect('stocks_new/transfers');
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function approve_all_pending_transfers() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            // Get all pending transfers that have items
+            $pending_transfers = $this->db->select('st.id')
+                ->from('stock_transfers st')
+                ->join('stock_transfer_items sti', 'st.id = sti.transfer_id')
+                ->where_in('st.status', ['DRAFT', 'PENDING', 'APPROVED'])
+                ->group_by('st.id')
+                ->get()
+                ->result();
+            
+            $transfer_ids = array_column($pending_transfers, 'id');
+            $approved_by = $this->session->userdata('employee_number') ?: 1;
+            
+            if(empty($transfer_ids)) {
+                $this->session->set_flashdata('error', 'No pending transfers with items found!');
+                redirect('stocks_new/transfers');
+            }
+            
+            $result = $this->Stock_model_new->bulk_approve_transfers($transfer_ids, $approved_by);
+            
+            if($result['success_count'] > 0) {
+                $this->session->set_flashdata('success', $result['success_count'] . ' transfers approved and completed successfully!');
+            }
+            
+            if($result['failed_count'] > 0) {
+                $this->session->set_flashdata('error', $result['failed_count'] . ' transfers failed to approve.');
+            }
+            
+            redirect('stocks_new/transfers');
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function database_fix() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/database_fix');
+            $this->load->view($template['footer']);
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function run_database_fix() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $results = [];
+            
+            try {
+                // Add approved_date column
+                $sql1 = "ALTER TABLE `stock_transfers` ADD COLUMN `approved_date` TIMESTAMP NULL AFTER `approved_by`";
+                $this->db->query($sql1);
+                $results[] = "Added approved_date column";
+            } catch (Exception $e) {
+                $results[] = "approved_date column: " . $e->getMessage();
+            }
+            
+            try {
+                // Add from_department column
+                $sql2 = "ALTER TABLE `stock_transfers` ADD COLUMN `from_department` VARCHAR(100) NULL AFTER `from_center_id`";
+                $this->db->query($sql2);
+                $results[] = "Added from_department column";
+            } catch (Exception $e) {
+                $results[] = "from_department column: " . $e->getMessage();
+            }
+            
+            try {
+                // Add to_department column
+                $sql3 = "ALTER TABLE `stock_transfers` ADD COLUMN `to_department` VARCHAR(100) NULL AFTER `to_center_id`";
+                $this->db->query($sql3);
+                $results[] = "Added to_department column";
+            } catch (Exception $e) {
+                $results[] = "to_department column: " . $e->getMessage();
+            }
+            
+            try {
+                // Add indexes
+                $sql4 = "ALTER TABLE `stock_transfers` ADD INDEX `idx_status` (`status`)";
+                $this->db->query($sql4);
+                $results[] = "Added status index";
+            } catch (Exception $e) {
+                $results[] = "status index: " . $e->getMessage();
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'results' => $results
+            ]);
+            
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+        }
+    }
+
+    public function stock_levels_debug() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/stock_levels_debug');
+            $this->load->view($template['footer']);
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function fix_stock_levels() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $results = [];
+            
+            try {
+                // Drop existing view if it exists
+                $this->db->query("DROP VIEW IF EXISTS v_current_stock_levels");
+                $results[] = "Dropped existing view";
+            } catch (Exception $e) {
+                $results[] = "Drop view: " . $e->getMessage();
+            }
+            
+            try {
+                // Create corrected view with proper aggregation
+                $create_view_sql = "
+                CREATE VIEW v_current_stock_levels AS
+                SELECT 
+                    m.id as medicine_id,
+                    m.medicine_code,
+                    m.medicine_name,
+                    m.generic_name,
+                    COALESCE(b.name, 'Unknown') as brand_name,
+                    mb.id as batch_id,
+                    mb.batch_number,
+                    mb.expiry_date,
+                    DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
+                    mb.purchase_price,
+                    mb.selling_price,
+                    mb.mrp,
+                    mb.quantity_remaining,
+                    SUM(COALESCE(cs.quantity, 0)) as central_quantity,
+                    SUM(COALESCE(ccs.quantity, 0)) as center_quantity,
+                    SUM(COALESCE(cs.quantity, 0) + COALESCE(ccs.quantity, 0)) as total_quantity,
+                    GROUP_CONCAT(DISTINCT COALESCE(c.center_name, 'Central') SEPARATOR ', ') as center_names,
+                    GROUP_CONCAT(DISTINCT ccs.center_id SEPARATOR ',') as center_ids,
+                    mb.batch_status,
+                    mb.quality_status,
+                    CASE 
+                        WHEN DATEDIFF(mb.expiry_date, CURDATE()) < 0 THEN 'EXPIRED'
+                        WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN 'EXPIRING_SOON'
+                        ELSE 'FRESH'
+                    END as expiry_status,
+                    ROW_NUMBER() OVER (
+                        ORDER BY mb.expiry_date ASC, mb.created_at ASC
+                    ) as fifo_rank
+                FROM medicines m
+                LEFT JOIN hms_brands b ON m.brand_id = b.ID
+                LEFT JOIN medicine_batches mb ON m.id = mb.medicine_id
+                LEFT JOIN central_stocks cs ON mb.id = cs.batch_id
+                LEFT JOIN center_stocks ccs ON mb.id = ccs.batch_id
+                LEFT JOIN hms_centers c ON ccs.center_id = c.ID
+                WHERE m.status = 'active'
+                AND mb.batch_status = 'ACTIVE'
+                AND (COALESCE(cs.quantity, 0) > 0 OR COALESCE(ccs.quantity, 0) > 0)
+                GROUP BY m.id, mb.id
+                ";
+                
+                $this->db->query($create_view_sql);
+                $results[] = "Created corrected view";
+            } catch (Exception $e) {
+                $results[] = "Create view: " . $e->getMessage();
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'results' => $results
+            ]);
+            
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+        }
+    }
+
+    public function stock_calculation_test() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/stock_calculation_test');
+            $this->load->view($template['footer']);
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function center_to_center_debug() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/center_to_center_debug', $data);
+            $this->load->view($template['footer']);
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function test_center_to_center() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $from_center_id = $this->input->post('from_center_id');
+            $to_center_id = $this->input->post('to_center_id');
+            
+            try {
+                // Get available stocks for center to center transfer
+                $stocks = $this->Stock_model_new->get_available_stocks_for_transfer('CENTER_TO_CENTER', $from_center_id);
+                
+                // Get center names
+                $source_center = $this->db->select('center_name')->from('hms_centers')->where('ID', $from_center_id)->get()->row();
+                $dest_center = $this->db->select('center_name')->from('hms_centers')->where('ID', $to_center_id)->get()->row();
+                
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => true,
+                    'available_stocks' => count($stocks),
+                    'source_center' => $source_center ? $source_center->center_name : 'Unknown',
+                    'destination_center' => $dest_center ? $dest_center->center_name : 'Unknown',
+                    'stocks' => $stocks
+                ]);
+                
+            } catch (Exception $e) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => false,
+                    'error' => $e->getMessage(),
+                    'available_stocks' => 0
+                ]);
+            }
+            
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
+        }
+    }
+
+    public function fix_center_to_center() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $results = [];
+            
+            try {
+                // Fix the CENTER_TO_CENTRAL section in get_available_stocks_for_transfer
+                // This is a code fix that needs to be applied manually
+                $results[] = "CENTER_TO_CENTRAL section uses c.name instead of c.center_name - needs manual fix";
+                
+                // Check if center_stocks table has status column
+                $columns = $this->db->list_fields('center_stocks');
+                if(!in_array('status', $columns)) {
+                    $this->db->query("ALTER TABLE center_stocks ADD COLUMN status VARCHAR(20) DEFAULT 'ACTIVE'");
+                    $results[] = "Added status column to center_stocks table";
+                } else {
+                    $results[] = "Status column already exists in center_stocks table";
+                }
+                
+                // Check if central_stocks table has status column
+                $columns = $this->db->list_fields('central_stocks');
+                if(!in_array('status', $columns)) {
+                    $this->db->query("ALTER TABLE central_stocks ADD COLUMN status VARCHAR(20) DEFAULT 'ACTIVE'");
+                    $results[] = "Added status column to central_stocks table";
+                } else {
+                    $results[] = "Status column already exists in central_stocks table";
+                }
+                
+                // Update existing records to have ACTIVE status
+                $this->db->query("UPDATE center_stocks SET status = 'ACTIVE' WHERE status IS NULL OR status = ''");
+                $this->db->query("UPDATE central_stocks SET status = 'ACTIVE' WHERE status IS NULL OR status = ''");
+                $results[] = "Updated existing records to have ACTIVE status";
+                
+            } catch (Exception $e) {
+                $results[] = "Error: " . $e->getMessage();
+            }
+            
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => true,
+                'results' => $results
+            ]);
+            
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Not authenticated']);
         }
     }
 

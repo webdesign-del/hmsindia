@@ -136,13 +136,17 @@
                                                 <td>
                                                     <?php if(isset($stock->center_quantity) && is_numeric($stock->center_quantity) && $stock->center_quantity > 0): ?>
                                                         <span class="badge badge-success"><?php echo number_format($stock->center_quantity); ?></span>
-                                                        <br><small class="text-muted"><?php echo isset($stock->center_name) ? htmlspecialchars($stock->center_name) : ''; ?></small>
+                                                        <?php if(isset($stock->center_names) && !empty($stock->center_names)): ?>
+                                                            <br><small class="text-muted"><?php echo htmlspecialchars($stock->center_names); ?></small>
+                                                        <?php elseif(isset($stock->center_name) && !empty($stock->center_name)): ?>
+                                                            <br><small class="text-muted"><?php echo htmlspecialchars($stock->center_name); ?></small>
+                                                        <?php endif; ?>
                                                     <?php else: ?>
                                                         <span class="badge badge-default">0</span>
                                                     <?php endif; ?>
                                                 </td>
                                                 <td>
-                                                    <strong><?php echo number_format((isset($stock->central_quantity) && is_numeric($stock->central_quantity) ? $stock->central_quantity : 0) + (isset($stock->center_quantity) && is_numeric($stock->center_quantity) ? $stock->center_quantity : 0)); ?></strong>
+                                                    <strong><?php echo isset($stock->total_quantity) && is_numeric($stock->total_quantity) ? number_format($stock->total_quantity) : number_format((isset($stock->central_quantity) && is_numeric($stock->central_quantity) ? $stock->central_quantity : 0) + (isset($stock->center_quantity) && is_numeric($stock->center_quantity) ? $stock->center_quantity : 0)); ?></strong>
                                                 </td>
                                                 <td>
                                                     <?php if(isset($stock->fifo_rank) && is_numeric($stock->fifo_rank)): ?>

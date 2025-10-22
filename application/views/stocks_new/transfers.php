@@ -47,6 +47,9 @@
                         <a href="<?php echo base_url('stocks_new/transfer_report'); ?>" class="btn btn-success">
                             <i class="fa fa-chart-bar"></i> Transfer Reports
                         </a>
+                        <button class="btn btn-warning" onclick="approveAllPending()">
+                            <i class="fa fa-check-circle"></i> Approve All Pending
+                        </button>
                     </div>
                 </div>
             </div>
@@ -358,5 +361,11 @@ $(document).ready(function() {
         table.addClass('table-striped table-bordered table-hover');
     }
 });
+
+function approveAllPending() {
+    if(confirm('Are you sure you want to approve ALL pending transfers? This will move stock and cannot be undone.')) {
+        window.location.href = '<?php echo base_url("stocks_new/approve_all_pending_transfers"); ?>';
+    }
+}
 </script>
 

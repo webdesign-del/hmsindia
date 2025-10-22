@@ -619,6 +619,7 @@ class Stock_model_new extends CI_Model {
 
     public function get_current_stock_levels($center_id = null, $medicine_name = null, $stock_status = null) {
         try {
+            // First try to use the view
             $this->db->select('*');
             $this->db->from('v_current_stock_levels');
             
@@ -635,14 +636,24 @@ class Stock_model_new extends CI_Model {
             }
             
             $this->db->order_by('medicine_name', 'ASC');
-            return $this->db->get()->result();
+            $result = $this->db->get()->result();
+            
+            // If view returns empty or has issues, fall back to table method
+            if(empty($result)) {
+                return $this->get_stock_levels_from_tables($center_id, $medicine_name, $stock_status);
+            }
+            
+            return $result;
         } catch (Exception $e) {
+            // Log the error and fall back to table method
+            log_message('error', 'Stock levels view error: ' . $e->getMessage());
             return $this->get_stock_levels_from_tables($center_id, $medicine_name, $stock_status);
         }
     }
     
     public function get_stock_levels_from_tables($center_id = null, $medicine_name = null, $stock_status = null) {
         try {
+            // Get aggregated stock data by medicine and batch
             $this->db->select('
                 m.id as medicine_id,
                 m.medicine_name,
@@ -650,26 +661,35 @@ class Stock_model_new extends CI_Model {
                 mb.batch_number,
                 mb.expiry_date,
                 DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
-                mb.quantity_remaining as central_quantity,
-                0 as center_quantity,
-                "" as center_name,
-                1 as fifo_rank,
+                SUM(COALESCE(cs.quantity, 0)) as central_quantity,
+                SUM(COALESCE(ccs.quantity, 0)) as center_quantity,
+                SUM(COALESCE(cs.quantity, 0) + COALESCE(ccs.quantity, 0)) as total_quantity,
+                GROUP_CONCAT(DISTINCT COALESCE(c.center_name, "Central") SEPARATOR ", ") as center_names,
+                GROUP_CONCAT(DISTINCT ccs.center_id SEPARATOR ",") as center_ids,
+                ROW_NUMBER() OVER (ORDER BY mb.expiry_date ASC, mb.created_at ASC) as fifo_rank,
                 CASE 
                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) < 0 THEN "EXPIRED"
                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN "EXPIRING_SOON"
                     ELSE "FRESH"
                 END as expiry_status,
                 mb.id as batch_id,
-                b.name as brand_name
+                COALESCE(b.name, "Unknown") as brand_name,
+                mb.purchase_price,
+                mb.selling_price,
+                mb.mrp,
+                mb.quantity_remaining
             ');
             $this->db->from('medicines m');
             $this->db->join('medicine_batches mb', 'm.id = mb.medicine_id');
-            $this->db->join($this->config->item('db_prefix') . 'brands b', 'm.brand_id = b.ID');
+            $this->db->join($this->config->item('db_prefix') . 'brands b', 'm.brand_id = b.ID', 'left');
+            $this->db->join('central_stocks cs', 'mb.id = cs.batch_id', 'left');
+            $this->db->join('center_stocks ccs', 'mb.id = ccs.batch_id', 'left');
+            $this->db->join($this->config->item('db_prefix') . 'centers c', 'ccs.center_id = c.ID', 'left');
             $this->db->where('mb.batch_status', 'ACTIVE');
-            $this->db->where('mb.quantity_remaining >', 0);
+            $this->db->where('(COALESCE(cs.quantity, 0) > 0 OR COALESCE(ccs.quantity, 0) > 0)');
             
             if($center_id && $center_id != '') {
-                $this->db->where('mb.center_id', $center_id);
+                $this->db->where('(ccs.center_id = ' . $center_id . ' OR ccs.center_id IS NULL)');
             }
             
             if($medicine_name && $medicine_name != '') {
@@ -687,6 +707,7 @@ class Stock_model_new extends CI_Model {
                 }
             }
             
+            $this->db->group_by('m.id, mb.id');
             $this->db->order_by('mb.expiry_date', 'ASC');
             $this->db->order_by('m.medicine_name', 'ASC');
             
@@ -742,10 +763,19 @@ class Stock_model_new extends CI_Model {
 
     public function get_all_transfers() {
         try {
-            $this->db->select('st.*, fc.center_name as from_center, tc.center_name as to_center');
+            $this->db->select('
+                st.*, 
+                fc.center_name as from_center, 
+                tc.center_name as to_center,
+                COUNT(sti.id) as total_items,
+                COALESCE(SUM(sti.quantity_transferred), 0) as total_quantity,
+                COALESCE(SUM(sti.total_price), 0) as total_value
+            ');
             $this->db->from('stock_transfers st');
             $this->db->join('hms_centers fc', 'st.from_center_id = fc.ID', 'left');
-            $this->db->join('hms_centers tc', 'st.to_center_id = tc.ID');
+            $this->db->join('hms_centers tc', 'st.to_center_id = tc.ID', 'left');
+            $this->db->join('stock_transfer_items sti', 'st.id = sti.transfer_id', 'left');
+            $this->db->group_by('st.id');
             $this->db->order_by('st.created_at', 'DESC');
             return $this->db->get()->result();
         } catch (Exception $e) {
@@ -758,15 +788,27 @@ class Stock_model_new extends CI_Model {
         // Generate transfer number
         $data['transfer_number'] = 'TRF' . date('Ymd') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT);
         
-        return $this->db->insert('stock_transfers', $data);
+        if($this->db->insert('stock_transfers', $data)) {
+            return $this->db->insert_id();
+        }
+        return false;
     }
 
     public function get_transfer_by_id($id) {
-        $this->db->select('st.*, fc.center_name as from_center, tc.center_name as to_center');
+        $this->db->select('
+            st.*, 
+            fc.center_name as from_center, 
+            tc.center_name as to_center,
+            COUNT(sti.id) as total_items,
+            COALESCE(SUM(sti.quantity_transferred), 0) as total_quantity,
+            COALESCE(SUM(sti.total_price), 0) as total_value
+        ');
         $this->db->from('stock_transfers st');
         $this->db->join('hms_centers fc', 'st.from_center_id = fc.ID', 'left');
         $this->db->join('hms_centers tc', 'st.to_center_id = tc.ID', 'left');
+        $this->db->join('stock_transfer_items sti', 'st.id = sti.transfer_id', 'left');
         $this->db->where('st.id', $id);
+        $this->db->group_by('st.id');
         return $this->db->get()->row();
     }
 
@@ -781,11 +823,70 @@ class Stock_model_new extends CI_Model {
     }
 
     public function add_transfer_item($data) {
-        return $this->db->insert('stock_transfer_items', $data);
+        if($this->db->insert('stock_transfer_items', $data)) {
+            $item_id = $this->db->insert_id();
+            
+            // Update transfer totals
+            $this->update_transfer_totals($data['transfer_id']);
+            
+            return $item_id;
+        }
+        return false;
+    }
+
+    public function remove_transfer_item($item_id) {
+        // Get transfer_id before deleting
+        $this->db->select('transfer_id');
+        $this->db->from('stock_transfer_items');
+        $this->db->where('id', $item_id);
+        $item = $this->db->get()->row();
+        
+        if($item) {
+            // Delete the item
+            $this->db->where('id', $item_id);
+            $result = $this->db->delete('stock_transfer_items');
+            
+            if($result) {
+                // Update transfer totals
+                $this->update_transfer_totals($item->transfer_id);
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    public function update_transfer_totals($transfer_id) {
+        // Get totals from transfer items
+        $this->db->select('
+            COUNT(id) as total_items,
+            SUM(quantity_transferred) as total_quantity,
+            SUM(total_price) as total_value
+        ');
+        $this->db->from('stock_transfer_items');
+        $this->db->where('transfer_id', $transfer_id);
+        $totals = $this->db->get()->row();
+        
+        // Update transfer record with calculated totals
+        $this->db->where('id', $transfer_id);
+        $this->db->update('stock_transfers', [
+            'total_items' => $totals->total_items ?: 0,
+            'total_quantity' => $totals->total_quantity ?: 0,
+            'total_value' => $totals->total_value ?: 0
+        ]);
+        
+        return true;
     }
 
     public function approve_transfer($id, $approved_by) {
         $this->db->trans_start();
+        
+        // Check if transfer has items before approval
+        $items = $this->get_transfer_items($id);
+        if(empty($items)) {
+            $this->db->trans_rollback();
+            return false; // Cannot approve transfer without items
+        }
         
         // Update transfer status
         $this->db->where('id', $id);
@@ -795,7 +896,6 @@ class Stock_model_new extends CI_Model {
         ]);
         
         // Get transfer items
-        $items = $this->get_transfer_items($id);
         $transfer = $this->get_transfer_by_id($id);
         
         foreach($items as $item) {
@@ -849,8 +949,43 @@ class Stock_model_new extends CI_Model {
             $this->db->insert('stock_movements', $movement_data);
         }
         
+        // Update transfer status to COMPLETED after successful stock movement
+        $this->db->where('id', $id);
+        $update_data = ['status' => 'COMPLETED'];
+        
+        // Check if approved_date column exists before trying to update it
+        $columns = $this->db->list_fields('stock_transfers');
+        if(in_array('approved_date', $columns)) {
+            $update_data['approved_date'] = date('Y-m-d H:i:s');
+        }
+        
+        $this->db->update('stock_transfers', $update_data);
+        
         $this->db->trans_complete();
         return $this->db->trans_status();
+    }
+
+    public function bulk_approve_transfers($transfer_ids, $approved_by) {
+        $success_count = 0;
+        $failed_count = 0;
+        $results = [];
+        
+        foreach($transfer_ids as $transfer_id) {
+            $result = $this->approve_transfer($transfer_id, $approved_by);
+            if($result) {
+                $success_count++;
+                $results[] = ['id' => $transfer_id, 'status' => 'success'];
+            } else {
+                $failed_count++;
+                $results[] = ['id' => $transfer_id, 'status' => 'failed'];
+            }
+        }
+        
+        return [
+            'success_count' => $success_count,
+            'failed_count' => $failed_count,
+            'results' => $results
+        ];
     }
 
     public function get_available_batches_for_transfer($center_id, $department = null, $employee_number = null) {
@@ -930,13 +1065,23 @@ class Stock_model_new extends CI_Model {
                     throw new Exception('Batch not found: ' . $item['batch_id']);
                 }
                 
-                // Check if sufficient quantity is available
-                if($batch->available_quantity < $item['quantity']) {
-                    throw new Exception('Insufficient quantity for batch: ' . $batch->batch_number);
+                // Check if sufficient quantity is available at source location (center + department + employee)
+                $source_stock = $this->db->select('available_quantity')
+                    ->from('medicine_batches')
+                    ->where('id', $item['batch_id'])
+                    ->where('center_id', $data['from_center_id'])
+                    ->where('department', $data['from_department'])
+                    ->where('employee_number', $data['from_employee_number'])
+                    ->where('batch_status', 'ACTIVE')
+                    ->get()
+                    ->row();
+                
+                if(!$source_stock || $source_stock->available_quantity < $item['quantity']) {
+                    throw new Exception('Insufficient quantity for batch: ' . $batch->batch_number . ' at source location (Center: ' . $data['from_center_id'] . ', Dept: ' . $data['from_department'] . ', Emp: ' . $data['from_employee_number'] . ')');
                 }
                 
                 // Calculate item value
-                $item_value = $item['quantity'] * $batch->purchase_price;
+                $item_value = $item['quantity'] * $batch->selling_price;
                 $total_value += $item_value;
                 
                 // Record transfer item
@@ -944,24 +1089,56 @@ class Stock_model_new extends CI_Model {
                     'transfer_id' => $transfer_id,
                     'batch_id' => $item['batch_id'],
                     'quantity_transferred' => $item['quantity'],
-                    'unit_price' => $batch->purchase_price,
+                    'unit_price' => $batch->selling_price,
                     'total_price' => $item_value,
                     'remarks' => isset($item['remarks']) ? $item['remarks'] : ''
                 ];
                 
                 $this->db->insert('stock_transfer_items', $item_data);
                 
-                // Deduct from source location
-                $this->db->where('id', $item['batch_id']);
-                $this->db->set('available_quantity', 'available_quantity - ' . $item['quantity'], FALSE);
-                $this->db->update('medicine_batches');
+                // Reduce from source center stock
+                $this->db->where('batch_id', $item['batch_id']);
+                $this->db->where('center_id', $data['from_center_id']);
+                $this->db->set('quantity', 'quantity - ' . $item['quantity'], FALSE);
+                $this->db->update('center_stocks');
                 
-                // Add to destination location
-                $this->add_or_update_destination_batch($batch, $data, $item['quantity']);
+                // Add to destination center stock
+                $this->db->where('batch_id', $item['batch_id']);
+                $this->db->where('center_id', $data['to_center_id']);
+                $existing_dest = $this->db->get('center_stocks')->row();
                 
-                // Update center stocks
-                $this->update_center_stock($batch->medicine_id, $data['from_center_id'], $data['from_department'], $item['quantity'], 'SUBTRACT');
-                $this->update_center_stock($batch->medicine_id, $data['to_center_id'], $data['to_department'], $item['quantity'], 'ADD');
+                if($existing_dest) {
+                    $this->db->where('batch_id', $item['batch_id']);
+                    $this->db->where('center_id', $data['to_center_id']);
+                    $this->db->set('quantity', 'quantity + ' . $item['quantity'], FALSE);
+                    $this->db->update('center_stocks');
+                } else {
+                    $this->db->insert('center_stocks', [
+                        'batch_id' => $item['batch_id'],
+                        'center_id' => $data['to_center_id'],
+                        'quantity' => $item['quantity'],
+                        'status' => 'ACTIVE',
+                        'last_movement_date' => date('Y-m-d H:i:s')
+                    ]);
+                }
+                
+                // Log stock movement
+                $movement_data = [
+                    'batch_id' => $item['batch_id'],
+                    'movement_type' => 'TRANSFER_OUT',
+                    'from_location_type' => 'CENTER',
+                    'from_location_id' => $data['from_center_id'],
+                    'to_location_type' => 'CENTER',
+                    'to_location_id' => $data['to_center_id'],
+                    'quantity_change' => -$item['quantity'],
+                    'unit_price' => $batch->selling_price,
+                    'total_value' => $item_value,
+                    'reference_type' => 'STOCK_TRANSFER',
+                    'reference_id' => $transfer_id,
+                    'reference_number' => $transfer_number,
+                    'created_by' => $data['transferred_by']
+                ];
+                $this->db->insert('stock_movements', $movement_data);
             }
             
             // Update transfer total value
@@ -1808,10 +1985,10 @@ class Stock_model_new extends CI_Model {
                 tc.center_name as to_center
             ');
             $this->db->from('stock_movements sm');
-            $this->db->join('medicine_batches mb', 'sm.medicine_batch_id = mb.id');
+            $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id');
             $this->db->join('medicines m', 'mb.medicine_id = m.id');
-            $this->db->join('hms_centers fc', 'sm.from_id = fc.ID', 'left');
-            $this->db->join('hms_centers tc', 'sm.to_id = tc.ID', 'left');
+            $this->db->join('hms_centers fc', 'sm.from_location_id = fc.ID', 'left');
+            $this->db->join('hms_centers tc', 'sm.to_location_id = tc.ID', 'left');
             $this->db->order_by('sm.created_at', 'DESC');
             $this->db->limit(100);
             return $this->db->get()->result();
@@ -1832,11 +2009,11 @@ class Stock_model_new extends CI_Model {
                 tc.center_name as to_center
             ');
             $this->db->from('stock_movements sm');
-            $this->db->join('medicine_batches mb', 'sm.medicine_batch_id = mb.id');
+            $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id');
             $this->db->join('medicines m', 'mb.medicine_id = m.id');
-            $this->db->join('hms_centers fc', 'sm.from_id = fc.ID', 'left');
-            $this->db->join('hms_centers tc', 'sm.to_id = tc.ID', 'left');
-            $this->db->where('sm.medicine_batch_id', $batch_id);
+            $this->db->join('hms_centers fc', 'sm.from_location_id = fc.ID', 'left');
+            $this->db->join('hms_centers tc', 'sm.to_location_id = tc.ID', 'left');
+            $this->db->where('sm.batch_id', $batch_id);
             $this->db->order_by('sm.created_at', 'DESC');
             return $this->db->get()->result();
         } catch (Exception $e) {
@@ -1855,10 +2032,10 @@ class Stock_model_new extends CI_Model {
                 tc.center_name as to_center
             ');
             $this->db->from('stock_movements sm');
-            $this->db->join('medicine_batches mb', 'sm.medicine_batch_id = mb.id');
+            $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id');
             $this->db->join('medicines m', 'mb.medicine_id = m.id');
-            $this->db->join('hms_centers fc', 'sm.from_id = fc.ID', 'left');
-            $this->db->join('hms_centers tc', 'sm.to_id = tc.ID', 'left');
+            $this->db->join('hms_centers fc', 'sm.from_location_id = fc.ID', 'left');
+            $this->db->join('hms_centers tc', 'sm.to_location_id = tc.ID', 'left');
             
             if(!empty($filters['medicine_id'])) {
                 $this->db->where('m.id', $filters['medicine_id']);
@@ -1867,7 +2044,7 @@ class Stock_model_new extends CI_Model {
                 $this->db->where('mb.id', $filters['batch_id']);
             }
             if(!empty($filters['center_id'])) {
-                $this->db->where('(sm.from_id = ' . $filters['center_id'] . ' OR sm.to_id = ' . $filters['center_id'] . ')');
+                $this->db->where('(sm.from_location_id = ' . $filters['center_id'] . ' OR sm.to_location_id = ' . $filters['center_id'] . ')');
             }
             if(!empty($filters['date_from'])) {
                 $this->db->where('sm.created_at >=', $filters['date_from']);
@@ -2644,6 +2821,8 @@ class Stock_model_new extends CI_Model {
                     mb.expiry_date,
                     cs.quantity as quantity_remaining,
                     mb.batch_status,
+                    mb.purchase_price,
+                    mb.selling_price,
                     DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
                     m.id as medicine_id,
                     m.medicine_name,
@@ -2677,6 +2856,8 @@ class Stock_model_new extends CI_Model {
                     mb.expiry_date,
                     ccs.quantity as quantity_remaining,
                     mb.batch_status,
+                    mb.purchase_price,
+                    mb.selling_price,
                     DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
                     m.id as medicine_id,
                     m.medicine_name,
@@ -2716,13 +2897,15 @@ class Stock_model_new extends CI_Model {
                     mb.expiry_date,
                     ccs.quantity as quantity_remaining,
                     mb.batch_status,
+                    mb.purchase_price,
+                    mb.selling_price,
                     DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
                     m.id as medicine_id,
                     m.medicine_name,
                     m.medicine_code,
                     b.name as brand_name,
                     v.name as vendor_name,
-                    c.name as center_name,
+                    c.center_name,
                     CASE
                         WHEN DATEDIFF(mb.expiry_date, CURDATE()) < 0 THEN "EXPIRED"
                         WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN "EXPIRING_SOON"

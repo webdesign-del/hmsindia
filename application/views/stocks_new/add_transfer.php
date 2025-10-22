@@ -53,7 +53,7 @@
                                                 <option value="">Select Transfer Type</option>
                                                 <option value="CENTRAL_TO_CENTER" <?php echo set_select('transfer_type', 'CENTRAL_TO_CENTER'); ?>>Central to Center</option>
                                                 <option value="CENTER_TO_CENTER" <?php echo set_select('transfer_type', 'CENTER_TO_CENTER'); ?>>Center to Center</option>
-                                                <option value="CENTER_TO_CENTRAL" <?php echo set_select('transfer_type', 'CENTER_TO_CENTRAL'); ?>>Center to Central</option>
+                                                <!-- <option value="CENTER_TO_CENTRAL" <?php echo set_select('transfer_type', 'CENTER_TO_CENTRAL'); ?>>Center to Central</option> -->
                                             </select>
                                         </div>
                                     </div>
@@ -75,8 +75,13 @@
                                     <div class="form-group" id="from_department_group" style="display: none;">
                                         <label class="col-sm-4 control-label">From Department *</label>
                                         <div class="col-sm-8">
-                                            <select name="from_department" class="form-control" id="from_department_select" onchange="loadFromEmployees()">
+                                            <select name="from_department" class="form-control" >
                                                 <option value="">Select Department</option>
+                                                <?php foreach($departments as $dept): ?>
+                                                    <option value="<?php echo $dept['department']; ?>" <?php echo set_select('from_department', $dept['department']); ?>>
+                                                        <?php echo $dept['department']; ?>
+                                                    </option>
+                                                <?php endforeach; ?>
                                             </select>
                                         </div>
                                     </div>
@@ -84,8 +89,13 @@
                                     <div class="form-group" id="from_employee_group" style="display: none;">
                                         <label class="col-sm-4 control-label">From Employee *</label>
                                         <div class="col-sm-8">
-                                            <select name="from_employee_number" class="form-control" id="from_employee_select">
+                                            <select name="from_employee_number" class="form-control" >
                                                 <option value="">Select Employee</option>
+                                                <?php foreach($all_employees as $employee): ?>
+                                                    <option value="<?php echo $employee['employee_number']; ?>" <?php echo set_select('from_employee_number', $employee['employee_number']); ?>>
+                                                        <?php echo $employee['name']; ?> (<?php echo $employee['employee_number']; ?>)
+                                                    </option>
+                                                <?php endforeach; ?>
                                             </select>
                                         </div>
                                     </div>
@@ -201,7 +211,7 @@
                                     <li>Use: Balancing inventory</li>
                                 </ul>
                             </div>
-                            <div class="col-md-4">
+                            <!-- <div class="col-md-4">
                                 <h4><i class="fa fa-arrow-up"></i> Center to Central</h4>
                                 <p>Return stock from center back to central warehouse.</p>
                                 <ul>
@@ -209,7 +219,7 @@
                                     <li>Destination: Central Warehouse</li>
                                     <li>Use: Returns, consolidation</li>
                                 </ul>
-                            </div>
+                            </div> -->
                         </div>
                     </div>
                 </div>

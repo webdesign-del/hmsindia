@@ -114,8 +114,8 @@
                                                     <td><?php echo date('d-m-Y H:i', strtotime($movement->created_at)); ?></td>
                                                     <td>
                                                         <span class="label label-<?php 
-                                                            echo ($movement->movement_type == 'In') ? 'success' : 
-                                                                (($movement->movement_type == 'Out') ? 'danger' : 'info'); 
+                                                            echo (in_array($movement->movement_type, ['PURCHASE', 'TRANSFER_IN'])) ? 'success' : 
+                                                                (in_array($movement->movement_type, ['TRANSFER_OUT', 'SALE']) ? 'danger' : 'info'); 
                                                         ?>">
                                                             <?php echo $movement->movement_type; ?>
                                                         </span>
@@ -123,8 +123,8 @@
                                                     <td><?php echo htmlspecialchars($movement->from_center ?: 'N/A'); ?></td>
                                                     <td><?php echo htmlspecialchars($movement->to_center ?: 'N/A'); ?></td>
                                                     <td>
-                                                        <span class="<?php echo ($movement->quantity > 0) ? 'text-success' : 'text-danger'; ?>">
-                                                            <?php echo ($movement->quantity > 0) ? '+' : ''; ?><?php echo $movement->quantity; ?>
+                                                        <span class="<?php echo ($movement->quantity_change > 0) ? 'text-success' : 'text-danger'; ?>">
+                                                            <?php echo ($movement->quantity_change > 0) ? '+' : ''; ?><?php echo $movement->quantity_change; ?>
                                                         </span>
                                                     </td>
                                                     <td>₹<?php echo number_format($movement->unit_price, 2); ?></td>
@@ -164,8 +164,8 @@
                                     <h3><?php 
                                         $total_in = 0;
                                         foreach($batch_movements as $movement) {
-                                            if($movement->movement_type == 'In') {
-                                                $total_in += $movement->quantity;
+                                            if($movement->movement_type == 'PURCHASE' || $movement->movement_type == 'TRANSFER_IN') {
+                                                $total_in += $movement->quantity_change;
                                             }
                                         }
                                         echo $total_in;
@@ -183,8 +183,8 @@
                                     <h3><?php 
                                         $total_out = 0;
                                         foreach($batch_movements as $movement) {
-                                            if($movement->movement_type == 'Out') {
-                                                $total_out += abs($movement->quantity);
+                                            if($movement->movement_type == 'TRANSFER_OUT' || $movement->movement_type == 'SALE') {
+                                                $total_out += abs($movement->quantity_change);
                                             }
                                         }
                                         echo $total_out;
