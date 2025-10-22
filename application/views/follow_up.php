@@ -522,9 +522,9 @@ if(this.checked) {
 // });
 
 $(function() {
-$('.multidselect_dropdown').multiselect({ includeSelectAllOption: true });
-$('.multidselect_dropdown_1').multiselect({ includeSelectAllOption: true });
-$('.multidselect_dropdown_2').multiselect({ includeSelectAllOption: true });
+	$('.multidselect_dropdown').multiselect({ includeSelectAllOption: true });
+	$('.multidselect_dropdown_1').multiselect({ includeSelectAllOption: true });
+	$('.multidselect_dropdown_2').multiselect({ includeSelectAllOption: true });
 });
 
 
