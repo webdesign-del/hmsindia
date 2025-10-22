@@ -3907,7 +3907,7 @@ public function medicine_stock(){
 		$logg = checklogin();
 		if ($logg['status'] == true) {
 			$data = array();
-			
+			$employee_number = 0;
 			// Check if $ID is passed in URL or POST
 			if (is_null($ID)) {
 				if (isset($_GET['ID'])) {
@@ -3953,11 +3953,9 @@ public function medicine_stock(){
 				$r_employee_number = $_POST['r_employee_number'];
 	            $r_department = $_POST['r_department'];  
 				$remarks = $_POST['remarks'];  
-				// Call model to handle the transfer
 				$data = $this->stock_model->transfer_stock_report($_POST, $item_number, $product_id, $item_name, $company, $batch_number, $openstock, $expiry, $expiry_day, $add_date, $employee_number, $vendor_price, $mrp, $hsn, $gstrate, $gstdivision, $pack_size, $brand_name, $vendor_number,$generic_name,$category, $quantity_out, $center_number, $department, $invoice_no, $date_of_purchase, $r_center_number, $r_employee_number, $r_department, $remarks);
-				
 				if ($data > 0) {
-					// Update stock and redirect
+					// Update stock and 
 					$update_stock = $this->stock_model->deduct_transfer_stock($item_number, $invoice_no, $batch_number, $status, $employee_number, $quantity_out, $center_number, $department);
 					header("location:" . base_url() . "stocks/transfer_stocks/" . $ID . "?m=" . base64_encode('Transfer Stock added successfully!') . '&t=' . base64_encode('success'));
 					die();

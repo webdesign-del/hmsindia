@@ -128,10 +128,19 @@
                   </a>
                <?php endif; ?>
                
-               <a href="<?php echo base_url('new_purchase_orders/edit/' . $purchase_order['id']); ?>" 
-                  class="btn btn-warning btn-lg">
-                  <i class="fa fa-edit"></i> Edit
-               </a>
+               <?php if ($purchase_order['status'] == 'completed'): ?>
+                  <a href="<?php echo base_url('new_purchase_orders/new_add_stock/' . $purchase_order['id']); ?>" 
+                     class="btn btn-success btn-lg">
+                     <i class="fa fa-plus"></i> Add Stock
+                  </a>
+               <?php endif; ?>
+               
+               <?php if ($purchase_order['status'] == 'pending' || $purchase_order['status'] == 'rejected'): ?>
+                  <a href="<?php echo base_url('new_purchase_orders/edit/' . $purchase_order['id']); ?>" 
+                     class="btn btn-warning btn-lg">
+                     <i class="fa fa-edit"></i> Edit
+                  </a>
+               <?php endif; ?>
                <a href="<?php echo base_url('new_purchase_orders'); ?>" class="btn btn-default btn-lg">
                   <i class="fa fa-arrow-left"></i> Back to List
                </a>

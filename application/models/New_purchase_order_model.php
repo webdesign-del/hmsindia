@@ -473,4 +473,71 @@ class New_purchase_order_model extends CI_Model {
             $this->db->where('doc_date <=', $filters['end_date']);
         }
     }
+
+    // Insert vendor billing record (similar to Order_model method)
+    public function insert_vendor_billing($data) {
+        $sql = "INSERT INTO `" . $this->config->item('db_prefix') . "vendor_billing` SET ";
+        $sqlArr = array();
+        foreach($data as $key => $value) {
+            $sqlArr[] = " $key = '" . addslashes($value) . "'";
+        }
+        $sql .= implode(',', $sqlArr);
+        $res = $this->db->query($sql);
+        if ($res) {
+            return $this->db->insert_id();
+        } else {
+            return 0;
+        }
+    }
+
+    // Check if stock item exists (by batch number and vendor)
+    public function check_existing_stock_item($item_name, $batch_number, $vendor_number) {
+        $this->db->select('*');
+        $this->db->from($this->config->item('db_prefix') . 'stocks');
+        $this->db->where('item_name', $item_name);
+        $this->db->where('batch_number', $batch_number);
+        $this->db->where('vendor_number', $vendor_number);
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            return $query->row_array();
+        }
+        return false;
+    }
+
+    // Update existing stock quantity
+    public function update_stock_quantity($stock_id, $quantity, $stock_data = []) {
+        $sql = "UPDATE `" . $this->config->item('db_prefix') . "stocks` SET `quantity` = `quantity` + {$quantity}";
+        foreach ($stock_data as $key => $value) {
+            if ($key != 'quantity' && $key != 'add_date' && $key != 'status') {
+                $sql .= ", `{$key}` = '" . addslashes($value) . "'";
+            }
+        }
+        $sql .= " WHERE `ID` = '{$stock_id}'";
+        $this->db->query($sql);
+        return $this->db->affected_rows() > 0;
+    }
+
+    // Insert new stock item
+    public function insert_stock_item($stock_data) {
+        $sql = "INSERT INTO `" . $this->config->item('db_prefix') . "stocks` SET ";
+        $sqlArr = array();
+        
+        foreach ($stock_data as $key => $value) {
+            $sqlArr[] = " $key = '" . addslashes($value) . "'";
+        }
+        
+        $date = date("Y-m-d H:i:s");
+        $sqlArr[] = " add_date = '" . addslashes($date) . "'";
+        $sqlArr[] = " item_number = '" . addslashes(getGUID()) . "'";
+        
+        $sql .= implode(',', $sqlArr);
+        $res = $this->db->query($sql);
+        
+        if ($res) {
+            return $this->db->insert_id();
+        } else {
+            return 0;
+        }
+    }
 }

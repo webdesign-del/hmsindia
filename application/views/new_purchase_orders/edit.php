@@ -153,9 +153,49 @@
                                                                                <select class="form-control consumable-select" name="consumables_name_<?php echo $index + 1; ?>" 
                                            id="consumables_name_<?php echo $index + 1; ?>" onchange="populateItemDetails(<?php echo $index + 1; ?>)">
                                            <option value="">-- Select Item --</option>
+                                           <?php 
+                                           // First, add the current item if it exists
+                                           if (!empty($item['item_number'])): 
+                                              $currentItemName = htmlspecialchars(str_replace('`', "'", $item['item_name']), ENT_QUOTES, 'UTF-8');
+                                              $currentBatchNo = htmlspecialchars(str_replace('`', "'", $item['batch_number']), ENT_QUOTES, 'UTF-8');
+                                              $currentItemNumber = htmlspecialchars($item['item_number'], ENT_QUOTES, 'UTF-8');
+                                              $currentPrice = htmlspecialchars($item['price'], ENT_QUOTES, 'UTF-8');
+                                              $currentVendorPrice = htmlspecialchars($item['vendor_price'], ENT_QUOTES, 'UTF-8');
+                                              $currentPackSize = htmlspecialchars($item['pack_size'], ENT_QUOTES, 'UTF-8');
+                                              $currentMrp = htmlspecialchars($item['mrp'], ENT_QUOTES, 'UTF-8');
+                                              $currentTax = htmlspecialchars($item['tax_percentage'], ENT_QUOTES, 'UTF-8');
+                                              $currentHsn = htmlspecialchars($item['hsn'], ENT_QUOTES, 'UTF-8');
+                                              $currentGstDiv = htmlspecialchars($item['gst_division'], ENT_QUOTES, 'UTF-8');
+                                              $currentCompany = htmlspecialchars($item['company'], ENT_QUOTES, 'UTF-8');
+                                              $currentBrand = htmlspecialchars($item['brand_name'], ENT_QUOTES, 'UTF-8');
+                                              $currentVendorNum = htmlspecialchars($purchase_order['vendor_number'], ENT_QUOTES, 'UTF-8');
+                                           ?>
+                                           <option value="<?= $currentItemNumber ?>"
+                                              data-item-name="<?= $currentItemName ?>"
+                                              data-batch="<?= $currentBatchNo ?>"
+                                              data-price="<?= $currentPrice ?>"
+                                              data-vendor-price="<?= $currentVendorPrice ?>"
+                                              data-pack-size="<?= $currentPackSize ?>"
+                                              data-mrp="<?= $currentMrp ?>"
+                                              data-tax="<?= $currentTax ?>"
+                                              data-hsn="<?= $currentHsn ?>"
+                                              data-gst-division="<?= $currentGstDiv ?>"
+                                              data-company="<?= $currentCompany ?>"
+                                              data-brand="<?= $currentBrand ?>"
+                                              data-vendor-number="<?= $currentVendorNum ?>"
+                                              selected>
+                                              <?= $currentItemName ?> (<?= $currentItemNumber ?>)
+                                           </option>
+                                           <?php endif; ?>
+                                           
                                            <?php if (!empty($consumables)): ?>
                                               <?php foreach ($consumables as $consumable): ?>
                                                  <?php 
+                                                    // Skip if this is the current item (already added above)
+                                                    if ($consumable['item_number'] == $item['item_number']) {
+                                                        continue;
+                                                    }
+                                                    
                                                     $itemName   = htmlspecialchars(str_replace('`', "'", $consumable['item_name']), ENT_QUOTES, 'UTF-8');
                                                     $batchNo    = htmlspecialchars(str_replace('`', "'", $consumable['batch_number']), ENT_QUOTES, 'UTF-8');
                                                     $itemNumber = htmlspecialchars($consumable['item_number'], ENT_QUOTES, 'UTF-8');
@@ -182,8 +222,7 @@
                                                     data-gst-division="<?= $gstDiv ?>"
                                                     data-company="<?= $company ?>"
                                                     data-brand="<?= $brand ?>"
-                                                    data-vendor-number="<?= $vendorNum ?>"
-                                                    <?php echo ($consumable['item_number'] == $item['item_number']) ? 'selected' : ''; ?>>
+                                                    data-vendor-number="<?= $vendorNum ?>">
                                                     <?= $itemName ?> (<?= $itemNumber ?>)
                                                  </option>
                                               <?php endforeach; ?>
@@ -527,14 +566,32 @@ $(document).ready(function() {
         calculateTotal();
     }, 500);
 
-    // Filter items by vendor on edit page and clear selections not matching vendor
+    // Filter items by vendor on edit page and preserve existing selections
+    var isInitialLoad = true;
     $('#vendor_number').on('change', function() {
         var vendorNumber = $(this).val();
         if (!vendorNumber) { return; }
+        
+        // Skip filtering on initial page load to preserve existing selections
+        if (isInitialLoad) {
+            isInitialLoad = false;
+            return;
+        }
+        
+        // Store current selections before filtering
+        var currentSelections = {};
+        $('.consumable-select').each(function(){
+            var $sel = $(this);
+            var rowId = $sel.attr('id').replace('consumables_name_', '');
+            currentSelections[rowId] = $sel.val();
+        });
+        
         $.getJSON('<?php echo base_url('new_purchase_orders/items_by_vendor'); ?>', { vendor_number: vendorNumber })
             .done(function(resp) {
                 if (resp.status === 'success') {
                     var optionsHtml = '<option value="">-- Select Item --</option>';
+                    
+                    // Add vendor-filtered items
                     resp.data.forEach(function(item) {
                         var safe = function(v){ return $('<div>').text(v || '').html(); };
                         optionsHtml += '<option value="'+ safe(item.item_number) +'"'
@@ -555,18 +612,32 @@ $(document).ready(function() {
 
                     $('.consumable-select').each(function(){
                         var $sel = $(this);
-                        $sel.html(optionsHtml);
-                        $sel.val('');
-                        $sel.trigger('change');
+                        var rowId = $sel.attr('id').replace('consumables_name_', '');
+                        var currentValue = currentSelections[rowId];
+                        var finalOptionsHtml = optionsHtml;
+                        
+                        // If current selection doesn't belong to this vendor, add it to options
+                        if (currentValue) {
+                            var currentOption = $sel.find('option[value="' + currentValue + '"]');
+                            if (currentOption.length > 0) {
+                                var currentOptionHtml = currentOption.prop('outerHTML');
+                                finalOptionsHtml += currentOptionHtml;
+                            }
+                        }
+                        
+                        $sel.html(finalOptionsHtml);
+                        
+                        // Restore selection
+                        if (currentValue) {
+                            $sel.val(currentValue);
+                            $sel.trigger('change');
+                        } else {
+                            $sel.val('');
+                            $sel.trigger('change');
+                        }
                     });
                 }
             });
     });
-
-    // If a vendor is already selected on load, auto-filter items
-    var initialVendor = $('#vendor_number').val();
-    if (initialVendor) {
-        $('#vendor_number').trigger('change');
-    }
 });
 </script>

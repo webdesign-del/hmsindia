@@ -1,0 +1,3103 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+class Stocks_new extends CI_Controller {
+
+    public function __construct() {
+        parent::__construct();
+        $this->load->database();
+        $this->load->model('Stock_model_new');
+        $this->load->model('Center_model');
+        $this->load->library('form_validation');
+        $this->load->helper('form');
+        $this->load->helper('url_helper');
+        $this->load->helper('myhelper');
+	    $this->load->library('session');
+		$this->load->model('order_model');
+		$this->load->model('stock_model');
+		$this->load->model('vendors_model');
+		$this->load->model('billings_model');
+		$this->load->library("pagination");
+    }
+
+    // ===============================================
+    // DASHBOARD
+    // ===============================================
+
+    public function dashboard() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            // Get dashboard summary data
+            $data['dashboard_summary'] = $this->Stock_model_new->get_dashboard_summary();
+            
+            // Get low stock alerts
+            $data['low_stock_alerts'] = $this->Stock_model_new->get_low_stock_alerts();
+            
+            // Get expiry alerts
+            $data['expiry_alerts'] = $this->Stock_model_new->get_expiry_alerts();
+            
+            // Get recent sales
+            $data['recent_sales'] = $this->Stock_model_new->get_recent_sales(10);
+            
+            // Get recent transfers
+            $data['recent_transfers'] = $this->Stock_model_new->get_recent_transfers(10);
+            
+            // Get sales analytics (last 30 days)
+            $data['sales_analytics'] = $this->Stock_model_new->get_sales_analytics(30);
+            
+            // Get transfer analytics (last 30 days)
+            $data['transfer_analytics'] = $this->Stock_model_new->get_transfer_analytics(30);
+            
+            // Get top selling medicines
+            $data['top_selling_medicines'] = $this->Stock_model_new->get_top_selling_medicines(10);
+            
+            // Get center-wise stock summary
+            $data['center_stock_summary'] = $this->Stock_model_new->get_center_stock_summary();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/dashboard', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // MEDICINE MANAGEMENT
+    // ===============================================
+
+    public function medicines() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['medicines'] = $this->Stock_model_new->get_all_medicines();
+            $data['brands'] = $this->Stock_model_new->get_medicine_brands();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/medicines', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function add_medicine() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_medicine') {
+                
+                $this->form_validation->set_rules('medicine_code', 'Medicine Code', 'required|is_unique[medicines.medicine_code]');
+                $this->form_validation->set_rules('medicine_name', 'Medicine Name', 'required');
+                $this->form_validation->set_rules('brand_id', 'Brand', 'required');
+                $this->form_validation->set_rules('generic_name', 'Generic Name', 'required');
+                $this->form_validation->set_rules('strength', 'Strength', 'required');
+                $this->form_validation->set_rules('unit', 'Unit', 'required');
+                $this->form_validation->set_rules('category', 'Category', 'required');
+                $this->form_validation->set_rules('min_stock_level', 'Minimum Stock Level', 'required|numeric');
+                $this->form_validation->set_rules('max_stock_level', 'Maximum Stock Level', 'required|numeric');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $medicine_data = [
+                        'medicine_code' => $this->input->post('medicine_code'),
+                        'brand_id' => $this->input->post('brand_id'),
+                        'medicine_name' => $this->input->post('medicine_name'),
+                        'generic_name' => $this->input->post('generic_name'),
+                        'strength' => $this->input->post('strength'),
+                        'unit' => $this->input->post('unit'),
+                        'category' => $this->input->post('category'),
+                        'pack_size' => $this->input->post('pack_size'),
+                        'hsn_code' => $this->input->post('hsn_code'),
+                        'gst_rate' => $this->input->post('gst_rate'),
+                        'min_stock_level' => $this->input->post('min_stock_level'),
+                        'max_stock_level' => $this->input->post('max_stock_level'),
+                        'reorder_level' => $this->input->post('reorder_level'),
+                        'is_narcotic' => $this->input->post('is_narcotic') ? 1 : 0,
+                        'is_controlled_substance' => $this->input->post('is_controlled_substance') ? 1 : 0,
+                        'is_psychotropic' => $this->input->post('is_psychotropic') ? 1 : 0,
+                        'status' => 'active'
+                    ];
+                    $result = $this->Stock_model_new->add_medicine($medicine_data);
+                    
+                    if($result) {
+                        $this->session->set_flashdata('success', 'Medicine added successfully!');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error adding medicine!');
+                    }
+                    
+                    redirect('stocks_new/medicines');
+                }
+            }
+            
+            $data['brands'] = $this->Stock_model_new->get_medicine_brands();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/add_medicine', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function edit_medicine($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'update_medicine') {
+                
+                $this->form_validation->set_rules('medicine_name', 'Medicine Name', 'required');
+                $this->form_validation->set_rules('brand_id', 'Brand', 'required');
+                $this->form_validation->set_rules('generic_name', 'Generic Name', 'required');
+                $this->form_validation->set_rules('strength', 'Strength', 'required');
+                $this->form_validation->set_rules('unit', 'Unit', 'required');
+                $this->form_validation->set_rules('category', 'Category', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $medicine_data = [
+                        'brand_id' => $this->input->post('brand_id'),
+                        'medicine_name' => $this->input->post('medicine_name'),
+                        'generic_name' => $this->input->post('generic_name'),
+                        'strength' => $this->input->post('strength'),
+                        'unit' => $this->input->post('unit'),
+                        'category' => $this->input->post('category'),
+                        'pack_size' => $this->input->post('pack_size'),
+                        'hsn_code' => $this->input->post('hsn_code'),
+                        'gst_rate' => $this->input->post('gst_rate'),
+                        'min_stock_level' => $this->input->post('min_stock_level'),
+                        'max_stock_level' => $this->input->post('max_stock_level'),
+                        'reorder_level' => $this->input->post('reorder_level'),
+                        'is_narcotic' => $this->input->post('is_narcotic') ? 1 : 0,
+                        'is_controlled_substance' => $this->input->post('is_controlled_substance') ? 1 : 0,
+                        'is_psychotropic' => $this->input->post('is_psychotropic') ? 1 : 0,
+                        'status' => $this->input->post('status')
+                    ];
+                    
+                    $result = $this->Stock_model_new->update_medicine($id, $medicine_data);
+                    
+                    if($result) {
+                        $this->session->set_flashdata('success', 'Medicine updated successfully!');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error updating medicine!');
+                    }
+                    
+                    redirect('stocks_new/medicines');
+                }
+            }
+            
+            $data['medicine'] = $this->Stock_model_new->get_medicine_by_id($id);
+            $data['brands'] = $this->Stock_model_new->get_medicine_brands();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/edit_medicine', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // BATCH MANAGEMENT
+    // ===============================================
+
+    public function batches() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $medicine_id = $this->input->get('medicine_id');
+            $vendor_id = $this->input->get('vendor_id');
+            $batch_number = $this->input->get('batch_number');
+            $batch_status = $this->input->get('batch_status');
+            
+            $data['batches'] = $this->Stock_model_new->get_all_batches($medicine_id, $vendor_id, $batch_number, $batch_status);
+            $data['medicines'] = $this->Stock_model_new->get_all_medicines();
+            $data['vendors'] = $this->Stock_model_new->get_vendors();
+            $data['selected_medicine_id'] = $medicine_id;
+            $data['selected_vendor_id'] = $vendor_id;
+            $data['selected_batch_number'] = $batch_number;
+            $data['selected_batch_status'] = $batch_status;
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/batches', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function add_batch() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            if($this->input->post('action') == 'add_batch') {
+                
+                $this->form_validation->set_rules('medicine_id', 'Medicine', 'required');
+                $this->form_validation->set_rules('vendor_id', 'Vendor', 'required');
+                $this->form_validation->set_rules('batch_number', 'Batch Number', 'required');
+                $this->form_validation->set_rules('expiry_date', 'Expiry Date', 'required');
+                $this->form_validation->set_rules('purchase_price', 'Purchase Price', 'required|numeric');
+                $this->form_validation->set_rules('selling_price', 'Selling Price', 'required|numeric');
+                $this->form_validation->set_rules('quantity_purchased', 'Quantity Purchased', 'required|numeric');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    // Generate unique batch number
+                    $batch_number = $this->generate_unique_batch_number($this->input->post('medicine_id'), $this->input->post('batch_number'));
+                    
+                    $batch_data = [
+                        'medicine_id' => $this->input->post('medicine_id'),
+                        'vendor_id' => $this->input->post('vendor_id'),
+                        'batch_number' => $batch_number,
+                        'manufacturing_date' => $this->input->post('manufacturing_date'),
+                        'expiry_date' => $this->input->post('expiry_date'),
+                        'purchase_price' => $this->input->post('purchase_price'),
+                        'selling_price' => $this->input->post('selling_price'),
+                        'mrp' => $this->input->post('mrp'),
+                        'quantity_purchased' => $this->input->post('quantity_purchased'),
+                        'quantity_remaining' => $this->input->post('quantity_purchased'),
+                        'purchase_date' => $this->input->post('purchase_date'),
+                        'invoice_number' => $this->input->post('invoice_number'),
+                        'invoice_date' => $this->input->post('invoice_date'),
+                        'quality_status' => $this->input->post('quality_status'),
+                        'batch_status' => 'ACTIVE',
+                        'remarks' => $this->input->post('remarks'),
+                        'created_by' => $this->get_employee_id_from_number($_SESSION['logged_central_stock_manager']['employee_number'])
+                    ];
+                    
+                    $result = $this->Stock_model_new->add_batch($batch_data);
+                    
+                    if($result) {
+                        $this->session->set_flashdata('success', 'Batch added successfully!');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error adding batch!');
+                    }
+                    
+                    redirect('stocks_new/batches');
+                }
+            }
+            
+            $data['medicines'] = $this->Stock_model_new->get_all_medicines();
+            $data['vendors'] = $this->Stock_model_new->get_vendors();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/add_batch', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // CENTRAL STOCKS MANAGEMENT
+    // ===============================================
+    
+    public function central_stocks() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $medicine_id = $this->input->get('medicine_id');
+            $batch_number = $this->input->get('batch_number');
+            $status = $this->input->get('status');
+            
+            $data['central_stocks'] = $this->Stock_model_new->get_central_stocks($medicine_id, $batch_number, $status);
+            $data['medicines'] = $this->Stock_model_new->get_all_medicines();
+            $data['selected_medicine_id'] = $medicine_id;
+            $data['selected_batch_number'] = $batch_number;
+            $data['selected_status'] = $status;
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/central_stocks', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+    
+    public function update_central_stock_status() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $stock_id = $this->input->post('stock_id');
+            $status = $this->input->post('status');
+            
+            if($this->Stock_model_new->update_central_stock_status($stock_id, $status)) {
+                echo json_encode(['success' => true, 'message' => 'Stock status updated successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to update stock status']);
+            }
+        }
+    }
+    
+    // ===============================================
+    // CENTER STOCKS MANAGEMENT
+    // ===============================================
+    
+    public function center_stocks() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $center_id = $this->input->get('center_id');
+            $medicine_id = $this->input->get('medicine_id');
+            $batch_number = $this->input->get('batch_number');
+            $status = $this->input->get('status');
+            
+            $data['center_stocks'] = $this->Stock_model_new->get_center_stocks($center_id, $medicine_id, $batch_number, $status);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['medicines'] = $this->Stock_model_new->get_all_medicines();
+            $data['selected_center_id'] = $center_id;
+            $data['selected_medicine_id'] = $medicine_id;
+            $data['selected_batch_number'] = $batch_number;
+            $data['selected_status'] = $status;
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/center_stocks', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+    
+    public function update_center_stock_status() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $stock_id = $this->input->post('stock_id');
+            $status = $this->input->post('status');
+            
+            if($this->Stock_model_new->update_center_stock_status($stock_id, $status)) {
+                echo json_encode(['success' => true, 'message' => 'Stock status updated successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to update stock status']);
+            }
+        }
+    }
+    
+    // ===============================================
+    // BATCH STATUS MANAGEMENT
+    // ===============================================
+    
+    public function update_batch_status() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $batch_id = $this->input->post('batch_id');
+            $status = $this->input->post('status');
+            
+            if($this->Stock_model_new->update_batch_status($batch_id, $status)) {
+                echo json_encode(['success' => true, 'message' => 'Batch status updated successfully']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to update batch status']);
+            }
+        }
+    }
+
+    // ===============================================
+    // STOCK MANAGEMENT
+    // ===============================================
+
+    public function stock_levels() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $center_id = $this->input->get('center_id');
+            $medicine_name = $this->input->get('medicine_name');
+            $stock_status = $this->input->get('stock_status');
+            
+            $data['stock_levels'] = $this->Stock_model_new->get_current_stock_levels($center_id, $medicine_name, $stock_status);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['selected_center'] = $center_id;
+            $data['selected_medicine_name'] = $medicine_name;
+            $data['selected_stock_status'] = $stock_status;
+          
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/stock_levels', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function stock_summary() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['stock_summary'] = $this->Stock_model_new->get_medicine_stock_summary();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/stock_summary', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+
+    // ===============================================
+    // STOCK TRANSFERS
+    // ===============================================
+
+    public function transfers() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['transfers'] = $this->Stock_model_new->get_all_transfers();
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            // Debug: Log the data being passed
+            if(ENVIRONMENT === 'development') {
+                error_log('Transfers data: ' . print_r($data['transfers'], true));
+                error_log('Centers data: ' . print_r($data['centers'], true));
+            }
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/transfers', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function add_transfer() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_transfer') {
+                
+                $this->form_validation->set_rules('transfer_type', 'Transfer Type', 'required');
+                $this->form_validation->set_rules('to_center_id', 'Destination Center', 'required');
+                $this->form_validation->set_rules('transfer_date', 'Transfer Date', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $transfer_data = [
+                        'transfer_type' => $this->input->post('transfer_type'),
+                        'from_center_id' => $this->input->post('from_center_id'),
+                        'to_center_id' => $this->input->post('to_center_id'),
+                        'transfer_date' => $this->input->post('transfer_date'),
+                        'expected_delivery_date' => $this->input->post('expected_delivery_date'),
+                        'remarks' => $this->input->post('remarks'),
+                        'created_by' => $this->session->userdata('employee_number') ?: 1, // Default to 1 if no session
+                        'status' => 'DRAFT'
+                    ];
+                    
+                    $transfer_id = $this->Stock_model_new->add_transfer($transfer_data);
+                    
+                    if($transfer_id) {
+                        // Process transfer items if any
+                        $transfer_items = $this->input->post('transfer_items');
+                        if(!empty($transfer_items)) {
+                            foreach($transfer_items as $batch_id => $item_data) {
+                                if(isset($item_data['quantity']) && $item_data['quantity'] > 0) {
+                                    $item_data['transfer_id'] = $transfer_id;
+                                    $item_data['batch_id'] = $batch_id;
+                                    $this->Stock_model_new->add_transfer_item($item_data);
+                                }
+                            }
+                        }
+                        
+                        $this->session->set_flashdata('success', 'Transfer created successfully!');
+                        redirect('stocks_new/edit_transfer/' . $transfer_id);
+                    } else {
+                        $this->session->set_flashdata('error', 'Error creating transfer!');
+                    }
+                }
+            }
+            
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['departments'] = $this->get_departments_by_center();
+            $data['all_employees'] = $this->get_employee_list();
+
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/add_transfer', $data);
+            $this->load->view($template['footer']); 
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function get_available_stocks_for_transfer() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $transfer_type = $this->input->get('transfer_type');
+            $from_center_id = $this->input->get('from_center_id');
+            $from_department = $this->input->get('from_department');
+            $from_employee_number = $this->input->get('from_employee_number');
+            
+            $stocks = $this->Stock_model_new->get_available_stocks_for_transfer(
+                $transfer_type, 
+                $from_center_id, 
+                $from_department, 
+                $from_employee_number
+            );
+            
+            header('Content-Type: application/json');
+            echo json_encode($stocks);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function edit_transfer($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_transfer_item') {
+                
+                $this->form_validation->set_rules('batch_id', 'Batch', 'required');
+                $this->form_validation->set_rules('quantity_transferred', 'Quantity', 'required|numeric');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $item_data = [
+                        'transfer_id' => $id,
+                        'batch_id' => $this->input->post('batch_id'),
+                        'quantity_transferred' => $this->input->post('quantity_transferred'),
+                        'unit_price' => $this->input->post('unit_price'),
+                        'total_price' => $this->input->post('quantity_transferred') * $this->input->post('unit_price'),
+                        'remarks' => $this->input->post('remarks')
+                    ];
+                    
+                    $result = $this->Stock_model_new->add_transfer_item($item_data);
+                    
+                    if($result) {
+                        $this->session->set_flashdata('success', 'Transfer item added successfully!');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error adding transfer item!');
+                    }
+                    
+                    redirect('stocks_new/edit_transfer/' . $id);
+                }
+            }
+            
+            $data['transfer'] = $this->Stock_model_new->get_transfer_by_id($id);
+            $data['transfer_items'] = $this->Stock_model_new->get_transfer_items($id);
+            
+            // Load batches based on transfer type and location
+            $data['batches'] = $this->Stock_model_new->get_available_stocks_for_transfer(
+                $data['transfer']->transfer_type,
+                $data['transfer']->from_center_id, 
+                null, // from_department not available
+                null  // from_employee_number not available
+            );
+            
+
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['departments'] = $this->get_departments_by_center();
+            $data['all_employees'] = $this->get_employee_list();    
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/edit_transfer', $data);
+            $this->load->view($template['footer']);
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function approve_transfer($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $result = $this->Stock_model_new->approve_transfer($id, $this->session->userdata('employee_number'));
+            
+            if($result) {
+                $this->session->set_flashdata('success', 'Transfer approved successfully!');
+            } else {
+                $this->session->set_flashdata('error', 'Error approving transfer!');
+            }
+            
+            redirect('stocks_new/transfers');
+        }
+    }
+
+    public function transfer_details($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['transfer'] = $this->Stock_model_new->get_transfer_by_id($id);
+            $data['transfer_items'] = $this->Stock_model_new->get_transfer_items($id);
+            
+            if(!$data['transfer']) {
+                $this->session->set_flashdata('error', 'Transfer not found!');
+                redirect('stocks_new/transfers');
+            }
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/transfer_details', $data);
+            $this->load->view($template['footer']);
+            
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // MULTI-ITEM STOCK TRANSFER
+    // ===============================================
+
+    public function multi_transfer() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'multi_transfer') {
+                
+                $this->form_validation->set_rules('from_center_id', 'Source Center', 'required');
+                $this->form_validation->set_rules('from_department', 'Source Department', 'required');
+                $this->form_validation->set_rules('from_employee_number', 'Source Employee', 'required');
+                $this->form_validation->set_rules('to_center_id', 'Destination Center', 'required');
+                $this->form_validation->set_rules('to_department', 'Destination Department', 'required');
+                $this->form_validation->set_rules('to_employee_number', 'Destination Employee', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $transfer_data = [
+                        'from_center_id' => $this->input->post('from_center_id'),
+                        'from_department' => $this->input->post('from_department'),
+                        'from_employee_number' => $this->input->post('from_employee_number'),
+                        'to_center_id' => $this->input->post('to_center_id'),
+                        'to_department' => $this->input->post('to_department'),
+                        'to_employee_number' => $this->input->post('to_employee_number'),
+                        'transfer_date' => date('Y-m-d H:i:s'),
+                        'remarks' => $this->input->post('remarks'),
+                        'transferred_by' => $this->session->userdata('employee_number'),
+                        'transfer_items' => $this->input->post('transfer_items')
+                    ];
+                    
+                    $result = $this->Stock_model_new->process_multi_transfer($transfer_data);
+                    
+                    if($result) {
+                        $this->session->set_flashdata('success', 'Stock transfer completed successfully!');
+                        redirect('stocks_new/stock_levels');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error processing transfer!');
+                    }
+                }
+            }
+            
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['batches'] = $this->Stock_model_new->get_all_batches();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/multi_transfer', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function get_available_stocks() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $center_id = $this->input->get('center_id');
+            $department = $this->input->get('department');
+            $employee_number = $this->input->get('employee_number');
+            
+            $stocks = $this->Stock_model_new->get_stocks_by_location($center_id, $department, $employee_number);
+            
+            header('Content-Type: application/json');
+            echo json_encode($stocks);
+        }
+    }
+
+    public function get_employees_by_location() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $center_id = $this->input->get('center_id');
+            $department = $this->input->get('department');
+            $employees = $this->Stock_model_new->get_employees_by_location($center_id, $department);
+            header('Content-Type: application/json');
+            echo json_encode($employees);
+        }
+    }
+
+    public function department_transfer() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'department_transfer') {
+                
+                $this->form_validation->set_rules('from_center_id', 'Source Center', 'required');
+                $this->form_validation->set_rules('from_department', 'Source Department', 'required');
+                $this->form_validation->set_rules('from_employee_number', 'Source Employee', 'required');
+                $this->form_validation->set_rules('to_center_id', 'Destination Center', 'required');
+                $this->form_validation->set_rules('to_department', 'Destination Department', 'required');
+                $this->form_validation->set_rules('to_employee_number', 'Destination Employee', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $transfer_data = [
+                        'from_center_id' => $this->input->post('from_center_id'),
+                        'from_department' => $this->input->post('from_department'),
+                        'from_employee_number' => $this->input->post('from_employee_number'),
+                        'to_center_id' => $this->input->post('to_center_id'),
+                        'to_department' => $this->input->post('to_department'),
+                        'to_employee_number' => $this->input->post('to_employee_number'),
+                        'transfer_date' => date('Y-m-d H:i:s'),
+                        'remarks' => $this->input->post('remarks'),
+                        'transferred_by' => $this->session->userdata('employee_number'),
+                        'transfer_items' => $this->input->post('transfer_items')
+                    ];
+                    
+                    $result = $this->Stock_model_new->process_department_transfer($transfer_data);
+                    
+                    if($result) {
+                        $this->session->set_flashdata('success', 'Department transfer completed successfully!');
+                        redirect('stocks_new/stock_levels');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error processing department transfer!');
+                    }
+                }
+            }
+            
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['batches'] = array(); // Will be loaded via AJAX
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/department_transfer', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // SALES MANAGEMENT
+    // ===============================================
+
+    public function sales() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['sales'] = $this->Stock_model_new->get_all_sales();
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            // Debug: Log the data being passed
+            if(ENVIRONMENT === 'development') {
+                error_log('Sales data: ' . print_r($data['sales'], true));
+                error_log('Centers data: ' . print_r($data['centers'], true));
+            }
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/sales', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function add_sale() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_sale') {
+                
+                $this->form_validation->set_rules('center_id', 'Center', 'required');
+                $this->form_validation->set_rules('patient_name', 'Patient Name', 'required');
+                $this->form_validation->set_rules('sale_date', 'Sale Date', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $sale_data = [
+                        'center_id' => $this->input->post('center_id'),
+                        'patient_id' => $this->input->post('patient_id'),
+                        'patient_name' => $this->input->post('patient_name'),
+                        'doctor_id' => $this->input->post('doctor_id'),
+                        'doctor_name' => $this->input->post('doctor_name'),
+                        'sale_date' => $this->input->post('sale_date'),
+                        'sale_time' => date('H:i:s'),
+                        'payment_method' => $this->input->post('payment_method'),
+                        'payment_status' => $this->input->post('payment_status'),
+                        'remarks' => $this->input->post('remarks'),
+                        'created_by' => $this->session->userdata('employee_number'),
+                        'status' => 'DRAFT'
+                    ];
+                    
+                    $sale_id = $this->Stock_model_new->add_sale($sale_data);
+                    
+                    if($sale_id) {
+                        $this->session->set_flashdata('success', 'Sale created successfully!');
+                        redirect('stocks_new/edit_sale/' . $sale_id);
+                    } else {
+                        $this->session->set_flashdata('error', 'Error creating sale!');
+                    }
+                }
+            }
+            
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            // Debug: Log the data being passed
+            if(ENVIRONMENT === 'development') {
+                error_log('Centers data for add_sale: ' . print_r($data['centers'], true));
+            }
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/add_sale', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function edit_sale($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_sale_item') {
+                
+                $this->form_validation->set_rules('batch_id', 'Batch', 'required');
+                $this->form_validation->set_rules('quantity_sold', 'Quantity', 'required|numeric');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $item_data = [
+                        'sale_id' => $id,
+                        'batch_id' => $this->input->post('batch_id'),
+                        'quantity_sold' => $this->input->post('quantity_sold'),
+                        'unit_price' => $this->input->post('unit_price'),
+                        'subtotal' => $this->input->post('quantity_sold') * $this->input->post('unit_price'),
+                        'total' => $this->input->post('quantity_sold') * $this->input->post('unit_price'),
+                        'remarks' => $this->input->post('remarks')
+                    ];
+                    
+                    $result = $this->Stock_model_new->add_sale_item($item_data);
+                    
+                    if($result) {
+                        $this->session->set_flashdata('success', 'Sale item added successfully!');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error adding sale item!');
+                    }
+                    
+                    redirect('stocks_new/edit_sale/' . $id);
+                }
+            }
+            
+            $data['sale'] = $this->Stock_model_new->get_sale_by_id($id);
+            $data['sale_items'] = $this->Stock_model_new->get_sale_items($id);
+            $data['batches'] = $this->Stock_model_new->get_available_batches_for_sale($data['sale']->center_id);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            $this->load->view('stocks_new/edit_sale', $data);
+        }
+    }
+
+    public function confirm_sale($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $result = $this->Stock_model_new->confirm_sale($id);
+            
+            if($result) {
+                $this->session->set_flashdata('success', 'Sale confirmed successfully!');
+            } else {
+                $this->session->set_flashdata('error', 'Error confirming sale!');
+            }
+            
+            redirect('stocks_new/sales');
+        }
+    }
+
+    // ===============================================
+    // REPORTS
+    // ===============================================
+
+    public function reports() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/reports');
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function stock_report() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $center_id = $this->input->get('center_id');
+            $data['stock_levels'] = $this->Stock_model_new->get_current_stock_levels($center_id);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['selected_center'] = $center_id;
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/stock_report', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function sales_report() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $start_date = $this->input->get('start_date') ?: date('Y-m-01');
+            $end_date = $this->input->get('end_date') ?: date('Y-m-d');
+            $center_id = $this->input->get('center_id');
+            
+            $data['sales'] = $this->Stock_model_new->get_sales_report($start_date, $end_date, $center_id);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['start_date'] = $start_date;
+            $data['end_date'] = $end_date;
+            $data['selected_center'] = $center_id;
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/sales_report', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function todays_sales() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $today = date('Y-m-d');
+            $center_id = $this->input->get('center_id');
+            
+            $data['sales'] = $this->Stock_model_new->get_sales_report($today, $today, $center_id);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['start_date'] = $today;
+            $data['end_date'] = $today;
+            $data['selected_center'] = $center_id;
+            $data['report_title'] = "Today's Sales";
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/sales_report', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function weekly_sales() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $start_date = date('Y-m-d', strtotime('monday this week'));
+            $end_date = date('Y-m-d', strtotime('sunday this week'));
+            $center_id = $this->input->get('center_id');
+            
+            $data['sales'] = $this->Stock_model_new->get_sales_report($start_date, $end_date, $center_id);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['start_date'] = $start_date;
+            $data['end_date'] = $end_date;
+            $data['selected_center'] = $center_id;
+            $data['report_title'] = "Weekly Sales";
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/sales_report', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function monthly_sales() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $start_date = date('Y-m-01');
+            $end_date = date('Y-m-t');
+            $center_id = $this->input->get('center_id');
+            
+            $data['sales'] = $this->Stock_model_new->get_sales_report($start_date, $end_date, $center_id);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['start_date'] = $start_date;
+            $data['end_date'] = $end_date;
+            $data['selected_center'] = $center_id;
+            $data['report_title'] = "Monthly Sales";
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/sales_report', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function transfer_report() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $start_date = $this->input->get('start_date') ?: date('Y-m-01');
+            $end_date = $this->input->get('end_date') ?: date('Y-m-d');
+            $transfer_type = $this->input->get('transfer_type');
+            $from_center_id = $this->input->get('from_center_id');
+            $to_center_id = $this->input->get('to_center_id');
+            
+            $data['transfers'] = $this->Stock_model_new->get_transfer_report($start_date, $end_date, $transfer_type, $from_center_id, $to_center_id);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['start_date'] = $start_date;
+            $data['end_date'] = $end_date;
+            $data['selected_transfer_type'] = $transfer_type;
+            $data['selected_from_center'] = $from_center_id;
+            $data['selected_to_center'] = $to_center_id;
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/transfer_report', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function todays_transfers() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $today = date('Y-m-d');
+            $transfer_type = $this->input->get('transfer_type');
+            $from_center_id = $this->input->get('from_center_id');
+            $to_center_id = $this->input->get('to_center_id');
+            
+            $data['transfers'] = $this->Stock_model_new->get_transfer_report($today, $today, $transfer_type, $from_center_id, $to_center_id);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['start_date'] = $today;
+            $data['end_date'] = $today;
+            $data['selected_transfer_type'] = $transfer_type;
+            $data['selected_from_center'] = $from_center_id;
+            $data['selected_to_center'] = $to_center_id;
+            $data['report_title'] = "Today's Transfers";
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/transfer_report', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function weekly_transfers() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $start_date = date('Y-m-d', strtotime('monday this week'));
+            $end_date = date('Y-m-d', strtotime('sunday this week'));
+            $transfer_type = $this->input->get('transfer_type');
+            $from_center_id = $this->input->get('from_center_id');
+            $to_center_id = $this->input->get('to_center_id');
+            
+            $data['transfers'] = $this->Stock_model_new->get_transfer_report($start_date, $end_date, $transfer_type, $from_center_id, $to_center_id);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['start_date'] = $start_date;
+            $data['end_date'] = $end_date;
+            $data['selected_transfer_type'] = $transfer_type;
+            $data['selected_from_center'] = $from_center_id;
+            $data['selected_to_center'] = $to_center_id;
+            $data['report_title'] = "Weekly Transfers";
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/transfer_report', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function monthly_transfers() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $start_date = date('Y-m-01');
+            $end_date = date('Y-m-t');
+            $transfer_type = $this->input->get('transfer_type');
+            $from_center_id = $this->input->get('from_center_id');
+            $to_center_id = $this->input->get('to_center_id');
+            
+            $data['transfers'] = $this->Stock_model_new->get_transfer_report($start_date, $end_date, $transfer_type, $from_center_id, $to_center_id);
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['start_date'] = $start_date;
+            $data['end_date'] = $end_date;
+            $data['selected_transfer_type'] = $transfer_type;
+            $data['selected_from_center'] = $from_center_id;
+            $data['selected_to_center'] = $to_center_id;
+            $data['report_title'] = "Monthly Transfers";
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/transfer_report', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // AJAX FUNCTIONS
+    // ===============================================
+
+    public function get_medicine_details() {
+        $medicine_id = $this->input->post('medicine_id');
+        $medicine = $this->Stock_model_new->get_medicine_by_id($medicine_id);
+        
+        if($medicine) {
+            echo json_encode([
+                'status' => 'success',
+                'data' => $medicine
+            ]);
+        } else {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Medicine not found'
+            ]);
+        }
+    }
+
+    public function get_batch_details() {
+        $batch_id = $this->input->post('batch_id');
+        $batch = $this->Stock_model_new->get_batch_by_id($batch_id);
+        
+        if($batch) {
+            echo json_encode([
+                'status' => 'success',
+                'data' => $batch
+            ]);
+        } else {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Batch not found'
+            ]);
+        }
+    }
+
+    public function get_available_stock() {
+        $batch_id = $this->input->post('batch_id');
+        $center_id = $this->input->post('center_id');
+        
+        $stock = $this->Stock_model_new->get_available_stock($batch_id, $center_id);
+        
+        echo json_encode([
+            'status' => 'success',
+            'data' => $stock
+        ]);
+    }
+
+    public function get_dashboard_data() {
+        $data = $this->Stock_model_new->get_dashboard_summary();
+        
+        echo json_encode([
+            'status' => 'success',
+            'data' => $data
+        ]);
+    }
+
+    // ===============================================
+    // REPORTS & ANALYTICS
+    // ===============================================
+
+    public function low_stock_alerts() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['low_stock_alerts'] = $this->Stock_model_new->get_low_stock_alerts();
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/low_stock_alerts', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function expiry_alerts() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['expiry_alerts'] = $this->Stock_model_new->get_expiry_alerts();
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/expiry_alerts', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // MEDICINE RETURNS
+    // ===============================================
+
+    public function medicine_returns() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['available_batches'] = $this->Stock_model_new->get_available_batches_for_return();
+            
+            // Debug: Log the data being passed
+            if(ENVIRONMENT === 'development') {
+                error_log('Centers data for medicine_returns: ' . print_r($data['centers'], true));
+                error_log('Available batches data: ' . print_r($data['available_batches'], true));
+            }
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/medicine_returns', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function process_return() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'return_medicine') {
+                
+                $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
+                $this->form_validation->set_rules('patient_name', 'Patient Name', 'required');
+                $this->form_validation->set_rules('receipt_number', 'Receipt Number', 'required');
+                $this->form_validation->set_rules('center_id', 'Center', 'required');
+                $this->form_validation->set_rules('return_reason', 'Return Reason', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $return_data = [
+                        'patient_id' => $this->input->post('patient_id'),
+                        'patient_name' => $this->input->post('patient_name'),
+                        'receipt_number' => $this->input->post('receipt_number'),
+                        'center_id' => $this->input->post('center_id'),
+                        'return_date' => $this->input->post('return_date'),
+                        'return_reason' => $this->input->post('return_reason'),
+                        'total_return_amount' => $this->input->post('total_return_amount'),
+                        'remarks' => $this->input->post('remarks'),
+                        'created_by' => $this->session->userdata('employee_number'),
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    $return_items = $this->input->post('return_items');
+                    
+                    if($this->Stock_model_new->process_medicine_return($return_data, $return_items)) {
+                        $this->session->set_flashdata('success', 'Medicine return processed successfully');
+                        redirect('stocks_new/returns');
+                    } else {
+                        $this->session->set_flashdata('error', 'Failed to process medicine return');
+                    }
+                }
+            }
+            
+            redirect('stocks_new/medicine_returns');
+        }
+    }
+
+    public function returns() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['returns'] = $this->Stock_model_new->get_medicine_returns();
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            $this->load->view('stocks_new/returns', $data);
+        }
+    }
+
+    // ===============================================
+    // STOCK AUDIT
+    // ===============================================
+
+    public function stock_audit() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['available_batches'] = $this->Stock_model_new->get_available_batches_for_audit();
+            
+            $this->load->view('stocks_new/stock_audit', $data);
+            $this->load->view($template['footer']);
+        }
+    }
+
+    public function process_audit() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'stock_audit') {
+                
+                $this->form_validation->set_rules('audit_date', 'Audit Date', 'required');
+                $this->form_validation->set_rules('center_id', 'Center', 'required');
+                $this->form_validation->set_rules('audit_type', 'Audit Type', 'required');
+                $this->form_validation->set_rules('auditor_name', 'Auditor Name', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $audit_data = [
+                        'audit_date' => $this->input->post('audit_date'),
+                        'center_id' => $this->input->post('center_id'),
+                        'audit_type' => $this->input->post('audit_type'),
+                        'audit_purpose' => $this->input->post('audit_purpose'),
+                        'auditor_name' => $this->input->post('auditor_name'),
+                        'total_items' => $this->input->post('total_items'),
+                        'variance_items' => $this->input->post('variance_items'),
+                        'remarks' => $this->input->post('remarks'),
+                        'created_by' => $this->session->userdata('employee_number'),
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    $audit_items = $this->input->post('audit_items');
+                    
+                    if($this->Stock_model_new->process_stock_audit($audit_data, $audit_items)) {
+                        $this->session->set_flashdata('success', 'Stock audit completed successfully');
+                        redirect('stocks_new/audit_reports');
+                    } else {
+                        $this->session->set_flashdata('error', 'Failed to process stock audit');
+                    }
+                }
+            }
+            
+            redirect('stocks_new/stock_audit');
+        }
+    }
+
+    public function audit_reports() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            
+            $data['audit_reports'] = $this->Stock_model_new->get_audit_reports();
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            $this->load->view('stocks_new/audit_reports', $data);
+            $this->load->view($template['footer']);
+        }
+    }
+
+    // ===============================================
+    // MEDICINE DISPOSAL
+    // ===============================================
+
+    public function medicine_disposal() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            $data['available_batches'] = $this->Stock_model_new->get_available_batches_for_disposal();
+            
+            $this->load->view('stocks_new/medicine_disposal', $data);
+            $this->load->view($template['footer']);
+        }
+    }
+
+    public function process_disposal() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'medicine_disposal') {
+                
+                $this->form_validation->set_rules('disposal_date', 'Disposal Date', 'required');
+                $this->form_validation->set_rules('center_id', 'Center', 'required');
+                $this->form_validation->set_rules('disposal_type', 'Disposal Type', 'required');
+                $this->form_validation->set_rules('disposal_method', 'Disposal Method', 'required');
+                $this->form_validation->set_rules('authorized_by', 'Authorized By', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $disposal_data = [
+                        'disposal_date' => $this->input->post('disposal_date'),
+                        'center_id' => $this->input->post('center_id'),
+                        'disposal_type' => $this->input->post('disposal_type'),
+                        'disposal_method' => $this->input->post('disposal_method'),
+                        'disposal_company' => $this->input->post('disposal_company'),
+                        'authorized_by' => $this->input->post('authorized_by'),
+                        'total_items' => $this->input->post('total_items'),
+                        'total_cost' => $this->input->post('total_cost'),
+                        'remarks' => $this->input->post('remarks'),
+                        'created_by' => $this->session->userdata('employee_number'),
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    $disposal_items = $this->input->post('disposal_items');
+                    
+                    if($this->Stock_model_new->process_medicine_disposal($disposal_data, $disposal_items)) {
+                        $this->session->set_flashdata('success', 'Medicine disposal processed successfully');
+                        redirect('stocks_new/disposal_reports');
+                    } else {
+                        $this->session->set_flashdata('error', 'Failed to process medicine disposal');
+                    }
+                }
+            }
+            
+            redirect('stocks_new/medicine_disposal');
+        }
+    }
+
+    public function disposal_reports() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            
+            $data['disposal_reports'] = $this->Stock_model_new->get_disposal_reports();
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            $this->load->view('stocks_new/disposal_reports', $data);
+            $this->load->view($template['footer']);
+        }
+    }
+
+    // ===============================================
+    // INVOICE MANAGEMENT
+    // ===============================================
+
+    public function invoices() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            
+            $data['invoices'] = $this->Stock_model_new->get_invoices();
+            $data['vendors'] = $this->Stock_model_new->get_vendors();
+            
+            $this->load->view('stocks_new/invoices', $data);
+            $this->load->view($template['footer']);
+        }
+    }
+
+    public function add_invoice() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_invoice') {
+                
+                $this->form_validation->set_rules('invoice_number', 'Invoice Number', 'required|is_unique[hms_invoices.invoice_number]');
+                $this->form_validation->set_rules('vendor_id', 'Vendor', 'required');
+                $this->form_validation->set_rules('invoice_date', 'Invoice Date', 'required');
+                $this->form_validation->set_rules('due_date', 'Due Date', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $invoice_data = [
+                        'invoice_number' => $this->input->post('invoice_number'),
+                        'vendor_id' => $this->input->post('vendor_id'),
+                        'invoice_date' => $this->input->post('invoice_date'),
+                        'due_date' => $this->input->post('due_date'),
+                        'total_amount' => $this->input->post('total_amount'),
+                        'paid_amount' => $this->input->post('paid_amount'),
+                        'balance_amount' => $this->input->post('balance_amount'),
+                        'status' => 'DRAFT',
+                        'remarks' => $this->input->post('remarks'),
+                        'created_by' => $this->session->userdata('employee_number'),
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    if($this->Stock_model_new->add_invoice($invoice_data)) {
+                        $this->session->set_flashdata('success', 'Invoice created successfully');
+                        redirect('stocks_new/invoices');
+                    } else {
+                        $this->session->set_flashdata('error', 'Failed to create invoice');
+                    }
+                }
+            }
+            
+            $data['vendors'] = $this->Stock_model_new->get_vendors();
+            $this->load->view('stocks_new/add_invoice', $data);
+        }
+    }
+
+    public function edit_invoice($invoice_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['invoice'] = $this->Stock_model_new->get_invoice($invoice_id);
+            $data['invoice_items'] = $this->Stock_model_new->get_invoice_items($invoice_id);
+            $data['available_batches'] = $this->Stock_model_new->get_available_batches_for_invoice();
+            
+            $this->load->view('stocks_new/edit_invoice', $data);
+        }
+    }
+
+    public function approve_invoice($invoice_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->Stock_model_new->approve_invoice($invoice_id)) {
+                $this->session->set_flashdata('success', 'Invoice approved successfully');
+            } else {
+                $this->session->set_flashdata('error', 'Failed to approve invoice');
+            }
+            
+            redirect('stocks_new/invoices');
+        }
+    }
+
+    public function print_invoice($invoice_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['invoice'] = $this->Stock_model_new->get_invoice($invoice_id);
+            $data['invoice_items'] = $this->Stock_model_new->get_invoice_items($invoice_id);
+            
+            $this->load->view('stocks_new/print_invoice', $data);
+        }
+    }
+
+    // ===============================================
+    // CATEGORIES MANAGEMENT
+    // ===============================================
+
+    public function categories() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['categories'] = $this->Stock_model_new->get_categories();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/categories', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function add_category() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_category') {
+                
+                $this->form_validation->set_rules('category_name', 'Category Name', 'required|is_unique[hms_categories.category_name]');
+                $this->form_validation->set_rules('description', 'Description', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $category_data = [
+                        'category_name' => $this->input->post('category_name'),
+                        'description' => $this->input->post('description'),
+                        'parent_category' => $this->input->post('parent_category'),
+                        'status' => 'ACTIVE',
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    if($this->Stock_model_new->add_category($category_data)) {
+                        $this->session->set_flashdata('success', 'Category added successfully');
+                        redirect('stocks_new/categories');
+                    } else {
+                        $this->session->set_flashdata('error', 'Failed to add category');
+                    }
+                }
+            }
+            
+            $data['categories'] = $this->Stock_model_new->get_categories();
+            $this->load->view('stocks_new/add_category', $data);
+        }
+    }
+
+    public function edit_category($category_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'update_category') {
+                
+                $this->form_validation->set_rules('category_name', 'Category Name', 'required');
+                $this->form_validation->set_rules('description', 'Description', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $category_data = [
+                        'category_name' => $this->input->post('category_name'),
+                        'description' => $this->input->post('description'),
+                        'parent_category' => $this->input->post('parent_category'),
+                        'status' => $this->input->post('status'),
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    if($this->Stock_model_new->update_category($category_id, $category_data)) {
+                        $this->session->set_flashdata('success', 'Category updated successfully');
+                        redirect('stocks_new/categories');
+                    } else {
+                        $this->session->set_flashdata('error', 'Failed to update category');
+                    }
+                }
+            }
+            
+            $data['category'] = $this->Stock_model_new->get_category($category_id);
+            $data['categories'] = $this->Stock_model_new->get_categories();
+            
+            $this->load->view('stocks_new/edit_category', $data);
+        }
+    }
+
+    public function activate_category($category_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->Stock_model_new->update_category_status($category_id, 'ACTIVE')) {
+                $this->session->set_flashdata('success', 'Category activated successfully');
+            } else {
+                $this->session->set_flashdata('error', 'Failed to activate category');
+            }
+            
+            redirect('stocks_new/categories');
+        }
+    }
+
+    public function deactivate_category($category_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->Stock_model_new->update_category_status($category_id, 'INACTIVE')) {
+                $this->session->set_flashdata('success', 'Category deactivated successfully');
+            } else {
+                $this->session->set_flashdata('error', 'Failed to deactivate category');
+            }
+            
+            redirect('stocks_new/categories');
+        }
+    }
+
+    // ===============================================
+    // GENERIC NAMES MANAGEMENT
+    // ===============================================
+
+    public function generic_names() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['generic_names'] = $this->Stock_model_new->get_generic_names();
+            $data['categories'] = $this->Stock_model_new->get_categories();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/generic_names', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function add_generic_name() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_generic_name') {
+                
+                $this->form_validation->set_rules('generic_name', 'Generic Name', 'required|is_unique[generic_names.generic_name]');
+                $this->form_validation->set_rules('generic_code', 'Generic Code', 'required|is_unique[generic_names.generic_code]');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $generic_data = [
+                        'generic_name' => $this->input->post('generic_name'),
+                        'generic_code' => $this->input->post('generic_code'),
+                        'description' => $this->input->post('description'),
+                        'therapeutic_class' => $this->input->post('therapeutic_class'),
+                        'status' => $this->input->post('status') ?: 'active',
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    if($this->Stock_model_new->add_generic_name($generic_data)) {
+                        $this->session->set_flashdata('success', 'Generic name added successfully');
+                        redirect('stocks_new/generic_names');
+                    } else {
+                        $this->session->set_flashdata('error', 'Failed to add generic name');
+                    }
+                }
+            }
+            
+            // Initialize data array
+            $data = array();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/add_generic_name', $data);
+            $this->load->view($template['footer']);
+        }
+    }
+
+    public function edit_generic_name($generic_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'update_generic_name') {
+                
+                $this->form_validation->set_rules('generic_name', 'Generic Name', 'required');
+                $this->form_validation->set_rules('category_id', 'Category', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $generic_data = [
+                        'generic_name' => $this->input->post('generic_name'),
+                        'category_id' => $this->input->post('category_id'),
+                        'description' => $this->input->post('description'),
+                        'status' => $this->input->post('status'),
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    if($this->Stock_model_new->update_generic_name($generic_id, $generic_data)) {
+                        $this->session->set_flashdata('success', 'Generic name updated successfully');
+                        redirect('stocks_new/generic_names');
+                    } else {
+                        $this->session->set_flashdata('error', 'Failed to update generic name');
+                    }
+                }
+            }
+            
+            $data['generic'] = $this->Stock_model_new->get_generic_name($generic_id);
+            $data['categories'] = $this->Stock_model_new->get_categories();
+            
+            $this->load->view('stocks_new/edit_generic_name', $data);
+        }
+    }
+
+    public function activate_generic_name($generic_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->Stock_model_new->update_generic_name_status($generic_id, 'ACTIVE')) {
+                $this->session->set_flashdata('success', 'Generic name activated successfully');
+            } else {
+                $this->session->set_flashdata('error', 'Failed to activate generic name');
+            }
+            
+            redirect('stocks_new/generic_names');
+        }
+    }
+
+    public function deactivate_generic_name($generic_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->Stock_model_new->update_generic_name_status($generic_id, 'INACTIVE')) {
+                $this->session->set_flashdata('success', 'Generic name deactivated successfully');
+            } else {
+                $this->session->set_flashdata('error', 'Failed to deactivate generic name');
+            }
+            
+            redirect('stocks_new/generic_names');
+        }
+    }
+
+    // ===============================================
+    // VENDOR RETURNS
+    // ===============================================
+
+    public function vendor_returns() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['vendor_returns'] = $this->Stock_model_new->get_vendor_returns();
+            $data['vendors'] = $this->Stock_model_new->get_vendors();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/vendor_returns', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function vendor_return_reports() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            // Get filter parameters
+            $vendor_id = $this->input->get('vendor_id');
+            $status = $this->input->get('status');
+            $from_date = $this->input->get('from_date');
+            $to_date = $this->input->get('to_date');
+            
+            $data['vendor_returns'] = $this->Stock_model_new->get_vendor_return_reports($vendor_id, $status, $from_date, $to_date);
+            $data['vendors'] = $this->Stock_model_new->get_vendors();
+            $data['summary_stats'] = $this->Stock_model_new->get_vendor_return_summary_stats($vendor_id, $status, $from_date, $to_date);
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/vendor_return_reports', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function add_vendor_return() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_vendor_return') {
+                
+                $this->form_validation->set_rules('vendor_id', 'Vendor', 'required');
+                $this->form_validation->set_rules('return_date', 'Return Date', 'required');
+                $this->form_validation->set_rules('return_reason', 'Return Reason', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $return_data = [
+                        'vendor_id' => $this->input->post('vendor_id'),
+                        'return_date' => $this->input->post('return_date'),
+                        'return_reason' => $this->input->post('return_reason'),
+                        'total_amount' => $this->input->post('total_amount'),
+                        'remarks' => $this->input->post('remarks'),
+                        'created_by' => $this->session->userdata('employee_number'),
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    $return_items = $this->input->post('return_items');
+                    
+                    if($this->Stock_model_new->process_vendor_return($return_data, $return_items)) {
+                        $this->session->set_flashdata('success', 'Vendor return processed successfully');
+                        redirect('stocks_new/vendor_returns');
+                    } else {
+                        $this->session->set_flashdata('error', 'Failed to process vendor return');
+                    }
+                }
+            }
+            
+            $data['vendors'] = $this->Stock_model_new->get_vendors();
+            $data['available_batches'] = $this->Stock_model_new->get_available_batches_for_vendor_return();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/add_vendor_return', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // STOCK TRACKING PANEL
+    // ===============================================
+
+    public function stock_tracking_panel() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            
+            $data['medicines'] = $this->Stock_model_new->get_all_medicines();
+            $data['batches'] = $this->Stock_model_new->get_all_batches();
+            $data['centers'] = $this->Stock_model_new->get_all_centers();
+            
+            $this->load->view('stocks_new/stock_tracking_panel', $data);
+            $this->load->view($template['footer']);
+        }
+    }
+
+    public function get_stock_movements() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $movements = $this->Stock_model_new->get_stock_movements();
+            echo json_encode($movements);
+        }
+    }
+
+    public function get_transfers() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $transfers = $this->Stock_model_new->get_all_transfers();
+            echo json_encode($transfers);
+        }
+    }
+
+    public function get_sales() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $sales = $this->Stock_model_new->get_all_sales();
+            echo json_encode($sales);
+        }
+    }
+
+    public function get_summary_stats() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $stats = $this->Stock_model_new->get_summary_stats();
+            echo json_encode($stats);
+        }
+    }
+
+    public function search_stock_movements() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $filters = array(
+                'medicine_id' => $this->input->post('medicine_id'),
+                'batch_id' => $this->input->post('batch_id'),
+                'center_id' => $this->input->post('center_id'),
+                'date_from' => $this->input->post('date_from'),
+                'date_to' => $this->input->post('date_to')
+            );
+            
+            $movements = $this->Stock_model_new->search_stock_movements($filters);
+            echo json_encode($movements);
+        }
+    }
+
+    public function export_stock_report() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $filters = array(
+                'medicine_id' => $this->input->get('medicine_id'),
+                'batch_id' => $this->input->get('batch_id'),
+                'center_id' => $this->input->get('center_id'),
+                'date_from' => $this->input->get('date_from'),
+                'date_to' => $this->input->get('date_to')
+            );
+            
+            $this->Stock_model_new->export_stock_report($filters);
+        }
+    }
+
+    // ===============================================
+    // PURCHASE ORDER BATCH TRACKING
+    // ===============================================
+
+    public function track_po_batches($po_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            // Get purchase order details
+            $data['purchase_order'] = $this->Stock_model_new->get_purchase_order_details($po_id);
+            
+            if(!$data['purchase_order']) {
+                $this->session->set_flashdata('error', 'Purchase order not found!');
+                redirect('stocks_new/dashboard');
+                return;
+            }
+            
+            // Get batches created from this purchase order
+            $data['po_batches'] = $this->Stock_model_new->get_batches_from_purchase_order($po_id);
+            
+            // Get movement history for these batches
+            $data['batch_movements'] = [];
+            if(!empty($data['po_batches'])) {
+                foreach($data['po_batches'] as $batch) {
+                    $movements = $this->Stock_model_new->get_stock_movements_by_batch($batch->id);
+                    $data['batch_movements'][$batch->id] = $movements;
+                }
+            }
+            
+            // Get summary statistics
+            $data['summary_stats'] = $this->Stock_model_new->get_po_batch_summary($po_id);
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/track_po_batches', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // STOCK MOVEMENTS HISTORY
+    // ===============================================
+
+    public function stock_movements() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            // Get batch_id from URL parameter
+            $batch_id = $this->input->get('batch_id');
+            
+            // Get batch details if batch_id is provided
+            if($batch_id) {
+                $data['batch_details'] = $this->Stock_model_new->get_batch_by_id($batch_id);
+                $data['batch_movements'] = $this->Stock_model_new->get_stock_movements_by_batch($batch_id);
+            } else {
+                $data['batch_details'] = null;
+                $data['batch_movements'] = [];
+            }
+            
+            // Get all batches for dropdown
+            $data['batches'] = $this->Stock_model_new->get_all_batches();
+            $data['selected_batch_id'] = $batch_id;
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/stock_movements', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // BRAND MANAGEMENT
+    // ===============================================
+    
+    private function generate_brand_number() {
+        return 'BR' . date('Ymd') . rand(1000, 9999);
+    }
+    
+    private function generate_vendor_number() {
+        return 'VN' . date('Ymd') . rand(1000, 9999);
+    }
+
+    public function brands() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['brands'] = $this->Stock_model_new->get_medicine_brands();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/brands', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function add_brand() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_brand') {
+                $this->form_validation->set_rules('name', 'Brand Name', 'required');
+                $this->form_validation->set_rules('status', 'Status', 'required');
+                if($this->form_validation->run() == TRUE) {
+                    $brand_data = [
+                        'name' => $this->input->post('name'),
+                        'status' => $this->input->post('status'),
+                        'date' => date('Y-m-d H:i:s'),
+                        'brand_number' => $this->generate_brand_number()
+                    ];
+                    $result = $this->Stock_model_new->add_medicine_brand($brand_data);
+                    
+                    if($result) {
+                        $this->session->set_flashdata('success', 'Brand added successfully!');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error adding brand!');
+                    }
+                    
+                    redirect('stocks_new/brands');
+                }
+            }
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/add_brand');
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function edit_brand($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'update_brand') {
+                
+                $this->form_validation->set_rules('name', 'Brand Name', 'required');
+                $this->form_validation->set_rules('status', 'Status', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    $brand_data = [
+                        'name' => $this->input->post('name'),
+                        'status' => $this->input->post('status'),
+                        'date' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    $result = $this->Stock_model_new->update_medicine_brand($id, $brand_data);
+                    
+                    if($result) {
+                        $this->session->set_flashdata('success', 'Brand updated successfully!');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error updating brand!');
+                    }
+                    
+                    redirect('stocks_new/brands');
+                }
+            }
+            
+            $data['brand'] = $this->Stock_model_new->get_medicine_brand_by_id($id);
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/edit_brand', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function delete_brand($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $result = $this->Stock_model_new->update_medicine_brand($id, [
+                'status' => '0',
+                'date' => date('Y-m-d H:i:s')
+            ]);
+            
+            if($result) {
+                $this->session->set_flashdata('success', 'Brand deactivated successfully!');
+            } else {
+                $this->session->set_flashdata('error', 'Error deactivating brand!');
+            }
+            
+            redirect('stocks_new/brands');
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    // ===============================================
+    // VENDOR MANAGEMENT
+    // ===============================================
+
+    public function vendors() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['vendors'] = $this->Stock_model_new->get_vendors();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/vendors', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function add_vendor() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'add_vendor') {
+                
+                // Set validation rules for all required fields
+                $this->form_validation->set_rules('name', 'Vendor Name', 'required');
+                $this->form_validation->set_rules('company_name', 'Company Name', 'required');
+                $this->form_validation->set_rules('companies_type', 'Company Type', 'required');
+                $this->form_validation->set_rules('company_address', 'Company Address', 'required');
+                $this->form_validation->set_rules('phone_number', 'Phone Number', 'required');
+                $this->form_validation->set_rules('contact_person_name', 'Contact Person', 'required');
+                $this->form_validation->set_rules('contact_person_designation', 'Contact Person Designation', 'required');
+                $this->form_validation->set_rules('gst_number', 'GST Number', 'required');
+                $this->form_validation->set_rules('status', 'Status', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    // Prepare vendor data with all fields
+                    $vendor_data = [
+                        'name' => $this->input->post('name'),
+                        'company_name' => $this->input->post('company_name'),
+                        'companies_type' => $this->input->post('companies_type'),
+                        'company_address' => $this->input->post('company_address'),
+                        'phone_number' => $this->input->post('phone_number'),
+                        'email' => $this->input->post('email'),
+                        'contact_person_name' => $this->input->post('contact_person_name'),
+                        'contact_person_designation' => $this->input->post('contact_person_designation'),
+                        'bank_name' => $this->input->post('bank_name'),
+                        'branch_name' => $this->input->post('branch_name'),
+                        'beneficiary_name' => $this->input->post('beneficiary_name'),
+                        'account_no' => $this->input->post('account_no'),
+                        'ifsc_code' => $this->input->post('ifsc_code'),
+                        'account_type' => $this->input->post('account_type'),
+                        'gst_number' => $this->input->post('gst_number'),
+                        'drug_license_number' => $this->input->post('drug_license_number'),
+                        'pan_number' => $this->input->post('pan_number'),
+                        'fssai_number' => $this->input->post('fssai_number'),
+                        'msme_number' => $this->input->post('msme_number'),
+                        'status' => $this->input->post('status')
+                    ];
+                    
+                    // Add vendor first to get the ID
+                    $result = $this->Stock_model_new->add_vendor($vendor_data);
+                    
+                    if($result) {
+                        $vendor_id = $this->db->insert_id();
+                        
+                        // Handle file uploads
+                        $file_fields = ['gst_file', 'drug_license_file', 'pan_file', 'fssai_file', 'msme_file', 'cancel_check', 'mou_file'];
+                        $file_data = [];
+                        
+                        foreach($file_fields as $field) {
+                            $uploaded_file = $this->Stock_model_new->handle_vendor_file_upload($field, $vendor_id);
+                            if($uploaded_file !== null) {
+                                if($uploaded_file === false) {
+                                    $this->session->set_flashdata('error', 'Invalid file type for ' . $field . '. Only PDF, JPG, JPEG, PNG files are allowed.');
+                                    redirect('stocks_new/add_vendor');
+                                    return;
+                                } else {
+                                    $file_data[$field] = $uploaded_file;
+                                }
+                            }
+                        }
+                        
+                        // Update vendor with file data if any files were uploaded
+                        if(!empty($file_data)) {
+                            $this->Stock_model_new->update_vendor($vendor_id, $file_data);
+                        }
+                        
+                        $this->session->set_flashdata('success', 'Vendor added successfully!');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error adding vendor!');
+                    }
+                    
+                    redirect('stocks_new/vendors');
+                }
+            }
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/add_vendor');
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function edit_vendor($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if($this->input->post('action') == 'update_vendor') {
+                
+                // Set validation rules for all required fields
+                $this->form_validation->set_rules('name', 'Vendor Name', 'required');
+                $this->form_validation->set_rules('company_name', 'Company Name', 'required');
+                $this->form_validation->set_rules('companies_type', 'Company Type', 'required');
+                $this->form_validation->set_rules('company_address', 'Company Address', 'required');
+                $this->form_validation->set_rules('phone_number', 'Phone Number', 'required');
+                $this->form_validation->set_rules('contact_person_name', 'Contact Person', 'required');
+                $this->form_validation->set_rules('contact_person_designation', 'Contact Person Designation', 'required');
+                $this->form_validation->set_rules('gst_number', 'GST Number', 'required');
+                $this->form_validation->set_rules('status', 'Status', 'required');
+                
+                if($this->form_validation->run() == TRUE) {
+                    
+                    // Prepare vendor data with all fields
+                    $vendor_data = [
+                        'name' => $this->input->post('name'),
+                        'company_name' => $this->input->post('company_name'),
+                        'companies_type' => $this->input->post('companies_type'),
+                        'company_address' => $this->input->post('company_address'),
+                        'phone_number' => $this->input->post('phone_number'),
+                        'email' => $this->input->post('email'),
+                        'contact_person_name' => $this->input->post('contact_person_name'),
+                        'contact_person_designation' => $this->input->post('contact_person_designation'),
+                        'bank_name' => $this->input->post('bank_name'),
+                        'branch_name' => $this->input->post('branch_name'),
+                        'beneficiary_name' => $this->input->post('beneficiary_name'),
+                        'account_no' => $this->input->post('account_no'),
+                        'ifsc_code' => $this->input->post('ifsc_code'),
+                        'account_type' => $this->input->post('account_type'),
+                        'gst_number' => $this->input->post('gst_number'),
+                        'drug_license_number' => $this->input->post('drug_license_number'),
+                        'pan_number' => $this->input->post('pan_number'),
+                        'fssai_number' => $this->input->post('fssai_number'),
+                        'msme_number' => $this->input->post('msme_number'),
+                        'status' => $this->input->post('status')
+                    ];
+                    
+                    // Handle file uploads
+                    $file_fields = ['gst_file', 'drug_license_file', 'pan_file', 'fssai_file', 'msme_file', 'cancel_check', 'mou_file'];
+                    
+                    foreach($file_fields as $field) {
+                        $uploaded_file = $this->Stock_model_new->handle_vendor_file_upload($field, $id);
+                        if($uploaded_file !== null) {
+                            if($uploaded_file === false) {
+                                $this->session->set_flashdata('error', 'Invalid file type for ' . $field . '. Only PDF, JPG, JPEG, PNG files are allowed.');
+                                redirect('stocks_new/edit_vendor/' . $id);
+                                return;
+                            } else {
+                                $vendor_data[$field] = $uploaded_file;
+                            }
+                        }
+                    }
+                    
+                    $result = $this->Stock_model_new->update_vendor($id, $vendor_data);
+                    
+                    if($result) {
+                        $this->session->set_flashdata('success', 'Vendor updated successfully!');
+                    } else {
+                        $this->session->set_flashdata('error', 'Error updating vendor!');
+                    }
+                    
+                    redirect('stocks_new/vendors');
+                }
+            }
+            
+            $data['vendor'] = $this->Stock_model_new->get_vendor_by_id($id);
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/edit_vendor', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function delete_vendor($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $result = $this->Stock_model_new->update_vendor($id, [
+                'status' => '0'
+            ]);
+            
+            if($result) {
+                $this->session->set_flashdata('success', 'Vendor deactivated successfully!');
+            } else {
+                $this->session->set_flashdata('error', 'Error deactivating vendor!');
+            }
+            
+            redirect('stocks_new/vendors');
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function get_vendor_details($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $vendor = $this->Stock_model_new->get_vendor_by_id($id);
+            
+            if($vendor) {
+                $response = [
+                    'success' => true,
+                    'vendor' => $vendor
+                ];
+            } else {
+                $response = [
+                    'success' => false,
+                    'message' => 'Vendor not found'
+                ];
+            }
+            
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode($response));
+        } else {
+            $response = [
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ];
+            
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode($response));
+        }
+    }
+
+    public function view_document($document_type, $vendor_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $vendor = $this->Stock_model_new->get_vendor_by_id($vendor_id);
+            
+            if(!$vendor) {
+                show_404();
+                return;
+            }
+            
+            $file_field = $document_type . '_file';
+            $filename = isset($vendor->$file_field) ? $vendor->$file_field : null;
+            
+            if(!$filename || empty($filename)) {
+                $this->session->set_flashdata('error', 'Document not found');
+                redirect('stocks_new/vendors');
+                return;
+            }
+            
+            $file_path = 'uploads/vendors/' . $filename;
+            
+            if(!file_exists($file_path)) {
+                $this->session->set_flashdata('error', 'File not found on server');
+                redirect('stocks_new/vendors');
+                return;
+            }
+            
+            $file_extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            $mime_type = $this->get_mime_type($file_extension);
+            
+            header('Content-Type: ' . $mime_type);
+            header('Content-Disposition: inline; filename="' . $filename . '"');
+            header('Content-Length: ' . filesize($file_path));
+            header('Cache-Control: private, max-age=0, must-revalidate');
+            header('Pragma: public');
+            
+            readfile($file_path);
+            exit;
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    public function download_document($document_type, $vendor_id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $vendor = $this->Stock_model_new->get_vendor_by_id($vendor_id);
+            
+            if(!$vendor) {
+                show_404();
+                return;
+            }
+            
+            $file_field = $document_type . '_file';
+            $filename = isset($vendor->$file_field) ? $vendor->$file_field : null;
+            
+            if(!$filename || empty($filename)) {
+                $this->session->set_flashdata('error', 'Document not found');
+                redirect('stocks_new/vendors');
+                return;
+            }
+            
+            $file_path = 'uploads/vendors/' . $filename;
+            
+            if(!file_exists($file_path)) {
+                $this->session->set_flashdata('error', 'File not found on server');
+                redirect('stocks_new/vendors');
+                return;
+            }
+            
+            $file_extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            $mime_type = $this->get_mime_type($file_extension);
+            
+            // Generate a clean download filename
+            $download_filename = ucfirst($document_type) . '_' . $vendor->name . '_' . date('Y-m-d') . '.' . $file_extension;
+            $download_filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $download_filename);
+            
+            header('Content-Type: ' . $mime_type);
+            header('Content-Disposition: attachment; filename="' . $download_filename . '"');
+            header('Content-Length: ' . filesize($file_path));
+            header('Cache-Control: private, max-age=0, must-revalidate');
+            header('Pragma: public');
+            
+            readfile($file_path);
+            exit;
+        } else {
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
+    private function get_mime_type($extension) {
+        $mime_types = array(
+            'pdf' => 'application/pdf',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'bmp' => 'image/bmp',
+            'tiff' => 'image/tiff',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+        
+        return isset($mime_types[$extension]) ? $mime_types[$extension] : 'application/octet-stream';
+    }
+
+    // ===============================================
+    // MISSING SAVE METHODS
+    // ===============================================
+
+    public function save_medicine() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $this->form_validation->set_rules('medicine_name', 'Medicine Name', 'required');
+            $this->form_validation->set_rules('medicine_code', 'Medicine Code', 'required');
+            $this->form_validation->set_rules('brand_id', 'Brand', 'required');
+            $this->form_validation->set_rules('minimum_stock_level', 'Minimum Stock Level', 'required|numeric');
+            
+            if($this->form_validation->run() == TRUE) {
+                $medicine_data = array(
+                    'medicine_name' => $this->input->post('medicine_name'),
+                    'medicine_code' => $this->input->post('medicine_code'),
+                    'brand_id' => $this->input->post('brand_id'),
+                    'description' => $this->input->post('description'),
+                    'minimum_stock_level' => $this->input->post('minimum_stock_level'),
+                    'maximum_stock_level' => $this->input->post('maximum_stock_level'),
+                    'status' => 'active',
+                    'created_by' => $logg['user_id']
+                );
+                
+                if($this->Stock_model_new->add_medicine($medicine_data)) {
+                    $this->session->set_flashdata('success', 'Medicine added successfully');
+                    redirect('stocks_new/medicines');
+                } else {
+                    $this->session->set_flashdata('error', 'Failed to add medicine');
+                    redirect('stocks_new/add_medicine');
+                }
+            } else {
+                $this->session->set_flashdata('error', validation_errors());
+                redirect('stocks_new/add_medicine');
+            }
+        }
+    }
+
+    public function save_batch() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $this->form_validation->set_rules('medicine_id', 'Medicine', 'required');
+            $this->form_validation->set_rules('batch_number', 'Batch Number', 'required');
+            $this->form_validation->set_rules('vendor_id', 'Vendor', 'required');
+            $this->form_validation->set_rules('expiry_date', 'Expiry Date', 'required');
+            $this->form_validation->set_rules('quantity_purchased', 'Quantity Purchased', 'required|numeric');
+            $this->form_validation->set_rules('purchase_price', 'Purchase Price', 'required|numeric');
+            $this->form_validation->set_rules('selling_price', 'Selling Price', 'required|numeric');
+            
+            if($this->form_validation->run() == TRUE) {
+                $batch_data = array(
+                    'medicine_id' => $this->input->post('medicine_id'),
+                    'batch_number' => $this->input->post('batch_number'),
+                    'vendor_id' => $this->input->post('vendor_id'),
+                    'manufacturing_date' => $this->input->post('manufacturing_date'),
+                    'expiry_date' => $this->input->post('expiry_date'),
+                    'quantity_purchased' => $this->input->post('quantity_purchased'),
+                    'quantity_remaining' => $this->input->post('quantity_purchased'),
+                    'purchase_price' => $this->input->post('purchase_price'),
+                    'selling_price' => $this->input->post('selling_price'),
+                    'mrp' => $this->input->post('mrp'),
+                    'purchase_date' => $this->input->post('purchase_date'),
+                    'invoice_number' => $this->input->post('invoice_number'),
+                    'batch_status' => 'ACTIVE',
+                    'created_by' => $logg['user_id']
+                );
+                
+                if($this->Stock_model_new->add_batch($batch_data)) {
+                    $this->session->set_flashdata('success', 'Batch added successfully');
+                    redirect('stocks_new/batches');
+                } else {
+                    $this->session->set_flashdata('error', 'Failed to add batch');
+                    redirect('stocks_new/add_batch');
+                }
+            } else {
+                $this->session->set_flashdata('error', validation_errors());
+                redirect('stocks_new/add_batch');
+            }
+        }
+    }
+
+    public function save_transfer() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $this->form_validation->set_rules('from_center_id', 'From Center', 'required');
+            $this->form_validation->set_rules('to_center_id', 'To Center', 'required');
+            $this->form_validation->set_rules('transfer_date', 'Transfer Date', 'required');
+            
+            if($this->form_validation->run() == TRUE) {
+                $transfer_data = array(
+                    'transfer_number' => 'TRF' . date('Ymd') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                    'transfer_type' => $this->input->post('transfer_type'),
+                    'from_center_id' => $this->input->post('from_center_id'),
+                    'to_center_id' => $this->input->post('to_center_id'),
+                    'transfer_date' => $this->input->post('transfer_date'),
+                    'expected_delivery_date' => $this->input->post('expected_delivery_date'),
+                    'status' => 'DRAFT',
+                    'remarks' => $this->input->post('remarks'),
+                    'created_by' => $logg['user_id']
+                );
+                
+                if($this->Stock_model_new->add_transfer($transfer_data)) {
+                    $this->session->set_flashdata('success', 'Transfer created successfully');
+                    redirect('stocks_new/transfers');
+                } else {
+                    $this->session->set_flashdata('error', 'Failed to create transfer');
+                    redirect('stocks_new/add_transfer');
+                }
+            } else {
+                $this->session->set_flashdata('error', validation_errors());
+                redirect('stocks_new/add_transfer');
+            }
+        }
+    }
+
+    public function save_sale() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $this->form_validation->set_rules('center_id', 'Center', 'required');
+            $this->form_validation->set_rules('sale_date', 'Sale Date', 'required');
+            $this->form_validation->set_rules('patient_name', 'Patient Name', 'required');
+            
+            if($this->form_validation->run() == TRUE) {
+                $sale_data = array(
+                    'sale_number' => 'SAL' . date('Ymd') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                    'center_id' => $this->input->post('center_id'),
+                    'patient_id' => $this->input->post('patient_id'),
+                    'patient_name' => $this->input->post('patient_name'),
+                    'doctor_id' => $this->input->post('doctor_id'),
+                    'doctor_name' => $this->input->post('doctor_name'),
+                    'sale_date' => $this->input->post('sale_date'),
+                    'sale_time' => date('H:i:s'),
+                    'subtotal' => $this->input->post('subtotal'),
+                    'discount_amount' => $this->input->post('discount_amount'),
+                    'tax_amount' => $this->input->post('tax_amount'),
+                    'total_amount' => $this->input->post('total_amount'),
+                    'payment_method' => $this->input->post('payment_method'),
+                    'status' => 'DRAFT',
+                    'remarks' => $this->input->post('remarks'),
+                    'created_by' => $logg['user_id']
+                );
+                
+                if($this->Stock_model_new->add_sale($sale_data)) {
+                    $this->session->set_flashdata('success', 'Sale created successfully');
+                    redirect('stocks_new/sales');
+                } else {
+                    $this->session->set_flashdata('error', 'Failed to create sale');
+                    redirect('stocks_new/add_sale');
+                }
+            } else {
+                $this->session->set_flashdata('error', validation_errors());
+                redirect('stocks_new/add_sale');
+            }
+        }
+    }
+
+    public function save_invoice() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $this->form_validation->set_rules('vendor_id', 'Vendor', 'required');
+            $this->form_validation->set_rules('invoice_date', 'Invoice Date', 'required');
+            $this->form_validation->set_rules('total_amount', 'Total Amount', 'required|numeric');
+            
+            if($this->form_validation->run() == TRUE) {
+                $invoice_data = array(
+                    'invoice_number' => $this->input->post('invoice_number'),
+                    'vendor_id' => $this->input->post('vendor_id'),
+                    'center_id' => $this->input->post('center_id'),
+                    'invoice_date' => $this->input->post('invoice_date'),
+                    'due_date' => $this->input->post('due_date'),
+                    'subtotal' => $this->input->post('subtotal'),
+                    'tax_amount' => $this->input->post('tax_amount'),
+                    'total_amount' => $this->input->post('total_amount'),
+                    'status' => 'DRAFT',
+                    'remarks' => $this->input->post('remarks'),
+                    'created_by' => $logg['user_id']
+                );
+                
+                if($this->Stock_model_new->add_invoice($invoice_data)) {
+                    $this->session->set_flashdata('success', 'Invoice created successfully');
+                    redirect('stocks_new/invoices');
+                } else {
+                    $this->session->set_flashdata('error', 'Failed to create invoice');
+                    redirect('stocks_new/add_invoice');
+                }
+            } else {
+                $this->session->set_flashdata('error', validation_errors());
+                redirect('stocks_new/add_invoice');
+            }
+        }
+    }
+
+    public function save_category() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $this->form_validation->set_rules('category_name', 'Category Name', 'required|is_unique[medicine_categories.category_name]');
+            
+            if($this->form_validation->run() == TRUE) {
+                $category_data = array(
+                    'category_name' => $this->input->post('category_name'),
+                    'description' => $this->input->post('description'),
+                    'status' => 'active'
+                );
+                
+                if($this->Stock_model_new->add_category($category_data)) {
+                    $this->session->set_flashdata('success', 'Category added successfully');
+                    redirect('stocks_new/categories');
+                } else {
+                    $this->session->set_flashdata('error', 'Failed to add category');
+                    redirect('stocks_new/add_category');
+                }
+            } else {
+                $this->session->set_flashdata('error', validation_errors());
+                redirect('stocks_new/add_category');
+            }
+        }
+    }
+
+    public function save_generic_name() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $this->form_validation->set_rules('generic_name', 'Generic Name', 'required|is_unique[generic_names.generic_name]');
+            $this->form_validation->set_rules('generic_code', 'Generic Code', 'required|is_unique[generic_names.generic_code]');
+            
+            if($this->form_validation->run() == TRUE) {
+                $generic_data = array(
+                    'generic_name' => $this->input->post('generic_name'),
+                    'generic_code' => $this->input->post('generic_code'),
+                    'description' => $this->input->post('description'),
+                    'therapeutic_class' => $this->input->post('therapeutic_class'),
+                    'status' => $this->input->post('status') ?: 'active',
+                    'created_at' => date('Y-m-d H:i:s')
+                );
+                
+                if($this->Stock_model_new->add_generic_name($generic_data)) {
+                    $this->session->set_flashdata('success', 'Generic name added successfully');
+                    redirect('stocks_new/generic_names');
+                } else {
+                    $this->session->set_flashdata('error', 'Failed to add generic name');
+                    redirect('stocks_new/add_generic_name');
+                }
+            } else {
+                $this->session->set_flashdata('error', validation_errors());
+                redirect('stocks_new/add_generic_name');
+            }
+        }
+    }
+
+    public function save_vendor_return() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $this->form_validation->set_rules('vendor_id', 'Vendor', 'required');
+            $this->form_validation->set_rules('center_id', 'Center', 'required');
+            $this->form_validation->set_rules('return_date', 'Return Date', 'required');
+            
+            if($this->form_validation->run() == TRUE) {
+                $return_data = array(
+                    'return_number' => 'VRET' . date('Ymd') . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                    'vendor_id' => $this->input->post('vendor_id'),
+                    'center_id' => $this->input->post('center_id'),
+                    'return_date' => $this->input->post('return_date'),
+                    'return_reason' => $this->input->post('return_reason'),
+                    'status' => 'PENDING',
+                    'remarks' => $this->input->post('remarks'),
+                    'created_by' => $logg['user_id']
+                );
+                
+                if($this->Stock_model_new->add_vendor_return($return_data)) {
+                    $this->session->set_flashdata('success', 'Vendor return created successfully');
+                    redirect('stocks_new/vendor_returns');
+                } else {
+                    $this->session->set_flashdata('error', 'Failed to create vendor return');
+                    redirect('stocks_new/add_vendor_return');
+                }
+            } else {
+                $this->session->set_flashdata('error', validation_errors());
+                redirect('stocks_new/add_vendor_return');
+            }
+        }
+    }
+    
+    /**
+     * Generate unique batch number for a medicine
+     */
+    private function generate_unique_batch_number($medicine_id, $base_batch_number = '') {
+        // If no base batch number provided, generate one
+        if (empty($base_batch_number)) {
+            $base_batch_number = 'BATCH' . date('Ymd') . $medicine_id;
+        }
+        
+        // Check if this batch number already exists for this medicine
+        $this->db->where('medicine_id', $medicine_id);
+        $this->db->where('batch_number', $base_batch_number);
+        $existing = $this->db->get('medicine_batches')->row();
+        
+        if ($existing) {
+            // If exists, append a counter
+            $counter = 1;
+            do {
+                $new_batch_number = $base_batch_number . '_' . $counter;
+                $this->db->where('medicine_id', $medicine_id);
+                $this->db->where('batch_number', $new_batch_number);
+                $existing = $this->db->get('medicine_batches')->row();
+                $counter++;
+            } while ($existing);
+            
+            return $new_batch_number;
+        }
+        
+        return $base_batch_number;
+    }
+    
+    // ==================== PURCHASE ORDER INTEGRATION METHODS ====================
+    
+    /**
+     * Display purchase orders ready for stock addition
+     */
+    public function purchase_orders_for_stock() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            $data['purchase_orders'] = $this->Stock_model_new->get_purchase_orders_for_stock_addition();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/purchase_orders_for_stock', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+        }
+    }
+    
+    /**
+     * Display purchase order details for stock addition
+     */
+    public function add_stock_from_po($po_id = null) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if (!$po_id) {
+                $this->session->set_flashdata('error', 'Purchase Order ID is required!');
+                redirect('stocks_new/purchase_orders_for_stock');
+                return;
+            }
+            
+            // Get purchase order details
+            $data['purchase_order'] = $this->Stock_model_new->get_purchase_order_for_stock_addition($po_id);
+            if (!$data['purchase_order']) {
+                $this->session->set_flashdata('error', 'Purchase order not found or not ready for stock addition!');
+                redirect('stocks_new/purchase_orders_for_stock');
+                return;
+            }
+            
+            // Get purchase order items
+            $data['po_items'] = $this->Stock_model_new->get_purchase_order_items($po_id);
+            if (empty($data['po_items'])) {
+                $this->session->set_flashdata('error', 'No items found for this purchase order!');
+                redirect('stocks_new/purchase_orders_for_stock');
+                return;
+            }
+            
+            // Get vendors for dropdown
+            $data['vendors'] = $this->Stock_model_new->get_vendors();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/add_stock_from_po', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+        }
+    }
+    
+    /**
+     * Process stock addition from purchase order
+     */
+    public function process_stock_from_po() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            if ($this->input->post('action') == 'add_stock_from_po') {
+                
+                $po_id = $this->input->post('po_id');
+                if (!$po_id) {
+                    $this->session->set_flashdata('error', 'Purchase Order ID is required!');
+                    redirect('stocks_new/purchase_orders_for_stock');
+                    return;
+                }
+                
+                // Validate purchase order
+                $purchase_order = $this->Stock_model_new->get_purchase_order_for_stock_addition($po_id);
+                if (!$purchase_order) {
+                    $this->session->set_flashdata('error', 'Purchase order not found or not ready for stock addition!');
+                    redirect('stocks_new/purchase_orders_for_stock');
+                    return;
+                }
+                
+                // Process stock items - Following original structure
+                $stock_items = array();
+                $i = 1;
+                
+                while ($this->input->post('item_number_' . $i)) {
+                    $quantity_received = floatval($this->input->post('quantity_received_' . $i)) ?: 0;
+                    $quantity_rejected = floatval($this->input->post('quantity_rejected_' . $i)) ?: 0;
+                    $free_quantity = floatval($this->input->post('free_quantity_' . $i)) ?: 0;
+                    
+                    if ($quantity_received > 0) {
+                        $stock_items[] = array(
+                            'item_number' => $this->input->post('item_number_' . $i),
+                            'item_name' => $this->input->post('item_name_' . $i),
+                            'brand_name' => $this->input->post('brand_name_' . $i),
+                            'generic_name' => $this->input->post('generic_name_' . $i),
+                            'company' => $this->input->post('company_' . $i),
+                            'vendor_number' => $purchase_order->vendor_number,
+                            'batch_number' => $this->input->post('batch_number_' . $i),
+                            'quantity_received' => $quantity_received,
+                            'quantity_rejected' => $quantity_rejected,
+                            'free_quantity' => $free_quantity,
+                            'purchase_price' => floatval($this->input->post('purchase_price_' . $i)),
+                            'selling_price' => floatval($this->input->post('selling_price_' . $i)),
+                            'mrp' => floatval($this->input->post('mrp_' . $i)),
+                            'expiry_date' => $this->input->post('expiry_date_' . $i),
+                            'manufacturing_date' => $this->input->post('manufacturing_date_' . $i),
+                            'pack_size' => $this->input->post('pack_size_' . $i),
+                            'hsn' => $this->input->post('hsn_' . $i),
+                            'tax_percentage' => floatval($this->input->post('tax_percentage_' . $i)),
+                            'discount_amount' => floatval($this->input->post('discount_amount_' . $i)),
+                            'invoice_number' => $this->input->post('invoice_number'),
+                            'receipt_date' => $this->input->post('receipt_date'),
+                            'received_by' => $this->input->post('received_by'),
+                            'comments' => $this->input->post('comments_' . $i)
+                        );
+                    }
+                    $i++;
+                }
+                
+                if (empty($stock_items)) {
+                    $this->session->set_flashdata('error', 'No items to add to stock!');
+                    redirect('stocks_new/add_stock_from_po/' . $po_id);
+                    return;
+                }
+                
+                // Add stock from purchase order
+                $result = $this->Stock_model_new->add_stock_from_purchase_order($po_id, $stock_items);
+                
+                if ($result['success']) {
+                    if ($result['success_count'] == $result['total_items']) {
+                        $this->session->set_flashdata('success', "Stock added successfully for all {$result['total_items']} item(s)!");
+                    } else {
+                        $this->session->set_flashdata('warning', "Stock added for {$result['success_count']} out of {$result['total_items']} item(s). Please check failed items.");
+                    }
+                } else {
+                    $this->session->set_flashdata('error', 'Failed to add stock: ' . (isset($result['error']) ? $result['error'] : 'Unknown error'));
+                }
+                
+                redirect('stocks_new/purchase_orders_for_stock');
+            }
+        } else {
+            header("location:" .base_url(). "");
+        }
+    }
+    
+    /**
+     * View purchase order stock addition history
+     */
+    public function po_stock_history() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            
+            // Get purchase orders that have been processed for stock
+            $data['processed_pos'] = $this->Stock_model_new->get_processed_purchase_orders();
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('stocks_new/po_stock_history', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" .base_url(). "");
+        }
+    }
+    
+    /**
+     * Get employee ID from employee number
+     */
+    private function get_employee_id_from_number($employee_number) {
+        if (empty($employee_number)) {
+            return null;
+        }
+        
+        $this->db->select('ID');
+        $this->db->from('hms_employees');
+        $this->db->where('employee_number', $employee_number);
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $result = $query->row();
+            return $result->ID;
+        }
+        
+        return null;
+    }
+
+    function get_employee_list(){
+		$result = array();
+		$sql_condition = '';
+		$sql = "Select * from ".$this->config->item('db_prefix')."employees where other_role='stock_manager' and status='1'";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result;
+        }
+        else
+        {
+            return $result;
+        }
+	}
+
+    function get_departments_by_center() {
+        $result = array();
+        $sql_condition = '';
+        $sql = "Select DISTINCT department from ".$this->config->item('db_prefix')."employees where status='1' and department != '' ORDER BY department ASC";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result;
+        }
+    }
+}

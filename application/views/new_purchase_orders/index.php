@@ -64,9 +64,9 @@
                <a href="<?php echo base_url('new_purchase_orders/add'); ?>" class="btn btn-success">
                   <i class="fa fa-plus"></i> Add New PO
                </a>
-               <a href="<?php echo base_url('new_purchase_orders/purchase_order_receipt'); ?>" class="btn btn-info">
-                  <i class="fa fa-file-text -o"></i> Purchase Order Receipt
-               </a>
+                  <!-- <a href="<?php echo base_url('new_purchase_orders/purchase_order_receipt'); ?>" class="btn btn-info">
+                     <i class="fa fa-file-text -o"></i> Purchase Order Receipt
+                  </a> -->
                <a href="<?php echo base_url('new_purchase_orders/stock_transfer'); ?>" class="btn btn-warning">
                   <i class="fa fa-exchange"></i> Stock Transfer
                </a>
@@ -106,6 +106,7 @@
                      <th>Department</th>
                      <th>Total Amount</th>
                      <th>Status</th>
+                     <th>Add stock</th>
                      <th>Created Date</th>
                      <th>Actions</th>
                   </tr>
@@ -169,6 +170,17 @@
                               <span class="label <?php echo $status_class; ?>">
                                  <?php echo $status_text; ?>
                               </span>
+                           </td>
+                           <td>
+                              <?php if ($status == 'completed'): ?>
+                                 <a href="<?php echo base_url('new_purchase_orders/new_add_stock/' . (!empty($po['id']) ? $po['id'] : '0')); ?>" class="btn btn-info">
+                                    <i class="fa fa-file-text-o"></i>Add stocks
+                                 </a>
+                              <?php else: ?>
+                                 <button class="btn btn-info" disabled title="Add Stock - Only available for completed orders">
+                                    <i class="fa fa-file-text-o"></i>Add stocks
+                                 </button>
+                              <?php endif; ?>
                            </td>
                            <td><?php echo !empty($po['created_at']) ? date('d/m/Y H:i', strtotime($po['created_at'])) : 'N/A'; ?></td>
                            <td>

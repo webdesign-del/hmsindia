@@ -555,23 +555,40 @@ class New_purchase_orders extends CI_Controller {
     }
 
     // Purchase Order Receipt page
-    public function purchase_order_receipt() {
+    public function new_add_stock($id) {
         $logg = checklogin();
         if($logg['status'] == true) {
-            $data['title'] = 'Purchase Order Receipt - Inventory';
+            $data['purchase_order'] = $this->New_purchase_order_model->get_purchase_order_by_id($id);
+            $data['purchase_order_items'] = $this->New_purchase_order_model->get_purchase_order_items($id);
             
-            // Get vendors
+            if (!$data['purchase_order']) {
+                $this->session->set_flashdata('error', 'Purchase order not found!');
+                redirect('new_purchase_orders');
+            }
+            if ($data['purchase_order']['status'] != 'completed') {
+                $this->session->set_flashdata('error', 'Only completed purchase orders can be processed for stock addition!');
+                redirect('new_purchase_orders');
+            }
+            $this->load->model('Vendors_model');
+            $vendor_data = $this->Vendors_model->get_vendor_data_by_vendor_number($data['purchase_order']['vendor_number']);
+            $data['vendor_data'] = $vendor_data[0];
+            $this->load->model('Center_model');
+            $bill_to_center = $this->Center_model->get_item_data($data['purchase_order']['bill_to']);
+            $ship_to_center = $this->Center_model->get_item_data($data['purchase_order']['ship_to']);
+            $data['bill_to_address'] = $bill_to_center ? $bill_to_center['center_name'] . ', ' . $bill_to_center['center_location'] : 'N/A';
+            $data['ship_to_address'] = $ship_to_center ? $ship_to_center['center_name'] . ', ' . $ship_to_center['center_location'] : 'N/A';
+            // Get vendors and consumables for the form
             $data['vendors'] = $this->get_vendors();
-            
-            // Get consumables/items
             $data['consumables'] = $this->get_consumables();
             
-            // Generate POR number
-            $data['por_number'] = $this->New_purchase_order_model->generate_por_number();
+            // Load existing uploaded files
+            $data['uploaded_files'] = $this->get_uploaded_files($data['purchase_order']['po_number']);
             
+            $data['title'] = 'Purchase Order Receipt - Inventory';
             $template = get_header_template($logg['role']);
             $this->load->view($template['header']);
-            $this->load->view('new_purchase_orders/purchase_order_receipt', $data);
+            // var_dump($data);
+            $this->load->view('new_purchase_orders/new_add_stock', $data);
             $this->load->view($template['footer']);
         } else {
             header("location:" .base_url(). "");
@@ -701,7 +718,179 @@ class New_purchase_orders extends CI_Controller {
         }
     }
 
-    // Save stock transfer items
+    // Save Add Stock - Main method for processing stock addition from purchase order receipt
+    public function save_add_stock() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            if ($this->input->post()) {
+                $po_id = $this->input->get('id');
+                if (!$po_id) {
+                    $this->session->set_flashdata('error', 'Purchase Order ID is required!');
+                    redirect('new_purchase_orders');
+                    return;
+                }
+                
+                // Handle file uploads
+                $uploaded_files = [];
+                if (!empty($_FILES['receipt_files']['name'][0])) {
+                    $uploaded_files = $this->handleFileUploads();
+                }
+                $purchase_order = $this->New_purchase_order_model->get_purchase_order_by_id($po_id);
+                if (!$purchase_order) {
+                    $this->session->set_flashdata('error', 'Purchase order not found!');
+                    redirect('new_purchase_orders');
+                    return;
+                }
+                if ($purchase_order['status'] != 'completed') {
+                    $this->session->set_flashdata('error', 'Only completed purchase orders can be processed for stock addition!');
+                    redirect('new_purchase_orders');
+                    return;
+                }
+                $success_count = 0;
+                $total_items = 0;
+                $vendor_billing_data = [];
+                $i = 1;
+                while ($this->input->post('product_' . $i)) {
+                    $product_id = $this->input->post('product_' . $i);
+                    $qty_receiving = floatval($this->input->post('qty_receiving_' . $i)) ?: 0;
+                    $qty_rejected = floatval($this->input->post('qty_rejected_' . $i)) ?: 0;
+                    $free_qty = floatval($this->input->post('free_qty_' . $i)) ?: 0;
+                    if ($qty_receiving > 0) {
+                        $total_items++;
+                        $po_items = $this->New_purchase_order_model->get_purchase_order_items($po_id);
+                        $item_details = null;
+                        foreach ($po_items as $item) {
+                            if ($item['item_number'] == $product_id) {
+                                $item_details = $item;
+                                break;
+                            }
+                        }
+                        if ($item_details) {
+                            $stock_data = [
+                                'item_name' => $item_details['item_name'],
+                                'company' => $item_details['company'],
+                                'brand_name' => $item_details['brand_name'],
+                                'generic_name' => $item_details['generic_name'] ?? '',
+                                'vendor_number' => $purchase_order['vendor_number'],
+                                'batch_number' => $this->input->post('batch_number_' . $i) ?: $item_details['batch_number'],
+                                'quantity' => $qty_receiving + $free_qty,
+                                'price' => $item_details['price'],
+                                'vendor_price' => $this->input->post('unit_price_' . $i) ?: $item_details['vendor_price'],
+                                'mrp' => $item_details['mrp'],
+                                'hsn' => $item_details['hsn'],
+                                'pack_size' => $item_details['pack_size'],
+                                'gstrate' => intval($item_details['tax_percentage']),
+                                'gstdivision' => $item_details['gst_division'] ?? 0,
+                                'expiry' => $this->input->post('expiry_date_' . $i),
+                                'expiry_day' => $this->input->post('notify_expiry_' . $i),
+                                'date_of_purchase' => $this->input->post('po_date'),
+                                'invoice_no' => $this->input->post('reference') ?: 'N/A',
+                                'no_of_item' => '1',
+                                'product_id' => 0,
+                                'lots' => 1.0,
+                                'units' => $qty_receiving + $free_qty,
+                                'safety_stock' => 0,
+                                'order_qty' => 0,
+                                'category' => 0,
+                                'pack' => 1,
+                                'type' => 'medicine',
+                                'medicine_type' => null,
+                                'status' => 1
+                            ];
+                            $existing_stock = $this->New_purchase_order_model->check_existing_stock_item($item_details['item_name'], $stock_data['batch_number'], $purchase_order['vendor_number']);
+                            if ($existing_stock) {
+                                $update_result = $this->New_purchase_order_model->update_stock_quantity($existing_stock['ID'], $stock_data['quantity'], $stock_data);
+                                if ($update_result) {
+                                    $success_count++;
+                                }
+                            } else {
+                                $insert_result = $this->New_purchase_order_model->insert_stock_item($stock_data);
+                                if ($insert_result) {
+                                    $success_count++;
+                                }
+                            }
+                            $vendor_billing_data[] = [
+                                'purchase_po_no' => $purchase_order['po_number'],
+                                'po_date' => $this->input->post('po_date'),
+                                'vendor_name' => $this->get_vendor_name($purchase_order['vendor_number']),
+                                'vendor_code' => $purchase_order['vendor_number'],
+                                'order_number' => $purchase_order['po_number'],
+                                'upload_date' => date("Y-m-d H:i:s"),
+                                'invoice_no' => $this->input->post('reference') ?: 'N/A',
+                                'brand_name' => $item_details['brand_name'],
+                                'mrp' => floatval($item_details['mrp']),
+                                'hsn' => $item_details['hsn'],
+                                'category' => $item_details['company'],
+                                'date_of_purchase' => $this->input->post('po_date'),
+                                'batch_number' => $stock_data['batch_number'],
+                                'centre_location' => $this->input->post('ship_to'),
+                                'received_by' => $this->input->post('receive_by'),
+                                'date_of_receiving' => $this->input->post('receipt_date'),
+                                'item_number' => $product_id,
+                                'item_name' => $item_details['item_name'],
+                                'company' => $item_details['company'],
+                                'quantity' => $qty_receiving,
+                                'expiry' => $stock_data['expiry'],
+                                'vendor_price' => $stock_data['vendor_price'],
+                                'gstrate' => floatval($item_details['tax_percentage']),
+                                'discount_amt' => $this->input->post('discount_' . $i) ?: 0,
+                                'free_quantity' => $free_qty,
+                                'total_purchase_value_excl_gst' => ($qty_receiving * $stock_data['vendor_price']),
+                                'freight_forwarding_charges' => 0,
+                                'comment' => $this->input->post('comments_' . $i) ?: '',
+                                'vendor_billing' => json_encode($uploaded_files),
+                                'rate_per_unit' => $stock_data['vendor_price'],
+                                'total_purchase_after_discount_exculding_gst' => ($qty_receiving * $stock_data['vendor_price']),
+                                'total_purchase_value_incl_gst' => ($qty_receiving * $stock_data['vendor_price'] * (1 + floatval($item_details['tax_percentage']) / 100)),
+                                'monetary_value' => 'INR',
+                                'discount_rate' => '0',
+                                'entry_date_in_tally' => null,
+                                'msme_applicability' => 'No',
+                                'medicine_type' => null
+                            ];
+                        }
+                    }
+                    $i++;
+                }
+                if (!empty($vendor_billing_data)) {
+                    foreach ($vendor_billing_data as $billing_data) {
+                        $this->New_purchase_order_model->insert_vendor_billing($billing_data);
+                    }
+                }
+                $this->New_purchase_order_model->update_purchase_order_status($po_id, 'completed');
+                if ($success_count == $total_items && $total_items > 0) {
+                    $this->session->set_flashdata('success', "Stock added successfully for all {$total_items} item(s)!");
+                } elseif ($success_count > 0) {
+                    $this->session->set_flashdata('warning', "Stock added for {$success_count} out of {$total_items} item(s). Please check failed items.");
+                } else {
+                    $this->session->set_flashdata('error', 'Failed to add stock for any items. Please check your data.');
+                }
+
+                redirect('new_purchase_orders');
+            }
+        } else {
+            header("location:" .base_url(). "");
+            die;
+        }
+    }
+
+    // Helper method to get vendor name
+    private function get_vendor_name($vendor_number) {
+        if ($vendor_number == 'Cash Purchase') {
+            return 'Cash Purchase';
+        }
+        
+        $this->db->select('name');
+        $this->db->from('hms_vendors');
+        $this->db->where('vendor_number', $vendor_number);
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            return $query->row()->name;
+        }
+        return $vendor_number;
+    }
+
     private function save_stock_transfer_items($transfer_id) {
         $items = [];
         $i = 1;
@@ -722,5 +911,75 @@ class New_purchase_orders extends CI_Controller {
         if (!empty($items)) {
             $this->New_purchase_order_model->insert_stock_transfer_items($items);
         }
+    }
+    
+    // Handle file uploads for receipts
+    private function handleFileUploads() {
+        $uploaded_files = [];
+        $upload_path = './uploads/receipts/';
+        
+        // Create upload directory if it doesn't exist
+        if (!is_dir($upload_path)) {
+            mkdir($upload_path, 0755, true);
+        }
+        
+        $files = $_FILES['receipt_files'];
+        $file_count = count($files['name']);
+        
+        for ($i = 0; $i < $file_count; $i++) {
+            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                $file_name = $files['name'][$i];
+                $file_tmp = $files['tmp_name'][$i];
+                $file_size = $files['size'][$i];
+                $file_type = $files['type'][$i];
+                
+                // Generate unique filename
+                $file_extension = pathinfo($file_name, PATHINFO_EXTENSION);
+                $unique_filename = time() . '_' . $i . '_' . uniqid() . '.' . $file_extension;
+                $file_path = $upload_path . $unique_filename;
+                
+                // Validate file type
+                $allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+                if (!in_array($file_type, $allowed_types)) {
+                    continue; // Skip invalid files
+                }
+                
+                // Validate file size (5MB max)
+                if ($file_size > 5 * 1024 * 1024) {
+                    continue; // Skip files that are too large
+                }
+                
+                // Move uploaded file
+                if (move_uploaded_file($file_tmp, $file_path)) {
+                    $uploaded_files[] = [
+                        'original_name' => $file_name,
+                        'stored_name' => $unique_filename,
+                        'file_path' => $file_path,
+                        'file_size' => $file_size,
+                        'file_type' => $file_type,
+                        'upload_date' => date('Y-m-d H:i:s')
+                    ];
+                }
+            }
+        }
+        
+        return $uploaded_files;
+    }
+    
+    // Get uploaded files for a purchase order
+    public function get_uploaded_files($po_id) {
+        $this->db->select('vendor_billing');
+        $this->db->from($this->config->item('db_prefix') . 'vendor_billing');
+        $this->db->where('purchase_po_no', $po_id);
+        $this->db->limit(1);
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $result = $query->row_array();
+            $files = json_decode($result['vendor_billing'], true);
+            return is_array($files) ? $files : [];
+        }
+        
+        return [];
     }
 }

@@ -85,17 +85,17 @@
             	<label>Department</label>
                 <select class="form-control" id="r_department" name="r_department">
                 	<option value="">--Select From--</option>
-					<option value="Embryologist Noida">Embryologist</option>
-					<option value="billing">Cash Billing</option>
-					<option value="Hormonal">Hormonal</option>
-					<option value="OT Noida">OT Noida</option>
-					<option value="Embryologist Basant Lok">Embryologist Basant Lok</option>
-					<option value="OT Basant Lok">OT Basant Lok</option>
-                    <option value="Nonsaleable">Nonsaleable</option>
-					<option value="OT Srinagar">OT Srinagar</option>
-                    <option value="Embryology Srinagar">Embryology Srinagar</option>
-					 <option value="warehouse">Warehouse</option>
-				</select>
+                  <option value="Embryologist Noida">Embryologist</option>
+                  <option value="billing">Cash Billing</option>
+                  <option value="Hormonal">Hormonal</option>
+                  <option value="OT Noida">OT Noida</option>
+                  <option value="Embryologist Basant Lok">Embryologist Basant Lok</option>
+                  <option value="OT Basant Lok">OT Basant Lok</option>
+                  <option value="Nonsaleable">Nonsaleable</option>
+                  <option value="OT Srinagar">OT Srinagar</option>
+                  <option value="Embryology Srinagar">Embryology Srinagar</option>
+                  <option value="warehouse">Warehouse</option>
+	        			</select>
             </div>	
             <div class="col-sm-6 col-xs-12" style="margin-top:10px;">
             	<label>Filter by billing at</label>

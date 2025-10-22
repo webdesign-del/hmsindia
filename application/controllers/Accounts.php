@@ -1917,59 +1917,42 @@ public function procedure_reports(){
 					$total_package = $total_package +  (int)$val['totalpackage'];
 					$discounted_package = $discounted_package +  (int)$val['discounted_package'];
 					$billing_at = get_center_name($val['billing_at']);
-					
 					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "'";
                     $select_result = run_select_query($sql);
-                    					
                     $sql3 = "SELECT * FROM hms_appointments WHERE wife_phone='" . $select_result['wife_phone'] . "' and paitent_type='new_patient'";
                     $select_result3 = run_select_query($sql3);
-                    					
                     $sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $select_result3['appoitment_for'] . "'";
                     $select_result4 = run_select_query($sql4);
-                    					
                     $uhid = $select_result4['center_code']."/".$select_result3['uhid'];
-
 					$lead_id = $select_result3['crm_id']; 
 					$lead_source = $select_result3['lead_source']; 
-
 					//$crm_id = get_lead($val['patient_id']);
 					$agent = $select_result3['agent']; 
 					$councellor = $select_result3['councellor']; 
-
-					// 1. INITIALIZE $category BEFORE the main if block to guarantee scope
 					$category = 'not booked'; // Default value (safer than 'not found')
-
 					$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $val['patient_id'] . "'";
 					$select_result4 = run_select_query($sql4);
-
 					// Check if 'data' exists and is not empty before proceeding
 					if (!empty($select_result4['data'])) {
-						
 						$unserialized_data = unserialize($select_result4['data']);
-
 						// 2. CRITICAL FIX: Access the array structure using index [0] for the sub_procedure
 						if (isset($unserialized_data['patient_procedures']['sub_procedure'])) {
-							
 							$sub_procedure = $unserialized_data['patient_procedures']['sub_procedure'];
-							
 							// 3. Use the correct SQL variable ($sql5)
 							$sql5 = "SELECT * FROM hms_procedures WHERE ID='" . $sub_procedure . "'"; 
 							$select_result5 = run_select_query($sql5);
-							
 							// --- Category Determination ---
 							if (!empty($select_result5) && isset($select_result5['category'])) {
 								$category = $select_result5['category']; 
 							} else {
 								$category = 'not found';
 							}
-							
 							// Optional: Echo the booking status if needed
 							if($category == 'IVF with Bed'){
 								echo ' booked';
 							} else {
 								echo ' not booked';
 							}
-							
 						} else {
 							// Procedure data structure exists but 'sub_procedure' is missing.
 							$category = 'data missing';
@@ -1977,9 +1960,7 @@ public function procedure_reports(){
 					} 				
 					$sql1 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$val['doctor_id']."'";
 	                $select_appoint = run_select_query($sql1);
-
 					$doctor = $select_appoint['name'];
-					
 					$lead_arr = array($uhid, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $lead_id, $lead_source, $agent, $councellor, $doctor,$category);
 					fputcsv($fp, $lead_arr);
 				}

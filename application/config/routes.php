@@ -43,6 +43,9 @@ $route['password'] = 'welcome/password';
 
 $route['vendors'] = 'vendors/vendors';
 
+$route['stocks_new/view_document/(:any)/(:num)'] = 'stocks_new/view_document/$1/$2';
+$route['stocks_new/download_document/(:any)/(:num)'] = 'stocks_new/download_document/$1/$2';
+
 $route['brands'] = 'brands/brands';
 
 $route['doctor-login'] = 'doctors/login';
@@ -382,3 +385,106 @@ $route['new_purchase_orders/complete/(:any)'] = 'new_purchase_orders/complete/$1
 $route['stocks/All-Center-Medicine'] = 'stocks/all_center_stocks';
 
 
+
+// New Stocks Module Routes
+$route['stocks_new/dashboard'] = 'stocks_new/dashboard';
+$route['stocks_new/brands'] = 'stocks_new/brands';
+$route['stocks_new/add_brand'] = 'stocks_new/add_brand';
+$route['stocks_new/edit_brand/(:any)'] = 'stocks_new/edit_brand/$1';
+$route['stocks_new/delete_brand/(:any)'] = 'stocks_new/delete_brand/$1';
+$route['stocks_new/vendors'] = 'stocks_new/vendors';
+$route['stocks_new/add_vendor'] = 'stocks_new/add_vendor';
+$route['stocks_new/edit_vendor/(:any)'] = 'stocks_new/edit_vendor/$1';
+$route['stocks_new/delete_vendor/(:any)'] = 'stocks_new/delete_vendor/$1';
+$route['stocks_new/medicines'] = 'stocks_new/medicines';
+$route['stocks_new/add_medicine'] = 'stocks_new/add_medicine';
+$route['stocks_new/save_medicine'] = 'stocks_new/save_medicine';
+$route['stocks_new/edit_medicine/(:any)'] = 'stocks_new/edit_medicine/$1';
+$route['stocks_new/update_medicine/(:any)'] = 'stocks_new/update_medicine/$1';
+$route['stocks_new/delete_medicine/(:any)'] = 'stocks_new/delete_medicine/$1';
+$route['stocks_new/batches'] = 'stocks_new/batches';
+$route['stocks_new/add_batch'] = 'stocks_new/add_batch';
+$route['stocks_new/save_batch'] = 'stocks_new/save_batch';
+$route['stocks_new/edit_batch/(:any)'] = 'stocks_new/edit_batch/$1';
+$route['stocks_new/update_batch/(:any)'] = 'stocks_new/update_batch/$1';
+$route['stocks_new/delete_batch/(:any)'] = 'stocks_new/delete_batch/$1';
+$route['stocks_new/stock_levels'] = 'stocks_new/stock_levels';
+$route['stocks_new/transfers'] = 'stocks_new/transfers';
+$route['stocks_new/add_transfer'] = 'stocks_new/add_transfer';
+$route['stocks_new/save_transfer'] = 'stocks_new/save_transfer';
+$route['stocks_new/edit_transfer/(:any)'] = 'stocks_new/edit_transfer/$1';
+$route['stocks_new/update_transfer/(:any)'] = 'stocks_new/update_transfer/$1';
+$route['stocks_new/delete_transfer/(:any)'] = 'stocks_new/delete_transfer/$1';
+$route['stocks_new/approve_transfer/(:any)'] = 'stocks_new/approve_transfer/$1';
+$route['stocks_new/complete_transfer/(:any)'] = 'stocks_new/complete_transfer/$1';
+$route['stocks_new/multi_transfer'] = 'stocks_new/multi_transfer';
+$route['stocks_new/department_transfer'] = 'stocks_new/department_transfer';
+$route['stocks_new/get_available_stocks'] = 'stocks_new/get_available_stocks';
+$route['stocks_new/get_employees_by_location'] = 'stocks_new/get_employees_by_location';
+$route['stocks_new/sales'] = 'stocks_new/sales';
+$route['stocks_new/add_sale'] = 'stocks_new/add_sale';
+$route['stocks_new/save_sale'] = 'stocks_new/save_sale';
+$route['stocks_new/edit_sale/(:any)'] = 'stocks_new/edit_sale/$1';
+$route['stocks_new/update_sale/(:any)'] = 'stocks_new/update_sale/$1';
+$route['stocks_new/delete_sale/(:any)'] = 'stocks_new/delete_sale/$1';
+$route['stocks_new/confirm_sale/(:any)'] = 'stocks_new/confirm_sale/$1';
+$route['stocks_new/print_sale/(:any)'] = 'stocks_new/print_sale/$1';
+$route['stocks_new/reports'] = 'stocks_new/reports';
+$route['stocks_new/low_stock_alerts'] = 'stocks_new/low_stock_alerts';
+$route['stocks_new/expiry_alerts'] = 'stocks_new/expiry_alerts';
+$route['stocks_new/medicine_returns'] = 'stocks_new/medicine_returns';
+$route['stocks_new/process_return'] = 'stocks_new/process_return';
+$route['stocks_new/returns'] = 'stocks_new/returns';
+$route['stocks_new/stock_audit'] = 'stocks_new/stock_audit';
+$route['stocks_new/process_audit'] = 'stocks_new/process_audit';
+$route['stocks_new/audit_reports'] = 'stocks_new/audit_reports';
+$route['stocks_new/medicine_disposal'] = 'stocks_new/medicine_disposal';
+$route['stocks_new/process_disposal'] = 'stocks_new/process_disposal';
+$route['stocks_new/disposal_reports'] = 'stocks_new/disposal_reports';
+$route['stocks_new/invoices'] = 'stocks_new/invoices';
+$route['stocks_new/add_invoice'] = 'stocks_new/add_invoice';
+$route['stocks_new/save_invoice'] = 'stocks_new/save_invoice';
+$route['stocks_new/edit_invoice/(:any)'] = 'stocks_new/edit_invoice/$1';
+$route['stocks_new/update_invoice/(:any)'] = 'stocks_new/update_invoice/$1';
+$route['stocks_new/approve_invoice/(:any)'] = 'stocks_new/approve_invoice/$1';
+$route['stocks_new/print_invoice/(:any)'] = 'stocks_new/print_invoice/$1';
+$route['stocks_new/categories'] = 'stocks_new/categories';
+$route['stocks_new/add_category'] = 'stocks_new/add_category';
+$route['stocks_new/save_category'] = 'stocks_new/save_category';
+$route['stocks_new/edit_category/(:any)'] = 'stocks_new/edit_category/$1';
+$route['stocks_new/update_category/(:any)'] = 'stocks_new/update_category/$1';
+$route['stocks_new/activate_category/(:any)'] = 'stocks_new/activate_category/$1';
+$route['stocks_new/deactivate_category/(:any)'] = 'stocks_new/deactivate_category/$1';
+$route['stocks_new/generic_names'] = 'stocks_new/generic_names';
+$route['stocks_new/add_generic_name'] = 'stocks_new/add_generic_name';
+$route['stocks_new/save_generic_name'] = 'stocks_new/save_generic_name';
+$route['stocks_new/edit_generic_name/(:any)'] = 'stocks_new/edit_generic_name/$1';
+$route['stocks_new/update_generic_name/(:any)'] = 'stocks_new/update_generic_name/$1';
+$route['stocks_new/activate_generic_name/(:any)'] = 'stocks_new/activate_generic_name/$1';
+$route['stocks_new/deactivate_generic_name/(:any)'] = 'stocks_new/deactivate_generic_name/$1';
+$route['stocks_new/vendor_returns'] = 'stocks_new/vendor_returns';
+$route['stocks_new/add_vendor_return'] = 'stocks_new/add_vendor_return';
+$route['stocks_new/save_vendor_return'] = 'stocks_new/save_vendor_return';
+$route['stocks_new/vendor_return_reports'] = 'stocks_new/vendor_return_reports';
+$route['stocks_new/purchase_orders_for_stock'] = 'stocks_new/purchase_orders_for_stock';
+$route['stocks_new/add_stock_from_po/(:num)'] = 'stocks_new/add_stock_from_po/$1';
+$route['stocks_new/process_stock_from_po'] = 'stocks_new/process_stock_from_po';
+$route['stocks_new/po_stock_history'] = 'stocks_new/po_stock_history';
+
+// Stock Tracking Panel Routes
+$route['stocks_new/stock_tracking_panel'] = 'stocks_new/stock_tracking_panel';
+$route['stocks_new/stock_movements'] = 'stocks_new/stock_movements';
+$route['stocks_new/track_po_batches/(:num)'] = 'stocks_new/track_po_batches/$1';
+$route['stocks_new/get_stock_movements'] = 'stocks_new/get_stock_movements';
+$route['stocks_new/get_transfers'] = 'stocks_new/get_transfers';
+$route['stocks_new/get_sales'] = 'stocks_new/get_sales';
+$route['stocks_new/get_summary_stats'] = 'stocks_new/get_summary_stats';
+$route['stocks_new/search_stock_movements'] = 'stocks_new/search_stock_movements';
+$route['stocks_new/export_stock_report'] = 'stocks_new/export_stock_report';
+
+// Patient Final Billing Routes
+$route['accounts/patient_final_billing'] = 'accounts/patient_final_billing';
+$route['accounts/generate_final_bill/(:num)'] = 'accounts/generate_final_bill/$1';
+$route['accounts/check_final_billing_eligibility'] = 'accounts/check_final_billing_eligibility';
+$route['accounts/search_patients_for_final_billing'] = 'accounts/search_patients_for_final_billing';
+$route['accounts/get_patient_procedure_details'] = 'accounts/get_patient_procedure_details';
