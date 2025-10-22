@@ -2878,7 +2878,7 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
     return $consultation_q->result_array();
 }
 
-/*function patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source){
+function patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source){
     $conditions = '';
     if (!empty($center)){
         $conditions .= " AND billing_at='$center'";
@@ -2899,7 +2899,7 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         $conditions .= " AND on_date='$end_date'";
     }
 
-   echo $consultation_sql = "SELECT COUNT(DISTINCT T1.paitent_id) AS unique_first_patient_count
+   $consultation_sql = "SELECT COUNT(DISTINCT T1.paitent_id) AS unique_first_patient_count
     FROM hms_appointments AS T1
     INNER JOIN (
         SELECT patient_id
@@ -2909,8 +2909,8 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
 
     $q = $this->db->query($consultation_sql);
     return $q->row_array(); // returns array with both counts
-}*/
-
+}
+/*
 function patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source) {
     $bindings = [];
     $conditions = '';
@@ -2942,7 +2942,7 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
 
     // Refactored SQL to use a direct JOIN and add the permanent filter
     // Note: 'paitent_id' typo is corrected to 'patient_id'
-    $consultation_sql = "
+   echo $consultation_sql = "
     SELECT COUNT(DISTINCT T1.paitent_id) AS unique_first_patient_count
     FROM hms_appointments AS T1
     INNER JOIN hms_consultation AS T2 ON T1.paitent_id = T2.patient_id
@@ -2956,7 +2956,7 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
     // Execute the query with bindings to prevent SQL injection
     $q = $this->db->query($consultation_sql, $bindings);
     return $q->row_array();
-}
+}*/
 
 function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit)
 {
