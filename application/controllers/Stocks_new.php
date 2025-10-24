@@ -300,6 +300,36 @@ class Stocks_new extends CI_Controller {
         }
     }
 
+    // AJAX endpoint for medicine search
+    public function search_medicines() {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $search_term = $this->input->get('q');
+            $medicines = $this->Stock_model_new->search_medicines($search_term);
+            
+            $results = array();
+            foreach($medicines as $medicine) {
+                $results[] = array(
+                    'id' => $medicine->id,
+                    'text' => $medicine->medicine_name . ' (' . $medicine->generic_name . ')',
+                    'medicine_name' => $medicine->medicine_name,
+                    'generic_name' => $medicine->generic_name,
+                    'medicine_code' => $medicine->medicine_code,
+                    'brand_name' => $medicine->brand_name
+                );
+            }
+            
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode($results));
+        } else {
+            $this->output
+                ->set_status_header(401)
+                ->set_content_type('application/json')
+                ->set_output(json_encode(array('error' => 'Unauthorized')));
+        }
+    }
+
     // ===============================================
     // CENTRAL STOCKS MANAGEMENT
     // ===============================================

@@ -405,6 +405,26 @@ class Stock_model_new extends CI_Model {
         return $this->db->get()->result();
     }
 
+    public function search_medicines($search_term = '') {
+        $this->db->select('m.*, mb.name as brand_name');
+        $this->db->from('medicines m');
+        $this->db->join($this->config->item('db_prefix') . 'brands mb', 'm.brand_id = mb.ID');
+        $this->db->where('m.status', 'active');
+        
+        if (!empty($search_term)) {
+            $this->db->group_start();
+            $this->db->like('m.medicine_name', $search_term);
+            $this->db->or_like('m.generic_name', $search_term);
+            $this->db->or_like('m.medicine_code', $search_term);
+            $this->db->or_like('mb.name', $search_term);
+            $this->db->group_end();
+        }
+        
+        $this->db->order_by('m.medicine_name', 'ASC');
+        $this->db->limit(50); // Limit results for performance
+        return $this->db->get()->result();
+    }
+
     public function add_medicine($data) {
         return $this->db->insert('medicines', $data);
     }

@@ -33,7 +33,7 @@
                         <select name="center_id" class="form-control">
                             <option value="">All Centers</option>
                             <?php foreach($centers as $center): ?>
-                                <option value="<?php echo $center->id; ?>" <?php echo ($selected_center_id == $center->id) ? 'selected' : ''; ?>>
+                                <option value="<?php echo $center->ID; ?>" <?php echo ($selected_center_id == $center->ID) ? 'selected' : ''; ?>>
                                     <?php echo $center->center_name; ?>
                                 </option>
                             <?php endforeach; ?>

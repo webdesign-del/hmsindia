@@ -49,14 +49,15 @@
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Medicine *</label>
                                     <div class="col-sm-8">
-                                        <select name="medicine_id" class="form-control" required>
-                                            <option value="">Select Medicine</option>
+                                        <select name="medicine_id" id="medicine_select" class="form-control" required>
+                                            <option value="">Search and select medicine...</option>
                                             <?php foreach($medicines as $medicine): ?>
                                                 <option value="<?php echo $medicine->id; ?>" <?php echo set_select('medicine_id', $medicine->id); ?>>
                                                     <?php echo $medicine->medicine_name . ' (' . $medicine->generic_name . ')'; ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
+                                        <small class="help-block">Type medicine name, generic name, or code to search</small>
                                     </div>
                                 </div>
                                 
@@ -217,8 +218,75 @@
     </div>
 </div>
 
+<!-- Include Select2 CSS and JS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
 $(document).ready(function() {
+    // Initialize Select2 for medicine search
+    $('#medicine_select').select2({
+        placeholder: 'Search and select medicine...',
+        allowClear: true,
+        width: '100%',
+        ajax: {
+            url: '<?php echo base_url("stocks_new/search_medicines"); ?>',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    q: params.term, // search term
+                    page: params.page
+                };
+            },
+            processResults: function (data, params) {
+                params.page = params.page || 1;
+                return {
+                    results: data,
+                    pagination: {
+                        more: (params.page * 30) < data.total_count
+                    }
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 1,
+        templateResult: function(medicine) {
+            if (medicine.loading) {
+                return medicine.text;
+            }
+            
+            var $result = $(
+                '<div class="medicine-option">' +
+                    '<div class="medicine-name"><strong>' + medicine.medicine_name + '</strong></div>' +
+                    '<div class="medicine-details">' +
+                        '<span class="generic-name">Generic: ' + medicine.generic_name + '</span>' +
+                        '<span class="medicine-code"> | Code: ' + medicine.medicine_code + '</span>' +
+                        '<span class="brand-name"> | Brand: ' + medicine.brand_name + '</span>' +
+                    '</div>' +
+                '</div>'
+            );
+            
+            return $result;
+        },
+        templateSelection: function(medicine) {
+            if (medicine.id === '' || !medicine.id) {
+                return medicine.text || 'Search and select medicine...';
+            }
+            // Handle both AJAX results and pre-loaded options
+            if (medicine.medicine_name && medicine.generic_name) {
+                return medicine.medicine_name + ' (' + medicine.generic_name + ')';
+            } else if (medicine.text) {
+                return medicine.text;
+            } else {
+                return 'Selected Medicine';
+            }
+        },
+        escapeMarkup: function (markup) {
+            return markup;
+        }
+    });
+    
     // Auto-calculate expiry days
     $('input[name="expiry_date"]').on('change', function() {
         var expiryDate = new Date($(this).val());
@@ -243,4 +311,34 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<style>
+.medicine-option {
+    padding: 5px 0;
+}
+.medicine-name {
+    font-weight: bold;
+    color: #333;
+}
+.medicine-details {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+.generic-name {
+    color: #2c5aa0;
+}
+.medicine-code {
+    color: #666;
+}
+.brand-name {
+    color: #8b4513;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #007bff;
+}
+.select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: #e9ecef;
+}
+</style>
 
