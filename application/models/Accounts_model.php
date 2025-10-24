@@ -2789,6 +2789,43 @@ function patient_consultation_report_count($center, $start_date, $end_date, $pat
     return $this->db->count_all_results();
 }	
 
+// Count function for consultation patients pagination
+function patient_consultation_count($center, $status, $start_date, $end_date, $patient_id, $doctor_id = null){
+    
+    $this->db->distinct();
+    $this->db->select('T1.patient_id');
+    $this->db->from('hms_consultation T1');
+    $this->db->join('hms_appointments T2', 'T1.patient_id = T2.paitent_id', 'inner');
+    
+    // Add conditions
+    $this->db->where('T2.billed', '1');
+	
+    if (!empty($center)){
+        $this->db->where('T1.billing_at', $center);
+    }
+    if (!empty($patient_id)){
+        $this->db->where('T1.patient_id', $patient_id);
+    }
+    if (!empty($doctor_id)){
+        $this->db->where('T1.doctor_id', $doctor_id);
+    }
+    if (!empty($start_date) && !empty($end_date)){
+        $this->db->where('T1.on_date >=', $start_date);
+        $this->db->where('T1.on_date <=', $end_date);
+        $this->db->where('T2.appoitmented_date >=', $start_date);
+        $this->db->where('T2.appoitmented_date <=', $end_date);
+    }
+    else if (!empty($start_date) && empty($end_date)){
+        $this->db->where('T1.on_date', $start_date);
+        $this->db->where('T2.appoitmented_date', $start_date);
+    }
+    else if (empty($start_date) && !empty($end_date)){
+        $this->db->where('T1.on_date', $end_date);
+        $this->db->where('T2.appoitmented_date', $end_date);
+    }
+    
+    return $this->db->count_all_results();
+}
 
 function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source = '') {
     // This array will hold the values for secure query binding
