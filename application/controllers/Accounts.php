@@ -8010,6 +8010,242 @@ public function get_doctors_by_center() {
         return $html;
     }
 
+	public function patient_final_billing() 
+	{
+		$logg = checklogin();
+		if($logg['status'] != true){
+			header("location:" .base_url(). "");
+			die();
+		}
+		
+		$data = array();
+		$data['all_centers'] = $this->get_all_centers();
+		$template = get_header_template($logg['role']);
+		$data['user_role'] = $logg['role'];
+		if(isset($_GET['patient_id']) && !empty($_GET['patient_id'])) {
+			$patient_id = $_GET['patient_id'];
+			$billing_data = $this->accounts_model->get_patient_final_billing_data($patient_id);
+			
+			if($billing_data) {
+				$data['billing_data'] = $billing_data;
+				$data['show_bill'] = true;
+			} else {
+				$data['error'] = 'Patient not found or no billing data available.';
+			}
+		}
+		
+		$this->load->view($template['header']);
+		$this->load->view('accounts/patient_final_billing', $data);
+		$this->load->view($template['footer']);
+	}
+		/**
+	 * Generate final bill for a patient
+	 */
+	public function generate_final_bill($patient_id) 
+	{
+		$logg = checklogin();
+		if($logg['status'] != true){
+			redirect(base_url());
+			return;
+		}
+		
+		$billing_data = $this->accounts_model->get_patient_final_billing_data($patient_id);
+		
+		if(!$billing_data) {
+			redirect(base_url() . "accounts/patient_final_billing?error=" . urlencode('Patient not found or no billing data available.'));
+			return;
+		}
+		
+		// Check if all procedures are fully paid
+		if(!$billing_data['payment_status']['all_paid']) {
+			redirect(base_url() . "accounts/patient_final_billing?error=" . urlencode('Cannot generate final bill. Patient has outstanding payments.'));
+			return;
+		}
+		
+		$data['billing_data'] = $billing_data;
+		$data['show_bill'] = true;
+		
+		$this->load->view('accounts/patient_final_billing', $data);
+	}
+	
+		/**
+	 * Check if patient is eligible for final billing
+	 */
+	public function check_final_billing_eligibility() 
+	{
+		$logg = checklogin();
+		if($logg['status'] != true){
+			echo json_encode(array('status' => false, 'message' => 'Unauthorized'));
+			return;
+		}
+		
+		$patient_id = $this->input->post('patient_id');
+		
+		if(empty($patient_id)) {
+			echo json_encode(array('status' => false, 'message' => 'Patient ID is required'));
+			return;
+		}
+		
+		$billing_data = $this->accounts_model->get_patient_final_billing_data($patient_id);
+		
+		if(!$billing_data) {
+			echo json_encode(array('status' => false, 'message' => 'Patient not found or no billing data available'));
+			return;
+		}
+		
+		$payment_status = $billing_data['payment_status'];
+		
+		$response = array(
+			'status' => true,
+			'eligible' => $payment_status['all_paid'],
+			'total_amount' => $payment_status['total_amount'],
+			'total_paid' => $payment_status['total_paid'],
+			'remaining_amount' => $payment_status['total_remaining'],
+			'procedures_count' => count($payment_status['procedures']),
+			'message' => $payment_status['all_paid'] ? 'Patient is eligible for final billing' : 'Patient has outstanding payments'
+		);
+		
+		echo json_encode($response);
+	}
+	/**
+	 * Search patients for final billing
+	 */
+	public function search_patients_for_final_billing() 
+	{
+		$logg = checklogin();
+		if($logg['status'] != true){
+			echo json_encode(array('status' => false, 'message' => 'Unauthorized'));
+			return;
+		}
+		
+		$search_term = $this->input->post('search_term');
+		
+		if(empty($search_term)) {
+			echo json_encode(array('status' => false, 'message' => 'Search term is required'));
+			return;
+		}
+		
+		// Search patients by ID, name, or phone
+		$this->db->select('patient_id, wife_name, husband_name, wife_phone');
+		$this->db->from('hms_patients');
+		$this->db->where("(patient_id LIKE '%$search_term%' OR wife_name LIKE '%$search_term%' OR husband_name LIKE '%$search_term%' OR wife_phone LIKE '%$search_term%')");
+		$this->db->limit(10);
+		$query = $this->db->get();
+		
+		$patients = $query->result_array();
+		
+		echo json_encode(array('status' => true, 'patients' => $patients));
+	}
+	
+	
+	/**
+	 * Get detailed procedure information for a patient
+	 */
+	public function get_patient_procedure_details() 
+	{
+		$logg = checklogin();
+		if($logg['status'] != true){
+			echo json_encode(array('status' => false, 'message' => 'Unauthorized'));
+			return;
+		}
+		
+		$patient_id = $this->input->post('patient_id');
+		
+		if(empty($patient_id)) {
+			echo json_encode(array('status' => false, 'message' => 'Patient ID is required'));
+			return;
+		}
+		
+		$billing_data = $this->accounts_model->get_patient_final_billing_data($patient_id);
+		
+		if(!$billing_data) {
+			echo json_encode(array('status' => false, 'message' => 'Patient not found or no billing data available'));
+			return;
+		}
+		
+        // Get all payments for this patient to calculate actual paid amounts
+        $this->db->select('data, payment_done, on_date');
+        $this->db->from('hms_patient_payments');
+        $this->db->where('patient_id', $patient_id);
+        $this->db->where('status', 0); // Only approved payments
+        $payments_query = $this->db->get();
+        $all_payments = $payments_query->result_array();
+        
+        // Group payments by procedure code
+        $procedure_payments = array();
+        foreach ($all_payments as $payment) {
+            $payment_data = unserialize($payment['data']);
+            if (isset($payment_data['patient_procedures'])) {
+                foreach ($payment_data['patient_procedures'] as $proc) {
+                    $code = $proc['sub_procedures_code'];
+                    if (!isset($procedure_payments[$code])) {
+                        $procedure_payments[$code] = array(
+                            'total_paid' => 0,
+                            'payments' => array()
+                        );
+                    }
+                    $procedure_payments[$code]['total_paid'] += $payment['payment_done'];
+                    $procedure_payments[$code]['payments'][] = array(
+                        'amount' => $payment['payment_done'],
+                        'date' => $payment['on_date']
+                    );
+                }
+            }
+        }
+        
+        $procedures = array();
+        foreach ($billing_data['payment_status']['procedures'] as $procedure) {
+            $procedure_data = unserialize($procedure['data']);
+            if (isset($procedure_data['patient_procedures'])) {
+                foreach ($procedure_data['patient_procedures'] as $proc) {
+                    // Get procedure name from hms_procedures table
+                    $procedure_name = isset($proc['sub_procedure']) ? $proc['sub_procedure'] : 'Unknown Procedure';
+                    if (!empty($proc['sub_procedures_code'])) {
+                        $this->db->select('procedure_name');
+                        $this->db->from('hms_procedures');
+                        $this->db->where('code', $proc['sub_procedures_code']);
+                        $proc_query = $this->db->get();
+                        if ($proc_query->num_rows() > 0) {
+                            $proc_result = $proc_query->row_array();
+                            $procedure_name = $proc_result['procedure_name'];
+                        }
+                    }
+
+                    // Handle null/empty values
+                    $price = !empty($proc['sub_procedures_price']) ? floatval($proc['sub_procedures_price']) : 0;
+                    $discount = !empty($proc['sub_procedures_discount']) ? floatval($proc['sub_procedures_discount']) : 0;
+                    
+                    // Get actual total paid from payments table
+                    $code = $proc['sub_procedures_code'];
+                    $actual_paid = isset($procedure_payments[$code]) ? $procedure_payments[$code]['total_paid'] : 0;
+
+                    // Skip procedures with invalid data
+                    if ($price == 0 && $discount == 0 && $actual_paid == 0) {
+                        continue;
+                    }
+
+                    $net_price = $price - $discount;
+                    $remaining = $net_price - $actual_paid;
+
+                    $procedures[] = array(
+                        'procedure_name' => $procedure_name,
+                        'procedure_code' => !empty($proc['sub_procedures_code']) ? $proc['sub_procedures_code'] : 'N/A',
+                        'price' => $price,
+                        'discount' => $discount,
+                        'paid_price' => $actual_paid,
+                        'billing_id' => $procedure['billing_id'],
+                        'on_date' => $procedure['on_date'],
+                        'remaining_amount' => $remaining,
+                        'total_package' => $procedure['totalpackage'],
+                        'payment_done' => $procedure['payment_done'],
+                        'status' => $procedure['status']
+                    );
+                }
+            }
+        }
+		
+		echo json_encode(array('status' => true, 'procedures' => $procedures));
+	}
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 
 	

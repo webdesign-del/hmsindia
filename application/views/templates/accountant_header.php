@@ -191,6 +191,7 @@
                      <li> <a href="<?php echo base_url(); ?>stocks/medicine_origin">Medicine</a> </li>
                   </ul>
                </li>
+               <li> <a href="<?php echo base_url(); ?>accounts/patient_final_billing"><i class="fa fa-sitemap"></i>Patients Final Billing</a> </li>
                <li> <a href="<?php echo base_url(); ?>accounts/wallet_list"><i class="fa fa-sitemap"></i>Refund Amount</a> </li>
                <li> <a href="<?php echo base_url(); ?>accounts/procedure_advice"><i class="fa fa-sitemap"></i>Financial Clearance</a> </li>
                <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>procedures"><i class="fa fa-sitemap"></i>Procedures List</a> </li>

@@ -6167,5 +6167,161 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
     
     return [];
 }
+  
+    /**
+     * Get comprehensive patient billing data for final bill
+     * @param int $patient_id
+     * @return array
+     */
+    public function get_patient_final_billing_data($patient_id) {
+        // Get patient basic info
+        $this->db->select('*');
+        $this->db->from('hms_patients');
+        $this->db->where('patient_id', $patient_id);
+        $patient_query = $this->db->get();
+        $patient_data = $patient_query->row_array();
+        
+        if (!$patient_data) {
+            return false;
+        }
+        
+        // Check payment status
+        $payment_status = $this->check_procedures_payment_status($patient_id);
+        
+        // Get payment history
+        $payment_history = $this->get_patient_payment_history($patient_id);
+        
+	        // Get center information from procedure data
+        $center_info = $this->get_center_info_from_procedures($patient_id);
+        
+        return array(
+            'patient' => $patient_data,
+            'payment_status' => $payment_status,
+            'payment_history' => $payment_history,
+            'center_info' => $center_info
+        );
+    }
+	  public function check_procedures_payment_status($patient_id) {
+        $this->db->select('ID, billing_id, totalpackage, discount_amount, payment_done, remaining_amount, status, data, on_date');
+        $this->db->from('hms_patient_procedure');
+        $this->db->where('patient_id', $patient_id);
+        $this->db->where_in('status', array('approved', 'pending')); // Include both approved and pending
+        $this->db->order_by('on_date', 'ASC');
+        $query = $this->db->get();
+        
+        $procedures = $query->result_array();
+        $total_amount = 0;
+        $total_paid = 0;
+        $total_remaining = 0;
+        $all_paid = true;
+        $procedure_details = array();
+        
+        foreach ($procedures as $procedure) {
+            $net_amount = $procedure['totalpackage'] - $procedure['discount_amount'];
+            $total_amount += $net_amount;
+            $total_paid += $procedure['payment_done'];
+            $total_remaining += $procedure['remaining_amount'];
+            
+            if ($procedure['remaining_amount'] > 0) {
+                $all_paid = false;
+            }
+            
+            // Unserialize procedure data to get detailed breakdown
+            $procedure_data = unserialize($procedure['data']);
+            if (isset($procedure_data['patient_procedures'])) {
+                foreach ($procedure_data['patient_procedures'] as $proc) {
+                    // Get procedure name from hms_procedures table
+                    $procedure_name = isset($proc['sub_procedure']) ? $proc['sub_procedure'] : 'Unknown Procedure';
+                    if (!empty($proc['sub_procedures_code'])) {
+                        $this->db->select('procedure_name');
+                        $this->db->from('hms_procedures');
+                        $this->db->where('code', $proc['sub_procedures_code']);
+                        $proc_query = $this->db->get();
+                        if ($proc_query->num_rows() > 0) {
+                            $proc_result = $proc_query->row_array();
+                            $procedure_name = $proc_result['procedure_name'];
+                        }
+                    }
+                    
+                    $procedure_details[] = array(
+                        'procedure_name' => $procedure_name,
+                        'procedure_code' => isset($proc['sub_procedures_code']) ? $proc['sub_procedures_code'] : 'N/A',
+                        'price' => isset($proc['sub_procedures_price']) ? $proc['sub_procedures_price'] : 0,
+                        'discount' => isset($proc['sub_procedures_discount']) ? $proc['sub_procedures_discount'] : 0,
+                        'paid_price' => isset($proc['sub_procedures_paid_price']) ? $proc['sub_procedures_paid_price'] : 0,
+                        'billing_id' => $procedure['billing_id'],
+                        'on_date' => $procedure['on_date'],
+                        'status' => $procedure['status']
+                    );
+                }
+            }
+        }
+        
+        // Get total payments from hms_patient_payments table
+        $this->db->select('SUM(payment_done) as total_payments');
+        $this->db->from('hms_patient_payments');
+        $this->db->where('patient_id', $patient_id);
+        $this->db->where('status', 0); // Only approved payments
+        $payments_query = $this->db->get();
+        $payments_result = $payments_query->row_array();
+        $actual_total_paid = $payments_result['total_payments'] ? $payments_result['total_payments'] : 0;
+        
+        // Calculate actual remaining amount
+        $actual_remaining = $total_amount - $actual_total_paid;
+        $all_paid = ($actual_remaining <= 0);
+        
+        return array(
+            'all_paid' => $all_paid,
+            'total_amount' => $total_amount,
+            'total_paid' => $actual_total_paid,
+            'total_remaining' => $actual_remaining,
+            'procedures' => $procedures,
+            'procedure_details' => $procedure_details
+        );
+    }
+    
+	public function get_patient_payment_history($patient_id) {
+        $this->db->select('pp.*, pp2.billing_id as procedure_billing_id');
+        $this->db->from('hms_patient_payments pp');
+        $this->db->join('hms_patient_procedure pp2', 'pp.billing_id = pp2.billing_id', 'left');
+        $this->db->where('pp.patient_id', $patient_id);
+        $this->db->where('pp.status', 0); // Only approved payments
+        $this->db->order_by('pp.on_date', 'ASC');
+        $query = $this->db->get();
+        
+        return $query->result_array();
+    }
+
+
+	private function get_center_info_from_procedures($patient_id) {
+        // Get center info from the first procedure
+        $this->db->select('billing_at');
+        $this->db->from('hms_patient_procedure');
+        $this->db->where('patient_id', $patient_id);
+        $this->db->where('status', 'approved');
+        $this->db->limit(1);
+        $query = $this->db->get();
+        $result = $query->row_array();
+        
+        if ($result) {
+            // Get center details from hms_centers table
+            $this->db->select('*');
+            $this->db->from('hms_centers');
+            $this->db->where('id', $result['billing_at']);
+            $center_query = $this->db->get();
+            return $center_query->row_array();
+        }
+        
+        // Return default center info if not found
+        return array(
+            'center_name' => 'INDIA IVF CLINIC',
+            'address' => 'Third Floor, N-26, Captain Vijayant Thapar Marg, Dr. Lal Path Labs, Sec.-18, Noida Gautambuddha Nagar Uttar Pradesh, 201301',
+            'phone' => '73538 73538',
+            'email' => 'INDIAIVFCLINIC@GMAIL.COM',
+            'website' => 'WWW.INDIAIVF.IN'
+        );
+    }
+
+    
 
 }
