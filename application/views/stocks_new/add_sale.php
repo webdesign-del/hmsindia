@@ -1,5 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-
+        <?php 
+        $selected_center = isset($_SESSION['logged_billing_manager']['center']) 
+            ? $_SESSION['logged_billing_manager']['center'] 
+            : '';
+        ?>
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
@@ -11,7 +15,7 @@
         
         <?php if(ENVIRONMENT === 'development'): ?>
         <!-- Debug Information -->
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-md-12">
                 <div class="panel panel-warning">
                     <div class="panel-heading">
@@ -26,7 +30,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
         <?php endif; ?>
         
         <!-- Breadcrumb -->
@@ -76,38 +80,49 @@
                                         <label class="col-sm-4 control-label">Center *</label>
                                         <div class="col-sm-8">
                                             <select name="center_id" class="form-control" required onchange="loadCenterStock()">
-                                                <option value="">Select Center</option>
-                                                <?php if(!empty($centers) && is_array($centers)): ?>
-                                                    <?php foreach($centers as $center): ?>
-                                                        <option value="<?php echo isset($center->id) ? $center->id : ''; ?>" <?php echo set_select('center_id', isset($center->id) ? $center->id : ''); ?>>
-                                                            <?php echo isset($center->center_name) ? htmlspecialchars($center->center_name) : 'N/A'; ?>
-                                                        </option>
-                                                    <?php endforeach; ?>
-                                                <?php else: ?>
-                                                    <option value="" disabled>No centers available</option>
-                                                <?php endif; ?>
-                                            </select>
+                                            <option value="">Select Center</option>
+                                            <?php if (!empty($centers) && is_array($centers)): ?>
+                                                <?php foreach ($centers as $center): ?>
+                                                    <?php 
+                                                        $isSelected = ($center->center_number == $selected_center) ? 'selected' : '';
+                                                    ?>
+                                                    <option value="<?php echo isset($center->ID) ? $center->ID : ''; ?>" <?php echo $isSelected; ?>>
+                                                        <?php echo isset($center->center_name) ? htmlspecialchars($center->center_name) : 'N/A'; ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <option value="" disabled>No centers available</option>
+                                            <?php endif; ?>
+                                        </select>
                                         </div>
                                     </div>
                                     
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Patient Name *</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="patient_name" class="form-control" placeholder="Enter patient name" value="<?php echo set_value('patient_name'); ?>" required>
-                                        </div>
+                                      <div class="col-sm-8">
+                                        <input type="text" 
+                                            name="patient_name" 
+                                            class="form-control" 
+                                            placeholder="Enter patient name" 
+                                            value="<?php echo !empty($patient_name) ? $patient_name : set_value('patient_name'); ?>" 
+                                            required>
+                                     </div>
+
                                     </div>
                                     
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Patient ID</label>
                                         <div class="col-sm-8">
-                                            <input type="text" name="patient_id" class="form-control" placeholder="Enter patient ID" value="<?php echo set_value('patient_id'); ?>">
+                                            <input type="text" name="patient_id" class="form-control" placeholder="Enter patient ID" 
+                                            value="<?php echo !empty($patient_id) ? $patient_id : set_value('patient_id'); ?>"> 
                                         </div>
                                     </div>
                                     
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Doctor Name</label>
                                         <div class="col-sm-8">
-                                            <input type="text" name="doctor_name" class="form-control" placeholder="Enter doctor name" value="<?php echo set_value('doctor_name'); ?>">
+                                            <input type="text" name="doctor_name" class="form-control" placeholder="Enter doctor name"
+                                             value="<?php echo !empty($doctor_name) ? $doctor_name : set_value('doctor_name'); ?>"> 
                                         </div>
                                     </div>
                                     

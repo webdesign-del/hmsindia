@@ -90,7 +90,7 @@
             <div class="panel-body">
                 <?php if(!empty($center_stocks)): ?>
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered table-hover">
+                        <table id="centerStocksTable" class="table table-striped table-bordered table-hover">
                             <thead>
                                 <tr>
                                     <th>Center</th>
@@ -98,6 +98,7 @@
                                     <th>Batch Number</th>
                                     <th>Brand</th>
                                     <th>Vendor</th>
+                                    <th>Department</th>
                                     <th>Expiry Date</th>
                                     <th>Expiry Days</th>
                                     <th>Quantity</th>
@@ -120,6 +121,7 @@
                                         <td><?php echo $stock->batch_number; ?></td>
                                         <td><?php echo $stock->brand_name; ?></td>
                                         <td><?php echo $stock->vendor_name; ?></td>
+                                        <td><?php echo $stock->department; ?></td>
                                         <td><?php echo date('d/m/Y', strtotime($stock->expiry_date)); ?></td>
                                         <td>
                                             <?php if($stock->expiry_days < 0): ?>
@@ -175,6 +177,23 @@
 </div>
 
 <script>
+$(document).ready(function() {
+    <?php if(!empty($center_stocks)): ?>
+    $('#centerStocksTable').DataTable({
+        "pageLength": 25,
+        "order": [[ 6, "asc" ]], // Sort by Expiry Date column (0-based index 6)
+        "columnDefs": [
+            { "orderable": false, "targets": 12 } // Actions column (0-based index 12)
+        ],
+        "language": {
+            "emptyTable": "No center stocks found",
+            "zeroRecords": "No matching center stocks found"
+        },
+        "responsive": true,
+        "autoWidth": false
+    });
+    <?php endif; ?>
+});
 function updateCenterStockStatus(stockId, status) {
     if(confirm('Are you sure you want to update the stock status?')) {
         $.ajax({

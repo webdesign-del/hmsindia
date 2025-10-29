@@ -78,7 +78,7 @@
             <div class="panel-body">
                 <?php if(!empty($central_stocks)): ?>
                     <div class="table-responsive">
-                        <table class="table table-striped table-bordered table-hover">
+                        <table id="centralStocksTable" class="table table-striped table-bordered table-hover">
                             <thead>
                                 <tr>
                                     <th>Medicine</th>
@@ -159,6 +159,25 @@
 </div>
 
 <script>
+$(document).ready(function() {
+    <?php if(!empty($central_stocks)): ?>
+    $('#centralStocksTable').DataTable({
+        "pageLength": 25,
+        "order": [[ 6, "asc" ]], // Sort by Expiry Date column (0-based index 4)
+        "columnDefs": [
+            { "orderable": false, "targets": 10 } // Actions column (0-based index 10)
+        ],
+        "language": {
+            "emptyTable": "No central stocks found",
+            "zeroRecords": "No matching central stocks found"
+        },
+        "responsive": true,
+        "autoWidth": false
+    });
+    <?php endif; ?>
+});
+
+
 function updateStockStatus(stockId, status) {
     if(confirm('Are you sure you want to update the stock status?')) {
         $.ajax({

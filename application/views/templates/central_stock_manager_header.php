@@ -112,8 +112,10 @@
                      <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> Reports</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/low_stock_alerts"> Low Stock Alerts</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/expiry_alerts"> Expiry Alerts</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/returns"> Medicine Return List</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/medicine_returns"> Medicine Returns</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/stock_audit"> Stock Audit</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/disposal_reports"> Medicine Disposal List</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/medicine_disposal"> Medicine Disposal</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/invoices"> Invoices</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/categories"> Categories</a> </li>

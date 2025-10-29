@@ -135,9 +135,11 @@
           <li> <a href="<?php echo base_url(); ?>stocks/center_medicine_report">Sale Report</a> </li>
         </ul>
       </li>
-	  <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Stocks<span class="fa arrow"></span></a>
+  	  <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Stocks<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>stocks/center_stocks">All Stocks</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks_new/center_stocks">All Available Medicine</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks_new/sales">Sales</a> </li>
         </ul>
       </li>
       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Orders<span class="fa arrow"></span></a>

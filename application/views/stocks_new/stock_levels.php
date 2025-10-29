@@ -5,14 +5,14 @@
                 <h1 class="page-header">
                     <i class="fa fa-warehouse"></i> Stock Levels
                     <small>Real-time inventory tracking with FEFO</small>
-                    <div class="pull-right">
+                    <!-- <div class="pull-right">
                     <a href="<?php echo base_url('stocks_new/multi_transfer'); ?>" class="btn btn-success">
                         <i class="fa fa-exchange-alt"></i> Multi-Item Transfer
                     </a>
                     <a href="<?php echo base_url('stocks_new/department_transfer'); ?>" class="btn btn-info">
                         <i class="fa fa-building"></i> Department Transfer
                     </a>
-                    </div>
+                    </div> -->
                 </h1>
             </div>
         </div>
@@ -46,17 +46,28 @@
                     </div>
                     <div class="panel-body">
                         <form action="<?php echo base_url('stocks_new/stock_levels'); ?>" method="get" class="form-inline">
-                            <div class="form-group">
-                                <label>Center:</label>
-                                <select name="center_id" class="form-control">
-                                    <option value="">All Centers</option>
-                                    <?php foreach($centers as $center): ?>
-                                        <option value="<?php echo $center->ID; ?>" <?php echo $selected_center == $center->ID ? 'selected' : ''; ?>>
-                                            <?php echo $center->center_name; ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
+                          <?php
+                            $logged_user = null;
+                            foreach ($_SESSION as $key => $value) {
+                                if (strpos($key, 'logged_') === 0 && is_array($value) && isset($value['role'])) {
+                                    $logged_user = $value;
+                                    break;
+                                }
+                            }
+                            ?>
+                            <?php if ($logged_user && $logged_user['role'] != 'billing_manager'): ?>
+                                <div class="form-group">
+                                    <label>Center:</label>
+                                    <select name="center_id" class="form-control">
+                                        <option value="">All Centers</option>
+                                        <?php foreach ($centers as $center): ?>
+                                            <option value="<?php echo $center->ID; ?>" <?php echo ($selected_center == $center->ID) ? 'selected' : ''; ?>>
+                                                <?php echo $center->center_name; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            <?php endif; ?>
                             <div class="form-group">
                                 <label>Stock Status:</label>
                                 <select name="stock_status" class="form-control">
@@ -317,10 +328,6 @@ $(document).ready(function() {
         // Check if row has proper number of cells and is not the "no data" row
         return $(this).find('td').length === 11 && !$(this).find('td[colspan]').length;
     });
-    
-    console.log('Total rows:', rows.length);
-    console.log('Valid rows:', validRows.length);
-    
     if(validRows.length > 0) {
         try {
             $('#stockLevelsTable').DataTable({

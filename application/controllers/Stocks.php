@@ -1592,7 +1592,6 @@ public function medicine_update()
 							unset($_POST['consumables_mrp_'.$ccounte]);
 							
 						}else{
-							// insert query
 							$invoice_no = $_POST['consumables_invoice_no_'.$ccounte];
 							$item_number = $_POST['consumables_serial_'.$ccounte];
 							$company = $_POST['consumables_company_'.$ccounte];
@@ -1607,7 +1606,6 @@ public function medicine_update()
 								$day = $d->format('d');
 								$month = $d->format('m');
 								$year = $d->format('Y');
-								
 								// Adjust for edge cases like the JavaScript function
 								if ($day == 30 || $day == 31 || $day == 29) { 
 									$day = 28; 
@@ -1636,17 +1634,14 @@ public function medicine_update()
 							} else {
 								$total_vendor_price_gst_excluded = 0; // or handle it another way if needed
 							}
-
-								$total_vendor_price_gst_included = $closingstock * floatval($_POST['consumables_vendor_price_'.$ccounte]);
-								$total_mrp_price = $closingstock * floatval($_POST['consumables_mrp_'.$ccounte]);
-							
+							$total_vendor_price_gst_included = $closingstock * floatval($_POST['consumables_vendor_price_'.$ccounte]);
+							$total_mrp_price = $closingstock * floatval($_POST['consumables_mrp_'.$ccounte]);
 						    $query = "INSERT INTO `hms_central_stock_report` (invoice_no, item_number, company, item_name, batch_number, openstock, expiry, expiry_day, add_date, employee_number, vendor_price, mrp, hsn, gstrate, gstdivision,enddate, quantity_out, closingstock,type, total_vendor_price_gst_excluded, total_vendor_price_gst_included, total_mrp_price, patient_id, date_of_purchase, center_number) values ('$invoice_no','$item_number','$company','$item_name','$batch_number','$open_stock','$expiry','$expiry_day','".date("Y-m-d H:i:s")."','".$post_arr['employee_number']."','$vendor_price','$mrp','$hsn','$gstrate','$gstdivision','".date("Y-m-d")."','$quantity_out','$closingstock','Cash','$total_vendor_price_gst_excluded','$total_vendor_price_gst_included','$total_mrp_price','$patient_id','$date_of_purchase','".$post_arr['billing_at']."')";
                             $result = run_form_query($query); 
 							$c_counte[] = array('consumables_ID'=> $_POST['consumables_ID_'.$ccounte],'consumables_serial'=> $_POST['consumables_serial_'.$ccounte],'consumables_name'=> $_POST['consumables_name_'.$ccounte],'consumables_company'=> $_POST['consumables_company_'.$ccounte],'consumables_item_name'=> $_POST['consumables_item_name_'.$ccounte],'consumables_stock'=> $_POST['consumables_stock_'.$ccounte],'consumables_batch_number'=> $_POST['consumables_batch_number_'.$ccounte],'consumables_quantity'=> $_POST['consumables_quantity_'.$ccounte],'consumables_price'=> $_POST['consumables_price_'.$ccounte],'consumables_discount_'=> $_POST['consumables_discount_'.$ccounte],'consumables_total_'=> $_POST['consumables_total_'.$ccounte],'consumables_vendor_price'=> $_POST['consumables_vendor_price_'.$ccounte],'consumables_expiry'=> $_POST['consumables_expiry_'.$ccounte],'consumables_hsn'=> $_POST['consumables_hsn_'.$ccounte],'consumables_gstrate'=> $_POST['consumables_gstrate_'.$ccounte],'consumables_gstdivision'=> $_POST['consumables_gstdivision_'.$ccounte],'consumables_pack_size'=> $_POST['consumables_pack_size_'.$ccounte],'consumables_mrp'=> $_POST['consumables_mrp_'.$ccounte]);
 						}
 					}
 				}
-								
 				$details = array();
 				$details['data']['consumables'] = $c_counte;
 				$post_arr['data'] = serialize($details);

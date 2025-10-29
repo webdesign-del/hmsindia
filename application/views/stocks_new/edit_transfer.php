@@ -22,7 +22,11 @@
                                 <p><strong>Transfer Number:</strong> <?php echo $transfer->transfer_number; ?></p>
                                 <p><strong>Type:</strong> <?php echo str_replace('_', ' ', $transfer->transfer_type); ?></p>
                                 <p><strong>From:</strong> <?php echo $transfer->from_center ?: 'Central Warehouse'; ?></p>
+                                <?php  if($transfer->from_department): ?>
+                                    <p><strong>From Department:</strong> <?php echo $transfer->from_department; ?></p>
+                                <?php endif; ?>
                                 <p><strong>To:</strong> <?php echo $transfer->to_center; ?></p>
+                                <p><strong>To Department:</strong> <?php echo $transfer->to_department ?: 'N/A'; ?></p>
                             </div>
                             <div class="col-md-6">
                                 <p><strong>Date:</strong> <?php echo date('M d, Y', strtotime($transfer->transfer_date)); ?></p>

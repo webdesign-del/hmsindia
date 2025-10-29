@@ -155,17 +155,17 @@
                         </div>
                         <div class="col-md-3">
                             <a href="<?php echo base_url('stocks_new/add_batch'); ?>" class="btn btn-info btn-block">
-                                <i class="fa fa-box"></i> Add Batch
+                                <i class="fa fa-plus"></i> Add Batch
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="<?php echo base_url('stocks_new/purchase_orders_for_stock'); ?>" class="btn btn-warning btn-block">
-                                <i class="fa fa-shopping-cart"></i> PO Stock Addition
+                            <a href="<?php echo base_url('stocks_new/add_transfer'); ?>" class="btn btn-warning btn-block">
+                                <i class="fa fa-plus"></i>  Add Transfer
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="<?php echo base_url('stocks_new/stock_transfer'); ?>" class="btn btn-primary btn-block">
-                                <i class="fa fa-exchange-alt"></i> Stock Transfer
+                            <a href="<?php echo base_url('stocks_new/reports'); ?>" class="btn btn-primary btn-block">
+                                <i class="fa fa-chart-bar"></i>  View Reports
                             </a>
                         </div>
                     </div>
@@ -189,13 +189,13 @@
                         </div>
                     </div>
                 </div>
-                <!-- <a href="<?php echo base_url('stocks_new/medicines'); ?>"> -->
+                <a href="<?php echo base_url('stocks_new/medicines'); ?>">
                     <div class="panel-footer">
                         <span class="pull-left">View Details</span>
                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                         <div class="clearfix"></div>
                     </div>
-                <!-- </a> -->
+                </a>
             </div>
         </div>
         
@@ -212,13 +212,13 @@
                         </div>
                     </div>
                 </div>
-                <!-- <a href="<?php echo base_url('stocks_new/batches'); ?>"> -->
+                <a href="<?php echo base_url('stocks_new/batches'); ?>">
                     <div class="panel-footer">
                         <span class="pull-left">View Details</span>
                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                         <div class="clearfix"></div>
                     </div>
-                <!-- </a> -->
+                </a>
             </div>
         </div>
         
@@ -235,13 +235,13 @@
                         </div>
                     </div>
                 </div>
-                <!-- <a href="<?php echo base_url('stocks_new/low_stock_alerts'); ?>"> -->
+                <a href="<?php echo base_url('stocks_new/low_stock_alerts'); ?>">
                     <div class="panel-footer">
                         <span class="pull-left">View Details</span>
                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                         <div class="clearfix"></div>
                     </div>
-                <!-- </a> -->
+                </a>
             </div>
         </div>
         
@@ -258,13 +258,13 @@
                         </div>
                     </div>
                 </div>
-                <!-- <a href="<?php echo base_url('stocks_new/expiry_alerts'); ?>"> -->
+                <a href="<?php echo base_url('stocks_new/expiry_alerts'); ?>">
                     <div class="panel-footer">
                         <span class="pull-left">View Details</span>
                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                         <div class="clearfix"></div>
                     </div>
-                <!-- </a> -->
+                </a>
             </div>
         </div>
     </div>
@@ -284,13 +284,13 @@
                         </div>
                     </div>
                 </div>
-                <!-- <a href="<?php echo base_url('stocks_new/stock_summary'); ?>"> -->
+                <a href="<?php echo base_url('stocks_new/stock_summary'); ?>">
                     <div class="panel-footer">
                         <span class="pull-left">View Details</span>
                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                         <div class="clearfix"></div>
                     </div>
-                <!-- </a> -->
+                </a>
             </div>
         </div>
         
@@ -307,13 +307,13 @@
                         </div>
                     </div>
                 </div>
-                <!-- <a href="<?php echo base_url('stocks_new/sales'); ?>"> -->
+                <a href="<?php echo base_url('stocks_new/sales'); ?>">
                     <div class="panel-footer">
                         <span class="pull-left">View Details</span>
                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                         <div class="clearfix"></div>
                     </div>
-                <!-- </a> -->
+                </a>
             </div>
         </div>
         
@@ -330,13 +330,13 @@
                         </div>
                     </div>
                 </div>
-                <!-- <a href="<?php echo base_url('stocks_new/transfers'); ?>"> -->
+                <a href="<?php echo base_url('stocks_new/transfers'); ?>">
                     <div class="panel-footer">
                         <span class="pull-left">View Details</span>
                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                         <div class="clearfix"></div>
                     </div>
-                <!-- </a> -->
+                </a>
             </div>
         </div>
         
@@ -353,13 +353,13 @@
                         </div>
                     </div>
                 </div>
-                <!-- <a href="<?php echo base_url('stocks_new/expiry_alerts'); ?>"> -->
+                <a href="<?php echo base_url('stocks_new/expiry_alerts'); ?>">
                     <div class="panel-footer">
                         <span class="pull-left">View Details</span>
                         <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
                         <div class="clearfix"></div>
                     </div>
-                <!-- </a> -->
+                </a>
             </div>
         </div>
     </div>

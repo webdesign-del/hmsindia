@@ -54,7 +54,7 @@
                                             <select name="center_id" class="form-control" required>
                                                 <option value="">Select Center</option>
                                                 <?php foreach($centers as $center): ?>
-                                                    <option value="<?php echo $center->id; ?>" <?php echo set_select('center_id', $center->id); ?>>
+                                                    <option value="<?php echo $center->ID; ?>" <?php echo set_select('center_id', $center->ID); ?>>
                                                         <?php echo $center->center_name; ?>
                                                     </option>
                                                 <?php endforeach; ?>

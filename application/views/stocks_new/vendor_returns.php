@@ -133,11 +133,11 @@
                                                                 <i class="fa fa-edit"></i> Edit
                                                             </a>
                                                         <?php endif; ?>
-                                                        <?php if($return->status == 'PENDING' || $return->status == 'APPROVED'): ?>
+                                                        <!-- <?php if($return->status == 'PENDING' || $return->status == 'APPROVED'): ?>
                                                             <a href="<?php echo base_url('stocks_new/process_vendor_return/' . $return->id); ?>" class="btn btn-success btn-sm">
                                                                 <i class="fa fa-check"></i> Process
                                                             </a>
-                                                        <?php endif; ?>
+                                                        <?php endif; ?> -->
                                                     </div>
                                                 </td>
                                             </tr>

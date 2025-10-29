@@ -75,7 +75,7 @@
                                     <div class="form-group" id="from_department_group" style="display: none;">
                                         <label class="col-sm-4 control-label">From Department *</label>
                                         <div class="col-sm-8">
-                                            <select name="from_department" class="form-control" >
+                                            <select name="from_department" class="form-control"  id="from_department_select">
                                                 <option value="">Select Department</option>
                                                 <?php foreach($departments as $dept): ?>
                                                     <option value="<?php echo $dept['department']; ?>" <?php echo set_select('from_department', $dept['department']); ?>>
@@ -86,7 +86,7 @@
                                         </div>
                                     </div>
                                     
-                                    <div class="form-group" id="from_employee_group" style="display: none;">
+                                    <!-- <div class="form-group" id="from_employee_group" style="display: none;">
                                         <label class="col-sm-4 control-label">From Employee *</label>
                                         <div class="col-sm-8">
                                             <select name="from_employee_number" class="form-control" >
@@ -98,7 +98,7 @@
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
-                                    </div>
+                                    </div> -->
                                     
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">To Center *</label>
@@ -125,7 +125,7 @@
                                             </select>
                                         </div>
                                     </div>
-                                    
+<!--                                     
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">To Employee *</label>
                                         <div class="col-sm-8">
@@ -136,7 +136,7 @@
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
-                                    </div>
+                                    </div> -->
                                     
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Transfer Date *</label>
@@ -308,14 +308,15 @@ function loadFromDepartments() {
     var employeeSelect = $('#from_employee_select');
     
     // Clear dependent dropdowns
-    departmentSelect.html('<option value="">Select Department</option>');
-    employeeSelect.html('<option value="">Select Employee</option>');
+    // departmentSelect.html('<option value="">Select Department</option>');
+    // employeeSelect.html('<option value="">Select Employee</option>');
     
     if (centerId) {
         // Load departments for this center
-        loadDepartments(departmentSelect, centerId);
+        loadToDepartments(departmentSelect, centerId);
     }
 }
+
 
 function loadToDepartments() {
     // Departments are already loaded via PHP, no need to reload
@@ -336,6 +337,7 @@ $(document).ready(function() {
     
     // Update available stocks when form fields change
     $('select[name="transfer_type"], #from_center_select, #from_department_select, #from_employee_select').on('change', function() {
+        console.log('Form fields changed, updating available stocks...');
         setTimeout(function() {
             loadAvailableStocks();
         }, 500); // Small delay to allow dependent dropdowns to load
@@ -348,7 +350,7 @@ function loadAvailableStocks() {
     var fromCenterId = $('#from_center_select').val();
     var fromDepartment = $('#from_department_select').val();
     var fromEmployee = $('#from_employee_select').val();
-    
+    console.log(fromDepartment);
     // Show stocks section if transfer type is selected
     if (transferType) {
         $('#available_stocks_section').show();

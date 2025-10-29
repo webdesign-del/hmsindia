@@ -35,7 +35,7 @@
                             </div>
                         <?php endif; ?>
                         
-                        <form action="<?php echo base_url('stocks_new/process_disposal'); ?>" method="post" class="form-horizontal">
+                        <form action="<?php echo base_url('stocks_new/process_disposal'); ?>" method="post" class="form-horizontal" enctype="multipart/form-data">
                             <input type="hidden" name="action" value="medicine_disposal">
                             
                             <!-- Disposal Information -->
@@ -54,7 +54,7 @@
                                             <select name="center_id" class="form-control" required>
                                                 <option value="">Select Center</option>
                                                 <?php foreach($centers as $center): ?>
-                                                    <option value="<?php echo $center->id; ?>" <?php echo set_select('center_id', $center->id); ?>>
+                                                    <option value="<?php echo $center->ID; ?>" <?php echo set_select('center_id', $center->ID); ?>>
                                                         <?php echo $center->center_name; ?>
                                                     </option>
                                                 <?php endforeach; ?>
@@ -129,24 +129,33 @@
                                             <tbody>
                                                 <tr>
                                                     <td>
-                                                        <select name="disposal_items[0][batch_id]" class="form-control batch_select" required>
-                                                            <option value="">Select Medicine</option>
-                                                            <?php foreach($available_batches as $batch): ?>
-                                                                <option value="<?php echo $batch->id; ?>" 
-                                                                        data-medicine="<?php echo $batch->medicine_name; ?>"
-                                                                        data-expiry="<?php echo $batch->expiry_date; ?>"
-                                                                        data-available="<?php echo $batch->available_quantity; ?>"
-                                                                        data-cost="<?php echo $batch->purchase_price; ?>">
-                                                                    <?php echo $batch->medicine_name . ' - ' . $batch->batch_number; ?>
-                                                                </option>
-                                                            <?php endforeach; ?>
-                                                        </select>
+                                                    <select name="disposal_items[0][batch_id]" class="form-control batch_select" required>
+                                                        <option value="">Select Medicine Batch & Center</option>
+                                                        <?php foreach($available_batches as $batch): ?>
+                                                            <option value="<?php echo $batch->batch_id; ?>"  
+                                                                    data-medicine="<?php echo htmlspecialchars($batch->medicine_name); ?>"
+                                                                    data-batch-no="<?php echo htmlspecialchars($batch->batch_number); ?>" 
+                                                                    data-expiry="<?php echo $batch->expiry_date; ?>"
+                                                                    data-available="<?php echo $batch->available_quantity; ?>"
+                                                                    data-cost="<?php echo $batch->purchase_price; ?>"
+                                                                    data-center-name="<?php echo htmlspecialchars($batch->center_name); ?>"
+                                                                    data-center-id="<?php echo $batch->center_id; ?>">
+                                                                <?php 
+                                                                    // Display: Medicine Name - Batch Number (Center Name) - Qty: X
+                                                                    echo htmlspecialchars($batch->medicine_name) . 
+                                                                        ' - ' . htmlspecialchars($batch->batch_number) . 
+                                                                        ' (' . htmlspecialchars($batch->center_name) . ')' .
+                                                                        ' - Qty: ' . $batch->available_quantity; 
+                                                                ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
                                                     </td>
                                                     <td><span class="batch_number">-</span></td>
                                                     <td><span class="expiry_date">-</span></td>
                                                     <td><span class="available_quantity">-</span></td>
                                                     <td>
-                                                        <input type="number" name="disposal_items[0][disposal_quantity]" class="form-control disposal_quantity" min="1" required>
+                                                        <input type="number" name="disposal_items[0][quantity_disposed]" class="form-control quantity_disposed" min="1" required>
                                                     </td>
                                                     <td><span class="unit_cost">-</span></td>
                                                     <td><span class="total_cost">-</span></td>
@@ -191,7 +200,7 @@
                                     <div class="form-group">
                                         <label class="col-sm-2 control-label">Disposal Certificate</label>
                                         <div class="col-sm-10">
-                                            <input type="file" name="disposal_certificate" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                            <input type="file" name="disposal_certificate" class="form-control" accept=".pdf,.jpg,.jpeg,.png,">
                                             <small class="text-muted">Upload disposal certificate if available</small>
                                         </div>
                                     </div>
@@ -255,75 +264,138 @@
 <script>
 $(document).ready(function() {
     var rowCount = 1;
-    
-    // Add new disposal item row
+    var availableBatches = <?php echo json_encode($available_batches); ?>;
+
+    // --- Select2 Initialization Function ---
+    function initializeSelect2(selector) {
+        $(selector).select2({
+            placeholder: "Select Medicine Batch & Center", // Optional placeholder
+            allowClear: true // Optional: adds a clear button
+        });
+    }
+
+    function populateBatchSelect(selectElement) {
+        var optionsHtml = '<option value="">Select Medicine Batch & Center</option>';
+        if (availableBatches && availableBatches.length > 0) {
+            $.each(availableBatches, function(index, batch) {
+                var displayText = batch.medicine_name + ' - ' + batch.batch_number +
+                                  ' (' + batch.center_name + ')' +
+                                  ' - Qty: ' + batch.available_quantity;
+
+                optionsHtml += '<option value="' + batch.batch_id + '" ' +
+                               'data-medicine="' + escapeHtml(batch.medicine_name) + '" ' +
+                               'data-batch-no="' + escapeHtml(batch.batch_number) + '" ' +
+                               'data-expiry="' + batch.expiry_date + '" ' +
+                               'data-available="' + batch.available_quantity + '" ' +
+                               'data-cost="' + batch.purchase_price + '" ' +
+                               'data-center-name="' + escapeHtml(batch.center_name) + '" ' +
+                               'data-center-id="' + batch.center_id + '">' +
+                               escapeHtml(displayText) +
+                               '</option>';
+            });
+        }
+        $(selectElement).html(optionsHtml);
+        // --- Initialize Select2 AFTER populating ---
+        initializeSelect2(selectElement);
+    }
+
+    function escapeHtml(text) {
+        if (typeof text !== 'string') return text;
+        var map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'};
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
     $('#add_disposal_item').click(function() {
-        var newRow = '<tr>' +
-            '<td><select name="disposal_items[' + rowCount + '][batch_id]" class="form-control batch_select" required>' +
-            '<option value="">Select Medicine</option>' +
-            '<?php foreach($available_batches as $batch): ?>' +
-            '<option value="<?php echo $batch->id; ?>" data-medicine="<?php echo $batch->medicine_name; ?>" data-expiry="<?php echo $batch->expiry_date; ?>" data-available="<?php echo $batch->available_quantity; ?>" data-cost="<?php echo $batch->purchase_price; ?>"><?php echo $batch->medicine_name . ' - ' . $batch->batch_number; ?></option>' +
-            '<?php endforeach; ?>' +
-            '</select></td>' +
+        var newRowHtml = '<tr>' +
+            '<td><select name="disposal_items[' + rowCount + '][batch_id]" class="form-control batch_select" required style="width: 100%;"></select></td>' + // Added style for Select2 width
             '<td><span class="batch_number">-</span></td>' +
             '<td><span class="expiry_date">-</span></td>' +
             '<td><span class="available_quantity">-</span></td>' +
-            '<td><input type="number" name="disposal_items[' + rowCount + '][disposal_quantity]" class="form-control disposal_quantity" min="1" required></td>' +
+            '<td><input type="number" name="disposal_items[' + rowCount + '][quantity_disposed]" class="form-control quantity_disposed" min="1" required></td>' +
             '<td><span class="unit_cost">-</span></td>' +
             '<td><span class="total_cost">-</span></td>' +
             '<td><button type="button" class="btn btn-danger btn-sm remove_row"><i class="fa fa-trash"></i></button></td>' +
             '</tr>';
-        
+        var newRow = $(newRowHtml);
         $('#disposal_items_table tbody').append(newRow);
+
+        // Populate and initialize Select2 for the NEW row's select
+        populateBatchSelect(newRow.find('.batch_select'));
+
         rowCount++;
     });
-    
-    // Remove row
+
     $(document).on('click', '.remove_row', function() {
+        // --- Destroy Select2 instance before removing row to prevent memory leaks ---
+        $(this).closest('tr').find('.batch_select').select2('destroy');
         $(this).closest('tr').remove();
         calculateSummary();
     });
-    
-    // Batch selection change
+
+    // Batch selection change (using Select2's event)
     $(document).on('change', '.batch_select', function() {
-        var selectedOption = $(this).find('option:selected');
+        // Get selected data using Select2's method
+        var selectedData = $(this).select2('data')[0]; // Gets the selected option's data object
         var row = $(this).closest('tr');
-        
-        if (selectedOption.val()) {
-            row.find('.batch_number').text(selectedOption.data('medicine'));
+        var selectedOption = $(selectedData.element); // Get the original <option> element
+
+        if (selectedOption && selectedOption.val()) {
+            var maxQty = selectedOption.data('available');
+            row.find('.batch_number').text(selectedOption.data('batch-no'));
             row.find('.expiry_date').text(selectedOption.data('expiry'));
-            row.find('.available_quantity').text(selectedOption.data('available'));
+            row.find('.available_quantity').text(maxQty);
             row.find('.unit_cost').text('₹' + selectedOption.data('cost'));
-            row.find('.disposal_quantity').attr('max', selectedOption.data('available'));
+            row.find('.quantity_disposed').attr('max', maxQty);
+            row.find('.quantity_disposed').val('');
+            row.find('.total_cost').text('-');
         } else {
-            row.find('.batch_number, .expiry_date, .available_quantity, .unit_cost').text('-');
+            row.find('.batch_number, .expiry_date, .available_quantity, .unit_cost, .total_cost').text('-');
+            row.find('.quantity_disposed').removeAttr('max').val('');
         }
+        calculateSummary();
     });
-    
-    // Calculate total cost
-    $(document).on('input', '.disposal_quantity', function() {
+
+    $(document).on('input', '.quantity_disposed', function() {
         var row = $(this).closest('tr');
-        var quantity = parseFloat($(this).val()) || 0;
+        var quantityInput = $(this);
+        var quantity = parseInt(quantityInput.val()) || 0;
+        var maxAvailable = parseInt(row.find('.available_quantity').text()) || 0;
         var unitCost = parseFloat(row.find('.unit_cost').text().replace('₹', '')) || 0;
+
+        if (quantity > maxAvailable) {
+            alert('Disposal quantity cannot exceed available quantity (' + maxAvailable + ')!');
+            quantityInput.val(maxAvailable);
+            quantity = maxAvailable;
+        }
+        if (quantityInput.val() !== '' && quantity < 1) {
+             quantityInput.val(1);
+             quantity = 1;
+        }
+
         var totalCost = quantity * unitCost;
-        
         row.find('.total_cost').text('₹' + totalCost.toFixed(2));
         calculateSummary();
     });
-    
-    // Calculate summary
+
     function calculateSummary() {
-        var totalItems = $('#disposal_items_table tbody tr').length;
+        var totalItems = 0;
         var totalCost = 0;
-        
-        $('.total_cost').each(function() {
-            var cost = parseFloat($(this).text().replace('₹', '')) || 0;
-            totalCost += cost;
-        });
-        
+         $('#disposal_items_table tbody tr').each(function() {
+             var row = $(this);
+             var batchSelected = row.find('.batch_select').val();
+             if (batchSelected) {
+                 totalItems++;
+                 var cost = parseFloat(row.find('.total_cost').text().replace('₹', '')) || 0;
+                 totalCost += cost;
+             }
+         });
         $('#total_items').val(totalItems);
         $('#total_cost').val('₹' + totalCost.toFixed(2));
     }
+
+    // --- Initial population AND Select2 initialization for the FIRST row ---
+    populateBatchSelect($('select[name="disposal_items[0][batch_id]"]'));
+
+    calculateSummary();
 });
 </script>
-

@@ -147,6 +147,11 @@
                                                         <i class="fa fa-medkit"></i>
                                                     </a>
                                                 <?php } ?>
+                                                <?php if ($vl['medicine_suggestion'] == 1) { ?>
+                                                    <a href="<?php echo base_url().'stocks_new/add_sale?appointment_id='; ?><?php echo $vl['appointment_id']; ?>" class="btn btn-success btn-xs" target="_blank" title="Medicine">
+                                                        <i class="fa fa-medkit"></i>
+                                                    </a>
+                                                <?php } ?>
                                                 <?php if ($vl['package_suggestion'] == 1) { ?>
                                                     <a href="<?php echo base_url().'after-consultation-step-2?t=package_billing&i='; ?><?php echo $vl['ID']; ?>" class="btn btn-info btn-xs" target="_blank" title="Package">
                                                         <i class="fa fa-sitemap"></i>

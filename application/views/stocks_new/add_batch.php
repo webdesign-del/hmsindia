@@ -49,14 +49,18 @@
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Medicine *</label>
                                     <div class="col-sm-8">
-                                        <select name="medicine_id" id="medicine_select" class="form-control" required>
-                                            <option value="">Search and select medicine...</option>
-                                            <?php foreach($medicines as $medicine): ?>
-                                                <option value="<?php echo $medicine->id; ?>" <?php echo set_select('medicine_id', $medicine->id); ?>>
-                                                    <?php echo $medicine->medicine_name . ' (' . $medicine->generic_name . ')'; ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                        <select name="medicine_id" id="medicine_select" class="form-control" required style="width: 100%;">
+    <?php 
+    // Check if a medicine is pre-selected from the controller
+    if (isset($selected_medicine_details) && $selected_medicine_details): 
+    ?>
+        <option value="<?php echo $selected_medicine_details->id; ?>" selected="selected">
+            <?php echo htmlspecialchars($selected_medicine_details->text); // Use 'text' property ?>
+        </option>
+    <?php else: ?>
+        <option value="">Search and select medicine...</option>
+    <?php endif; ?>
+</select>
                                         <small class="help-block">Type medicine name, generic name, or code to search</small>
                                     </div>
                                 </div>
@@ -225,6 +229,67 @@
 <script>
 $(document).ready(function() {
     // Initialize Select2 for medicine search
+    // $('#medicine_select').select2({
+    //     placeholder: 'Search and select medicine...',
+    //     allowClear: true,
+    //     width: '100%',
+    //     ajax: {
+    //         url: '<?php echo base_url("stocks_new/search_medicines"); ?>',
+    //         dataType: 'json',
+    //         delay: 250,
+    //         data: function (params) {
+    //             return {
+    //                 q: params.term, // search term
+    //                 page: params.page
+    //             };
+    //         },
+    //         processResults: function (data, params) {
+    //             params.page = params.page || 1;
+    //             return {
+    //                 results: data,
+    //                 pagination: {
+    //                     more: (params.page * 30) < data.total_count
+    //                 }
+    //             };
+    //         },
+    //         cache: true
+    //     },
+    //     minimumInputLength: 1,
+    //     templateResult: function(medicine) {
+    //         if (medicine.loading) {
+    //             return medicine.text;
+    //         }
+            
+    //         var $result = $(
+    //             '<div class="medicine-option">' +
+    //                 '<div class="medicine-name"><strong>' + medicine.medicine_name + '</strong></div>' +
+    //                 '<div class="medicine-details">' +
+    //                     '<span class="generic-name">Generic: ' + medicine.generic_name + '</span>' +
+    //                     '<span class="medicine-code"> | Code: ' + medicine.medicine_code + '</span>' +
+    //                     '<span class="brand-name"> | Brand: ' + medicine.brand_name + '</span>' +
+    //                 '</div>' +
+    //             '</div>'
+    //         );
+            
+    //         return $result;
+    //     },
+    //     templateSelection: function(medicine) {
+    //         if (medicine.id === '' || !medicine.id) {
+    //             return medicine.text || 'Search and select medicine...';
+    //         }
+    //         // Handle both AJAX results and pre-loaded options
+    //         if (medicine.medicine_name && medicine.generic_name) {
+    //             return medicine.medicine_name + ' (' + medicine.generic_name + ')';
+    //         } else if (medicine.text) {
+    //             return medicine.text;
+    //         } else {
+    //             return 'Selected Medicine';
+    //         }
+    //     },
+    //     escapeMarkup: function (markup) {
+    //         return markup;
+    //     }
+    // });
     $('#medicine_select').select2({
         placeholder: 'Search and select medicine...',
         allowClear: true,
@@ -235,56 +300,55 @@ $(document).ready(function() {
             delay: 250,
             data: function (params) {
                 return {
-                    q: params.term, // search term
-                    page: params.page
+                    q: params.term // search term
                 };
             },
-            processResults: function (data, params) {
-                params.page = params.page || 1;
+            processResults: function (data) {
+                // data is expected to be a simple array [ {id:1, text:...}, {id:2, text:...} ]
                 return {
-                    results: data,
-                    pagination: {
-                        more: (params.page * 30) < data.total_count
-                    }
+                    results: data
                 };
             },
             cache: true
         },
-        minimumInputLength: 1,
+        minimumInputLength: 1, // Start searching after 1 character
         templateResult: function(medicine) {
             if (medicine.loading) {
                 return medicine.text;
             }
             
+            // Format for the dropdown list
             var $result = $(
                 '<div class="medicine-option">' +
                     '<div class="medicine-name"><strong>' + medicine.medicine_name + '</strong></div>' +
-                    '<div class="medicine-details">' +
-                        '<span class="generic-name">Generic: ' + medicine.generic_name + '</span>' +
-                        '<span class="medicine-code"> | Code: ' + medicine.medicine_code + '</span>' +
-                        '<span class="brand-name"> | Brand: ' + medicine.brand_name + '</span>' +
+                    '<div class="medicine-details" style="font-size: 0.9em; color: #555;">' +
+                        '<span class="generic-name">Generic: ' + (medicine.generic_name || 'N/A') + '</span>' +
+                        '<span class="medicine-code"> | Code: ' + (medicine.medicine_code || 'N/A') + '</span>' +
+                        '<span class="brand-name"> | Brand: ' + (medicine.brand_name || 'N/A') + '</span>' +
                     '</div>' +
                 '</div>'
             );
-            
             return $result;
         },
         templateSelection: function(medicine) {
+            // Format for the selected item in the box
             if (medicine.id === '' || !medicine.id) {
-                return medicine.text || 'Search and select medicine...';
+                return medicine.text || 'Search and select medicine...'; // Placeholder
             }
-            // Handle both AJAX results and pre-loaded options
-            if (medicine.medicine_name && medicine.generic_name) {
-                return medicine.medicine_name + ' (' + medicine.generic_name + ')';
-            } else if (medicine.text) {
-                return medicine.text;
-            } else {
-                return 'Selected Medicine';
-            }
+            
+            // This will use the 'text' property from the AJAX result or the pre-loaded option
+            return medicine.text; 
         },
         escapeMarkup: function (markup) {
             return markup;
         }
+    });
+
+    // Also apply Select2 to your vendor dropdown for consistency
+    $('#vendor_select').select2({
+        placeholder: 'Select a vendor',
+        allowClear: true,
+        width: '100%'
     });
     
     // Auto-calculate expiry days

@@ -70,7 +70,6 @@
                                     <option value="">All Types</option>
                                     <option value="CENTRAL_TO_CENTER" <?php echo $this->input->get('transfer_type') == 'CENTRAL_TO_CENTER' ? 'selected' : ''; ?>>Central to Center</option>
                                     <option value="CENTER_TO_CENTER" <?php echo $this->input->get('transfer_type') == 'CENTER_TO_CENTER' ? 'selected' : ''; ?>>Center to Center</option>
-                                    <option value="CENTER_TO_CENTRAL" <?php echo $this->input->get('transfer_type') == 'CENTER_TO_CENTRAL' ? 'selected' : ''; ?>>Center to Central</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -135,6 +134,7 @@
                                         <th>Type</th>
                                         <th>From</th>
                                         <th>To</th>
+                                        <th>Department</th>
                                         <th>Date</th>
                                         <th>Items</th>
                                         <th>Quantity</th>
@@ -158,6 +158,7 @@
                                                 </td>
                                                 <td><?php echo isset($transfer->from_center) && !empty($transfer->from_center) ? htmlspecialchars($transfer->from_center) : 'Central Warehouse'; ?></td>
                                                 <td><?php echo isset($transfer->to_center) ? htmlspecialchars($transfer->to_center) : 'N/A'; ?></td>
+                                                <td><?php echo isset($transfer->to_department) && !empty($transfer->to_department) ? htmlspecialchars($transfer->to_department) : 'N/A'; ?></td>
                                                 <td><?php echo isset($transfer->transfer_date) && !empty($transfer->transfer_date) ? date('M d, Y', strtotime($transfer->transfer_date)) : 'N/A'; ?></td>
                                                 <td><?php echo isset($transfer->total_items) && is_numeric($transfer->total_items) ? number_format($transfer->total_items) : '0'; ?></td>
                                                 <td><?php echo isset($transfer->total_quantity) && is_numeric($transfer->total_quantity) ? number_format($transfer->total_quantity) : '0'; ?></td>

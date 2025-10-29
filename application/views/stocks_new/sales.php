@@ -11,7 +11,7 @@
         
         <?php if(ENVIRONMENT === 'development'): ?>
         <!-- Debug Information -->
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-md-12">
                 <div class="panel panel-warning">
                     <div class="panel-heading">
@@ -27,7 +27,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
         <?php endif; ?>
         
         <!-- Action Buttons -->
@@ -66,7 +66,7 @@
                                 <select name="center_id" class="form-control">
                                     <option value="">All Centers</option>
                                     <?php foreach($centers as $center): ?>
-                                        <option value="<?php echo $center->id; ?>" <?php echo $this->input->get('center_id') == $center->id ? 'selected' : ''; ?>>
+                                        <option value="<?php echo $center->ID; ?>" <?php echo $this->input->get('center_id') == $center->ID ? 'selected' : ''; ?>>
                                             <?php echo $center->center_name; ?>
                                         </option>
                                     <?php endforeach; ?>
