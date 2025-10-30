@@ -106,13 +106,23 @@ class Stock_model_new extends CI_Model
             $expired = $this->db->get()->row();
 
             // Get total stock value
-            $this->db->select(
-                "SUM(quantity_remaining * selling_price) as total_stock_value",
-            );
+            $this->db->select('SUM(quantity_remaining * selling_price) as total_stock_value', FALSE);
             $this->db->from("medicine_batches");
             $this->db->where("batch_status", "ACTIVE");
             $this->db->where("quantity_remaining >", 0);
             $stock_value = $this->db->get()->row();
+            // --- NEW: Get Today's Sales ---
+            $this->db->select('COUNT(id) as todays_sales_count, SUM(total_amount) as todays_sales_value');
+            $this->db->from('sales');
+            $this->db->where('sale_date', date('Y-m-d')); // CURDATE()
+            $this->db->where('status', 'CONFIRMED'); // Only confirmed sales
+            $todays_sales = $this->db->get()->row();
+            // --- NEW: Get Today's Transfers ---
+            $this->db->select('COUNT(id) as todays_transfer_count, SUM(total_value) as todays_transfer_value');
+            $this->db->from('stock_transfers');
+            $this->db->where('transfer_date', date('Y-m-d')); // CURDATE()
+            $this->db->where('status', 'COMPLETED'); // Only completed transfers
+            $todays_transfers = $this->db->get()->row();
 
             // Get expiring soon items (for the second card)
             $this->db->select("COUNT(*) as expiring_soon_items");
@@ -122,7 +132,6 @@ class Stock_model_new extends CI_Model
             $this->db->where("DATEDIFF(expiry_date, CURDATE()) <=", 7);
             $this->db->where("DATEDIFF(expiry_date, CURDATE()) >=", 0);
             $expiring_soon = $this->db->get()->row();
-
             return (object) [
                 "total_medicines" => $medicines->total_medicines ?? 0,
                 "total_batches" => $batches->total_batches ?? 0,
@@ -133,6 +142,9 @@ class Stock_model_new extends CI_Model
                 // "total_stock_value" => $total_stock_value ?? 0,
                 "expiring_soon_items" =>
                     $expiring_soon->expiring_soon_items ?? 0,
+                    // --- NEW VALUES ADDED ---
+                "todays_sales_count"    => $todays_sales->todays_sales_count ?? 0,
+                "todays_transfer_count" => $todays_transfers->todays_transfer_count ?? 0,
             ];
         // } catch (Exception $e) {
         //     return (object) [
@@ -146,6 +158,107 @@ class Stock_model_new extends CI_Model
         //     ];
         // }
     }
+    // public function get_dashboard_summary()
+    // {
+    //     try {
+    //         // Get total active medicines
+    //         $total_medicines = $this->db->where("status", "active")
+    //                                     ->count_all_results("medicines");
+
+    //         // Get total active batches that have stock
+    //         $total_batches = $this->db->where("batch_status", "ACTIVE")
+    //                                   ->where("quantity_remaining >", 0)
+    //                                   ->count_all_results("medicine_batches");
+
+    //         // --- Added fields from your v_stock_dashboard_summary ---
+    //         $total_centers = $this->db->where('status', 1)->count_all_results('hms_centers');
+    //         $total_vendors = $this->db->where('status', 1)->count_all_results('hms_vendors');
+            
+    //         $total_stock_qty_result = $this->db->select_sum('quantity_remaining')
+    //                                           ->where('batch_status','ACTIVE')
+    //                                           ->get('medicine_batches')->row();
+    //         $total_stock_quantity = $total_stock_qty_result ? $total_stock_qty_result->quantity_remaining : 0;
+    //         // --- End added fields ---
+
+
+    //         // Get low stock count (by MEDICINE, not batch)
+    //         $low_stock_query = $this->db->query("
+    //             SELECT COUNT(*) as low_stock_count
+    //             FROM (
+    //                 SELECT m.id
+    //                 FROM medicines m
+    //                 LEFT JOIN medicine_batches mb ON m.id = mb.medicine_id AND mb.batch_status = 'ACTIVE' AND mb.quantity_remaining > 0
+    //                 WHERE m.status = 'active' AND m.min_stock_level > 0
+    //                 GROUP BY m.id, m.min_stock_level
+    //                 HAVING COALESCE(SUM(mb.quantity_remaining), 0) <= m.min_stock_level
+    //             ) as low_stock_medicines
+    //         ");
+    //         $low_stock = $low_stock_query ? $low_stock_query->row() : null;
+
+
+    //         // Get expiring soon count (within 30 days, NOT expired)
+    //         $expiring_30_days = $this->db->select("COUNT(*) as expiring_soon_count") // Renamed variable for clarity
+    //                                    ->from("medicine_batches")
+    //                                    ->where("batch_status", "ACTIVE")
+    //                                    ->where("quantity_remaining >", 0)
+    //                                    ->where("DATEDIFF(expiry_date, CURDATE()) <=", 30) // 30 days or less
+    //                                    ->where("DATEDIFF(expiry_date, CURDATE()) >=", 0) // Not yet expired
+    //                                    ->get()->row();
+
+    //         // Get expired count
+    //         $expired = $this->db->select("COUNT(*) as expired_count")
+    //                             ->from("medicine_batches")
+    //                             ->where("batch_status", "ACTIVE")
+    //                             ->where("quantity_remaining >", 0)
+    //                             ->where("DATEDIFF(expiry_date, CURDATE()) <", 0) // Already expired
+    //                             ->get()->row();
+
+    //         // Get total stock value
+    //         $this->db->select('SUM(quantity_remaining * selling_price) as total_stock_value', FALSE);
+    //         $this->db->from("medicine_batches");
+    //         $this->db->where("batch_status", "ACTIVE");
+    //         $this->db->where("quantity_remaining >", 0);
+    //         $stock_value = $this->db->get()->row();
+
+    //         // Get expiring critically soon (within 7 days)
+    //         $expiring_7_days = $this->db->select("COUNT(*) as expiring_soon_items") // Renamed variable for clarity
+    //                                   ->from("medicine_batches")
+    //                                   ->where("batch_status", "ACTIVE")
+    //                                   ->where("quantity_remaining >", 0)
+    //                                   ->where("DATEDIFF(expiry_date, CURDATE()) <=", 7) // 7 days or less
+    //                                   ->where("DATEDIFF(expiry_date, CURDATE()) >=", 0) // Not yet expired
+    //                                   ->get()->row();
+
+    //         return (object) [
+    //             "total_medicines"       => $total_medicines ?? 0,
+    //             "total_batches"         => $total_batches ?? 0,
+    //             "total_centers"         => $total_centers ?? 0,
+    //             "total_vendors"         => $total_vendors ?? 0,
+    //             "total_stock_quantity"  => $total_stock_quantity ?? 0,
+    //             "low_stock_count"       => $low_stock->low_stock_count ?? 0,
+    //             "expiring_soon_count"   => $expiring_30_days->expiring_soon_count ?? 0, // <-- CORRECTED
+    //             "expired_count"         => $expired->expired_count ?? 0,
+    //             "total_stock_value"     => $stock_value->total_stock_value ?? 0,
+    //             "expiring_soon_items"   => $expiring_7_days->expiring_soon_items ?? 0, // Renamed variable
+    //         ];
+            
+    //     } catch (Exception $e) {
+    //         log_message('error', 'Error in get_dashboard_summary: ' . $e->getMessage());
+    //         // Return an object with 0 values on failure
+    //         return (object) [
+    //             "total_medicines" => 0,
+    //             "total_batches" => 0,
+    //             "total_centers" => 0,
+    //             "total_vendors" => 0,
+    //             "total_stock_quantity" => 0,
+    //             "low_stock_count" => 0,
+    //             "expiring_soon_count" => 0,
+    //             "expired_count" => 0,
+    //             "total_stock_value" => 0,
+    //             "expiring_soon_items" => 0,
+    //         ];
+    //     }
+    // }
 
     public function get_low_stock_alerts()
     {
@@ -1924,17 +2037,64 @@ class Stock_model_new extends CI_Model
     // SALES FUNCTIONS
     // ===============================================
 
+    // public function get_all_sales()
+    // {
+    //     // try {
+    //         $this->db->select('s.*, c.center_name,
+    //             COALESCE(SUM(si.quantity_sold), 0) as total_quantity,
+    //             COALESCE(COUNT(si.id), 0) as total_items,
+    //             COALESCE(SUM(si.total), 0) as total_amount
+    //         ');
+    //         $this->db->from("sales s");
+    //         $this->db->join("hms_centers c", "s.center_id = c.ID", "left");
+    //         $this->db->join("sale_items si", "s.id = si.sale_id", "left");
+    //         if (
+    //             isset(
+    //                 $_SESSION['logged_billing_manager']
+    //                     ['center'],
+    //             ) &&
+    //             !empty(
+    //                 $_SESSION['logged_billing_manager']
+    //                     ['center']
+    //             )
+    //         ) {
+    //             $this->db->where("s.center_id", $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+    //         }
+    //         $this->db->group_by("s.id");
+    //         $this->db->order_by("s.created_at", "DESC");
+    //         return $this->db->get()->result();
+    //     // } catch (Exception $e) {
+    //     //     // If tables don't exist or have issues, return empty array
+    //     //     return [];
+    //     // }
+    // }
+
     public function get_all_sales()
     {
         try {
-            $this->db->select('s.*, c.center_name,
-                COALESCE(SUM(si.quantity_sold), 0) as total_quantity,
-                COALESCE(COUNT(si.id), 0) as total_items,
-                COALESCE(SUM(si.total), 0) as total_amount
-            ');
+            $this->db->select([
+                // Explicitly list all columns from 'sales' (s)
+                's.id', 's.sale_number', 's.center_id', 's.patient_id', 's.patient_name',
+                's.doctor_id', 's.doctor_name', 's.sale_date', 's.sale_time',
+                's.payment_method', 's.payment_status', 's.status', 's.remarks', 's.created_by',
+                's.created_at', 's.updated_at',
+                
+                // Joined column from 'hms_centers'
+                'c.center_name',
+
+                // Recalculated totals from 'sale_items' (si)
+                'COALESCE(COUNT(si.id), 0) as total_items',
+                'COALESCE(SUM(si.quantity_sold), 0) as total_quantity',
+                'COALESCE(SUM(si.subtotal), 0) as subtotal',
+                'COALESCE(SUM(si.discount_amount), 0) as discount_amount',
+                'COALESCE(SUM(si.tax_amount), 0) as tax_amount',
+                'COALESCE(SUM(si.total), 0) as total_amount'
+            ]);
             $this->db->from("sales s");
             $this->db->join("hms_centers c", "s.center_id = c.ID", "left");
-            $this->db->join("sale_items si", "s.id = si.sale_id", "left");
+            $this->db->join("sale_items si", "s.id = si.sale_id", "left"); // LEFT JOIN is important
+
+            // --- Session Filter (Your original logic) ---
             if (
                 isset(
                     $_SESSION['logged_billing_manager']
@@ -1947,15 +2107,20 @@ class Stock_model_new extends CI_Model
             ) {
                 $this->db->where("s.center_id", $this->get_center_id($_SESSION['logged_billing_manager']['center']));
             }
-            $this->db->group_by("s.id");
+            // --- End Filter ---
+
+            // Correct GROUP BY for all non-aggregated columns
+            $this->db->group_by("s.id, c.center_name"); 
+            
             $this->db->order_by("s.created_at", "DESC");
             return $this->db->get()->result();
+            
         } catch (Exception $e) {
             // If tables don't exist or have issues, return empty array
+            log_message('error', 'Error in get_all_sales: ' . $e->getMessage());
             return [];
         }
     }
-
     public function add_sale($data)
     {
         // Generate sale_number if not provided - trigger will handle if still NULL
@@ -1974,31 +2139,41 @@ class Stock_model_new extends CI_Model
 
     public function get_sale_by_id($id)
     {
-        $this->db->select('s.*, c.center_name,
+        $this->db->select(
+            's.*, c.center_name,
             COALESCE(SUM(si.quantity_sold), 0) as total_quantity,
             COALESCE(COUNT(si.id), 0) as total_items,
+            
+            -- RECALCULATED TOTALS --
+            COALESCE(SUM(si.subtotal), 0) as subtotal,
+            COALESCE(SUM(si.discount_amount), 0) as discount_amount,
+            COALESCE(SUM(si.tax_amount), 0) as tax_amount,
             COALESCE(SUM(si.total), 0) as total_amount
-        ');
+            '
+        );
         $this->db->from("sales s");
         $this->db->join("hms_centers c", "s.center_id = c.ID", "left");
         $this->db->join("sale_items si", "s.id = si.sale_id", "left");
         $this->db->where("s.id", $id);
-        $this->db->group_by("s.id");
+        // You must GROUP BY all non-aggregated columns in the SELECT list
+        $this->db->group_by("s.id, c.center_name"); 
+        
         return $this->db->get()->row();
     }
 
     public function get_sale_items($sale_id)
     {
         $this->db->select(
-            "si.*, m.medicine_name, m.medicine_code, mb.name as brand_name, mb2.batch_number, mb2.expiry_date",
+            // si.* already includes discount_amount and tax_amount
+            "si.*, m.medicine_name, m.medicine_code, b.brand_name, mb.batch_number, mb.expiry_date"
         );
         $this->db->from("sale_items si");
-        $this->db->join("medicine_batches mb2", "si.batch_id = mb2.id");
-        $this->db->join("medicines m", "mb2.medicine_id = m.id");
-        $this->db->join(
-            $this->config->item("db_prefix") . "brands mb",
-            "m.brand_id = mb.ID",
-        );
+        $this->db->join("medicine_batches mb", "si.batch_id = mb.id", "left"); // Alias 'mb'
+        $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+        // --- CORRECTED JOIN ---
+        // Join 'medicine_brands' with alias 'b'
+        $this->db->join("medicine_brands b", "m.brand_id = b.id", "left"); 
+        // --- END CORRECTION ---
         $this->db->where("si.sale_id", $sale_id);
         return $this->db->get()->result();
     }
@@ -2014,57 +2189,145 @@ class Stock_model_new extends CI_Model
         return $this->db->delete("sale_items");
     }
 
-    public function confirm_sale($id)
+    // public function confirm_sale($id)
+    // {
+    //     $this->db->trans_start();
+    //     $this->db->where("id", $id);
+    //     $this->db->update("sales", ["status" => "CONFIRMED"]);
+    //     // Get sale items
+    //     $items = $this->get_sale_items($id);
+    //     $sale = $this->get_sale_by_id($id);
+    //     // Update stocks and log movements
+    //     foreach ($items as $item) {
+    //         // Reduce center stock using FIFO
+    //         $this->db->where("batch_id", $item->batch_id);
+    //         $this->db->where("center_id", $sale->center_id);
+    //         $this->db->set(
+    //             "quantity",
+    //             "quantity - " . $item->quantity_sold,
+    //             false,
+    //         );
+    //         $this->db->update("center_stocks");
+    //         // Log stock movement
+    //         $movement_data = [
+    //             "batch_id" => $item->batch_id,
+    //             "movement_type" => "SALE",
+    //             "from_location_type" => "CENTER",
+    //             "from_location_id" => $sale->center_id,
+    //             "to_location_type" => "SALE",
+    //             "quantity_change" => -$item->quantity_sold,
+    //             "unit_price" => $item->unit_price,
+    //             "total_value" => $item->total,
+    //             "reference_type" => "SALES_BILL",
+    //             "reference_id" => $id,
+    //             "reference_number" => $sale->sale_number,
+    //             "patient_id" => $sale->patient_id,
+    //             "patient_name" => $sale->patient_name,
+    //             "created_by" => $sale->created_by,
+    //         ];
+    //         $this->db->insert("stock_movements", $movement_data);
+    //     }
+
+    //     $this->db->trans_complete();
+    //     return $this->db->trans_status();
+    // }
+
+    public function confirm_sale($id, $user_id = null) // Added user_id
     {
         $this->db->trans_start();
-
-        // Update sale status
-        $this->db->where("id", $id);
-        $this->db->update("sales", ["status" => "CONFIRMED"]);
-
-        // Get sale items
-        $items = $this->get_sale_items($id);
         $sale = $this->get_sale_by_id($id);
-
+        if (!$sale) {
+            $this->db->trans_rollback();
+            $this->session->set_flashdata('error', 'Sale not found.');
+            return ['status' => 'error', 'message' => 'Sale not found.'];
+        }
+        if ($sale->status != 'DRAFT') {
+            $this->db->trans_rollback();
+            $this->session->set_flashdata('error', 'Sale is already processed.');
+            return ['status' => 'error', 'message' => 'Sale is already processed.'];
+        }
+        $items = $this->get_sale_items($id);
+        if (empty($items)) {
+             $this->db->trans_rollback();
+             $this->session->set_flashdata('error', 'Cannot confirm a sale with no items.');
+             return ['status' => 'error', 'message' => 'Cannot confirm a sale with no items.'];
+        }
         foreach ($items as $item) {
-            // Reduce center stock using FIFO
+            $stock = $this->db->select('available_quantity')
+                              ->from('center_stocks')
+                              ->where('batch_id', $item->batch_id)
+                              ->where('center_id', $sale->center_id)
+                              ->get()->row();
+            if (!$stock || $stock->available_quantity < $item->quantity_sold) {
+                $this->db->trans_rollback();
+                $this->session->set_flashdata('error', 'Not enough stock for ' . $item->medicine_name . ' (Batch: ' . $item->batch_number . ').');
+                return ['status' => 'error', 'message' => 'Not enough stock for ' . $item->medicine_name];
+            }
+        }
+        $update_data = [
+            "status"            => "CONFIRMED",
+            "total_items"       => $sale->total_items,         // From recalculated value
+            "total_quantity"    => $sale->total_quantity,    // From recalculated value
+            "subtotal"          => $sale->subtotal,          // From recalculated value
+            "discount_amount"   => $sale->discount_amount,   // From recalculated value
+            "tax_amount"        => $sale->tax_amount,        // From recalculated value
+            "total_amount"      => $sale->total_amount,      // From recalculated value
+            "payment_status"    => "PAID", // Or 'PENDING' - set payment status on confirm
+            "updated_at"        => date('Y-m-d H:i:s')
+        ];
+        $this->db->where("id", $id);
+        $this->db->update("sales", $update_data);
+        var_dump($this->db->last_query());
+        foreach ($items as $item) {
+             // Get current stock quantity for the log
+            $stock_before = $this->db->select('quantity')->from('center_stocks')->where('batch_id', $item->batch_id)->where('center_id', $sale->center_id)->get()->row();
+            $quantity_before = $stock_before ? (int)$stock_before->quantity : 0;
+            $quantity_after = $quantity_before - (int)$item->quantity_sold;
+            // Reduce center stock
             $this->db->where("batch_id", $item->batch_id);
             $this->db->where("center_id", $sale->center_id);
-            $this->db->set(
-                "quantity",
-                "quantity - " . $item->quantity_sold,
-                false,
-            );
+            $this->db->set("quantity", "GREATEST(0, quantity - " . (int)$item->quantity_sold . ")", false);
+            $this->db->set("last_movement_date", "NOW()", false);
             $this->db->update("center_stocks");
-
+            // Reduce master batch stock
+            $this->db->where("id", $item->batch_id);
+            $this->db->set("quantity_remaining", "GREATEST(0, quantity_remaining - " . (int)$item->quantity_sold . ")", false);
+            $this->db->update("medicine_batches");
             // Log stock movement
             $movement_data = [
-                "batch_id" => $item->batch_id,
-                "movement_type" => "SALE",
-                "from_location_type" => "CENTER",
-                "from_location_id" => $sale->center_id,
-                "to_location_type" => "SALE",
-                "quantity_change" => -$item->quantity_sold,
-                "unit_price" => $item->unit_price,
-                "total_value" => $item->total,
-                "reference_type" => "SALES_BILL",
-                "reference_id" => $id,
-                "reference_number" => $sale->sale_number,
-                "patient_id" => $sale->patient_id,
-                "patient_name" => $sale->patient_name,
-                "created_by" => $sale->created_by,
+                "batch_id"          => $item->batch_id,
+                "movement_type"     => "SALE",
+                "from_location_type"=> "CENTER",
+                "from_location_id"  => $sale->center_id,
+                "to_location_type"  => "SALE",
+                "to_location_id"    => $id,
+                "quantity_before"   => $quantity_before,
+                "quantity_change"   => -(int)$item->quantity_sold,
+                "quantity_after"    => $quantity_after,
+                "unit_price"        => $item->unit_price,
+                "total_value"       => $item->total,
+                "reference_type"    => "SALES_BILL",
+                "reference_id"      => $id,
+                "reference_number"  => $sale->sale_number,
+                "patient_id"        => $sale->patient_id,
+                "patient_name"      => $sale->patient_name,
+                "created_by"        => $user_id ?? $sale->created_by, // Use ID of user confirming sale
+                "created_at"        => date('Y-m-d H:i:s')
             ];
             $this->db->insert("stock_movements", $movement_data);
         }
+        $this->db->trans_complete(); // Commit transaction
+        if ($this->db->trans_status() === FALSE) {
+            $this->session->set_flashdata('error', 'Database transaction failed during confirmation.');
+            return ['status' => 'error', 'message' => 'Database transaction failed.'];
+        }
 
-        $this->db->trans_complete();
-        return $this->db->trans_status();
+        return ['status' => 'success']; // Success
     }
-
     public function get_available_batches_for_sale($center_id)
     {
         $this->db->select(
-            "mb.*, m.medicine_name, m.medicine_code, mb2.name as brand_name, ccs.quantity as available_quantity",
+            "mb.*, m.medicine_name, m.medicine_code, mb2.name as brand_name,m.gst_rate as gst_rate, ccs.quantity as available_quantity",
         );
         $this->db->from("medicine_batches mb");
         $this->db->join("medicines m", "mb.medicine_id = m.id");
@@ -5476,6 +5739,448 @@ class Stock_model_new extends CI_Model
             return [];
         }
     }
+
+
+    //    add stocks from purchase order-------------------------------------------------------------------------- 
+    /**
+     * Finds the Primary Key (ID) of a vendor based on their vendor_number.
+     */
+    public function get_vendor_id_by_number($vendor_number)
+    {
+        $query = $this->db->select('ID')
+                          ->where('vendor_number', $vendor_number)
+                          ->limit(1)
+                          ->get('hms_vendors');
+        if ($query->num_rows() > 0) {
+            return $query->row()->ID;
+        }
+        return false; // Vendor not found
+    }
+
+    /**
+     * Checks if a center ID exists and is active.
+     */
+     public function center_exists($center_id) {
+         $count = $this->db->where('center_number', $center_id)
+                           ->where('status', 1)
+                           ->count_all_results('hms_centers');
+         return $count > 0;
+     }
+
+    public function add_purchase_batch($batch_data)
+    {
+            if (empty($batch_data['medicine_id']) || empty($batch_data['batch_number']) || empty($batch_data['vendor_id'])) {
+                return ['status' => 'error', 'message' => 'Missing required batch data (medicine, batch no, vendor).'];
+            }
+            // Attempt to insert
+            $this->db->insert('medicine_batches', $batch_data);
+            $new_batch_id = $this->db->insert_id();
+
+            if ($new_batch_id) {
+                return ['status' => 'success', 'batch_id' => $new_batch_id];
+            } else {
+                 $db_error = $this->db->error();
+                 if ($db_error['code'] == 1062) {
+                     // Log the duplicate attempt
+                     log_message('error', "Duplicate batch entry attempt: Medicine ID {$batch_data['medicine_id']}, Batch No {$batch_data['batch_number']}");
+                     // You could try fetching the existing batch ID here if needed later
+                     return ['status' => 'error', 'message' => 'Duplicate batch number for this medicine.'];
+                 } else {
+                     log_message('error', "DB Error (medicine_batches insert): ".$db_error['message']);
+                     return ['status' => 'error', 'message' => 'Database error inserting batch.'];
+                 }
+            }
+    }
+
+    /**
+     * Adds received quantity to the stock at a specific location (Center or Central).
+     * Uses INSERT...ON DUPLICATE KEY UPDATE.
+     * $stock_data should contain 'batch_id', 'quantity', and 'center_id' (or indicate central)
+     */
+    public function add_stock_to_location($stock_data)
+    {
+            $is_central = empty($stock_data['center_id']); 
+            $table_name = $is_central ? 'central_stocks' : 'center_stocks';
+            $location_id = $stock_data['center_id'] ?? null; 
+            if (empty($stock_data['batch_id']) || !isset($stock_data['quantity'])) {
+                 return ['status' => 'error', 'message' => 'Missing batch_id or quantity for stock update.'];
+            }
+            $this->db->select('quantity');
+            $this->db->where('batch_id', $stock_data['batch_id']);
+            if (!$is_central) {
+                 $this->db->where('center_id', $location_id);
+            }
+            $q_before = $this->db->get($table_name)->row();
+            $quantity_before = ($q_before) ? (int)$q_before->quantity : 0;
+            $quantity_after = $quantity_before + (int)$stock_data['quantity'];
+            // Build the SQL for INSERT...ON DUPLICATE KEY UPDATE
+            $sql = "INSERT INTO {$table_name} (batch_id, ";
+            $sql .= $is_central ? "" : "center_id, ";
+            $sql .= "quantity, status, last_movement_date, created_at, updated_at) VALUES (?, ";
+            $params = [$stock_data['batch_id']];
+            if (!$is_central) {
+                $sql .= "?, "; // Placeholder for center_id
+                $params[] = $location_id;
+            }
+            $sql .= "?, ?, NOW(), NOW(), NOW()) "; // Placeholders for quantity, status
+            $params[] = $stock_data['quantity'];
+            $params[] = $stock_data['status'] ?? 'ACTIVE';
+
+            $sql .= "ON DUPLICATE KEY UPDATE ";
+            $sql .= "quantity = quantity + ?, ";
+            $sql .= "status = VALUES(status), "; // Update status if provided in INSERT part
+            $sql .= "last_movement_date = NOW(), ";
+            $sql .= "updated_at = NOW()";
+            $params[] = $stock_data['quantity']; // Quantity for the UPDATE part
+            // Execute the query
+            $this->db->query($sql, $params);
+            // Check for errors after query execution
+            $db_error = $this->db->error();
+            if ($db_error['code'] != 0) {
+                 log_message('error', "DB Error ({$table_name} insert/update): ".$db_error['message']);
+                 return ['status' => 'error', 'message' => "Database error updating stock in {$table_name}."];
+            } else {
+                 return ['status' => 'success', 'quantity_after' => $quantity_after];
+            }
+    }
+
+
+    /**
+     * Logs a stock movement in the stock_movements table.
+     */
+    public function log_stock_movement($movement_data)
+    {
+        try {
+            // Basic validation
+            if (empty($movement_data['batch_id']) || empty($movement_data['movement_type']) || !isset($movement_data['quantity_change'])) {
+                log_message('error', 'Attempted to log stock movement with missing required data.');
+                return false;
+            }
+            // Ensure created_at is set if not provided
+            $movement_data['created_at'] = $movement_data['created_at'] ?? date("Y-m-d H:i:s");
+            $this->db->insert('stock_movements', $movement_data);
+            $db_error = $this->db->error();
+            if ($db_error['code'] != 0) {
+                 log_message('error', "DB Error (stock_movements insert): ".$db_error['message']);
+                 return false;
+            }
+            return $this->db->insert_id() > 0; // Return true on success
+
+        } catch (Exception $e) {
+             log_message('error', "Exception in log_stock_movement: " . $e->getMessage());
+             return false;
+        }
+    }
+    
+    // batch dispose  functions------------------------------------------------------------ 
+    /**
+     * Gets a single batch's details AND all locations (centers + central) where it has stock.
+     */
+    public function get_batch_stock_locations($batch_id)
+    {
+        $batch_details = $this->db->select('mb.id as batch_id, mb.batch_number, mb.expiry_date, mb.purchase_price, m.medicine_name')
+                                  ->from('medicine_batches mb')
+                                  ->join('medicines m', 'mb.medicine_id = m.id', 'left')
+                                  ->where('mb.id', $batch_id)
+                                  ->get()->row_array();
+        if (!$batch_details) return null;
+
+        $locations = [];
+        // 1. Get Center Stocks
+        $center_stocks = $this->db->select('cs.quantity, c.ID as center_id, c.center_name')
+                                ->from('center_stocks cs')
+                                ->join('hms_centers c', 'cs.center_id = c.ID', 'inner')
+                                ->where('cs.batch_id', $batch_id)
+                                ->where('cs.quantity >', 0)
+                                ->get()->result_array();
+        
+        foreach ($center_stocks as $stock) {
+            $locations[] = [
+                'type' => 'CENTER',
+                'id' => $stock['center_id'],
+                'name' => $stock['center_name'],
+                'quantity' => $stock['quantity']
+            ];
+        }
+
+        // 2. Get Central Stock
+        $central_stock = $this->db->select('quantity')
+                                ->from('central_stocks')
+                                ->where('batch_id', $batch_id)
+                                ->where('quantity >', 0)
+                                ->get()->row_array();
+        if ($central_stock) {
+            $locations[] = [
+                'type' => 'CENTRAL',
+                'id' => 0, // Use 0 or null as the ID for Central
+                'name' => 'Central Warehouse',
+                'quantity' => $central_stock['quantity']
+            ];
+        }
+        
+        $batch_details['locations'] = $locations;
+        return $batch_details;
+    }
+
+    /**
+     * Processes the disposal of a single batch from a single location.
+     * Creates a disposal_report, updates stock, and logs the movement.
+     */
+    public function process_single_batch_disposal($data)
+    {
+        // Data contains: batch_id, location_type, center_id, quantity_disposed, disposal_type, etc.
+        $this->db->trans_start();
+        // 1. Get Batch Cost
+        $batch_info = $this->db->select('purchase_price')->get_where('medicine_batches', ['id' => $data['batch_id']])->row();
+        if (!$batch_info) {
+             $this->db->trans_rollback();
+             return ['status' => 'error', 'message' => 'Batch details not found.'];
+        }
+        $unit_cost = (float)$batch_info->purchase_price;
+        $total_cost = $unit_cost * (int)$data['quantity_disposed'];
+
+        // 2. Create Disposal Header
+        $disposal_header = [
+            'disposal_number' => "DISP" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT),
+            'center_id' => $data['location_type'] == 'CENTER' ? $data['center_id'] : 0, // Use 0 or a main WH ID
+            'disposal_date' => $data['disposal_date'],
+            'disposal_type' => $data['disposal_type'], // 'EXPIRED', 'DAMAGED', etc.
+            'disposal_method' => $data['disposal_method'] ?? 'OTHER',
+            'disposal_company' => $data['disposal_company'],
+            'authorized_by' => $data['authorized_by'],
+            'total_items' => 1, // Only one batch
+            'total_cost' => $total_cost,
+            'status' => 'COMPLETED',
+            'remarks' => $data['remarks'],
+            'created_by' => $data['created_by'],
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+        // Filter out keys that don't exist in the table (like 'disposal_reason' if table has 'disposal_type')
+        $allowed_header_fields = ['disposal_number', 'center_id', 'disposal_date', 'disposal_type', 'disposal_method', 'disposal_certificate', 'disposal_company', 'authorized_by', 'total_items', 'total_cost', 'status', 'remarks', 'created_by', 'created_at'];
+        $filtered_header_data = array_intersect_key($disposal_header, array_flip($allowed_header_fields));
+
+        $this->db->insert('disposal_reports', $filtered_header_data);
+        $disposal_id = $this->db->insert_id();
+        if (!$disposal_id) { $this->db->trans_rollback(); return ['status' => 'error', 'message' => 'Failed to create disposal report header.']; }
+        // 3. Decrease Stock (Central or Center)
+        $quantity_before = 0;
+        $actual_disposed_qty = 0;
+        
+        if ($data['location_type'] == 'CENTRAL') {
+            $stock_loc = $this->db->select('quantity')->from('central_stocks')->where('batch_id', $data['batch_id'])->get()->row();
+            $quantity_before = ($stock_loc) ? (int)$stock_loc->quantity : 0;
+            $actual_disposed_qty = min((int)$data['quantity_disposed'], $quantity_before);
+            if ($actual_disposed_qty <= 0) { $this->db->trans_rollback(); return ['status' => 'error', 'message' => 'No stock found in Central Warehouse.']; }
+
+            $this->db->set('quantity', 'GREATEST(0, quantity - ' . $actual_disposed_qty . ')', FALSE);
+            $this->db->where('batch_id', $data['batch_id']);
+            $this->db->update('central_stocks');
+        } else { // 'CENTER'
+            $stock_loc = $this->db->select('quantity')->from('center_stocks')->where('batch_id', $data['batch_id'])->where('center_id', $data['center_id'])->get()->row();
+            $quantity_before = ($stock_loc) ? (int)$stock_loc->quantity : 0;
+            $actual_disposed_qty = min((int)$data['quantity_disposed'], $quantity_before);
+            if ($actual_disposed_qty <= 0) { $this->db->trans_rollback(); return ['status' => 'error', 'message' => 'No stock found at the selected center.']; }
+
+            $this->db->set('quantity', 'GREATEST(0, quantity - ' . $actual_disposed_qty . ')', FALSE);
+            $this->db->where('batch_id', $data['batch_id']);
+            $this->db->where('center_id', $data['center_id']);
+            $this->db->update('center_stocks');
+        }
+        $quantity_after = $quantity_before - $actual_disposed_qty;
+        // 4. Decrease Master Batch Stock
+        $this->db->set('quantity_remaining', 'GREATEST(0, quantity_remaining - ' . $actual_disposed_qty . ')', FALSE);
+        $this->db->where('id', $data['batch_id']);
+        $this->db->update('medicine_batches');
+        // 5. Log Movement
+        $movement_data = [
+            'batch_id' => $data['batch_id'],
+            'movement_type' => 'DISPOSAL',
+            'from_location_type' => $data['location_type'], // 'CENTRAL' or 'CENTER'
+            'from_location_id' => $data['center_id'], // Will be null for 'CENTRAL'
+            'to_location_type' => 'WASTAGE',
+            'quantity_before' => $quantity_before,
+            'quantity_change' => -$actual_disposed_qty,
+            'quantity_after' => $quantity_after,
+            'unit_price' => $unit_cost,
+            'total_value' => $unit_cost * $actual_disposed_qty,
+            'reference_type' => 'DISPOSAL_VOUCHER',
+            'reference_id' => $disposal_id,
+            'reference_number' => $disposal_header['disposal_number'],
+            'remarks' => $data['remarks'],
+            'created_by' => $data['created_by']
+        ];
+        $this->db->insert('stock_movements', $movement_data);
+
+        // 6. Commit
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === FALSE) {
+            return ['status' => 'error', 'message' => 'Database transaction failed.'];
+        }
+        return ['status' => 'success'];
+    }
+        /**
+     * FEFO ANALYTICS: Gets the total value of wasted stock (Disposed, Expired, Damaged)
+     * grouped by month for the last X months.
+     */
+    public function get_wastage_by_month($limit_months = 12)
+    {
+        try {
+            $this->db->select([
+                "DATE_FORMAT(created_at, '%Y-%m') as month",
+                "SUM(total_value) as wasted_value"
+            ]);
+            $this->db->from('stock_movements');
+            $this->db->where_in('movement_type', ['DISPOSAL', 'EXPIRED', 'DAMAGED']);
+            $this->db->where('created_at >=', date('Y-m-01', strtotime("-$limit_months months")));
+            $this->db->group_by('month');
+            $this->db->order_by('month', 'ASC');
+            return $this->db->get()->result();
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_wastage_by_month: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * FEFO ANALYTICS: Gets "At-Risk Stock"
+     * (stock that hasn't been sold in X days and is still in inventory).
+     */
+    public function get_at_risk_stock($days_not_sold = 90)
+    {
+         try {
+            // Find batches that HAVE been sold in the last X days
+            $sub_query = $this->db->select('DISTINCT(batch_id)')
+                                  ->from('sale_items')
+                                  ->join('sales', 'sale_items.sale_id = sales.id')
+                                  ->where('sales.sale_date >=', date('Y-m-d', strtotime("-$days_not_sold days")))
+                                  ->get_compiled_select();
+
+            // Find stock from batches that are NOT IN the list above
+            $this->db->select([
+                'm.medicine_name', 'mb.batch_number', 'c.center_name', 'cs.quantity as stock_on_hand',
+                'mb.expiry_date', 'DATEDIFF(mb.expiry_date, CURDATE()) as days_to_expiry'
+            ]);
+            $this->db->from('center_stocks cs');
+            $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+            $this->db->join('hms_centers c', 'cs.center_id = c.ID', 'inner');
+            $this->db->where('cs.quantity >', 0);
+            $this->db->where('mb.batch_status', 'ACTIVE');
+            $this->db->where("mb.id NOT IN ($sub_query)", NULL, FALSE); // Main filter
+            $this->db->order_by('mb.expiry_date', 'ASC'); // Show oldest stock first
+            $this->db->limit(50); // Limit results
+            return $this->db->get()->result();
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_at_risk_stock: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * INVENTORY ANALYTICS: Gets the total stock value (at purchase cost)
+     * grouped by center.
+     */
+    public function get_center_stock_distribution()
+    {
+        try {
+            $this->db->select([
+                'c.center_name',
+                'SUM(cs.quantity * mb.purchase_price) as total_stock_value',
+                'SUM(cs.quantity) as total_units'
+            ]);
+            $this->db->from('center_stocks cs');
+            $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
+            $this->db->join('hms_centers c', 'cs.center_id = c.ID', 'inner');
+            $this->db->where('cs.quantity >', 0);
+            $this->db->where('mb.batch_status', 'ACTIVE');
+            $this->db->group_by('c.ID, c.center_name');
+            $this->db->order_by('total_stock_value', 'DESC');
+            
+            // You can UNION this with `central_stocks` if needed
+            
+            return $this->db->get()->result();
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_center_stock_distribution: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * INVENTORY ANALYTICS: Gets the top X best-selling medicines by revenue.
+     */
+    public function get_top_performing_medicines($limit = 10)
+    {
+        try {
+            $this->db->select([
+                'm.medicine_name', 'b.brand_name',
+                'SUM(si.quantity_sold) as total_units_sold',
+                'SUM(si.total) as total_revenue'
+            ]);
+            $this->db->from('sale_items si');
+            $this->db->join('sales s', 'si.sale_id = s.id', 'inner');
+            $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'inner');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+            $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+            $this->db->where('s.status', 'CONFIRMED');
+            $this->db->group_by('m.id, m.medicine_name, b.brand_name');
+            $this->db->order_by('total_revenue', 'DESC');
+            $this->db->limit($limit);
+            return $this->db->get()->result();
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_top_performing_medicines: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * INVENTORY ANALYTICS: Gets a summary of performance by vendor.
+     */
+    public function get_vendor_performance()
+    {
+        try {
+            // This is a complex query to summarize purchases, returns, and wastage by vendor
+            $sql = "
+                SELECT
+                    v.name as vendor_name,
+                    v.vendor_number,
+                    COUNT(DISTINCT mb.id) as total_batches_supplied,
+                    SUM(COALESCE(purchases.purchase_value, 0)) as total_purchase_value,
+                    SUM(COALESCE(returns.return_count, 0)) as total_returns,
+                    SUM(COALESCE(wastage.wasted_value, 0)) as total_wasted_value
+                FROM hms_vendors v
+                LEFT JOIN medicine_batches mb ON v.ID = mb.vendor_id
+                LEFT JOIN (
+                    -- Subquery for total purchase value
+                    SELECT batch_id, SUM(total_value) as purchase_value
+                    FROM stock_movements
+                    WHERE movement_type = 'PURCHASE'
+                    GROUP BY batch_id
+                ) as purchases ON mb.id = purchases.batch_id
+                LEFT JOIN (
+                    -- Subquery for return counts
+                    SELECT batch_id, COUNT(id) as return_count
+                    FROM stock_movements
+                    WHERE movement_type = 'PURCHASE_RETURN'
+                    GROUP BY batch_id
+                ) as returns ON mb.id = returns.batch_id
+                LEFT JOIN (
+                    -- Subquery for wasted value
+                    SELECT batch_id, SUM(total_value) as wasted_value
+                    FROM stock_movements
+                    WHERE movement_type IN ('DISPOSAL', 'EXPIRED', 'DAMAGED')
+                    GROUP BY batch_id
+                ) as wastage ON mb.id = wastage.batch_id
+                WHERE v.status = 1
+                GROUP BY v.ID, v.name, v.vendor_number
+                ORDER BY total_purchase_value DESC
+            ";
+            return $this->db->query($sql)->result();
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_vendor_performance: ' . $e->getMessage());
+            return [];
+        }
+    }
+
 
     // --- You also need these functions (which you already have) ---
     // public function get_employee_id_from_number($number) { ... }

@@ -115,6 +115,21 @@ class Vendors_model extends CI_Model
 		$result = $q->result_array();
 		return $result;
 	}
+
+	function get_vendor_name_by_vendor_id($vendor_id){
+		$result = array();
+		$sql = "Select name from ".$this->config->item('db_prefix')."vendors where ID='".$vendor_id."'";
+		$q = $this->db->query($sql);
+		$result = $q->result_array();
+		if (!empty($result))
+		{
+			return $result[0]['name'];
+		}
+		else
+		{
+			return null;
+		}
+	}
 }
 // END Stock_model class
 

@@ -540,4 +540,130 @@ class New_purchase_order_model extends CI_Model {
             return 0;
         }
     }
+    /**
+     * Gets distinct active medicines that have been purchased from a specific vendor.
+     * Maps new schema columns to the structure expected by the old 'items_by_vendor' AJAX call.
+     */
+    public function get_vendor_id_by_number($vendor_number)
+    {
+        $query = $this->db->select('ID')
+                          ->where('vendor_number', $vendor_number)
+                          ->limit(1)
+                          ->get('hms_vendors');
+        if ($query->num_rows() > 0) {
+            return $query->row()->ID;
+        }
+        return false; // Vendor not found
+    }
+    public function get_items_by_id($id) 
+    {
+        $query = $this->db->select('ID,name')
+                          ->where('ID', $id)
+                          ->limit(1)
+                          ->get('hms_vendors');
+        if ($query->num_rows() > 0) {
+            return $query->row()->ID;
+        }
+        return false; // Vendor not found
+    }
+    // public function get_items_by_vendor($vendor_id) {
+    //     if (empty($vendor_id)) {
+    //         return [];
+    //     }
+    //     try {
+    //         $this->db->distinct(); 
+    //         $this->db->select([
+    //             'm.id as item_number',          // medicines.id
+    //             'm.medicine_name as item_name', // medicines.medicine_name
+    //             'm.pack_size',                  // medicines.pack_size
+    //             'm.gst_rate as gstrate',        // medicines.gst_rate
+    //             'm.hsn_code as hsn',            // medicines.hsn_code
+    //             'b.brand_name',                 // medicine_brands.brand_name
+    //             'b.manufacturer as company',    // medicine_brands.manufacturer
+    //             'v.vendor_number',              // hms_vendors.vendor_number
+    //             // --- Fields NOT directly available on master medicine record ---
+    //             // Set defaults or NULLs if your JS absolutely needs them
+    //             'NULL as batch_number',         // No single batch number applies
+    //             '0 as quantity',                // Master record has no quantity
+    //             'm.selling_price as price',     // Use selling price from medicine as default 'price'
+    //             'm.selling_price as mrp',       // Use selling price from medicine as default 'mrp'
+    //              // Use last purchase price as vendor_price? Requires complex subquery/join. NULL is safer.
+    //             'NULL as vendor_price',
+    //              // Set to 0 or null if gstdivision isn't in your new schema
+    //             '0 as gstdivision'
+    //         ]);
+    //         $this->db->from('medicines m');
+    //         // Join batches to filter by vendor
+    //         $this->db->join('medicine_batches mb', 'm.id = mb.medicine_id', 'inner');
+    //         // Join vendors to confirm vendor_number and filter by vendor_id
+    //         $this->db->join('hms_vendors v', 'mb.vendor_id = v.ID', 'inner');
+    //         // Join brands to get brand name and company (manufacturer)
+    //         $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+    //         // --- Filters ---
+    //         $this->db->where('m.status', 'active');      // Only active medicines
+    //         $this->db->where('mb.vendor_id', $vendor_id); // Filter by the specific vendor ID
+    //         $this->db->order_by('m.medicine_name', 'ASC');
+    //         $query = $this->db->get();
+    //         return $query->result_array();
+    //     } catch (Exception $e) {
+    //         log_message('error', 'Error in get_medicines_by_vendor: ' . $e->getMessage());
+    //         return []; // Return empty array on error
+    //     }
+    // }
+    /**
+     * Gets distinct active medicines that have been purchased from a specific vendor.
+     * Maps new schema columns to the structure expected by the old 'items_by_vendor' AJAX call.
+     */
+   /**
+     * Gets distinct active medicines that have been purchased from a specific vendor.
+     * Maps new schema columns to the structure expected by the 'items_by_vendor' AJAX call.
+     */
+   public function get_medicines_by_vendor($vendor_id) {
+        if (empty($vendor_id) || !is_numeric($vendor_id)) {
+            log_message('error', 'Invalid vendor_id provided to get_medicines_by_vendor.');
+            return [];
+        }
+        try {
+            // --- 2. Select Clause ---
+            // Construct the select string manually for parts with NULL
+            $this->db->select([
+                'm.id as item_number',
+                'm.medicine_name as item_name',
+                'm.pack_size',
+                'm.gst_rate as gstrate',
+                'm.hsn_code as hsn',
+                'b.brand_name',
+                'b.manufacturer as company',
+                'v.vendor_number',
+                '0 as quantity', // Use 0 instead of NULL if quantity is expected to be numeric
+                'MAX(mb.purchase_price) as vendor_price', // Get representative price
+                'MAX(mb.purchase_price) as price',
+                'MAX(mb.purchase_price) as mrp',
+                '0 as gstdivision'
+            ]);
+            // Add the NULL column separately, telling CI not to escape it
+            $this->db->select('NULL as batch_number', FALSE); // Add FALSE here
+            // --- 3. FROM and JOINs ---
+            $this->db->from('medicines m');
+            $this->db->join('medicine_batches mb', 'm.id = mb.medicine_id', 'inner');
+            $this->db->join('hms_vendors v', 'mb.vendor_id = v.ID', 'inner');
+            $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+            // --- 4. Filters ---
+            $this->db->where('m.status', 'active');
+            $this->db->where('mb.vendor_id', $vendor_id);
+            // --- 5. Grouping ---
+            $this->db->group_by([
+                'm.id', 'm.medicine_name', 'm.pack_size', 'm.gst_rate', 'm.hsn_code',
+                'b.brand_name', 'b.manufacturer', 'v.vendor_number'
+            ]);
+            // --- 6. Ordering ---
+            $this->db->order_by('m.medicine_name', 'ASC');
+            // --- 7. Execute and Return ---
+            $query = $this->db->get();
+            return $query->result_array();
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_medicines_by_vendor: ' . $e->getMessage());
+            return []; // Return empty array on error
+        }
+    }
 }

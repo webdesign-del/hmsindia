@@ -93,6 +93,7 @@
                                                             data-price="<?php echo $batch->selling_price; ?>"
                                                             data-available="<?php echo $batch->available_quantity; ?>"
                                                             data-medicine="<?php echo $batch->medicine_name; ?>"
+                                                            data-gst-rate="<?php echo $batch->gst_rate; ?>"
                                                             data-brand="<?php echo $batch->brand_name; ?>">
                                                         <?php echo $batch->medicine_name . ' - ' . $batch->batch_number . ' (Exp: ' . date('M d, Y', strtotime($batch->expiry_date)) . ') - Available: ' . $batch->available_quantity; ?>
                                                     </option>
@@ -136,13 +137,32 @@
                                         </div>
                                     </div>
                                     
+                                   <div class="form-group">
+                                        <label class="col-sm-4 control-label">Discount (₹)</label>
+                                        <div class="col-sm-8">
+                                            <input type="number" name="discount_amount" class="form-control" placeholder="0.00" step="0.01" min="0">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Tax Amount (₹)</label>
+                                        <div class="col-sm-8">
+                                            <div class="input-group">
+                                                <input type="number" name="tax_amount" class="form-control" placeholder="0.00" step="0.01" min="0">
+                                                <span class="input-group-btn">
+                                                    <button type="button" class="btn btn-info" id="calculate_tax_btn" title="Auto-calculate tax">
+                                                        <i class="fa fa-calculator"></i>
+                                                    </button>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Total</label>
                                         <div class="col-sm-8">
                                             <input type="number" name="total" class="form-control" readonly>
                                         </div>
                                     </div>
-                                    
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Remarks</label>
                                         <div class="col-sm-8">
@@ -191,7 +211,7 @@
                                             <th>Quantity</th>
                                             <th>Unit Price</th>
                                             <th>Subtotal</th>
-                                            <th>Total</th>
+                                            <th>Discount</th> <th>Tax</th>     <th>Total</th>
                                             <?php if($sale->status == 'DRAFT'): ?>
                                                 <th>Actions</th>
                                             <?php endif; ?>
@@ -200,19 +220,24 @@
                                     <tbody>
                                         <?php foreach($sale_items as $item): ?>
                                             <tr>
-                                                <td><?php echo $item->medicine_name; ?></td>
-                                                <td><?php echo $item->brand_name; ?></td>
-                                                <td><?php echo $item->batch_number; ?></td>
+                                                <td><?php echo htmlspecialchars($item->medicine_name ?? 'N/A'); ?></td>
+                                                <td><?php echo htmlspecialchars($item->brand_name ?? 'N/A'); ?></td>
+                                                <td><?php echo htmlspecialchars($item->batch_number ?? 'N/A'); ?></td>
                                                 <td><?php echo date('M d, Y', strtotime($item->expiry_date)); ?></td>
                                                 <td><?php echo number_format($item->quantity_sold); ?></td>
                                                 <td>₹<?php echo number_format($item->unit_price, 2); ?></td>
                                                 <td>₹<?php echo number_format($item->subtotal, 2); ?></td>
+                                                
+                                                <td>₹<?php echo number_format($item->discount_amount, 2); ?></td>
+                                                <td>₹<?php echo number_format($item->tax_amount, 2); ?></td>
+                                                
                                                 <td>₹<?php echo number_format($item->total, 2); ?></td>
+                                                
                                                 <?php if($sale->status == 'DRAFT'): ?>
                                                     <td>
                                                         <a href="<?php echo base_url('stocks_new/remove_sale_item/' . $item->id); ?>" 
-                                                           class="btn btn-danger btn-sm" 
-                                                           onclick="return confirm('Are you sure you want to remove this item?')">
+                                                        class="btn btn-danger btn-sm" 
+                                                        onclick="return confirm('Are you sure you want to remove this item?')">
                                                             <i class="fa fa-trash"></i> Remove
                                                         </a>
                                                     </td>
@@ -220,15 +245,28 @@
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>
-                                    <tfoot>
-                                        <tr class="info">
-                                            <th colspan="7">Total</th>
-                                            <th>₹<?php echo number_format(array_sum(array_column($sale_items, 'total')), 2); ?></th>
-                                            <?php if($sale->status == 'DRAFT'): ?>
-                                                <th></th>
-                                            <?php endif; ?>
-                                        </tr>
-                                    </tfoot>
+                                   <tfoot>
+                                    <tr class="info">
+                                        <th colspan="9" style="text-align:right;">Subtotal</th>
+                                        <th>₹<?php echo number_format($sale->subtotal, 2); ?></th>
+                                        <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
+                                    </tr>
+                                    <tr class="info">
+                                        <th colspan="9" style="text-align:right;">Total Discount</th>
+                                        <th>- ₹<?php echo number_format($sale->discount_amount, 2); ?></th>
+                                        <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
+                                    </tr>
+                                    <tr class="info">
+                                        <th colspan="9" style="text-align:right;">Total Tax</th>
+                                        <th>+ ₹<?php echo number_format($sale->tax_amount, 2); ?></th>
+                                        <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
+                                    </tr>
+                                    <tr class="info" style="font-weight:bold; font-size: 1.1em;">
+                                        <th colspan="9" style="text-align:right;">Grand Total</th>
+                                        <th>₹<?php echo number_format($sale->total_amount, 2); ?></th>
+                                        <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
+                                    </tr>
+                                </tfoot>
                                 </table>
                             </div>
                         <?php else: ?>
@@ -300,10 +338,78 @@
         </div>
     </div>
 </div>
-
 <script>
+// --- Main function to update totals ---
+// This function READS all fields and updates the final total
+function calculateTotals() {
+    var quantity = parseFloat($('input[name="quantity_sold"]').val()) || 0;
+    var unitPrice = parseFloat($('input[name="unit_price"]').val()) || 0;
+    var discount = parseFloat($('input[name="discount_amount"]').val()) || 0;
+    
+    // READ the tax amount from the input field
+    var taxAmount = parseFloat($('input[name="tax_amount"]').val()) || 0;
+
+    // Check quantity against max available
+    var maxAvailable = parseInt($('input[name="quantity_sold"]').attr('max')) || 0;
+    if (quantity > maxAvailable && maxAvailable > 0) {
+        alert('Quantity cannot exceed available stock (' + maxAvailable + ').');
+        $('input[name="quantity_sold"]').val(maxAvailable);
+        quantity = maxAvailable;
+    }
+
+    var subtotal = quantity * unitPrice;
+    
+    // Check discount against subtotal
+    if (discount > subtotal) {
+        alert('Discount cannot be greater than subtotal (₹' + subtotal.toFixed(2) + ').');
+        $('input[name="discount_amount"]').val(subtotal.toFixed(2));
+        discount = subtotal;
+    }
+    
+    var totalAfterDiscount = subtotal - discount;
+    var total = totalAfterDiscount + taxAmount; // Total = (Subtotal - Discount) + Tax
+    
+    // Update readonly fields
+    $('input[name="subtotal"]').val(subtotal.toFixed(2));
+    $('input[name="total"]').val(total.toFixed(2));
+}
+
+// --- Function to auto-calculate tax ---
+// This function WRITES to the tax field, then calls calculateTotals
+function autoCalculateTax(isNewItem = false) {
+    var quantity = parseFloat($('input[name="quantity_sold"]').val()) || 0;
+    // If we just selected a new item, default quantity to 1 for this calculation
+    if (isNewItem) {
+        quantity = 1; 
+    }
+    
+    var unitPrice = parseFloat($('input[name="unit_price"]').val()) || 0;
+    var discount = parseFloat($('input[name="discount_amount"]').val()) || 0;
+    var gst_rate = parseFloat($('select[name="batch_id"] option:selected').data('gst-rate')) || 0;
+
+    if (gst_rate === 0 && !isNewItem) { // Don't alert if it's just a page load
+        alert('No GST rate found for this batch. Please enter tax manually.');
+    }
+
+    var subtotal = quantity * unitPrice;
+    if (discount > subtotal) {
+        discount = subtotal;
+    }
+
+    var totalAfterDiscount = subtotal - discount;
+    var taxAmount = totalAfterDiscount * (gst_rate / 100);
+
+    // --- SET the tax amount ---
+    $('input[name="tax_amount"]').val(taxAmount.toFixed(2));
+    
+    // --- Trigger final total calculation ---
+    calculateTotals();
+}
+
+// --- Function called on batch select change ---
 function loadBatchDetails() {
     var selectedOption = $('select[name="batch_id"] option:selected');
+    
     if (selectedOption.val()) {
         $('#medicine_name').text(selectedOption.data('medicine'));
         $('#brand_name').text(selectedOption.data('brand'));
@@ -314,22 +420,44 @@ function loadBatchDetails() {
         
         // Set max quantity
         $('input[name="quantity_sold"]').attr('max', selectedOption.data('available'));
+        
+        // Reset fields
+        $('input[name="quantity_sold"]').val(1); // Default to 1
+        $('input[name="discount_amount"]').val(''); // Clear discount
+        
+        // Auto-calculate tax for the new item (with quantity 1)
+        autoCalculateTax(true); 
+        // calculateTotals() is called inside autoCalculateTax()
+        
     } else {
+        // Clear all fields
         $('#medicine_details').hide();
+        $('input[name="unit_price"]').val('');
+        $('input[name="quantity_sold"]').val('').removeAttr('max');
+        $('input[name="discount_amount"]').val('');
+        $('input[name="tax_amount"]').val('');
+        calculateTotals(); // Recalculate (will be 0)
     }
 }
 
+
 $(document).ready(function() {
-    // Calculate totals
-    $('input[name="quantity_sold"], input[name="unit_price"]').on('input', function() {
-        var quantity = parseFloat($('input[name="quantity_sold"]').val()) || 0;
-        var unitPrice = parseFloat($('input[name="unit_price"]').val()) || 0;
-        var subtotal = quantity * unitPrice;
-        var total = subtotal; // You can add discount/tax logic here
-        
-        $('input[name="subtotal"]').val(subtotal.toFixed(2));
-        $('input[name="total"]').val(total.toFixed(2));
+    // --- Event Listeners ---
+    
+    // Recalculate total when ANY of the 4 fields change
+    $('input[name="quantity_sold"], input[name="unit_price"], input[name="discount_amount"], input[name="tax_amount"]').on('input', function() {
+        calculateTotals();
     });
+    
+    // Load batch details on change
+    $('select[name="batch_id"]').on('change', loadBatchDetails);
+    
+    // Click handler for the new auto-calculate tax button
+    $('#calculate_tax_btn').on('click', function() {
+        autoCalculateTax(false); // 'false' = use the current quantity in the input
+    });
+    
+    // Initial calculation on page load
+    calculateTotals();
 });
 </script>
-

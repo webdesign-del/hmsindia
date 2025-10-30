@@ -279,7 +279,7 @@
                             <i class="fa fa-rupee fa-5x"></i>
                         </div>
                         <div class="col-xs-9 text-right">
-                            <div class="huge">₹<?php echo number_format($dashboard_summary->total_stock_quantity ?? 0, 0); ?></div>
+                            <div class="huge"><?php echo number_format($dashboard_summary->total_stock_value ?? 0, 0); ?></div>
                             <div>Total Stock Value</div>
                         </div>
                     </div>
@@ -302,7 +302,7 @@
                             <i class="fa fa-chart-line fa-5x"></i>
                         </div>
                         <div class="col-xs-9 text-right">
-                            <div class="huge">₹0</div>
+                            <div class="huge">₹0 <?php echo number_format($dashboard_summary->todays_sales_count ?? 0, 0); ?></div>
                             <div>Today's Sales</div>
                         </div>
                     </div>

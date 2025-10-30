@@ -425,6 +425,7 @@
          <input type="hidden" name="po_id" value="<?php echo $purchase_order['id']; ?>">
          <input type="hidden" name="po_number" value="<?php echo $purchase_order['po_number']; ?>">
          <input type="hidden" name="vendor_number" value="<?php echo $purchase_order['vendor_number']; ?>">
+         <input type="hidden" name="center_id" value="<?php echo $ship_to_center_id; ?>">
          
          <div class="card-content" style="padding: 20px;">
             
@@ -454,7 +455,7 @@
                      <div class="form-group">
                         <label for="reference">Reference</label>
                         <input type="text" class="form-control" id="reference" name="reference" 
-                           value="<?php echo isset($purchase_order['reference']) ? $purchase_order['reference'] : ''; ?>">
+                           value="<?php echo isset($purchase_order['reference']) ? $purchase_order['reference'] : ''; ?>" required>
                      </div>
                      
                     <div class="form-group">
@@ -467,18 +468,17 @@
                      </div>
 
                   </div>
-                  
                   <!-- Right Column -->
                   <div class="col-md-6">
                      <div class="form-group">
                         <label for="supplier_name">Supplier Name <span class="text-danger">*</span></label>
                         <select class="form-control" id="supplier_name" name="supplier_name_display" disabled>
                            <option value="">-- Select Supplier --</option>
-                           <option value="Cash Purchase" <?php echo (isset($purchase_order['vendor_number']) && $purchase_order['vendor_number'] == 'Cash Purchase') ? 'selected' : ''; ?>>Cash Purchase</option>
+                           <!-- <option value="Cash Purchase" <?php echo (isset($vendor_id) && $vendor_id == 'Cash Purchase') ? 'selected' : ''; ?>>Cash Purchase</option> -->
                            <?php if(isset($vendors) && !empty($vendors)): ?>
                               <?php foreach($vendors as $vendor): ?>
-                                 <option value="<?php echo $vendor['vendor_number']; ?>" 
-                                    <?php echo (isset($purchase_order['vendor_number']) && $purchase_order['vendor_number'] == $vendor['vendor_number']) ? 'selected' : ''; ?>>
+                                 <option value="<?php echo $vendor['ID']; ?>" 
+                                    <?php echo (isset($vendor_id) && $vendor_id == $vendor['ID']) ? 'selected' : ''; ?>>
                                     <?php echo $vendor['name']; ?>
                                  </option>
                               <?php endforeach; ?>
@@ -522,7 +522,7 @@
                            <div class="form-group">
                               <label for="receive_by">Receive By</label>
                               <input type="text" class="form-control" name="receive_by" id="receive_by" 
-                                 value="" placeholder="Enter receiver name">
+                                 value="" placeholder="Enter receiver name" required>
                            </div>
                         </div>
                         <div class="col-md-4">
@@ -530,7 +530,7 @@
                               <label for="date_receiving">Date of Receiving</label>
                               <div class="date-input-group">
                                  <input type="text" class="form-control" name="date_receiving" id="date_receiving" 
-                                    value="<?php echo date('Y-m-d'); ?>" placeholder="YYYY-MM-DD">
+                                    value="<?php echo date('Y-m-d'); ?>" placeholder="YYYY-MM-DD" required>
                                  <i class="fa fa-calendar"></i>
                               </div>
                            </div>

@@ -3651,31 +3651,17 @@ function get_employee_detail($id)
 
 
 function employee_detail_number($biller_id)
-
 {
-
 	$ci= &get_instance();
-
     $ci->load->database();
-
-	
-
     $sql = "SELECT * FROM hms_employees WHERE employee_number  = '".$biller_id."'";
-
     $q   = $ci->db->query($sql);
-
     $result = $q->result_array();    
-
     if(count($result) > 0)
-
     {
-
-		    return $result[0];    	
-
+        return $result[0];    	
     }
-
     return $result;
-
 }
 
 

@@ -34,7 +34,7 @@
                         <option value="">-- Select Vendor --</option>
                         <?php if (!empty($vendors)): ?>
                            <?php foreach ($vendors as $vendor): ?>
-                              <option value="<?php echo $vendor['vendor_number']; ?>">
+                              <option value="<?php echo $vendor['ID']; ?>">
                                  <?php echo $vendor['name']; ?> (<?php echo $vendor['vendor_number']; ?>)
                               </option>
                            <?php endforeach; ?>

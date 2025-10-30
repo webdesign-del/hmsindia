@@ -76,8 +76,6 @@ class Stocks_new extends CI_Controller
 
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
-            // var_dump($data);    
-            // die;
             $this->load->view("stocks_new/dashboard", $data);
             $this->load->view($template["footer"]);
         } else {
@@ -2030,6 +2028,8 @@ class Stocks_new extends CI_Controller
                         "batch_id" => $this->input->post("batch_id"),
                         "quantity_sold" => $this->input->post("quantity_sold"),
                         "unit_price" => $this->input->post("unit_price"),
+                        "discount_amount" => $this->input->post("discount_amount"),
+                        "tax_amount"=>$this->input->post("tax_amount"),
                         "subtotal" =>
                             $this->input->post("quantity_sold") *
                             $this->input->post("unit_price"),
@@ -2050,6 +2050,7 @@ class Stocks_new extends CI_Controller
                             "Error adding sale item!",
                         );
                     }
+                    var_dump($id);
                     redirect("stocks_new/edit_sale/" . $id);
                 }
             }
@@ -5730,4 +5731,157 @@ class Stocks_new extends CI_Controller
             redirect(base_url());
         }
     }
+    /**
+     * Loads the "Dispose Batch" page for a single batch (GET request)
+     * OR processes the disposal (POST request).
+     */
+    public function dispose_batch($batch_id = 0)
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) { redirect(base_url()); return; }
+
+        $this->load->model('Stock_model_new');
+        $this->load->library('form_validation');
+        // --- Handle POST request (Form Submission) ---
+        if ($this->input->post('action') == 'dispose_single_batch') {
+            
+            $posted_batch_id = $this->input->post('batch_id');
+            $this->form_validation->set_rules('location_key', 'Location', 'required|trim');
+            $this->form_validation->set_rules('quantity_disposed', 'Quantity', 'required|numeric|greater_than[0]');
+            $this->form_validation->set_rules('disposal_type', 'Disposal Reason', 'required|trim');
+            $this->form_validation->set_rules('disposal_date', 'Disposal Date', 'required|trim');
+            $this->form_validation->set_rules('authorized_by', 'Authorized By', 'required|trim');
+
+            if ($this->form_validation->run() == TRUE) {
+                
+                // Get Employee ID (Primary Key)
+                $created_by_id = null;
+                if (isset($logg['ID'])) {
+                   $created_by_id = $logg['ID'];
+                } elseif ($_SESSION['logged_central_stock_manager']["employee_number"]) {
+                    $employee = $this->db->where("employee_number", $_SESSION['logged_central_stock_manager']["employee_number"])->get("hms_employees")->row();
+                    if ($employee) $created_by_id = $employee->ID;
+                }
+
+                if (!$created_by_id) {
+                     $this->session->set_flashdata("error", "Could not identify logged-in user ID.");
+                     redirect('stocks_new/dispose_batch/' . $posted_batch_id);
+                     return;
+                }
+
+                // Parse the location_key (e.g., "CENTER|5" or "CENTRAL|0")
+                $location_parts = explode('|', $this->input->post('location_key'));
+                $location_type = $location_parts[0]; // 'CENTER' or 'CENTRAL'
+                $center_id = ($location_type == 'CENTER') ? (int)$location_parts[1] : null;
+
+                // Prepare data for the model
+                $disposal_data = [
+                    'batch_id'          => $posted_batch_id,
+                    'location_type'     => $location_type,
+                    'center_id'         => $center_id, // Null if CENTRAL
+                    'disposal_type'     => $this->input->post('disposal_type'), // Maps to disposal_reports.disposal_type
+                    'quantity_disposed' => $this->input->post('quantity_disposed'),
+                    'disposal_method'   => $this->input->post('disposal_method'), // From form
+                    'disposal_company'  => $this->input->post('disposal_company'), // From form
+                    'authorized_by'     => $this->input->post('authorized_by'), // From form
+                    'disposal_date'     => $this->input->post('disposal_date'),
+                    'remarks'           => $this->input->post('remarks'),
+                    'created_by'        => $created_by_id
+                ];
+
+                $result = $this->Stock_model_new->process_single_batch_disposal($disposal_data);
+                
+                if ($result['status'] == 'success') {
+                    $this->session->set_flashdata('success', 'Batch disposed successfully.');
+                    redirect('stocks_new/batches'); // Redirect to batch list
+                } else {
+                    $this->session->set_flashdata('error', 'Disposal failed: ' . $result['message']);
+                    redirect('stocks_new/dispose_batch/' . $posted_batch_id);
+                }
+            } else {
+                // Validation failed
+                $this->session->set_flashdata('error', validation_errors());
+                redirect('stocks_new/dispose_batch/' . $this->input->post('batch_id'));
+            }
+            return; // End POST logic
+        }
+        if ($batch_id == 0) {
+            $this->session->set_flashdata('error', 'No batch ID provided.');
+            redirect('stocks_new/batches'); // Redirect to batch list
+            return;
+        }
+        $data['batch_info'] = $this->Stock_model_new->get_batch_stock_locations($batch_id);
+        if (!$data['batch_info'] || empty($data['batch_info']['locations'])) {
+            $this->session->set_flashdata('error', 'Batch not found or no stock available for this batch.');
+            redirect('stocks_new/batches');
+            return;
+        }
+
+        $template = get_header_template($logg['role']);
+        $this->load->view($template["header"]);
+        $this->load->view('stocks_new/dispose_batch', $data); // The new view file
+        $this->load->view($template["footer"]);
+    }
+
+        /**
+     * Loads the FEFO Analytics report page.
+     * This report focuses on waste, expiry, and stock rotation.
+     */
+    public function fefo_analytics()
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+
+        $this->load->model('Stock_model_new');
+        $data['title'] = "FEFO Analytics";
+
+        // --- FIX IS HERE ---
+        // 1. Define the number of days in a variable
+        $days_to_check = 90; 
+        
+        // 2. Pass the variable to your model function
+        $data['at_risk_stock'] = $this->Stock_model_new->get_at_risk_stock($days_to_check); 
+        
+        // 3. Pass the variable to the view data array
+        $data['days_not_sold'] = $days_to_check; 
+        // --- END FIX ---
+
+        // Get other data
+        $data['wastage_by_month'] = $this->Stock_model_new->get_wastage_by_month(12);
+
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/fefo_analytics", $data); // This view will now receive $days_not_sold
+        $this->load->view($template["footer"]);
+    }
+
+    /**
+     * Loads the Inventory Analytics report page.
+     * This report focuses on value, performance, and distribution.
+     */
+    public function inventory_analytics()
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+
+        $this->load->model('Stock_model_new');
+        $data['title'] = "Inventory Analytics";
+
+        // Get data from the model
+        $data['stock_distribution'] = $this->Stock_model_new->get_center_stock_distribution();
+        $data['top_medicines'] = $this->Stock_model_new->get_top_performing_medicines(10);
+        $data['vendor_performance'] = $this->Stock_model_new->get_vendor_performance();
+
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/inventory_analytics", $data); // New view file
+        $this->load->view($template["footer"]);
+    }
+
 }
