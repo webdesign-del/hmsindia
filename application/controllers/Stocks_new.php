@@ -4021,7 +4021,37 @@ class Stocks_new extends CI_Controller
     // ===============================================
     // PURCHASE ORDER BATCH TRACKING
     // ===============================================
+/**
+     * Handles the GET request to export a filtered sales report to CSV.
+     * The model function handles the actual query and file generation.
+     */
+    public function export_sales_report()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            // 1. Get all filters from the URL query string
+            $filters = [
+                "date_from"   => $this->input->get("date_from"),
+                "date_to"     => $this->input->get("date_to"),
+                "center_id"   => $this->input->get("center_id"),
+                "medicine_id" => $this->input->get("medicine_id"), // Filter by medicine
+                "patient_id"  => $this->input->get("patient_id"),  // Filter by patient
+                "status"      => $this->input->get("status")       // Filter by status (DRAFT, CONFIRMED)
+            ];
 
+            // 2. Load the model
+            $this->load->model('Stock_model_new');
+
+            // 3. Call the model function that does all the work
+            // The model will generate the CSV and call exit;
+            $this->Stock_model_new->export_sales_report($filters);
+
+        } else {
+            // Not logged in, redirect to login
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
     public function track_po_batches($po_id)
     {
         $logg = checklogin();
@@ -4070,6 +4100,63 @@ class Stocks_new extends CI_Controller
             die();
         }
     }
+    /**
+     * Handles the GET request to export a filtered transfer report to CSV. transfer report
+     */
+    public function export_transfer_report()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            // 1. Get all filters from the URL query string
+            $filters = [
+                "date_from"      => $this->input->get("date_from"),
+                "date_to"        => $this->input->get("date_to"),
+                "from_center_id" => $this->input->get("from_center_id"),
+                "to_center_id"   => $this->input->get("to_center_id"),
+                "medicine_id"    => $this->input->get("medicine_id"),
+                "status"         => $this->input->get("status") // e.g., COMPLETED, PENDING
+            ];
+
+            // 2. Load the model
+            $this->load->model('Stock_model_new');
+
+            // 3. Call the model function that does all the work
+            // The model will generate the CSV and call exit;
+            $this->Stock_model_new->export_transfer_report($filters);
+
+        } else {
+            // Not logged in, redirect to login
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+    /**
+     * Loads the main "All Reports" page, which contains forms
+     * to download various individual reports (CSV, etc.).
+     */
+    public function export_all_reports()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $this->load->model('Stock_model_new');
+            // --- Get data for filters ---
+            $data["centers"] = $this->Stock_model_new->get_all_centers();
+            // Use your function that gets all medicines for a dropdown
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines(); 
+            
+            $data['title'] = "Export Reports";
+            $template = get_header_template($logg["role"]);
+            
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/all_reports_page", $data); // Load the new view
+            $this->load->view($template["footer"]);
+
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
 
     // ===============================================
     // STOCK MOVEMENTS HISTORY

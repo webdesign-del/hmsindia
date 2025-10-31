@@ -3205,59 +3205,59 @@ class Stock_model_new extends CI_Model
             }
         }
 
-        public function search_stock_movements($filters)
-        {
-            try {
-                $this->db->select('
-                    sm.*,
-                    m.medicine_name,
-                    m.medicine_code,
-                    mb.batch_number,
-                    fc.center_name as from_center,
-                    tc.center_name as to_center
-                ');
-                $this->db->from("stock_movements sm");
-                $this->db->join("medicine_batches mb", "sm.batch_id = mb.id");
-                $this->db->join("medicines m", "mb.medicine_id = m.id");
-                $this->db->join(
-                    "hms_centers fc",
-                    "sm.from_location_id = fc.ID",
-                    "left",
-                );
-                $this->db->join(
-                    "hms_centers tc",
-                    "sm.to_location_id = tc.ID",
-                    "left",
-                );
+        // public function search_stock_movements($filters)
+        // {
+        //     try {
+        //         $this->db->select('
+        //             sm.*,
+        //             m.medicine_name,
+        //             m.medicine_code,
+        //             mb.batch_number,
+        //             fc.center_name as from_center,
+        //             tc.center_name as to_center
+        //         ');
+        //         $this->db->from("stock_movements sm");
+        //         $this->db->join("medicine_batches mb", "sm.batch_id = mb.id");
+        //         $this->db->join("medicines m", "mb.medicine_id = m.id");
+        //         $this->db->join(
+        //             "hms_centers fc",
+        //             "sm.from_location_id = fc.ID",
+        //             "left",
+        //         );
+        //         $this->db->join(
+        //             "hms_centers tc",
+        //             "sm.to_location_id = tc.ID",
+        //             "left",
+        //         );
 
-                if (!empty($filters["medicine_id"])) {
-                    $this->db->where("m.id", $filters["medicine_id"]);
-                }
-                if (!empty($filters["batch_id"])) {
-                    $this->db->where("mb.id", $filters["batch_id"]);
-                }
-                if (!empty($filters["center_id"])) {
-                    $this->db->where(
-                        "(sm.from_location_id = " .
-                            $filters["center_id"] .
-                            " OR sm.to_location_id = " .
-                            $filters["center_id"] .
-                            ")",
-                    );
-                }
-                if (!empty($filters["date_from"])) {
-                    $this->db->where("sm.created_at >=", $filters["date_from"]);
-                }
-                if (!empty($filters["date_to"])) {
-                    $this->db->where("sm.created_at <=", $filters["date_to"]);
-                }
+        //         if (!empty($filters["medicine_id"])) {
+        //             $this->db->where("m.id", $filters["medicine_id"]);
+        //         }
+        //         if (!empty($filters["batch_id"])) {
+        //             $this->db->where("mb.id", $filters["batch_id"]);
+        //         }
+        //         if (!empty($filters["center_id"])) {
+        //             $this->db->where(
+        //                 "(sm.from_location_id = " .
+        //                     $filters["center_id"] .
+        //                     " OR sm.to_location_id = " .
+        //                     $filters["center_id"] .
+        //                     ")",
+        //             );
+        //         }
+        //         if (!empty($filters["date_from"])) {
+        //             $this->db->where("sm.created_at >=", $filters["date_from"]);
+        //         }
+        //         if (!empty($filters["date_to"])) {
+        //             $this->db->where("sm.created_at <=", $filters["date_to"]);
+        //         }
 
-                $this->db->order_by("sm.created_at", "DESC");
-                return $this->db->get()->result();
-            } catch (Exception $e) {
-                return [];
-            }
-        }
+        //         $this->db->order_by("sm.created_at", "DESC");
+        //         return $this->db->get()->result();
+        //     } catch (Exception $e) {
+        //         return [];
+        //     }
+        // }
 
         public function get_summary_stats()
         {
@@ -3307,11 +3307,140 @@ class Stock_model_new extends CI_Model
             }
         }
 
+        // public function export_stock_report($filters)
+        // {
+        //     try {
+        //         $movements = $this->search_stock_movements($filters);
+        //         // Set headers for CSV download
+        //         header("Content-Type: text/csv");
+        //         header(
+        //             'Content-Disposition: attachment; filename="stock_movements_report_' .
+        //                 date("Y-m-d") .
+        //                 '.csv"',
+        //         );
+        //         $output = fopen("php://output", "w");
+        //         // CSV headers
+        //         fputcsv($output, [
+        //             "Date",
+        //             "Medicine Name",
+        //             "Medicine Code",
+        //             "Batch Number",
+        //             "Movement Type",
+        //             "From Center",
+        //             "To Center",
+        //             "Quantity Change",
+        //             "Unit Price",
+        //             "Total Value",
+        //             "Reference Number",
+        //             "Status",
+        //         ]);
+
+        //         // CSV data
+        //         foreach ($movements as $movement) {
+        //             fputcsv($output, [
+        //                 $movement->movement_date,
+        //                 $movement->medicine_name,
+        //                 $movement->medicine_code,
+        //                 $movement->batch_number,
+        //                 $movement->movement_type,
+        //                 $movement->from_center,
+        //                 $movement->to_center,
+        //                 $movement->quantity_change,
+        //                 $movement->unit_price,
+        //                 $movement->total_value,
+        //                 $movement->reference_number,
+        //                 $movement->status,
+        //             ]);
+        //         }
+
+        //         fclose($output);
+        //     } catch (Exception $e) {
+        //         echo "Error exporting report: " . $e->getMessage();
+        //     }
+        // }
+/**
+     * Fetches the stock movement data based on filters.
+     * This is the missing function that export_stock_report() needs.
+        */
+        public function search_stock_movements($filters)
+        {
+            try {
+                $this->db->select([
+                    'DATE(sm.created_at) as movement_date',
+                    'm.medicine_name',
+                    'm.medicine_code',
+                    'mb.batch_number',
+                    'sm.movement_type',
+                    
+                    // Use CASE statements to get names for "From" and "To"
+                    "CASE 
+                        WHEN sm.from_location_type = 'CENTER' THEN fc.center_name
+                        WHEN sm.from_location_type = 'VENDOR' THEN fv.name
+                        WHEN sm.from_location_type = 'CENTRAL' THEN 'Central Warehouse'
+                        ELSE sm.from_location_type 
+                    END as from_center",
+                    
+                    "CASE 
+                        WHEN sm.to_location_type = 'CENTER' THEN tc.center_name
+                        WHEN sm.to_location_type = 'CENTRAL' THEN 'Central Warehouse'
+                        ELSE sm.to_location_type 
+                    END as to_center",
+                    
+                    'sm.quantity_change',
+                    'sm.unit_price',
+                    'sm.total_value',
+                    'sm.reference_number',
+                    'mb.batch_status as status' // Get the batch status
+                ]);
+                $this->db->from('stock_movements sm');
+                $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
+                $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+                $this->db->join('hms_vendors fv', 'sm.from_location_id = fv.ID AND sm.from_location_type = "VENDOR"', 'left');
+                $this->db->join('hms_centers fc', 'sm.from_location_id = fc.ID AND sm.from_location_type = "CENTER"', 'left');
+                $this->db->join('hms_centers tc', 'sm.to_location_id = tc.ID AND sm.to_location_type = "CENTER"', 'left');
+
+                // --- Apply Filters ---
+                if (!empty($filters['medicine_id'])) {
+                    $this->db->where('mb.medicine_id', $filters['medicine_id']);
+                }
+                if (!empty($filters['batch_id'])) {
+                    $this->db->where('sm.batch_id', $filters['batch_id']);
+                }
+                if (!empty($filters['date_from'])) {
+                    $this->db->where('DATE(sm.created_at) >=', $filters['date_from']);
+                }
+                if (!empty($filters['date_to'])) {
+                    $this->db->where('DATE(sm.created_at) <=', $filters['date_to']);
+                }
+                
+                // This filter finds movements FROM or TO the selected center
+                if (!empty($filters['center_id'])) {
+                    $this->db->group_start();
+                    $this->db->where('(sm.from_location_type = "CENTER" AND sm.from_location_id = ' . (int)$filters['center_id'] . ')');
+                    $this->db->or_where('(sm.to_location_type = "CENTER" AND sm.to_location_id = ' . (int)$filters['center_id'] . ')');
+                    $this->db->group_end();
+                }
+                // --- End Filters ---
+
+                $this->db->order_by('sm.created_at', 'DESC');
+                return $this->db->get()->result();
+
+            } catch (Exception $e) {
+                log_message('error', 'Error in search_stock_movements: ' . $e->getMessage());
+                return [];
+            }
+        }
+
+    /**
+     * Exports the stock report to a CSV file.
+     * This is your original function, corrected with an exit; call.
+     */
         public function export_stock_report($filters)
         {
             try {
+                // Call the function above to get the filtered data
                 $movements = $this->search_stock_movements($filters);
-
+                
                 // Set headers for CSV download
                 header("Content-Type: text/csv");
                 header(
@@ -3319,9 +3448,9 @@ class Stock_model_new extends CI_Model
                         date("Y-m-d") .
                         '.csv"',
                 );
-
+                
                 $output = fopen("php://output", "w");
-
+                
                 // CSV headers
                 fputcsv($output, [
                     "Date",
@@ -3329,13 +3458,13 @@ class Stock_model_new extends CI_Model
                     "Medicine Code",
                     "Batch Number",
                     "Movement Type",
-                    "From Center",
-                    "To Center",
+                    "From Location", // Renamed for clarity
+                    "To Location",   // Renamed for clarity
                     "Quantity Change",
                     "Unit Price",
                     "Total Value",
                     "Reference Number",
-                    "Status",
+                    "Batch Status", // Renamed for clarity
                 ]);
 
                 // CSV data
@@ -3346,22 +3475,302 @@ class Stock_model_new extends CI_Model
                         $movement->medicine_code,
                         $movement->batch_number,
                         $movement->movement_type,
-                        $movement->from_center,
-                        $movement->to_center,
+                        $movement->from_center, // Matches the 'as from_center' alias
+                        $movement->to_center,   // Matches the 'as to_center' alias
                         $movement->quantity_change,
                         $movement->unit_price,
                         $movement->total_value,
                         $movement->reference_number,
-                        $movement->status,
+                        $movement->status, // Matches the 'as status' alias
                     ]);
                 }
 
                 fclose($output);
+                exit; // --- CRITICAL FIX --- Add exit; here to prevent corrupting the file
+
             } catch (Exception $e) {
+                // Can't set headers if they are already sent
+                log_message('error', "Error exporting report: " . $e->getMessage());
                 echo "Error exporting report: " . $e->getMessage();
+                exit;
+            }
+        }
+        /**
+     * Fetches detailed sale items based on filters for reporting.
+     * This is called by export_sales_report().
+     */
+    public function search_sales_items($filters)
+    {
+        try {
+            $this->db->select([
+                's.sale_date',
+                's.sale_number',
+                'c.center_name',
+                's.patient_name',
+                's.patient_id',
+                'm.medicine_name',
+                'b.brand_name',
+                'mb.batch_number',
+                'mb.expiry_date',
+                'si.quantity_sold',
+                'si.unit_price',
+                'si.subtotal',
+                'si.discount_amount',
+                'si.tax_amount',
+                'si.total',
+                'e.name as sold_by_name',
+                's.status as sale_status'
+            ]);
+            $this->db->from('sale_items si');
+            $this->db->join('sales s', 'si.sale_id = s.id', 'inner');
+            $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+            $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+            $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
+            $this->db->join('hms_employees e', 's.created_by = e.ID', 'left');
+
+            // --- Apply Filters ---
+            if (!empty($filters['date_from'])) {
+                $this->db->where('s.sale_date >=', $filters['date_from']);
+            }
+            if (!empty($filters['date_to'])) {
+                $this->db->where('s.sale_date <=', $filters['date_to']);
+            }
+            if (!empty($filters['center_id'])) {
+                $this->db->where('s.center_id', (int)$filters['center_id']);
+            }
+            if (!empty($filters['medicine_id'])) {
+                $this->db->where('mb.medicine_id', (int)$filters['medicine_id']);
+            }
+            if (!empty($filters['patient_id'])) {
+                // Use LIKE for patient ID search
+                $this->db->like('s.patient_id', $filters['patient_id']);
+            }
+             if (!empty($filters['status'])) {
+                $this->db->where('s.status', $filters['status']);
+            } else {
+                // Default to only showing CONFIRMED sales if no status is specified
+                $this->db->where('s.status', 'CONFIRMED');
+            }
+            // --- End Filters ---
+
+            $this->db->order_by('s.sale_date', 'DESC');
+            $this->db->order_by('s.sale_number', 'DESC');
+            
+            return $this->db->get()->result();
+
+        } catch (Exception $e) {
+            log_message('error', 'Error in search_sales_items: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Generates a CSV file for the filtered sales report and forces download.
+     */
+        public function export_sales_report($filters)
+        {
+            try {
+                // 1. Get the filtered data
+                $sales_items = $this->search_sales_items($filters);
+                $filename = "sales_report_item_wise_" . date("Y-m-d") . ".csv";
+                // 2. Set CSV headers
+                header("Content-Type: text/csv");
+                header("Content-Disposition: attachment; filename=\"$filename\"");
+                $output = fopen("php://output", "w");
+                // 3. Write CSV Header Row
+                fputcsv($output, [
+                    "Sale Date",
+                    "Sale Number",
+                    "Center",
+                    "Patient ID",
+                    "Patient Name",
+                    "Medicine",
+                    "Brand",
+                    "Batch Number",
+                    "Expiry Date",
+                    "Quantity Sold",
+                    "Unit Price",
+                    "Subtotal",
+                    "Discount",
+                    "Tax",
+                    "Total",
+                    "Sold By",
+                    "Sale Status"
+                ]);
+                // 4. Write Data Rows
+                foreach ($sales_items as $item) {
+                    fputcsv($output, [
+                        $item->sale_date,
+                        $item->sale_number,
+                        $item->center_name,
+                        $item->patient_id,
+                        $item->patient_name,
+                        $item->medicine_name,
+                        $item->brand_name,
+                        $item->batch_number,
+                        $item->expiry_date,
+                        $item->quantity_sold,
+                        $item->unit_price,
+                        $item->subtotal,
+                        $item->discount_amount,
+                        $item->tax_amount,
+                        $item->total,
+                        $item->sold_by_name,
+                        $item->sale_status
+                    ]);
+                }
+                // 5. Close stream and exit
+                fclose($output);
+                exit; // Must call exit; to prevent other output from corrupting file
+
+            } catch (Exception $e) {
+                log_message('error', "Error exporting sales report: " . $e->getMessage());
+                echo "Error: Could not generate report.";
+                exit;
+            }
+        }
+        /**
+     * Fetches detailed transfer items based on filters for reporting.
+     * This is called by export_transfer_report().
+        */
+        public function search_transfer_items($filters)
+        {
+            try {
+                $this->db->select([
+                    'st.transfer_date',
+                    'st.transfer_number',
+                    'st.transfer_type',
+                    // Use CASE for 'From' location, as it could be Central Warehouse (NULL ID)
+                    "CASE 
+                        WHEN st.from_center_id IS NULL THEN 'Central Warehouse' 
+                        ELSE from_center.center_name 
+                    END as from_location_name",
+                    'to_center.center_name as to_location_name',
+                    'm.medicine_name',
+                    'b.brand_name',
+                    'mb.batch_number',
+                    'mb.expiry_date',
+                    'sti.quantity_transferred',
+                    'sti.unit_price', // This is the purchase price
+                    'sti.total_price',
+                    'e.name as transferred_by_name',
+                    'st.status as transfer_status'
+                ]);
+                $this->db->from('stock_transfer_items sti');
+                $this->db->join('stock_transfers st', 'sti.transfer_id = st.id', 'inner');
+                $this->db->join('medicine_batches mb', 'sti.batch_id = mb.id', 'left');
+                $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+                $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+                // Join hms_centers twice: once for 'From', once for 'To'
+                $this->db->join('hms_centers from_center', 'st.from_center_id = from_center.ID', 'left'); // LEFT join for NULL
+                $this->db->join('hms_centers to_center', 'st.to_center_id = to_center.ID', 'left');
+                $this->db->join('hms_employees e', 'st.created_by = e.ID', 'left');
+
+                // --- Apply Filters ---
+                if (!empty($filters['date_from'])) {
+                    $this->db->where('st.transfer_date >=', $filters['date_from']);
+                }
+                if (!empty($filters['date_to'])) {
+                    $this->db->where('st.transfer_date <=', $filters['date_to']);
+                }
+                if (!empty($filters['from_center_id'])) {
+                    if (strtolower($filters['from_center_id']) == 'central') {
+                        $this->db->where('st.from_center_id IS NULL');
+                    } else {
+                        $this->db->where('st.from_center_id', (int)$filters['from_center_id']);
+                    }
+                }
+                if (!empty($filters['to_center_id'])) {
+                    $this->db->where('st.to_center_id', (int)$filters['to_center_id']);
+                }
+                if (!empty($filters['medicine_id'])) {
+                    $this->db->where('mb.medicine_id', (int)$filters['medicine_id']);
+                }
+                if (!empty($filters['status'])) {
+                    $this->db->where('st.status', $filters['status']);
+                } else {
+                    // Default to only showing COMPLETED transfers if no status is specified
+                    $this->db->where('st.status', 'COMPLETED');
+                }
+                // --- End Filters ---
+
+                $this->db->order_by('st.transfer_date', 'DESC');
+                $this->db->order_by('st.transfer_number', 'DESC');
+                
+                return $this->db->get()->result();
+
+            } catch (Exception $e) {
+                log_message('error', 'Error in search_transfer_items: ' . $e->getMessage());
+                return [];
             }
         }
 
+        /**
+         * Generates a CSV file for the filtered transfer report and forces download.
+         */
+        public function export_transfer_report($filters)
+        {
+            try {
+                // 1. Get the filtered data
+                $transfer_items = $this->search_transfer_items($filters);
+                
+                $filename = "transfer_report_item_wise_" . date("Y-m-d") . ".csv";
+
+                // 2. Set CSV headers
+                header("Content-Type: text/csv");
+                header("Content-Disposition: attachment; filename=\"$filename\"");
+                
+                $output = fopen("php://output", "w");
+                
+                // 3. Write CSV Header Row
+                fputcsv($output, [
+                    "Transfer Date",
+                    "Transfer Number",
+                    "Transfer Type",
+                    "From Location",
+                    "To Location",
+                    "Medicine",
+                    "Brand",
+                    "Batch Number",
+                    "Expiry Date",
+                    "Quantity Transferred",
+                    "Unit Cost",
+                    "Total Value",
+                    "Transferred By",
+                    "Status"
+                ]);
+
+                // 4. Write Data Rows
+                foreach ($transfer_items as $item) {
+                    fputcsv($output, [
+                        $item->transfer_date,
+                        $item->transfer_number,
+                        $item->transfer_type,
+                        $item->from_location_name,
+                        $item->to_location_name,
+                        $item->medicine_name,
+                        $item->brand_name,
+                        $item->batch_number,
+                        $item->expiry_date,
+                        $item->quantity_transferred,
+                        $item->unit_price,
+                        $item->total_price,
+                        $item->transferred_by_name,
+                        $item->transfer_status
+                    ]);
+                }
+
+                // 5. Close stream and exit
+                fclose($output);
+                exit; // Must call exit; to prevent other output from corrupting file
+
+            } catch (Exception $e) {
+                log_message('error', "Error exporting transfer report: " . $e->getMessage());
+                echo "Error: Could not generate report.";
+                exit;
+            }
+        }
         // public function process_medicine_return($return_data, $return_items)
         // {
         //     // 1. Check for empty items
