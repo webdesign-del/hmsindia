@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-warehouse"></i> Stock Report
+                    <i class="fa fa-building-o"></i> Stock Report
                     <small>Current stock levels and inventory status</small>
                 </h1>
             </div>
@@ -18,16 +18,16 @@
                     </div>
                     <div class="panel-body">
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-primary">
-                            <i class="fa fa-warehouse"></i> View Stock Levels
+                            <i class="fa fa-building-o"></i> View Stock Levels
                         </a>
                         <a href="<?php echo base_url('stocks_new/stock_summary'); ?>" class="btn btn-info">
-                            <i class="fa fa-chart-bar"></i> Stock Summary
+                            <i class="fa fa-bar-chart-o"></i> Stock Summary
                         </a>
                         <a href="<?php echo base_url('stocks_new/low_stock_alerts'); ?>" class="btn btn-warning">
                             <i class="fa fa-exclamation-triangle"></i> Low Stock Alerts
                         </a>
                         <a href="<?php echo base_url('stocks_new/expiry_alerts'); ?>" class="btn btn-danger">
-                            <i class="fa fa-clock"></i> Expiry Alerts
+                            <i class="fa fa-clock-o"></i> Expiry Alerts
                         </a>
                     </div>
                 </div>
@@ -168,13 +168,13 @@
                                                         </button>
                                                         <ul class="dropdown-menu">
                                                             <li><a href="<?php echo base_url('stocks_new/transfers?batch_id=' . (isset($stock->batch_id) ? $stock->batch_id : '')); ?>">
-                                                                <i class="fa fa-exchange-alt"></i> Transfer Stock
+                                                                <i class="fa fa-exchange"></i> Transfer Stock
                                                             </a></li>
                                                             <li><a href="<?php echo base_url('stocks_new/sales?batch_id=' . (isset($stock->batch_id) ? $stock->batch_id : '')); ?>">
                                                                 <i class="fa fa-shopping-cart"></i> Sell Stock
                                                             </a></li>
                                                             <li><a href="<?php echo base_url('stocks_new/stock_movements?batch_id=' . (isset($stock->batch_id) ? $stock->batch_id : '')); ?>">
-                                                                <i class="fa fa-history"></i> View History
+                                                                <i class="fa fa-list-alt"></i> View History
                                                             </a></li>
                                                         </ul>
                                                     </div>
@@ -205,7 +205,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-boxes fa-5x"></i>
+                                <i class="fa fa-archive fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo isset($stock_levels) ? count($stock_levels) : 0; ?></div>

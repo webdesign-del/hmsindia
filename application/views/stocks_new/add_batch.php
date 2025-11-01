@@ -25,7 +25,7 @@
         <div class="col-md-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <i class="fa fa-boxes"></i> Batch Information
+                    <i class="fa fa-archive"></i> Batch Information
                 </div>
                 <div class="panel-body">
                     <?php if(validation_errors()): ?>

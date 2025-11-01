@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-boxes"></i> Batch Management
+                    <i class="fa fa-archive"></i> Batch Management
                     <small>Manage medicine batches and inventory</small>
                 </h1>
             </div>
@@ -24,7 +24,7 @@
                             <i class="fa fa-capsules"></i> Add New Medicine
                         </a>
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-info">
-                            <i class="fa fa-warehouse"></i> View Stock Levels
+                            <i class="fa fa-building-o"></i> View Stock Levels
                         </a>
                     </div>
                 </div>
@@ -153,10 +153,10 @@
                                                         </button>
                                                         <ul class="dropdown-menu">
                                                             <li><a href="<?php echo base_url('stocks_new/stock_levels?batch_id=' . $batch->id); ?>">
-                                                                <i class="fa fa-warehouse"></i> View Stock
+                                                                <i class="fa fa-building-o"></i> View Stock
                                                             </a></li>
                                                             <li><a href="<?php echo base_url('stocks_new/transfers?batch_id=' . $batch->id); ?>">
-                                                                <i class="fa fa-exchange-alt"></i> Transfer Stock
+                                                                <i class="fa fa-exchange"></i> Transfer Stock
                                                             </a></li>
                                                             <li><a href="<?php echo base_url('stocks_new/sales?batch_id=' . $batch->id); ?>">
                                                                 <i class="fa fa-shopping-cart"></i> Sell Stock
@@ -172,7 +172,7 @@
                                                                 <i class="fa fa-ban text-danger"></i> Quarantine Batch
                                                             </a></li>
                                                             <li><a href="#" onclick="updateBatchStatus(<?php echo $batch->id; ?>, 'DISPOSED')">
-                                                                <i class="fa fa-trash text-danger"></i> Mark as Disposed
+                                                                <i class="fa fa-trash-o text-danger"></i> Mark as Disposed
                                                             </a></li>
                                                         </ul>
                                                     </div>
@@ -202,7 +202,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-boxes fa-5x"></i>
+                                <i class="fa fa-archive fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo count($batches); ?></div>

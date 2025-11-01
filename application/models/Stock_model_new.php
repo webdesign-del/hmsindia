@@ -4880,7 +4880,7 @@ class Stock_model_new extends CI_Model
         public function get_disposed_items_from_log($disposal_id)
         {
             // Renamed function to clarify source
-            try {
+            // try {
                 $this->db->select([
                     'sm.id as movement_id',
                     'sm.quantity_change', // This will be negative
@@ -4897,20 +4897,17 @@ class Stock_model_new extends CI_Model
                 $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
                 $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
                 $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
-                
                 // Filter specifically for this disposal report's log entries
                 $this->db->where('sm.reference_id', $disposal_id);
                 $this->db->where('sm.reference_type', 'DISPOSAL_VOUCHER');
                 $this->db->where('sm.movement_type', 'DISPOSAL'); // Ensure correct movement type
-                
                 $this->db->order_by('sm.created_at', 'ASC'); // Order by log entry time
-                
                 return $this->db->get()->result(); // Return an array of item objects
                 
-            } catch (Exception $e) {
-                log_message('error', "Error in get_disposed_items_from_log: " . $e->getMessage());
-                return []; // Return empty array on error
-            }
+            // } catch (Exception $e) {
+            //     log_message('error', "Error in get_disposed_items_from_log: " . $e->getMessage());
+            //     return []; // Return empty array on error
+            // }
         }
         
         public function process_stock_audit($audit_header, $audit_items)

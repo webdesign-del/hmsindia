@@ -21,7 +21,7 @@
                     <i class="fa fa-refresh"></i> Refresh List
                 </a>
                 <a href="<?php echo base_url('stocks_new/po_stock_history'); ?>" class="btn btn-info">
-                    <i class="fa fa-history"></i> View History
+                    <i class="fa fa-list-alt"></i> View History
                 </a>
                 <a href="<?php echo base_url('stocks_new/dashboard'); ?>" class="btn btn-default">
                     <i class="fa fa-dashboard"></i> Back to Dashboard

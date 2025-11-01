@@ -165,7 +165,7 @@
                         </div>
                         <div class="col-md-3">
                             <a href="<?php echo base_url('stocks_new/reports'); ?>" class="btn btn-primary btn-block">
-                                <i class="fa fa-chart-bar"></i>  View Reports
+                                <i class="fa fa-bar-chart-o"></i>  View Reports
                             </a>
                         </div>
                     </div>
@@ -369,7 +369,7 @@
         <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <i class="fa fa-chart-line"></i> Sales Analytics (Last 30 Days)
+                    <i class="fa fa-line-chart"></i> Sales Analytics (Last 30 Days)
                 </div>
                 <div class="panel-body">
                     <canvas id="salesChart" height="300"></canvas>
@@ -380,7 +380,7 @@
         <div class="col-md-6">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <i class="fa fa-exchange-alt"></i> Transfer Analytics (Last 30 Days)
+                    <i class="fa fa-exchange"></i> Transfer Analytics (Last 30 Days)
                 </div>
                 <div class="panel-body">
                     <canvas id="transferChart" height="300"></canvas>
@@ -438,7 +438,7 @@
         <div class="col-md-6">
             <div class="panel panel-danger">
                 <div class="panel-heading">
-                    <i class="fa fa-clock"></i> Expiry Alerts
+                    <i class="fa fa-clock-o"></i> Expiry Alerts
                 </div>
                 <div class="panel-body">
                     <?php if(!empty($expiry_alerts)): ?>
@@ -529,7 +529,7 @@
         <div class="col-md-6">
             <div class="panel panel-success">
                 <div class="panel-heading">
-                    <i class="fa fa-exchange-alt"></i> Recent Transfers
+                    <i class="fa fa-exchange"></i> Recent Transfers
                 </div>
                 <div class="panel-body">
                     <div class="table-responsive">

@@ -3,7 +3,7 @@
 <div class="row">
     <div class="col-md-12">
         <h1 class="page-header">
-            <i class="fa fa-history"></i> Purchase Order Stock History
+            <i class="fa fa-list-alt"></i> Purchase Order Stock History
             <small>View processed purchase orders and stock additions</small>
         </h1>
     </div>
@@ -15,7 +15,7 @@
         <ol class="breadcrumb">
             <li><a href="<?php echo base_url('stocks_new/dashboard'); ?>"><i class="fa fa-dashboard"></i> Stock Dashboard</a></li>
             <li><a href="<?php echo base_url('stocks_new/purchase_orders_for_stock'); ?>"><i class="fa fa-shopping-cart"></i> Purchase Orders</a></li>
-            <li class="active"><i class="fa fa-history"></i> History</li>
+            <li class="active"><i class="fa fa-list-alt"></i> History</li>
         </ol>
     </div>
 </div>
@@ -90,7 +90,7 @@
                                                     <i class="fa fa-eye"></i> View PO
                                                 </a>
                                                 <a href="<?php echo base_url('stocks_new/batches?po_id=' . (isset($po->id) ? $po->id : '')); ?>" class="btn btn-success btn-sm">
-                                                    <i class="fa fa-boxes"></i> View Batches
+                                                    <i class="fa fa-archive"></i> View Batches
                                                 </a>
                                             </div>
                                         </td>

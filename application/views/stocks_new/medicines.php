@@ -21,10 +21,10 @@
                             <i class="fa fa-plus"></i> Add New Medicine
                         </a>
                         <a href="<?php echo base_url('stocks_new/add_batch'); ?>" class="btn btn-success">
-                            <i class="fa fa-boxes"></i> Add New Batch
+                            <i class="fa fa-archive"></i> Add New Batch
                         </a>
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-info">
-                            <i class="fa fa-warehouse"></i> View Stock Levels
+                            <i class="fa fa-building-o"></i> View Stock Levels
                         </a>
                     </div>
                 </div>

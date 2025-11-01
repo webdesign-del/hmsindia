@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-chart-bar"></i> <?php echo isset($report_title) ? $report_title : 'Sales Reports'; ?>
+                    <i class="fa fa-bar-chart-o"></i> <?php echo isset($report_title) ? $report_title : 'Sales Reports'; ?>
                     <small>Comprehensive sales analytics and reporting</small>
                 </h1>
             </div>
@@ -24,7 +24,7 @@
                             <i class="fa fa-plus"></i> Create New Sale
                         </a>
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-info">
-                            <i class="fa fa-warehouse"></i> Stock Levels
+                            <i class="fa fa-building-o"></i> Stock Levels
                         </a>
                     </div>
                 </div>
@@ -46,7 +46,7 @@
                                     <option value="">All Centers</option>
                                     <?php if(isset($centers) && !empty($centers)): ?>
                                         <?php foreach($centers as $center): ?>
-                                            <option value="<?php echo isset($center->id) ? $center->id : ''; ?>" <?php echo (isset($selected_center) && $selected_center == $center->id) ? 'selected' : ''; ?>>
+                                            <option value="<?php echo isset($center->ID) ? $center->ID : ''; ?>" <?php echo (isset($selected_center) && $selected_center == $center->ID) ? 'selected' : ''; ?>>
                                                 <?php echo isset($center->center_name) ? htmlspecialchars($center->center_name) : 'N/A'; ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -223,7 +223,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-boxes fa-5x"></i>
+                                <i class="fa fa-archive fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo isset($sales) ? number_format(array_sum(array_map(function($s) { return isset($s->total_quantity) ? $s->total_quantity : 0; }, $sales))) : '0'; ?></div>

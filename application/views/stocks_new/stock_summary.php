@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-chart-bar"></i> Stock Summary
+                    <i class="fa fa-bar-chart-o"></i> Stock Summary
                     <small>Overview of all medicine stock levels</small>
                 </h1>
             </div>
@@ -73,7 +73,7 @@
                                                         </a>
                                                         <a href="<?php echo base_url('stocks_new/batches?medicine_id=' . (isset($item->medicine_id) ? $item->medicine_id : 0)); ?>" 
                                                            class="btn btn-sm btn-info" title="View Batches">
-                                                            <i class="fa fa-boxes"></i>
+                                                            <i class="fa fa-archive"></i>
                                                         </a>
                                                     </div>
                                                 </td>

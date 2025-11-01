@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-bar-chart"></i> Reports & Analytics
+                    <i class="fa fa-bar-chart-o"></i> Reports & Analytics
                     <small>Comprehensive stock and sales reports</small>
                 </h1>
             </div>
@@ -165,7 +165,7 @@
                                     <li>Stock rotation efficiency</li>
                                 </ul>
                                 <a href="<?php echo base_url('stocks_new/fefo_analytics'); ?>" class="btn btn-info">
-                                    <i class="fa fa-bar-chart"></i> View FEFO Analytics
+                                    <i class="fa fa-bar-chart-o"></i> View FEFO Analytics
                                 </a>
                             </div>
                             <div class="col-md-6">

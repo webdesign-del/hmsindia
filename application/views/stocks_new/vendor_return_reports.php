@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-chart-bar"></i> Vendor Return Reports
+                    <i class="fa fa-bar-chart-o"></i> Vendor Return Reports
                     <small>Comprehensive reports and analytics for vendor returns</small>
                 </h1>
             </div>

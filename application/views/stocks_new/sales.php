@@ -42,10 +42,10 @@
                             <i class="fa fa-plus"></i> Create New Sale
                         </a>
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-info">
-                            <i class="fa fa-warehouse"></i> View Stock Levels
+                            <i class="fa fa-building-o"></i> View Stock Levels
                         </a>
                         <a href="<?php echo base_url('stocks_new/sales_report'); ?>" class="btn btn-success">
-                            <i class="fa fa-chart-bar"></i> Sales Reports
+                            <i class="fa fa-bar-chart-o"></i> Sales Reports
                         </a>
                     </div>
                 </div>
@@ -248,7 +248,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-clock fa-5x"></i>
+                                <i class="fa fa-clock-o fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo count(array_filter($sales, function($s) { return $s->status == 'DRAFT'; })); ?></div>

@@ -21,7 +21,7 @@
                             <i class="fa fa-plus"></i> Add New Invoice
                         </a>
                         <a href="<?php echo base_url('stocks_new/invoice_reports'); ?>" class="btn btn-info">
-                            <i class="fa fa-chart-bar"></i> Invoice Reports
+                            <i class="fa fa-bar-chart-o"></i> Invoice Reports
                         </a>
                         <a href="<?php echo base_url('stocks_new/vendor_returns'); ?>" class="btn btn-warning">
                             <i class="fa fa-undo"></i> Vendor Returns
@@ -207,7 +207,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-clock fa-5x"></i>
+                                <i class="fa fa-clock-o fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo count(array_filter($invoices, function($i) { return in_array($i->status, ['DRAFT', 'PENDING', 'APPROVED']); })); ?></div>

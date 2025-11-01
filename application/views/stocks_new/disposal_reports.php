@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-trash"></i> Disposal Reports
+                    <i class="fa fa-trash-o"></i> Disposal Reports
                     <small>View medicine disposal history</small>
                 </h1>
             </div>

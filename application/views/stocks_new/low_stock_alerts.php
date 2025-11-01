@@ -21,10 +21,10 @@
                             <i class="fa fa-plus"></i> Add New Batch
                         </a>
                         <a href="<?php echo base_url('stocks_new/transfers'); ?>" class="btn btn-info">
-                            <i class="fa fa-exchange-alt"></i> Transfer Stock
+                            <i class="fa fa-exchange"></i> Transfer Stock
                         </a>
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-success">
-                            <i class="fa fa-warehouse"></i> View All Stock
+                            <i class="fa fa-building-o"></i> View All Stock
                         </a>
                     </div>
                 </div>
@@ -105,7 +105,7 @@
                                                                 <i class="fa fa-plus"></i> Add Batch
                                                             </a></li>
                                                             <li><a href="<?php echo base_url('stocks_new/transfers?medicine_id=' . (isset($alert->medicine_id) ? $alert->medicine_id : 0)); ?>">
-                                                                <i class="fa fa-exchange-alt"></i> Transfer Stock
+                                                                <i class="fa fa-exchange"></i> Transfer Stock
                                                             </a></li>
                                                             <li><a href="<?php echo base_url('stocks_new/edit_medicine/' . (isset($alert->medicine_id) ? $alert->medicine_id : 0)); ?>">
                                                                 <i class="fa fa-edit"></i> Edit Medicine

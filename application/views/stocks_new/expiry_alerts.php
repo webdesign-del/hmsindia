@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-clock"></i> Expiry Alerts
+                    <i class="fa fa-clock-o"></i> Expiry Alerts
                     <small>Medicines approaching or past expiry date</small>
                 </h1>
             </div>
@@ -21,10 +21,10 @@
                             <i class="fa fa-shopping-cart"></i> Sell Expiring Stock
                         </a>
                         <a href="<?php echo base_url('stocks_new/transfers'); ?>" class="btn btn-info">
-                            <i class="fa fa-exchange-alt"></i> Transfer Stock
+                            <i class="fa fa-exchange"></i> Transfer Stock
                         </a>
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-success">
-                            <i class="fa fa-warehouse"></i> View All Stock
+                            <i class="fa fa-building-o"></i> View All Stock
                         </a>
                     </div>
                 </div>
@@ -36,7 +36,7 @@
             <div class="col-md-12">
                 <div class="panel panel-danger">
                     <div class="panel-heading">
-                        <i class="fa fa-clock"></i> Expiry Alerts
+                        <i class="fa fa-clock-o"></i> Expiry Alerts
                         <span class="badge pull-right"><?php echo isset($expiry_alerts) ? count($expiry_alerts) : 0; ?> alerts</span>
                     </div>
                     <div class="panel-body">
@@ -115,12 +115,12 @@
                                                                     <i class="fa fa-shopping-cart"></i> Sell Stock
                                                                 </a></li>
                                                                 <li><a href="<?php echo base_url('stocks_new/transfers?batch_id=' . (isset($alert->batch_id) ? $alert->batch_id : 0)); ?>">
-                                                                    <i class="fa fa-exchange-alt"></i> Transfer Stock
+                                                                    <i class="fa fa-exchange"></i> Transfer Stock
                                                                 </a></li>
                                                             <?php endif; ?>
                                                             <li><a href="<?php echo base_url('stocks_new/dispose_batch/' . (isset($alert->batch_id) ? $alert->batch_id : 0)); ?>" 
                                                                    onclick="return confirm('Are you sure you want to dispose this batch?')">
-                                                                <i class="fa fa-trash"></i> Dispose Batch
+                                                                <i class="fa fa-trash-o"></i> Dispose Batch
                                                             </a></li>
                                                         </ul>
                                                     </div>
@@ -181,7 +181,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-clock fa-5x"></i>
+                                <i class="fa fa-clock-o fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo isset($expiry_alerts) ? count(array_filter($expiry_alerts, function($a) { return isset($a->alert_level) && $a->alert_level == 'WARNING'; })) : 0; ?></div>

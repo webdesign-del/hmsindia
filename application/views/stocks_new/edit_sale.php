@@ -238,7 +238,7 @@
                                                         <a href="<?php echo base_url('stocks_new/remove_sale_item/' . $item->id); ?>" 
                                                         class="btn btn-danger btn-sm" 
                                                         onclick="return confirm('Are you sure you want to remove this item?')">
-                                                            <i class="fa fa-trash"></i> Remove
+                                                            <i class="fa fa-trash-o"></i> Remove
                                                         </a>
                                                     </td>
                                                 <?php endif; ?>

@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-exchange-alt"></i> <?php echo isset($report_title) ? $report_title : 'Transfer Reports'; ?>
+                    <i class="fa fa-exchange"></i> <?php echo isset($report_title) ? $report_title : 'Transfer Reports'; ?>
                     <small>Comprehensive transfer analytics and reporting</small>
                 </h1>
             </div>
@@ -18,13 +18,13 @@
                     </div>
                     <div class="panel-body">
                         <a href="<?php echo base_url('stocks_new/transfers'); ?>" class="btn btn-primary">
-                            <i class="fa fa-exchange-alt"></i> View All Transfers
+                            <i class="fa fa-exchange"></i> View All Transfers
                         </a>
                         <a href="<?php echo base_url('stocks_new/add_transfer'); ?>" class="btn btn-success">
                             <i class="fa fa-plus"></i> Create New Transfer
                         </a>
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-info">
-                            <i class="fa fa-warehouse"></i> Stock Levels
+                            <i class="fa fa-building-o"></i> Stock Levels
                         </a>
                     </div>
                 </div>
@@ -194,7 +194,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-exchange-alt fa-5x"></i>
+                                <i class="fa fa-exchange fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo isset($transfers) ? count($transfers) : 0; ?></div>
@@ -242,7 +242,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-boxes fa-5x"></i>
+                                <i class="fa fa-archive fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo isset($transfers) ? number_format(array_sum(array_map(function($t) { return isset($t->total_quantity) ? $t->total_quantity : 0; }, $transfers))) : '0'; ?></div>

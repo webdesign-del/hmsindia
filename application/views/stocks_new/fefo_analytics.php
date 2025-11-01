@@ -16,7 +16,7 @@
     <div class="col-md-12">
         <div class="panel panel-danger">
             <div class="panel-heading">
-                <i class="fa fa-trash"></i> Monthly Wastage Value (Expired, Damaged, Disposed)
+                <i class="fa fa-trash-o"></i> Monthly Wastage Value (Expired, Damaged, Disposed)
             </div>
             <div class="panel-body">
                 <canvas id="wastageChart"></canvas>

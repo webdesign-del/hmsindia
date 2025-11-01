@@ -39,7 +39,7 @@
     <div class="col-md-6">
         <div class="panel panel-info">
             <div class="panel-heading">
-                <i class="fa fa-exchange-alt"></i> Transfer Test
+                <i class="fa fa-exchange"></i> Transfer Test
             </div>
             <div class="panel-body">
                 <button class="btn btn-primary" onclick="testTransferFunction()">

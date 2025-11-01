@@ -3,7 +3,7 @@
 <div class="row">
     <div class="col-md-12">
         <h1 class="page-header">
-            <i class="fa fa-warehouse"></i> Central Stocks
+            <i class="fa fa-building-o"></i> Central Stocks
             <small>Central warehouse inventory management</small>
         </h1>
     </div>

@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-exchange-alt"></i> Multi-Item Stock Transfer
+                    <i class="fa fa-exchange"></i> Multi-Item Stock Transfer
                     <small>Transfer multiple items between locations</small>
                 </h1>
             </div>
@@ -25,7 +25,7 @@
             <div class="col-md-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <i class="fa fa-exchange-alt"></i> Transfer Information
+                        <i class="fa fa-exchange"></i> Transfer Information
                     </div>
                     <div class="panel-body">
                         <?php if(validation_errors()): ?>
@@ -120,7 +120,7 @@
                             <!-- Available Stock Items -->
                             <div class="row">
                                 <div class="col-md-12">
-                                    <h4><i class="fa fa-boxes text-info"></i> Available Stock Items</h4>
+                                    <h4><i class="fa fa-archive text-info"></i> Available Stock Items</h4>
                                     <div id="stockItemsContainer">
                                         <div class="alert alert-info">
                                             <i class="fa fa-info-circle"></i> Please select source location to view available stock items.
@@ -159,7 +159,7 @@
                                     <div class="form-group">
                                         <div class="col-sm-offset-2 col-sm-10">
                                             <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
-                                                <i class="fa fa-exchange-alt"></i> Process Transfer
+                                                <i class="fa fa-exchange"></i> Process Transfer
                                             </button>
                                             <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-default">
                                                 <i class="fa fa-arrow-left"></i> Cancel

@@ -3,7 +3,7 @@
 <div class="row">
     <div class="col-md-12">
         <h1 class="page-header">
-            <i class="fa fa-exchange-alt"></i> Department Transfer
+            <i class="fa fa-exchange"></i> Department Transfer
             <small>Transfer stocks between departments</small>
         </h1>
     </div>
@@ -114,7 +114,7 @@
                     <!-- Available Stock Items -->
                     <div class="row">
                         <div class="col-md-12">
-                            <h4><i class="fa fa-boxes text-info"></i> Available Stock Items</h4>
+                            <h4><i class="fa fa-archive text-info"></i> Available Stock Items</h4>
                             <div id="stockItemsContainer">
                                 <div class="alert alert-info">
                                     <i class="fa fa-info-circle"></i> Please complete source location details to view available stock items.
@@ -153,7 +153,7 @@
                             <div class="form-group">
                                 <div class="col-sm-offset-2 col-sm-10">
                                     <button type="submit" id="submitBtn" class="btn btn-primary btn-lg" disabled>
-                                        <i class="fa fa-exchange-alt"></i> Process Department Transfer
+                                        <i class="fa fa-exchange"></i> Process Department Transfer
                                     </button>
                                     <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-default btn-lg">
                                         <i class="fa fa-arrow-left"></i> Back to Stock Levels

@@ -3,7 +3,7 @@
 <div class="row">
     <div class="col-md-12">
         <h1 class="page-header">
-            <i class="fa fa-trash"></i> Dispose Batch
+            <i class="fa fa-trash-o"></i> Dispose Batch
             <small>Dispose stock for a specific batch</small>
         </h1>
     </div>
@@ -50,7 +50,7 @@
     <div class="col-md-12">
         <div class="panel panel-danger">
             <div class="panel-heading">
-                <i class="fa fa-trash"></i> Disposal Form
+                <i class="fa fa-trash-o"></i> Disposal Form
             </div>
             <div class="panel-body">
                 <form action="<?php echo base_url('stocks_new/dispose_batch/' . $batch_info['batch_id']); ?>" method="post" class="form-horizontal">
@@ -140,7 +140,7 @@
                     <div class="form-group">
                         <div class="col-sm-offset-3 col-sm-9">
                             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to dispose this stock? This action cannot be undone.')">
-                                <i class="fa fa-trash"></i> Process Disposal
+                                <i class="fa fa-trash-o"></i> Process Disposal
                             </button>
                             <a href="<?php echo base_url('stocks_new/batches'); // Link to batch list ?>" class="btn btn-default">
                                 <i class="fa fa-arrow-left"></i> Cancel

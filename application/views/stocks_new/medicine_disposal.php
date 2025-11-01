@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-trash"></i> Medicine Disposal
+                    <i class="fa fa-trash-o"></i> Medicine Disposal
                     <small>Dispose expired and damaged medicines</small>
                 </h1>
             </div>
@@ -14,7 +14,7 @@
             <div class="col-md-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <i class="fa fa-trash"></i> Medicine Disposal Form
+                        <i class="fa fa-trash-o"></i> Medicine Disposal Form
                     </div>
                     <div class="panel-body">
                         <?php if(validation_errors()): ?>
@@ -161,7 +161,7 @@
                                                     <td><span class="total_cost">-</span></td>
                                                     <td>
                                                         <button type="button" class="btn btn-danger btn-sm remove_row">
-                                                            <i class="fa fa-trash"></i>
+                                                            <i class="fa fa-trash-o"></i>
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -224,7 +224,7 @@
                                     <div class="form-group">
                                         <div class="col-sm-offset-2 col-sm-10">
                                             <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to dispose these medicines? This action cannot be undone.')">
-                                                <i class="fa fa-trash"></i> Process Disposal
+                                                <i class="fa fa-trash-o"></i> Process Disposal
                                             </button>
                                             <a href="<?php echo base_url('stocks_new/disposal_reports'); ?>" class="btn btn-default">
                                                 <i class="fa fa-arrow-left"></i> Cancel
@@ -314,7 +314,7 @@ $(document).ready(function() {
             '<td><input type="number" name="disposal_items[' + rowCount + '][quantity_disposed]" class="form-control quantity_disposed" min="1" required></td>' +
             '<td><span class="unit_cost">-</span></td>' +
             '<td><span class="total_cost">-</span></td>' +
-            '<td><button type="button" class="btn btn-danger btn-sm remove_row"><i class="fa fa-trash"></i></button></td>' +
+            '<td><button type="button" class="btn btn-danger btn-sm remove_row"><i class="fa fa-trash-o"></i></button></td>' +
             '</tr>';
         var newRow = $(newRowHtml);
         $('#disposal_items_table tbody').append(newRow);

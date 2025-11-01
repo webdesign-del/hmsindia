@@ -3,11 +3,11 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-warehouse"></i> Stock Levels
+                    <i class="fa fa-building-o"></i> Stock Levels
                     <small>Real-time inventory tracking with FEFO</small>
                     <!-- <div class="pull-right">
                     <a href="<?php echo base_url('stocks_new/multi_transfer'); ?>" class="btn btn-success">
-                        <i class="fa fa-exchange-alt"></i> Multi-Item Transfer
+                        <i class="fa fa-exchange"></i> Multi-Item Transfer
                     </a>
                     <a href="<?php echo base_url('stocks_new/department_transfer'); ?>" class="btn btn-info">
                         <i class="fa fa-building"></i> Department Transfer
@@ -184,13 +184,13 @@
                                                         </button>
                                                         <ul class="dropdown-menu">
                                                             <li><a href="<?php echo base_url('stocks_new/transfers?batch_id=' . (isset($stock->batch_id) ? $stock->batch_id : '')); ?>">
-                                                                <i class="fa fa-exchange-alt"></i> Transfer Stock
+                                                                <i class="fa fa-exchange"></i> Transfer Stock
                                                             </a></li>
                                                             <li><a href="<?php echo base_url('stocks_new/sales?batch_id=' . (isset($stock->batch_id) ? $stock->batch_id : '')); ?>">
                                                                 <i class="fa fa-shopping-cart"></i> Sell Stock
                                                             </a></li>
                                                             <li><a href="<?php echo base_url('stocks_new/stock_movements?batch_id=' . (isset($stock->batch_id) ? $stock->batch_id : '')); ?>">
-                                                                <i class="fa fa-history"></i> View History
+                                                                <i class="fa fa-list-alt"></i> View History
                                                             </a></li>
                                                         </ul>
                                                     </div>
@@ -223,7 +223,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-boxes fa-5x"></i>
+                                <i class="fa fa-archive fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo count($stock_levels); ?></div>

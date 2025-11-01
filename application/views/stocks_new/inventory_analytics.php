@@ -5,7 +5,7 @@
 <div class="row">
     <div class="col-md-12">
         <h1 class="page-header">
-            <i class="fa fa-bar-chart"></i> Inventory Analytics
+            <i class="fa fa-bar-chart-o"></i> Inventory Analytics
             <small>Value, Performance, & Distribution Reports</small>
         </h1>
     </div>

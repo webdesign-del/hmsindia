@@ -124,11 +124,11 @@
                     <i class="fa fa-arrow-left"></i> Back to Disposal List
                 </a>
                 <a href="<?php echo base_url('stocks_new/medicine_disposal'); // Link to your create disposal page ?>" class="btn btn-danger">
-                    <i class="fa fa-trash"></i> New Disposal
+                    <i class="fa fa-trash-o"></i> New Disposal
                 </a>
-                <button type="button" class="btn btn-info" onclick="window.print();">
+                <!-- <button type="button" class="btn btn-info" onclick="window.print();">
                      <i class="fa fa-print"></i> Print Report
-                 </button>
+                 </button> -->
             </div>
         </div>
     </div>

@@ -21,7 +21,7 @@
                             <i class="fa fa-plus"></i> Add New Return
                         </a>
                         <a href="<?php echo base_url('stocks_new/vendor_return_reports'); ?>" class="btn btn-info">
-                            <i class="fa fa-chart-bar"></i> Return Reports
+                            <i class="fa fa-bar-chart-o"></i> Return Reports
                         </a>
                     </div>
                 </div>

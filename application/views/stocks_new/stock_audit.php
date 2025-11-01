@@ -178,7 +178,7 @@
                                                     <td><span class="status"><span class="badge" style="background-color: #d9534f;">Shortage</span></span></td>
                                                     <td>
                                                         <button type="button" class="btn btn-danger btn-sm remove_row">
-                                                            <i class="fa fa-trash"></i>
+                                                            <i class="fa fa-trash-o"></i>
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -202,7 +202,7 @@
                                                 <td><span class="status">-</span></td>
                                                 <td>
                                                     <button type="button" class="btn btn-danger btn-sm remove_row" disabled>
-                                                        <i class="fa fa-trash"></i>
+                                                        <i class="fa fa-trash-o"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -303,7 +303,7 @@ $(document).ready(function() {
                 <td><input type="number" name="audit_items[${rowCount}][physical_quantity]" class="form-control physical_quantity" min="0" required></td>
                 <td><span class="variance">-</span></td>
                 <td><span class="status">-</span></td>
-                <td><button type="button" class="btn btn-danger btn-sm remove_row"><i class="fa fa-trash"></i></button></td>
+                <td><button type="button" class="btn btn-danger btn-sm remove_row"><i class="fa fa-trash-o"></i></button></td>
             </tr>`;
         
         var newRowEl = $(newRow);

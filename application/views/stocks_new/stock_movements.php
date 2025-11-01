@@ -8,7 +8,7 @@
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="panel-title">
-                        <i class="fa fa-history"></i> Stock Movement History
+                        <i class="fa fa-list-alt"></i> Stock Movement History
                         <?php if(isset($batch_details) && $batch_details): ?>
                             - Batch: <?php echo htmlspecialchars($batch_details->batch_number); ?>
                         <?php endif; ?>

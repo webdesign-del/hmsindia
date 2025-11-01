@@ -133,7 +133,7 @@
                                             <td><span class="total_cost">-</span></td>
                                             <td>
                                                 <button type="button" class="btn btn-danger btn-sm remove_row" disabled>
-                                                    <i class="fa fa-trash"></i>
+                                                    <i class="fa fa-trash-o"></i>
                                                 </button>
                                             </td>
                                         </tr>
@@ -343,7 +343,7 @@ $(document).ready(function() {
                 <td><span class="total_cost">-</span></td>
                 <td>
                     <button type="button" class="btn btn-danger btn-sm remove_row">
-                        <i class="fa fa-trash"></i>
+                        <i class="fa fa-trash-o"></i>
                     </button>
                 </td>
             </tr>`;

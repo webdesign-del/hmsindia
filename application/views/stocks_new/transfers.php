@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-exchange-alt"></i> Stock Transfers
+                    <i class="fa fa-exchange"></i> Stock Transfers
                     <small>Transfer inventory between locations with FEFO</small>
                 </h1>
             </div>
@@ -42,14 +42,14 @@
                             <i class="fa fa-plus"></i> Create New Transfer
                         </a>
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-info">
-                            <i class="fa fa-warehouse"></i> View Stock Levels
+                            <i class="fa fa-building-o"></i> View Stock Levels
                         </a>
                         <a href="<?php echo base_url('stocks_new/transfer_report'); ?>" class="btn btn-success">
-                            <i class="fa fa-chart-bar"></i> Transfer Reports
+                            <i class="fa fa-bar-chart-o"></i> Transfer Reports
                         </a>
-                        <button class="btn btn-warning" onclick="approveAllPending()">
+                        <!-- <button class="btn btn-warning" onclick="approveAllPending()">
                             <i class="fa fa-check-circle"></i> Approve All Pending
-                        </button>
+                        </button> -->
                     </div>
                 </div>
             </div>
@@ -224,7 +224,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-exchange-alt fa-5x"></i>
+                                <i class="fa fa-exchange fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo count($transfers); ?></div>
@@ -256,7 +256,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-clock fa-5x"></i>
+                                <i class="fa fa-clock-o fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo count(array_filter($transfers, function($t) { return in_array($t->status, ['DRAFT', 'PENDING', 'APPROVED']); })); ?></div>

@@ -25,7 +25,7 @@
             <div class="col-md-12">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        <i class="fa fa-exchange-alt"></i> Transfer Information
+                        <i class="fa fa-exchange"></i> Transfer Information
                     </div>
                     <div class="panel-body">
                         <?php if(validation_errors()): ?>
@@ -194,7 +194,7 @@
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-md-4">
-                                <h4><i class="fa fa-warehouse"></i> Central to Center</h4>
+                                <h4><i class="fa fa-building-o"></i> Central to Center</h4>
                                 <p>Transfer stock from central warehouse to a specific center/pharmacy.</p>
                                 <ul>
                                     <li>Source: Central Warehouse</li>
@@ -203,7 +203,7 @@
                                 </ul>
                             </div>
                             <div class="col-md-4">
-                                <h4><i class="fa fa-exchange-alt"></i> Center to Center</h4>
+                                <h4><i class="fa fa-exchange"></i> Center to Center</h4>
                                 <p>Transfer stock between two different centers.</p>
                                 <ul>
                                     <li>Source: Selected Center</li>
@@ -497,7 +497,7 @@ function addToTransferItems(batchId, medicineName, batchNumber, transferQty, max
                 </div>
                 <div class="col-md-2">
                     <button type="button" class="btn btn-danger btn-sm" onclick="removeTransferItem(${batchId})">
-                        <i class="fa fa-trash"></i> Remove
+                        <i class="fa fa-trash-o"></i> Remove
                     </button>
                 </div>
             </div>
