@@ -123,9 +123,9 @@
                 <a href="<?php echo base_url('stocks_new/add_vendor_return'); // Link to your create page ?>" class="btn btn-primary">
                     <i class="fa fa-undo"></i> New Vendor Return
                 </a>
-                <button type="button" class="btn btn-info" onclick="window.print();">
+                <!-- <button type="button" class="btn btn-info" onclick="window.print();">
                     <i class="fa fa-print"></i> Print Report
-                </button>
+                </button> -->
             </div>
         </div>
     </div>

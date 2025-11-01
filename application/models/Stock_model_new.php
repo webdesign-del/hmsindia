@@ -3035,6 +3035,86 @@ class Stock_model_new extends CI_Model
             ];
         }
     }
+    public function export_vendor_return_data($filters)
+    {
+        try {
+            // --- 1. Fetch Data ---
+            // This query logic matches your `get_vendor_return_reports` function
+            $this->db->select([
+                "vr.*", 
+                "v.name as vendor_name", 
+                "c.center_name"
+            ]);
+            $this->db->from("vendor_returns vr");
+            // Join with hms_vendors to get the name
+            $this->db->join("hms_vendors v", "vr.vendor_id = v.ID", "left"); 
+            // Join with hms_centers to get the name
+            $this->db->join("hms_centers c", "vr.center_id = c.ID", "left"); 
+            // --- 2. Apply Filters ---
+            if (!empty($filters['vendor_id'])) {
+                $this->db->where("vr.vendor_id", $filters['vendor_id']);
+            }
+            if (!empty($filters['status'])) {
+                $this->db->where("vr.status", $filters['status']);
+            }
+            if (!empty($filters['from_date'])) {
+                $this->db->where("vr.return_date >=", $filters['from_date']);
+            }
+            if (!empty($filters['to_date'])) {
+                $this->db->where("vr.return_date <=", $filters['to_date']);
+            }
+            $this->db->order_by("vr.return_date", "DESC");
+            $query = $this->db->get();
+            $reports = $query->result();
+            // --- 3. Generate CSV File ---
+            $filename = "vendor_return_report_" . date("Y-m-d") . ".csv";
+            // Set headers to force download
+            header("Content-Type: text/csv");
+            header("Content-Disposition: attachment; filename=\"$filename\"");
+            
+            $output = fopen("php://output", "w");
+            
+            // 4. Write CSV Header Row
+            fputcsv($output, [
+                "Return Number",
+                "Return Date",
+                "Vendor",
+                "Center",
+                "Total Items",
+                "Total Quantity",
+                "Total Value (Cost)",
+                "Status",
+                "Return Reason",
+                "Remarks"
+            ]);
+            // 5. Write Data Rows
+            if (!empty($reports)) {
+                foreach ($reports as $report) {
+                    fputcsv($output, [
+                        $report->return_number,
+                        $report->return_date,
+                        $report->vendor_name ?? 'N/A', // Use vendor_name from join
+                        $report->center_name ?? 'N/A', // Use center_name from join
+                        $report->total_items,
+                        $report->total_quantity,
+                        $report->total_value,
+                        $report->status,
+                        $report->return_reason,
+                        $report->remarks
+                    ]);
+                }
+            }
+            // 6. Close stream and stop script execution
+            fclose($output);
+            exit; 
+        } catch (Exception $e) {
+            log_message('error', "Error exporting vendor return report: " . $e->getMessage());
+            // If an error happens, show an error message
+            echo "Error: Could not generate report. Please check system logs.";
+            exit;
+        }
+    }
+
 
     // public function get_available_batches_for_vendor_return()
     // {

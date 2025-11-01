@@ -169,7 +169,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-clock fa-5x"></i>
+                                <i class="fa fa-clock-o fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo isset($low_stock_alerts) ? count(array_filter($low_stock_alerts, function($a) { 

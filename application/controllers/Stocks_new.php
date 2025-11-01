@@ -4028,6 +4028,33 @@ class Stocks_new extends CI_Controller
             die();
         }
     }
+        /**
+     * Handles the GET request to export a filtered vendor return report to CSV.
+     */
+    public function export_vendor_return_reports()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            // 1. Get filter parameters (same as your report page)
+            $filters = [
+                "vendor_id" => $this->input->get("vendor_id"),
+                "status"    => $this->input->get("status"),
+                "from_date" => $this->input->get("from_date"),
+                "to_date"   => $this->input->get("to_date"),
+            ];
+            // 2. Load the model
+            $this->load->model('Stock_model_new');
+            // 3. Call the model function to generate and download the CSV
+            // This function will handle the file generation and 'exit'
+            $this->Stock_model_new->export_vendor_return_data($filters);
+
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+
     public function get_batches_for_vendor_center()
     {
         $logg = checklogin();

@@ -123,9 +123,9 @@
                         <button class="btn btn-success" onclick="exportToExcel()">
                             <i class="fa fa-file-excel-o"></i> Export to Excel
                         </button>
-                        <button class="btn btn-info" onclick="printReport()">
+                        <!-- <button class="btn btn-info" onclick="printReport()">
                             <i class="fa fa-print"></i> Print Report
-                        </button>
+                        </button> -->
                     </div>
                 </div>
             </div>
