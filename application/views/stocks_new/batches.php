@@ -168,12 +168,12 @@
                                                             <li><a href="#" onclick="updateBatchStatus(<?php echo $batch->id; ?>, 'INACTIVE')">
                                                                 <i class="fa fa-pause text-warning"></i> Deactivate Batch
                                                             </a></li>
-                                                            <li><a href="#" onclick="updateBatchStatus(<?php echo $batch->id; ?>, 'QUARANTINE')">
+                                                            <!-- <li><a href="#" onclick="updateBatchStatus(<?php echo $batch->id; ?>, 'QUARANTINE')">
                                                                 <i class="fa fa-ban text-danger"></i> Quarantine Batch
-                                                            </a></li>
-                                                            <li><a href="#" onclick="updateBatchStatus(<?php echo $batch->id; ?>, 'DISPOSED')">
+                                                            </a></li> -->
+                                                            <!-- <li><a href="#" onclick="updateBatchStatus(<?php echo $batch->id; ?>, 'DISPOSED')">
                                                                 <i class="fa fa-trash-o text-danger"></i> Mark as Disposed
-                                                            </a></li>
+                                                            </a></li> -->
                                                         </ul>
                                                     </div>
                                                 </td>

@@ -4482,7 +4482,6 @@ class Stocks_new extends CI_Controller
                 $data["batch_details"] = null;
                 $data["batch_movements"] = [];
             }
-
             // Get all batches for dropdown
             $data["batches"] = $this->Stock_model_new->get_all_batches();
             $data["selected_batch_id"] = $batch_id;

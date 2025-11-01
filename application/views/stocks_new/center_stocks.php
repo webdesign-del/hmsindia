@@ -156,9 +156,9 @@
                                                 <button type="button" class="btn btn-xs btn-warning" onclick="updateCenterStockStatus(<?php echo $stock->id; ?>, 'INACTIVE')">
                                                     <i class="fa fa-pause"></i> Deactivate
                                                 </button>
-                                                <button type="button" class="btn btn-xs btn-danger" onclick="updateCenterStockStatus(<?php echo $stock->id; ?>, 'QUARANTINE')">
+                                                <!-- <button type="button" class="btn btn-xs btn-danger" onclick="updateCenterStockStatus(<?php echo $stock->id; ?>, 'QUARANTINE')">
                                                     <i class="fa fa-ban"></i> Quarantine
-                                                </button>
+                                                </button> -->
                                             </div>
                                         </td>
                                     </tr>

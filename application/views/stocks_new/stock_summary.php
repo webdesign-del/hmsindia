@@ -73,7 +73,7 @@
                                                         </a>
                                                         <a href="<?php echo base_url('stocks_new/batches?medicine_id=' . (isset($item->medicine_id) ? $item->medicine_id : 0)); ?>" 
                                                            class="btn btn-sm btn-info" title="View Batches">
-                                                            <i class="fa fa-archive"></i>
+                                                            <i class="fa fa-eye"></i>
                                                         </a>
                                                     </div>
                                                 </td>
