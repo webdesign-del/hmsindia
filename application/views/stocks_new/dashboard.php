@@ -181,7 +181,7 @@
                 <div class="panel-heading">
                     <div class="row">
                         <div class="col-xs-3">
-                            <i class="fa fa-capsules fa-5x"></i>
+                            <i class="fa fa-medkit fa-5x"></i>
                         </div>
                         <div class="col-xs-9 text-right">
                             <div class="huge"><?php echo $dashboard_summary->total_medicines ?? 0; ?></div>
@@ -204,7 +204,7 @@
                 <div class="panel-heading">
                     <div class="row">
                         <div class="col-xs-3">
-                            <i class="fa fa-boxes fa-5x"></i>
+                            <i class="fa fa-archive fa-5x"></i>
                         </div>
                         <div class="col-xs-9 text-right">
                             <div class="huge"><?php echo $dashboard_summary->total_batches ?? 0; ?></div>
@@ -268,7 +268,6 @@
             </div>
         </div>
     </div>
-    
     <!-- Summary Cards Row 2 -->
     <div class="row">
         <div class="col-md-3">
@@ -299,11 +298,11 @@
                 <div class="panel-heading">
                     <div class="row">
                         <div class="col-xs-3">
-                            <i class="fa fa-chart-line fa-5x"></i>
+                            <i class="fa fa-rupee fa-5x"></i>
                         </div>
                         <div class="col-xs-9 text-right">
-                            <div class="huge">₹0 <?php echo number_format($dashboard_summary->todays_sales_count ?? 0, 0); ?></div>
-                            <div>Today's Sales</div>
+                            <div class="huge"><?php echo number_format($dashboard_summary->todays_sales_value ?? 0, 0); ?></div>
+                            <div>Today's Sales Value</div>
                         </div>
                     </div>
                 </div>
@@ -322,11 +321,11 @@
                 <div class="panel-heading">
                     <div class="row">
                         <div class="col-xs-3">
-                            <i class="fa fa-exchange-alt fa-5x"></i>
+                            <i class="fa fa-rupee fa-5x"></i>
                         </div>
                         <div class="col-xs-9 text-right">
-                            <div class="huge">0</div>
-                            <div>Today's Transfers</div>
+                            <div class="huge"><?php echo number_format($dashboard_summary->todays_transfer_value ?? 0, 0); ?></div>
+                            <div>Today's Transfers Value</div>
                         </div>
                     </div>
                 </div>
@@ -340,12 +339,13 @@
             </div>
         </div>
         
+        
         <div class="col-md-3">
             <div class="panel panel-danger">
                 <div class="panel-heading">
                     <div class="row">
                         <div class="col-xs-3">
-                            <i class="fa fa-clock fa-5x"></i>
+                            <i class="fa fa-clock-o fa-5x"></i>
                         </div>
                         <div class="col-xs-9 text-right">
                             <div class="huge"><?php echo $dashboard_summary->expiring_soon_items ?? 0; ?></div>

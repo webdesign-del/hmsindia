@@ -52,7 +52,7 @@
                                     <option value="">All Centers</option>
                                     <?php if(isset($centers) && !empty($centers)): ?>
                                         <?php foreach($centers as $center): ?>
-                                            <option value="<?php echo $center->id; ?>">
+                                            <option value="<?php echo $center->ID; ?>">
                                                 <?php echo htmlspecialchars($center->center_name); ?>
                                             </option>
                                         <?php endforeach; ?>

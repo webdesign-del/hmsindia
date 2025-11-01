@@ -84,13 +84,13 @@ class Stock_model_new extends CI_Model
             // $low_stock = $this->db->get()->row();
 
             // Get expiring soon count (within 30 days)
-            $this->db->select("COUNT(*) as expiring_soon_count");
+        $this->db->select("COUNT(*) as expiring_soon_items");
             $this->db->from("medicine_batches");
             $this->db->where("batch_status", "ACTIVE");
             $this->db->where("quantity_remaining >", 0);
-            $this->db->where("DATEDIFF(expiry_date, CURDATE()) <=", 30);
-            $this->db->where("DATEDIFF(expiry_date, CURDATE()) >=", 0);
-            $expiring = $this->db->get()->row();
+            $this->db->where("DATEDIFF(expiry_date, CURDATE()) <=", 7);
+            $this->db->where("DATEDIFF(expiry_date, CURDATE()) >", 0); // Changed from >= 0
+            $expiring_soon = $this->db->get()->row();
             // $expiring_soon_count = $this->db->where("batch_status", "ACTIVE")
             //                                ->where("quantity_remaining >", 0)
             //                                ->where("DATEDIFF(expiry_date, CURDATE()) <=", 30)
@@ -114,8 +114,9 @@ class Stock_model_new extends CI_Model
             // --- NEW: Get Today's Sales ---
             $this->db->select('COUNT(id) as todays_sales_count, SUM(total_amount) as todays_sales_value');
             $this->db->from('sales');
-            $this->db->where('sale_date', date('Y-m-d')); // CURDATE()
+            // $this->db->where('sale_date', date('Y-m-d')); // CURDATE()
             $this->db->where('status', 'CONFIRMED'); // Only confirmed sales
+            
             $todays_sales = $this->db->get()->row();
             // --- NEW: Get Today's Transfers ---
             $this->db->select('COUNT(id) as todays_transfer_count, SUM(total_value) as todays_transfer_value');
@@ -129,7 +130,7 @@ class Stock_model_new extends CI_Model
             $this->db->from("medicine_batches");
             $this->db->where("batch_status", "ACTIVE");
             $this->db->where("quantity_remaining >", 0);
-            $this->db->where("DATEDIFF(expiry_date, CURDATE()) <=", 7);
+            $this->db->where("DATEDIFF(expiry_date, CURDATE()) <=", 30);
             $this->db->where("DATEDIFF(expiry_date, CURDATE()) >=", 0);
             $expiring_soon = $this->db->get()->row();
             return (object) [
@@ -139,12 +140,11 @@ class Stock_model_new extends CI_Model
                 "expiring_soon_count" => $expired->expired_count ?? 0,
                 "expired_count" => $expired->expired_count ?? 0,
                 "total_stock_value" => $stock_value->total_stock_value ?? 0,
-                // "total_stock_value" => $total_stock_value ?? 0,
-                "expiring_soon_items" =>
-                    $expiring_soon->expiring_soon_items ?? 0,
-                    // --- NEW VALUES ADDED ---
+                "expiring_soon_items" =>$expiring_soon->expiring_soon_items ?? 0,
                 "todays_sales_count"    => $todays_sales->todays_sales_count ?? 0,
+                "todays_sales_value"    => $todays_sales->todays_sales_value ?? 0,
                 "todays_transfer_count" => $todays_transfers->todays_transfer_count ?? 0,
+                "todays_transfer_value" => $todays_transfers->todays_transfer_value ?? 0,
             ];
         // } catch (Exception $e) {
         //     return (object) [
@@ -640,23 +640,40 @@ class Stock_model_new extends CI_Model
     // MEDICINES FUNCTIONS
     // ===============================================
 
-    public function get_all_medicines($selected_medicine_id = null)
+    public function get_all_medicines($medicine_name = null, $generic_name = null, $brand_id = null, $category = null, $selected_medicine_id = null)
     {
         $this->db->select("m.*, mb.name as brand_name");
         $this->db->from("medicines m");
         $this->db->join(
             $this->config->item("db_prefix") . "brands mb",
-            "m.brand_id = mb.ID",
+            "m.brand_id = mb.ID"
         );
         $this->db->where("m.status", "active");
-        
+
         if (!empty($selected_medicine_id)) {
             $this->db->where("m.ID", $selected_medicine_id);
         }
-        
+
+        // --- APPLY FILTERS ---
+        if (!empty($medicine_name)) {
+            $this->db->like("m.medicine_name", $medicine_name);
+        }
+        if (!empty($generic_name)) {
+            $this->db->like("m.generic_name", $generic_name);
+        }
+        if (!empty($brand_id)) {
+            $this->db->where("m.brand_id", $brand_id);
+        }
+        if (!empty($category)) {
+            $this->db->like("m.category", $category);
+        }
+        // --- END FILTERS ---
+
         $this->db->order_by("m.medicine_name", "ASC");
+
         return $this->db->get()->result();
     }
+
 
     public function search_medicines($search_term = "")
     {
@@ -1172,7 +1189,7 @@ class Stock_model_new extends CI_Model
     // ===============================================
     // STOCK TRANSFERS FUNCTIONS
     // ===============================================
-    public function get_all_transfers($transfer_type, $from_center_id, $to_center_id, $status)
+    public function get_all_transfers($transfer_type = null, $from_center_id = null, $to_center_id = null, $status = null)
     {
         try {
             $this->db->select('
@@ -2506,76 +2523,168 @@ class Stock_model_new extends CI_Model
         }
     }
 
-    public function get_available_batches_for_audit()
+    // public function get_available_batches_for_audit()
+    // {
+    //     try {
+    //         // First try medicine_batches
+    //         $this->db->select('
+    //             mb.id as batch_id,
+    //             mb.batch_number,
+    //             mb.expiry_date,
+    //             DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
+    //             mb.quantity_remaining as available_quantity,
+    //             mb.selling_price,
+    //             m.medicine_name,
+    //             m.medicine_code,
+    //             COALESCE(b.name, "Unknown Brand") as brand_name,
+    //             COALESCE(v.name, "Unknown Vendor") as vendor_name,
+    //             COALESCE(c.center_name, "Unknown Center") as center_name
+    //         ');
+    //         $this->db->from("medicine_batches mb");
+    //         $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+    //         $this->db->join("hms_brands b", "m.brand_id = b.ID", "left");
+    //         $this->db->join("hms_vendors v", "mb.vendor_id = v.ID", "left");
+    //         $this->db->join("hms_centers c", "mb.center_id = c.ID", "left");
+    //         $this->db->where("mb.batch_status", "ACTIVE");
+    //         $this->db->where("mb.quantity_remaining >", 0);
+    //         $this->db->order_by("mb.expiry_date", "ASC");
+    //         $this->db->order_by("m.medicine_name", "ASC");
+
+    //         $result = $this->db->get()->result();
+
+    //         // If no results, try center_stocks
+    //         if (empty($result)) {
+    //             $this->db->select('
+    //                 cs.id as batch_id,
+    //                 cs.batch_number,
+    //                 cs.expiry_date,
+    //                 DATEDIFF(cs.expiry_date, CURDATE()) as expiry_days,
+    //                 cs.quantity as available_quantity,
+    //                 cs.selling_price,
+    //                 m.medicine_name,
+    //                 m.medicine_code,
+    //                 COALESCE(b.name, "Unknown Brand") as brand_name,
+    //                 COALESCE(v.name, "Unknown Vendor") as vendor_name,
+    //                 COALESCE(c.center_name, "Unknown Center") as center_name
+    //             ');
+    //             $this->db->from("center_stocks cs");
+    //             $this->db->join("medicines m", "cs.medicine_id = m.id", "left");
+    //             $this->db->join(
+    //                 $this->config->item("db_prefix") . "brands b",
+    //                 "m.brand_id = b.ID",
+    //                 "left",
+    //             );
+    //             $this->db->join(
+    //                 $this->config->item("db_prefix") . "vendors v",
+    //                 "cs.vendor_id = v.ID",
+    //                 "left",
+    //             );
+    //             $this->db->join("hms_centers c", "cs.center_id = c.ID", "left");
+    //             $this->db->where("cs.status", "ACTIVE");
+    //             $this->db->where("cs.quantity >", 0);
+    //             $this->db->order_by("cs.expiry_date", "ASC");
+    //             $this->db->order_by("m.medicine_name", "ASC");
+
+    //             $result = $this->db->get()->result();
+    //         }
+
+    //         return $result;
+    //     } catch (Exception $e) {
+    //         // If tables don't exist or have issues, return empty array
+    //         return [];
+    //     }
+    // }
+    /**
+     * Gets all active, in-stock batches from ALL locations (centers AND central warehouse)
+     * for a stock audit.
+     */
+    public function get_available_batches_for_audit($location_id)
     {
         try {
-            // First try medicine_batches
-            $this->db->select('
-                mb.id as batch_id,
-                mb.batch_number,
-                mb.expiry_date,
-                DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
-                mb.quantity_remaining as available_quantity,
-                mb.selling_price,
-                m.medicine_name,
-                m.medicine_code,
-                COALESCE(b.name, "Unknown Brand") as brand_name,
-                COALESCE(v.name, "Unknown Vendor") as vendor_name,
-                COALESCE(c.center_name, "Unknown Center") as center_name
-            ');
-            $this->db->from("medicine_batches mb");
-            $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
-            $this->db->join("hms_brands b", "m.brand_id = b.ID", "left");
-            $this->db->join("hms_vendors v", "mb.vendor_id = v.ID", "left");
-            $this->db->join("hms_centers c", "mb.center_id = c.ID", "left");
-            $this->db->where("mb.batch_status", "ACTIVE");
-            $this->db->where("mb.quantity_remaining >", 0);
-            $this->db->order_by("mb.expiry_date", "ASC");
-            $this->db->order_by("m.medicine_name", "ASC");
+            // $location_id can be a center ID (e.g., 5) or the string 'central'
+            
+            if ($location_id == 'central' || $location_id == 0) {
+                // --- Query 1: Get stock from CENTRAL WAREHOUSE ---
+                $this->db->select([
+                    'cst.batch_id',
+                    'cst.quantity as system_quantity',
+                    'mb.batch_number', 
+                    'm.medicine_name',
+                    "'CENTRAL' as location_type", // Identifier
+                    "0 as location_id" // Use 0 or NULL
+                ]);
+                $this->db->from('central_stocks cst');
+                $this->db->join('medicine_batches mb', 'cst.batch_id = mb.id', 'inner');
+                $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+                $this->db->where('cst.quantity >', 0);
+                $this->db->where('mb.batch_status', 'ACTIVE');
+                $query = $this->db->get();
 
-            $result = $this->db->get()->result();
-
-            // If no results, try center_stocks
-            if (empty($result)) {
-                $this->db->select('
-                    cs.id as batch_id,
-                    cs.batch_number,
-                    cs.expiry_date,
-                    DATEDIFF(cs.expiry_date, CURDATE()) as expiry_days,
-                    cs.quantity as available_quantity,
-                    cs.selling_price,
-                    m.medicine_name,
-                    m.medicine_code,
-                    COALESCE(b.name, "Unknown Brand") as brand_name,
-                    COALESCE(v.name, "Unknown Vendor") as vendor_name,
-                    COALESCE(c.center_name, "Unknown Center") as center_name
-                ');
-                $this->db->from("center_stocks cs");
-                $this->db->join("medicines m", "cs.medicine_id = m.id", "left");
-                $this->db->join(
-                    $this->config->item("db_prefix") . "brands b",
-                    "m.brand_id = b.ID",
-                    "left",
-                );
-                $this->db->join(
-                    $this->config->item("db_prefix") . "vendors v",
-                    "cs.vendor_id = v.ID",
-                    "left",
-                );
-                $this->db->join("hms_centers c", "cs.center_id = c.ID", "left");
-                $this->db->where("cs.status", "ACTIVE");
-                $this->db->where("cs.quantity >", 0);
-                $this->db->order_by("cs.expiry_date", "ASC");
-                $this->db->order_by("m.medicine_name", "ASC");
-
-                $result = $this->db->get()->result();
+            } else {
+                // --- Query 2: Get stock from a specific CENTER ---
+                $this->db->select([
+                    'cs.batch_id',
+                    'cs.quantity as system_quantity',
+                    'mb.batch_number', 
+                    'm.medicine_name',
+                    "'CENTER' as location_type",
+                    'cs.center_id as location_id'
+                ]);
+                $this->db->from('center_stocks cs');
+                $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
+                $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+                $this->db->where('cs.center_id', (int)$location_id); // Filter by the selected center
+                $this->db->where('cs.quantity >', 0);
+                $this->db->where('mb.batch_status', 'ACTIVE');
+                $query = $this->db->get();
             }
+            
+            return $query->result();
 
-            return $result;
         } catch (Exception $e) {
-            // If tables don't exist or have issues, return empty array
-            return [];
+            log_message('error', 'Error in get_available_batches_for_audit: ' . $e->getMessage());
+            return []; // Return empty array on any database error
         }
+    }
+    public function get_all_batches_list()
+    {
+         try {
+            $this->db->select([
+                'mb.id as batch_id',
+                'mb.batch_number', 
+                'm.medicine_name'
+            ]);
+            $this->db->from('medicine_batches mb');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+            $this->db->where('mb.batch_status', 'ACTIVE');
+            $this->db->order_by('m.medicine_name', 'ASC');
+            $query = $this->db->get();
+            return $query->result();
+         } catch (Exception $e) {
+             log_message('error', 'Error in get_all_batches_list: ' . $e->getMessage());
+             return [];
+         }
+    }
+
+    private function get_batch_purchase_price($batch_id)
+    {
+        $batch = $this->db->select('purchase_price')->get_where('medicine_batches', ['id' => $batch_id])->row();
+        return $batch ? (float)$batch->purchase_price : 0;
+    }
+
+    private function get_stock_quantity_for_batch($batch_id, $location_type, $center_id)
+    {
+        $this->db->select('quantity');
+        if ($location_type == 'CENTRAL') {
+            $this->db->from('central_stocks');
+            $this->db->where('batch_id', $batch_id);
+        } else {
+            $this->db->from('center_stocks');
+            $this->db->where('batch_id', $batch_id);
+            $this->db->where('center_id', $center_id);
+        }
+        $result = $this->db->get()->row();
+        return $result ? (int)$result->quantity : 0;
     }
 
     public function get_available_batches_for_disposal()
@@ -4723,85 +4832,265 @@ class Stock_model_new extends CI_Model
                 return []; // Return empty array on error
             }
         }
-        public function process_stock_audit($audit_data, $audit_items)
+        
+        public function process_stock_audit($audit_header, $audit_items)
         {
-            try {
-                $this->db->trans_start();
+            $this->db->trans_start(); // Start transaction
 
-                // Insert audit record
-                $audit_data["audit_number"] =
-                    "AUD" .
-                    date("Ymd") .
-                    str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-                $this->db->insert("audit_reports", $audit_data);
-                $audit_id = $this->db->insert_id();
+            // 1. Create Audit Report Header
+            $audit_header['audit_number'] = "AUD-" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
+            
+            // Determine location type from the center_id passed by the form
+            $audit_location_key = $audit_header['center_id'];
+            $is_central_audit = (strtolower($audit_location_key) == 'central' || $audit_location_key == '0');
+            $location_type = $is_central_audit ? 'CENTRAL' : 'CENTER';
+            // Use NULL for location_id if central, otherwise use the integer ID
+            $location_id = $is_central_audit ? null : (int)$audit_location_key;
+            // The audit_reports.center_id column should store the integer ID or 0
+            $audit_report_center_id = $is_central_audit ? 0 : (int)$audit_location_key; // Use 0 for central
+            
+            // Replace the 'center_id' key with the correct integer ID for the database
+            $audit_header['center_id'] = $audit_report_center_id;
 
-                if ($audit_id && !empty($audit_items)) {
-                    // Process each audit item
-                    foreach ($audit_items as $item) {
-                        if (
-                            !empty($item["batch_id"]) &&
-                            isset($item["physical_quantity"])
-                        ) {
-                            // Get batch details
-                            $batch = $this->db
-                                ->get_where("medicine_batches", [
-                                    "id" => $item["batch_id"],
-                                ])
-                                ->row();
+            $this->db->insert('audit_reports', $audit_header);
+            $audit_id = $this->db->insert_id();
 
-                            if ($batch) {
-                                $system_quantity = $batch->quantity_remaining;
-                                $physical_quantity = $item["physical_quantity"];
-                                $variance = $physical_quantity - $system_quantity;
-
-                                // If there's a variance, adjust the stock
-                                if ($variance != 0) {
-                                    $new_quantity = $physical_quantity;
-                                    $this->db->where("id", $item["batch_id"]);
-                                    $this->db->update("medicine_batches", [
-                                        "quantity_remaining" => $new_quantity,
-                                        "updated_at" => date("Y-m-d H:i:s"),
-                                    ]);
-
-                                    // Record stock movement for adjustment
-                                    $this->db->insert("stock_movements", [
-                                        "batch_id" => $item["batch_id"],
-                                        "movement_type" =>
-                                            $variance > 0
-                                                ? "AUDIT_IN"
-                                                : "AUDIT_OUT",
-                                        "from_location_type" => "AUDIT",
-                                        "from_location_id" =>
-                                            $audit_data["center_id"],
-                                        "to_location_type" => "CENTER",
-                                        "to_location_id" =>
-                                            $audit_data["center_id"],
-                                        "quantity_change" => $variance,
-                                        "quantity_after" => $new_quantity,
-                                        "unit_price" => $batch->purchase_price,
-                                        "total_value" =>
-                                            abs($variance) * $batch->purchase_price,
-                                        "reference_type" => "AUDIT",
-                                        "reference_id" => $audit_id,
-                                        "reference_number" =>
-                                            $audit_data["audit_number"],
-                                        "created_by" => $audit_data["created_by"],
-                                        "created_at" => date("Y-m-d H:i:s"),
-                                    ]);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                $this->db->trans_complete();
-                return $this->db->trans_status();
-            } catch (Exception $e) {
+            if (!$audit_id) {
                 $this->db->trans_rollback();
-                return false;
+                return ['status' => 'error', 'message' => 'Failed to create audit report header.'];
             }
+
+            $total_items_audited = 0;
+            $discrepancies_found = 0;
+
+            // 2. Loop through submitted audit items
+            foreach ($audit_items as $item) {
+                $batch_id = (int)($item['batch_id'] ?? 0);
+                $physical_quantity = (int)($item['physical_quantity'] ?? 0);
+
+                if ($batch_id <= 0) continue; // Skip empty/invalid rows
+
+                // 3. Get system quantity at the time of audit
+                $system_quantity = $this->get_stock_quantity_for_batch($batch_id, $location_type, $location_id);
+                
+                $variance = $physical_quantity - $system_quantity;
+                $total_items_audited++;
+
+                // 4. If there is a variance, create an adjustment
+                if ($variance != 0) {
+                    $discrepancies_found++;
+                    
+                    $unit_cost = $this->get_batch_purchase_price($batch_id);
+                    $adjustment_value = $variance * $unit_cost; // Can be positive or negative
+                    $new_system_quantity = $system_quantity + $variance;
+
+                    // 4a. Update Stock Location (center_stocks or central_stocks)
+                    $this->db->set('quantity', $new_system_quantity);
+                    $this->db->set('last_movement_date', 'NOW()', FALSE);
+                    $this->db->set('updated_at', 'NOW()', FALSE);
+                    $this->db->where('batch_id', $batch_id);
+                    if ($is_central_audit) {
+                        $this->db->update('central_stocks');
+                    } else {
+                        $this->db->where('center_id', $location_id);
+                        $this->db->update('center_stocks');
+                    }
+                    
+                    // 4b. Update Master Batch Record (medicine_batches)
+                    $this->db->set('quantity_remaining', 'quantity_remaining + ' . $variance, FALSE);
+                    $this->db->set('updated_at', 'NOW()', FALSE);
+                    $this->db->where('id', $batch_id);
+                    $this->db->update('medicine_batches');
+
+                    // 4c. Log in Stock Movements
+                    $movement_data = [
+                        'batch_id' => $batch_id,
+                        'movement_type' => $variance > 0 ? 'ADJUSTMENT_IN' : 'ADJUSTMENT_OUT',
+                        'from_location_type' => $variance > 0 ? 'ADJUSTMENT' : $location_type,
+                        'from_location_id' => $variance > 0 ? null : $location_id, // Use null for central
+                        'to_location_type' => $variance > 0 ? $location_type : 'ADJUSTMENT',
+                        'to_location_id' => $variance > 0 ? $location_id : null, // Use null for central
+                        'quantity_before' => $system_quantity,
+                        'quantity_change' => $variance, // e.g., +5 or -3
+                        'quantity_after' => $new_system_quantity,
+                        'unit_price' => $unit_cost,
+                        'total_value' => abs($adjustment_value),
+                        'reference_type' => 'AUDIT_REPORT',
+                        'reference_id' => $audit_id,
+                        'reference_number' => $audit_header['audit_number'],
+                        'remarks' => "Stock Audit. Physical: $physical_quantity, System: $system_quantity",
+                        'created_by' => $audit_header['created_by'],
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    $this->db->insert('stock_movements', $movement_data);
+                }
+            } // End foreach
+
+            // 5. Update Audit Report Header with final counts
+            $this->db->where('id', $audit_id);
+            $this->db->update('audit_reports', [
+                'total_items_audited' => $total_items_audited,
+                'discrepancies_found' => $discrepancies_found,
+                'status' => 'COMPLETED'
+            ]);
+
+            // 6. Complete Transaction
+            $this->db->trans_complete();
+            
+            if ($this->db->trans_status() === FALSE) {
+                log_message('error', 'Stock Audit Transaction Failed. Rolling back.');
+                return ['status' => 'error', 'message' => 'Database transaction failed.'];
+            }
+
+            return ['status' => 'success', 'discrepancies' => $discrepancies_found];
         }
+          public function get_audit_report_by_id($id)
+    {
+        try {
+            $this->db->select([
+                'ar.*', // Select all columns from audit_reports
+                'c.center_name',
+                'e.name as created_by_name'
+            ]);
+            $this->db->from('audit_reports ar');
+            $this->db->join('hms_centers c', 'ar.center_id = c.ID', 'left');
+            $this->db->join('hms_employees e', 'ar.created_by = e.ID', 'left');
+            $this->db->where('ar.id', $id);
+            $result = $this->db->get()->row();
+
+            // Handle central warehouse display
+            if ($result && ($result->center_id == 0 || $result->center_id === null)) {
+                $result->center_name = 'Central Warehouse';
+            }
+
+            return $result; // Return a single row object
+        } catch (Exception $e) {
+            log_message('error', "Error in get_audit_report_by_id: " . $e->getMessage());
+            return null; // Return null on error
+        }
+    }
+
+    /**
+     * Gets the details of items that were ADJUSTED during an audit
+     * by querying the stock_movements table.
+     */
+    public function get_audit_items_from_log($audit_id)
+    {
+        try {
+            $this->db->select([
+                'sm.id as movement_id',
+                'sm.quantity_change', // This will be positive or negative
+                'sm.quantity_before',
+                'sm.movement_type',
+                'sm.quantity_after',
+                'sm.unit_price',      // This is the purchase_price used
+                'sm.total_value',     // Calculated value of the adjustment
+                'sm.remarks as movement_remarks', // Get the log remark
+                'sm.created_at as log_created_at',
+                'mb.batch_number',
+                'mb.expiry_date',
+                'm.medicine_name',
+                'm.medicine_code',
+                'b.brand_name'
+            ]);
+            $this->db->from('stock_movements sm');
+            $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+            $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+            
+            // Filter specifically for this audit report's log entries
+            $this->db->where('sm.reference_id', $audit_id);
+            $this->db->where('sm.reference_type', 'AUDIT_REPORT');
+            
+            $this->db->order_by('sm.created_at', 'ASC'); // Order by log entry time
+            
+            return $this->db->get()->result(); // Return an array of item objects
+            
+        } catch (Exception $e) {
+            log_message('error', "Error in get_audit_items_from_log: " . $e->getMessage());
+            return []; // Return empty array on error
+        }
+    }
+
+        // public function process_stock_audit($audit_data, $audit_items)
+        // {
+        //     try {
+        //         $this->db->trans_start();
+
+        //         // Insert audit record
+        //         $audit_data["audit_number"] =
+        //             "AUD" .
+        //             date("Ymd") .
+        //             str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
+        //         $this->db->insert("audit_reports", $audit_data);
+        //         $audit_id = $this->db->insert_id();
+
+        //         if ($audit_id && !empty($audit_items)) {
+        //             // Process each audit item
+        //             foreach ($audit_items as $item) {
+        //                 if (
+        //                     !empty($item["batch_id"]) &&
+        //                     isset($item["physical_quantity"])
+        //                 ) {
+        //                     // Get batch details
+        //                     $batch = $this->db
+        //                         ->get_where("medicine_batches", [
+        //                             "id" => $item["batch_id"],
+        //                         ])
+        //                         ->row();
+
+        //                     if ($batch) {
+        //                         $system_quantity = $batch->quantity_remaining;
+        //                         $physical_quantity = $item["physical_quantity"];
+        //                         $variance = $physical_quantity - $system_quantity;
+
+        //                         // If there's a variance, adjust the stock
+        //                         if ($variance != 0) {
+        //                             $new_quantity = $physical_quantity;
+        //                             $this->db->where("id", $item["batch_id"]);
+        //                             $this->db->update("medicine_batches", [
+        //                                 "quantity_remaining" => $new_quantity,
+        //                                 "updated_at" => date("Y-m-d H:i:s"),
+        //                             ]);
+
+        //                             // Record stock movement for adjustment
+        //                             $this->db->insert("stock_movements", [
+        //                                 "batch_id" => $item["batch_id"],
+        //                                 "movement_type" =>
+        //                                     $variance > 0
+        //                                         ? "AUDIT_IN"
+        //                                         : "AUDIT_OUT",
+        //                                 "from_location_type" => "AUDIT",
+        //                                 "from_location_id" =>
+        //                                     $audit_data["center_id"],
+        //                                 "to_location_type" => "CENTER",
+        //                                 "to_location_id" =>
+        //                                     $audit_data["center_id"],
+        //                                 "quantity_change" => $variance,
+        //                                 "quantity_after" => $new_quantity,
+        //                                 "unit_price" => $batch->purchase_price,
+        //                                 "total_value" =>
+        //                                     abs($variance) * $batch->purchase_price,
+        //                                 "reference_type" => "AUDIT",
+        //                                 "reference_id" => $audit_id,
+        //                                 "reference_number" =>
+        //                                     $audit_data["audit_number"],
+        //                                 "created_by" => $audit_data["created_by"],
+        //                                 "created_at" => date("Y-m-d H:i:s"),
+        //                             ]);
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+
+        //         $this->db->trans_complete();
+        //         return $this->db->trans_status();
+        //     } catch (Exception $e) {
+        //         $this->db->trans_rollback();
+        //         return false;
+        //     }
+        // }
 
         // public function process_vendor_return($return_data, $return_items)
         // {
@@ -6206,14 +6495,66 @@ class Stock_model_new extends CI_Model
      * Uses INSERT...ON DUPLICATE KEY UPDATE.
      * $stock_data should contain 'batch_id', 'quantity', and 'center_id' (or indicate central)
      */
-    public function add_stock_to_location($stock_data)
+    // public function add_stock_to_location($stock_data)
+    // {
+    //         $is_central = empty($stock_data['center_id']); 
+    //         $table_name = $is_central ? 'central_stocks' : 'center_stocks';
+    //         $location_id = $stock_data['center_id'] ?? null; 
+    //         if (empty($stock_data['batch_id']) || !isset($stock_data['quantity'])) {
+    //              return ['status' => 'error', 'message' => 'Missing batch_id or quantity for stock update.'];
+    //         }
+    //         $this->db->select('quantity');
+    //         $this->db->where('batch_id', $stock_data['batch_id']);
+    //         if (!$is_central) {
+    //              $this->db->where('center_id', $location_id);
+    //         }
+    //         $q_before = $this->db->get($table_name)->row();
+    //         $quantity_before = ($q_before) ? (int)$q_before->quantity : 0;
+    //         $quantity_after = $quantity_before + (int)$stock_data['quantity'];
+    //         // Build the SQL for INSERT...ON DUPLICATE KEY UPDATE
+    //         $sql = "INSERT INTO {$table_name} (batch_id, ";
+    //         $sql .= $is_central ? "" : "center_id, ";
+    //         $sql .= "quantity,department, status, last_movement_date, created_at, updated_at) VALUES (?, ";
+    //         $params = [$stock_data['batch_id']];
+    //         if (!$is_central) {
+    //             $sql .= "?, "; // Placeholder for center_id
+    //             $params[] = $location_id;
+    //         }
+    //         $sql .= "?, ?, NOW(), NOW(), NOW()) "; // Placeholders for quantity, status
+    //         $params[] = $stock_data['quantity'];
+    //         $params[] = $stock_data['department'] ?? 'GENERAL';
+    //         $params[] = $stock_data['status'] ?? 'ACTIVE';
+
+    //         $sql .= "ON DUPLICATE KEY UPDATE ";
+    //         $sql .= "quantity = quantity + ?, ";
+    //         $sql .= "status = VALUES(status), "; // Update status if provided in INSERT part
+    //         $sql .= "last_movement_date = NOW(), ";
+    //         $sql .= "updated_at = NOW()";
+    //         $params[] = $stock_data['quantity']; // Quantity for the UPDATE part
+    //         // Execute the query
+    //         $this->db->query($sql, $params);
+    //         // Check for errors after query execution
+    //         $db_error = $this->db->error();
+    //         if ($db_error['code'] != 0) {
+    //              log_message('error', "DB Error ({$table_name} insert/update): ".$db_error['message']);
+    //              return ['status' => 'error', 'message' => "Database error updating stock in {$table_name}."];
+    //         } else {
+    //              return ['status' => 'success', 'quantity_after' => $quantity_after];
+    //         }
+    // }
+
+public function add_stock_to_location($stock_data)
     {
+        try {
+            // Check for required data
+            if (empty($stock_data['batch_id']) || !isset($stock_data['quantity'])) {
+                return ['status' => 'error', 'message' => 'Missing batch_id or quantity for stock update.'];
+            }
+            // Determine location type and ID
             $is_central = empty($stock_data['center_id']); 
             $table_name = $is_central ? 'central_stocks' : 'center_stocks';
             $location_id = $stock_data['center_id'] ?? null; 
-            if (empty($stock_data['batch_id']) || !isset($stock_data['quantity'])) {
-                 return ['status' => 'error', 'message' => 'Missing batch_id or quantity for stock update.'];
-            }
+            // Get quantity before the update for logging
             $this->db->select('quantity');
             $this->db->where('batch_id', $stock_data['batch_id']);
             if (!$is_central) {
@@ -6222,28 +6563,48 @@ class Stock_model_new extends CI_Model
             $q_before = $this->db->get($table_name)->row();
             $quantity_before = ($q_before) ? (int)$q_before->quantity : 0;
             $quantity_after = $quantity_before + (int)$stock_data['quantity'];
-            // Build the SQL for INSERT...ON DUPLICATE KEY UPDATE
-            $sql = "INSERT INTO {$table_name} (batch_id, ";
-            $sql .= $is_central ? "" : "center_id, ";
-            $sql .= "quantity, status, last_movement_date, created_at, updated_at) VALUES (?, ";
-            $params = [$stock_data['batch_id']];
-            if (!$is_central) {
-                $sql .= "?, "; // Placeholder for center_id
-                $params[] = $location_id;
-            }
-            $sql .= "?, ?, NOW(), NOW(), NOW()) "; // Placeholders for quantity, status
-            $params[] = $stock_data['quantity'];
-            $params[] = $stock_data['status'] ?? 'ACTIVE';
+            // --- Prepare SQL and Parameters based on location ---
+            $sql = "";
+            $params = [];
+            $quantity_to_add = (int)$stock_data['quantity'];
+            $status = $stock_data['status'] ?? 'ACTIVE';
+            if ($is_central) {
+                // --- Logic for Central Stocks (No Department) ---
+                $sql = "INSERT INTO central_stocks 
+                            (batch_id, quantity, status, last_movement_date, created_at, updated_at) 
+                        VALUES (?, ?, ?, NOW(), NOW(), NOW())
+                        ON DUPLICATE KEY UPDATE
+                            quantity = quantity + ?,
+                            status = VALUES(status),
+                            last_movement_date = NOW(),
+                            updated_at = NOW()";
+                
+                $params = [
+                    $stock_data['batch_id'], $quantity_to_add, $status, // For INSERT
+                    $quantity_to_add // For UPDATE
+                ];
 
-            $sql .= "ON DUPLICATE KEY UPDATE ";
-            $sql .= "quantity = quantity + ?, ";
-            $sql .= "status = VALUES(status), "; // Update status if provided in INSERT part
-            $sql .= "last_movement_date = NOW(), ";
-            $sql .= "updated_at = NOW()";
-            $params[] = $stock_data['quantity']; // Quantity for the UPDATE part
+            } else {
+                // --- Logic for Center Stocks (With Department) ---
+                $department = $stock_data['department'] ?? 'GENERAL'; // Default to 'GENERAL' if not provided
+                $sql = "INSERT INTO center_stocks 
+                            (batch_id, center_id, department, quantity, status, last_movement_date, created_at, updated_at) 
+                        VALUES (?, ?, ?, ?, ?, NOW(), NOW(), NOW())
+                        ON DUPLICATE KEY UPDATE
+                            quantity = quantity + ?,
+                            department = VALUES(department), -- Update department on duplicate
+                            status = VALUES(status),
+                            last_movement_date = NOW(),
+                            updated_at = NOW()";
+                
+                $params = [
+                    $stock_data['batch_id'], $location_id, $department, $quantity_to_add, $status, // For INSERT
+                    $quantity_to_add // For UPDATE
+                ];
+            }
+            // --- End Correction ---
             // Execute the query
             $this->db->query($sql, $params);
-            // Check for errors after query execution
             $db_error = $this->db->error();
             if ($db_error['code'] != 0) {
                  log_message('error', "DB Error ({$table_name} insert/update): ".$db_error['message']);
@@ -6251,9 +6612,12 @@ class Stock_model_new extends CI_Model
             } else {
                  return ['status' => 'success', 'quantity_after' => $quantity_after];
             }
+
+        } catch (Exception $e) {
+             log_message('error', "Exception in add_stock_to_location: " . $e->getMessage());
+             return ['status' => 'error', 'message' => 'Exception occurred updating stock location.'];
+        }
     }
-
-
     /**
      * Logs a stock movement in the stock_movements table.
      */
@@ -6590,7 +6954,84 @@ class Stock_model_new extends CI_Model
         }
     }
 
+/**
+     * Gets all items for a specific sale, joined with medicine details.
+     * Used for the "Edit Sale" page and the "Print Sale Bill" page.
+     */
+    public function get_sale_items_details($sale_id)
+    {
+        try {
+            $this->db->select([
+                'si.*', // Selects all columns from sale_items (id, sale_id, batch_id, quantity_sold, unit_price, subtotal, discount_amount, tax_amount, total)
+                'm.medicine_name',
+                'm.medicine_code',
+                'm.hsn_code',      // Added HSN code for the print view
+                'b.brand_name',    // From medicine_brands
+                'mb.batch_number',
+                'mb.expiry_date'
+            ]);
+            $this->db->from('sale_items si');
+            $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+            $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left'); // Correct join
+            $this->db->where('si.sale_id', $sale_id);
+            
+            return $this->db->get()->result();
 
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_sale_items_details: ' . $e->getMessage());
+            return []; // Return an empty array on error
+        }
+    } 
+ /**
+     * Checks if a batch_number is unique for a specific medicine_id.
+     * Returns TRUE if it is unique (does not exist).
+     * Returns FALSE if it is a duplicate (already exists).
+     */
+    public function is_batch_unique($medicine_id, $batch_number)
+    {
+        try {
+            $this->db->from('medicine_batches');
+            $this->db->where('medicine_id', $medicine_id);
+            $this->db->where('batch_number', $batch_number);
+            
+            $count = $this->db->count_all_results(); // Counts matching rows
+
+            return $count == 0; // If count is 0, it's unique (TRUE). If 1 or more, it's a duplicate (FALSE).
+
+        } catch (Exception $e) {
+            log_message('error', 'Error in is_batch_unique: ' . $e->getMessage());
+            return false; // Fail safe, assumes duplicate on error
+        }
+    }
+
+    /**
+     * Your existing add_purchase_batch function (or add_batch)
+     * Make sure it returns an array
+     */
+    // public function add_purchase_batch($batch_data)
+    // {
+    //     // try {
+    //         // This function is now called AFTER validation, 
+    //         // but we still keep the try/catch as a final safety net
+    //         $this->db->insert('medicine_batches', $batch_data);
+    //         $new_batch_id = $this->db->insert_id();
+
+    //         if ($new_batch_id) {
+    //             return ['status' => 'success', 'batch_id' => $new_batch_id];
+    //         } else {
+    //              return ['status' => 'error', 'message' => 'Database error inserting batch.'];
+    //         }
+        // } catch (Exception $e) {
+        //     log_message('error', "Exception in add_purchase_batch: " . $e->getMessage());
+            
+        //     // Check for the unique constraint error code (1062 for MySQL)
+        //     if (strpos($e->getMessage(), '1062') !== false || strpos($e->getMessage(), 'Duplicate entry') !== false) {
+        //          return ['status' => 'error', 'message' => 'Duplicate batch number for this medicine.'];
+        //     }
+        //     return ['status' => 'error', 'message' => 'Exception occurred adding batch.'];
+        // }
+    // }
     // --- You also need these functions (which you already have) ---
     // public function get_employee_id_from_number($number) { ... }
     // public function add_batch($batch_data) { ... }

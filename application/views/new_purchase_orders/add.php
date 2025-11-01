@@ -35,7 +35,7 @@
                         <?php if (!empty($vendors)): ?>
                            <?php foreach ($vendors as $vendor): ?>
                               <option value="<?php echo $vendor['ID']; ?>">
-                                 <?php echo $vendor['name']; ?> (<?php echo $vendor['vendor_number']; ?>)
+                                 <?php echo $vendor['name']; ?>
                               </option>
                            <?php endforeach; ?>
                         <?php endif; ?>
@@ -83,7 +83,15 @@
                <div class="col-md-6">
                   <div class="form-group">
                      <label for="department">Department <span class="text-danger">*</span></label>
-                     <select class="form-control" id="department" name="department" required>
+                     <select name="department" class="form-control"  id="department" required>
+                        <option value="">Select Department</option>
+                        <?php foreach($departments as $dept): ?>
+                              <option value="<?php echo $dept['department']; ?>" <?php echo set_select('from_department', $dept['department']); ?>>
+                                 <?php echo $dept['department']; ?>
+                              </option>
+                        <?php endforeach; ?>
+                     </select>
+                     <!-- <select class="form-control" id="department" name="department" required>
                         <option value="">Select Department</option>
                         <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
                         <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
@@ -101,7 +109,7 @@
                         <option value="Embryology Basant Lok">Embryology Basant Lok</option>
                         <option value="Embryology Srinagar">Embryology Srinagar</option>
                         <option value="OT Srinagar">OT Srinagar</option>
-                     </select>
+                     </select> -->
                   </div>
                </div>
             </div>

@@ -17,9 +17,9 @@
             </div>
         </div>
         
-        <?php if(ENVIRONMENT === 'development'): ?>
+        <!-- <?php if(ENVIRONMENT === 'development'): ?> -->
         <!-- Debug Information -->
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-md-12">
                 <div class="panel panel-warning">
                     <div class="panel-heading">
@@ -35,7 +35,7 @@
                 </div>
             </div>
         </div>
-        <?php endif; ?>
+        <?php endif; ?> -->
         
         <!-- Filter Panel -->
         <div class="row">

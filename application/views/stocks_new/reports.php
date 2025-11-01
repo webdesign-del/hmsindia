@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
-                    <i class="fa fa-chart-bar"></i> Reports & Analytics
+                    <i class="fa fa-bar-chart"></i> Reports & Analytics
                     <small>Comprehensive stock and sales reports</small>
                 </h1>
             </div>
@@ -16,7 +16,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-warehouse fa-5x"></i>
+                                <i class="fa fa-building-o fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge">Stock</div>
@@ -62,7 +62,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-exchange-alt fa-5x"></i>
+                                <i class="fa fa-exchange fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge">Transfer</div>
@@ -114,7 +114,7 @@
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-md-4">
-                                <h4><i class="fa fa-warehouse"></i> Stock Reports</h4>
+                                <h4><i class="fa fa-building-o"></i> Stock Reports</h4>
                                 <ul class="list-unstyled">
                                     <li><a href="<?php echo base_url('stocks_new/stock_report'); ?>"><i class="fa fa-arrow-right"></i> Current Stock Levels</a></li>
                                     <li><a href="<?php echo base_url('stocks_new/stock_summary'); ?>"><i class="fa fa-arrow-right"></i> Stock Summary</a></li>
@@ -132,7 +132,7 @@
                                 </ul>
                             </div>
                             <div class="col-md-4">
-                                <h4><i class="fa fa-exchange-alt"></i> Transfer Reports</h4>
+                                <h4><i class="fa fa-exchange"></i> Transfer Reports</h4>
                                 <ul class="list-unstyled">
                                     <li><a href="<?php echo base_url('stocks_new/transfer_report'); ?>"><i class="fa fa-arrow-right"></i> Transfer Report</a></li>
                                     <li><a href="<?php echo base_url('stocks_new/transfer_report?period=today'); ?>"><i class="fa fa-arrow-right"></i> Today's Transfers</a></li>
@@ -165,7 +165,7 @@
                                     <li>Stock rotation efficiency</li>
                                 </ul>
                                 <a href="<?php echo base_url('stocks_new/fefo_analytics'); ?>" class="btn btn-info">
-                                    <i class="fa fa-chart-bar"></i> View FEFO Analytics
+                                    <i class="fa fa-bar-chart"></i> View FEFO Analytics
                                 </a>
                             </div>
                             <div class="col-md-6">
@@ -178,7 +178,7 @@
                                     <li>Vendor performance analysis</li>
                                 </ul>
                                 <a href="<?php echo base_url('stocks_new/inventory_analytics'); ?>" class="btn btn-success">
-                                    <i class="fa fa-chart-pie"></i> View Inventory Analytics
+                                    <i class="fa fa-pie-chart"></i> View Inventory Analytics
                                 </a>
                             </div>
                         </div>

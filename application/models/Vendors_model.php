@@ -116,20 +116,20 @@ class Vendors_model extends CI_Model
 		return $result;
 	}
 
-	function get_vendor_name_by_vendor_id($vendor_id){
-		$result = array();
-		$sql = "Select name from ".$this->config->item('db_prefix')."vendors where ID='".$vendor_id."'";
-		$q = $this->db->query($sql);
-		$result = $q->result_array();
-		if (!empty($result))
-		{
-			return $result[0]['name'];
-		}
-		else
-		{
+	function get_vendor_name_by_vendor_id($vendor_id)
+	{
+		$this->db->select('name,vendor_number,company_name,gst_no');
+		$this->db->from($this->config->item('db_prefix') . 'vendors');
+		$this->db->where('ID', $vendor_id);
+		$query = $this->db->get();
+     
+		if ($query->num_rows() > 0) {
+			return $query->row();
+		} else {
 			return null;
 		}
 	}
+
 }
 // END Stock_model class
 

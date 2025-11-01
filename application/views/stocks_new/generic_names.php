@@ -198,7 +198,7 @@
                     <div class="panel-heading">
                         <div class="row">
                             <div class="col-xs-3">
-                                <i class="fa fa-pills fa-5x"></i>
+                                <i class="fa fa-medkit fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
                                 <div class="huge"><?php echo isset($generic_names) ? array_sum(array_map(function($g) { return isset($g->medicines_count) ? $g->medicines_count : 0; }, $generic_names)) : 0; ?></div>

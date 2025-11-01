@@ -154,9 +154,9 @@
                             <i class="fa fa-arrow-left"></i> Back to Transfers
                         </a>
                         
-                        <button onclick="window.print()" class="btn btn-info">
+                        <!-- <button onclick="window.print()" class="btn btn-info">
                             <i class="fa fa-print"></i> Print Transfer
-                        </button>
+                        </button> -->
                         
                         <?php if($transfer->status == 'APPROVED' || $transfer->status == 'COMPLETED'): ?>
                             <span class="badge badge-info pull-right">

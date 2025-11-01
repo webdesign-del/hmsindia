@@ -108,10 +108,10 @@
                                                 <td><?php echo date('d-m-Y', strtotime($report->audit_date)); ?></td>
                                                 <td><?php echo $report->audit_type; ?></td>
                                                 <td><?php echo $report->auditor_name; ?></td>
-                                                <td><?php echo $report->total_items; ?></td>
+                                                <td><?php echo $report->total_items_audited; ?></td>
                                                 <td>
-                                                    <?php if($report->variance_items > 0): ?>
-                                                        <span class="badge badge-warning"><?php echo $report->variance_items; ?></span>
+                                                    <?php if($report->discrepancies_found > 0): ?>
+                                                        <span class="badge badge-warning"><?php echo $report->discrepancies_found; ?></span>
                                                     <?php else: ?>
                                                         <span class="badge badge-success">0</span>
                                                     <?php endif; ?>

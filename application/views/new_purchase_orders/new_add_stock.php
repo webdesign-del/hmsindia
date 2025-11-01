@@ -425,6 +425,7 @@
          <input type="hidden" name="po_id" value="<?php echo $purchase_order['id']; ?>">
          <input type="hidden" name="po_number" value="<?php echo $purchase_order['po_number']; ?>">
          <input type="hidden" name="vendor_number" value="<?php echo $purchase_order['vendor_number']; ?>">
+         <input type="hidden" name="department" value="<?php echo $purchase_order['department']; ?>">
          <input type="hidden" name="center_id" value="<?php echo $ship_to_center_id; ?>">
          
          <div class="card-content" style="padding: 20px;">

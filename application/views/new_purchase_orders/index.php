@@ -93,7 +93,6 @@
             <i class="fa fa-exclamation-circle"></i> <?php echo $this->session->flashdata('error'); ?>
          </div>
       <?php endif; ?>
-      
       <div class="card-content">
          <div class="table-responsive">
             <table class="table table-striped table-bordered table-hover" id="new_purchase_orders_list">
@@ -121,10 +120,10 @@
                            </td>
                            <?php
                            $all_method->load->model('Vendors_model');
-                           $vendor_data = $all_method->Vendors_model->get_vendor_data_by_vendor_number($po['vendor_number']);
-                           $vendor_name = (!empty($vendor_data) && isset($vendor_data[0]['name'])) ? $vendor_data[0]['name'] : 'N/A';
+                           $vendor_data = $all_method->Vendors_model->get_vendor_name_by_vendor_id($po['vendor_number']);
+                           // $vendor_name = (!empty($vendor_data) && isset($vendor_data[0]['name'])) ? $vendor_data[0]['name'] : 'N/A';
                            ?>
-                           <td><?php echo $vendor_name; ?></td>
+                           <td><?php echo $vendor_data->name; ?></td>
                            <?php
                             $ship_to = $all_method->get_center_name($po['ship_to']);
                             $bill_to = $all_method->get_center_name($po['bill_to']);
@@ -172,7 +171,7 @@
                               </span>
                            </td>
                            <td>
-                              <?php if ($status == 'completed'): ?>
+                              <?php if ($status == 'completed' && $user_role == 'central_stock_manager'): ?>
                                  <a href="<?php echo base_url('new_purchase_orders/new_add_stock/' . (!empty($po['id']) ? $po['id'] : '0')); ?>" class="btn btn-info">
                                     <i class="fa fa-file-text-o"></i>Add stocks
                                  </a>

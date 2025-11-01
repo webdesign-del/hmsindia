@@ -16,231 +16,233 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </section>
 
     <section class="content">
-        <div class="row">
-            <div class="col-xs-12">
-                <div class="box">
-                    <div class="box-header clearfix">
-                        <h3 class="box-title">Vendors List</h3>
-                        <a href="<?php echo base_url(); ?>stocks_new/add_vendor" class="btn btn-primary btn-sm pull-right">
-                            <i class="fa fa-plus"></i> Add New Vendor
-                        </a>
-                    </div>
-                    <div class="box-body">
-                        <?php if($this->session->flashdata('success')): ?>
-                            <div class="alert alert-success alert-dismissible">
-                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                                <h4><i class="icon fa fa-check"></i> Success!</h4>
-                                <?php echo $this->session->flashdata('success'); ?>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if($this->session->flashdata('error')): ?>
-                            <div class="alert alert-danger alert-dismissible">
-                                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                                <h4><i class="icon fa fa-ban"></i> Error!</h4>
-                                <?php echo $this->session->flashdata('error'); ?>
-                            </div>
-                        <?php endif; ?>
+        <div class="panel panel-default pt-5">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="box">
+                        <div class="box-header clearfix">
+                            <h3 class="box-title">Vendors List</h3>
+                            <a href="<?php echo base_url(); ?>stocks_new/add_vendor" class="btn btn-primary btn-sm pull-right">
+                                <i class="fa fa-plus"></i> Add New Vendor
+                            </a>
+                        </div>
+                        <div class="box-body">
+                            <?php if($this->session->flashdata('success')): ?>
+                                <div class="alert alert-success alert-dismissible">
+                                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                    <h4><i class="icon fa fa-check"></i> Success!</h4>
+                                    <?php echo $this->session->flashdata('success'); ?>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <?php if($this->session->flashdata('error')): ?>
+                                <div class="alert alert-danger alert-dismissible">
+                                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                                    <h4><i class="icon fa fa-ban"></i> Error!</h4>
+                                    <?php echo $this->session->flashdata('error'); ?>
+                                </div>
+                            <?php endif; ?>
 
-                        <div class="table-responsive">
-                            <table id="vendorsTable" class="table table-bordered table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Vendor Number</th>
-                                        <th>Vendor Name</th>
-                                        <th>Company</th>
-                                        <th>Contact Person</th>
-                                        <th>Phone</th>
-                                        <th>Email</th>
-                                        <th>GST Number</th>
-                                        <th>Drug License</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if(!empty($vendors)): ?>
-                                        <?php foreach($vendors as $vendor): ?>
-                                            <tr>
-                                                <td><?php echo isset($vendor->ID) ? $vendor->ID : (isset($vendor->id) ? $vendor->id : 'N/A'); ?></td>
-                                                <td>
-                                                    <strong><?php echo isset($vendor->vendor_number) ? $vendor->vendor_number : 'N/A'; ?></strong>
-                                                </td>
-                                                <td>
-                                                    <strong><?php echo isset($vendor->name) ? $vendor->name : 'N/A'; ?></strong>
-                                                    <?php if(isset($vendor->companies_type) && !empty($vendor->companies_type)): ?>
-                                                        <br><small class="text-muted"><?php echo $vendor->companies_type; ?></small>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td>
-                                                    <?php echo isset($vendor->company_name) ? $vendor->company_name : 'N/A'; ?>
-                                                    <?php if(isset($vendor->company_address) && !empty($vendor->company_address)): ?>
-                                                        <br><small class="text-muted" title="<?php echo $vendor->company_address; ?>">
-                                                            <i class="fa fa-map-marker"></i> <?php echo substr($vendor->company_address, 0, 30) . (strlen($vendor->company_address) > 30 ? '...' : ''); ?>
-                                                        </small>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td>
-                                                    <?php echo isset($vendor->contact_person_name) ? $vendor->contact_person_name : 'N/A'; ?>
-                                                    <?php if(isset($vendor->contact_person_designation) && !empty($vendor->contact_person_designation)): ?>
-                                                        <br><small class="text-muted"><?php echo $vendor->contact_person_designation; ?></small>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td>
-                                                    <?php if(isset($vendor->phone_number) && !empty($vendor->phone_number)): ?>
-                                                        <a href="tel:<?php echo $vendor->phone_number; ?>" class="text-primary">
-                                                            <i class="fa fa-phone"></i> <?php echo $vendor->phone_number; ?>
-                                                        </a>
-                                                    <?php else: ?>
-                                                        N/A
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td>
-                                                    <?php if(isset($vendor->email) && !empty($vendor->email)): ?>
-                                                        <a href="mailto:<?php echo $vendor->email; ?>" class="text-primary">
-                                                            <i class="fa fa-envelope"></i> <?php echo $vendor->email; ?>
-                                                        </a>
-                                                    <?php else: ?>
-                                                        N/A
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td>
-                                                    <?php echo isset($vendor->gst_number) ? $vendor->gst_number : 'N/A'; ?>
-                                                    <?php if(isset($vendor->pan_number) && !empty($vendor->pan_number)): ?>
-                                                        <br><small class="text-muted">PAN: <?php echo $vendor->pan_number; ?></small>
-                                                    <?php endif; ?>
-                                                    
-                                                    <!-- GST Document Links -->
-                                                    <?php if(isset($vendor->gst_file) && !empty($vendor->gst_file)): ?>
-                                                        <br>
-                                                        <div class="document-buttons">
-                                                            <a href="<?php echo $vendor->gst_file; ?>" 
-                                                               class="btn btn-xs btn-info" title="View GST Certificate" target="_blank">
-                                                                <i class="fa fa-eye"></i>
+                            <div class="table-responsive">
+                                <table id="vendorsTable" class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Vendor Number</th>
+                                            <th>Vendor Name</th>
+                                            <th>Company</th>
+                                            <th>Contact Person</th>
+                                            <th>Phone</th>
+                                            <th>Email</th>
+                                            <th>GST Number</th>
+                                            <th>Drug License</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if(!empty($vendors)): ?>
+                                            <?php foreach($vendors as $vendor): ?>
+                                                <tr>
+                                                    <td><?php echo isset($vendor->ID) ? $vendor->ID : (isset($vendor->id) ? $vendor->id : 'N/A'); ?></td>
+                                                    <td>
+                                                        <strong><?php echo isset($vendor->vendor_number) ? $vendor->vendor_number : 'N/A'; ?></strong>
+                                                    </td>
+                                                    <td>
+                                                        <strong><?php echo isset($vendor->name) ? $vendor->name : 'N/A'; ?></strong>
+                                                        <?php if(isset($vendor->companies_type) && !empty($vendor->companies_type)): ?>
+                                                            <br><small class="text-muted"><?php echo $vendor->companies_type; ?></small>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php echo isset($vendor->company_name) ? $vendor->company_name : 'N/A'; ?>
+                                                        <?php if(isset($vendor->company_address) && !empty($vendor->company_address)): ?>
+                                                            <br><small class="text-muted" title="<?php echo $vendor->company_address; ?>">
+                                                                <i class="fa fa-map-marker"></i> <?php echo substr($vendor->company_address, 0, 30) . (strlen($vendor->company_address) > 30 ? '...' : ''); ?>
+                                                            </small>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php echo isset($vendor->contact_person_name) ? $vendor->contact_person_name : 'N/A'; ?>
+                                                        <?php if(isset($vendor->contact_person_designation) && !empty($vendor->contact_person_designation)): ?>
+                                                            <br><small class="text-muted"><?php echo $vendor->contact_person_designation; ?></small>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php if(isset($vendor->phone_number) && !empty($vendor->phone_number)): ?>
+                                                            <a href="tel:<?php echo $vendor->phone_number; ?>" class="text-primary">
+                                                                <i class="fa fa-phone"></i> <?php echo $vendor->phone_number; ?>
                                                             </a>
-                                                            <a href="<?php echo $vendor->gst_file; ?>" 
-                                                               class="btn btn-xs btn-success" title="Download GST Certificate" download>
-                                                                <i class="fa fa-download"></i>
+                                                        <?php else: ?>
+                                                            N/A
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php if(isset($vendor->email) && !empty($vendor->email)): ?>
+                                                            <a href="mailto:<?php echo $vendor->email; ?>" class="text-primary">
+                                                                <i class="fa fa-envelope"></i> <?php echo $vendor->email; ?>
                                                             </a>
-                                                        </div>
-                                                    <?php else: ?>
-                                                        <br><small class="text-muted">No document uploaded</small>
-                                                    <?php endif; ?>
-                                                    
-                                                    <!-- PAN Document Links -->
-                                                    <?php if(isset($vendor->pan_file) && !empty($vendor->pan_file)): ?>
-                                                        <br>
-                                                        <div class="document-buttons">
-                                                            <a href="<?php echo $vendor->pan_file; ?>" 
-                                                               class="btn btn-xs btn-info" title="View PAN Card" target="_blank">
-                                                                <i class="fa fa-eye"></i>
-                                                            </a>
-                                                            <a href="<?php echo $vendor->pan_file; ?>" 
-                                                               class="btn btn-xs btn-success" title="Download PAN Card" download>
-                                                                <i class="fa fa-download"></i>
-                                                            </a>
-                                                        </div>
-                                                    <?php else: ?>
-                                                        <br><small class="text-muted">No PAN document uploaded</small>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td>
-                                                    <?php echo isset($vendor->drug_license_number) ? $vendor->drug_license_number : 'N/A'; ?>
-                                                    <?php if(isset($vendor->fssai_number) && !empty($vendor->fssai_number)): ?>
-                                                        <br><small class="text-muted">FSSAI: <?php echo $vendor->fssai_number; ?></small>
-                                                    <?php endif; ?>
-                                                    
-                                                    <!-- Drug License Document Links -->
-                                                    <?php if(isset($vendor->drug_license_file) && !empty($vendor->drug_license_file)): ?>
-                                                        <br>
-                                                        <div class="document-buttons">
-                                                            <a href="<?php echo $vendor->drug_license_file; ?>" 
-                                                               class="btn btn-xs btn-info" title="View Drug License" target="_blank">
-                                                                <i class="fa fa-eye"></i>
-                                                            </a>
-                                                            <a href="<?php echo $vendor->drug_license_file; ?>" 
-                                                               class="btn btn-xs btn-success" title="Download Drug License" download>
-                                                                <i class="fa fa-download"></i>
-                                                            </a>
-                                                        </div>
-                                                    <?php else: ?>
-                                                        <br><small class="text-muted">No license document uploaded</small>
-                                                    <?php endif; ?>
-                                                    
-                                                    <!-- FSSAI Document Links -->
-                                                    <?php if(isset($vendor->fssai_file) && !empty($vendor->fssai_file)): ?>
-                                                        <br>
-                                                        <div class="document-buttons">
-                                                            <a href="<?php echo $vendor->fssai_file; ?>" 
-                                                               class="btn btn-xs btn-info" title="View FSSAI Certificate" target="_blank">
-                                                                <i class="fa fa-eye"></i>
-                                                            </a>
-                                                            <a href="<?php echo $vendor->fssai_file; ?>" 
-                                                               class="btn btn-xs btn-success" title="Download FSSAI Certificate" download>
-                                                                <i class="fa fa-download"></i>
-                                                            </a>
-                                                        </div>
-                                                    <?php else: ?>
-                                                        <br><small class="text-muted">No FSSAI document uploaded</small>
-                                                    <?php endif; ?>
-                                                    
-                                                    <!-- MSME Document Links -->
-                                                    <?php if(isset($vendor->msme_file) && !empty($vendor->msme_file)): ?>
-                                                        <br>
-                                                        <div class="document-buttons">
-                                                            <a href="<?php echo $vendor->msme_file; ?>" 
-                                                               class="btn btn-xs btn-info" title="View MSME Certificate" target="_blank">
-                                                                <i class="fa fa-eye"></i>
-                                                            </a>
-                                                            <a href="<?php echo $vendor->msme_file; ?>" 
-                                                               class="btn btn-xs btn-success" title="Download MSME Certificate" download>
-                                                                <i class="fa fa-download"></i>
-                                                            </a>
-                                                        </div>
-                                                    <?php else: ?>
-                                                        <br><small class="text-muted">No MSME document uploaded</small>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td>
-                                                    <?php 
-                                                    $status = isset($vendor->status) ? $vendor->status : 'inactive';
-                                                    if($status == 'active' || $status == '1'): ?>
-                                                        <span class="label label-success">Active</span>
-                                                    <?php else: ?>
-                                                        <span class="label label-danger">Inactive</span>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td>
-                                                    <div class="btn-group">
-                                                        <a href="<?php echo base_url(); ?>stocks_new/edit_vendor/<?php echo isset($vendor->ID) ? $vendor->ID : $vendor->id; ?>" 
-                                                           class="btn btn-info btn-sm" title="Edit">
-                                                            <i class="fa fa-edit"></i>
-                                                        </a>
-                                                        <button type="button" class="btn btn-info btn-sm" title="View Details" 
-                                                                onclick="showVendorDetails(<?php echo isset($vendor->ID) ? $vendor->ID : $vendor->id; ?>)">
-                                                            <i class="fa fa-eye"></i>
-                                                        </button>
+                                                        <?php else: ?>
+                                                            N/A
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php echo isset($vendor->gst_number) ? $vendor->gst_number : 'N/A'; ?>
+                                                        <?php if(isset($vendor->pan_number) && !empty($vendor->pan_number)): ?>
+                                                            <br><small class="text-muted">PAN: <?php echo $vendor->pan_number; ?></small>
+                                                        <?php endif; ?>
+                                                        
+                                                        <!-- GST Document Links -->
+                                                        <?php if(isset($vendor->gst_file) && !empty($vendor->gst_file)): ?>
+                                                            <br>
+                                                            <div class="document-buttons">
+                                                                <a href="<?php echo $vendor->gst_file; ?>" 
+                                                                class="btn btn-xs btn-info" title="View GST Certificate" target="_blank">
+                                                                    <i class="fa fa-eye"></i>
+                                                                </a>
+                                                                <a href="<?php echo $vendor->gst_file; ?>" 
+                                                                class="btn btn-xs btn-success" title="Download GST Certificate" download>
+                                                                    <i class="fa fa-download"></i>
+                                                                </a>
+                                                            </div>
+                                                        <?php else: ?>
+                                                            <br><small class="text-muted">No document uploaded</small>
+                                                        <?php endif; ?>
+                                                        
+                                                        <!-- PAN Document Links -->
+                                                        <?php if(isset($vendor->pan_file) && !empty($vendor->pan_file)): ?>
+                                                            <br>
+                                                            <div class="document-buttons">
+                                                                <a href="<?php echo $vendor->pan_file; ?>" 
+                                                                class="btn btn-xs btn-info" title="View PAN Card" target="_blank">
+                                                                    <i class="fa fa-eye"></i>
+                                                                </a>
+                                                                <a href="<?php echo $vendor->pan_file; ?>" 
+                                                                class="btn btn-xs btn-success" title="Download PAN Card" download>
+                                                                    <i class="fa fa-download"></i>
+                                                                </a>
+                                                            </div>
+                                                        <?php else: ?>
+                                                            <br><small class="text-muted">No PAN document uploaded</small>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
+                                                        <?php echo isset($vendor->drug_license_number) ? $vendor->drug_license_number : 'N/A'; ?>
+                                                        <?php if(isset($vendor->fssai_number) && !empty($vendor->fssai_number)): ?>
+                                                            <br><small class="text-muted">FSSAI: <?php echo $vendor->fssai_number; ?></small>
+                                                        <?php endif; ?>
+                                                        
+                                                        <!-- Drug License Document Links -->
+                                                        <?php if(isset($vendor->drug_license_file) && !empty($vendor->drug_license_file)): ?>
+                                                            <br>
+                                                            <div class="document-buttons">
+                                                                <a href="<?php echo $vendor->drug_license_file; ?>" 
+                                                                class="btn btn-xs btn-info" title="View Drug License" target="_blank">
+                                                                    <i class="fa fa-eye"></i>
+                                                                </a>
+                                                                <a href="<?php echo $vendor->drug_license_file; ?>" 
+                                                                class="btn btn-xs btn-success" title="Download Drug License" download>
+                                                                    <i class="fa fa-download"></i>
+                                                                </a>
+                                                            </div>
+                                                        <?php else: ?>
+                                                            <br><small class="text-muted">No license document uploaded</small>
+                                                        <?php endif; ?>
+                                                        
+                                                        <!-- FSSAI Document Links -->
+                                                        <?php if(isset($vendor->fssai_file) && !empty($vendor->fssai_file)): ?>
+                                                            <br>
+                                                            <div class="document-buttons">
+                                                                <a href="<?php echo $vendor->fssai_file; ?>" 
+                                                                class="btn btn-xs btn-info" title="View FSSAI Certificate" target="_blank">
+                                                                    <i class="fa fa-eye"></i>
+                                                                </a>
+                                                                <a href="<?php echo $vendor->fssai_file; ?>" 
+                                                                class="btn btn-xs btn-success" title="Download FSSAI Certificate" download>
+                                                                    <i class="fa fa-download"></i>
+                                                                </a>
+                                                            </div>
+                                                        <?php else: ?>
+                                                            <br><small class="text-muted">No FSSAI document uploaded</small>
+                                                        <?php endif; ?>
+                                                        
+                                                        <!-- MSME Document Links -->
+                                                        <?php if(isset($vendor->msme_file) && !empty($vendor->msme_file)): ?>
+                                                            <br>
+                                                            <div class="document-buttons">
+                                                                <a href="<?php echo $vendor->msme_file; ?>" 
+                                                                class="btn btn-xs btn-info" title="View MSME Certificate" target="_blank">
+                                                                    <i class="fa fa-eye"></i>
+                                                                </a>
+                                                                <a href="<?php echo $vendor->msme_file; ?>" 
+                                                                class="btn btn-xs btn-success" title="Download MSME Certificate" download>
+                                                                    <i class="fa fa-download"></i>
+                                                                </a>
+                                                            </div>
+                                                        <?php else: ?>
+                                                            <br><small class="text-muted">No MSME document uploaded</small>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                    <td>
                                                         <?php 
                                                         $status = isset($vendor->status) ? $vendor->status : 'inactive';
                                                         if($status == 'active' || $status == '1'): ?>
-                                                            <a href="<?php echo base_url(); ?>stocks_new/delete_vendor/<?php echo isset($vendor->ID) ? $vendor->ID : $vendor->id; ?>" 
-                                                               class="btn btn-danger btn-sm" title="Deactivate"
-                                                               onclick="return confirm('Are you sure you want to deactivate this vendor?')">
-                                                                <i class="fa fa-ban"></i>
-                                                            </a>
+                                                            <span class="label label-success">Active</span>
+                                                        <?php else: ?>
+                                                            <span class="label label-danger">Inactive</span>
                                                         <?php endif; ?>
-                                                    </div>
-                                                </td>
+                                                    </td>
+                                                    <td>
+                                                        <div class="btn-group">
+                                                            <a href="<?php echo base_url(); ?>stocks_new/edit_vendor/<?php echo isset($vendor->ID) ? $vendor->ID : $vendor->id; ?>" 
+                                                            class="btn btn-info btn-sm" title="Edit">
+                                                                <i class="fa fa-edit"></i>
+                                                            </a>
+                                                            <button type="button" class="btn btn-info btn-sm" title="View Details" 
+                                                                    onclick="showVendorDetails(<?php echo isset($vendor->ID) ? $vendor->ID : $vendor->id; ?>)">
+                                                                <i class="fa fa-eye"></i>
+                                                            </button>
+                                                            <?php 
+                                                            $status = isset($vendor->status) ? $vendor->status : 'inactive';
+                                                            if($status == 'active' || $status == '1'): ?>
+                                                                <a href="<?php echo base_url(); ?>stocks_new/delete_vendor/<?php echo isset($vendor->ID) ? $vendor->ID : $vendor->id; ?>" 
+                                                                class="btn btn-danger btn-sm" title="Deactivate"
+                                                                onclick="return confirm('Are you sure you want to deactivate this vendor?')">
+                                                                    <i class="fa fa-ban"></i>
+                                                                </a>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr>
+                                                <td colspan="11" class="text-center">No vendors found</td>
                                             </tr>
-                                        <?php endforeach; ?>
-                                    <?php else: ?>
-                                        <tr>
-                                            <td colspan="11" class="text-center">No vendors found</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

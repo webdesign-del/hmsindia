@@ -48,7 +48,7 @@
         </div>
         
         <!-- Debug Information -->
-        <?php if(ENVIRONMENT === 'development'): ?>
+        <!-- <?php if(ENVIRONMENT === 'development'): ?>
         <div class="row">
             <div class="col-md-12">
                 <div class="panel panel-warning">
@@ -70,7 +70,7 @@
                 </div>
             </div>
         </div>
-        <?php endif; ?>
+        <?php endif; ?> -->
         
         <!-- Add Transfer Item Form -->
         <?php if($transfer->status == 'DRAFT'): ?>

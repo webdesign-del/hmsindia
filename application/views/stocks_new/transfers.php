@@ -11,11 +11,11 @@
         
         <?php if(ENVIRONMENT === 'development'): ?>
         <!-- Debug Information -->
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-md-12">
                 <div class="panel panel-warning">
                     <div class="panel-heading">
-                        <i class="fa fa-bug"></i> Debug Information
+                        <i class="fa fa-bug"></i>   
                     </div>
                     <div class="panel-body">
                         <p><strong>Transfers Count:</strong> <?php echo is_array($transfers) ? count($transfers) : 'Not an array'; ?></p>
@@ -27,7 +27,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> -->
         <?php endif; ?>
         
         <!-- Action Buttons -->

@@ -33,7 +33,6 @@ class Stocks_new extends CI_Controller
             $data[
                 "dashboard_summary"
             ] = $this->Stock_model_new->get_dashboard_summary();
-
             // Get low stock alerts
             $data[
                 "low_stock_alerts"
@@ -43,22 +42,18 @@ class Stocks_new extends CI_Controller
             $data[
                 "expiry_alerts"
             ] = $this->Stock_model_new->get_expiry_alerts();
-
             // Get recent sales
             $data["recent_sales"] = $this->Stock_model_new->get_recent_sales(
                 10,
             );
-
             // Get recent transfers
             $data[
                 "recent_transfers"
             ] = $this->Stock_model_new->get_recent_transfers(10);
-
             // Get sales analytics (last 30 days)
             $data[
                 "sales_analytics"
             ] = $this->Stock_model_new->get_sales_analytics(30);
-
             // Get transfer analytics (last 30 days)
             $data[
                 "transfer_analytics"
@@ -92,7 +87,16 @@ class Stocks_new extends CI_Controller
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
-            $data["medicines"] = $this->Stock_model_new->get_all_medicines();
+            $medicine_name = $this->input->get("medicine_name");
+            $generic_name = $this->input->get("generic_name");
+            $brand_id = $this->input->get("brand_id");
+            $category = $this->input->get("category");
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines(
+                $medicine_name,
+                $generic_name,
+                $brand_id,
+                $category
+            );
             $data["brands"] = $this->Stock_model_new->get_medicine_brands();
 
             $template = get_header_template($logg["role"]);
@@ -249,7 +253,6 @@ class Stocks_new extends CI_Controller
                     "Category",
                     "required",
                 );
-
                 if ($this->form_validation->run() == true) {
                     $medicine_data = [
                         "brand_id" => $this->input->post("brand_id"),
@@ -482,7 +485,12 @@ class Stocks_new extends CI_Controller
             if ($this->input->post("action") == "add_batch") {
                 $this->form_validation->set_rules("medicine_id", "Medicine", "required");
                 $this->form_validation->set_rules("vendor_id", "Vendor", "required");
-                $this->form_validation->set_rules("batch_number", "Batch Number", "required");
+                // $this->form_validation->set_rules("batch_number", "Batch Number", "required");
+                $this->form_validation->set_rules(
+                    "batch_number", 
+                    "Batch Number", 
+                    "required|trim|callback_check_batch_unique" // This rule calls your function
+                );
                 $this->form_validation->set_rules("expiry_date", "Expiry Date", "required");
                 $this->form_validation->set_rules("purchase_price", "Purchase Price", "required|numeric");
                 $this->form_validation->set_rules("selling_price", "Selling Price", "required|numeric");
@@ -565,7 +573,120 @@ class Stocks_new extends CI_Controller
             redirect(base_url());
         }
     }
+    // public function add_batch()
+    // {
+    //     $logg = checklogin();
+    //     if ($logg["status"] == true) {
+            
+    //         $this->load->model('Stock_model_new');
+    //         $this->load->library('form_validation'); 
 
+    //         // --- Handle Form Submission ---
+    //         if ($this->input->post("action") == "add_batch") {
+    //             $this->form_validation->set_rules("medicine_id", "Medicine", "required");
+    //             $this->form_validation->set_rules("vendor_id", "Vendor", "required");
+    //             $this->form_validation->set_rules(
+    //                 "batch_number", 
+    //                 "Batch Number", 
+    //                 "required|trim|callback_check_batch_unique" // This rule calls your function
+    //             );
+    //             $this->form_validation->set_rules("expiry_date", "Expiry Date", "required");
+    //             $this->form_validation->set_rules("purchase_price", "Purchase Price", "required|numeric");
+    //             $this->form_validation->set_rules("selling_price", "Selling Price", "required|numeric");
+    //             $this->form_validation->set_rules("quantity_purchased", "Quantity Purchased", "required|numeric|greater_than[0]");
+
+    //             // --- ADD THIS LINE ---
+    //             // This pre-registers the error message for your custom rule
+    //             $this->form_validation->set_message('check_batch_unique', 'Please enter another batch ID. This ID already exists for this medicine.');
+    //             // --- END OF FIX ---
+    //             if ($this->form_validation->run() == true) {
+                    
+    //                 // --- Get Employee ID ---
+    //                 $created_by_id = $this->get_employee_id_from_number(
+    //                     $_SESSION["logged_central_stock_manager"]["employee_number"]
+    //                 );
+
+    //                 $batch_data = [
+    //                     "medicine_id" => $this->input->post("medicine_id"),
+    //                     "vendor_id" => $this->input->post("vendor_id"),
+    //                     "batch_number" => $this->input->post("batch_number"),
+    //                     "manufacturing_date" => $this->input->post("manufacturing_date") ?: NULL,
+    //                     "expiry_date" => $this->input->post("expiry_date"),
+    //                     "purchase_price" => $this->input->post("purchase_price"),
+    //                     "selling_price" => $this->input->post("selling_price"),
+    //                     "mrp" => $this->input->post("mrp") ?: NULL,
+    //                     "quantity_purchased" => $this->input->post("quantity_purchased"),
+    //                     "quantity_remaining" => $this->input->post("quantity_purchased"),
+    //                     "purchase_date" => $this->input->post("purchase_date") ?: date('Y-m-d'),
+    //                     "invoice_number" => $this->input->post("invoice_number"),
+    //                     "invoice_date" => $this->input->post("invoice_date") ?: NULL,
+    //                     "quality_status" => $this->input->post("quality_status") ?: 'PENDING',
+    //                     "batch_status" => "ACTIVE",
+    //                     "remarks" => $this->input->post("remarks"),
+    //                     "created_by" => $created_by_id,
+    //                     "created_at" => date("Y-m-d H:i:s")
+    //                 ];
+               
+    //                 $result = $this->Stock_model_new->add_batch($batch_data); 
+    //                 var_dump($result); exit;
+
+    //                 if ($result['status'] == 'success') {
+    //                     $this->session->set_flashdata("success", "Batch added successfully!");
+    //                     redirect("stocks_new/batches"); // Redirect to batch list
+    //                 } else {
+    //                      $this->session->set_flashdata("error", $result['message'] ?? 'Error adding batch!');
+    //                 }
+                
+    //             }
+    //             // --- No "else" block needed. ---
+    //             // If validation fails, CodeIgniter automatically reloads the view.
+    //         }
+
+    //         // --- Prepare Data for View (This part runs on GET or if validation fails) ---
+    //         $data = [];
+    //         $data["selected_medicine_details"] = null;
+
+    //         if ($this->input->get("medicine_id") && !$this->input->post()) {
+    //             $selected_id = (int)$this->input->get("medicine_id");
+    //             $data["selected_medicine_details"] = $this->Stock_model_new->get_medicine_details_by_id($selected_id);
+    //         }
+    //         elseif ($this->input->post("medicine_id")) {
+    //              $selected_id = (int)$this->input->post("medicine_id");
+    //              $data["selected_medicine_details"] = $this->Stock_model_new->get_medicine_details_by_id($selected_id);
+    //         }
+            
+    //         $data["vendors"] = $this->Stock_model_new->get_all_vendors(); 
+
+    //         $template = get_header_template($logg["role"]);
+    //         $this->load->view($template["header"]);
+    //         $this->load->view("stocks_new/add_batch", $data); // Reloads this form on error
+    //         $this->load->view($template["footer"]);
+
+    //     } else {
+    //         redirect(base_url());
+    //     }
+    // }
+    public function check_batch_unique($batch_number)
+    {
+        $medicine_id = $this->input->post('medicine_id');
+        if (empty($medicine_id)) {
+            $this->form_validation->set_message('check_batch_unique', 'Please select a medicine first.');
+            return FALSE;
+        }
+        $this->load->model('Stock_model_new');
+        if ($this->Stock_model_new->is_batch_unique($medicine_id, $batch_number)) {
+            return TRUE;
+        } else {
+            $this->form_validation->set_message('check_batch_unique', 'Please enter another batch ID. This batch number already exists for this medicine.');
+            return FALSE;
+        }
+    }
+
+    /**
+     * Form Validation Callback function
+     * This checks if the batch number is unique FOR THE GIVEN MEDICINE.
+     */
+ 
     /**
      * AJAX endpoint for Select2 medicine search
      */
@@ -2685,92 +2806,203 @@ class Stocks_new extends CI_Controller
     // STOCK AUDIT
     // ===============================================
 
+    // public function stock_audit()
+    // {
+    //     $logg = checklogin();
+    //     if ($logg["status"] == true) {
+    //         $data["centers"] = $this->Stock_model_new->get_all_centers();
+    //         $data[
+    //             "available_batches"
+    //         ] = $this->Stock_model_new->get_available_batches_for_audit();
+
+    //         $template = get_header_template($logg["role"]);
+    //         $this->load->view($template["header"]);
+    //         $this->load->view("stocks_new/stock_audit", $data);
+    //         $this->load->view($template["footer"]);
+    //     } else {
+    //         header("location:" . base_url() . "");
+    //         die();
+    //     }
+    // }
+
+    // public function process_audit()
+    // {
+    //     $logg = checklogin();
+    //     if ($logg["status"] == true) {
+    //         if ($this->input->post("action") == "stock_audit") {
+    //             $this->form_validation->set_rules(
+    //                 "audit_date",
+    //                 "Audit Date",
+    //                 "required",
+    //             );
+    //             $this->form_validation->set_rules(
+    //                 "center_id",
+    //                 "Center",
+    //                 "required",
+    //             );
+    //             $this->form_validation->set_rules(
+    //                 "audit_type",
+    //                 "Audit Type",
+    //                 "required",
+    //             );
+    //             $this->form_validation->set_rules(
+    //                 "auditor_name",
+    //                 "Auditor Name",
+    //                 "required",
+    //             );
+
+    //             if ($this->form_validation->run() == true) {
+    //                 $audit_data = [
+    //                     "audit_date" => $this->input->post("audit_date"),
+    //                     "center_id" => $this->input->post("center_id"),
+    //                     "audit_type" => $this->input->post("audit_type"),
+    //                     "audit_purpose" => $this->input->post("audit_purpose"),
+    //                     "auditor_name" => $this->input->post("auditor_name"),
+    //                     "total_items" => $this->input->post("total_items"),
+    //                     "variance_items" => $this->input->post(
+    //                         "variance_items",
+    //                     ),
+    //                     "remarks" => $this->input->post("remarks"),
+    //                     "created_by" => $this->session->userdata(
+    //                         "employee_number",
+    //                     ),
+    //                     "created_at" => date("Y-m-d H:i:s"),
+    //                 ];
+
+    //                 $audit_items = $this->input->post("audit_items");
+
+    //                 if (
+    //                     $this->Stock_model_new->process_stock_audit(
+    //                         $audit_data,
+    //                         $audit_items,
+    //                     )
+    //                 ) {
+    //                     $this->session->set_flashdata(
+    //                         "success",
+    //                         "Stock audit completed successfully",
+    //                     );
+    //                     redirect("stocks_new/audit_reports");
+    //                 } else {
+    //                     $this->session->set_flashdata(
+    //                         "error",
+    //                         "Failed to process stock audit",
+    //                     );
+    //                 }
+    //             }
+    //         }
+
+    //         redirect("stocks_new/stock_audit");
+    //     }
+    // }
+    
     public function stock_audit()
     {
         $logg = checklogin();
-        if ($logg["status"] == true) {
-            $data["centers"] = $this->Stock_model_new->get_all_centers();
-            $data[
-                "available_batches"
-            ] = $this->Stock_model_new->get_available_batches_for_audit();
-
-            $template = get_header_template($logg["role"]);
-            $this->load->view($template["header"]);
-            $this->load->view("stocks_new/stock_audit", $data);
-            $this->load->view($template["footer"]);
-        } else {
-            header("location:" . base_url() . "");
-            die();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
         }
+        $this->load->model('Stock_model_new');
+        $data = [];
+        // Get the selected center from the URL (from the filter form)
+        $selected_center_id = $this->input->get('center_id');
+        $data['selected_center_id'] = $selected_center_id;
+        // Get all centers for the filter dropdown
+        $data["centers"] = $this->Stock_model_new->get_all_centers();
+        // Get available batches ONLY if a center has been selected
+        $data["available_batches"] = [];
+        if (!empty($selected_center_id)) {
+            // This function gets all batches with stock at that location
+            $data["available_batches"] = $this->Stock_model_new->get_available_batches_for_audit($selected_center_id);
+        }
+        // This is for the "Add Item" dropdown
+        // It's better to load this via AJAX, but for now we pass all batches.
+        // Or, we can just pass the same $available_batches list, as "Add Item" is complex.
+        // For simplicity, we'll assume "Add Item" needs a full list (or AJAX).
+        // Let's create a new variable for the "Add Item" dropdown
+        // This query is simplified for this example; an AJAX-based search is better.
+        $data["all_batches_list"] = $this->Stock_model_new->get_all_batches_list(); 
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/stock_audit", $data); // Load your view
+        $this->load->view($template["footer"]);
     }
 
+    /**
+     * Processes the submitted Stock Audit form.
+     */
     public function process_audit()
     {
         $logg = checklogin();
-        if ($logg["status"] == true) {
-            if ($this->input->post("action") == "stock_audit") {
-                $this->form_validation->set_rules(
-                    "audit_date",
-                    "Audit Date",
-                    "required",
-                );
-                $this->form_validation->set_rules(
-                    "center_id",
-                    "Center",
-                    "required",
-                );
-                $this->form_validation->set_rules(
-                    "audit_type",
-                    "Audit Type",
-                    "required",
-                );
-                $this->form_validation->set_rules(
-                    "auditor_name",
-                    "Auditor Name",
-                    "required",
-                );
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
 
-                if ($this->form_validation->run() == true) {
-                    $audit_data = [
-                        "audit_date" => $this->input->post("audit_date"),
-                        "center_id" => $this->input->post("center_id"),
-                        "audit_type" => $this->input->post("audit_type"),
-                        "audit_purpose" => $this->input->post("audit_purpose"),
-                        "auditor_name" => $this->input->post("auditor_name"),
-                        "total_items" => $this->input->post("total_items"),
-                        "variance_items" => $this->input->post(
-                            "variance_items",
-                        ),
-                        "remarks" => $this->input->post("remarks"),
-                        "created_by" => $this->session->userdata(
-                            "employee_number",
-                        ),
-                        "created_at" => date("Y-m-d H:i:s"),
-                    ];
-
-                    $audit_items = $this->input->post("audit_items");
-
-                    if (
-                        $this->Stock_model_new->process_stock_audit(
-                            $audit_data,
-                            $audit_items,
-                        )
-                    ) {
-                        $this->session->set_flashdata(
-                            "success",
-                            "Stock audit completed successfully",
-                        );
-                        redirect("stocks_new/audit_reports");
-                    } else {
-                        $this->session->set_flashdata(
-                            "error",
-                            "Failed to process stock audit",
-                        );
-                    }
+        if ($this->input->post("action") == "stock_audit") {
+            $this->load->library('form_validation');
+            $this->load->model('Stock_model_new');
+            // --- Validation ---
+            $this->form_validation->set_rules('audit_date', 'Audit Date', 'required');
+            $this->form_validation->set_rules('center_id', 'Center', 'required|trim'); // The location being audited
+            $this->form_validation->set_rules('audit_type', 'Audit Type', 'required');
+            $this->form_validation->set_rules('auditor_name', 'Auditor Name', 'required|trim');
+            $this->form_validation->set_rules('audit_items[]', 'Audit Items', 'required');
+            if ($this->form_validation->run() == TRUE) {
+                // Get Employee ID (Primary Key)
+                $created_by_id = null;
+                if (isset($logg['ID'])) {
+                   $created_by_id = $logg['ID'];
+                } elseif ($_SESSION["logged_central_stock_manager"]["employee_number"]) {
+                    $employee = $this->db->where("employee_number", $_SESSION["logged_central_stock_manager"]["employee_number"])->get("hms_employees")->row();
+                    if ($employee) $created_by_id = $employee->ID;
                 }
+                if (!$created_by_id) {
+                    $this->session->set_flashdata('error', 'Could not identify logged-in user ID.');
+                    redirect('stocks_new/stock_audit');
+                    return;
+                }
+                // --- Prepare Header Data ---
+                $audit_header = [
+                    // center_id is the location key (e.g., 5 or 'central')
+                    'center_id' => $this->input->post('center_id'), 
+                    'audit_date' => $this->input->post('audit_date'),
+                    // Your table has 'audit_type' ENUM('PHYSICAL','CYCLIC','RANDOM','FULL')
+                    // The form is sending 'FULL_AUDIT', 'PARTIAL_AUDIT' etc.
+                    // This needs to be corrected in the form or mapped here. Let's map it.
+                    'audit_type' => 'FULL', // Defaulting to 'FULL'. Fix your form's <option> values.
+                    'remarks' => $this->input->post('remarks') . " (Auditor: " . $this->input->post('auditor_name') . ")",
+                    'created_by' => $created_by_id,
+                    'status' => 'IN_PROGRESS', // Model will set to COMPLETED
+                ];
+                // Fix for audit_type mismatch
+                $form_audit_type = $this->input->post('audit_type');
+                if (in_array($form_audit_type, ['PHYSICAL', 'CYCLIC', 'RANDOM', 'FULL'])) {
+                    $audit_header['audit_type'] = $form_audit_type;
+                } else {
+                    // Map your form values
+                    if ($form_audit_type == 'FULL_AUDIT') $audit_header['audit_type'] = 'FULL';
+                    if ($form_audit_type == 'SPOT_CHECK') $audit_header['audit_type'] = 'RANDOM';
+                    // Add other mappings as needed
+                }
+                $audit_items = $this->input->post('audit_items');
+                // Call the model function to process the audit
+                $result = $this->Stock_model_new->process_stock_audit($audit_header, $audit_items);
+                if ($result['status'] == 'success') {
+                    $this->session->set_flashdata('success', 'Stock audit processed successfully. ' . $result['discrepancies'] . ' discrepancies found and adjusted.');
+                    redirect('stocks_new/audit_reports'); // Redirect to a list of reports
+                } else {
+                    $this->session->set_flashdata('error', 'Audit Failed: ' . $result['message']);
+                    redirect('stocks_new/stock_audit?center_id=' . $this.input->post('center_id')); // Redirect back
+                }
+            } else {
+                // Validation failed
+                $this->session->set_flashdata('error', validation_errors());
+                redirect('stocks_new/stock_audit');
             }
-
-            redirect("stocks_new/stock_audit");
+        } else {
+            // Not a POST request
+            redirect('stocks_new/stock_audit');
         }
     }
 
@@ -2792,6 +3024,46 @@ class Stocks_new extends CI_Controller
             die();
         }
     }
+        /**
+     * Loads the "View Audit Report" page for a specific audit ID.
+     */
+    public function view_audit($id = 0)
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+
+        if (empty($id) || !is_numeric($id)) {
+            $this->session->set_flashdata('error', 'Invalid Audit ID.');
+            redirect('stocks_new/audit_reports');
+            return;
+        }
+
+        $this->load->model('Stock_model_new');
+        $data = [];
+
+        // 1. Get the main audit report details
+        $data['audit_report'] = $this->Stock_model_new->get_audit_report_by_id($id);
+
+        if (!$data['audit_report']) {
+            $this->session->set_flashdata('error', 'Audit Report not found.');
+            redirect('stocks_new/audit_reports'); // Redirect to your list page
+            return;
+        }
+
+        // 2. Get all adjusted items from the stock movement log
+        $data['audit_items'] = $this->Stock_model_new->get_audit_items_from_log($id);
+        // 3. Load the view
+        $data['title'] = "View Audit Report - " . $data['audit_report']->audit_number;
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view('stocks_new/view_audit', $data); // The new view file
+        $this->load->view($template["footer"]);
+    }
+
+
 
     // ===============================================
     // MEDICINE DISPOSAL
@@ -5690,6 +5962,7 @@ class Stocks_new extends CI_Controller
         }
     }
 
+
     function get_departments_by_center()
     {
         $result = [];
@@ -5970,5 +6243,35 @@ class Stocks_new extends CI_Controller
         $this->load->view("stocks_new/inventory_analytics", $data); // New view file
         $this->load->view($template["footer"]);
     }
+        /**
+     * Loads a print-friendly invoice page for a specific sale.
+     */
+    public function print_sale($id)
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+        $this->load->model('Stock_model_new');
+        $data = [];
+        // 1. Get the main sale details (which recalculates totals)
+        $data['sale'] = $this->Stock_model_new->get_sale_by_id($id);
+        if (!$data['sale']) {
+            $this->session->set_flashdata('error', 'Sale not found.');
+            redirect('stocks_new/sales');
+            return;
+        }
+        // 2. Get all items sold in this sale
+        $data['sale_items'] = $this->Stock_model_new->get_sale_items_details($id); // Use the detailed function
+        // 3. Get the details of the center (for address, GSTN, etc.)
+        $data['center_details'] = $this->Stock_model_new->get_center_by_id($data['sale']->center_id);
+        $data['title'] = "Print Sale - " . $data['sale']->sale_number;
+        // Note: This loads the view file without the standard site template
+        // for a clean, print-only page.
+        $this->load->view("stocks_new/print_sale_bill", $data);
+    }
+
+
 
 }

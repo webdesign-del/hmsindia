@@ -34,13 +34,14 @@
                         <option value="">-- Select Vendor --</option>
                         <?php if (!empty($vendors)): ?>
                            <?php foreach ($vendors as $vendor): ?>
-                              <option value="<?php echo $vendor['vendor_number']; ?>" 
-                                 <?php echo ($vendor['vendor_number'] == $purchase_order['vendor_number']) ? 'selected' : ''; ?>>
-                                 <?php echo $vendor['name']; ?> (<?php echo $vendor['vendor_number']; ?>)
-                              </option>
+                                 <option value="<?= $vendor['ID']; ?>" 
+                                    <?= ($vendor['ID'] == $purchase_order['vendor_number']) ? 'selected' : ''; ?>>
+                                    <?= $vendor['name']; ?> 
+                                 </option>
                            <?php endforeach; ?>
                         <?php endif; ?>
                      </select>
+
                   </div>
                </div>
             </div>
@@ -86,24 +87,14 @@
                 <div class="col-md-6">
                      <div class="form-group">
                         <label for="department">Department <span class="text-danger">*</span></label>
-                        <select class="form-control" id="department" name="department" required>
+                        <select name="department" class="form-control" id="department" required>
                            <option value="">Select Department</option>
-                           <option value="CASH MEDICINE NOIDA" <?php echo ($purchase_order['department'] == 'CASH MEDICINE NOIDA') ? 'selected' : ''; ?>>CASH MEDICINE NOIDA</option>
-                           <option value="CASH MEDICINE GGN" <?php echo ($purchase_order['department'] == 'CASH MEDICINE GGN') ? 'selected' : ''; ?>>CASH MEDICINE GGN</option>
-                           <option value="CASH MEDICINE GP" <?php echo ($purchase_order['department'] == 'CASH MEDICINE GP') ? 'selected' : ''; ?>>CASH MEDICINE GP</option>
-                           <option value="CASH MEDICINE SRINAGAR" <?php echo ($purchase_order['department'] == 'CASH MEDICINE SRINAGAR') ? 'selected' : ''; ?>>CASH MEDICINE SRINAGAR</option>
-                           <option value="CASH MEDICINE GHAZIABAD" <?php echo ($purchase_order['department'] == 'CASH MEDICINE GHAZIABAD') ? 'selected' : ''; ?>>CASH MEDICINE GHAZIABAD</option>
-                           <option value="Hormonal Ghaziabad" <?php echo ($purchase_order['department'] == 'Hormonal Ghaziabad') ? 'selected' : ''; ?>>Hormonal Ghaziabad</option>
-                           <option value="HORMONAL SRINAGAR" <?php echo ($purchase_order['department'] == 'HORMONAL SRINAGAR') ? 'selected' : ''; ?>>HORMONAL SRINAGAR</option>
-                           <option value="Hormonal Delhi" <?php echo ($purchase_order['department'] == 'Hormonal Delhi') ? 'selected' : ''; ?>>Hormonal Delhi</option>
-                           <option value="Hormonal Gurgaon" <?php echo ($purchase_order['department'] == 'Hormonal Gurgaon') ? 'selected' : ''; ?>>Hormonal Gurgaon</option>
-                           <option value="Hormonal Noida" <?php echo ($purchase_order['department'] == 'Hormonal Noida') ? 'selected' : ''; ?>>Hormonal Noida</option>
-                           <option value="Embryologist Noida" <?php echo ($purchase_order['department'] == 'Embryologist Noida') ? 'selected' : ''; ?>>Embryologist Noida</option>
-                           <option value="OT Noida" <?php echo ($purchase_order['department'] == 'OT Noida') ? 'selected' : ''; ?>>OT Noida</option>
-                           <option value="OT Basant Lok" <?php echo ($purchase_order['department'] == 'OT Basant Lok') ? 'selected' : ''; ?>>OT Basant Lok</option>
-                           <option value="Embryology Basant Lok" <?php echo ($purchase_order['department'] == 'Embryology Basant Lok') ? 'selected' : ''; ?>>Embryology Basant Lok</option>
-                           <option value="Embryology Srinagar" <?php echo ($purchase_order['department'] == 'Embryology Srinagar') ? 'selected' : ''; ?>>Embryology Srinagar</option>
-                           <option value="OT Srinagar" <?php echo ($purchase_order['department'] == 'OT Srinagar') ? 'selected' : ''; ?>>OT Srinagar</option>
+                           <?php foreach($departments as $dept): ?>
+                              <option value="<?php echo $dept['department']; ?>"
+                                    <?php echo ($dept['department'] == $purchase_order['department']) ? 'selected' : ''; ?>>
+                                    <?php echo $dept['department']; ?>
+                              </option>
+                           <?php endforeach; ?>
                         </select>
                      </div>
                   </div>
@@ -150,7 +141,7 @@
                                  <tr class="consumable-row" id="row_<?php echo $index + 1; ?>">
                                     <td><?php echo $index + 1; ?></td>
                                     <td>
-                                                                               <select class="form-control consumable-select" name="consumables_name_<?php echo $index + 1; ?>" 
+                                          <select class="form-control consumable-select" name="consumables_name_<?php echo $index + 1; ?>" 
                                            id="consumables_name_<?php echo $index + 1; ?>" onchange="populateItemDetails(<?php echo $index + 1; ?>)">
                                            <option value="">-- Select Item --</option>
                                            <?php 

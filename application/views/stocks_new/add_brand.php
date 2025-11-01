@@ -17,10 +17,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
     </section>
 
     <section class="content">
+        <div class="panel panel-default">
+            <!-- <div class="panel-heading">
+                <i class="fa fa-info-circle"></i> Instructions
+            </div>
+            <div class="panel-body">
+                <p>
+                    To add a new medicine brand to the system, please fill in the form below and click the "Save" button.
+                </p>
+            </div> -->
         <div class="row">
             <div class="col-md-8 col-md-offset-2">
                 <div class="box box-primary box-solid">
-                    <div class="box-header with-border">
+                    <div class=" with-border">
                         <h3 class="box-title">
                             <i class="fa fa-tag"></i> Brand Information
                         </h3>
@@ -113,6 +122,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                 </div>
             </div>
         </div>
+                        </div>
     </section>
 </div>
 

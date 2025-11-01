@@ -173,13 +173,12 @@
                 <strong>Premise Address:</strong> India IVF clinic(A unit of Pashupati Lifecare Pvt. Ltd.) Third Floor, N-26, Captain Vijayant Thapar Marg, Beside Dr Lal PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar Pradesh, 201301
             </div>
         </div>
-        
         <div class="right-column">
             <div class="section-title">Purchase Order To</div>
             <div class="vendor-details">
-                <strong>Vendor Name:</strong> <?php echo $vendor_data['name']; ?><br>
-                <strong>Vendor Address:</strong> <?php echo $vendor_data['company_address']; ?><br>
-                <strong>Vendor GST Number:</strong> <?php echo $vendor_data['gst_no']; ?>
+                <strong>Vendor Name:</strong> <?php echo $vendor_data->name; ?><br>
+                <strong>Vendor Address:</strong> <?php echo $vendor_data->company_name; ?><br>
+                <strong>Vendor GST Number:</strong> <?php echo $vendor_data->gst_no; ?>
             </div>
             
             <div class="address-section">

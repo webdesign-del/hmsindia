@@ -147,14 +147,32 @@
     </div>
 
 <script>
+<script>
 $(document).ready(function() {
+    
+    // --- ADD THIS PHP CHECK ---
+    // Only initialize DataTable if the $medicines array is not empty
+    <?php if(!empty($medicines)): ?>
+    
     $('#medicinesTable').DataTable({
-        "pageLength": 25,
-        "order": [[ 1, "asc" ]],
-        "columnDefs": [
-            { "orderable": false, "targets": 10 }
-        ]
-    });
+        "pageLength": 25,
+        "order": [[ 1, "asc" ]], // Sort by second column (Medicine Name)
+        "columnDefs": [
+            // Assuming 11 columns total, and the last one (index 10) is "Actions"
+            { "orderable": false, "targets": 10 } 
+        ],
+        "language": {
+            "emptyTable": "No medicines found",
+            "zeroRecords": "No matching medicines found"
+        },
+        "responsive": true,
+        "autoWidth": false
+    });
+
+    // --- AND ADD THIS ENDIF ---
+    <?php endif; ?>
+    
 });
+</script>
 </script>
 

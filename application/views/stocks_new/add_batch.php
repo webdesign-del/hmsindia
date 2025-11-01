@@ -50,17 +50,17 @@
                                     <label class="col-sm-4 control-label">Medicine *</label>
                                     <div class="col-sm-8">
                                         <select name="medicine_id" id="medicine_select" class="form-control" required style="width: 100%;">
-    <?php 
-    // Check if a medicine is pre-selected from the controller
-    if (isset($selected_medicine_details) && $selected_medicine_details): 
-    ?>
-        <option value="<?php echo $selected_medicine_details->id; ?>" selected="selected">
-            <?php echo htmlspecialchars($selected_medicine_details->text); // Use 'text' property ?>
-        </option>
-    <?php else: ?>
-        <option value="">Search and select medicine...</option>
-    <?php endif; ?>
-</select>
+                                        <?php 
+                                            // Check if a medicine is pre-selected from the controller
+                                            if (isset($selected_medicine_details) && $selected_medicine_details): 
+                                            ?>
+                                                <option value="<?php echo $selected_medicine_details->id; ?>" selected="selected">
+                                                    <?php echo htmlspecialchars($selected_medicine_details->text); // Use 'text' property ?>
+                                                </option>
+                                            <?php else: ?>
+                                                <option value="">Search and select medicine...</option>
+                                            <?php endif; ?>
+                                        </select>
                                         <small class="help-block">Type medicine name, generic name, or code to search</small>
                                     </div>
                                 </div>

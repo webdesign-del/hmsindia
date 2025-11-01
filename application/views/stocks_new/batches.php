@@ -237,7 +237,16 @@
                                 <i class="fa fa-exclamation-triangle fa-5x"></i>
                             </div>
                             <div class="col-xs-9 text-right">
-                                <div class="huge"><?php echo count(array_filter($batches, function($b) { return $b->expiry_days <= 30 && $b->expiry_days > 0; })); ?></div>
+                                <div class="huge">
+                                    <?php 
+                                    // Corrected logic: Check status, quantity, AND expiry
+                                    echo count(array_filter($batches, function($b) { 
+                                        return isset($b->batch_status) && $b->batch_status == 'ACTIVE' &&
+                                            isset($b->quantity_remaining) && $b->quantity_remaining > 0 &&
+                                            isset($b->expiry_days) && $b->expiry_days <= 30 && $b->expiry_days > 0; 
+                                    })); 
+                                    ?>
+                                </div>
                                 <div>Expiring Soon</div>
                             </div>
                         </div>

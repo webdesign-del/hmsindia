@@ -93,11 +93,26 @@ class New_purchase_orders extends CI_Controller {
             
             $template = get_header_template($logg['role']);
             $this->load->view($template['header']);
+            $data["departments"] = $this->get_departments_by_center();
             $this->load->view('new_purchase_orders/add', $data);
             $this->load->view($template['footer']);
         } else {
             header("location:" .base_url(). "");
             die;
+        }
+    }
+    function get_departments_by_center()
+    {
+        $result = [];
+        $sql_condition = "";
+        $sql =
+            "Select DISTINCT department from " .
+            $this->config->item("db_prefix") .
+            "employees where status='1' and department != '' ORDER BY department ASC";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result)) {
+            return $result;
         }
     }
 
@@ -196,11 +211,11 @@ class New_purchase_orders extends CI_Controller {
             $data['vendors'] = $this->get_vendors();
             
             // Get consumables/items
-            $data['consumables'] = $this->get_consumables();
+            $data['consumables'] = $this->get_medicines_list();
             
             // Get centers
             $data['centers'] = $this->get_centers();
-            
+            $data['departments'] = $this->get_departments_by_center();
             $template = get_header_template($logg['role']);
             $this->load->view($template['header']);
             $this->load->view('new_purchase_orders/edit', $data);
@@ -610,17 +625,13 @@ class New_purchase_orders extends CI_Controller {
             
             // Get vendor data
             $this->load->model('Vendors_model');
-            $vendor_data = $this->Vendors_model->get_vendor_data_by_vendor_number($data['purchase_order']['vendor_number']);
-            $data['vendor_data'] = $vendor_data[0];
-            
+            $data['vendor_data'] = $this->Vendors_model->get_vendor_name_by_vendor_id($data['purchase_order']['vendor_number']);
             // Get center addresses
             $this->load->model('Center_model');
             $bill_to_center = $this->Center_model->get_item_data($data['purchase_order']['bill_to']);
             $ship_to_center = $this->Center_model->get_item_data($data['purchase_order']['ship_to']);
-            
             $data['bill_to_address'] = $bill_to_center ? $bill_to_center['center_name'] . ', ' . $bill_to_center['center_location'] : 'N/A';
             $data['ship_to_address'] = $ship_to_center ? $ship_to_center['center_name'] . ', ' . $ship_to_center['center_location'] : 'N/A';
-            
             $this->load->view('new_purchase_orders/print', $data);
         } else {
             header("location:" .base_url(). "");
@@ -1104,7 +1115,8 @@ class New_purchase_orders extends CI_Controller {
                 $this->form_validation->set_rules('product_1', 'First Item', 'required');
                 if ($this->form_validation->run() == FALSE) {
                      $this->session->set_flashdata('error', validation_errors());
-                     var_dump('Validation errors: ' . validation_errors()); exit;
+                     var_dump('error1');
+                     die;
                      redirect('new_purchase_orders/new_add_stock/' . $po_id);
                      return;
                 }
@@ -1115,36 +1127,38 @@ class New_purchase_orders extends CI_Controller {
                 }
                 $vendor_id = $purchase_order['vendor_number'];
                  if (!$vendor_id) {
-                    var_dump('Vendor details not found in the new system'); exit;
                      $this->session->set_flashdata('error', 'Vendor details not found in the new system for vendor number: ' . $purchase_order['vendor_number']);
+                     var_dump('error2');
+                     die;
                      redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
                  }
                  $center_id = (int)$this->input->post('center_id');
-                //  if (!$center_id || !$this->Stock_model_new->center_exists($center_id)) { // Add center_exists check in model
-                //     var_dump('Invalid or missing Shipping Center ID.'); exit;
-                //      $this->session->set_flashdata('error', 'Invalid or missing Shipping Center ID.');
-                //      redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
-                //  }
+                if(isset($_SESSION['logged_central_stock_manager']['employee_number'])) {
                  $created_by_id = $this->employee_detail_number($_SESSION['logged_central_stock_manager']['employee_number'])['ID'] ?? null; // Use ID directly if available
                  if (!$created_by_id) {
-                      // Add fallback if needed (lookup by employee_number)
                       $this->session->set_flashdata('error', 'Could not determine user ID.');
+                      var_dump('error3');
+                      die;
                       redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
                  }
+                } else {
+                    var_dump('error4');
+                    die;
+                     $this->session->set_flashdata('error', 'User not logged in as central stock manager.');
+                     redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
+                }
 
                 // --- Handle File Uploads ---
                 if(!empty($_FILES['receipt_files']['name'][0])) {
                     $uploaded_files_info = $this->handleFileUploads();
                 }
                 $file_names_string = !empty($uploaded_files_info) ? json_encode($uploaded_files_info) : null;
-
                 // --- Start Transaction ---
                 $this->db->trans_start();
 
                 $success_count = 0;
                 $processed_items = 0;
                 $error_messages = [];
-
                 $i = 1;
                 while ($this->input->post('product_' . $i)) { // Loop through form items
                     $medicine_id = (int)$this->input->post('product_' . $i); // Assuming this is medicines.id
@@ -1190,6 +1204,7 @@ class New_purchase_orders extends CI_Controller {
                                 'batch_id' => $new_batch_id,
                                 'center_id' => $center_id,
                                 'quantity' => $total_received,
+                                'department' => $this->input->post('department'),
                                 'status'   => 'ACTIVE' // from center_stocks table
                             ];
                             $add_stock_result = $this->Stock_model_new->add_stock_to_location($stock_data);
@@ -1200,17 +1215,17 @@ class New_purchase_orders extends CI_Controller {
                                     "movement_type"      => "PURCHASE",
                                     "from_location_type" => "VENDOR",
                                     "from_location_id"   => $vendor_id,
-                                    "to_location_type"   => "CENTER", // Assuming receiving directly to center
+                                    "to_location_type"   => "CENTER", 
                                     "to_location_id"     => $center_id,
-                                    "quantity_before"    => 0, // Initial stock is 0
-                                    "quantity_change"    => $total_received, // Positive change
-                                    "quantity_after"     => $add_stock_result['quantity_after'], // Qty after update
+                                    "quantity_before"    => 0, 
+                                    "quantity_change"    => $total_received,
+                                    "quantity_after"     => $add_stock_result['quantity_after'], 
                                     "unit_price"         => $purchase_price,
                                     "total_value"        => $purchase_price * $total_received,
-                                    "reference_type"     => "PURCHASE_RECEIPT", // Or 'PURCHASE_ORDER'
-                                    "reference_id"       => $po_id, // Link to the original PO ID
-                                    "reference_number"   => $this->input->post('reference'), // Invoice Number
-                                    "remarks"            => ($i == 1 && $file_names_string) ? "Files: ".$file_names_string : null, // Add file info to first item's log
+                                    "reference_type"     => "PURCHASE_RECEIPT",
+                                    "reference_id"       => $po_id, 
+                                    "reference_number"   => $this->input->post('reference'),
+                                    "remarks"            => ($i == 1 && $file_names_string) ? "Files: ".$file_names_string : null,
                                     "created_by"         => $created_by_id,
                                     "created_at"         => date("Y-m-d H:i:s")
                                 ];

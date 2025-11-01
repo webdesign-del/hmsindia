@@ -60,7 +60,7 @@
                               ?>
                               <tr>
                                  <td><strong>Vendor:</strong></td>
-                                 <td><?php echo $vendor_name; ?></td>
+                                 <td><?php echo $vendor_name->name; ?></td>
                               </tr>
                               <tr>
                                  <td><strong>Department:</strong></td>
