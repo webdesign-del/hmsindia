@@ -481,6 +481,7 @@ $route['stocks_new/get_sales'] = 'stocks_new/get_sales';
 $route['stocks_new/get_summary_stats'] = 'stocks_new/get_summary_stats';
 $route['stocks_new/search_stock_movements'] = 'stocks_new/search_stock_movements';
 $route['stocks_new/export_stock_report'] = 'stocks_new/export_stock_report';
+$route['stocks_new/update_payment_status'] = 'stocks_new/update_payment_status';
 
 // Patient Final Billing Routes
 $route['accounts/patient_final_billing'] = 'accounts/patient_final_billing';

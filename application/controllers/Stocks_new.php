@@ -6298,6 +6298,48 @@ class Stocks_new extends CI_Controller
         $this->load->view("stocks_new/print_sale_bill", $data);
     }
 
+        /**
+     * This is the function your AJAX script will call.
+     * It handles changing the payment status.
+     */
+    public function update_payment_status() 
+    {
+        
+        // 1. Load the Sales_model.
+        // Make sure you have created the file application/models/Sales_model.php
+        // 2. Get the data from the AJAX POST request
+        $sale_id = $this->input->post('sale_id');
+        $new_status = $this->input->post('new_status'); 
+        $response = [];
+        // 3. Basic validation
+        if (!$sale_id || !$new_status) {
+            $response = [
+                'success' => false, 
+                'message' => 'Sale ID and New Status are required.'
+            ];
+        } else {
+            // 4. Call the model to update the database
+            $success = $this->Stock_model_new->change_payment_status($sale_id, $new_status);
+            // 5. Prepare the JSON response
+            if ($success) {
+                $response = [
+                    'success' => true, 
+                    'message' => 'Payment status updated to ' . $new_status . ' successfully.'
+                ];
+            } else {
+                $response = [
+                    'success' => false, 
+                    'message' => 'Failed to update payment status. The status might be the same or a database error occurred.'
+                ];
+            }
+        }
+        // 6. Send the JSON response back to the JavaScript
+        // This is crucial for the success/error message to appear
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+
 
 
 }

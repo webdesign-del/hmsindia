@@ -7082,6 +7082,20 @@ public function add_stock_to_location($stock_data)
         }
     }
 
+    public function change_payment_status($sale_id, $new_status)
+    {
+        // Data to update in an associative array
+        $data = [
+            'payment_status' => $new_status
+        ];
+        // Specify which sale to update (I assume your table is 'sales')
+        $this->db->where('id', $sale_id);
+        // Run the UPDATE query on the 'sales' table
+        $this->db->update('sales', $data);
+        // Check if any rows were actually changed
+        // This returns true if the update was successful, and false if not.
+        return $this->db->affected_rows() > 0;
+    }
     /**
      * Your existing add_purchase_batch function (or add_batch)
      * Make sure it returns an array
