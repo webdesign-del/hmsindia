@@ -91,7 +91,7 @@
 		  <li> <a href="<?php echo base_url(); ?>medicine">Medicine List</a> </li>
         </ul>
       </li>
-      <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-cubes"></i>Modern Stock Management<span class="fa arrow"></span></a>
+      <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Modern Stock Management<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>stocks_new/dashboard"> Dashboard</a> </li>
           <li> <a href="<?php echo base_url(); ?>stocks_new/medicines"> Medicines</a> </li>
