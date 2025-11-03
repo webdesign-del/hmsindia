@@ -831,7 +831,7 @@ class Accounts extends CI_Controller {
 			$patient_id = $this->input->get('iic_id', true);
 			$export_billing = $this->input->get('export-billing', true);
 			if (isset($export_billing)){
-				$data = $this->accounts_model->export_consultation_data($start_date,$status, $end_date, $center, $patient_id);
+				$data = $this->accounts_model->export_consultation_patients_data($start_date,$status, $end_date, $center, $patient_id);
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=consultation-Patients-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
