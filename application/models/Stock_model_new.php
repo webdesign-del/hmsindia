@@ -2086,7 +2086,7 @@ class Stock_model_new extends CI_Model
     //     // }
     // }
 
-    public function get_all_sales()
+    public function get_all_sales($filters = [])
     {
         try {
             $this->db->select([
@@ -2095,10 +2095,8 @@ class Stock_model_new extends CI_Model
                 's.doctor_id', 's.doctor_name', 's.sale_date', 's.sale_time',
                 's.payment_method', 's.payment_status', 's.status', 's.remarks', 's.created_by',
                 's.created_at', 's.updated_at',
-                
                 // Joined column from 'hms_centers'
                 'c.center_name',
-
                 // Recalculated totals from 'sale_items' (si)
                 'COALESCE(COUNT(si.id), 0) as total_items',
                 'COALESCE(SUM(si.quantity_sold), 0) as total_quantity',
@@ -2125,10 +2123,26 @@ class Stock_model_new extends CI_Model
                 $this->db->where("s.center_id", $this->get_center_id($_SESSION['logged_billing_manager']['center']));
             }
             // --- End Filter ---
-
             // Correct GROUP BY for all non-aggregated columns
             $this->db->group_by("s.id, c.center_name"); 
-            
+            if(!empty($filters['center_id'])) {
+                $this->db->where('s.center_id', $filters['center_id']);
+            }
+            if(!empty($filters['patient_name'])) {
+                $this->db->like('s.patient_name', $filters['patient_name']);
+            }
+            if (!empty($filters['status'])) {
+                $this->db->where('s.status', $filters['status']);
+            }
+            // Filter by Date From (using the 'sale_date' column)
+            if (!empty($filters['date_from'])) {
+                $this->db->where('s.sale_date >=', $filters['date_from']);
+            }
+
+            // Filter by Date To (using the 'sale_date' column)
+            if (!empty($filters['date_to'])) {
+                $this.db->where('s.sale_date <=', $filters['date_to']);
+            }
             $this->db->order_by("s.created_at", "DESC");
             return $this->db->get()->result();
             
@@ -2818,18 +2832,46 @@ class Stock_model_new extends CI_Model
         }
     }
 
-    public function get_disposal_reports()
+    // public function get_disposal_reports()
+    // {
+    //     try {
+    //         $this->db->select("dr.*, c.center_name");
+    //         $this->db->from("disposal_reports dr");
+    //         $this->db->join("hms_centers c", "dr.center_id = c.ID");
+    //         $this->db->order_by("dr.created_at", "DESC");
+    //         return $this->db->get()->result();
+    //     } catch (Exception $e) {
+    //         return [];
+    //     }
+    // }
+        /**
+     * MODIFIED: Function now accepts a $filters array
+     */
+    public function get_disposal_reports($filters = [])
     {
         try {
             $this->db->select("dr.*, c.center_name");
             $this->db->from("disposal_reports dr");
             $this->db->join("hms_centers c", "dr.center_id = c.ID");
+            if (!empty($filters['center_id'])) {
+                $this->db->where('dr.center_id', $filters['center_id']);
+            }
+            if (!empty($filters['status'])) {
+                $this->db->where('dr.status', $filters['status']);
+            }
+            if (!empty($filters['from_date'])) {
+                $this->db->where('DATE(dr.created_at) >=', $filters['from_date']);
+            }
+            if (!empty($filters['to_date'])) {
+                $this->db->where('DATE(dr.created_at) <=', $filters['to_date']);
+            }
             $this->db->order_by("dr.created_at", "DESC");
             return $this->db->get()->result();
         } catch (Exception $e) {
             return [];
         }
     }
+
 
     public function get_invoices()
     {
@@ -2933,7 +2975,27 @@ class Stock_model_new extends CI_Model
         }
     }
 
-    public function get_vendor_returns()
+    // public function get_vendor_returns()
+    // {
+    //     try {
+    //         $this->db->select("vr.*, v.name as vendor_name, c.center_name");
+    //         $this->db->from("vendor_returns vr");
+    //         $this->db->join(
+    //             $this->config->item("db_prefix") . "vendors v",
+    //             "vr.vendor_id = v.ID",
+    //         );
+    //         $this->db->join("hms_centers c", "vr.center_id = c.ID", "left");
+    //         $this->db->order_by("vr.created_at", "DESC");
+    //         return $this->db->get()->result();
+    //     } catch (Exception $e) {
+    //         return [];
+    //     }
+    // }
+
+    /**
+     * MODIFIED: Function now accepts a $filters array
+     */
+    public function get_vendor_returns($filters = [])
     {
         try {
             $this->db->select("vr.*, v.name as vendor_name, c.center_name");
@@ -2943,13 +3005,30 @@ class Stock_model_new extends CI_Model
                 "vr.vendor_id = v.ID",
             );
             $this->db->join("hms_centers c", "vr.center_id = c.ID", "left");
+            // --- NEW: Add conditional WHERE clauses from filters ---
+            // Filter by Vendor ID
+            if (!empty($filters['vendor_id'])) {
+                $this->db->where('vr.vendor_id', $filters['vendor_id']);
+            }
+            // Filter by Status
+            if (!empty($filters['status'])) {
+                $this->db->where('vr.status', $filters['status']);
+            }
+            // Filter by Date From (assuming 'vr.created_at' is your date column)
+            if (!empty($filters['from_date'])) {
+                $this->db->where('DATE(vr.created_at) >=', $filters['from_date']);
+            }
+            // Filter by Date To
+            if (!empty($filters['to_date'])) {
+                $this->db->where('DATE(vr.created_at) <=', $filters['to_date']);
+            }
+            // --- End of new code ---
             $this->db->order_by("vr.created_at", "DESC");
             return $this->db->get()->result();
         } catch (Exception $e) {
             return [];
         }
     }
-
     public function get_vendor_return_reports(
         $vendor_id = null,
         $status = null,

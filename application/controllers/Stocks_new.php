@@ -1994,11 +1994,33 @@ class Stocks_new extends CI_Controller
     // SALES MANAGEMENT
     // ===============================================
 
+    // public function sales()
+    // {
+    //     $logg = checklogin();
+    //     if ($logg["status"] == true) {
+    //         $data["sales"] = $this->Stock_model_new->get_all_sales();
+    //         $data["centers"] = $this->Stock_model_new->get_all_centers();
+    //         $template = get_header_template($logg["role"]);
+    //         $this->load->view($template["header"]);
+    //         $this->load->view("stocks_new/sales", $data);
+    //         $this->load->view($template["footer"]);
+    //     } else {
+    //         header("location:" . base_url() . "");
+    //         die();
+    //     }
+    // }
     public function sales()
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
-            $data["sales"] = $this->Stock_model_new->get_all_sales();
+            $filters = [
+                'center_id'    => $this->input->get('center_id'),
+                'patient_name' => $this->input->get('patient_name'),
+                'status'       => $this->input->get('status'),
+                'date_from'    => $this->input->get('date_from'),
+                'date_to'      => $this->input->get('date_to')
+            ];
+            $data["sales"] = $this->Stock_model_new->get_all_sales($filters);
             $data["centers"] = $this->Stock_model_new->get_all_centers();
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
@@ -2009,6 +2031,8 @@ class Stocks_new extends CI_Controller
             die();
         }
     }
+
+
 
     public function get_appointment_details($appointment_id)
     {
@@ -3439,14 +3463,40 @@ class Stocks_new extends CI_Controller
     //     }
     // } // End function
 
+    // public function disposal_reports()
+    // {
+    //     $logg = checklogin();
+    //     if ($logg["status"] == true) {
+    //         $data[
+    //             "disposal_reports"
+    //         ] = $this->Stock_model_new->get_disposal_reports();
+    //         $data["centers"] = $this->Stock_model_new->get_all_centers();
+
+    //         $template = get_header_template($logg["role"]);
+    //         $this->load->view($template["header"]);
+    //         $this->load->view("stocks_new/disposal_reports", $data);
+    //         $this->load->view($template["footer"]);
+    //     } else {
+    //         header("location:" . base_url() . "");
+    //         die();
+    //     }
+    // }
     public function disposal_reports()
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
-            $data[
-                "disposal_reports"
-            ] = $this->Stock_model_new->get_disposal_reports();
+            // --- NEW: Read search filters from the URL ---
+            $filters = [
+                'center_id' => $this->input->get('center_id'),
+                'status'    => $this->input->get('status'),
+                'from_date' => $this->input->get('from_date'),
+                'to_date'   => $this->input->get('to_date')
+            ];
+            // --- MODIFIED: Pass filters to the model ---
+            $data["disposal_reports"] = $this->Stock_model_new->get_disposal_reports($filters);
             $data["centers"] = $this->Stock_model_new->get_all_centers();
+            // --- NEW: Pass filters to the view so the search form can show them ---
+            $data["filters"] = $filters;
 
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
@@ -3457,7 +3507,6 @@ class Stocks_new extends CI_Controller
             die();
         }
     }
-
     public function view_disposal($id)
     {
         $logg = checklogin();
@@ -3976,9 +4025,16 @@ class Stocks_new extends CI_Controller
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
-            $data[
-                "vendor_returns"
-            ] = $this->Stock_model_new->get_vendor_returns();
+            $filters = [
+                'vendor_id' => $this->input->get('vendor_id'),
+                'status'    => $this->input->get('status'),
+                'from_date' => $this->input->get('from_date'),
+                'to_date'   => $this->input->get('to_date')
+            ];
+            $data["vendor_returns"] = $this->Stock_model_new->get_vendor_returns($filters);
+            // $data[
+            //     "vendor_returns"
+            // ] = $this->Stock_model_new->get_vendor_returns();
             $data["vendors"] = $this->Stock_model_new->get_vendors();
 
             $template = get_header_template($logg["role"]);
