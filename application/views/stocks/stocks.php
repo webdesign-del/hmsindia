@@ -472,9 +472,7 @@ $(function() {
       alert('Please select at least one item.');
       return;
     }
-    
-    console.log('Updating medicine type to:', medicineType, 'for items:', selected);
-    
+      
     $.ajax({
       url: '<?php echo base_url(); ?>stocks/bulk_update_medicine_type',
       type: 'POST',
