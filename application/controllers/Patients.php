@@ -849,11 +849,39 @@ class Patients extends CI_Controller {
 			if(empty($per_page)){
 				$per_page = 0;
 			}
-			$patient_id = $this->input->get('patient_id', true);
+			$start_date = $this->input->get('start_date', true);
+			$end_date = $this->input->get('end_date', true);
+			$paitent_id = $this->input->get('paitent_id', true);
+			$crm_id = $this->input->get('crm_id', true);
+			$export_billing = $this->input->get('export-billing', true);
+			if (isset($export_billing)){
+				$data = $this->patients_model->export_consultation_data($start_date, $end_date, $paitent_id, $crm_id);
+				header('Content-Type: text/csv; charset=utf-8');
+				header('Content-Disposition: attachment; filename=Agent-Reports-'.$start_date.'-'.$end_date.'.csv');
+				$fp = fopen('php://output','w');
+				$headers = 'CRM ID, IIC ID,Appointment Create, Agent ,Appoitmented Date, Type,  Agent, Date Of consultation,	Booking,	Agent,	Date Of Booking';
+				//Add the headers
+				fwrite($fp, $headers. "\r\n");
+				foreach ($data as $key => $val) {//var_dump($val);die;
+					
+					$sql_consultation = "SELECT * FROM hms_consultation WHERE patient_id='" . $vl['paitent_id'] . "' and reason_of_visit='First Visit' ";
+          			$select_consultation = run_select_query($sql_consultation);
+
+             		$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $select_consultation['paitent_id'] . "'";
+              		$select_result4 = run_select_query($sql4);
+
+					$lead_arr = array($val['crm_id'],$val['paitent_id'], 'Appointment', $val['agent'], $val['appoitmented_date'], 'Consultation', $val['agent'], $select_consultation['on_date'], 'Procedure', $val['agent'], $select_result4['on_date']);
+					fputcsv($fp, $lead_arr);
+				}
+				$final_arr = array("", "", "", "", $total_package, $discounted_package, $paid_amount, "", "", "", "", "", "", "");
+				fputcsv($fp, $final_arr);
+				fclose($fp);
+				exit();
+			}
 			
 			$config = array();
         	$config["base_url"] = base_url() . "patients/timeline_view";
-        	$config["total_rows"] = $this->patients_model->get_patient_timeline_count($patient_id);
+        	$config["total_rows"] = $this->patients_model->get_patient_timeline_count($start_date, $end_date, $paitent_id, $crm_id);
         	$config["per_page"] = 20;
         	$config["uri_segment"] = 2;
 			$config['use_page_numbers'] = true;
@@ -864,8 +892,11 @@ class Patients extends CI_Controller {
         	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
 			
         	$data["links"] = $this->pagination->create_links();
-			$data['timeline_data'] = $this->patients_model->get_patient_timeline($config["per_page"], $per_page, $patient_id);
-			$data["patient_id"] = $patient_id;
+			$data['timeline_data'] = $this->patients_model->get_patient_timeline($config["per_page"], $per_page, $start_date, $end_date, $paitent_id, $crm_id);
+			$data["start_date"] = $start_date;
+			$data["end_date"] = $end_date;
+			$data["paitent_id"] = $paitent_id;
+			$data["crm_id"] = $crm_id;
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
 			$this->load->view('patients/timeline_view', $data);

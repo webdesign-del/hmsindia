@@ -34,7 +34,7 @@ class Doctors_model extends CI_Model
 		   if (count($affected_rows) > 0)
 	       {
 				unset($_SESSION['logged_doctor']);
-				$_SESSION['logged_doctor'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'doctor_id'=>$affected_rows[0]['doctor_id'], 'is_primary'=>$affected_rows[0]['is_primary'], 'role' => 'doctor', 'junior_doctor'=>$affected_rows[0]['junior_doctor'], 'psychological'=>$affected_rows[0]['psychological']);
+				$_SESSION['logged_doctor'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'doctor_id'=>$affected_rows[0]['doctor_id'], 'is_primary'=>$affected_rows[0]['is_primary'], 'role' => 'doctor', 'junior_doctor'=>$affected_rows[0]['junior_doctor'], 'psychological'=>$affected_rows[0]['psychological'],'center'=>$affected_rows[0]['center_id']);
 				$result = array('status' => 1);
             	return $result;
 			}else{
@@ -56,7 +56,8 @@ class Doctors_model extends CI_Model
 	function consultation_medicine(){
 		$result = array();
 		$sql_condition = '';
-	  	$sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."stocks where status='1' and medicine_type='opd' GROUP BY item_name, item_number";
+	  	$sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."center_stocks where status='1' and center_number='".$_SESSION['logged_doctor']['center']."' and department='billing' GROUP BY item_name, item_number";
+	  	// $sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."stocks where status='1' and medicine_type='opd' GROUP BY item_name, item_number";
 		$q = $this->db->query($sql);
         $result = $q->result_array();
         if (!empty($result))
@@ -72,7 +73,8 @@ class Doctors_model extends CI_Model
 	public function consultation_medicine_ipd(){
 		$result = array();
 		$sql_condition = '';
-	  	$sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."stocks where status='1' and medicine_type='ipd' GROUP BY item_name, item_number";
+		$sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."center_stocks where status='1' and center_number='".$_SESSION['logged_doctor']['center']."' and department='Hormonal' GROUP BY item_name, item_number";
+	  	// $sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."stocks where status='1' and medicine_type='ipd' GROUP BY item_name, item_number";
 		$q = $this->db->query($sql);
         $result = $q->result_array();
         if (!empty($result))

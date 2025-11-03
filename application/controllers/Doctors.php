@@ -3058,16 +3058,16 @@ class Doctors extends CI_Controller {
 			$dosql = "SELECT * FROM hms_doctors WHERE ID = ?";
 			$do_result = $this->db->query($dosql, [$doctor_id])->row_array();
 			$data = [
-				"doctor" => $do_result['name'],
-				"wife_phone" => $consultation_data['wife_phone'],
+				"doctor" => isset($do_result['name']) ? $do_result['name'] : '',
+				"wife_phone" => isset($consultation_data['wife_phone']) ? $consultation_data['wife_phone'] : '',
 				"patient_id" => $patient_id,
 				"appointment_id" => $consultation_data['appointment_id'],
-				"female_investigation_suggestion_list" => $investigation_data['female'],
-				"male_minvestigation_suggestion_list" => $investigation_data['male'],
+				"female_investigation_suggestion_list" => isset($investigation_data['female']) ? $investigation_data['female'] : [],
+				"male_minvestigation_suggestion_list" => isset($investigation_data['male']) ? $investigation_data['male'] : [],
 				"package_suggestion_list" => $package_data,
 				"sub_procedure_suggestion_list" => $procedure_data,
-				"female_medicine_suggestion_list" => $medicine_data['female'],
-				"male_medicine_suggestion_list" => $medicine_data['male'],
+				"female_medicine_suggestion_list" => isset($medicine_data['female']) ? $medicine_data['female'] : [],
+				"male_medicine_suggestion_list" => isset($medicine_data['male']) ? $medicine_data['male'] : [],
 				"lead_id" => $lead_id
 			];
 			$urls = [
@@ -4818,8 +4818,8 @@ class Doctors extends CI_Controller {
 			if($sections_data) {
 				if(isset($sections_data['investigations']) && $sections_data['investigations']['enabled']) {
 					$consultation_data['investation_suggestion'] = 1;
-					$consultation_data['female_minvestigation_suggestion_list'] = serialize($sections_data['investigations']['female_minvestigation_suggestion_list']);
-					$consultation_data['male_minvestigation_suggestion_list'] = serialize($sections_data['investigations']['male_minvestigation_suggestion_list']);
+					$consultation_data['female_minvestigation_suggestion_list'] = serialize(isset($sections_data['investigations']['female_minvestigation_suggestion_list']) ? $sections_data['investigations']['female_minvestigation_suggestion_list'] : []);
+					$consultation_data['male_minvestigation_suggestion_list'] = serialize(isset($sections_data['investigations']['male_minvestigation_suggestion_list']) ? $sections_data['investigations']['male_minvestigation_suggestion_list'] : []);
 				}
 				if(isset($sections_data['medicines_opd']) && $sections_data['medicines_opd']['enabled']) {
 					$consultation_data['medicine_suggestion'] = 1;
@@ -4859,7 +4859,7 @@ class Doctors extends CI_Controller {
 			// Save consultation data
 			$consultation_done = $this->doctors_model->consultation_done($consultation_data);
 			if($consultation_done > 0) {
-				$this->send_consultation_to_external_apis($consultation_data['data']);
+				$this->send_consultation_to_external_apis($consultation_data);
 				$this->appointment_model->appointment_status('consultation_done', $consultation_data['appointment_id']);
 				if(isset($sections_data['advisory_templates']) && !empty($sections_data['advisory_templates'])) {
 					$this->send_advisory_emails_clean($consultation_data, $sections_data['advisory_templates']);
@@ -4953,6 +4953,8 @@ class Doctors extends CI_Controller {
 			log_message('error', 'Error sending advisory emails: ' . $e->getMessage());
 		}
 	}
+
+
 	private function load_follow_up_form($appointment_id) {
 		$appointments = $this->appointment_model->doctor_appointment_details($appointment_id);
 		if(!$appointments) {
@@ -5022,7 +5024,6 @@ class Doctors extends CI_Controller {
 				'package' => $package,
 				'print_mode' => true
 			];
-			
 			// Load print view
 			$this->load->view('appointments/follow_up_print', $data);
 		} else {

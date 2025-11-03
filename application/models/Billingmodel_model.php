@@ -20,6 +20,7 @@ class Billingmodel_model extends CI_Model
 		else
 			return 0;
 	}
+
 	
 	function insert_crm_appointments($data){
 		$sql = "INSERT INTO `" . $this->config->item('db_prefix') . "crmappointments` SET ";

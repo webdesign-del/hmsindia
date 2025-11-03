@@ -5,15 +5,28 @@
        <div class="clearfix"></div>
 	    <form action=""<?php echo base_url().'patients/timeline_view'; ?>" method="get">
 		     <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
-            	<label>Filter by IIC ID </label>
-                <input type="text" class="form-control" id="patient_id" name="patient_id">
+            <label>IIC ID </label>
+                <input type="text" class="form-control" id="paitent_id" name="paitent_id">
             </div>
-			<div class="col-sm-1" style="margin-top: 10px;">
+              <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            	<label>CRM ID </label>
+                <input type="text" class="form-control" id="crm_id" name="crm_id">
+            </div>
+            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            	<label>Start Date</label>
+              <input type="text" class="particular_date_filter form-control" id="start_date" name="start_date" value="<?php echo $start_date;?>" />
+            </div>
+            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            	<label>End Date</label>
+                <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
+            </div>
+			<div class="col-sm-3" style="margin-top: 10px;">
             	<button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>
-            </div>
-            <div class="col-sm-1" style="margin-top: 10px;">
             	<a href="<?php echo base_url().'patients/timeline_view'; ?>" style="text-decoration: none;">
                 <button name="btnreset" id="btnreset" type="button"  class="btn btn-secondary">RESET</button>
+               </a>
+               <a href="<?php echo base_url('patients/agent-reports'); ?>" style="text-decoration: none;">
+                <button name="export-billing" type="submit"  class="btn btn-secondary" id="export-billing">Export Reports</button>
                </a>
             </div>
         </form>
@@ -26,28 +39,42 @@
                 <tr>
 				          <th>S.No.</th>
                   <th>CRM ID</th>
-                  <th>Event Type</th>
+                  <th>IIC ID</th>
+                  <th>Appointment Create</th>
                   <th>Agent</th>
-                  <th>Date</th>
-                  <th>Event Type</th>
-                  <th>Updated Agent</th>
-                  <th>Updated Date</th>
+                  <th>Date of Appointment </th>
+                  <th>Consultation</th>
+                  <th>Agent</th>
+                  <th>Date Of consultation</th>
+                   <th>Booking</th>
+                  <th>Agent</th>
+                  <th>Date Of Booking</th>
 				</tr>
               </thead>
               <tbody id="semen_analysis_result">
               <?php 
 			  $count=1; 
 			  foreach($timeline_data as $ky => $vl){
+
+          $sql_consultation = "SELECT * FROM hms_consultation WHERE patient_id='" . $vl['paitent_id'] . "' and reason_of_visit='First Visit' ";
+          $select_consultation = run_select_query($sql_consultation);
+
+              $sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $select_consultation['paitent_id'] . "'";
+              $select_result4 = run_select_query($sql4);
                ?>
                 <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
 				          <td><?php echo $vl['crm_id']?></td>
-				          <td><?php echo $vl['event_type']; ?></td>
+                   <td><?php echo $vl['paitent_id']?></td>
+				          <td>Appointment</td>
                   <td><?php echo $vl['agent']; ?></td>
-				          <td><?php echo $vl['event_date']?></td>
-                  <td><?php echo $vl['event_type']; ?></td>
+				          <td><?php echo $vl['appoitmented_date']?></td>
+                  <td>Consultation</td>
                   <td><?php echo $vl['agent']; ?></td>
-				          <td><?php echo $vl['event_date']?></td>
+				          <td><?php echo $select_consultation['on_date']?></td>
+                  <td>Procedure</td>
+                  <td><?php echo $vl['agent']; ?></td>
+				          <td><?php echo $select_result4['on_date']?></td>
                 </tr>
               <?php $count++;} ?>
 			    <tr>

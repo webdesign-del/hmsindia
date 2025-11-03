@@ -2788,91 +2788,133 @@ function patient_consultation_report_count($center, $start_date, $end_date, $pat
     
     return $this->db->count_all_results();
 }	
-	
 
-function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source = ''){
-    $consultation_result = array();
-    $conditions = '';
+// Count function for consultation patients pagination
+function patient_consultation_count($center, $status, $start_date, $end_date, $patient_id, $doctor_id = null){
     
-    if(empty($page)){
-        $offset = 0;
-    }else{
-        $offset = ($page - 1) * $limit;
-    }
+    $this->db->distinct();
+    $this->db->select('T1.patient_id');
+    $this->db->from('hms_consultation T1');
+    $this->db->join('hms_appointments T2', 'T1.patient_id = T2.paitent_id', 'inner');
     
-    // Build conditions
+    // Add conditions
+    $this->db->where('T2.billed', '1');
+	
     if (!empty($center)){
-        $conditions .= " and T1.billing_at='$center'";
+        $this->db->where('T1.billing_at', $center);
     }
     if (!empty($patient_id)){
-        $conditions .= " and T1.patient_id='$patient_id'";
-    }
-    if (!empty($lead_source)){
-        // Handle multiple lead sources from dropdown
-        if (strpos($lead_source, "','") !== false) {
-            $conditions .= " and T2.lead_source IN ('$lead_source')";
-        } else {
-            $conditions .= " and T2.lead_source='$lead_source'";
-        }
+        $this->db->where('T1.patient_id', $patient_id);
     }
     if (!empty($doctor_id)){
-        $conditions .= " and T1.doctor_id='$doctor_id'";
-    }
-    if (!empty($reason_of_visit)){
-        $conditions .= " and T1.reason_of_visit='$reason_of_visit'";
+        $this->db->where('T1.doctor_id', $doctor_id);
     }
     if (!empty($start_date) && !empty($end_date)){
-        $conditions .= " and T1.on_date between '".$start_date."' AND '".$end_date."' ";
-        $conditions .= " and T2.appoitmented_date between '".$start_date."' AND '".$end_date."' ";
+        $this->db->where('T1.on_date >=', $start_date);
+        $this->db->where('T1.on_date <=', $end_date);
+        $this->db->where('T2.appoitmented_date >=', $start_date);
+        $this->db->where('T2.appoitmented_date <=', $end_date);
     }
     else if (!empty($start_date) && empty($end_date)){
-        $conditions .= " and T1.on_date='$start_date'";
-        $conditions .= " and T2.appoitmented_date='$start_date'";
+        $this->db->where('T1.on_date', $start_date);
+        $this->db->where('T2.appoitmented_date', $start_date);
     }
     else if (empty($start_date) && !empty($end_date)){
-        $conditions .= " and T1.on_date='$end_date'";
-        $conditions .= " and T2.appoitmented_date='$end_date'";
+        $this->db->where('T1.on_date', $end_date);
+        $this->db->where('T2.appoitmented_date', $end_date);
     }
     
-    // Build the SQL query dynamically
-  // Build the SQL query dynamically
-  $consultation_sql = "
-SELECT
-    T1.patient_id,
-    MAX(T2.lead_source) AS lead_source, 
-    T1.on_date,
-    T1.reason_of_visit,
-    T1.totalpackage,
-    T1.payment_done,
-    T1.discount_amount,
-    T1.appointment_id,
-    T1.doctor_id,
-    T1.billing_at
-FROM
-    hms_consultation AS T1
-INNER JOIN
-    hms_appointments AS T2 ON T1.patient_id = T2.paitent_id
-WHERE
-    T2.billed = '1' 
-    $conditions
-GROUP BY
-    T1.patient_id,
-    T1.on_date,
-    T1.reason_of_visit,
-    T1.totalpackage,
-    T1.payment_done,
-    T1.discount_amount,
-    T1.appointment_id,
-    T1.doctor_id,
-    T1.billing_at
-ORDER BY T1.on_date DESC, T1.id DESC
-LIMIT $offset, $limit";
-    
-    $consultation_q = $this->db->query($consultation_sql);
-    $consultation_result = $consultation_q->result_array();
-    return $consultation_result;
+    return $this->db->count_all_results();
 }
-	
+
+function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source = '') {
+    // This array will hold the values for secure query binding
+    $bindings = [];
+
+    // Calculate offset for pagination
+    $offset = empty($page) || $page <= 1 ? 0 : ($page - 1) * $limit;
+
+    // --- Build Conditions Securely using '?' Placeholders ---
+    $conditions = '';
+
+    if (!empty($center)) {
+        $conditions .= " AND T1.billing_at = ?";
+        $bindings[] = $center;
+    }
+    if (!empty($patient_id)) {
+        $conditions .= " AND T1.patient_id = ?";
+        $bindings[] = $patient_id;
+    }
+    if (!empty($doctor_id)) {
+        $conditions .= " AND T1.doctor_id = ?";
+        $bindings[] = $doctor_id;
+    }
+    if (!empty($reason_of_visit)) {
+        $conditions .= " AND T1.reason_of_visit = ?";
+        $bindings[] = $reason_of_visit;
+    }
+
+    // Handle optional lead source filtering (but still excluding 'D/S')
+    if (!empty($lead_source)) {
+        if (strpos($lead_source, "','") !== false) {
+            $conditions .= " AND T2.lead_source IN (?)";
+        } else {
+            $conditions .= " AND T2.lead_source = ?";
+        }
+        $bindings[] = $lead_source;
+    }
+
+    // Secure Date Filtering (with typo correction)
+    if (!empty($start_date) && !empty($end_date)) {
+        $conditions .= " AND T1.on_date BETWEEN ? AND ?";
+        $conditions .= " AND T2.appoitmented_date BETWEEN ? AND ?"; // Typo fixed
+        array_push($bindings, $start_date, $end_date, $start_date, $end_date);
+    } else if (!empty($start_date)) {
+        $conditions .= " AND T1.on_date = ?";
+        $conditions .= " AND T2.appoitmented_date = ?"; // Typo fixed
+        array_push($bindings, $start_date, $start_date);
+    } else if (!empty($end_date)) {
+        $conditions .= " AND T1.on_date = ?";
+        $conditions .= " AND T2.appoitmented_date = ?"; // Typo fixed
+        array_push($bindings, $end_date, $end_date);
+    }
+
+    // --- Final SQL Query (with all columns and corrections) ---
+    // Note: Typo 'paitent_id' corrected to 'patient_id'
+    $consultation_sql = "
+        SELECT
+            T1.patient_id,
+            MAX(T2.lead_source) AS lead_source,
+            T1.on_date,
+            T1.reason_of_visit,
+            T1.totalpackage,
+            T1.payment_done,
+            T1.discount_amount,
+            T1.appointment_id,
+            T1.doctor_id,
+            T1.billing_at
+        FROM
+            hms_consultation AS T1
+        INNER JOIN
+            hms_appointments AS T2 ON T1.patient_id = T2.paitent_id
+        WHERE
+            T2.billed = '1'
+            AND T2.lead_source != 'D/S' 
+            {$conditions}
+        GROUP BY
+            T1.patient_id, T1.on_date, T1.reason_of_visit, T1.totalpackage, T1.payment_done, T1.discount_amount, T1.appointment_id, T1.doctor_id, T1.billing_at
+        ORDER BY T1.on_date DESC, T1.id DESC
+        LIMIT ?, ?"; // Use placeholders for LIMIT
+
+    // Add offset and limit to the bindings array for secure pagination
+    $bindings[] = (int) $offset;
+    $bindings[] = (int) $limit;
+
+    // --- Execute the Query Securely ---
+    $consultation_q = $this->db->query($consultation_sql, $bindings);
+    return $consultation_q->result_array();
+}
+
 function patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source){
     $conditions = '';
     if (!empty($center)){
@@ -2905,40 +2947,123 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
     $q = $this->db->query($consultation_sql);
     return $q->row_array(); // returns array with both counts
 }
+/*
+function patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source) {
+    $bindings = [];
+    $conditions = '';
 
-function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit){
-        $conditions = '';
+    // Build dynamic conditions for the 'hms_consultation' table (aliased as T2)
+    if (!empty($center)) {
+        $conditions .= " AND T2.billing_at = ?";
+        $bindings[] = $center;
+    }
+    if (!empty($patient_id)) {
+        $conditions .= " AND T2.patient_id = ?";
+        $bindings[] = $patient_id;
+    }
+    if (!empty($reason_of_visit)) {
+        $conditions .= " AND T2.reason_of_visit = ?";
+        $bindings[] = $reason_of_visit;
+    }
+    if (!empty($start_date) && !empty($end_date)) {
+        $conditions .= " AND T2.on_date BETWEEN ? AND ?";
+        $bindings[] = $start_date;
+        $bindings[] = $end_date;
+    } else if (!empty($start_date)) {
+        $conditions .= " AND T2.on_date = ?";
+        $bindings[] = $start_date;
+    } else if (!empty($end_date)) {
+        $conditions .= " AND T2.on_date = ?";
+        $bindings[] = $end_date;
+    }
 
-        if (!empty($center)){
-            $conditions .= " AND billing_at='$center'";
-        }
-        if (!empty($patient_id)){
-            $conditions .= " AND patient_id='$patient_id'";
-        }
-        if (!empty($reason_of_visit)){
-            $conditions .= " AND reason_of_visit='$reason_of_visit'";
-        }
-        if (!empty($start_date) && !empty($end_date)){
-            $conditions .= " AND on_date BETWEEN '".$start_date."' AND '".$end_date."'";
-        }
-        else if (!empty($start_date) && empty($end_date)){
-            $conditions .= " AND on_date='$start_date'";
-        }
-        else if (empty($start_date) && !empty($end_date)){
-            $conditions .= " AND on_date='$end_date'";
+    // Refactored SQL to use a direct JOIN and add the permanent filter
+    // Note: 'paitent_id' typo is corrected to 'patient_id'
+   echo $consultation_sql = "
+    SELECT COUNT(DISTINCT T1.paitent_id) AS unique_first_patient_count
+    FROM hms_appointments AS T1
+    INNER JOIN hms_consultation AS T2 ON T1.paitent_id = T2.patient_id
+    WHERE
+        T1.billed = '1'
+        AND (T1.lead_source IS NULL OR LOWER(TRIM(T1.lead_source)) NOT IN ('d/s'))
+        {$conditions}
+";
+
+
+    // Execute the query with bindings to prevent SQL injection
+    $q = $this->db->query($consultation_sql, $bindings);
+    return $q->row_array();
+}*/
+
+function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit)
+{
+    // 🔹 Step 1: Build dynamic filters for consultations
+    $conditions = " WHERE 1=1";
+
+    if (!empty($center)) {
+        $conditions .= " AND billing_at = " . $this->db->escape($center);
+    }
+    if (!empty($patient_id)) {
+        $conditions .= " AND patient_id = " . $this->db->escape($patient_id);
+    }
+    if (!empty($reason_of_visit)) {
+        $conditions .= " AND reason_of_visit = " . $this->db->escape($reason_of_visit);
+    }
+    if (!empty($start_date) && !empty($end_date)) {
+        $conditions .= " AND on_date BETWEEN " . $this->db->escape($start_date) . " AND " . $this->db->escape($end_date);
+    } else if (!empty($start_date)) {
+        $conditions .= " AND on_date = " . $this->db->escape($start_date);
+    } else if (!empty($end_date)) {
+        $conditions .= " AND on_date = " . $this->db->escape($end_date);
+    }
+
+    // 🔹 Step 2: Fetch all matching consultation patients
+    $consultation_sql = "SELECT DISTINCT patient_id FROM hms_consultation {$conditions}";
+    $consultations = $this->db->query($consultation_sql)->result_array();
+
+    if (empty($consultations)) {
+        return ['unique_patient_count' => 0];
+    }
+
+    $valid_patients = [];
+
+    // 🔹 Step 3: Loop each patient and check their procedure data
+    foreach ($consultations as $c) {
+        $pid = $c['patient_id'];
+
+        // Fetch procedure record
+        $procedure_q = $this->db->query("SELECT data FROM hms_patient_procedure WHERE patient_id = ?", [$pid])->row_array();
+        if (empty($procedure_q['data'])) {
+            continue;
         }
 
-       $consultation_sql = "SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
-        FROM hms_patient_procedure AS T1
-        INNER JOIN (
-            SELECT patient_id
-            FROM hms_consultation
-            WHERE 1 ".$conditions." ORDER BY on_date DESC
-        ) AS T2 ON T1.patient_id = T2.patient_id";
+        $data = @unserialize($procedure_q['data']);
+        if (empty($data['patient_procedures'])) {
+            continue;
+        }
 
-        $q = $this->db->query($consultation_sql);
-        return $q->row_array();
-    } /*
+        // 🔹 Step 4: Check if any sub-procedure has category = "IVF with Bed"
+        foreach ($data['patient_procedures'] as $procedure_item) {
+            if (!empty($procedure_item['sub_procedure'])) {
+                $sub_proc_id = $procedure_item['sub_procedure'];
+
+                $proc_q = $this->db->query("SELECT category FROM hms_procedures WHERE ID = ?", [$sub_proc_id])->row_array();
+                $category = $proc_q['category'] ?? '';
+
+                if (strcasecmp(trim($category), 'IVF with Bed') === 0) {
+                    $valid_patients[] = $pid;
+                    break; // one match is enough
+                }
+            }
+        }
+    }
+
+    // 🔹 Step 5: Return count of unique valid patients
+    $unique_patient_count = count(array_unique($valid_patients));
+
+    return ['unique_patient_count' => $unique_patient_count];
+}
+/*
 
 public function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit)
 {
@@ -6042,5 +6167,161 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
     
     return [];
 }
+  
+    /**
+     * Get comprehensive patient billing data for final bill
+     * @param int $patient_id
+     * @return array
+     */
+    public function get_patient_final_billing_data($patient_id) {
+        // Get patient basic info
+        $this->db->select('*');
+        $this->db->from('hms_patients');
+        $this->db->where('patient_id', $patient_id);
+        $patient_query = $this->db->get();
+        $patient_data = $patient_query->row_array();
+        
+        if (!$patient_data) {
+            return false;
+        }
+        
+        // Check payment status
+        $payment_status = $this->check_procedures_payment_status($patient_id);
+        
+        // Get payment history
+        $payment_history = $this->get_patient_payment_history($patient_id);
+        
+	        // Get center information from procedure data
+        $center_info = $this->get_center_info_from_procedures($patient_id);
+        
+        return array(
+            'patient' => $patient_data,
+            'payment_status' => $payment_status,
+            'payment_history' => $payment_history,
+            'center_info' => $center_info
+        );
+    }
+	  public function check_procedures_payment_status($patient_id) {
+        $this->db->select('ID, billing_id, totalpackage, discount_amount, payment_done, remaining_amount, status, data, on_date');
+        $this->db->from('hms_patient_procedure');
+        $this->db->where('patient_id', $patient_id);
+        $this->db->where_in('status', array('approved', 'pending')); // Include both approved and pending
+        $this->db->order_by('on_date', 'ASC');
+        $query = $this->db->get();
+        
+        $procedures = $query->result_array();
+        $total_amount = 0;
+        $total_paid = 0;
+        $total_remaining = 0;
+        $all_paid = true;
+        $procedure_details = array();
+        
+        foreach ($procedures as $procedure) {
+            $net_amount = $procedure['totalpackage'] - $procedure['discount_amount'];
+            $total_amount += $net_amount;
+            $total_paid += $procedure['payment_done'];
+            $total_remaining += $procedure['remaining_amount'];
+            
+            if ($procedure['remaining_amount'] > 0) {
+                $all_paid = false;
+            }
+            
+            // Unserialize procedure data to get detailed breakdown
+            $procedure_data = unserialize($procedure['data']);
+            if (isset($procedure_data['patient_procedures'])) {
+                foreach ($procedure_data['patient_procedures'] as $proc) {
+                    // Get procedure name from hms_procedures table
+                    $procedure_name = isset($proc['sub_procedure']) ? $proc['sub_procedure'] : 'Unknown Procedure';
+                    if (!empty($proc['sub_procedures_code'])) {
+                        $this->db->select('procedure_name');
+                        $this->db->from('hms_procedures');
+                        $this->db->where('code', $proc['sub_procedures_code']);
+                        $proc_query = $this->db->get();
+                        if ($proc_query->num_rows() > 0) {
+                            $proc_result = $proc_query->row_array();
+                            $procedure_name = $proc_result['procedure_name'];
+                        }
+                    }
+                    
+                    $procedure_details[] = array(
+                        'procedure_name' => $procedure_name,
+                        'procedure_code' => isset($proc['sub_procedures_code']) ? $proc['sub_procedures_code'] : 'N/A',
+                        'price' => isset($proc['sub_procedures_price']) ? $proc['sub_procedures_price'] : 0,
+                        'discount' => isset($proc['sub_procedures_discount']) ? $proc['sub_procedures_discount'] : 0,
+                        'paid_price' => isset($proc['sub_procedures_paid_price']) ? $proc['sub_procedures_paid_price'] : 0,
+                        'billing_id' => $procedure['billing_id'],
+                        'on_date' => $procedure['on_date'],
+                        'status' => $procedure['status']
+                    );
+                }
+            }
+        }
+        
+        // Get total payments from hms_patient_payments table
+        $this->db->select('SUM(payment_done) as total_payments');
+        $this->db->from('hms_patient_payments');
+        $this->db->where('patient_id', $patient_id);
+        $this->db->where('status', 0); // Only approved payments
+        $payments_query = $this->db->get();
+        $payments_result = $payments_query->row_array();
+        $actual_total_paid = $payments_result['total_payments'] ? $payments_result['total_payments'] : 0;
+        
+        // Calculate actual remaining amount
+        $actual_remaining = $total_amount - $actual_total_paid;
+        $all_paid = ($actual_remaining <= 0);
+        
+        return array(
+            'all_paid' => $all_paid,
+            'total_amount' => $total_amount,
+            'total_paid' => $actual_total_paid,
+            'total_remaining' => $actual_remaining,
+            'procedures' => $procedures,
+            'procedure_details' => $procedure_details
+        );
+    }
+    
+	public function get_patient_payment_history($patient_id) {
+        $this->db->select('pp.*, pp2.billing_id as procedure_billing_id');
+        $this->db->from('hms_patient_payments pp');
+        $this->db->join('hms_patient_procedure pp2', 'pp.billing_id = pp2.billing_id', 'left');
+        $this->db->where('pp.patient_id', $patient_id);
+        $this->db->where('pp.status', 0); // Only approved payments
+        $this->db->order_by('pp.on_date', 'ASC');
+        $query = $this->db->get();
+        
+        return $query->result_array();
+    }
+
+
+	private function get_center_info_from_procedures($patient_id) {
+        // Get center info from the first procedure
+        $this->db->select('billing_at');
+        $this->db->from('hms_patient_procedure');
+        $this->db->where('patient_id', $patient_id);
+        $this->db->where('status', 'approved');
+        $this->db->limit(1);
+        $query = $this->db->get();
+        $result = $query->row_array();
+        
+        if ($result) {
+            // Get center details from hms_centers table
+            $this->db->select('*');
+            $this->db->from('hms_centers');
+            $this->db->where('id', $result['billing_at']);
+            $center_query = $this->db->get();
+            return $center_query->row_array();
+        }
+        
+        // Return default center info if not found
+        return array(
+            'center_name' => 'INDIA IVF CLINIC',
+            'address' => 'Third Floor, N-26, Captain Vijayant Thapar Marg, Dr. Lal Path Labs, Sec.-18, Noida Gautambuddha Nagar Uttar Pradesh, 201301',
+            'phone' => '73538 73538',
+            'email' => 'INDIAIVFCLINIC@GMAIL.COM',
+            'website' => 'WWW.INDIAIVF.IN'
+        );
+    }
+
+    
 
 }

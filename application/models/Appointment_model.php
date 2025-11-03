@@ -119,7 +119,7 @@ class Appointment_model extends CI_Model
 		if(!empty($lead_source)){
                 $conditions .= " and lead_source='$lead_source'";
         }
-        $sql = "Select * from ".$this->config->item('db_prefix')."appointments where 1 ".$conditions."";
+        $sql = "Select a.* from ".$this->config->item('db_prefix')."appointments a LEFT JOIN ".$this->config->item('db_prefix')."camps c ON a.camp_selection = c.camp_number where 1 ".$conditions."";
 		$q = $this->db->query($sql);
 		return $q->num_rows();
 	}
@@ -133,7 +133,7 @@ class Appointment_model extends CI_Model
         $conditions = "";
         if(empty($patient_name)){
             if(!empty($center)){
-                $conditions .= " and appoitment_for='$center' and camp_selection=0";
+                $conditions .= " and appoitment_for='$center'";
             }
         }
 		if(!empty($paitent_type)){
@@ -167,7 +167,27 @@ class Appointment_model extends CI_Model
                 $conditions .= " and lead_source='$lead_source'";
         }
         $result = array();
-		$sql = "Select * from ".$this->config->item('db_prefix')."appointments where 1 ".$conditions." ORDER by appoitmented_date DESC limit ". $limit." OFFSET ".$offset."";
+$sql = "SELECT 
+    a.*, 
+    c.camp_name, 
+    d.doctor_name
+FROM 
+    ".$this->config->item('db_prefix')."appointments AS a
+LEFT JOIN 
+    ".$this->config->item('db_prefix')."camps AS c 
+    ON a.camp_selection = c.id
+LEFT JOIN 
+    ".$this->config->item('db_prefix')."doctor_referral AS d 
+    ON a.sub_lead_source = d.ID
+WHERE 
+    1 ".$conditions."
+ORDER BY 
+    a.appoitmented_date limit ". $limit." OFFSET ".$offset."";
+
+
+       // $sql = "Select a.*, c.camp_name from ".$this->config->item('db_prefix')."appointments a LEFT JOIN ".$this->config->item('db_prefix')."camps c ON a.camp_selection = c.camp_number where 1 ".$conditions." ORDER by a.appoitmented_date DESC limit ". $limit." OFFSET ".$offset."";
+		
+		// $sql = "Select * from ".$this->config->item('db_prefix')."appointments where 1 ".$conditions." ORDER by appoitmented_date DESC limit ". $limit." OFFSET ".$offset."";
         $q = $this->db->query($sql);
 		$result = $q->result_array();
         if (!empty($result))
@@ -256,7 +276,7 @@ class Appointment_model extends CI_Model
 
     function my_appointments_count_in_camp($center, $start_date, $end_date, $patient_id, $patient_name, $status, $doctor, $paitent_type, $crm_id, $lead_source, $camp_id = ''){
 		$conditions = "";
-       if(empty($patient_name)){
+       /*if(empty($patient_name)){
             if(!empty($center)){
                 $conditions .= " and appoitment_for='$center' and camp_selection != 0 and camp_selection IS NOT NULL";
                 // Additional check: ensure the camp exists for this center
@@ -269,7 +289,7 @@ class Appointment_model extends CI_Model
                 // Additional check: ensure the camp exists for this center
                 $conditions .= " and EXISTS (SELECT 1 FROM ".$this->config->item('db_prefix')."camps c WHERE c.camp_number = a.camp_selection AND c.center_id = (SELECT ID FROM ".$this->config->item('db_prefix')."centers WHERE center_number = '$center'))";
             }
-        }
+        }*/
 		if(!empty($paitent_type)){
                 $conditions .= " and paitent_type='$paitent_type'";
         }
@@ -300,9 +320,9 @@ class Appointment_model extends CI_Model
 		if(!empty($lead_source)){
                 $conditions .= " and lead_source='$lead_source'";
         }
-		if(!empty($camp_id)){
+		/*if(!empty($camp_id)){
                 $conditions .= " and camp_selection='$camp_id'";
-        }
+        }*/
         $sql = "Select a.* from ".$this->config->item('db_prefix')."appointments a LEFT JOIN ".$this->config->item('db_prefix')."camps c ON a.camp_selection = c.camp_number where 1 ".$conditions."";
 		$q = $this->db->query($sql);
 		return $q->num_rows();

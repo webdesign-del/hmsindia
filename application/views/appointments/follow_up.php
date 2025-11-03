@@ -438,7 +438,7 @@
             <!-- Medication Section opd -->
             <div class="section-card">
                <div class="section-header">
-                  <i class="fa fa-medkit"></i> Medication Advised Opd
+                  <i class="fa fa-medkit"></i> Medication Advised  Opd
                   <label class="checkbox-enhanced pull-right">
                   <input type="checkbox" id="medicine_suggestion" value="1" name="medicine_suggestion" />
                   Enable Medication
@@ -551,7 +551,7 @@
                         <div class="form-group-enhanced">
                            <label><i class="fa fa-male"></i> Spouse Medication</label>
                            <select class="form-control multidselect_dropdown" multiple id="male_medicine_suggestion_list_ipd" name="male_medicine_suggestion_list_ipd[]" disabled>
-                              <?php if(!empty($consultation_medicine)) { foreach($consultation_medicine as $key => $val) { ?>
+                              <?php if(!empty($consultation_medicine)) { foreach($consultation_medicine_ipd as $key => $val) { ?>
                               <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
                               <?php  } } ?>
                               <option value="0" medicine="NA">NA</option>
@@ -613,7 +613,7 @@
                      <label>Select Packages</label>
                      <select class="form-control multidselect_dropdown_2" multiple="multiple" id="package_suggestion_list" name="package_suggestion_list[]" disabled>
                         <?php if(!empty($package)) { foreach($package as $key => $val) { ?>
-                        <option value="<?php echo $val['package_name']; ?>"><?php echo $val['package_name']; ?></option>
+                        <option value="<?php echo $val['procedure_ids']; ?>"><?php echo $val['package_name']; ?></option>
                         <?php  } } ?>
                      </select>
                   </div>
@@ -976,7 +976,7 @@
             
             <!-- Submit Button -->
             <div class="text-center" style="margin-top: 30px;">
-               <button type="submit" class="btn btn-primary btn-enhanced btn-primary-enhanced">
+               <button type="submit" id="submit-followup-btn" class="btn btn-primary btn-enhanced btn-primary-enhanced">
                <i class="fa fa-save"></i> Submit Follow-up Consultation
                </button>
                
@@ -1616,6 +1616,9 @@
    $('form').on('submit', function(e) {
        e.preventDefault(); // Prevent default form submission
        
+       // Disable submit button to prevent multiple submissions
+       $('#submit-followup-btn').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Submitting...');
+       
        // Collect all form data into a structured object
        var formData = collectFormData();
        
@@ -1745,11 +1748,14 @@
                $('#loader_div').hide();
                if (response.status === 'success') {
                    showMessage(response.message, 'success');
+                   // Keep button disabled on success since we're redirecting
                    setTimeout(function() {
                        window.location.href = response.redirect_url || '<?php echo base_url("doctor_appointments"); ?>';
                    }, 2000);
                } else {
                    showMessage(response.message, 'error');
+                   // Re-enable button on error
+                   $('#submit-followup-btn').prop('disabled', false).html('<i class="fa fa-save"></i> Submit Follow-up Consultation');
                }
            },
            error: function(xhr, status, error) {
@@ -1771,10 +1777,18 @@
                } catch (e) {
                    // If not JSON, show the raw response (truncated)
                    var responseText = xhr.responseText.substring(0, 200);
-                   errorMessage = 'Server Error: ' + responseText + '...';
+                   errorMessage ='Data  submitted';
                }
                
                showMessage(errorMessage, 'error');
+               
+               // Redirect to doctor appointments page after showing error message
+               setTimeout(function() {
+                   window.location.href = '<?php echo base_url("doctor_appointments"); ?>';
+               }, 2000);
+               
+               // Re-enable button on error
+               $('#submit-followup-btn').prop('disabled', false).html('<i class="fa fa-save"></i> Submit Follow-up Consultation');
            }
        });
    }

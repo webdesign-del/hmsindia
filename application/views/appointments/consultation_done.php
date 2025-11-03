@@ -5332,7 +5332,7 @@ if (!empty($package)) {
 					<?php }else{ ?>
 
 						<tr>
-                            <th>MEDICINES ADVISED OPD</th>
+                            <th>MEDICINES ADVISED </th>
                             <td style="padding: 0;">
                                 <div class="col-sm-12 col-xs-12">
                                     <?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 

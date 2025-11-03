@@ -99,6 +99,7 @@
                      <th>Slot</th>
                      <th>Reason of visit</th>
                      <th>Lead Source</th>
+                     <th>Other</th>
                      <th>Agent</th>
                      <th>Counsellor</th>
                      <th>Status</th>
@@ -129,6 +130,7 @@
                      <td><?php echo $vl['appoitmented_slot']?></td>
                      <td><?php echo $vl['reason_of_visit']?></td>
                      <td><?php echo $select_result3['lead_source']; ?></td>
+                      <td><?php echo $vl['camp_name']; ?><?php echo $vl['doctor_name']; ?></td>
                       <td><?php echo $select_result3['agent']; ?></td>
                        <td> <?php
                        if($vl['status'] == 'consultation_done'){

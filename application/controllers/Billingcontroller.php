@@ -1799,10 +1799,10 @@ function partial_billing($appointment_id){
 					"procedure_type" => $proc_result['category'],
 					"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($_POST['booking_date']))->format('Y-m-d'),
 					"procedure_code" => $proc_result['code'],
-					"package_amount" => $_POST['package_amount'],
-					"discount_amount" => $_POST['discount_amount'],
-					"package_after_discount" => $_POST['package_after_discount'],
-					"payment_received" => $_POST['payment_received']
+					"package_amount" => $totalpackage,
+					"discount_amount" => $discount_amount,
+					"package_after_discount" => $totalpackage - $discount_amount,
+					"payment_received" => $payment_done
 				);
 				$jsonData = json_encode($data);
 				// Define multiple target URLs
@@ -2065,10 +2065,10 @@ function partial_billing($appointment_id){
 					"procedure_type" => $proc_result['category'],
 					"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($_POST['booking_date']))->format('Y-m-d'),
 					"procedure_code" => $proc_result['code'],
-					"package_amount" => $_POST['package_amount'],
-					"discount_amount" => $_POST['discount_amount'],
-					"package_after_discount" => $_POST['package_after_discount'],
-					"payment_received" => $_POST['payment_received']
+					"package_amount" => $totalpackage,
+					"discount_amount" => $discount_amount,
+					"package_after_discount" => $totalpackage - $discount_amount,
+					"payment_received" => $payment_done
 				);
 				$jsonData = json_encode($data);
 				// Define multiple target URLs

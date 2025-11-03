@@ -51,11 +51,11 @@
             </div>
           <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Start Booking Date</label>
-              <input type="text" class="particular_date_filter form-control" id="start_date" name="start_date" value="<?php echo $start_date;?>" />
+              <input type="text" class="particular_date_filter form-control" id="start_booking_date" name="start_booking_date" value="<?php echo $start_booking_date;?>" />
             </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>End Booking Date</label>
-                <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
+                <input type="text" class="particular_date_filter form-control" id="end_booking_date" name="end_booking_date" value="<?php echo $end_booking_date;?>" />
             </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>IIC ID </label>
@@ -94,6 +94,7 @@
             	<a href="<?php echo base_url('accounts/consultation-reports'); ?>" style="text-decoration: none;">
                 <button name="export-billing" type="submit"  class="btn btn-secondary" id="export-billing">Export Reports</button>
                </a>
+               
             </div>	
 		  </form>  
         </div>
