@@ -369,7 +369,7 @@ $(document).ready(function() {
     $('input[name="purchase_price"]').on('input', function() {
         var purchasePrice = parseFloat($(this).val());
         if (purchasePrice > 0) {
-            var suggestedSellingPrice = purchasePrice * 1.2; // 20% markup
+            var suggestedSellingPrice = purchasePrice * 1.12; // 12% markup
             $('input[name="selling_price"]').val(suggestedSellingPrice.toFixed(2));
         }
     });
