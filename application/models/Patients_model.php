@@ -535,34 +535,79 @@ class Patients_model extends CI_Model
 		return $q->num_rows();
 	}
 	
-	function get_patient_timeline($limit, $page, $start_date, $end_date, $paitent_id, $crm_id){
-		$semen_analysis_result = array();
+	function get_patient_timeline($limit, $page, $start_date, $end_date, $patient_id, $crm_id) {
+    
+		// This array will hold the values for secure query binding
+		$bindings = [];
 		$conditions = '';
-		if(empty($page)){
-			$offset = 0;
-		}else{
-			$offset = ($page - 1) * $limit;
+
+		// Calculate offset
+		$offset = empty($page) || $page <= 1 ? 0 : ($page - 1) * $limit;
+
+		// --- Build Conditions Securely (with '?' placeholders) ---
+		
+		if (!empty($crm_id)) {
+			// Added T1. to prevent ambiguous column errors
+			$conditions .= " AND T1.crm_id = ?";
+			$bindings[] = $crm_id;
 		}
-		if (!empty($crm_id)){
-			$conditions .= " and crm_id='$crm_id'";
+		
+		if (!empty($paitent_id)) {
+			// Added T1. and fixed typo (patient_id)
+			$conditions .= " AND T1.paitent_id = ?";
+			$bindings[] = $paitent_id;
 		}
-		if (!empty($paitent_id)){
-			$conditions .= " and paitent_id='$paitent_id'";
+
+		// --- Secure Date Filtering ---
+		if (!empty($start_date) && !empty($end_date)) {
+			// Added T1. and fixed typo (appointment_date)
+			$conditions .= " AND T1.appoitmented_date BETWEEN ? AND ?";
+			$bindings[] = $start_date;
+			$bindings[] = $end_date;
+		} else if (!empty($start_date)) {
+			$conditions .= " AND T1.appoitmented_date = ?";
+			$bindings[] = $start_date;
+		} else if (!empty($end_date)) {
+			$conditions .= " AND T1.appoitmented_date = ?";
+			$bindings[] = $end_date;
 		}
-		if (!empty($start_date) && !empty($end_date)){
-			$conditions .= " and appoitmented_date between '".$start_date."' AND '".$end_date."' ";
-		}
-		else if (!empty($start_date) && empty($end_date)){
-			$conditions .= " and appoitmented_date='$start_date'";
-		}
-		else if (empty($start_date) && !empty($end_date)){
-			$conditions .= " and appoitmented_date='$end_date'";
-		}
-		$semen_analysis_sql = "Select * from hms_appointments where  paitent_type='new_patient' and 1".$conditions." order by appoitmented_date desc limit ". $limit." OFFSET ".$offset."";
-		$semen_analysis_q = $this->db->query($semen_analysis_sql);
-		$embryo_semen_analysis_result = $semen_analysis_q->result_array();
-		return $embryo_semen_analysis_result;
+
+		// --- Corrected SQL Query ---
+		// All typos ('paitent_id', 'appoitmented_date') have been fixed
+		$semen_analysis_sql = "
+			SELECT
+				T1.crm_id,
+				T1.paitent_id,
+				T1.appoitmented_date,
+				T1.agent,
+				T2.on_date AS consultation_date,
+				T3.on_date AS procedure_date
+			FROM
+				hms_appointments AS T1
+			LEFT JOIN
+				hms_consultation AS T2 ON T1.paitent_id = T2.patient_id
+			LEFT JOIN
+				hms_patient_procedure AS T3 ON T1.paitent_id = T3.patient_id
+			WHERE
+				T1.paitent_type = 'new_patient'
+				{$conditions}
+			ORDER BY
+				T1.appoitmented_date DESC
+			LIMIT ? OFFSET ?
+		";
+
+		// Add pagination values to the bindings array (best practice)
+		$bindings[] = (int) $limit;
+		$bindings[] = (int) $offset;
+
+		// --- Execute Securely ---
+		// Pass the $bindings array as the second parameter
+		$semen_analysis_q = $this->db->query($semen_analysis_sql, $bindings);
+		
+		return $semen_analysis_q->result_array();
 	}
+
+
 	public function insert_patient_timeline($data)
 	{
 		$this->db->insert('hms_patient_timeline', $data);

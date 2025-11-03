@@ -20,7 +20,7 @@
             	<label>End Date</label>
                 <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
             </div>
-			<div class="col-sm-3" style="margin-top: 10px;">
+		       	<div class="col-sm-3" style="margin-top: 10px;">
             	<button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>
             	<a href="<?php echo base_url().'patients/timeline_view'; ?>" style="text-decoration: none;">
                 <button name="btnreset" id="btnreset" type="button"  class="btn btn-secondary">RESET</button>
@@ -49,46 +49,40 @@
                    <th>Booking</th>
                   <th>Agent</th>
                   <th>Date Of Booking</th>
-				</tr>
+		      		</tr>
               </thead>
               <tbody id="semen_analysis_result">
-              <?php 
-			  $count=1; 
-			  foreach($timeline_data as $ky => $vl){
-
-          $sql_consultation = "SELECT * FROM hms_consultation WHERE patient_id='" . $vl['paitent_id'] . "' and reason_of_visit='First Visit' ";
-          $select_consultation = run_select_query($sql_consultation);
-
-              $sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $select_consultation['paitent_id'] . "'";
-              $select_result4 = run_select_query($sql4);
-               ?>
-                <tr class="odd gradeX">
+                <?php 
+            $count=1; 
+            foreach($timeline_data as $ky => $vl){
+                  ?>
+                   <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
-				          <td><?php echo $vl['crm_id']?></td>
+                  <td><?php echo $vl['crm_id']?></td>
                    <td><?php echo $vl['paitent_id']?></td>
-				          <td>Appointment</td>
+                  <td>Appointment</td>
                   <td><?php echo $vl['agent']; ?></td>
-				          <td><?php echo $vl['appoitmented_date']?></td>
-                  <td>Consultation</td>
-                  <td><?php echo $vl['agent']; ?></td>
-				          <td><?php echo $select_consultation['on_date']?></td>
-                  <td>Procedure</td>
-                  <td><?php echo $vl['agent']; ?></td>
-				          <td><?php echo $select_result4['on_date']?></td>
+                  <td><?php echo $vl['appoitmented_date']?></td>
+                  <td><?php if(!empty($vl['consultation_date'])){ ?>Consultation <?php } ?></td>
+                  <td><?php if(!empty($vl['consultation_date'])){ ?><?php echo $vl['agent']; ?><?php } ?></td>
+                  <td><?php if(!empty($vl['consultation_date'])){ ?><?php echo $vl['consultation_date']?> <?php } ?></td>
+                  <td><?php if(!empty($vl['procedure_date'])){ ?>Procedure<?php } ?></td>
+                  <td><?php if(!empty($vl['procedure_date'])){ ?><?php echo $vl['agent']; ?><?php } ?></td>
+                  <td><?php if(!empty($vl['procedure_date'])){ ?><?php echo $vl['procedure_date']; ?><?php } ?></td>
+                  
                 </tr>
-              <?php $count++;} ?>
-			    <tr>
-                  <td colspan="5">
-                  <p class="custom-pagination"><?php echo $links; ?></p>
-                  </td>
-			    </tr>
-              </tbody>
-			</table>
+                  <?php $count++;} ?>
+                <tr>
+                    <td colspan="5">
+                    <p class="custom-pagination"><?php echo $links; ?></p>
+                    </td>
+              </tr>
+                </tbody>
+        </table>
+            </div>
           </div>
         </div>
       </div>
-     </div>
-   
 <script>
       $( function() {
         $( ".particular_date_filter" ).datepicker({
