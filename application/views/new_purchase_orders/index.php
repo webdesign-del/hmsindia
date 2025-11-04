@@ -64,6 +64,9 @@
                <a href="<?php echo base_url('new_purchase_orders/add'); ?>" class="btn btn-success">
                   <i class="fa fa-plus"></i> Add New PO
                </a>
+               <a href="<?php echo base_url('new_purchase_orders/export_csv?' . http_build_query($filters)); ?>" class="btn btn-info">
+                    <i class="fa fa-file-excel-o"></i> Export CSV
+                </a>
                   <!-- <a href="<?php echo base_url('new_purchase_orders/purchase_order_receipt'); ?>" class="btn btn-info">
                      <i class="fa fa-file-text -o"></i> Purchase Order Receipt
                   </a> -->

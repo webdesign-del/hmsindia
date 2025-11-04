@@ -1401,4 +1401,90 @@ class New_purchase_orders extends CI_Controller {
         
         return [];
     }
+
+    public function export_csv() {
+        $logg = checklogin();
+        if ($logg['status'] == true) {
+            // 1. Get filters from request (same as index method)
+            $filters = [
+                'status' => $this->input->get('status'),
+                'vendor_number' => $this->input->get('vendor_number'),
+                'center' => $this->input->get('center'), // Make sure this filter is used if needed
+                'start_date' => $this->input->get('start_date'),
+                'end_date' => $this->input->get('end_date'),
+                'po_number' => $this->input->get('po_number')
+            ];
+            // 2. Fetch ALL matching data (pass null for limit/start)
+            $all_purchase_orders = $this->New_purchase_order_model->get_purchase_orders(null, null, $filters);
+            // 3. Set CSV headers for download
+            $filename = "purchase_orders_" . date('Y-m-d') . ".csv";
+            header('Content-Type: text/csv');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+            // 4. Open file handle to PHP output stream
+            $fp = fopen('php://output', 'w');
+
+            // 5. Add CSV header row
+            $header = [
+                'PO Number',
+                'Vendor',
+                'Bill To',
+                'Ship To',
+                'Department',
+                'Total Amount',
+                'Status',
+                'Created Date'
+            ];
+            fputcsv($fp, $header);
+            // 6. Load necessary models (as done in the view)
+            $this->load->model('Vendors_model');
+            // 7. Loop through data and write to CSV
+            if (!empty($all_purchase_orders)) {
+                foreach ($all_purchase_orders as $po) {
+                    if (!is_array($po)) continue;
+                    // --- Replicate the data lookup logic from your view ---
+                    // Get Vendor Name
+                    $vendor_data = $this->Vendors_model->get_vendor_name_by_vendor_id($po['vendor_number']);
+                    // Robust check (as your view's commented code was safer)
+                    $vendor_name = (is_object($vendor_data) && isset($vendor_data->name)) ? $vendor_data->name : 'N/A';
+                    // Get Bill To / Ship To Names
+                    $ship_to = $this->get_center_name($po['ship_to']); // Assumes get_center_name is in this controller
+                    $bill_to = $this->get_center_name($po['bill_to']);
+                    $ship_to = !empty($ship_to) ? $ship_to : 'N/A';
+                    $bill_to = !empty($bill_to) ? $bill_to : 'N/A';
+
+                    // Get Status Text
+                    $status_text = 'Unknown';
+                    $status = !empty($po['status']) ? $po['status'] : 'pending';
+                    switch ($status) {
+                        case 'pending': $status_text = 'Pending'; break;
+                        case 'approved': $status_text = 'Approved'; break;
+                        case 'rejected': $status_text = 'Rejected'; break;
+                        case 'completed': $status_text = 'Completed'; break;
+                    }
+                    // --- Build the row array ---
+                    $row = [
+                        !empty($po['po_number']) ? $po['po_number'] : 'N/A',
+                        $vendor_name,
+                        $bill_to,
+                        $ship_to,
+                        !empty($po['department']) ? $po['department'] : 'N/A',
+                        !empty($po['total_amount']) ? number_format($po['total_amount'], 2) : '0.00',
+                        $status_text,
+                        !empty($po['created_at']) ? date('d/m/Y H:i', strtotime($po['created_at'])) : 'N/A'
+                    ];
+
+                    // 8. Write row to CSV
+                    fputcsv($fp, $row);
+                }
+            }
+            // 9. Close file handle and exit
+            fclose($fp);
+            exit;
+
+        } else {
+            header("location:" . base_url() . "");
+            die;
+        }
+    }
 }
