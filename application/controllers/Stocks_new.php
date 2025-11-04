@@ -1584,7 +1584,7 @@ class Stocks_new extends CI_Controller
                         ORDER BY mb.expiry_date ASC, mb.created_at ASC
                     ) as fifo_rank
                 FROM medicines m
-                LEFT JOIN hms_brands b ON m.brand_id = b.ID
+                LEFT JOIN medicine_brands b ON m.brand_id = b.id
                 LEFT JOIN medicine_batches mb ON m.id = mb.medicine_id
                 LEFT JOIN central_stocks cs ON mb.id = cs.batch_id
                 LEFT JOIN center_stocks ccs ON mb.id = ccs.batch_id
