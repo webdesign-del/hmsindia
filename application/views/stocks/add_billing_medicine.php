@@ -398,7 +398,7 @@ $(document).on('blur',"#patient_id",function(e) {
 
     
 
-	 $(document).on('change',".consumables_select",function(e) {
+	 $(document).on('change',".	",function(e) {
         $('#msg_area').empty();
 		var serial = $(this).val();
 		var count = $(this).attr('count');

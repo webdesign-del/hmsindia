@@ -70,6 +70,7 @@ class Orders extends CI_Controller{
 			$config = array();
         	$config["base_url"] = base_url() . "orders/my_orders";
         	$config["total_rows"] = $this->order_model->get_my_orders_data($purchase_order, $po_number, $vendor_number, $start_date, $end_date, $item_name, $ship_to);
+			
         	$config["per_page"] = 20;
         	$config["uri_segment"] = 2;
 			$config['use_page_numbers'] = true;
@@ -92,6 +93,7 @@ class Orders extends CI_Controller{
 			$template = get_header_template($logg['role']);
 			$data['vendors'] = $this->vendors_model->get_vendors();
 			$this->load->view($template['header']);
+			
 			$this->load->view('orders/my_orders', $data);
 			$this->load->view($template['footer']);
 		}else{

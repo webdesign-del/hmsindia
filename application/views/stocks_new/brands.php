@@ -111,9 +111,9 @@ $(document).ready(function() {
         "responsive": true,
         "autoWidth": false,
         "pageLength": 25,
-        "order": [[2, "asc"]],
+        "order": [[1, "asc"]],
         "columnDefs": [
-            { "orderable": false, "targets": 4 }
+            { "orderable": false, "targets": 3 }
         ]
     });
 });

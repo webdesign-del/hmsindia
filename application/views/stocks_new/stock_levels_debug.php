@@ -27,7 +27,7 @@
                     }
                     
                     // Check table structures
-                    $tables_to_check = ['medicines', 'medicine_batches', 'central_stocks', 'center_stocks', 'hms_centers', 'hms_brands'];
+                    $tables_to_check = ['medicines', 'medicine_batches', 'central_stocks', 'center_stocks', 'hms_centers', 'medicine_brands'];
                     echo '<h5>Table Structure Check:</h5><ul>';
                     foreach($tables_to_check as $table) {
                         try {

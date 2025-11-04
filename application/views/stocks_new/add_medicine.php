@@ -74,7 +74,7 @@
                                                 <option value="">Select Brand</option>
                                                 <?php foreach($brands as $brand): ?>
                                                     <option value="<?php echo isset($brand->ID) ? $brand->ID : $brand->id; ?>" <?php echo set_select('brand_id', isset($brand->ID) ? $brand->ID : $brand->id); ?>>
-                                                        <?php echo isset($brand->name) ? $brand->name : 'N/A'; ?>
+                                                        <?php echo isset($brand->brand_name) ? $brand->brand_name : (isset($brand->name) ? $brand->name : 'N/A'); ?>
                                                     </option>
                                                 <?php endforeach; ?>
                                             </select>

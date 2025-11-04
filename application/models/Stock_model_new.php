@@ -277,7 +277,7 @@ class Stock_model_new extends CI_Model
                     WHEN COALESCE(SUM(mb.quantity_remaining), 0) <= m.min_stock_level THEN "LOW_STOCK"
                     ELSE "NORMAL"
                 END as stock_status,
-                b.name as brand_name
+                b.brand_name as brand_name
             ');
             $this->db->from("medicines m");
             $this->db->join(
@@ -625,6 +625,16 @@ class Stock_model_new extends CI_Model
             ->get($this->config->item("db_prefix") . "vendors")
             ->result();
     }
+    
+    public function get_vendor_by_number($vendor_number) {
+        $table = $this->config->item('db_prefix') . 'vendors';
+        $this->db->select('*');
+        $this->db->from($table);
+        $this->db->where('vendor_number', $vendor_number);
+        $this->db->where('status', 1);
+        return $this->db->get()->row();
+    }
+
 
     public function add_vendor($data)
     {
@@ -797,6 +807,16 @@ class Stock_model_new extends CI_Model
     {
         return $this->db->insert("medicines", $data);
     }
+    
+    public function get_medicine_by_name_and_brand($medicine_name, $brand_name) {
+        $this->db->select('m.*');
+        $this->db->from('medicines m');
+        $this->db->join('medicine_brands mb', 'm.brand_id = mb.id');
+        $this->db->where('m.medicine_name', $medicine_name);
+        $this->db->where('mb.brand_name', $brand_name);
+        $this->db->where('m.status', 'ACTIVE');
+        return $this->db->get()->row();
+    }
 
     public function update_medicine($id, $data)
     {
@@ -912,6 +932,25 @@ class Stock_model_new extends CI_Model
 
         $this->db->trans_complete();
         return $this->db->trans_status();
+    }
+    
+    /**
+     * Add batch without adding to central stock (for direct center transfers)
+     */
+    public function add_batch_only($data) {
+        $this->db->trans_start();
+        
+        // Calculate expiry days
+        if (isset($data['expiry_date'])) {
+            $data['expiry_days'] = $this->calculate_expiry_days($data['expiry_date']);
+        }
+        
+        // Insert batch only
+        $this->db->insert('medicine_batches', $data);
+        $batch_id = $this->db->insert_id();
+        
+        $this->db->trans_complete();
+        return $this->db->trans_status() ? $batch_id : false;
     }
 
     public function get_batch_by_id($id)
@@ -1152,7 +1191,7 @@ class Stock_model_new extends CI_Model
                     ELSE "FRESH"
                 END as expiry_status,
                 mb.id as batch_id,
-                COALESCE(b.name, "Unknown") as brand_name,
+                COALESCE(b.brand_name, "Unknown") as brand_name,
                 mb.purchase_price,
                 mb.selling_price,
                 mb.mrp,
@@ -1235,7 +1274,7 @@ class Stock_model_new extends CI_Model
                 m.medicine_name,
                 m.medicine_code,
                 m.generic_name,
-                b.name as brand_name,
+                b.brand_name as brand_name,
                 COUNT(mb.id) as total_batches,
                 SUM(mb.quantity_remaining) as total_quantity,
                 AVG(mb.selling_price) as avg_price,
@@ -2996,7 +3035,7 @@ class Stock_model_new extends CI_Model
                 mb.selling_price,
                 m.medicine_name,
                 m.medicine_code,
-                b.name as brand_name,
+                b.brand_name as brand_name,
                 v.name as vendor_name,
                 c.center_name
             ');

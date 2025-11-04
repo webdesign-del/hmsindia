@@ -108,6 +108,42 @@
                                 </div>
                             </div>
                             
+                            <!-- Quick Search Filter -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="alert alert-info">
+                                        <h5><i class="fa fa-search"></i> Quick Search Tips</h5>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <strong>Search by:</strong><br>
+                                                • Medicine name<br>
+                                                • Batch number<br>
+                                                • Expiry date<br>
+                                                • Brand name
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Examples:</strong><br>
+                                                • "paracetamol"<br>
+                                                • "batch001"<br>
+                                                • "2024-12"<br>
+                                                • "crocin"
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-filter"></i></span>
+                                                    <input type="text" id="quick_search_disposal" class="form-control" placeholder="Type here to quickly filter medicines for disposal...">
+                                                    <span class="input-group-btn">
+                                                        <button type="button" id="clear_search_disposal" class="btn btn-default">
+                                                            <i class="fa fa-times"></i> Clear
+                                                        </button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <!-- Disposal Items -->
                             <div class="row">
                                 <div class="col-md-12">
@@ -116,7 +152,7 @@
                                         <table class="table table-bordered" id="disposal_items_table">
                                             <thead>
                                                 <tr>
-                                                    <th>Medicine</th>
+                                                    <th>Search & Select Medicine</th>
                                                     <th>Batch</th>
                                                     <th>Expiry Date</th>
                                                     <th>Available Quantity</th>
@@ -260,6 +296,10 @@
         </div>
     </div>
 </div>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-theme@0.1.0-beta.10/dist/select2-bootstrap.min.css" rel="stylesheet" />
 
 <script>
 $(document).ready(function() {

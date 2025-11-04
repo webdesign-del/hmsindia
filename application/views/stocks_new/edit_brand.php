@@ -24,7 +24,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         <h3 class="box-title">Brand Information</h3>
                     </div>
                     
-                    <?php echo form_open('stocks_new/edit_brand/' . $brand->ID, array('class' => 'form-horizontal')); ?>
+                    <?php echo form_open('stocks_new/edit_brand/' . (isset($brand->id) ? $brand->id : $brand->ID), array('class' => 'form-horizontal')); ?>
                     <div class="box-body">
                         <?php if(validation_errors()): ?>
                             <div class="alert alert-danger alert-dismissible">
@@ -40,7 +40,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     <label for="name" class="col-sm-3 control-label">Brand Name *</label>
                                     <div class="col-sm-9">
                                         <input type="text" class="form-control" id="name" name="name" 
-                                               value="<?php echo set_value('name', $brand->name); ?>" required>
+                                               value="<?php echo set_value('name', isset($brand->brand_name) ? $brand->brand_name : (isset($brand->name) ? $brand->name : '')); ?>" required>
                                         <?php echo form_error('name', '<div class="text-danger">', '</div>'); ?>
                                     </div>
                                 </div>

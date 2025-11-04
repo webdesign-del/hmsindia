@@ -106,6 +106,7 @@ if (file_exists(__DIR__ . '/application/helpers/myhelper_helper.php')) {
     echo "Helper file not found!<br>";
 }
 
+
 echo "<hr>";
 echo "<p><strong>If you see any errors or issues above, please share this output for further diagnosis.</strong></p>";
 echo "<p><a href='index.php'>Go to main application</a></p>";

@@ -68,6 +68,7 @@ class New_purchase_order_model extends CI_Model {
     // Get purchase order by ID
     public function get_purchase_order_by_id($id) {
         $this->db->where('id', $id);
+       
         $query = $this->db->get('hms_new_purchase_orders');
         return $query->row_array();
     }

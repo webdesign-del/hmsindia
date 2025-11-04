@@ -95,7 +95,6 @@ class Center_model extends CI_Model
 			$result = array();
 			$table_name = $this->config->item('db_prefix') . 'centers';
 			if (!$this->db->table_exists($table_name)) {
-				log_message('error', 'Table ' . $table_name . ' does not exist');
 				return array();
 			}
 			$sql = "SELECT * FROM " . $table_name . " WHERE center_number = ?";
@@ -114,7 +113,6 @@ class Center_model extends CI_Model
 				return array();
 			}
 		} catch (Exception $e) {
-			log_message('error', 'Exception in get_item_data: ' . $e->getMessage());
 			return array();
 		}
 	}

@@ -102,21 +102,59 @@
                         <form action="<?php echo base_url('stocks_new/edit_transfer/' . $transfer->id); ?>" method="post" class="form-horizontal">
                             <input type="hidden" name="action" value="add_transfer_item">
                             
+                            <!-- Quick Search Filter -->
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="alert alert-info">
+                                        <h5><i class="fa fa-search"></i> Quick Search Tips</h5>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <strong>Search by:</strong><br>
+                                                • Medicine name<br>
+                                                • Brand name<br>
+                                                • Batch number<br>
+                                                • Expiry date
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Examples:</strong><br>
+                                                • "paracetamol"<br>
+                                                • "batch001"<br>
+                                                • "2024-12"<br>
+                                                • "crocin"
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="input-group">
+                                                    <span class="input-group-addon"><i class="fa fa-filter"></i></span>
+                                                    <input type="text" id="quick_search" class="form-control" placeholder="Type here to quickly filter batches...">
+                                                    <span class="input-group-btn">
+                                                        <button type="button" id="clear_search" class="btn btn-default">
+                                                            <i class="fa fa-times"></i> Clear
+                                                        </button>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label class="col-sm-4 control-label">Select Batch *</label>
+                                        <label class="col-sm-4 control-label">Search & Select Batch *</label>
                                         <div class="col-sm-8">
-                                            <select name="batch_id" class="form-control" required onchange="loadBatchDetails()">
-                                                <option value="">Select Batch (FEFO Order)</option>
+                                            <select name="batch_id" id="batch_select" class="form-control" required onchange="loadBatchDetails()">
+                                                <option value="">Search and select batch (FEFO Order)</option>
                                                 <?php if(!empty($batches)): ?>
                                                     <?php foreach($batches as $batch): ?>
                                                         <option value="<?php echo $batch->batch_id; ?>" 
+                                                                data-batch="<?php echo $batch->batch_number; ?>"
                                                                 data-expiry="<?php echo $batch->expiry_date; ?>"
                                                                 data-price="<?php echo isset($batch->selling_price) ? $batch->selling_price : '0'; ?>"
                                                                 data-available="<?php echo $batch->quantity_remaining; ?>"
                                                                 data-medicine="<?php echo $batch->medicine_name; ?>"
-                                                                data-brand="<?php echo $batch->brand_name; ?>">
+                                                                data-brand="<?php echo $batch->brand_name; ?>"
+                                                                data-search="<?php echo strtolower($batch->medicine_name . ' ' . $batch->brand_name . ' ' . $batch->batch_number . ' ' . $batch->expiry_date); ?>">
                                                             <?php echo $batch->medicine_name . ' - ' . $batch->batch_number . ' (Exp: ' . date('M d, Y', strtotime($batch->expiry_date)) . ') - Available: ' . $batch->quantity_remaining; ?>
                                                         </option>
                                                     <?php endforeach; ?>
@@ -124,6 +162,9 @@
                                                     <option value="" disabled>No batches available for this transfer type</option>
                                                 <?php endif; ?>
                                             </select>
+                                            <small class="help-block">
+                                                <i class="fa fa-search"></i> Type to search by medicine name, brand, batch number, or expiry date
+                                            </small>
                                         </div>
                                     </div>
                                     
@@ -133,6 +174,7 @@
                                             <div id="medicine_details" class="well" style="display: none;">
                                                 <p><strong>Medicine:</strong> <span id="medicine_name"></span></p>
                                                 <p><strong>Brand:</strong> <span id="brand_name"></span></p>
+                                                <p><strong>Batch:</strong> <span id="batch_number"></span></p>
                                                 <p><strong>Expiry:</strong> <span id="expiry_date"></span></p>
                                                 <p><strong>Available:</strong> <span id="available_qty"></span></p>
                                             </div>
@@ -315,14 +357,19 @@
     </div>
 </div>
 
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-theme@0.1.0-beta.10/dist/select2-bootstrap.min.css" rel="stylesheet" />
+
 <script>
 function loadBatchDetails() {
-    var selectedOption = $('select[name="batch_id"] option:selected');
+    var selectedOption = $('#batch_select option:selected');
     if (selectedOption.val()) {
         $('#medicine_name').text(selectedOption.data('medicine'));
         $('#brand_name').text(selectedOption.data('brand'));
         $('#expiry_date').text(selectedOption.data('expiry'));
         $('#available_qty').text(selectedOption.data('available'));
+        $('#batch_number').text(selectedOption.data('batch'));
         $('input[name="unit_price"]').val(selectedOption.data('price'));
         $('#medicine_details').show();
         
@@ -334,6 +381,83 @@ function loadBatchDetails() {
 }
 
 $(document).ready(function() {
+    // Initialize Select2 for batch selection
+    $('#batch_select').select2({
+        theme: 'bootstrap',
+        placeholder: 'Search and select batch (FEFO Order)',
+        allowClear: true,
+        width: '100%',
+        matcher: function(params, data) {
+            // If there are no search terms, return all data
+            if ($.trim(params.term) === '') {
+                return data;
+            }
+            
+            // Check if the search term matches any part of the option text or data-search attribute
+            var searchTerm = params.term.toLowerCase();
+            var optionText = data.text.toLowerCase();
+            var searchData = data.element.getAttribute('data-search') || '';
+            
+            if (optionText.indexOf(searchTerm) > -1 || searchData.indexOf(searchTerm) > -1) {
+                return data;
+            }
+            
+            // Return null if no match
+            return null;
+        },
+        templateResult: function(data) {
+            if (data.loading) {
+                return data.text;
+            }
+            
+            // Custom template for better display
+            var $result = $(
+                '<div class="batch-option">' +
+                    '<div class="batch-main">' + data.text + '</div>' +
+                    '<div class="batch-details text-muted small">' +
+                        'Available: ' + (data.element.getAttribute('data-available') || '0') + 
+                        ' | Price: ₹' + (data.element.getAttribute('data-price') || '0') +
+                    '</div>' +
+                '</div>'
+            );
+            
+            return $result;
+        },
+        templateSelection: function(data) {
+            return data.text;
+        }
+    });
+    
+    // Handle selection change
+    $('#batch_select').on('select2:select', function(e) {
+        loadBatchDetails();
+    });
+    
+    $('#batch_select').on('select2:clear', function(e) {
+        $('#medicine_details').hide();
+    });
+    
+    // Quick search functionality
+    $('#quick_search').on('input', function() {
+        var searchTerm = $(this).val().toLowerCase();
+        $('#batch_select').select2('open');
+        
+        if (searchTerm.length > 0) {
+            $('#batch_select').select2('search', searchTerm);
+        } else {
+            $('#batch_select').select2('close');
+        }
+    });
+    
+    // Clear search
+    $('#clear_search').on('click', function() {
+        $('#quick_search').val('');
+        $('#batch_select').select2('close');
+    });
+    
+    // Focus on quick search when page loads
+    $('#quick_search').focus();
+    
     // Calculate total price
     $('input[name="quantity_transferred"], input[name="unit_price"]').on('input', function() {
         var quantity = parseFloat($('input[name="quantity_transferred"]').val()) || 0;
@@ -343,4 +467,33 @@ $(document).ready(function() {
     });
 });
 </script>
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<style>
+.batch-option {
+    padding: 5px 0;
+}
+
+.batch-main {
+    font-weight: bold;
+    color: #333;
+}
+
+.batch-details {
+    margin-top: 2px;
+    font-size: 11px;
+}
+
+.select2-container--bootstrap .select2-results__option--highlighted[aria-selected] {
+    background-color: #337ab7;
+    color: white;
+}
+
+.select2-container--bootstrap .select2-results__option[aria-selected=true] {
+    background-color: #f5f5f5;
+    color: #333;
+}
+</style>
 

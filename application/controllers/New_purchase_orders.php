@@ -88,6 +88,9 @@ class New_purchase_orders extends CI_Controller {
             // Get centers
             $data['centers'] = $this->get_centers();
             
+            // Get departments from new stocks module
+            $data['departments'] = $this->get_departments();
+            
             // Generate PO number
             $data['po_number'] = $this->New_purchase_order_model->generate_po_number();
             
@@ -486,14 +489,31 @@ class New_purchase_orders extends CI_Controller {
             ->set_output(json_encode(['status' => 'success', 'data' => $items]));
     }
 
-    // Get centers (you may need to adjust this based on your existing center structure)
-    private function get_centers() {
-        // This is a placeholder - adjust based on your center table structure
-        $this->db->select('center_number, center_name, center_address');
-        $this->db->from('hms_centers');
+    // Get departments from new stocks module
+    private function get_departments() {
+        $this->db->select('department');
+        $this->db->from($this->config->item('db_prefix') . 'employees');
         $this->db->where('status', '1');
+        $this->db->where('department !=', '');
+        $this->db->group_by('department');
+        $this->db->order_by('department', 'ASC');
         $query = $this->db->get();
         return $query->result_array();
+    }
+
+    // Get centers from new stocks module
+    private function get_centers() {
+        $centers = $this->Stock_model_new->get_all_centers();
+        // Convert objects to arrays for consistency
+        $centers_array = array();
+        foreach ($centers as $center) {
+            $centers_array[] = array(
+                'center_number' =>  $center->center_number,
+                'center_name' => $center->center_name ?? $center->name ?? '',
+                'center_address' => $center->center_address ?? $center->address ?? ''
+            );
+        }
+        return $centers_array;
     }
 
     public function status() {
@@ -1120,6 +1140,7 @@ class New_purchase_orders extends CI_Controller {
                      redirect('new_purchase_orders/new_add_stock/' . $po_id);
                      return;
                 }
+                
                 $purchase_order = $this->New_purchase_order_model->get_purchase_order_by_id($po_id);
                 if (!$purchase_order) {
                     $this->session->set_flashdata('error', 'Purchase order not found!');
@@ -1291,6 +1312,344 @@ class New_purchase_orders extends CI_Controller {
             // Not logged in
             redirect(base_url());
         }
+    }
+    
+    /**
+     * Get or create medicine in stocks_new module
+     */
+    private function get_or_create_medicine($item_details, $purchase_order) {
+        // Check if medicine already exists
+        $existing_medicine = $this->Stock_model_new->get_medicine_by_name_and_brand($item_details['item_name'], $item_details['brand_name']);
+        
+        if ($existing_medicine) {
+            return $existing_medicine->id;
+        }
+        
+        // Get or create brand
+        $brand_id = $this->get_or_create_brand($item_details['brand_name']);
+        
+        // Create new medicine
+        $medicine_data = [
+            'medicine_name' => $item_details['item_name'],
+            'medicine_code' => $item_details['item_number'],
+            'generic_name' => $item_details['generic_name'] ?? '',
+            'brand_id' => $brand_id,
+            'pack_size' => $item_details['pack_size'] ?? 'PCS',
+            'hsn_code' => $item_details['hsn'] ?? '',
+            'mrp' => floatval($item_details['mrp']),
+            'status' => 'ACTIVE',
+            'created_by' => $this->get_employee_id_from_session(),
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+        
+        $result = $this->Stock_model_new->add_medicine($medicine_data);
+        return $result ? $this->db->insert_id() : false;
+    }
+    
+    /**
+     * Get or create brand in stocks_new module
+     */
+    private function get_or_create_brand($brand_name) {
+        // Check if brand already exists
+        $existing_brand = $this->Stock_model_new->get_brand_by_name($brand_name);
+        
+        if ($existing_brand) {
+            return $existing_brand->id;
+        }
+        
+        // Create new brand
+        $brand_data = [
+            'brand_name' => $brand_name,
+            'brand_code' => $this->generate_brand_code(),
+            'status' => 'ACTIVE',
+            'created_by' => $this->get_employee_id_from_session(),
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+        
+        $result = $this->Stock_model_new->add_medicine_brand($brand_data);
+        return $result ? $this->db->insert_id() : false;
+    }
+    
+    /**
+     * Get center ID from center number
+     */
+    private function get_center_id_from_number($center_number) {
+        if (empty($center_number)) {
+            return null;
+        }
+        
+        $this->db->select('ID, center_name');
+        $this->db->from($this->config->item('db_prefix') . 'centers');
+        $this->db->where('center_number', $center_number);
+        $this->db->where('status', '1');
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $result = $query->row();
+            log_message('debug', 'Found center: ' . $result->center_name . ' (ID: ' . $result->ID . ') for center_number: ' . $center_number);
+            return $result->ID;
+        }
+        
+        log_message('debug', 'Center not found for center_number: ' . $center_number);
+        return null;
+    }
+    
+    /**
+     * Create batch from purchase order data and add directly to center
+     */
+    private function create_batch_from_po($medicine_id, $item_details, $purchase_order, $row_index) {
+        // Get vendor ID from stocks_new module
+        $vendor_id = $this->get_or_create_vendor($purchase_order['vendor_number']);
+        
+        if (!$vendor_id) {
+            return false;
+        }
+        
+        // Get center ID from ship_to field (convert center_number to center_id)
+        $center_id = $this->get_center_id_from_number($purchase_order['ship_to']);
+        
+        if (!$center_id) {
+            // If center not found, try to get the first available center as fallback
+            $this->db->select('ID');
+            $this->db->from($this->config->item('db_prefix') . 'centers');
+            $this->db->where('status', '1');
+            $this->db->limit(1);
+            $fallback_query = $this->db->get();
+            
+            if ($fallback_query->num_rows() > 0) {
+                $center_id = $fallback_query->row()->ID;
+                $this->session->set_flashdata('warning', 'Center not found for ship_to: ' . $purchase_order['ship_to'] . '. Using fallback center ID: ' . $center_id);
+            } else {
+                $this->session->set_flashdata('error', 'No centers available in the system!');
+                return false;
+            }
+        }
+        
+        $batch_number = $this->input->post('batch_number_' . $row_index) ?: $item_details['batch_number'];
+        
+        // Check if batch already exists for this medicine
+        $existing_batch = $this->check_existing_batch($medicine_id, $batch_number);
+        
+        if ($existing_batch) {
+            // Update existing batch quantity
+            return $this->update_existing_batch($existing_batch->id, $row_index, $center_id, $vendor_id, $purchase_order);
+        } else {
+            // Create new batch
+            return $this->create_new_batch($medicine_id, $item_details, $purchase_order, $row_index, $batch_number, $vendor_id, $center_id);
+        }
+    }
+    
+    /**
+     * Check if batch already exists for medicine
+     */
+    private function check_existing_batch($medicine_id, $batch_number) {
+        $this->db->select('*');
+        $this->db->from('medicine_batches');
+        $this->db->where('medicine_id', $medicine_id);
+        $this->db->where('batch_number', $batch_number);
+        $this->db->where('batch_status', 'ACTIVE');
+        return $this->db->get()->row();
+    }
+    
+    /**
+     * Update existing batch quantity
+     */
+    private function update_existing_batch($batch_id, $row_index, $center_id, $vendor_id, $purchase_order) {
+        $additional_qty = floatval($this->input->post('qty_receiving_' . $row_index)) + floatval($this->input->post('free_qty_' . $row_index));
+        
+        // Update batch quantity
+        $this->db->where('id', $batch_id);
+        $this->db->set('quantity_purchased', 'quantity_purchased + ' . $additional_qty, FALSE);
+        $this->db->set('quantity_remaining', 'quantity_remaining + ' . $additional_qty, FALSE);
+        $this->db->update('medicine_batches');
+        
+        // Check if center stock exists for this batch
+        $this->db->where('batch_id', $batch_id);
+        $this->db->where('center_id', $center_id);
+        $existing_center_stock = $this->db->get('center_stocks')->row();
+        
+        if ($existing_center_stock) {
+            // Update existing center stock
+            $this->db->where('batch_id', $batch_id);
+            $this->db->where('center_id', $center_id);
+            $this->db->set('quantity', 'quantity + ' . $additional_qty, FALSE);
+            $this->db->update('center_stocks');
+        } else {
+            // Create new center stock record
+            $center_stock_data = [
+                'batch_id' => $batch_id,
+                'center_id' => $center_id,
+                'quantity' => $additional_qty,
+                'status' => 'ACTIVE',
+                'last_movement_date' => date('Y-m-d H:i:s')
+            ];
+            $this->db->insert('center_stocks', $center_stock_data);
+        }
+        
+        // Log stock movement
+        $movement_data = [
+            'batch_id' => $batch_id,
+            'movement_type' => 'PURCHASE',
+            'from_location_type' => 'VENDOR',
+            'from_location_id' => $vendor_id,
+            'to_location_type' => 'CENTER',
+            'to_location_id' => $center_id,
+            'quantity_change' => $additional_qty,
+            'quantity_after' => $existing_center_stock ? ($existing_center_stock->quantity + $additional_qty) : $additional_qty,
+            'unit_price' => $this->input->post('unit_price_' . $row_index) ?: 0,
+            'total_value' => $additional_qty * ($this->input->post('unit_price_' . $row_index) ?: 0),
+            'reference_type' => 'PURCHASE_RECEIPT',
+            'reference_id' => $purchase_order['id'],
+            'reference_number' => $this->input->post('reference') ?: 'N/A',
+            'created_by' => $this->get_employee_id_from_session()
+        ];
+        
+        $this->db->insert('stock_movements', $movement_data);
+        
+        return true;
+    }
+    
+    /**
+     * Create new batch
+     */
+    private function create_new_batch($medicine_id, $item_details, $purchase_order, $row_index, $batch_number, $vendor_id, $center_id) {
+        $batch_data = [
+            'medicine_id' => $medicine_id,
+            'vendor_id' => $vendor_id,
+            'batch_number' => $batch_number,
+            'manufacturing_date' => $this->input->post('manufacturing_date_' . $row_index) ?: null,
+            'expiry_date' => $this->input->post('expiry_date_' . $row_index),
+            'purchase_price' => $this->input->post('unit_price_' . $row_index) ?: $item_details['vendor_price'],
+            'selling_price' => floatval($item_details['mrp']),
+            'mrp' => floatval($item_details['mrp']),
+            'quantity_purchased' => floatval($this->input->post('qty_receiving_' . $row_index)) + floatval($this->input->post('free_qty_' . $row_index)),
+            'quantity_remaining' => floatval($this->input->post('qty_receiving_' . $row_index)) + floatval($this->input->post('free_qty_' . $row_index)),
+            'purchase_date' => $this->input->post('po_date'),
+            'invoice_number' => $this->input->post('reference') ?: 'N/A',
+            'invoice_date' => $this->input->post('receipt_date'),
+            'quality_status' => 'APPROVED',
+            'batch_status' => 'ACTIVE',
+            'remarks' => $this->input->post('comments_' . $row_index) ?: '',
+            'created_by' => $this->get_employee_id_from_session()
+        ];
+        
+        // Create batch
+        $batch_id = $this->Stock_model_new->add_batch_only($batch_data);
+        
+        if ($batch_id) {
+            // Add directly to center stock instead of central warehouse
+            $center_stock_data = [
+                'batch_id' => $batch_id,
+                'center_id' => $center_id,
+                'quantity' => floatval($this->input->post('qty_receiving_' . $row_index)) + floatval($this->input->post('free_qty_' . $row_index)),
+                'status' => 'ACTIVE',
+                'last_movement_date' => date('Y-m-d H:i:s')
+            ];
+            
+            $center_stock_result = $this->db->insert('center_stocks', $center_stock_data);
+            
+            if ($center_stock_result) {
+                // Log stock movement directly to center
+                $movement_data = [
+                    'batch_id' => $batch_id,
+                    'movement_type' => 'PURCHASE',
+                    'from_location_type' => 'VENDOR',
+                    'from_location_id' => $vendor_id,
+                    'to_location_type' => 'CENTER',
+                    'to_location_id' => $center_id,
+                    'quantity_change' => floatval($this->input->post('qty_receiving_' . $row_index)) + floatval($this->input->post('free_qty_' . $row_index)),
+                    'quantity_after' => floatval($this->input->post('qty_receiving_' . $row_index)) + floatval($this->input->post('free_qty_' . $row_index)),
+                    'unit_price' => $this->input->post('unit_price_' . $row_index) ?: $item_details['vendor_price'],
+                    'total_value' => (floatval($this->input->post('qty_receiving_' . $row_index)) + floatval($this->input->post('free_qty_' . $row_index))) * ($this->input->post('unit_price_' . $row_index) ?: $item_details['vendor_price']),
+                    'reference_type' => 'PURCHASE_RECEIPT',
+                    'reference_id' => $purchase_order['id'],
+                    'reference_number' => $this->input->post('reference') ?: 'N/A',
+                    'created_by' => $this->get_employee_id_from_session()
+                ];
+                
+                $this->db->insert('stock_movements', $movement_data);
+                
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Get or create vendor in stocks_new module
+     */
+    private function get_or_create_vendor($vendor_number) {
+        // Check if vendor already exists
+        $existing_vendor = $this->Stock_model_new->get_vendor_by_number($vendor_number);
+        
+        if ($existing_vendor) {
+            return $existing_vendor->ID;
+        }
+        
+        // Get vendor details from purchase order module
+        $this->load->model('Vendors_model');
+        $vendor_data = $this->Vendors_model->get_vendor_data_by_vendor_number($vendor_number);
+        
+        if (empty($vendor_data)) {
+            return false;
+        }
+        
+        $vendor = $vendor_data[0];
+        
+        // Create vendor in stocks_new module
+        $vendor_insert_data = [
+            'vendor_number' => $vendor_number,
+            'name' => $vendor['name'] ?? 'Unknown Vendor',
+            'contact_person' => $vendor['contact_person'] ?? '',
+            'phone' => $vendor['phone'] ?? '',
+            'email' => $vendor['email'] ?? '',
+            'address' => $vendor['address'] ?? '',
+            'status' => 'ACTIVE',
+            'created_by' => $this->get_employee_id_from_session(),
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+        
+        $result = $this->Stock_model_new->add_vendor($vendor_insert_data);
+        return $result ? $this->db->insert_id() : false;
+    }
+    
+    /**
+     * Generate brand code
+     */
+    private function generate_brand_code() {
+        return 'BR' . date('Ymd') . rand(1000, 9999);
+    }
+    
+    /**
+     * Get employee ID from session
+     */
+    private function get_employee_id_from_session() {
+        if (isset($_SESSION['logged_central_stock_manager']['employee_number'])) {
+            return $this->get_employee_id_from_number($_SESSION['logged_central_stock_manager']['employee_number']);
+        }
+        return 1; // Default employee ID
+    }
+    
+    /**
+     * Get employee ID from employee number
+     */
+    private function get_employee_id_from_number($employee_number) {
+        if (empty($employee_number)) {
+            return null;
+        }
+        
+        $this->db->select('ID');
+        $this->db->from('hms_employees');
+        $this->db->where('employee_number', $employee_number);
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $result = $query->row();
+            return $result->ID;
+        }
+        
+        return null;
     }
 
     // Helper method to get vendor name
