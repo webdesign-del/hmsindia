@@ -2686,41 +2686,33 @@ function export_investigation_data($start, $status, $end, $center, $type, $payme
 	
 	/** Start Consultation **/
 
-<<<<<<< Updated upstream
-function export_consultation_patients_data($start_date,$status, $end_date, $center, $patient_id){
-        $consultation_result = $response = array();
-        $conditions = '';
-        if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
-            $center = $_SESSION['logged_accountant']['center'];
-        }
-=======
-		function patient_consultation_count($center, $start_date, $end_date, $patient_id, $payment_method){
-		$procedure_result = array();
-		$conditions = '';
-		if (!empty($center)){
-			$conditions .= " and billing_at='$center'";
-		}
-		if (!empty($payment_method)){
-			$conditions .= " and payment_method='$payment_method'";
-		}
-		if (!empty($patient_id)){
-			$conditions .= " and patient_id='$patient_id'";
-		}
-		if (!empty($start_date) && !empty($end_date)){
-			//$conditions .= " and on_date >='$start_date' and  on_date <= '$end_date'";
-			$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
-		}
-		else if (!empty($start_date) && empty($end_date)){
-			$conditions .= " and on_date='$start_date'";
-		}
-		else if (empty($start_date) && !empty($end_date)){
-			$conditions .= " and on_date='$end_date'";
-		}
-		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."consultation where 1 ".$conditions."";
-		$q = $this->db->query($procedure_sql);
-		return $q->num_rows();
+	// function patient_consultation_count($center, $start_date, $end_date, $patient_id, $payment_method){
+	// 	$procedure_result = array();
+	// 	$conditions = '';
+	// 	if (!empty($center)){
+	// 		$conditions .= " and billing_at='$center'";
+	// 	}
+	// 	if (!empty($payment_method)){
+	// 		$conditions .= " and payment_method='$payment_method'";
+	// 	}
+	// 	if (!empty($patient_id)){
+	// 		$conditions .= " and patient_id='$patient_id'";
+	// 	}
+	// 	if (!empty($start_date) && !empty($end_date)){
+	// 		//$conditions .= " and on_date >='$start_date' and  on_date <= '$end_date'";
+	// 		$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
+	// 	}
+	// 	else if (!empty($start_date) && empty($end_date)){
+	// 		$conditions .= " and on_date='$start_date'";
+	// 	}
+	// 	else if (empty($start_date) && !empty($end_date)){
+	// 		$conditions .= " and on_date='$end_date'";
+	// 	}
+	// 	$procedure_sql = "Select * from ".$this->config->item('db_prefix')."consultation where 1 ".$conditions."";
+	// 	$q = $this->db->query($procedure_sql);
+	// 	return $q->num_rows();
 		
-	}
+	// }
 
 	function export_consultation_patients_data($start_date,$status, $end_date, $center, $patient_id){
 		$consultation_result = $response = array();
@@ -2728,7 +2720,6 @@ function export_consultation_patients_data($start_date,$status, $end_date, $cent
 		if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
 			$center = $_SESSION['logged_accountant']['center'];
 		}
->>>>>>> Stashed changes
         if(!empty($center)){
             $conditions .= ' and billing_at="'.$center.'"';
         }
@@ -2740,17 +2731,6 @@ function export_consultation_patients_data($start_date,$status, $end_date, $cent
         }
         if (!empty($start_date) && !empty($end_date)){
         $conditions .= " AND on_date BETWEEN '".$start_date."' AND '".$end_date."'";
-<<<<<<< Updated upstream
-        }
-        else if (!empty($start_date) && empty($end_date)){
-            $conditions .= " AND on_date='$start_date'";
-        }
-        else if (empty($start_date) && !empty($end_date)){
-            $conditions .= " AND on_date='$end_date'";
-        }
-        
-       $consultation_sql = "Select DISTINCT patient_id, receipt_number, totalpackage,doctor_id, fees as discounted_package,payment_done,remaining_amount,payment_method,billing_from,billing_at,reason_of_visit,on_date as date,status from ".$this->config->item('db_prefix')."consultation where 1 $conditions order by on_date desc";
-=======
 		}
 		else if (!empty($start_date) && empty($end_date)){
 			$conditions .= " AND on_date='$start_date'";
@@ -2760,7 +2740,6 @@ function export_consultation_patients_data($start_date,$status, $end_date, $cent
 		}
 		
 	   $consultation_sql = "Select DISTINCT patient_id, receipt_number, totalpackage,doctor_id, fees as discounted_package,payment_done,remaining_amount,payment_method,billing_from,billing_at,reason_of_visit,on_date as date,status from ".$this->config->item('db_prefix')."consultation where 1 $conditions order by on_date desc";
->>>>>>> Stashed changes
         $consultation_q = $this->db->query($consultation_sql);
         $consultation_result = $consultation_q->result_array();
         if(!empty($consultation_result)){
