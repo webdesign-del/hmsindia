@@ -2672,7 +2672,6 @@ class Stocks_new extends CI_Controller
                 "expiry_alerts"
             ] = $this->Stock_model_new->get_expiry_alerts();
             $data["centers"] = $this->Stock_model_new->get_all_centers();
-
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $this->load->view("stocks_new/expiry_alerts", $data);

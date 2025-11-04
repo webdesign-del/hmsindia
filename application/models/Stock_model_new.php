@@ -309,7 +309,48 @@ class Stock_model_new extends CI_Model
         }
     }
 
-    public function get_expiry_alerts()
+    // public function get_expiry_alerts()
+    // {
+    //     try {
+    //         $this->db->select('
+    //             mb.id as batch_id,
+    //             m.medicine_name,
+    //             m.medicine_code,
+    //             m.generic_name,
+    //             mb.batch_number,
+    //             mb.expiry_date,
+    //             mb.quantity_remaining as central_quantity,
+    //             mb.quantity_remaining as center_quantity,
+    //             "Central" as center_name,
+    //             b.name as brand_name,
+    //             DATEDIFF(mb.expiry_date, CURDATE()) as days_to_expiry,
+    //             CASE
+    //                 WHEN DATEDIFF(mb.expiry_date, CURDATE()) < 0 THEN "EXPIRED"
+    //                 WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 7 THEN "CRITICAL"
+    //                 WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN "WARNING"
+    //                 ELSE "OK"
+    //             END as alert_level
+    //         ');
+    //         $this->db->from("medicine_batches mb");
+    //         $this->db->join("medicines m", "mb.medicine_id = m.id");
+    //         $this->db->join(
+    //             $this->config->item("db_prefix") . "brands b",
+    //             "m.brand_id = b.ID",
+    //             "left",
+    //         );
+    //         $this->db->where("mb.batch_status", "ACTIVE");
+    //         $this->db->where("mb.quantity_remaining >", 0);
+    //         $this->db->where(
+    //             "mb.expiry_date <=",
+    //             date("Y-m-d", strtotime("+30 days")),
+    //         );
+    //         $this->db->order_by("mb.expiry_date", "ASC");
+    //         return $this->db->get()->result();
+    //     } catch (Exception $e) {
+    //         return [];
+    //     }
+    // }
+        public function get_expiry_alerts($filters = [])
     {
         try {
             $this->db->select('
@@ -319,9 +360,13 @@ class Stock_model_new extends CI_Model
                 m.generic_name,
                 mb.batch_number,
                 mb.expiry_date,
-                mb.quantity_remaining as central_quantity,
-                mb.quantity_remaining as center_quantity,
-                "Central" as center_name,
+                
+                cs.quantity as central_quantity,
+                ccs.quantity as center_quantity,
+                
+                c.center_name,
+                c.id as center_id,
+                
                 b.name as brand_name,
                 DATEDIFF(mb.expiry_date, CURDATE()) as days_to_expiry,
                 CASE
@@ -330,26 +375,75 @@ class Stock_model_new extends CI_Model
                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN "WARNING"
                     ELSE "OK"
                 END as alert_level
-            ');
+            ', FALSE); // FALSE to prevent CodeIgniter from escaping the query
+            
             $this->db->from("medicine_batches mb");
-            $this->db->join("medicines m", "mb.medicine_id = m.id");
+            $this->db->join("medicines m", "mb.medicine_id = m.id", "inner");
+            
+            // Use LEFT JOINs to check both stock tables
+            $this->db->join("central_stocks cs", "mb.id = cs.batch_id", "left");
+            $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id", "left");
+            $this->db->join("hms_centers c", "ccs.center_id = c.id", "left"); // Join to centers via center_stocks
+            
             $this->db->join(
                 $this->config->item("db_prefix") . "brands b",
                 "m.brand_id = b.ID",
-                "left",
+                "left"
             );
+            
+            // --- Base conditions ---
             $this->db->where("mb.batch_status", "ACTIVE");
-            $this->db->where("mb.quantity_remaining >", 0);
             $this->db->where(
                 "mb.expiry_date <=",
-                date("Y-m-d", strtotime("+30 days")),
+                date("Y-m-d", strtotime("+30 days"))
             );
+
+            // Check for quantity in EITHER table
+            $this->db->where("( (ccs.quantity IS NOT NULL AND ccs.quantity > 0) OR (cs.quantity IS NOT NULL AND cs.quantity > 0) )", NULL, FALSE);
+
+            // --- Apply filters ---
+            if (!empty($filters['center_id'])) {
+                // Find items specific to the selected center
+                // OR items that are only in central stock (where ccs.center_id is NULL)
+                $this->db->group_start();
+                $this->db->where('ccs.center_id', $filters['center_id']);
+                $this->db->or_where('ccs.center_id IS NULL');
+                $this->db->group_end();
+            }
+
+            // Must use HAVING for 'alert_level' because it is a calculated alias
+            if (!empty($filters['alert_level'])) {
+                $this->db->having('alert_level', $filters['alert_level']);
+            }
+            
             $this->db->order_by("mb.expiry_date", "ASC");
-            return $this->db->get()->result();
+            
+            $query = $this->db->get();
+            return $query->result();
+
         } catch (Exception $e) {
+            log_message('error', 'Error in get_expiry_alerts: ' . $e->getMessage());
             return [];
         }
     }
+
+    /**
+     * Utility function to get all centers (used by controllers)
+     */
+    // public function get_all_centers()
+    // {
+    //     try {
+    //         $this->db->select('id as ID, center_name'); // Use 'id' alias as 'ID' to match other queries
+    //         $this->db->from('hms_centers');
+    //         $this->db->where('status', 'ACTIVE');
+    //         $this->db->order_by('center_name', 'ASC');
+    //         $query = $this->db->get();
+    //         return $query->result();
+    //     } catch (Exception $e) {
+    //         log_message('error', 'Error in get_all_centers: ' . $e->getMessage());
+    //         return [];
+    //     }
+    // }
 
     public function get_recent_sales($limit = 10)
     {
