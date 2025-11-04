@@ -114,7 +114,7 @@ class Stock_model_new extends CI_Model
             // --- NEW: Get Today's Sales ---
             $this->db->select('COUNT(id) as todays_sales_count, SUM(total_amount) as todays_sales_value');
             $this->db->from('sales');
-            // $this->db->where('sale_date', date('Y-m-d')); // CURDATE()
+            $this->db->where('sale_date', date('Y-m-d')); // CURDATE()
             $this->db->where('status', 'CONFIRMED'); // Only confirmed sales
             
             $todays_sales = $this->db->get()->row();
@@ -485,29 +485,24 @@ class Stock_model_new extends CI_Model
             return [];
         }
     }
-
     public function get_sales_analytics($days = 30)
     {
-        try {
-            $this->db->select('
-                DATE(sale_date) as sale_date,
-                COUNT(*) as total_sales,
-                SUM(subtotal) as total_revenue,
-                AVG(subtotal) as avg_sale_amount
-            ');
-            $this->db->from("sales");
-            $this->db->where(
-                "sale_date >=",
-                date("Y-m-d", strtotime("-{$days} days")),
-            );
-            $this->db->where("status", "CONFIRMED");
-            $this->db->group_by("DATE(sale_date)");
-            $this->db->order_by("sale_date", "DESC");
-            return $this->db->get()->result();
-        } catch (Exception $e) {
-            return [];
-        }
+        $this->db->reset_query(); // 🔥 Clears any old joins or selects
+        $this->db->select('
+            DATE(sale_date) as sale_date,
+            COUNT(*) as total_sales,
+            SUM(subtotal) as total_revenue,
+            AVG(subtotal) as avg_sale_amount
+        ');
+        $this->db->from('sales');
+        $this->db->where('sale_date >=', date('Y-m-d', strtotime("-{$days} days")));
+        $this->db->where('status', 'CONFIRMED');
+        $this->db->group_by('DATE(sale_date)');
+        $this->db->order_by('sale_date', 'DESC');
+
+        return $this->db->get()->result();
     }
+
 
     public function get_transfer_analytics($days = 30)
     {
