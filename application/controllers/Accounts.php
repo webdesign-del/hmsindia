@@ -7654,7 +7654,7 @@ public function partial_procedure(){
 			$data['consultation_daily_result'] = $this->accounts_model->dashboard_consultation_daily_sales($center, $start_date, $end_date);
 			$data['registration_daily_result'] = $this->accounts_model->dashboard_registration_daily_sales($center, $start_date, $end_date);
 			$data['procedure_daily_result'] = $this->accounts_model->dashboard_procedure_daily_sales($center, $start_date, $end_date);
-			
+			$data['patient_procedure_daily_result'] = $this->accounts_model->dashboard_procedure_reports_list_patination($center, $start_date, $end_date);
 			$data["billing_at"] = $center;
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;

@@ -49,14 +49,14 @@
             	<label>End Date</label>
                 <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
             </div>
-          <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+          <!--<div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Start Booking Date</label>
               <input type="text" class="particular_date_filter form-control" id="start_booking_date" name="start_booking_date" value="<?php echo $start_booking_date;?>" />
             </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>End Booking Date</label>
                 <input type="text" class="particular_date_filter form-control" id="end_booking_date" name="end_booking_date" value="<?php echo $end_booking_date;?>" />
-            </div>
+            </div>-->
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>IIC ID </label>
                 <input type="text" class="form-control" id="iic_id" name="iic_id" value="<?php echo $patient_id;?>" />

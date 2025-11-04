@@ -508,6 +508,7 @@
                         </td>
                         <td><?php echo $sub_procedure_details['code']; ?>
                            <input value="<?php echo $sub_procedure_details['code']; ?>" readonly="readonly" id="sub_procedures_code_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_code_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['category']; ?>" readonly="readonly" id="sub_procedures_category_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_category_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
                         </td>
                         <td><?php $sub_price = 0;
                            $sub_price = $sub_procedure_details['price']; echo 'Rs.'.$sub_price; ?>
