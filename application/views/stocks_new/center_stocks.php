@@ -30,7 +30,7 @@
                 <form method="get" action="<?php echo base_url('stocks_new/center_stocks'); ?>" class="form-inline">
                     <div class="form-group">
                         <label>Center:</label>
-                        <select name="center_id" class="form-control">
+                        <select name="center_id" class="form-control" id ="centerFilter">
                             <option value="">All Centers</option>
                             <?php foreach($centers as $center): ?>
                                 <option value="<?php echo $center->ID; ?>" <?php echo ($selected_center_id == $center->ID) ? 'selected' : ''; ?>>
@@ -42,7 +42,7 @@
                     
                     <div class="form-group">
                         <label>Medicine:</label>
-                        <select name="medicine_id" class="form-control">
+                        <select name="medicine_id" class="form-control" id ="medicineFilter">
                             <option value="">All Medicines</option>
                             <?php foreach($medicines as $medicine): ?>
                                 <option value="<?php echo $medicine->id; ?>" <?php echo ($selected_medicine_id == $medicine->id) ? 'selected' : ''; ?>>
@@ -54,12 +54,12 @@
                     
                     <div class="form-group">
                         <label>Batch Number:</label>
-                        <input type="text" name="batch_number" class="form-control" placeholder="Batch number" value="<?php echo $selected_batch_number; ?>">
+                        <input type="text" name="batch_number" id="batchFilter" class="form-control" placeholder="Batch number" value="<?php echo $selected_batch_number; ?>">
                     </div>
                     
                     <div class="form-group">
                         <label>Status:</label>
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-control" id="statusFilter">
                             <option value="">All Status</option>
                             <option value="ACTIVE" <?php echo ($selected_status == 'ACTIVE') ? 'selected' : ''; ?>>Active</option>
                             <option value="INACTIVE" <?php echo ($selected_status == 'INACTIVE') ? 'selected' : ''; ?>>Inactive</option>
@@ -72,6 +72,9 @@
                     </button>
                     <a href="<?php echo base_url('stocks_new/center_stocks'); ?>" class="btn btn-default">
                         <i class="fa fa-refresh"></i> Clear
+                    </a>
+                    <a onclick="exportCenterStockReport()" class="btn btn-success">
+                        <i class="fa fa-download"></i> Export
                     </a>
                 </form>
             </div>
@@ -217,5 +220,15 @@ function updateCenterStockStatus(stockId, status) {
             }
         });
     }
+}
+function exportCenterStockReport() {
+    var filters = {
+        center_id: $('#centerFilter').val(),
+        medicine_id: $('#medicineFilter').val(),
+        batch_number: $('#batchFilter').val(),
+        status: $('#statusFilter').val(),
+    };
+    var queryString = $.param(filters);
+    window.open('<?php echo base_url("stocks_new/center_stocks_export"); ?>?' + queryString, '_blank');
 }
 </script>

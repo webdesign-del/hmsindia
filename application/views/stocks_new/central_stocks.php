@@ -30,7 +30,7 @@
                 <form method="get" action="<?php echo base_url('stocks_new/central_stocks'); ?>" class="form-inline">
                     <div class="form-group">
                         <label>Medicine:</label>
-                        <select name="medicine_id" class="form-control">
+                        <select name="medicine_id" class="form-control" id="medicineFilter">
                             <option value="">All Medicines</option>
                             <?php foreach($medicines as $medicine): ?>
                                 <option value="<?php echo $medicine->id; ?>" <?php echo ($selected_medicine_id == $medicine->id) ? 'selected' : ''; ?>>
@@ -40,14 +40,14 @@
                         </select>
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group" id="batchFilter">
                         <label>Batch Number:</label>
-                        <input type="text" name="batch_number" class="form-control" placeholder="Batch number" value="<?php echo $selected_batch_number; ?>">
+                    <input type="text" name="batch_number" id="batchFilterInput" class="form-control" placeholder="Batch number" value="<?php echo $selected_batch_number; ?>">
                     </div>
                     
                     <div class="form-group">
                         <label>Status:</label>
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-control" id="statusFilter">
                             <option value="">All Status</option>
                             <option value="ACTIVE" <?php echo ($selected_status == 'ACTIVE') ? 'selected' : ''; ?>>Active</option>
                             <option value="INACTIVE" <?php echo ($selected_status == 'INACTIVE') ? 'selected' : ''; ?>>Inactive</option>
@@ -61,7 +61,7 @@
                     <a href="<?php echo base_url('stocks_new/central_stocks'); ?>" class="btn btn-default">
                         <i class="fa fa-refresh"></i> Clear
                     </a>
-                    <a href="<?php echo base_url('stocks_new/central_stocks_export'); ?>" class="btn btn-success">
+                    <a onclick="exportCentralStockReport()" class="btn btn-success">
                         <i class="fa fa-download"></i> Export
                     </a>
                 </form>
@@ -206,4 +206,13 @@ function updateStockStatus(stockId, status) {
     }
 }
 
+function exportCentralStockReport() {
+    var filters = {
+        medicine_id: $('#medicineFilter').val(),
+        status: $('#statusFilter').val(),
+        batch_id: $('#batchFilterInput').val(),
+    };
+    var queryString = $.param(filters);
+    window.open('<?php echo base_url("stocks_new/central_stocks_export"); ?>?' + queryString, '_blank');
+}
 </script>

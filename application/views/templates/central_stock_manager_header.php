@@ -123,6 +123,7 @@
                      <li> <a href="<?php echo base_url(); ?>stocks_new/vendor_returns"> Vendor Returns</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/stock_tracking_panel"> Stock Tracking Panel</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/stock_movements">Stock Movements</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/stock_additions_report">Stock Additions Report</a> </li>
                   </ul>
                </li>
                <li>

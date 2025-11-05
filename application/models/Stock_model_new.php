@@ -1068,12 +1068,7 @@ class Stock_model_new extends CI_Model
         // return $center ? $center->id : null;
     }
 
-    public function get_center_stocks(
-        $center_id = null,
-        $medicine_id = null,
-        $batch_number = null,
-        $status = null,
-    ) {
+    public function get_center_stocks($center_id = null,$medicine_id = null,$batch_number = null,$status = null) {
         // try {
             $this->db->select(
                 "ccs.*, mb.batch_number, mb.expiry_date, mb.purchase_price, mb.selling_price, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, c.center_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
@@ -6745,6 +6740,7 @@ class Stock_model_new extends CI_Model
     {
         $this->db->select([
             'm.id',
+            'm.gst_rate',
             'm.medicine_name as text', // Select2 uses 'text' property
             'm.medicine_name',
             'm.generic_name',
@@ -7396,7 +7392,60 @@ public function add_stock_to_location($stock_data)
     // --- You also need these functions (which you already have) ---
     // public function get_employee_id_from_number($number) { ... }
     // public function add_batch($batch_data) { ... }
-        
+     public function get_stock_additions_report($filters = []) {
+        try {
+            $this->db->select("
+                sm.*, 
+                m.medicine_name, 
+                m.medicine_code, 
+                mb.batch_number, 
+                e.name as user_name,
+                CASE 
+                    WHEN sm.to_location_type = 'CENTRAL' THEN 'Central Warehouse'
+                    WHEN sm.to_location_type = 'CENTER' THEN hc.center_name
+                    ELSE sm.to_location_type
+                END as location_name
+            ");
+            $this->db->from("stock_movements sm");
+            $this->db->join("medicine_batches mb", "sm.batch_id = mb.id", "left");
+            $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+            $this->db->join("hms_employees e", "sm.created_by = e.ID", "left");
+            $this->db->join("hms_centers hc", "sm.to_location_id = hc.ID AND sm.to_location_type = 'CENTER'", "left");
+            // --- FILTERS ---
+            // This is the main filter: only show positive changes (stock additions)
+            $this->db->where("sm.quantity_change >", 0);
+            // Filter by Date From
+            if (!empty($filters['date_from'])) {
+                $this->db->where('DATE(sm.created_at) >=', $filters['date_from']);
+            }
+            // Filter by Date To
+            if (!empty($filters['date_to'])) {
+                $this->db->where('DATE(sm.created_at) <=', $filters['date_to']); // Corrected typo
+            }
+            // Filter by Location
+            if (!empty($filters['location_id'])) {
+                if ($filters['location_id'] == 'central') {
+                    $this->db->where('sm.to_location_type', 'CENTRAL'); // Corrected typo
+                } else {
+                    $this->db->where('sm.to_location_type', 'CENTER');
+                    $this->db->where('sm.to_location_id', (int)$filters['location_id']);
+                }
+            }
+            // *** NEW: Filter by Transaction Type ***
+            if (!empty($filters['movement_type'])) {
+                $this->db->where('sm.movement_type', $filters['movement_type']);
+            }
+            // *** NEW: Filter by Batch Number (partial match) ***
+            if (!empty($filters['batch_number'])) {
+                $this->db->like('mb.batch_number', $filters['batch_number'], 'both');
+            }
+            $this->db->order_by("sm.created_at", "DESC"); // Corrected typo
+            return $this->db->get()->result();
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_stock_additions_report: ' . $e->getMessage());
+            return [];
+        }
+    }
 }
 
 // comment these new function using procedure 

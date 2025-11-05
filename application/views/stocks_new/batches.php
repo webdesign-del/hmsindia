@@ -112,6 +112,7 @@
                                         <th>Quantity</th>
                                         <th>Status</th>
                                         <th>Quality</th>
+                                        <th>Created Date</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -146,6 +147,7 @@
                                                         <?php echo isset($batch->quality_status) ? $batch->quality_status : 'PENDING'; ?>
                                                     </span>
                                                 </td>
+                                                <td><?php echo isset($batch->created_at) ? date('M d, Y', strtotime($batch->created_at)) : 'N/A'; ?></td>   
                                                 <td>
                                                     <div class="btn-group">
                                                         <button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown">

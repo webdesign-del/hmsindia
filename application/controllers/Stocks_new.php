@@ -702,7 +702,6 @@ class Stocks_new extends CI_Controller
         $this->load->model('Stock_model_new');
         // You need to create this model function:
         $medicines = $this->Stock_model_new->search_medicines_for_select2($search_term); 
-        
         $this->output->set_content_type('application/json')->set_output(json_encode($medicines));
     }
 
@@ -6396,10 +6395,149 @@ class Stocks_new extends CI_Controller
 
     public function central_stocks_export()
     {
-        $this->load->model('Accounts_model');
-        $this->Accounts_model->export_ledger('central_stocks');
+
+        $logg = checklogin();
+        if ($logg["status"] == false) {
+             header("location:" . base_url() . "");
+             die();
+        }
+        $medicine_id = $this->input->get("medicine_id");
+        $batch_number = $this->input->get("batch_id");
+        $status = $this->input->get("status");
+        $filename = 'central_stock_export_' . date('Y-m-d') . '.csv';
+        // 3. Set headers to force download
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        // 4. Fetch data using your *existing* model function and filters
+        $stock_data = $this->Stock_model_new->get_central_stocks(
+            $medicine_id,
+            $batch_number,
+            $status
+        );
+        // 5. Open output stream
+        $output = fopen('php://output', 'w');
+        // 6. Write CSV Header Row
+        // These headers match the data from your get_central_stocks() function
+        fputcsv($output, [
+            'Medicine Code',
+            'Medicine Name',
+            'Brand',
+            'Vendor',
+            'Batch Number',
+            'Expiry Date',
+            'Days Left',
+            'Purchase Price',
+            'Selling Price',
+            'Quantity',
+            'Status'
+        ]);
+        // 7. Write CSV Data Rows
+        if (!empty($stock_data)) {
+            foreach ($stock_data as $row) {
+                fputcsv($output, [
+                    $row->medicine_code,
+                    $row->medicine_name,
+                    $row->brand_name,
+                    $row->vendor_name,
+                    $row->batch_number,
+                    $row->expiry_date,
+                    $row->expiry_days,
+                    $row->purchase_price,
+                    $row->selling_price,
+                    $row->quantity, // from cs.quantity
+                    $row->status    // from cs.status
+                ]);
+            }
+        }
+        // 8. Close output stream and stop script
+        fclose($output);
+        exit();
     }
 
+    public function center_stocks_export()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == false) {
+             header("location:" . base_url());
+             die();
+        }
+        $center_id = $this->input->get("center_id");
+        $medicine_id = $this->input->get("medicine_id");
+        $batch_number = $this->input->get("batch_number");
+        $status = $this->input->get("status");
+     
+        $filename = 'center_stock_export_' . date('Y-m-d') . '.csv';
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $stock_data = $this->Stock_model_new->get_center_stocks(
+                $center_id,
+                $medicine_id,
+                $batch_number,
+                $status,
+        );  
+        // 5. Open output stream
+        $output = fopen('php://output', 'w');
+        
+        // 6. Write CSV Header Row
+        fputcsv($output, [
+            'Center Name',
+            'Medicine Code',
+            'Medicine Name',
+            'Brand',
+            'Batch Number',
+            'Expiry Date',
+            'Days Left',
+            'Purchase Price',
+            'Selling Price',
+            'Quantity',
+            'Status'
+        ]);
+        
+        // 7. Write CSV Data Rows
+        if (!empty($stock_data)) {
+            foreach ($stock_data as $row) {
+                fputcsv($output, [
+                    $row->center_name,
+                    $row->medicine_code,
+                    $row->medicine_name,
+                    $row->brand_name,
+                    $row->batch_number,
+                    $row->expiry_date,
+                    $row->expiry_days,
+                    $row->purchase_price,
+                    $row->selling_price,
+                    $row->quantity, // from ccs.quantity
+                    $row->status    // from ccs.status
+                ]);
+            }
+        }
+        
+        // 8. Close output stream and stop script
+        fclose($output);
+        exit();
+    }
+
+    public function stock_additions_report() {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $filters = [
+                'date_from'     => $this->input->get('date_from'),
+                'date_to'       => $this->input->get('date_to'),
+                'location_id'   => $this->input->get('location_id'), // 'central' or a center ID
+                'movement_type' => $this->input->get('movement_type'), // *** NEW ***
+                'batch_number'  => $this->input->get('batch_number')   // *** NEW ***
+            ];
+            $data["stock_additions"] = $this->Stock_model_new->get_stock_additions_report($filters);
+            $data["centers"] = $this->Stock_model_new->get_all_centers(); 
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/stock_additions_report_view", $data); 
+            $this->load->view($template["footer"]); // Corrected typo
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
 
 
 

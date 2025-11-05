@@ -54,7 +54,7 @@
                                             // Check if a medicine is pre-selected from the controller
                                             if (isset($selected_medicine_details) && $selected_medicine_details): 
                                             ?>
-                                                <option value="<?php echo $selected_medicine_details->id; ?>" selected="selected">
+                                                <option value="<?php echo $selected_medicine_details->id; ?>" selected="selected" data-gst="<?php echo $selected_medicine_details->gst_rate; ?>">
                                                     <?php echo htmlspecialchars($selected_medicine_details->text); // Use 'text' property ?>
                                                 </option>
                                             <?php else: ?>
@@ -64,6 +64,8 @@
                                         <small class="help-block">Type medicine name, generic name, or code to search</small>
                                     </div>
                                 </div>
+                                <!-- GST Rate (Fetched by JavaScript) -->
+                                    <input type="hidden" step="0.01" class="form-control" id="gst_rate" name="gst_rate" placeholder="GST rate will be fetched automatically" readonly>
                                 
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Vendor *</label>
@@ -112,14 +114,14 @@
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Purchase Price *</label>
                                     <div class="col-sm-8">
-                                        <input type="number" name="purchase_price" class="form-control" placeholder="Enter purchase price per unit" value="<?php echo set_value('purchase_price'); ?>" step="0.01" min="0" required>
+                                        <input type="number" name="purchase_price" id="purchase_price" class="form-control" placeholder="Enter purchase price per unit" value="<?php echo set_value('purchase_price'); ?>" step="0.01" min="0" required>
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Selling Price *</label>
                                     <div class="col-sm-8">
-                                        <input type="number" name="selling_price" class="form-control" placeholder="Enter selling price per unit" value="<?php echo set_value('selling_price'); ?>" step="0.01" min="0" required>
+                                        <input type="number" name="selling_price" id="selling_price" class="form-control" placeholder="Enter selling price per unit" value="<?php echo set_value('selling_price'); ?>" step="0.01" min="0" required>
                                     </div>
                                 </div>
                                 
@@ -225,7 +227,120 @@
 <!-- Include Select2 CSS and JS -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    
+    // 1. Initialize Select2
+    $('#medicine_select').select2({
+        ajax: {
+            url: '<?php echo base_url("stocks_new/search_medicines"); ?>',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return {
+                    search: params.term // search term
+                };
+            },
+            processResults: function (data) {
+                var formattedData = $.map(data, function (obj) {
+                    obj.text = obj.medicine_name;
+                    return obj;
+                });
+                return {
+                    results: formattedData
+                };
+            },
+            cache: true
+        },
+        minimumInputLength: 2,
+        placeholder: 'Search and select medicine...',
+        templateResult: formatMedicine,
+        templateSelection: formatMedicineSelection
+    });
+    
+    // Function to format the dropdown list
+    function formatMedicine (medicine) {
+        if (medicine.loading) {
+            return medicine.text;
+        }
+        var $container = $(
+            '<div class="select2-result-medicine clearfix">' +
+                '<div class="medicine-option">' +
+                    '<div class="medicine-name"><strong>' + (medicine.medicine_name || 'N/A') + '</strong></div>' +
+                    '<div class="medicine-details" style="font-size: 0.9em; color: #555;">' +
+                        '<span class="medicine-gst_rate">GST: ' + (medicine.gst_rate || 'N/A') + '%</span>' +
+                        ' | <span class="generic-name">Generic: ' + (medicine.generic_name || 'N/A') + '</span>' +
+                        ' | <span class="medicine-code">Code: ' + (medicine.medicine_code || 'N/A') + '</span>' +
+                        ' | <span class="brand-name">Brand: ' + (medicine.brand_name || 'N/A') + '</span>' +
+                    '</div>' +
+                '</div>' +
+            '</div>'
+        );
 
+        return $container;
+    }
+
+    // Function to format the selected item in the box
+    function formatMedicineSelection (medicine) {
+        if(medicine.id) {
+            $(medicine.element).data('gst', medicine.gst_rate);
+        }
+        return medicine.medicine_name || medicine.text;
+    }
+    $('#medicine_select').on('select2:select', function (e) {
+        var data = e.params.data;
+        var gstRate = data.gst_rate; // Get GST from the selected data
+        if (gstRate !== undefined) {
+            $('#gst_rate').val(gstRate);
+            calculateSellingPrice(); // Re-calculate price
+        } else {
+            var medicineId = data.id;
+            $.ajax({
+                url: '<?php echo base_url("stocks_new/search_medicines"); ?>',
+                type: 'POST',
+                data: { id: medicineId },
+                dataType: 'json',
+                success: function(response) {
+                    if(response.success && response.medicine) {
+                        $('#gst_rate').val(response.medicine.gst_rate);
+                        calculateSellingPrice(); // Re-calculate price
+                    } else {
+                        alert('Could not fetch medicine details.');
+                        $('#gst_rate').val('');
+                    }
+                },
+                error: function() {
+                    alert('AJAX error fetching medicine details.');
+                }
+            });
+        }
+    });
+    $('#purchase_price').on('keyup change', function() {
+        calculateSellingPrice();
+    });
+    function calculateSellingPrice() {
+        var purchasePrice = parseFloat($('#purchase_price').val());
+        var gstRate = parseFloat($('#gst_rate').val());
+        if (!isNaN(purchasePrice) && !isNaN(gstRate)) {
+            var taxAmount = purchasePrice * (gstRate / 100);
+            var sellingPrice = purchasePrice + taxAmount;
+            $('#selling_price').val(sellingPrice.toFixed(2));
+        } else {
+            $('#selling_price').val('');
+        }
+    }
+    
+    // 5. Initial Check (if page is loaded with pre-selected medicine)
+    var $selectedOption = $('#medicine_select').find(':selected');
+    if ($selectedOption.val() && $selectedOption.data('gst') !== undefined) {
+        // Found a pre-selected option with a 'data-gst' attribute
+        $('#gst_rate').val($selectedOption.data('gst'));
+        // Run calculation in case purchase price is also pre-filled
+        calculateSellingPrice();
+    }
+
+});
+</script>
 <script>
 $(document).ready(function() {
     // Initialize Select2 for medicine search
@@ -290,89 +405,80 @@ $(document).ready(function() {
     //         return markup;
     //     }
     // });
-    $('#medicine_select').select2({
-        placeholder: 'Search and select medicine...',
-        allowClear: true,
-        width: '100%',
-        ajax: {
-            url: '<?php echo base_url("stocks_new/search_medicines"); ?>',
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return {
-                    q: params.term // search term
-                };
-            },
-            processResults: function (data) {
-                // data is expected to be a simple array [ {id:1, text:...}, {id:2, text:...} ]
-                return {
-                    results: data
-                };
-            },
-            cache: true
-        },
-        minimumInputLength: 1, // Start searching after 1 character
-        templateResult: function(medicine) {
-            if (medicine.loading) {
-                return medicine.text;
-            }
-            
-            // Format for the dropdown list
-            var $result = $(
-                '<div class="medicine-option">' +
-                    '<div class="medicine-name"><strong>' + medicine.medicine_name + '</strong></div>' +
-                    '<div class="medicine-details" style="font-size: 0.9em; color: #555;">' +
-                        '<span class="generic-name">Generic: ' + (medicine.generic_name || 'N/A') + '</span>' +
-                        '<span class="medicine-code"> | Code: ' + (medicine.medicine_code || 'N/A') + '</span>' +
-                        '<span class="brand-name"> | Brand: ' + (medicine.brand_name || 'N/A') + '</span>' +
-                    '</div>' +
-                '</div>'
-            );
-            return $result;
-        },
-        templateSelection: function(medicine) {
-            // Format for the selected item in the box
-            if (medicine.id === '' || !medicine.id) {
-                return medicine.text || 'Search and select medicine...'; // Placeholder
-            }
-            
-            // This will use the 'text' property from the AJAX result or the pre-loaded option
-            return medicine.text; 
-        },
-        escapeMarkup: function (markup) {
-            return markup;
-        }
-    });
+//       $('#medicine_select').select2({
+//         ajax: {
+//             url: '<?php echo base_url("stocks_new/search_medicines"); ?>',
+//             dataType: 'json',
+//             delay: 250,
+//             data: function (params) {
+//                 return {
+//                     search: params.term // search term
+//                 };
+//             },
+//             processResults: function (data) {
+//                 return {
+//                     results: data
+//                 };
+//             },
+//             cache: true
+//         },
+//         minimumInputLength: 2,
+//         placeholder: 'Search and select medicine...',
+//         // --- *** NEW: Add functions to format the search results *** ---
+//         templateResult: formatMedicine,
+//         templateSelection: formatMedicineSelection
+//         // --- *** END NEW *** ---
+//     });
+//     // --- *** NEW: Function to format the dropdown list *** ---
+//     function formatMedicine (medicine) {
+//         if (medicine.loading) {
+//             return medicine.text;
+//         }
+//         // This is the code you pointed out, now with the CORRECT label
+//         var $container = $(
+//             '<div class="select2-result-medicine clearfix">' +
+//                 '<div class="medicine-option">' +
+//                     '<div class="medicine-name"><strong>' + medicine.medicine_name + '</strong></div>' +
+//                     '<div class="medicine-details" style="font-size: 0.9em; color: #555;">' +
+//                         // *** THIS IS THE FIX: Changed "Name:" to "GST:" ***
+//                         '<span class="medicine-gst_rate">GST: ' + (medicine.gst_rate || 'N/A') + '%</span>' +
+//                         ' | <span class="generic-name">Generic: ' + (medicine.generic_name || 'N/A') + '</span>' +
+//                         ' | <span class="medicine-code">Code: ' + (medicine.medicine_code || 'N/A') + '</span>' +
+//                         ' | <span class="brand-name">Brand: ' + (medicine.brand_name || 'N/A') + '</span>' +
+//                     '</div>' +
+//                 '</div>' +
+//             '</div>'
+//         );
 
-    // Also apply Select2 to your vendor dropdown for consistency
-    $('#vendor_select').select2({
-        placeholder: 'Select a vendor',
-        allowClear: true,
-        width: '100%'
-    });
-    
-    // Auto-calculate expiry days
-    $('input[name="expiry_date"]').on('change', function() {
-        var expiryDate = new Date($(this).val());
-        var today = new Date();
-        var diffTime = expiryDate - today;
-        var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays < 0) {
-            alert('Warning: This batch has already expired!');
-        } else if (diffDays <= 30) {
-            alert('Warning: This batch will expire within 30 days!');
-        }
-    });
-    
-    // Auto-suggest selling price based on purchase price
-    $('input[name="purchase_price"]').on('input', function() {
-        var purchasePrice = parseFloat($(this).val());
-        if (purchasePrice > 0) {
-            var suggestedSellingPrice = purchasePrice * 1.12; // 12% markup
-            $('input[name="selling_price"]').val(suggestedSellingPrice.toFixed(2));
-        }
-    });
+//         return $container;
+//     }
+//     // --- *** NEW: Function to format the selected item *** ---
+//     function formatMedicineSelection (medicine) {
+//         return medicine.medicine_name || medicine.text;
+//     }
+//     $('#vendor_select').select2({
+//         placeholder: 'Select a vendor',
+//         allowClear: true,
+//         width: '100%'
+//     });
+//     $('input[name="expiry_date"]').on('change', function() {
+//         var expiryDate = new Date($(this).val());
+//         var today = new Date();
+//         var diffTime = expiryDate - today;
+//         var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+//         if (diffDays < 0) {
+//             alert('Warning: This batch has already expired!');
+//         } else if (diffDays <= 30) {
+//             alert('Warning: This batch will expire within 30 days!');
+//         }
+//     });
+//     $('input[name="purchase_price"]').on('input', function() {
+//         var purchasePrice = parseFloat($(this).val());
+//         if (purchasePrice > 0) {
+//             var suggestedSellingPrice = purchasePrice * 1.12; // 12% markup
+//             $('input[name="selling_price"]').val(suggestedSellingPrice.toFixed(2));
+//         }
+//     });
 });
 </script>
 
