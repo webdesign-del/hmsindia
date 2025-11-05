@@ -4974,11 +4974,36 @@ function patient_follow_ups($patient_id){
 
 
 //Follow Medical Info.
+function safe_unserialize($data) {
+    if (!is_string($data) || trim($data) === '') return false;
+
+    // 1. Remove corrupted characters (like ??? or �)
+    $data = preg_replace('/\?+/', '', $data);
+    $data = str_replace("�", '', $data); // handles replacement chars too
+
+    // 2. Fix wrong string length (caused by UTF-8 issues)
+    $fixed = preg_replace_callback(
+        '!s:(\d+):"(.*?)";!',
+        function ($m) {
+            return 's:' . strlen($m[2]) . ':"' . $m[2] . '";';
+        },
+        $data
+    );
+
+    // 3. Try to unserialize safely
+    $result = @unserialize($fixed);
+
+    // 4. Return false only if truly invalid
+    return ($result === false && $fixed !== 'b:0;') ? false : $result;
+}
+
+
 function follow_medical_info($patient_id, $appointment_id){ 
     $ci = &get_instance();
     $ci->load->database();
     $db_prefix = $ci->config->config['db_prefix'];
-    $patient_sql = "Select * from ".$db_prefix."doctor_consultation where ".$db_prefix."doctor_consultation.patient_id='$patient_id' and ".$db_prefix."doctor_consultation.appointment_id='$appointment_id' order by ".$db_prefix."doctor_consultation.ID DESC LIMIT 1";
+    // $patient_sql = "Select * from ".$db_prefix."doctor_consultation where ".$db_prefix."doctor_consultation.patient_id='17599138724870' and ".$db_prefix."doctor_consultation.appointment_id='89303' order by ".$db_prefix."doctor_consultation.ID DESC";
+    $patient_sql = "Select * from ".$db_prefix."doctor_consultation where ".$db_prefix."doctor_consultation.patient_id='$patient_id' and ".$db_prefix."doctor_consultation.appointment_id='$appointment_id' order by ".$db_prefix."doctor_consultation.ID DESC";
     $patient_q = $ci->db->query($patient_sql);
     // 1. Get all results into a new variable
     $all_patient_results = $patient_q->result_array();
@@ -5023,11 +5048,18 @@ function follow_medical_info($patient_id, $appointment_id){
         $medicine_suggestion = $patient_result['medicine_suggestion'];
         $medicine_suggestion_ipd = $patient_result['medicine_suggestion_ipd'];
         $male_medicine_html = $female_medicine_html = $male_medicine_html_ipd = $female_medicine_html_ipd = "";
+        // var_dump($patient_result['consultation_date'],11,
+        // $medicine_suggestion,$medicine_suggestion_ipd,
+        // ($medicine_suggestion == 1 || $medicine_suggestion_ipd == 1));
+        // $male_medicine_suggestion_list = safe_unserialize($patient_result['male_medicine_suggestion_list']);
+        // var_dump($male_medicine_suggestion_list);
         if($medicine_suggestion == 1 || $medicine_suggestion_ipd == 1){
-            $male_medicine_suggestion_list = unserialize($patient_result['male_medicine_suggestion_list']);
-            $female_medicine_suggestion_list = unserialize($patient_result['female_medicine_suggestion_list']);
-            $male_medicine_suggestion_list_ipd=unserialize($patient_result['male_medicine_suggestion_list_ipd']);
-            $female_medicine_suggestion_list_ipd=unserialize($patient_result['female_medicine_suggestion_list_ipd']); 
+            $male_medicine_suggestion_list = safe_unserialize($patient_result['male_medicine_suggestion_list']);
+            // var_dump($male_medicine_suggestion_list,2);
+            // die;
+            $female_medicine_suggestion_list = safe_unserialize($patient_result['female_medicine_suggestion_list']);
+            $male_medicine_suggestion_list_ipd=safe_unserialize($patient_result['male_medicine_suggestion_list_ipd']);
+            $female_medicine_suggestion_list_ipd=safe_unserialize($patient_result['female_medicine_suggestion_list_ipd']); 
             if(!empty($male_medicine_suggestion_list)){
                 $male_med_count =1; 
                 $male_medicine_html = '<table style="width:100%; border:1px solid #000;" id="male_medicine_table" border="1">
@@ -5058,7 +5090,8 @@ function follow_medical_info($patient_id, $appointment_id){
                                                     <td style="border:1px solid #000; width:20%;">'.$vals['male_medicine_timing'].'</td>
                                                     <td style="border:1px solid #000; width:20%;">'.$male_take.'</td>
                                                   </tr>';
-                                                $male_med_count++; }
+                                                $male_med_count++; 
+                                            }
                 $male_medicine_html .= '</tbody> </thead> </table>';
             }
             if(!empty($female_medicine_suggestion_list)){
@@ -5091,7 +5124,8 @@ function follow_medical_info($patient_id, $appointment_id){
                                                     <td style="border:1px solid #000; width:20%;">'.$vals['female_medicine_timing'].'</td>
                                                     <td style="border:1px solid #000; width:20%;">'.$female_take.'</td>
                                                   </tr>';
-                                                $fmale_med_count++; }
+                                                $fmale_med_count++; 
+                                            }
                 $female_medicine_html .= '</tbody> </thead> </table>';
 
             }
@@ -8095,10 +8129,10 @@ function print_patient_medical_info($patient_id){
     $medicine_suggestion_ipd = $patient_result['medicine_suggestion_ipd'];
     $male_medicine_html = $female_medicine_html = $male_medicine_html_ipd = $female_medicine_html_ipd = "";
     if($medicine_suggestion == 1 || $medicine_suggestion_ipd == 1){        
-        $male_medicine_suggestion_list = unserialize($patient_result['male_medicine_suggestion_list']);
-        $female_medicine_suggestion_list = unserialize($patient_result['female_medicine_suggestion_list']);
-        $male_medicine_suggestion_list_ipd=unserialize($patient_result['male_medicine_suggestion_list_ipd']);
-        $female_medicine_suggestion_list_ipd=unserialize($patient_result['female_medicine_suggestion_list_ipd']); 
+        $male_medicine_suggestion_list = safe_unserialize($patient_result['male_medicine_suggestion_list']);
+        $female_medicine_suggestion_list = safe_unserialize($patient_result['female_medicine_suggestion_list']);
+        $male_medicine_suggestion_list_ipd=safe_unserialize($patient_result['male_medicine_suggestion_list_ipd']);
+        $female_medicine_suggestion_list_ipd=safe_unserialize($patient_result['female_medicine_suggestion_list_ipd']); 
         if(!empty($male_medicine_suggestion_list)){
             $male_medicine_html = '<table style="width:40%; border:1px solid #000;" id="male_medicine_table" border="1">
                                         <thead>
@@ -10026,10 +10060,10 @@ function patient_medical_info($patient_id){
     $male_medicine_html = $female_medicine_html = $male_medicine_html_ipd = $female_medicine_html_ipd = "";
 
     if($medicine_suggestion == 1 || $medicine_suggestion_ipd == 1){
-	    $male_medicine_suggestion_list = unserialize($patient_result['male_medicine_suggestion_list']);
-        $female_medicine_suggestion_list = unserialize($patient_result['female_medicine_suggestion_list']);
-        $male_medicine_suggestion_list_ipd=unserialize($patient_result['male_medicine_suggestion_list_ipd']);
-        $female_medicine_suggestion_list_ipd=unserialize($patient_result['female_medicine_suggestion_list_ipd']); 
+	    $male_medicine_suggestion_list = safe_unserialize($patient_result['male_medicine_suggestion_list']);
+        $female_medicine_suggestion_list = safe_unserialize($patient_result['female_medicine_suggestion_list']);
+        $male_medicine_suggestion_list_ipd=safe_unserialize($patient_result['male_medicine_suggestion_list_ipd']);
+        $female_medicine_suggestion_list_ipd=safe_unserialize($patient_result['female_medicine_suggestion_list_ipd']); 
         if(!empty($male_medicine_suggestion_list)){
 
             $male_medicine_html = '<table style="width:100%; border:1px solid #000;" id="male_medicine_table" border="1">
