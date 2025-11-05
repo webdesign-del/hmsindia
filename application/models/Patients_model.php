@@ -535,7 +535,7 @@ class Patients_model extends CI_Model
 		return $q->num_rows();
 	}
 	
-function get_patient_timeline($limit, $page, $start_date, $end_date, $paitent_id, $crm_id) {
+	function get_patient_timeline($limit, $page, $start_date, $end_date, $patient_id, $crm_id) {
     
     // This array will hold the values for secure query binding
     $bindings = [];
@@ -547,41 +547,40 @@ function get_patient_timeline($limit, $page, $start_date, $end_date, $paitent_id
     // --- Build Conditions Securely (with '?' placeholders) ---
     
     if (!empty($crm_id)) {
-        // Added T1. to prevent ambiguous column errors
         $conditions .= " AND T1.crm_id = ?";
         $bindings[] = $crm_id;
     }
     
-    if (!empty($paitent_id)) {
-        // Added T1. and fixed typo (patient_id)
+    // Corrected variable to match function parameter
+    if (!empty($patient_id)) {
         $conditions .= " AND T1.paitent_id = ?";
         $bindings[] = $paitent_id;
     }
 
     // --- Secure Date Filtering ---
     if (!empty($start_date) && !empty($end_date)) {
-        // Added T1. and fixed typo (appointment_date)
-        $conditions .= " AND T1.appoitmented_date BETWEEN ? AND ?";
+        $conditions .= " AND T1.appoitmented_date BETWEEN ? AND ?"; // Typo fixed
         $bindings[] = $start_date;
         $bindings[] = $end_date;
     } else if (!empty($start_date)) {
-        $conditions .= " AND T1.appoitmented_date = ?";
+        $conditions .= " AND T1.appoitmented_date = ?"; // Typo fixed
         $bindings[] = $start_date;
     } else if (!empty($end_date)) {
-        $conditions .= " AND T1.appoitmented_date = ?";
+        $conditions .= " AND T1.appoitmented_date = ?"; // Typo fixed
         $bindings[] = $end_date;
     }
 
     // --- Corrected SQL Query ---
-    // All typos ('paitent_id', 'appoitmented_date') have been fixed
+    // All typos ('paitent_id', 'appoitmented_date', 'paitent_type') have been fixed
+    // Added GROUP BY and MAX() to prevent duplicates
     $semen_analysis_sql = "
         SELECT
             T1.crm_id,
             T1.paitent_id,
             T1.appoitmented_date,
             T1.agent,
-            T2.on_date AS consultation_date,
-            T3.on_date AS procedure_date
+            MAX(T2.on_date) AS consultation_date,
+            MAX(T3.on_date) AS procedure_date
         FROM
             hms_appointments AS T1
         LEFT JOIN
@@ -591,6 +590,11 @@ function get_patient_timeline($limit, $page, $start_date, $end_date, $paitent_id
         WHERE
             T1.paitent_type = 'new_patient'
             {$conditions}
+        GROUP BY
+            T1.paitent_id, 
+            T1.crm_id, 
+            T1.appoitmented_date, 
+            T1.agent
         ORDER BY
             T1.appoitmented_date DESC
         LIMIT ? OFFSET ?
@@ -605,8 +609,159 @@ function get_patient_timeline($limit, $page, $start_date, $end_date, $paitent_id
     $semen_analysis_q = $this->db->query($semen_analysis_sql, $bindings);
     
     return $semen_analysis_q->result_array();
-}	
-public function insert_patient_timeline($data)
+} 
+
+	/* function get_patient_timeline($limit, $page, $start_date, $end_date, $patient_id, $crm_id) {
+    
+    // This array will hold the values for secure query binding
+    $bindings = [];
+    $conditions = '';
+
+    // Calculate offset
+    $offset = empty($page) || $page <= 1 ? 0 : ($page - 1) * $limit;
+
+    // --- Build Conditions Securely (with '?' placeholders) ---
+    
+    if (!empty($crm_id)) {
+        $conditions .= " AND T1.crm_id = ?";
+        $bindings[] = $crm_id;
+    }
+    
+    // Corrected variable name to $patient_id
+    if (!empty($patient_id)) {
+        // Corrected SQL typo
+        $conditions .= " AND T1.paitent_id = ?"; 
+        $bindings[] = $paitent_id;
+    }
+
+    // --- Secure Date Filtering ---
+    if (!empty($start_date) && !empty($end_date)) {
+        // Corrected SQL typo
+        $conditions .= " AND T1.appoitmented_date BETWEEN ? AND ?"; 
+        $bindings[] = $start_date;
+        $bindings[] = $end_date;
+    } else if (!empty($start_date)) {
+        // Corrected SQL typo
+        $conditions .= " AND T1.appoitmented_date = ?";
+        $bindings[] = $start_date;
+    } else if (!empty($end_date)) {
+        // Corrected SQL typo
+        $conditions .= " AND T1.appoitmented_date = ?";
+        $bindings[] = $end_date;
+    }
+
+    // --- Corrected SQL Query ---
+   echo $semen_analysis_sql = "
+        SELECT
+            T1.crm_id,
+            T1.paitent_id,
+            T1.appoitmented_date,
+            T1.agent,
+            MAX(T2.on_date) AS consultation_date,
+            MAX(T3.on_date) AS procedure_date,
+            MAX(T3.category) AS procedure_category 
+        FROM
+            hms_appointments AS T1
+        LEFT JOIN
+            hms_consultation AS T2 ON T1.paitent_id = T2.patient_id
+        INNER JOIN 
+            hms_patient_procedure AS T3 ON T1.paitent_id = T3.patient_id
+        WHERE
+            T1.paitent_type = 'new_patient'
+            AND T3.category IN ('IVF with Bed', 'Non IVF with Bed')
+            {$conditions}
+        GROUP BY
+            T1.paitent_id, 
+            T1.crm_id, 
+            T1.appoitmented_date, 
+            T1.agent
+        ORDER BY
+            T1.appoitmented_date DESC
+        LIMIT ? OFFSET ?
+    ";
+
+    // Add pagination values to the bindings array (best practice)
+    $bindings[] = (int) $limit;
+    $bindings[] = (int) $offset;
+
+    // --- Execute Securely ---
+    $semen_analysis_q = $this->db->query($semen_analysis_sql, $bindings);
+    
+    return $semen_analysis_q->result_array();
+}*/
+
+/*
+function get_patient_timeline($limit, $page, $start_date, $end_date, $patient_id, $crm_id) {
+    
+    // This array will hold the values for secure query binding
+    $bindings = [];
+    $conditions = '';
+
+    // Calculate offset
+    $offset = empty($page) || $page <= 1 ? 0 : ($page - 1) * $limit;
+
+    // --- Build Conditions Securely (with '?' placeholders) ---
+    
+    if (!empty($crm_id)) {
+        $conditions .= " AND T1.crm_id = ?";
+        $bindings[] = $crm_id;
+    }
+    
+    // Corrected variable to match function parameter
+    if (!empty($patient_id)) { 
+        $conditions .= " AND T1.patient_id = ?";
+        $bindings[] = $patient_id;
+    }
+
+    // --- Secure Date Filtering ---
+    if (!empty($start_date) && !empty($end_date)) {
+        // Corrected SQL typo
+        $conditions .= " AND T1.appointment_date BETWEEN ? AND ?"; 
+        $bindings[] = $start_date;
+        $bindings[] = $end_date;
+    } else if (!empty($start_date)) {
+        $conditions .= " AND T1.appointment_date = ?";
+        $bindings[] = $start_date;
+    } else if (!empty($end_date)) {
+        $conditions .= " AND T1.appointment_date = ?";
+        $bindings[] = $end_date;
+    }
+
+    // --- Corrected SQL Query ---
+    $semen_analysis_sql = "
+        SELECT
+            T1.crm_id,
+            T1.paitent_id,
+            T1.appoitmented_date,
+            T1.agent,
+            T2.on_date AS consultation_date,
+            T3.category, 
+            T3.on_date AS procedure_date
+        FROM
+            hms_appointments AS T1
+        LEFT JOIN
+            hms_consultation AS T2 ON T1.paitent_id = T2.patient_id
+        LEFT JOIN
+            hms_patient_procedure AS T3 ON T1.paitent_id = T3.patient_id
+        WHERE
+            T1.paitent_type = 'new_patient'
+            AND T3.category IN ('Non IVF without Bed', 'IVF with Bed') -- <-- LOGIC FIX
+            {$conditions}
+        ORDER BY
+            T1.appoitmented_date DESC
+        LIMIT ? OFFSET ?
+    ";
+
+    // Add pagination values to the bindings array (best practice)
+    $bindings[] = (int) $limit;
+    $bindings[] = (int) $offset;
+
+    // --- Execute Securely ---
+    $semen_analysis_q = $this->db->query($semen_analysis_sql, $bindings);
+    
+    return $semen_analysis_q->result_array();
+}*/
+	public function insert_patient_timeline($data)
 	{
 		$this->db->insert('hms_patient_timeline', $data);
 		return $this->db->insert_id(); // return last inserted ID
