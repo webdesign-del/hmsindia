@@ -483,6 +483,8 @@ $route['stocks_new/search_stock_movements'] = 'stocks_new/search_stock_movements
 $route['stocks_new/export_stock_report'] = 'stocks_new/export_stock_report';
 $route['stocks_new/update_payment_status'] = 'stocks_new/update_payment_status';
 
+// export functinality  
+$route['stocks_new/central_stocks_export'] = 'accounts/export_ledger';
 // Patient Final Billing Routes
 $route['accounts/patient_final_billing'] = 'accounts/patient_final_billing';
 $route['accounts/generate_final_bill/(:num)'] = 'accounts/generate_final_bill/$1';

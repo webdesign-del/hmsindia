@@ -61,6 +61,9 @@
                     <a href="<?php echo base_url('stocks_new/central_stocks'); ?>" class="btn btn-default">
                         <i class="fa fa-refresh"></i> Clear
                     </a>
+                    <a href="<?php echo base_url('stocks_new/central_stocks_export'); ?>" class="btn btn-success">
+                        <i class="fa fa-download"></i> Export
+                    </a>
                 </form>
             </div>
         </div>
@@ -202,4 +205,5 @@ function updateStockStatus(stockId, status) {
         });
     }
 }
+
 </script>

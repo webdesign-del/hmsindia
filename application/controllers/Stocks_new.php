@@ -6394,6 +6394,12 @@ class Stocks_new extends CI_Controller
         echo json_encode($response);
     }
 
+    public function central_stocks_export()
+    {
+        $this->load->model('Accounts_model');
+        $this->Accounts_model->export_ledger('central_stocks');
+    }
+
 
 
 
