@@ -545,7 +545,7 @@ class Stock_model_new extends CI_Model
             $this->db->join('medicine_brands mb', 'm.brand_id = mb.id');
             $this->db->join("sales s", "si.sale_id = s.id");
             $this->db->where("s.status", "CONFIRMED");
-            $this->db->group_by("m.id, m.medicine_name, mb.name");
+            $this->db->group_by("m.id, m.medicine_name, mb.brand_name");
             $this->db->order_by("total_sold", "DESC");
             $this->db->limit($limit);
             return $this->db->get()->result();
@@ -610,17 +610,25 @@ class Stock_model_new extends CI_Model
     {
         $this->db->where("ID", $id);
         return $this->db->update(
-            $this->config->item("db_prefix") . "brands",
+            'medicine_brands',
             $data,
         );
+
+        // return $this->db->update(
+        //     $this->config->item("db_prefix") . "brands",
+        //     $data,
+        // );
     }
 
     public function get_medicine_brand_by_id($id)
     {
         $this->db->where("ID", $id);
         return $this->db
-            ->get($this->config->item("db_prefix") . "brands")
+            ->get('medicine_brands')
             ->row();
+        // return $this->db
+        //     ->get($this->config->item("db_prefix") . "brands")
+        //     ->row();
     }
 
     // ===============================================
@@ -756,12 +764,14 @@ class Stock_model_new extends CI_Model
     public function get_all_medicines($medicine_name = null, $generic_name = null, $brand_id = null, $category = null, $selected_medicine_id = null)
     {
         $this->db->reset_query();
-        $this->db->select("m.*, mb.name as brand_name");
+        $this->db->select("m.*, mb.brand_name as brand_name");
         $this->db->from("medicines m");
-        $this->db->join(
-            $this->config->item("db_prefix") . "brands mb",
-            "m.brand_id = mb.ID"
-        );
+        $this->db->join("medicine_brands mb", "m.brand_id = mb.id", "left");
+
+        // $this->db->join(
+        //     $this->config->item("db_prefix") . "brands mb",
+        //     "m.brand_id = mb.ID"
+        // );
         $this->db->where("m.status", "active");
 
         if (!empty($selected_medicine_id)) {
@@ -794,9 +804,14 @@ class Stock_model_new extends CI_Model
         $this->db->select("m.*, mb.name as brand_name");
         $this->db->from("medicines m");
         $this->db->join(
-            $this->config->item("db_prefix") . "brands mb",
+            "medicine_brands mb",
             "m.brand_id = mb.ID",
         );
+
+        // $this->db->join(
+        //     $this->config->item("db_prefix") . "brands mb",
+        //     "m.brand_id = mb.ID",
+        // );
         $this->db->where("m.status", "active");
 
         if (!empty($search_term)) {
@@ -804,7 +819,7 @@ class Stock_model_new extends CI_Model
             $this->db->like("m.medicine_name", $search_term);
             $this->db->or_like("m.generic_name", $search_term);
             $this->db->or_like("m.medicine_code", $search_term);
-            $this->db->or_like("mb.name", $search_term);
+            $this->db->or_like("mb.brand_name", $search_term);
             $this->db->group_end();
         }
 
@@ -836,12 +851,16 @@ class Stock_model_new extends CI_Model
 
     public function get_medicine_by_id($id)
     {
-        $this->db->select("m.*, mb.name as brand_name");
+        $this->db->select("m.*, mb.brand_name as brand_name");
         $this->db->from("medicines m");
         $this->db->join(
-            $this->config->item("db_prefix") . "brands mb",
+            "medicine_brands mb",
             "m.brand_id = mb.ID",
         );
+        // $this->db->join(
+        //     $this->config->item("db_prefix") . "brands mb",
+        //     "m.brand_id = mb.ID",
+        // );
         $this->db->where("m.id", $id);
         return $this->db->get()->row();
     }
@@ -859,14 +878,15 @@ class Stock_model_new extends CI_Model
         // Try to get batches with a simple query first
         try {
             $this->db->select(
-                'mb.*, m.medicine_name, m.medicine_code, mb2.name as brand_name, v.name as vendor_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days, COALESCE(mb.quality_status, "PENDING") as quality_status',
+                'mb.*, m.medicine_name, m.medicine_code, mb2.brand_name as brand_name, v.name as vendor_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days, COALESCE(mb.quality_status, "PENDING") as quality_status',
             );
             $this->db->from("medicine_batches mb");
             $this->db->join("medicines m", "mb.medicine_id = m.id");
-            $this->db->join(
-                $this->config->item("db_prefix") . "brands mb2",
-                "m.brand_id = mb2.ID",
-            );
+            // $this->db->join(
+            //     $this->config->item("db_prefix") . "brands mb2",
+            //     "m.brand_id = mb2.ID",
+            // );
+            $this->db->join('medicine_brands mb2', 'm.brand_id = mb2.id');
             $this->db->join(
                 $this->config->item("db_prefix") . "vendors v",
                 "mb.vendor_id = v.ID",
@@ -966,14 +986,15 @@ class Stock_model_new extends CI_Model
     public function get_batch_by_id($id)
     {
         $this->db->select(
-            'mb.*, m.medicine_name, m.medicine_code, mb2.name as brand_name, v.name as vendor_name, COALESCE(mb.quality_status, "PENDING") as quality_status, mb.quantity_remaining as current_stock',
+            'mb.*, m.medicine_name, m.medicine_code, mb2.brand_name as brand_name, v.name as vendor_name, COALESCE(mb.quality_status, "PENDING") as quality_status, mb.quantity_remaining as current_stock',
         );
         $this->db->from("medicine_batches mb");
         $this->db->join("medicines m", "mb.medicine_id = m.id");
-        $this->db->join(
-            $this->config->item("db_prefix") . "brands mb2",
-            "m.brand_id = mb2.ID",
-        );
+        // $this->db->join(
+        //     $this->config->item("db_prefix") . "brands mb2",
+        //     "m.brand_id = mb2.ID",
+        // );
+        $this->db->join('medicine_brands mb2', 'm.brand_id = mb2.id');
         $this->db->join(
             $this->config->item("db_prefix") . "vendors v",
             "mb.vendor_id = v.ID",
@@ -993,13 +1014,13 @@ class Stock_model_new extends CI_Model
     ) {
         // try {
             $this->db->select(
-                "cs.*, mb.batch_number, mb.expiry_date, mb.purchase_price, mb.selling_price, m.medicine_name, m.medicine_code, brand_name as brand_name, v.name as vendor_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
+                "cs.*, mb.batch_number, mb.expiry_date, mb.purchase_price, mb.selling_price, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
             );
             $this->db->from("central_stocks cs");
             $this->db->join("medicine_batches mb", "cs.batch_id = mb.id");
             $this->db->join("medicines m", "mb.medicine_id = m.id");
             $this->db->join("medicine_brands b",
-                "m.brand_id = b.ID",
+                "m.brand_id = b.id",
             );
             $this->db->join(
                 $this->config->item("db_prefix") . "vendors v",
@@ -1061,7 +1082,7 @@ class Stock_model_new extends CI_Model
             $this->db->join("medicine_batches mb", "ccs.batch_id = mb.id");
             $this->db->join("medicines m", "mb.medicine_id = m.id");
             $this->db->join("medicine_brands b",
-                "m.brand_id = b.ID",
+                "m.brand_id = b.id",
             );
             $this->db->join(
                 $this->config->item("db_prefix") . "vendors v",
@@ -1207,11 +1228,14 @@ class Stock_model_new extends CI_Model
             ');
             $this->db->from("medicines m");
             $this->db->join("medicine_batches mb", "m.id = mb.medicine_id");
-            $this->db->join(
-                $this->config->item("db_prefix") . "brands b",
-                "m.brand_id = b.ID",
-                "left",
+            $this->db->join("medicine_brands b",
+                "m.brand_id = b.id",
             );
+            // $this->db->join(
+            //     $this->config->item("db_prefix") . "brands b",
+            //     "m.brand_id = b.ID",
+            //     "left",
+            // );
             $this->db->join("central_stocks cs", "mb.id = cs.batch_id", "left");
             $this->db->join(
                 "center_stocks ccs",
@@ -1276,7 +1300,7 @@ class Stock_model_new extends CI_Model
 
     public function get_medicine_stock_summary()
     {
-        try {
+        // try {
             $this->db->select('
                 m.id as medicine_id,
                 m.medicine_name,
@@ -1294,10 +1318,13 @@ class Stock_model_new extends CI_Model
             ');
             $this->db->from("medicines m");
             $this->db->join("medicine_batches mb", "m.id = mb.medicine_id");
-            $this->db->join(
-                $this->config->item("db_prefix") . "brands b",
-                "m.brand_id = b.ID",
-                "left",
+            // $this->db->join(
+            //     $this->config->item("db_prefix") . "brands b",
+            //     "m.brand_id = b.ID",
+            //     "left",
+            // );
+            $this->db->join("medicine_brands b",
+                "m.brand_id = b.id",
             );
             $this->db->where("mb.batch_status", "ACTIVE");
             $this->db->where("mb.quantity_remaining >", 0);
@@ -1306,9 +1333,9 @@ class Stock_model_new extends CI_Model
             );
             $this->db->order_by("m.medicine_name", "ASC");
             return $this->db->get()->result();
-        } catch (Exception $e) {
-            return [];
-        }
+        // } catch (Exception $e) {
+        //     return [];
+        // }
     }
 
     public function get_available_stock($batch_id, $center_id)
@@ -1416,14 +1443,17 @@ class Stock_model_new extends CI_Model
     public function get_transfer_items($transfer_id)
     {
         $this->db->select(
-            "sti.*, m.medicine_name, m.medicine_code, mb.name as brand_name, mb2.batch_number, mb2.expiry_date",
+            "sti.*, m.medicine_name, m.medicine_code, mb.brand_name as brand_name, mb2.batch_number, mb2.expiry_date",
         );
         $this->db->from("stock_transfer_items sti");
         $this->db->join("medicine_batches mb2", "sti.batch_id = mb2.id");
         $this->db->join("medicines m", "mb2.medicine_id = m.id");
-        $this->db->join(
-            $this->config->item("db_prefix") . "brands mb",
-            "m.brand_id = mb.ID",
+        // $this->db->join(
+        //     $this->config->item("db_prefix") . "brands mb",
+        //     "m.brand_id = mb.ID",
+        // );
+        $this->db->join("medicine_brands mb",
+            "m.brand_id = mb.id",
         );
         $this->db->where("sti.transfer_id", $transfer_id);
         return $this->db->get()->result();
@@ -1623,13 +1653,16 @@ class Stock_model_new extends CI_Model
         if ($center_id) {
             // Center to center transfer
             $this->db->select(
-                "mb.*, m.medicine_name, m.medicine_code, mb2.name as brand_name, ccs.quantity as available_quantity",
+                "mb.*, m.medicine_name, m.medicine_code, mb2.brand_name as brand_name, ccs.quantity as available_quantity",
             );
             $this->db->from("medicine_batches mb");
             $this->db->join("medicines m", "mb.medicine_id = m.id");
-            $this->db->join(
-                $this->config->item("db_prefix") . "brands mb2",
-                "m.brand_id = mb2.ID",
+            // $this->db->join(
+            //     $this->config->item("db_prefix") . "brands mb2",
+            //     "m.brand_id = mb2.ID",
+            // );
+            $this->db->join("medicine_brands mb2",
+                "m.brand_id = mb2.id",
             );
             $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
             $this->db->where("ccs.center_id", $center_id);
@@ -1646,13 +1679,16 @@ class Stock_model_new extends CI_Model
         } else {
             // Central to center transfer
             $this->db->select(
-                "mb.*, m.medicine_name, m.medicine_code, mb2.name as brand_name, cs.quantity as available_quantity",
+                "mb.*, m.medicine_name, m.medicine_code, mb2.brand_name as brand_name, cs.quantity as available_quantity",
             );
             $this->db->from("medicine_batches mb");
             $this->db->join("medicines m", "mb.medicine_id = m.id");
-            $this->db->join(
-                $this->config->item("db_prefix") . "brands mb2",
-                "m.brand_id = mb2.ID",
+            // $this->db->join(
+            //     $this->config->item("db_prefix") . "brands mb2",
+            //     "m.brand_id = mb2.ID",
+            // );
+            $this->db->join("medicine_brands mb2",
+                "m.brand_id = mb2.id",
             );
             $this->db->join("central_stocks cs", "mb.id = cs.batch_id");
             $this->db->where("cs.quantity >", 0);
@@ -1900,13 +1936,16 @@ class Stock_model_new extends CI_Model
         $employee_number,
     ) {
         $this->db->select(
-            "mb.*, m.medicine_name, m.medicine_code, mb2.name as brand_name, v.vendor_name",
+            "mb.*, m.medicine_name, m.medicine_code, mb2.brand_name as brand_name, v.vendor_name",
         );
         $this->db->from("medicine_batches mb");
         $this->db->join("medicines m", "mb.medicine_id = m.id");
-        $this->db->join(
-            $this->config->item("db_prefix") . "brands mb2",
-            "m.brand_id = mb2.ID",
+        // $this->db->join(
+        //     $this->config->item("db_prefix") . "brands mb2",
+        //     "m.brand_id = mb2.ID",
+        // );
+        $this->db->join("medicine_brands mb2",
+            "m.brand_id = mb2.id",
         );
         $this->db->join("vendors v", "mb.vendor_id = v.id", "left");
         $this->db->where("mb.center_id", $center_id);
@@ -2025,14 +2064,17 @@ class Stock_model_new extends CI_Model
     public function get_central_batches()
     {
         $this->db->select(
-            "mb.*, m.medicine_name, m.medicine_code, mb2.name as brand_name, v.vendor_name, cs.quantity as available_quantity, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
+            "mb.*, m.medicine_name, m.medicine_code, mb2.brand_name as brand_name, v.vendor_name, cs.quantity as available_quantity, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
         );
         $this->db->from("medicine_batches mb");
         $this->db->join("central_stocks cs", "mb.id = cs.batch_id");
         $this->db->join("medicines m", "mb.medicine_id = m.id");
-        $this->db->join(
-            $this->config->item("db_prefix") . "brands mb2",
-            "m.brand_id = mb2.ID",
+        // $this->db->join(
+        //     $this->config->item("db_prefix") . "brands mb2",
+        //     "m.brand_id = mb2.ID",
+        // );
+        $this->db->join("medicine_brands mb2",
+            "m.brand_id = mb2.id",
         );
         $this->db->join("vendors v", "mb.vendor_id = v.id", "left");
         $this->db->where("mb.batch_status", "ACTIVE");
@@ -6042,7 +6084,7 @@ class Stock_model_new extends CI_Model
         {
             try {
                 $this->db->select(
-                    "poi.*, m.medicine_name, m.medicine_code, m.generic_name, b.name as brand_name",
+                    "poi.*, m.medicine_name, m.medicine_code, m.generic_name, b.brand_name as brand_name",
                 );
                 $this->db->from("purchase_order_items poi");
                 $this->db->join(

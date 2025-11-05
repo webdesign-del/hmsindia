@@ -4587,7 +4587,7 @@ class Stocks_new extends CI_Controller
         if ($logg["status"] == true) {
             if ($this->input->post("action") == "add_brand") {
                 $this->form_validation->set_rules(
-                    "name",
+                    "brand_name",
                     "Brand Name",
                     "required",
                 );
@@ -4598,10 +4598,10 @@ class Stocks_new extends CI_Controller
                 );
                 if ($this->form_validation->run() == true) {
                     $brand_data = [
-                        "name" => $this->input->post("name"),
+                        "brand_name" => $this->input->post("brand_name"),
                         "status" => $this->input->post("status"),
                         "date" => date("Y-m-d H:i:s"),
-                        "brand_number" => $this->generate_brand_number(),
+                        // "brand_number" => $this->generate_brand_number(),
                     ];
                     $result = $this->Stock_model_new->add_medicine_brand(
                         $brand_data,
@@ -4638,7 +4638,7 @@ class Stocks_new extends CI_Controller
         if ($logg["status"] == true) {
             if ($this->input->post("action") == "update_brand") {
                 $this->form_validation->set_rules(
-                    "name",
+                    "brand_name",
                     "Brand Name",
                     "required",
                 );
@@ -4650,7 +4650,7 @@ class Stocks_new extends CI_Controller
 
                 if ($this->form_validation->run() == true) {
                     $brand_data = [
-                        "name" => $this->input->post("name"),
+                        "brand_name" => $this->input->post("brand_name"),
                         "status" => $this->input->post("status"),
                         "date" => date("Y-m-d H:i:s"),
                     ];

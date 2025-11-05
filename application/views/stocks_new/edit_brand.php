@@ -39,7 +39,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <div class="form-group">
                                     <label for="name" class="col-sm-3 control-label">Brand Name *</label>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" id="name" name="name" 
+                                        <input type="text" class="form-control" id="brand_name" name="brand_name" 
                                                value="<?php echo set_value('name', isset($brand->brand_name) ? $brand->brand_name : (isset($brand->name) ? $brand->name : '')); ?>" required>
                                         <?php echo form_error('name', '<div class="text-danger">', '</div>'); ?>
                                     </div>

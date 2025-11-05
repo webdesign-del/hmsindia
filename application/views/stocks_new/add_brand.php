@@ -61,11 +61,11 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                             <span class="input-group-addon">
                                                 <i class="fa fa-tag"></i>
                                             </span>
-                                            <input type="text" class="form-control" id="name" name="name" 
-                                                   value="<?php echo set_value('name'); ?>" 
+                                            <input type="text" class="form-control" id="name" name="brand_name" 
+                                                   value="<?php echo set_value('brand_name'); ?>" 
                                                    placeholder="Enter brand name" required>
                                         </div>
-                                        <?php echo form_error('name', '<div class="text-danger"><i class="fa fa-exclamation-circle"></i> ', '</div>'); ?>
+                                        <?php echo form_error('brand_name', '<div class="text-danger"><i class="fa fa-exclamation-circle"></i> ', '</div>'); ?>
                                         <small class="help-block">
                                             <i class="fa fa-info-circle"></i> Enter the complete brand name as it appears on the medicine packaging
                                         </small>

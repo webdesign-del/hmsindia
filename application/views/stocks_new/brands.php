@@ -48,7 +48,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                     <thead>
                                         <tr>
                                             <th>ID</th>
-                                            <th>Brand Number</th>
+                                            <!-- <th>Brand Number</th> -->
                                             <th>Brand Name</th>
                                             <th>Status</th>
                                             <th>Actions</th>
@@ -58,9 +58,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                         <?php if(!empty($brands)): ?>
                                             <?php foreach($brands as $brand): ?>
                                                 <tr>
-                                                    <td><?php echo isset($brand->ID) ? $brand->ID : (isset($brand->id) ? $brand->id : 'N/A'); ?></td>
-                                                    <td><?php echo isset($brand->brand_number) ? $brand->brand_number : 'N/A'; ?></td>
-                                                    <td><?php echo isset($brand->name) ? $brand->name : 'N/A'; ?></td>
+                                                    <td><?php echo isset($brand->id) ? $brand->id : (isset($brand->id) ? $brand->id : 'N/A'); ?></td>
+                                                    <!-- <td><?php echo isset($brand->brand_number) ? $brand->brand_number : 'N/A'; ?></td> -->
+                                                    <td><?php echo isset($brand->brand_name) ? $brand->brand_name : 'N/A'; ?></td>
                                                     <td>
                                                         <?php 
                                                         $status = isset($brand->status) ? $brand->status : 'inactive';
@@ -72,14 +72,14 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                     </td>
                                                     <td>
                                                         <div class="btn-group">
-                                                            <a href="<?php echo base_url(); ?>stocks_new/edit_brand/<?php echo isset($brand->ID) ? $brand->ID : $brand->id; ?>" 
+                                                            <a href="<?php echo base_url(); ?>stocks_new/edit_brand/<?php echo isset($brand->id) ? $brand->id : $brand->id; ?>" 
                                                             class="btn btn-info btn-sm" title="Edit">
                                                                 <i class="fa fa-edit"></i>
                                                             </a>
                                                             <?php 
                                                             $status = isset($brand->status) ? $brand->status : 'inactive';
                                                             if($status == 'active' || $status == '1'): ?>
-                                                                <a href="<?php echo base_url(); ?>stocks_new/delete_brand/<?php echo isset($brand->ID) ? $brand->ID : $brand->id; ?>" 
+                                                                <a href="<?php echo base_url(); ?>stocks_new/delete_brand/<?php echo isset($brand->id) ? $brand->id : $brand->id; ?>" 
                                                                 class="btn btn-danger btn-sm" title="Deactivate"
                                                                 onclick="return confirm('Are you sure you want to deactivate this brand?')">
                                                                     <i class="fa fa-ban"></i>
