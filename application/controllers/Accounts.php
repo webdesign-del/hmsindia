@@ -1384,11 +1384,11 @@ public function procedure_reports(){
 
 				$financial_year = ($month >= 4) ? $year . '-' . ($year + 1) : ($year - 1) . '-' . $year;
 				
-					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "'";
+					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "' and paitent_type='new_patient'";
 					$select_result = run_select_query($sql);
 					
-					$sql3 = "SELECT * FROM hms_appointments WHERE wife_phone='" . $select_result['wife_phone'] . "' and paitent_type='new_patient'";
-					$select_result3 = run_select_query($sql3);
+					//$sql3 = "SELECT * FROM hms_appointments WHERE wife_phone='" . $select_result['wife_phone'] . "' and paitent_type='new_patient'";
+					//$select_result3 = run_select_query($sql3);
 					
 					$sql_patients = "SELECT * FROM hms_patients WHERE patient_id='" . $val['patient_id'] . "'";
 					$select_patients_result = run_select_query($sql_patients);
@@ -1416,11 +1416,6 @@ public function procedure_reports(){
 					
 					$nationality = $select_patients_result['nationality'];
 					
-					$sql_leads = "SELECT * FROM hms_leads WHERE lead_id='" . $lead_id . "'";
-					$select_lead_result = run_select_query($sql_leads);
-					
-					$agent = $select_lead_result['agent'];
-					
 					$sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $select_result3['appoitment_for'] . "'";
 					$select_result4 = run_select_query($sql4);
 					
@@ -1430,8 +1425,9 @@ public function procedure_reports(){
 					$select_result2 = run_select_query($sql2);
 					$name = $select_result2['procedure_name'];
 					$category = $select_result2['category'];
-					$lead_id = $select_result3['crm_id'];
-					$lead_source = $select_result3['lead_source'];
+					$lead_id = $select_result['crm_id'];
+					$agent = $select_result['agent'];
+					$lead_source = $select_result['lead_source'];
 					
 					// Assuming you have an array of records with the same patient_id, appointment_id, and billing date
 			$records = [
@@ -1901,7 +1897,7 @@ public function procedure_reports(){
 			$discounted_package = 0;
 			$total_package = 0;
 			if (isset($export_billing)){
-				$data = $this->accounts_model->export_consultation_data($start_date, $end_date, $center, $patient_id, $reason_of_visit);
+				$data = $this->accounts_model->export_consultation_origin_data($start_date, $end_date, $center, $patient_id, $reason_of_visit);
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Consultation-Reports-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');

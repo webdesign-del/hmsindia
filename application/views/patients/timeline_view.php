@@ -52,36 +52,22 @@
 		      		</tr>
               </thead>
               <tbody id="semen_analysis_result">
-<<<<<<< Updated upstream
                 <?php 
             $count=1; 
             foreach($timeline_data as $ky => $vl){
+                  //$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $vl['patient_id'] . "'";
+					        //$appoint_result = run_select_query($sql);
                   ?>
                    <tr class="odd gradeX">
-=======
-              <?php 
-			  $count=1; 
-			  foreach($timeline_data as $ky => $vl){
-
-               ?>
-                <tr class="odd gradeX">
->>>>>>> Stashed changes
                   <td><?php echo $count; ?></td>
                   <td><?php echo $vl['crm_id']?></td>
                    <td><?php echo $vl['paitent_id']?></td>
                   <td>Appointment</td>
                   <td><?php echo $vl['agent']; ?></td>
-<<<<<<< Updated upstream
                   <td><?php echo $vl['appoitmented_date']?></td>
                   <td><?php if(!empty($vl['consultation_date'])){ ?>Consultation <?php } ?></td>
                   <td><?php if(!empty($vl['consultation_date'])){ ?><?php echo $vl['agent']; ?><?php } ?></td>
                   <td><?php if(!empty($vl['consultation_date'])){ ?><?php echo $vl['consultation_date']?> <?php } ?></td>
-=======
-				          <td><?php echo $vl['appoitmented_date']?></td>
-                  <td><?php if(!empty($vl['consultation_date'])){ ?>Consultation <?php } ?></td>
-                  <td><?php if(!empty($vl['consultation_date'])){ ?><?php echo $vl['agent']; ?><?php } ?></td>
-				          <td><?php if(!empty($vl['consultation_date'])){ ?><?php echo $vl['consultation_date']?> <?php } ?></td>
->>>>>>> Stashed changes
                   <td><?php if(!empty($vl['procedure_date'])){ ?>Procedure<?php } ?></td>
                   <td><?php if(!empty($vl['procedure_date'])){ ?><?php echo $vl['agent']; ?><?php } ?></td>
                   <td><?php if(!empty($vl['procedure_date'])){ ?><?php echo $vl['procedure_date']; ?><?php } ?></td>

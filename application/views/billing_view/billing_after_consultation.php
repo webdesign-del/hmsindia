@@ -478,6 +478,8 @@
                      <tr>
                         <td><?php echo $sub_procedure_details['procedure_name']; ?>
                            <input value="<?php echo $val; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                            <input value="<?php echo $sub_procedure_details['procedure_name']; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_name_<?php echo $sub_procedure_counter;?>" class="required_value" name="procedure_name_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                       
                         </td>
                         <?php
                            $login_user_center_id = $_SESSION['logged_billing_manager']['center'];
@@ -678,6 +680,8 @@
                      <tr>
                         <td><?php echo $sub_procedure_details['procedure_name']; ?>
                            <input value="<?php echo $procedure_id; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['procedure_name']; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_name_<?php echo $sub_procedure_counter;?>" class="required_value" name="procedure_name_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                       
                         </td>
                          <?php
                            $login_user_center_id = $_SESSION['logged_billing_manager']['center'];
@@ -709,6 +713,9 @@
                         </td>
                         <td><?php echo $sub_procedure_details['code']; ?>
                            <input value="<?php echo $sub_procedure_details['code']; ?>" readonly="readonly" id="sub_procedures_code_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_code_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['procedure_name']; ?>"  readonly="readonly" id="sub_procedure_name_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedure_name_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['category']; ?>" readonly="readonly" id="sub_procedures_category_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_category_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                        
                         </td>
                         <td>
                            <?php 

@@ -275,6 +275,8 @@ $(document).ready(function() {
                             </tr>
                         </tbody>
                     </table>
+
+                     
                 </div>
                 <input type="submit" id="submit">
             </form>
@@ -373,6 +375,7 @@ $(document).ready(function() {
                                 <td></td>
                                 <td class="numeric"></td>
                             </tr>
+                            
                         </tbody>
                     </table>
                 </div>
@@ -380,6 +383,46 @@ $(document).ready(function() {
         </div>
     </div>
 
+    <div class="card-content">
+                 <table>
+                        <thead>
+                            <tr>
+                                <th>S No</th>
+                                <th>IIC ID</th>
+                                <th>Patient Name</th>
+                                <th>Category</th>
+                                <th>Pkg Code</th>
+                                <th>Pkg Description</th>
+                                <th>Type </th>
+                                <th>mode</th>
+                                <th>Amount Inc GST</th>
+                                <th>Date</th>
+                                <th>Receipts No / Adjustment No</th>
+                                <th>Collection Amount Inc GST</th>
+                                <th>Fresh/Partial/Advance</th>
+                                <th>Pkg Code</th>
+                                <th>Pkg Description</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+    
+                     <?php 
+            foreach($patient_procedure_daily_result as $ky => $vl){
+              
+            ?>
+                    <tr>
+                        <td><?php echo $vl['']; ?></td>
+                        <td><?php echo $vl['patient_id']; ?></td>
+                        <td></td>
+                        <td>Package</td>
+                        <td><?php echo $vl['code']; ?></td>
+                        <td><?php echo $vl['procedure_name']; ?></td>
+                    </tr>
+					<?php } ?>
+            </tbody>
+            </table>
+            </div>    
     <script>
         // Simple JavaScript to update the date display when the date input is changed
         document.getElementById('date-select').addEventListener('change', function() {

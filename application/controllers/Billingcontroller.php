@@ -1691,7 +1691,7 @@ function partial_billing($appointment_id){
 					      $query = "INSERT INTO `hms_patient_procedure` 
 							(appointment_id, consultation_done, patient_id, procedure_parent, on_date, 
 							receipt_number,transaction_img, billing_id, biller_id, transaction_id,
-							hospital_id, payment_in, data,procedure_id,category, center_share, fees, totalpackage, discount_amount, 
+							hospital_id, payment_in, data,procedure_id,procedure_name,code,category, center_share, fees, totalpackage, discount_amount, 
 							payment_done, wallet_payment, remaining_amount, payment_method, billing_from, 
 							billing_at, package_form, status, origins) 
 							VALUES 
@@ -1710,6 +1710,8 @@ function partial_billing($appointment_id){
 							 '".$post_arr['payment_in']."',
 							 '".$post_arr['data']."',
 							 '".$_POST['sub_procedure_'.$val]."',
+							 '".$_POST['procedure_name_'.$val]."',
+							 '".$_POST['sub_procedures_code_'.$val]."',
 							 '".$_POST['sub_procedures_category_'.$val]."',
 							 '".$fees."',
 							 '".$fees."',
@@ -1745,12 +1747,14 @@ function partial_billing($appointment_id){
 				for ($i = 1; $i <= 30; $i++) {
 					if (isset($_POST["sub_procedure_$i"])) {
 						unset($_POST["sub_procedure_$i"]);
+						unset($_POST["procedure_name_$i"]);
+						unset($_POST["sub_procedures_category_$i"]);
 						unset($_POST["sub_procedures_code_$i"]);
 						unset($_POST["sub_procedures_price_$i"]);
 						unset($_POST["sub_procedures_discount_$i"]);
 						unset($_POST["sub_procedures_paid_price_$i"]);
 						unset($_POST["payment_method_$i"]);
-						unset($_POST["sub_procedures_category_$i"]);
+						
 					}
 				}
 				$_POST['po_id'];unset($_POST['po_id']);
@@ -1973,7 +1977,7 @@ function partial_billing($appointment_id){
 					    $query = "INSERT INTO `hms_patient_procedure` 
 							(appointment_id, consultation_done, patient_id, procedure_parent, on_date, 
 							receipt_number, billing_id, biller_id, transaction_id, transaction_img,
-							hospital_id, payment_in, data, center_share, fees, totalpackage, discount_amount, 
+							hospital_id, payment_in, data,procedure_id,procedure_name,code,category, center_share, fees, totalpackage, discount_amount, 
 							payment_done, wallet_payment, remaining_amount, payment_method, billing_from, 
 							billing_at, package_form, status, origins) 
 							VALUES 
@@ -1990,6 +1994,10 @@ function partial_billing($appointment_id){
 							 '".$post_arr['hospital_id']."',
 							 '".$post_arr['payment_in']."',
 							 '".$post_arr['data']."',
+							 '".$_POST['sub_procedure_'.$val]."',
+							 '".$_POST['procedure_name_'.$val]."',
+							 '".$_POST['sub_procedures_code_'.$val]."',
+							 '".$_POST['sub_procedures_category_'.$val]."',
 							 '".$fees."',
 							 '".$fees."',
 							 '".$totalpackage."',
@@ -2014,6 +2022,8 @@ function partial_billing($appointment_id){
 				for ($i = 1; $i <= 30; $i++) {
 					if (isset($_POST["sub_procedure_$i"])) {
 						unset($_POST["sub_procedure_$i"]);
+						unset($_POST["procedure_name_$i"]);
+						unset($_POST["sub_procedures_category_$i"]);
 						unset($_POST["sub_procedures_code_$i"]);
 						unset($_POST["sub_procedures_price_$i"]);
 						unset($_POST["sub_procedures_gst_$i"]);
