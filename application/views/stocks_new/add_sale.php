@@ -69,7 +69,6 @@
                                 <?php echo $this->session->flashdata('success'); ?>
                             </div>
                         <?php endif; ?>
-                        
                         <form action="<?php echo base_url('stocks_new/add_sale'); ?>" method="post" class="form-horizontal">
                             <input type="hidden" name="action" value="add_sale">
                             
@@ -79,7 +78,14 @@
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Center *</label>
                                         <div class="col-sm-8">
-                                            <select name="center_id" class="form-control" required onchange="loadCenterStock()">
+                                            <?php
+                                              if(isset($selected_center) && !empty($selected_center)){
+                                                    $disabled_center = 'disabled';                                                 
+                                              }else{
+                                                    $disabled_center = '';
+                                              }
+                                            ?>
+                                            <select name="center_id" class="form-control" required onchange="loadCenterStock()" <?php echo $disabled_center; ?>>
                                             <option value="">Select Center</option>
                                             <?php if (!empty($centers) && is_array($centers)): ?>
                                                 <?php foreach ($centers as $center): ?>

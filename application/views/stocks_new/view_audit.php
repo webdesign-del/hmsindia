@@ -8,23 +8,89 @@
     @media print {
         body {
             font-size: 12pt;
+            /* Remove any default browser margins */
+            margin: 0;
+            padding: 0;
         }
+        
+        /* These are your correct rules: hide non-print elements */
         .panel-heading, .breadcrumb, .print-actions {
             display: none !important;
         }
+        
         .page-header {
             border-bottom: 2px solid #000;
             font-size: 24px;
+            margin-top: 0; /* Start at the top */
         }
+        
+        /* These are your correct rules: remove panel styling */
         .panel {
-            border: none !important;
+            border: none !D;
             box-shadow: none !important;
         }
+        
         .table-bordered th, .table-bordered td {
             border: 1px solid #666 !important;
         }
-        .text-danger { color: #d9534f !important; }
-        .text-success { color: #5cb85c !important; }
+
+        /* --- START: THE FIXES --- */
+
+        /* 1. Reset the Bootstrap Grid */
+        /* Force all columns to be full-width and stack vertically */
+        .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+        .col-md-6, .col-md-12 {
+            width: 100% !important;
+            float: none;
+            display: block;
+        }
+
+        /* 2. Fix Colors (Browsers don't print backgrounds) */
+        /* We will change backgrounds to text color or borders */
+
+        /* Fix the Status labels */
+        .label {
+            /* Reset all labels to be transparent */
+            background-color: transparent !important;
+            padding: 2px 6px;
+            border: 1px solid #666; /* Default border */
+            font-size: 11pt; /* Make labels a bit more readable */
+        }
+        .label-success {
+            color: #3c763d !important; /* Green text */
+            border-color: #3c763d !important; /* Green border */
+        }
+        .label-danger {
+            color: #a94442 !important; /* Red text */
+            border-color: #a94442 !important; /* Red border */
+        }
+         .label-info {
+            color: #31708f !important; /* Blue text */
+            border-color: #31708f !important; /* Blue border */
+        }
+        .label-warning {
+             color: #8a6d3b !important; /* Yellow text */
+            border-color: #8a6d3b !important; /* Yellow border */
+        }
+        
+        /* Fix the table row colors (tr.success / tr.danger) */
+        /* We apply the color to the cells *inside* the row */
+        .table > tbody > tr.success > td {
+             color: #3c763d !important; /* Make text green */
+             /* Note: We don't change the background, as it won't print */
+        }
+        .table > tbody > tr.danger > td {
+             color: #a94442 !important; /* Make text red */
+        }
+        
+        /* Your original (but unused) rules - they are fine but not needed */
+        /* .text-danger { color: #d9534f !important; } */
+        /* .text-success { color: #5cb85c !important; } */
+
+        /* --- END: THE FIXES --- */
     }
 </style>
 

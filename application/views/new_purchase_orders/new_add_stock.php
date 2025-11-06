@@ -559,13 +559,14 @@
                            <th style="min-width: 100px;">Qty Remain</th>
                            <th style="min-width: 80px;">Rec.All?</th>
                            <th style="min-width: 120px;">Qty Receiving</th>
-                           <th style="min-width: 100px;">Unit Price</th>
                            <th style="min-width: 100px;">Free Qty</th>
                            <th style="min-width: 100px;">Qty Rej</th>
                            <th style="min-width: 120px;">Batch Number</th>
                            <th style="min-width: 120px;">Expiry Date</th>
-                           <th style="min-width: 140px;">Notify Expiry On</th>
+                           <!-- <th style="min-width: 140px;">Notify Expiry On</th> -->
                            <th style="min-width: 150px;">Comments</th>
+                           <th style="min-width: 100px;">Vendor Price</th>
+                           <th style ="min-width: 100px;">Mrp</th>
                            <th style="min-width: 100px;">Discount (%)</th>
                            <th style="min-width: 80px;">Incl.Tax?</th>
                            <th style="min-width: 100px;">Tax Amt</th>
@@ -602,10 +603,7 @@
                                        Product Details
                                     </button>
                                  </td>
-                                 <td>
-                                    <input type="number" class="form-control" name="unit_price_<?php echo $row_counter; ?>" id="unit_price_<?php echo $row_counter; ?>" 
-                                       value="<?php echo isset($item['vendor_price']) ? $item['vendor_price'] : '0'; ?>" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)">
-                                 </td>
+                               
                                  <td>
                                     <input type="number" class="form-control" name="free_qty_<?php echo $row_counter; ?>" id="free_qty_<?php echo $row_counter; ?>" 
                                        value="0" step="0.001" placeholder="Free Quantity">
@@ -625,17 +623,26 @@
                                        <i class="fa fa-calendar"></i>
                                     </div>
                                  </td>
-                                 <td>
+                                 <!-- <td>
                                     <div class="date-input-group">
                                        <input type="text" class="form-control" name="notify_expiry_<?php echo $row_counter; ?>" id="notify_expiry_<?php echo $row_counter; ?>" 
                                           value="<?php echo isset($item['notify_expiry']) ? $item['notify_expiry'] : ''; ?>" placeholder="YYYY-MM-DD" required>
                                        <i class="fa fa-calendar"></i>
                                     </div>
-                                 </td>
+                                 </td> -->
                                  <td>
                                     <textarea class="form-control" name="comments_<?php echo $row_counter; ?>" id="comments_<?php echo $row_counter; ?>" 
                                        rows="2" placeholder="Enter comments"><?php echo isset($item['comments']) ? $item['comments'] : ''; ?></textarea>
                                  </td>
+                                 <td>
+                                    <input type="number" class="form-control" name="unit_price_<?php echo $row_counter; ?>" id="unit_price_<?php echo $row_counter; ?>" 
+                                       value="<?php echo isset($item['vendor_price']) ? $item['vendor_price'] : '0'; ?>" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)">
+                                 </td>
+                                 <td>
+                                    <input type="number" class="form-control" name="mrp_<?php echo $row_counter; ?>" id="mrp_<?php echo $row_counter; ?>" 
+                                       value="<?php echo isset($item['mrp']) ? $item['mrp'] : '0'; ?>" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)">
+                                 </td>
+                  
                                  <td>
                                     <input type="number" class="form-control" name="discount_<?php echo $row_counter; ?>" id="discount_<?php echo $row_counter; ?>" 
                                        value="0" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)">

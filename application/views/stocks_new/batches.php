@@ -154,6 +154,9 @@
                                                             <i class="fa fa-cog"></i> Actions <span class="caret"></span>
                                                         </button>
                                                         <ul class="dropdown-menu">
+                                                            <li><a href="<?php echo base_url('stocks_new/edit_batch/' . $batch->id); ?>">
+                                                                <i class="fa fa-edit"></i> Edit Batch
+                                                            </a></li>
                                                             <li><a href="<?php echo base_url('stocks_new/stock_levels?batch_id=' . $batch->id); ?>">
                                                                 <i class="fa fa-building-o"></i> View Stock
                                                             </a></li>

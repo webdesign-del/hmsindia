@@ -344,7 +344,7 @@ $(document).ready(function() {
         row.find('.variance').text(variance);
         
         if (variance > 0) {
-            row.find('.status').html('<span class="label label-success">Surplus</span>');
+            row.find('.status').html('<span class="label label-success">Access</span>');
             row.find('.variance').removeClass('text-danger').addClass('text-success');
         } else if (variance < 0) {
             row.find('.status').html('<span class="label label-danger">Shortage</span>');

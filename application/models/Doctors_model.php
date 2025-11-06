@@ -50,42 +50,122 @@ class Doctors_model extends CI_Model
         }
 
 	}
+	public function get_consultation_medicines($center_id, $department = 'billing')
+    {
+        try {
+            // --- FIX: Add this line ---
+            $this->db->distinct();
+
+            $this->db->select('
+                m.medicine_name as item_name, 
+                m.medicine_code as item_number,
+                m.id as medicine_id
+            '); // --- FIX: Removed DISTINCT from here ---
+            $this->db->from('center_stocks ccs');
+            $this->db->join('hms_centers c', 'ccs.center_id = c.ID');
+            $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id');
+            // --- FIX: Corrected typo $this. to $this-> ---
+            $this->db->join('medicines m', 'mb.medicine_id = m.id');
+            // Apply original conditions based on new schema
+            $this->db->where('ccs.status', 'ACTIVE'); // Replaces status='1'
+            // --- FIX: Corrected typo $this. to $this-> ---
+            $this->db->where('m.status', 'active');
+            $this->db->where('mb.batch_status', 'ACTIVE');
+            // $this->db->where('mb.expiry_date >', date('Y-m-d')); // Only show non-expired
+            $this->db->where('ccs.available_quantity >', 0); // Only show if stock exists
+            $this->db->where('ccs.center_id',$center_id); // Replaces center_number
+	        if ($department) {
+                $this->db->where('ccs.department', $department);
+            }
+            $this->db->order_by('m.medicine_name', 'ASC');
+            return $this->db->get()->result_array();
+
+        } catch (Exception $e) {
+            log_message('error', 'get_consultation_medicines: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+	// public function get_consultation_medicines($center_code, $department = 'billing')
+    // {
+    //         $this->db->select('
+    //             DISTINCT m.medicine_name as item_name, 
+    //             m.medicine_code as item_number,
+    //             m.id as medicine_id
+    //         ');
+    //         $this->db->from('center_stocks ccs');
+    //         $this->db->join('hms_centers c', 'ccs.center_id = c.ID');
+    //         $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id');
+    //         $this->db->join('medicines m', 'mb.medicine_id = m.id');
+    //         // Apply original conditions based on new schema
+    //         $this->db->where('ccs.status', 'ACTIVE'); // Replaces status='1'
+    //         $this->db->where('m.status', 'active');
+    //         $this->db->where('mb.batch_status', 'ACTIVE');
+    //         $this->db->where('mb.expiry_date >', date('Y-m-d')); // Only show non-expired
+    //         $this->db->where('ccs.available_quantity >', 0); // Only show if stock exists
+    //         $this->db->where('c.center_code', $center_code); // Replaces center_number
+    //         if ($department) {
+    //             $this->db->where('ccs.department', $department);
+    //         }
+    //         $this->db->group_by('m.medicine_name, m.medicine_code, m.id');
+    //         $this->db->order_by('m.medicine_name', 'ASC');
+	// 		var_dump($this->db->get()->result_array());
+    //         return $this->db->get()->result_array();
+    // }
+	public function consultation_medicine()
+    {
+	    $this->load->model('stock_model_new');
+        $center_code = $this->session->userdata('logged_doctor')['center'] ?? null;
+		$center_id =$this->stock_model_new->get_center_id($center_code);
+        if (!$center_id) {
+            return [];
+        }
+        return $this->get_consultation_medicines($center_id, 'billing');
+    }
+	public function consultation_medicine_ipd()
+    {
+	    $this->load->model('stock_model_new');
+        $center_code = $this->session->userdata('logged_doctor')['center'] ?? null;
+		$center_id =$this->stock_model_new->get_center_id($center_code);
+        if (!$center_id) {
+            return [];
+        }
+        return $this->get_consultation_medicines($center_id, 'Hormonal');
+    }
+	// public function consultation_medicine_ipd(){
+	// 	$result = array();
+	// 	$sql_condition = '';
+	// 	$sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."center_stocks where status='1' and center_number='".$_SESSION['logged_doctor']['center']."' and department='Hormonal' GROUP BY item_name, item_number";
+	// 	$q = $this->db->query($sql);
+    //     $result = $q->result_array();
+    //     if (!empty($result))
+    //     {
+    //         return $result;
+    //     }
+    //     else
+    //     {
+    //         return $result;
+    //     }
+	// }
+
+	// function consultation_medicine(){
+	// 	$result = array();
+	// 	$sql_condition = '';
+	//   	$sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."center_stocks where status='1' and center_number='".$_SESSION['logged_doctor']['center']."' and department='billing' GROUP BY item_name, item_number";
+	// 	$q = $this->db->query($sql);
+    //     $result = $q->result_array();
+    //     if (!empty($result))
+    //     {
+    //         return $result;
+    //     }
+    //     else
+    //     {
+    //         return $result;
+    //     }
+	// }
+
 
 	
-
-	function consultation_medicine(){
-		$result = array();
-		$sql_condition = '';
-	  	$sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."center_stocks where status='1' and center_number='".$_SESSION['logged_doctor']['center']."' and department='billing' GROUP BY item_name, item_number";
-	  	// $sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."stocks where status='1' and medicine_type='opd' GROUP BY item_name, item_number";
-		$q = $this->db->query($sql);
-        $result = $q->result_array();
-        if (!empty($result))
-        {
-            return $result;
-        }
-        else
-        {
-            return $result;
-        }
-	}
-
-	public function consultation_medicine_ipd(){
-		$result = array();
-		$sql_condition = '';
-		$sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."center_stocks where status='1' and center_number='".$_SESSION['logged_doctor']['center']."' and department='Hormonal' GROUP BY item_name, item_number";
-	  	// $sql ="Select DISTINCT item_name, item_number from ".$this->config->item('db_prefix')."stocks where status='1' and medicine_type='ipd' GROUP BY item_name, item_number";
-		$q = $this->db->query($sql);
-        $result = $q->result_array();
-        if (!empty($result))
-        {
-            return $result;
-        }
-        else
-        {
-            return $result;
-        }
-	}
 
 	
 

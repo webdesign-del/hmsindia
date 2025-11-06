@@ -182,10 +182,6 @@ class New_purchase_orders extends CI_Controller {
                     'gst_division' => $this->input->post('consumables_gstdivision_' . $i),
                     'brand_name' => $this->input->post('consumables_brand_name_' . $i)
                 ];
-                
-                // Debug logging - remove this after testing
-                error_log("PO Item Data - PO ID: $po_id, Item $i: " . json_encode($item_data));
-                
                 $this->New_purchase_order_model->insert_purchase_order_items($item_data);
             }
             $i++;
@@ -203,19 +199,15 @@ class New_purchase_orders extends CI_Controller {
                 $this->session->set_flashdata('error', 'Purchase order not found!');
                 redirect('new_purchase_orders');
             }
-            
             // Check if purchase order can be edited (only pending or rejected orders)
             if ($data['purchase_order']['status'] == 'approved' || $data['purchase_order']['status'] == 'completed') {
                 $this->session->set_flashdata('error', 'Cannot edit purchase order that is ' . $data['purchase_order']['status'] . '!');
                 redirect('new_purchase_orders');
             }
-            
             // Get vendors
             $data['vendors'] = $this->get_vendors();
-            
             // Get consumables/items
-            $data['consumables'] = $this->get_medicines_list();
-            
+            $data['consumables'] = $this->items_by_vendor_data($data['purchase_order']['vendor_number']);
             // Get centers
             $data['centers'] = $this->get_centers();
             $data['departments'] = $this->get_departments_by_center();
@@ -234,7 +226,6 @@ class New_purchase_orders extends CI_Controller {
         $logg = checklogin();
         if($logg['status'] == true) {
             if ($this->input->post()) {
-                // Check if purchase order can be updated (only pending or rejected orders)
                 $po = $this->New_purchase_order_model->get_purchase_order_by_id($id);
                 if ($po && ($po['status'] == 'approved' || $po['status'] == 'completed')) {
                     $this->session->set_flashdata('error', 'Cannot update purchase order that is ' . $po['status'] . '!');
@@ -248,21 +239,16 @@ class New_purchase_orders extends CI_Controller {
                     'bill_to' => $this->input->post('bill_to'),
                     'department' => $this->input->post('department')
                 ];
-                
                 // Update purchase order
                 if ($this->New_purchase_order_model->update_purchase_order($id, $po_data)) {
                     // Delete existing items
                     $this->New_purchase_order_model->delete_purchase_order_items($id);
-                    
                     // Get PO number
                     $po = $this->New_purchase_order_model->get_purchase_order_by_id($id);
-                    
                     // Insert new items
                     $this->save_purchase_order_items($id, $po['po_number']);
-                    
                     // Update total amount
                     $this->New_purchase_order_model->update_total_amount($id);
-                    
                     $this->session->set_flashdata('success', 'Purchase order updated successfully!');
                     redirect('new_purchase_orders');
                 } else {
@@ -457,37 +443,66 @@ class New_purchase_orders extends CI_Controller {
      * based on purchase history (medicine_batches).
      * Uses the NEW schema.
      */
-    public function items_by_vendor() {
+    // public function items_by_vendor() {
+    //     $logg = checklogin();
+    //     if($logg['status'] != true) {
+    //         return $this->output->set_content_type('application/json')
+    //             ->set_status_header(401) // Unauthorized
+    //             ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+    //     }
+    //     $vendor_number = $this->input->get('vendor_number'); // Get vendor number from GET request
+    //     if (empty($vendor_number)) {
+    //         return $this->output->set_content_type('application/json')
+    //             ->set_status_header(400) // Bad Request
+    //             ->set_output(json_encode(['status' => 'error', 'message' => 'vendor_number is required']));
+    //     }
+    //     $this->load->model('New_purchase_order_model'); // Load your model
+    //     $items = $this->New_purchase_order_model->get_medicines_by_vendor($vendor_number);
+    //     // 3. Return JSON response
+    //     return $this->output->set_content_type('application/json')
+    //         ->set_status_header(200) // OK
+    //         ->set_output(json_encode(['status' => 'success', 'data' => $items]));
+    // }
+    public function items_by_vendor_data($vendor_number = null)
+    {
         $logg = checklogin();
-        if($logg['status'] != true) {
+        if ($logg['status'] != true) {
             return $this->output->set_content_type('application/json')
-                ->set_status_header(401) // Unauthorized
+                ->set_status_header(401)
                 ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
         }
-
-        $vendor_number = $this->input->get('vendor_number'); // Get vendor number from GET request
         if (empty($vendor_number)) {
             return $this->output->set_content_type('application/json')
-                ->set_status_header(400) // Bad Request
+                ->set_status_header(400)
                 ->set_output(json_encode(['status' => 'error', 'message' => 'vendor_number is required']));
         }
 
-        $this->load->model('New_purchase_order_model'); // Load your model
-        // $vendor_id = $this->New_purchase_order_model->get_vendor_id_by_number($vendor_number);
-        // if (!$vendor_id) {
-        //      return $this->output->set_content_type('application/json')
-        //         ->set_status_header(404) // Not Found
-        //         ->set_output(json_encode(['status' => 'error', 'message' => 'Vendor not found for number: ' . $vendor_number]));
-        // }
-
-        // 2. Get medicines associated with this vendor ID
+        $this->load->model('New_purchase_order_model');
         $items = $this->New_purchase_order_model->get_medicines_by_vendor($vendor_number);
+        return $items;
+    }
+    public function items_by_vendor()
+    {
+        $logg = checklogin();
+        if ($logg['status'] != true) {
+            return $this->output->set_content_type('application/json')
+                ->set_status_header(401)
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+        }
+        $vendor_number = $this->input->get('vendor_number');
+        if (empty($vendor_number)) {
+            return $this->output->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode(['status' => 'error', 'message' => 'vendor_number is required']));
+        }
 
-        // 3. Return JSON response
+        $this->load->model('New_purchase_order_model');
+        $items = $this->New_purchase_order_model->get_medicines_by_vendor($vendor_number);
         return $this->output->set_content_type('application/json')
-            ->set_status_header(200) // OK
+            ->set_status_header(200)
             ->set_output(json_encode(['status' => 'success', 'data' => $items]));
     }
+
 
     // Get departments from new stocks module
     private function get_departments() {
@@ -1135,8 +1150,6 @@ class New_purchase_orders extends CI_Controller {
                 $this->form_validation->set_rules('product_1', 'First Item', 'required');
                 if ($this->form_validation->run() == FALSE) {
                      $this->session->set_flashdata('error', validation_errors());
-                     var_dump('error1');
-                     die;
                      redirect('new_purchase_orders/new_add_stock/' . $po_id);
                      return;
                 }
@@ -1149,8 +1162,6 @@ class New_purchase_orders extends CI_Controller {
                 $vendor_id = $purchase_order['vendor_number'];
                  if (!$vendor_id) {
                      $this->session->set_flashdata('error', 'Vendor details not found in the new system for vendor number: ' . $purchase_order['vendor_number']);
-                     var_dump('error2');
-                     die;
                      redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
                  }
                  $center_id = (int)$this->input->post('center_id');
@@ -1158,13 +1169,9 @@ class New_purchase_orders extends CI_Controller {
                  $created_by_id = $this->employee_detail_number($_SESSION['logged_central_stock_manager']['employee_number'])['ID'] ?? null; // Use ID directly if available
                  if (!$created_by_id) {
                       $this->session->set_flashdata('error', 'Could not determine user ID.');
-                      var_dump('error3');
-                      die;
                       redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
                  }
                 } else {
-                    var_dump('error4');
-                    die;
                      $this->session->set_flashdata('error', 'User not logged in as central stock manager.');
                      redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
                 }
@@ -1188,8 +1195,8 @@ class New_purchase_orders extends CI_Controller {
                     $batch_number = trim($this->input->post('batch_number_' . $i));
                     $expiry_date = trim($this->input->post('expiry_date_' . $i));
                     $purchase_price = (float)($this->input->post('unit_price_' . $i) ?: 0); // Actual price paid
-                    $selling_price = (float)($this->input->post('selling_price_' . $i) ?: $purchase_price); // Need selling price - Get from form or calc default
-                    $mrp = (float)($this->input->post('mrp_' . $i) ?: $selling_price); // Need MRP - Get from form or calc default
+                    $mrp = (float)($this->input->post('mrp_' . $i) ?: 0); // Need MRP - Get from form or calc default
+                    $selling_price = (float)($this->input->post('selling_price_' . $i) ?: $$mrp); // Need selling price - Get from form or calc default
 
                     $total_received = $qty_receiving + $free_qty;
 

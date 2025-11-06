@@ -88,12 +88,12 @@
                                     </div>
                                 </div>
                                 
-                                <div class="form-group">
+                                <!-- <div class="form-group">
                                     <label class="col-sm-4 control-label">Manufacturing Date</label>
                                     <div class="col-sm-8">
                                         <input type="date" name="manufacturing_date" class="form-control" value="<?php echo set_value('manufacturing_date'); ?>">
                                     </div>
-                                </div>
+                                </div> -->
                                 
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Expiry Date *</label>

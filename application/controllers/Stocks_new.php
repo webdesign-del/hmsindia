@@ -524,10 +524,8 @@ class Stocks_new extends CI_Controller
                         "created_by" => $created_by_id,
                         "created_at" => date("Y-m-d H:i:s")
                     ];
-
                     // --- Call Model (Assuming add_batch also adds to central_stocks) ---
                     $result = $this->Stock_model_new->add_batch($batch_data); 
-
                     if ($result) {
                         $this->session->set_flashdata("success", "Batch added successfully!");
                     } else {
@@ -542,11 +540,9 @@ class Stocks_new extends CI_Controller
                 }
                 // --- End Form Submission ---
             }
-
             // --- Prepare Data for View ---
             $data = [];
             $data["selected_medicine_details"] = null; // Default to null
-
             // Check for pre-selection from URL (GET request)
             if ($this->input->get("medicine_id")) {
                 $selected_id = (int)$this->input->get("medicine_id");
@@ -557,13 +553,10 @@ class Stocks_new extends CI_Controller
                  $selected_id = (int)$this->input->post("medicine_id");
                  $data["selected_medicine_details"] = $this->Stock_model_new->get_medicine_details_by_id($selected_id);
             }
-            
             // Do NOT load all medicines. AJAX will handle searching.
             // $data["medicines"] = ...; 
-
             // Load vendors
             $data["vendors"] = $this->Stock_model_new->get_all_vendors(); // Use your function for this
-
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $this->load->view("stocks_new/add_batch", $data);
@@ -573,6 +566,121 @@ class Stocks_new extends CI_Controller
             redirect(base_url());
         }
     }
+    public function edit_batch($id = 0) 
+    {
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+            redirect(base_url());
+        }
+        $id = (int)$id;
+        if ($id <= 0) {
+            show_404();
+        }
+        $data['batch'] = $this->Stock_model_new->get_batch_details_by_id($id);
+        $data['is_editable'] = $this->Stock_model_new->is_batch_editable($id);
+        if (!$data['batch']) {
+            show_404();
+        }
+        // 2. Get the medicine details for the pre-selected dropdown
+        // This is needed for the Select2 dropdown to show the current medicine
+        $data['selected_medicine_details'] = $this->Stock_model_new->get_medicine_details_by_id(
+            $data['batch']->medicine_id
+        );
+        // 3. Get the list of all vendors for the vendor dropdown
+        $data['vendors'] = $this->Stock_model_new->get_all_vendors();
+        // 4. Load the view
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/edit_batch_view", $data); // The new view file
+        $this->load->view($template["footer"]);
+    }
+    /**
+     * NEW FUNCTION: Processes the "Edit Batch" form submission
+     */
+    public function update_batch() {
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+            redirect(base_url());
+        }
+        // 1. Handle Form Submission
+        if ($this->input->post()) {
+            $batch_id = (int)$this->input->post('batch_id');
+
+            $this->form_validation->set_rules("medicine_id", "Medicine", "required");
+            $this->form_validation->set_rules("vendor_id", "Vendor", "required");
+            // Use the callback function to check for uniqueness
+            $this->form_validation->set_rules(
+                "batch_number", 
+                "Batch Number", 
+                "required|trim|callback_check_batch_unique" // The callback works for updates too
+            );
+            $this->form_validation->set_rules("expiry_date", "Expiry Date", "required");
+            $this->form_validation->set_rules("purchase_price", "Purchase Price", "required|numeric");
+            $this->form_validation->set_rules("selling_price", "Selling Price", "required|numeric");
+            if (!$this->Stock_model_new->is_batch_editable($batch_id)) {
+                $this->session->set_flashdata("error", "This batch cannot be edited because it has already been used in sales or transfers.");
+                redirect("stocks_new/edit_batch/" . $batch_id);
+                return; // Stop execution
+            }
+
+            // Quantity is not validated here as it's handled by stock movements
+            if ($this->form_validation->run() == true) {
+                $batch_data = [
+                    "medicine_id" => $this->input->post("medicine_id"),
+                    "vendor_id" => $this->input->post("vendor_id"),
+                    "batch_number" => $this->input->post("batch_number"),
+                    "manufacturing_date" => $this->input->post("manufacturing_date") ?: NULL,
+                    "expiry_date" => $this->input->post("expiry_date"),
+                    "purchase_price" => $this->input->post("purchase_price"),
+                    "selling_price" => $this->input->post("selling_price"),
+                    "mrp" => $this->input->post("mrp") ?: NULL,
+                    "purchase_date" => $this->input->post("purchase_date") ?: date('Y-m-d'),
+                    "invoice_number" => $this->input->post("invoice_number"),
+                    "invoice_date" => $this->input->post("invoice_date") ?: NULL,
+                    "quality_status" => $this->input->post("quality_status") ?: 'PENDING',
+                    "batch_status" => $this->input->post("batch_status") ?: 'ACTIVE',
+                    "remarks" => $this->input->post("remarks")
+                ];
+                // --- Call Model ---
+                $result = $this->Stock_model_new->update_batch_details($batch_id, $batch_data); 
+                if ($result) {
+                    $this->session->set_flashdata("success", "Batch updated successfully!");
+                } else {
+                     $this->session->set_flashdata("error", "Error updating batch or no changes were made.");
+                }
+                redirect("stocks_new/batches"); // Redirect to batch list
+            } else {
+                // Validation failed, send user back to the edit form
+                // We must reload the data just like in the edit_batch() function
+                $data = [];
+                $data['batch'] = $this->Stock_model_new->get_batch_details_by_id($batch_id);
+                $data['selected_medicine_details'] = $this->Stock_model_new->get_medicine_details_by_id(
+                    $data['batch']->medicine_id
+                );
+                $data['vendors'] = $this->Stock_model_new->get_all_vendors();
+                $template = get_header_template($logg["role"]);
+                $this->load->view($template["header"]);
+                $this->load->view("stocks_new/edit_batch_view", $data); // Show edit form again
+                $this->load->view($template["footer"]);
+            }
+        }
+    }
+    public function check_batch_unique($batch_number)
+    {
+        $medicine_id = $this->input->post('medicine_id');
+        $batch_id = $this->input->post('batch_id') ? (int)$this->input->post('batch_id') : null;
+        if ($this->Stock_model_new->check_batch_exists($medicine_id, $batch_number, $batch_id)) {
+            $this->form_validation->set_message('check_batch_unique', 'This Batch Number already exists for this medicine.');
+            return FALSE;
+        } else {
+            return TRUE;
+        }
+    }
+
+    /**
+     * 
+     * Helper to get employee ID from session.
+     * Ass
     // public function add_batch()
     // {
     //     $logg = checklogin();
@@ -2992,6 +3100,7 @@ class Stocks_new extends CI_Controller
                     // Your table has 'audit_type' ENUM('PHYSICAL','CYCLIC','RANDOM','FULL')
                     // The form is sending 'FULL_AUDIT', 'PARTIAL_AUDIT' etc.
                     // This needs to be corrected in the form or mapped here. Let's map it.
+                    'auditor_name' => $this->input->post('auditor_name'),
                     'audit_type' => 'FULL', // Defaulting to 'FULL'. Fix your form's <option> values.
                     'remarks' => $this->input->post('remarks') . " (Auditor: " . $this->input->post('auditor_name') . ")",
                     'created_by' => $created_by_id,

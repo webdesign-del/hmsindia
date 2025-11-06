@@ -921,18 +921,15 @@ class Stock_model_new extends CI_Model
     public function add_batch($data)
     {
         $this->db->trans_start();
-
         // Calculate expiry days
         if (isset($data["expiry_date"])) {
             $data["expiry_days"] = $this->calculate_expiry_days(
                 $data["expiry_date"],
             );
         }
-
         // Insert batch
         $this->db->insert("medicine_batches", $data);
         $batch_id = $this->db->insert_id();
-
         // Add to central stock
         $central_stock_data = [
             "batch_id" => $batch_id,
@@ -940,7 +937,6 @@ class Stock_model_new extends CI_Model
             "last_movement_date" => date("Y-m-d H:i:s"),
         ];
         $this->db->insert("central_stocks", $central_stock_data);
-
         // Log stock movement
         $movement_data = [
             "batch_id" => $batch_id,
@@ -959,7 +955,6 @@ class Stock_model_new extends CI_Model
             "created_by" => $data["created_by"],
         ];
         $this->db->insert("stock_movements", $movement_data);
-
         $this->db->trans_complete();
         return $this->db->trans_status();
     }
@@ -1324,7 +1319,7 @@ class Stock_model_new extends CI_Model
             $this->db->where("mb.batch_status", "ACTIVE");
             $this->db->where("mb.quantity_remaining >", 0);
             $this->db->group_by(
-                "m.id, m.medicine_name, m.medicine_code, m.generic_name, b.name",
+                "m.id, m.medicine_name, m.medicine_code, m.generic_name, b.brand_name",
             );
             $this->db->order_by("m.medicine_name", "ASC");
             return $this->db->get()->result();
@@ -4540,6 +4535,41 @@ class Stock_model_new extends CI_Model
             $this->db->trans_complete();
             return $this->db->trans_status();
         }
+        public function check_batch_exists($medicine_id, $batch_number, $exclude_batch_id = null)
+        {
+            $this->db->from('medicine_batches');
+            $this->db->where('medicine_id', $medicine_id);
+            $this->db->where('batch_number', $batch_number);
+
+            // If we are editing (exclude_batch_id is provided),
+            // we must exclude this batch's own ID from the check.
+            if ($exclude_batch_id) {
+                $this->db->where('id !=', $exclude_batch_id);
+            }
+
+            $query = $this->db->get();
+            return $query->num_rows() > 0;
+        }
+        public function update_batch_details($id, $data)
+        {
+            // try {
+                // Recalculate expiry days
+                if (isset($data["expiry_date"])) {
+                    $data["expiry_days"] = $this->calculate_expiry_days(
+                        $data["expiry_date"],
+                    );
+                }
+
+                $this->db->where('id', $id);
+                $this->db->update('medicine_batches', $data);
+
+                return $this->db->affected_rows() > 0;
+
+            // } catch (Exception $e) {
+            //     log_message('error', 'Error in update_batch_details: ' . $e->getMessage());
+            //     return false;
+            // }
+        }
         // public function process_medicine_return($return_data, $return_items)
         // {
         //     if (empty($return_items)) {
@@ -6430,9 +6460,6 @@ class Stock_model_new extends CI_Model
             }
         }
 
-        /**
-         * Get available stocks for transfer based on transfer type and source location
-         */
         public function get_available_stocks_for_transfer(
             $transfer_type,
             $from_center_id = null,
@@ -6462,26 +6489,21 @@ class Stock_model_new extends CI_Model
                             ELSE "FRESH"
                         END as expiry_status
                     ');
-
                     $this->db->from("medicine_batches mb");
                     $this->db->join("central_stocks cs", "mb.id = cs.batch_id");
                     $this->db->join("medicines m", "mb.medicine_id = m.id");
-                    // $this->db->join(
-                    //     $this->config->item("db_prefix") . "brands b",
-                    //     "m.brand_id = b.ID",
-                    //     "left",
-                    // );
                     $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
                     $this->db->join(
                         $this->config->item("db_prefix") . "vendors v",
                         "mb.vendor_id = v.ID",
                         "left",
                     );
-
                     // Only show available central stocks
                     $this->db->where("mb.batch_status", "ACTIVE");
                     $this->db->where("cs.quantity >", 0);
                     $this->db->where("cs.status", "ACTIVE");
+                    // --- FIX: Do not show expired stock ---
+                    $this->db->where("mb.expiry_date >", date("Y-m-d"));
                 } elseif ($transfer_type == "CENTER_TO_CENTER") {
                     // Center stocks - join with center_stocks table
                     $this->db->select('
@@ -6505,15 +6527,9 @@ class Stock_model_new extends CI_Model
                             ELSE "FRESH"
                         END as expiry_status
                     ');
-
                     $this->db->from("medicine_batches mb");
                     $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
                     $this->db->join("medicines m", "mb.medicine_id = m.id");
-                    // $this->db->join(
-                    //     $this->config->item("db_prefix") . "brands b",
-                    //     "m.brand_id = b.ID",
-                    //     "left",
-                    // );
                     $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
                     $this->db->join(
                         $this->config->item("db_prefix") . "vendors v",
@@ -6525,7 +6541,6 @@ class Stock_model_new extends CI_Model
                         "ccs.center_id = c.ID",
                         "left",
                     );
-
                     // Filter by source center
                     if ($from_center_id) {
                         $this->db->where("ccs.center_id", $from_center_id);
@@ -6534,11 +6549,12 @@ class Stock_model_new extends CI_Model
                     if ($from_department) {
                         $this->db->where("ccs.department", $from_department);
                     }
-
                     // Only show available center stocks
                     $this->db->where("mb.batch_status", "ACTIVE");
                     $this->db->where("ccs.quantity >", 0);
                     $this->db->where("ccs.status", "ACTIVE");
+                    // --- FIX: Do not show expired stock ---
+                    $this->db->where("mb.expiry_date >", date("Y-m-d"));
                 } elseif ($transfer_type == "CENTER_TO_CENTRAL") {
                     // Center stocks to return to central - join with center_stocks table
                     $this->db->select('
@@ -6562,15 +6578,9 @@ class Stock_model_new extends CI_Model
                             ELSE "FRESH"
                         END as expiry_status
                     ');
-
                     $this->db->from("medicine_batches mb");
                     $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
                     $this->db->join("medicines m", "mb.medicine_id = m.id");
-                    // $this->db->join(
-                    //     $this->config->item("db_prefix") . "brands b",
-                    //     "m.brand_id = b.ID",
-                    //     "left",
-                    // );
                     $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
                     $this->db->join(
                         $this->config->item("db_prefix") . "vendors v",
@@ -6582,27 +6592,200 @@ class Stock_model_new extends CI_Model
                         "ccs.center_id = c.ID",
                         "left",
                     );
-
                     // Filter by source center
                     if ($from_center_id) {
                         $this->db->where("ccs.center_id", $from_center_id);
                     }
-
                     // Only show available center stocks
                     $this->db->where("mb.batch_status", "ACTIVE");
                     $this->db->where("ccs.quantity >", 0);
                     $this->db->where("ccs.status", "ACTIVE");
+                    // --- FIX: Do not show expired stock ---
+                    $this->db->where("mb.expiry_date >", date("Y-m-d"));
                 }
-
                 // Order by FEFO (First Expiry, First Out)
                 $this->db->order_by("mb.expiry_date", "ASC");
                 $this->db->order_by("m.medicine_name", "ASC");
-
                 return $this->db->get()->result();
             } catch (Exception $e) {
+                log_message('error', 'get_available_stocks_for_transfer: ' . $e->getMessage());
                 return [];
             }
         }
+    
+        /**
+         * Get available stocks for transfer based on transfer type and source location
+         */
+        // public function get_available_stocks_for_transfer(
+        //     $transfer_type,
+        //     $from_center_id = null,
+        //     $from_department = null,
+        //     $from_employee_number = null,
+        // ) {
+        //     try {
+        //         if ($transfer_type == "CENTRAL_TO_CENTER") {
+        //             $this->db->select('
+        //                 mb.id as batch_id,
+        //                 mb.batch_number,
+        //                 mb.expiry_date,
+        //                 cs.quantity as quantity_remaining,
+        //                 mb.batch_status,
+        //                 mb.purchase_price,
+        //                 mb.selling_price,
+        //                 DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
+        //                 m.id as medicine_id,
+        //                 m.medicine_name,
+        //                 m.medicine_code,
+        //                 b.brand_name as brand_name,
+        //                 v.name as vendor_name,
+        //                 "CENTRAL" as center_name,
+        //                 CASE
+        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) < 0 THEN "EXPIRED"
+        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN "EXPIRING_SOON"
+        //                     ELSE "FRESH"
+        //                 END as expiry_status
+        //             ');
+
+        //             $this->db->from("medicine_batches mb");
+        //             $this->db->join("central_stocks cs", "mb.id = cs.batch_id");
+        //             $this->db->join("medicines m", "mb.medicine_id = m.id");
+        //             // $this->db->join(
+        //             //     $this->config->item("db_prefix") . "brands b",
+        //             //     "m.brand_id = b.ID",
+        //             //     "left",
+        //             // );
+        //             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+        //             $this->db->join(
+        //                 $this->config->item("db_prefix") . "vendors v",
+        //                 "mb.vendor_id = v.ID",
+        //                 "left",
+        //             );
+
+        //             // Only show available central stocks
+        //             $this->db->where("mb.batch_status", "ACTIVE");
+        //             $this->db->where("cs.quantity >", 0);
+        //             $this->db->where("cs.status", "ACTIVE");
+        //         } elseif ($transfer_type == "CENTER_TO_CENTER") {
+        //             // Center stocks - join with center_stocks table
+        //             $this->db->select('
+        //                 mb.id as batch_id,
+        //                 mb.batch_number,
+        //                 mb.expiry_date,
+        //                 ccs.quantity as quantity_remaining,
+        //                 mb.batch_status,
+        //                 mb.purchase_price,
+        //                 mb.selling_price,
+        //                 DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
+        //                 m.id as medicine_id,
+        //                 m.medicine_name,
+        //                 m.medicine_code,
+        //                 b.brand_name as brand_name,
+        //                 v.name as vendor_name,
+        //                 c.center_name,
+        //                 CASE
+        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) < 0 THEN "EXPIRED"
+        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN "EXPIRING_SOON"
+        //                     ELSE "FRESH"
+        //                 END as expiry_status
+        //             ');
+
+        //             $this->db->from("medicine_batches mb");
+        //             $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
+        //             $this->db->join("medicines m", "mb.medicine_id = m.id");
+        //             // $this->db->join(
+        //             //     $this->config->item("db_prefix") . "brands b",
+        //             //     "m.brand_id = b.ID",
+        //             //     "left",
+        //             // );
+        //             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+        //             $this->db->join(
+        //                 $this->config->item("db_prefix") . "vendors v",
+        //                 "mb.vendor_id = v.ID",
+        //                 "left",
+        //             );
+        //             $this->db->join(
+        //                 "hms_centers c",
+        //                 "ccs.center_id = c.ID",
+        //                 "left",
+        //             );
+
+        //             // Filter by source center
+        //             if ($from_center_id) {
+        //                 $this->db->where("ccs.center_id", $from_center_id);
+        //             }
+        //             // Filter by source department
+        //             if ($from_department) {
+        //                 $this->db->where("ccs.department", $from_department);
+        //             }
+
+        //             // Only show available center stocks
+        //             $this->db->where("mb.batch_status", "ACTIVE");
+        //             $this->db->where("ccs.quantity >", 0);
+        //             $this->db->where("ccs.status", "ACTIVE");
+        //         } elseif ($transfer_type == "CENTER_TO_CENTRAL") {
+        //             // Center stocks to return to central - join with center_stocks table
+        //             $this->db->select('
+        //                 mb.id as batch_id,
+        //                 mb.batch_number,
+        //                 mb.expiry_date,
+        //                 ccs.quantity as quantity_remaining,
+        //                 mb.batch_status,
+        //                 mb.purchase_price,
+        //                 mb.selling_price,
+        //                 DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
+        //                 m.id as medicine_id,
+        //                 m.medicine_name,
+        //                 m.medicine_code,
+        //                 b.brand_name as brand_name,
+        //                 v.name as vendor_name,
+        //                 c.center_name,
+        //                 CASE
+        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) < 0 THEN "EXPIRED"
+        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN "EXPIRING_SOON"
+        //                     ELSE "FRESH"
+        //                 END as expiry_status
+        //             ');
+
+        //             $this->db->from("medicine_batches mb");
+        //             $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
+        //             $this->db->join("medicines m", "mb.medicine_id = m.id");
+        //             // $this->db->join(
+        //             //     $this->config->item("db_prefix") . "brands b",
+        //             //     "m.brand_id = b.ID",
+        //             //     "left",
+        //             // );
+        //             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+        //             $this->db->join(
+        //                 $this->config->item("db_prefix") . "vendors v",
+        //                 "mb.vendor_id = v.ID",
+        //                 "left",
+        //             );
+        //             $this->db->join(
+        //                 "hms_centers c",
+        //                 "ccs.center_id = c.ID",
+        //                 "left",
+        //             );
+
+        //             // Filter by source center
+        //             if ($from_center_id) {
+        //                 $this->db->where("ccs.center_id", $from_center_id);
+        //             }
+
+        //             // Only show available center stocks
+        //             $this->db->where("mb.batch_status", "ACTIVE");
+        //             $this->db->where("ccs.quantity >", 0);
+        //             $this->db->where("ccs.status", "ACTIVE");
+        //         }
+
+        //         // Order by FEFO (First Expiry, First Out)
+        //         $this->db->order_by("mb.expiry_date", "ASC");
+        //         $this->db->order_by("m.medicine_name", "ASC");
+
+        //         return $this->db->get()->result();
+        //     } catch (Exception $e) {
+        //         return [];
+        //     }
+        // }
         public function get_all_stock_batches()
         {
         try {
@@ -6723,7 +6906,8 @@ class Stock_model_new extends CI_Model
             'm.medicine_name',
             'm.generic_name',
             'm.medicine_code',
-            'b.brand_name'
+            'b.brand_name',
+            'm.gst_rate'
         ]);
         $this->db->from('medicines m');
         $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
@@ -6732,7 +6916,21 @@ class Stock_model_new extends CI_Model
         
         return $this->db->get()->row(); // Return one row
     }
+    public function is_batch_editable($batch_id)
+    {
+        try {
+            $this->db->from('stock_movements');
+            $this->db->where('batch_id', $batch_id);
+            $count = $this->db->count_all_results();
+            // If count is 0 (shouldn't happen) or 1 (just the PURCHASE)
+            // then it is editable. If it's 2 or more, it has been used.
+            return ($count <= 1);
 
+        } catch (Exception $e) {
+            log_message('error', 'Error in is_batch_editable: ' . $e->getMessage());
+            return false; // Fail safe: if error, lock the batch
+        }
+    }
     /**
      * Searches medicines for the Select2 AJAX dropdown.
      */
@@ -6992,6 +7190,28 @@ public function add_stock_to_location($stock_data)
     /**
      * Gets a single batch's details AND all locations (centers + central) where it has stock.
      */
+    public function get_batch_details_by_id($id)
+    {
+        try {
+            $this->db->select('
+                mb.*, 
+                m.medicine_name, 
+                m.medicine_code,
+                m.gst_rate,
+                b.brand_name as brand_name
+            ');
+            $this->db->from('medicine_batches mb');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+            $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+            $this->db->where('mb.id', $id);
+            $query = $this->db->get();
+            return $query->row();
+
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_batch_details_by_id: ' . $e->getMessage());
+            return null;
+        }
+    }
     public function get_batch_stock_locations($batch_id)
     {
         $batch_details = $this->db->select('mb.id as batch_id, mb.batch_number, mb.expiry_date, mb.purchase_price, m.medicine_name')
