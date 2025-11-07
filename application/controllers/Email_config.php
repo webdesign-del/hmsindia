@@ -175,7 +175,7 @@ class Email_config extends CI_Controller {
             $email_content = $this->generate_orderbook_email_content();
             
             // Send email using your existing send_mail function
-            $subject = "Daily Orderbook Summary - " . $all_method->get_center_name($vl['billing_at']); .'-'. date('Y-m-d');
+            $subject = "Daily Orderbook Summary - " . $all_method->get_center_name($vl['billing_at']) . ' - ' . date('Y-m-d');
             $sent = send_mail($recipient_email, $subject, $email_content);
             
             $result = array(
