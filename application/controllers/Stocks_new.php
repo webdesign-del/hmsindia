@@ -2275,21 +2275,48 @@ class Stocks_new extends CI_Controller
                     "required|numeric",
                 );
                 if ($this->form_validation->run() == true) {
+                    // --- This is the correct logic for your controller ---
+                    $quantity = (float)$this->input->post("quantity_sold");
+                    $unit_price = (float)$this->input->post("unit_price");
+                    $discount_percent = (float)$this->input->post("discount_percent");
+                    $gst_rate = (float)$this->input->post("gst_rate");
+                    $subtotal = $quantity * $unit_price;
+                    $discount_amount = $subtotal * ($discount_percent / 100);
+                    $taxable_amount = $subtotal - $discount_amount;
+                    $tax_amount = $taxable_amount * ($gst_rate / 100);
+                    $total = $taxable_amount + $tax_amount;
                     $item_data = [
-                        "sale_id" => $id,
-                        "batch_id" => $this->input->post("batch_id"),
-                        "quantity_sold" => $this->input->post("quantity_sold"),
-                        "unit_price" => $this->input->post("unit_price"),
-                        "discount_amount" => $this->input->post("discount_amount"),
-                        "tax_amount"=>$this->input->post("tax_amount"),
-                        "subtotal" =>
-                            $this->input->post("quantity_sold") *
-                            $this->input->post("unit_price"),
-                        "total" =>
-                            $this->input->post("quantity_sold") *
-                            $this->input->post("unit_price"),
-                        "remarks" => $this->input->post("remarks"),
+                        'sale_id'         => $id,
+                        'batch_id'        => $this->input->post('batch_id'),
+                        'quantity_sold'   => $quantity,
+                        'unit_price'      => $unit_price,       // This is the price Excl. Tax
+                        'subtotal'        => $subtotal,         // (Qty * Unit Price)
+                        'discount_amount' => $discount_amount,  // This is the calculated discount
+                        'tax_amount'      => $tax_amount,       // This is the calculated tax
+                        'total'           => $total,            // This is the final total
+                        'remarks'         => $this->input->post('remarks')
                     ];
+                    // var_dump($this->input->post());
+                    // die;
+                    // $quantity = (float)$this->input->post("quantity_sold");
+                    //     $unit_price = (float)$this->input->post("unit_price");
+                    //     $discount_percent = (float)$this->input->post("discount_percent");
+                    //     $gst_rate = (float)$this->input->post("gst_rate");
+                    // $subtotal = $quantity * $unit_price;
+                    // $discount_amount = $subtotal * ($discount_percent / 100);
+                    // $item_data = [
+                    //     "sale_id" => $id,
+                    //     "batch_id" => $this->input->post("batch_id"),
+                    //     "quantity_sold" => $this->input->post("quantity_sold"),
+                    //     "unit_price" => $this->input->post("unit_price"),
+                    //     "discount_amount" => $this->input->post("discount_percent") / 100 * $this->input->post("unit_price"),
+                    //     "tax_amount"=>$this->input->post("tax_amount"),
+                    //     "subtotal" =>
+                    //         $this->input->post("quantity_sold") *
+                    //         $this->input->post("unit_price"),
+                    //     "total" =>$this->input->post("total"),
+                    //     "remarks" => $this->input->post("remarks"),
+                    // ];
                     $result = $this->Stock_model_new->add_sale_item($item_data);
                     if ($result) {
                         $this->session->set_flashdata(
