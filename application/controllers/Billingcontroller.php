@@ -1639,6 +1639,7 @@ function partial_billing($appointment_id){
 							$extract_procedure_array[] = $key;
 						}
 					}
+					//
 					$male_number = array();
 					foreach($extract_procedure_array as $key => $val){
 						$explode = explode('sub_procedure_', $val);

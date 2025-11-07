@@ -21,7 +21,7 @@
                         <label for="email_subject"><strong>Subject:</strong></label>
                         <input type="text" id="email_subject" name="email_subject" 
                                class="form-control" 
-                               value="Daily Sales Report - <?php echo date('Y-m-d'); ?>">
+                               value="Daily Sales Report - <?php echo $all_method->get_center_name($_SESSION['logged_billing_manager']['center']); echo date('Y-m-d'); ?>">
                     </div>
                 </div>
             </div>
@@ -88,34 +88,6 @@ $(document).ready(function() {
 </script>
  
  	<div class="container-2">
-        <header>
-            <div class="header-top">
-                <div class="logo"><i class="fas fa-hospital"></i> Medical Revenue Dashboard</div>
-                <div class="date-display"><i class="fas fa-calendar-alt"></i> September 1, 2025</div>
-            </div>
-            <h1>Centre Noida Revenue Report</h1>
-            <div class="filters">
-                <div class="filter-item">
-                    <label for="center-select">Center</label>
-                    <select id="center-select">
-                        <option>Noida</option>
-                        <option>Delhi</option>
-                        <option>Gurgaon</option>
-                    </select>
-                </div>
-                <div class="filter-item">
-                    <label for="date-select">Date</label>
-                    <input type="date" id="date-select" value="2025-09-01">
-                </div>
-                <div class="filter-item">
-                    <label for="report-type">Report Type</label>
-                    <select id="report-type">
-                        <option>Daily Report</option>
-                        <option>Monthly Report</option>
-                    </select>
-                </div>
-            </div>
-        </header>
         
         <div class="dashboard">
             <div class="card">
@@ -125,16 +97,7 @@ $(document).ready(function() {
                 </div>
                 <form >
                 <div class="card-content">
-                    <div class="summary-stats">
-                        <div class="stat">
-                            <div class="stat-label">Customer Count</div>
-                            <div class="stat-value">3</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-label">Bill Count / Cycles Sold</div>
-                            <div class="stat-value">4</div>
-                        </div>
-                    </div>
+                   
                     
                     <table>
                         <thead>
@@ -281,108 +244,9 @@ $(document).ready(function() {
                 <input type="submit" id="submit">
             </form>
             </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <span>Collection Summary</span>
-                    <i class="fas fa-money-bill-wave"></i>
-                </div>
-                <div class="card-content">
-                    <div class="summary-stats">
-                        <div class="stat">
-                            <div class="stat-label">Customer Count</div>
-                            <div class="stat-value">0</div>
-                        </div>
-                        <div class="stat">
-                            <div class="stat-label">Bill Count</div>
-                            <div class="stat-value">0</div>
-                        </div>
-                    </div>
-                    
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Type of procedures</th>
-                                <th>Customer Count</th>
-                                <th>Bill Count</th>
-                                <th>Amount (Rs)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>IVF Cycles Sold</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="numeric">-</td>
-                            </tr>
-                            <tr>
-                                <td>IVF with Bed</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="numeric">-</td>
-                            </tr>
-                            <tr>
-                                <td>Non IVF with Bed</td>
-                                <td></td>
-                                <td>-</td>
-                                <td class="numeric">-</td>
-                            </tr>
-                            <tr>
-                                <td>Non IVF without Bed</td>
-                                <td></td>
-                                <td>-</td>
-                                <td class="numeric">-</td>
-                            </tr>
-                            <tr>
-                                <td>(Not Tagged)</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="numeric">-</td>
-                            </tr>
-                            <tr>
-                                <td>A. Package Revenue</td>
-                                <td></td>
-                                <td></td>
-                                <td class="numeric">0</td>
-                            </tr>
-                            <tr>
-                                <td>Medicine</td>
-                                <td></td>
-                                <td>-</td>
-                                <td class="numeric">-</td>
-                            </tr>
-                            <tr>
-                                <td>Diagnostic</td>
-                                <td></td>
-                                <td>-</td>
-                                <td class="numeric">-</td>
-                            </tr>
-                            <tr>
-                                <td>Consultation / Registration - Paid</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="numeric">-</td>
-                            </tr>
-                            <tr>
-                                <td>Fellowship</td>
-                                <td>-</td>
-                                <td>-</td>
-                                <td class="numeric">-</td>
-                            </tr>
-                           <tr class="total-row">
-                                <td>Total Revenue</td>
-                                <td></td>
-                                <td></td>
-                                <td class="numeric"></td>
-                            </tr>
-                            
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
-    </div>
-
+        <div class="dashboard-2">
+    <div class="card">
     <div class="card-content">
                  <table>
                         <thead>
@@ -395,13 +259,10 @@ $(document).ready(function() {
                                 <th>Pkg Description</th>
                                 <th>Type </th>
                                 <th>mode</th>
-                                <th>Amount Inc GST</th>
+                                <th>Collection Amount Inc GST</th>
                                 <th>Date</th>
                                 <th>Receipts No / Adjustment No</th>
-                                <th>Collection Amount Inc GST</th>
                                 <th>Fresh/Partial/Advance</th>
-                                <th>Pkg Code</th>
-                                <th>Pkg Description</th>
                                 <th>Remarks</th>
                             </tr>
                         </thead>
@@ -414,15 +275,110 @@ $(document).ready(function() {
                     <tr>
                         <td><?php echo $vl['']; ?></td>
                         <td><?php echo $vl['patient_id']; ?></td>
-                        <td></td>
+                        <td><?php echo $patient_name = $all_method->get_patient_name($vl['patient_id']); ?></td>
                         <td>Package</td>
                         <td><?php echo $vl['code']; ?></td>
                         <td><?php echo $vl['procedure_name']; ?></td>
+                        <td>Booking</td>
+                        <td><?php echo $vl['payment_method']; ?></td>
+                        <td><?php echo $vl['payment_done']; ?></td>
+                        <td><?php echo $vl['on_date']; ?></td>
+                        <td><?php echo $vl['receipt_number']; ?></td>
+                    </tr>
+					<?php } ?>
+                    <?php 
+            foreach($patient_partial_daily_result as $ky => $vl){
+              
+            ?>
+                    <tr>
+                        <td><?php echo $vl['']; ?></td>
+                        <td><?php echo $vl['patient_id']; ?></td>
+                        <td><?php echo $patient_name = $all_method->get_patient_name($vl['patient_id']); ?></td>
+                        <td>Partial</td>
+                        <td></td>
+                        <td></td>
+                        <td>Booking</td>
+                        <td><?php echo $vl['payment_method']; ?></td>
+                        <td><?php echo $vl['payment_done']; ?></td>
+                        <td><?php echo $vl['on_date']; ?></td>
+                        <td><?php echo $vl['refrence_number']; ?></td>
+                    </tr>
+					<?php } ?>
+                    <?php 
+            foreach($patient_medicine_daily_result as $ky => $vl){
+            ?>
+                    <tr>
+                        <td><?php echo $vl['']; ?></td>
+                        <td><?php echo $vl['patient_id']; ?></td>
+                        <td><?php echo $vl['patient_detail_name']; ?></td>
+                        <td>OPD Medicines</td>
+                        <td></td>
+                        <td></td>
+                        <td>Sale Receipts</td>
+                        <td><?php echo $vl['payment_method']; ?></td>
+                        <td><?php echo $vl['payment_done']; ?></td>
+                        <td><?php echo $vl['on_date']; ?></td>
+                        <td><?php echo $vl['receipt_number']; ?></td>
+                    </tr>
+					<?php } ?>
+                     <?php 
+            foreach($patient_diagnostic_daily_result as $ky => $vl){
+            ?>
+                    <tr>
+                        <td><?php echo $vl['']; ?></td>
+                        <td><?php echo $vl['patient_id']; ?></td>
+                        <td><?php echo $patient_name = $all_method->get_patient_name($vl['patient_id']); ?></td>
+                        <td>DIAGNOSTIC</td>
+                        <td></td>
+                        <td></td>
+                        <td>Sale Receipts</td>
+                        <td><?php echo $vl['payment_method']; ?></td>
+                        <td><?php echo $vl['payment_done']; ?></td>
+                        <td><?php echo $vl['on_date']; ?></td>
+                        <td><?php echo $vl['receipt_number']; ?></td>
+                    </tr>
+					<?php } ?>
+                      <?php 
+                   foreach($patient_diagnostic_daily_result as $ky => $vl){
+                ?>
+                    <tr>
+                        <td><?php echo $vl['']; ?></td>
+                        <td><?php echo $vl['patient_id']; ?></td>
+                        <td><?php echo $patient_name = $all_method->get_patient_name($vl['patient_id']); ?></td>
+                        <td>DIAGNOSTIC</td>
+                        <td></td>
+                        <td></td>
+                        <td>Sale Receipts</td>
+                        <td><?php echo $vl['payment_method']; ?></td>
+                        <td><?php echo $vl['payment_done']; ?></td>
+                        <td><?php echo $vl['on_date']; ?></td>
+                        <td><?php echo $vl['receipt_number']; ?></td>
+                    </tr>
+					<?php } ?>
+                      <?php 
+                   foreach($patient_consultation_daily_result as $ky => $vl){
+                ?>
+                    <tr>
+                        <td><?php echo $vl['']; ?></td>
+                        <td><?php echo $vl['patient_id']; ?></td>
+                        <td><?php echo $patient_name = $all_method->get_patient_name($vl['patient_id']); ?></td>
+                        <td>OPD consultation</td>
+                        <td></td>
+                        <td></td>
+                        <td>Sale Receipts</td>
+                        <td><?php echo $vl['payment_method']; ?></td>
+                        <td><?php echo $vl['payment_done']; ?></td>
+                        <td><?php echo $vl['on_date']; ?></td>
+                        <td><?php echo $vl['receipt_number']; ?></td>
                     </tr>
 					<?php } ?>
             </tbody>
             </table>
             </div>    
+             </div>    
+              </div>    
+
+    </div>
     <script>
         // Simple JavaScript to update the date display when the date input is changed
         document.getElementById('date-select').addEventListener('change', function() {
