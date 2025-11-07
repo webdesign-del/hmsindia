@@ -4220,7 +4220,7 @@ function get_available_lead_sources_for_consultations(){
 		return $procedure_result;
 	}
 	
-	function export_consumption_medicine($center, $start_date, $end_date, $patient_id, $patient_procedures, $json_data){
+	function export_consumption_medicine($center, $start_date, $end_date, $patient_id, $payment_method, $json_data){
 		$consuption_result = $response = array();
         $conditions = '';
 		/*if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
@@ -6084,6 +6084,94 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 		$procedure_q = $this->db->query($procedure_sql);
 		$procedure_result = $procedure_q->result_array();
 		return $procedure_result;
+	}
+
+	function dashboard_partial_daily_sales_report($center, $start_date, $end_date){
+		$procedure_result = array();
+		$conditions = '';
+		if (!empty($center)){
+			$conditions .= " and billing_at='$center'";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " and on_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date='$end_date'";
+		}
+		$center = $_SESSION['logged_billing_manager']['center'];
+		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_payments where on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('pending', 'approved') AND 1".$conditions;
+		$procedure_q = $this->db->query($procedure_sql);
+		$procedure_result = $procedure_q->result_array();
+		return $procedure_result;
+	}
+
+	function dashboard_medicine_reports_list_patination($center, $start_date, $end_date){
+		$medicine_result = array();
+		$conditions = '';
+		if (!empty($center)){
+			$conditions .= " and billing_at='$center'";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " and on_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date='$end_date'";
+		}
+		$center = $_SESSION['logged_billing_manager']['center'];
+		$medicine_sql = "Select * from ".$this->config->item('db_prefix')."patient_medicine where on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('pending', 'approved') AND 1".$conditions;
+		$medicine_q = $this->db->query($medicine_sql);
+		$medicine_result = $medicine_q->result_array();
+		return $medicine_result;
+	}
+
+	function dashboard_diagnostic_reports_list_patination($center, $start_date, $end_date){
+		$diagnostic_result = array();
+		$conditions = '';
+		if (!empty($center)){
+			$conditions .= " and billing_at='$center'";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " and on_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date='$end_date'";
+		}
+		$center = $_SESSION['logged_billing_manager']['center'];
+		$diagnostic_sql = "Select * from ".$this->config->item('db_prefix')."patient_investigations where on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('pending', 'approved') AND 1".$conditions;
+		$diagnostic_q = $this->db->query($diagnostic_sql);
+		$diagnostic_result = $diagnostic_q->result_array();
+		return $diagnostic_result;
+	}
+
+	function dashboard_consultation_reports_list_patination($center, $start_date, $end_date){
+		$consultation_result = array();
+		$conditions = '';
+		if (!empty($center)){
+			$conditions .= " and billing_at='$center'";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " and on_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date='$end_date'";
+		}
+		$center = $_SESSION['logged_billing_manager']['center'];
+		$consultation_sql = "Select * from ".$this->config->item('db_prefix')."consultation where on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('pending', 'approved') AND 1".$conditions;
+		$consultation_q = $this->db->query($consultation_sql);
+		$consultation_result = $consultation_q->result_array();
+		return $consultation_result;
 	}
 
   public function get_doctors_by_center($center_number) {
