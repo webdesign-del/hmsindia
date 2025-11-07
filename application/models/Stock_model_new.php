@@ -5676,6 +5676,25 @@ class Stock_model_new extends CI_Model
                 return true; // Success
             }
         }
+
+        public function get_employee_id_from_number($employee_number)
+        {
+            if (empty($employee_number)) {
+                return null;
+            }
+
+            $this->db->select("ID");
+            $this->db->from("hms_employees");
+            $this->db->where("employee_number", $employee_number);
+            $query = $this->db->get();
+
+            if ($query->num_rows() > 0) {
+                $result = $query->row();
+                return $result->ID;
+            }
+
+            return null;
+        }
          // End function
         // public function process_vendor_return($return_data, $return_items)
         // {
@@ -7005,31 +7024,151 @@ class Stock_model_new extends CI_Model
                            ->count_all_results('hms_centers');
          return $count > 0;
      }
-
-    public function add_purchase_batch($batch_data)
+    public function receive_stock_item($item_data)
     {
-            if (empty($batch_data['medicine_id']) || empty($batch_data['batch_number']) || empty($batch_data['vendor_id'])) {
-                return ['status' => 'error', 'message' => 'Missing required batch data (medicine, batch no, vendor).'];
-            }
-            // Attempt to insert
+        $po_item_id = $item_data['po_item_id'];
+        $medicine_id = $item_data['medicine_id'];
+        $batch_number = $item_data['batch_number'];
+        $vendor_id = $item_data['vendor_id'];
+        $center_id = $item_data['center_id'];
+        $quantity_received = $item_data['quantity'] + $item_data['free_qty']; // Total quantity
+        $created_by = $item_data['created_by'];
+        if (empty($medicine_id) || empty($batch_number) || empty($vendor_id)) {
+            return ['status' => 'error', 'message' => 'Missing required batch data (medicine, batch no, vendor).'];
+        }
+        $this->db->trans_start();
+        $this->db->from('medicine_batches');
+        $this->db->where('medicine_id', $medicine_id);
+        $this->db->where('batch_number', $batch_number);
+        $existing_batch = $this->db->get()->row();
+        $batch_id = null;
+        $is_new_batch = false;
+        if ($existing_batch) {
+            // 4A. BATCH EXISTS: Get its ID.
+            $batch_id = $existing_batch->id;
+        } else {
+            // 4B. NEW BATCH: Create it.
+            $is_new_batch = true;
+            $batch_data = [
+                "medicine_id"        => $medicine_id,
+                "vendor_id"          => $vendor_id,
+                "batch_number"       => $batch_number,
+                "expiry_date"        => $item_data['expiry_date'],
+                "expiry_days"        => $this->calculate_expiry_days($item_data['expiry_date']),
+                "purchase_price"     => $item_data['purchase_price'] * (1 + ($item_data['tax_percent'] / 100)),
+                "selling_price"      => $item_data['mrp'], 
+                "mrp"                => $item_data['mrp'],
+                "quantity_purchased" => $quantity_received, // This is the first purchase
+                "quantity_remaining" => $quantity_received, // Stock is added to batch total
+                "purchase_date"      => $item_data['receive_date'],
+                "invoice_number"     => $item_data['invoice_number'],
+                "invoice_date"       => $item_data['invoice_date'],
+                "quality_status"     => "APPROVED", // Or 'PENDING' if you have a QC step
+                "batch_status"       => "ACTIVE",
+                "created_by"         => $created_by,
+            ];
             $this->db->insert('medicine_batches', $batch_data);
-            $new_batch_id = $this->db->insert_id();
-
-            if ($new_batch_id) {
-                return ['status' => 'success', 'batch_id' => $new_batch_id];
-            } else {
-                 $db_error = $this->db->error();
-                 if ($db_error['code'] == 1062) {
-                     // Log the duplicate attempt
-                     log_message('error', "Duplicate batch entry attempt: Medicine ID {$batch_data['medicine_id']}, Batch No {$batch_data['batch_number']}");
-                     // You could try fetching the existing batch ID here if needed later
-                     return ['status' => 'error', 'message' => 'Duplicate batch number for this medicine.'];
-                 } else {
-                     log_message('error', "DB Error (medicine_batches insert): ".$db_error['message']);
-                     return ['status' => 'error', 'message' => 'Database error inserting batch.'];
-                 }
+            $batch_id = $this->db->insert_id();
+        }
+        if (!$batch_id) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Could not create or find batch.'];
+        }
+        // 5. Now, update the correct stock location (center_stocks)
+        $this->db->from('center_stocks');
+        $this->db->where('batch_id', $batch_id);
+        $this->db->where('center_id', $center_id);
+        $stock_record = $this->db->get()->row();
+        $quantity_before = 0;
+        if ($stock_record) {
+            // 6A. STOCK RECORD EXISTS: Update it.
+            $quantity_before = $stock_record->quantity;
+            $this->db->where('id', $stock_record->id);
+            $this->db->set('quantity', 'quantity + ' . (float)$quantity_received, FALSE);
+            $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
+            $this->db->set('department',$item_data['department'] ?? null);
+            $this->db->update('center_stocks');
+            // Also update the main batch 'quantity_remaining'
+            if (!$is_new_batch) { // Only if it wasn't a new batch
+                $this->db->where('id', $batch_id);
+                $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
+                $this->db->update('medicine_batches');
             }
+        } else {
+            $center_stock_data = [
+                "batch_id"  => $batch_id,
+                "center_id" => $center_id,
+                "quantity"  => $quantity_received,
+                "last_movement_date" => date("Y-m-d H:i:s"),
+                "department" => $item_data['department'] ?? null,
+                "status"    => "ACTIVE"
+            ];
+            $this->db->insert("center_stocks", $center_stock_data);
+        }
+        // 7. Update main batch 'quantity_remaining' IF IT WAS AN EXISTING BATCH
+        // This is now outside the `if ($stock_record)` block.
+        if (!$is_new_batch) { 
+            $this->db->where('id', $batch_id);
+            $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
+            $this->db->update('medicine_batches');
+        }
+        // **********************************
+        $movement_data = [
+            "batch_id"           => $batch_id,
+            "movement_type"      => "PURCHASE", 
+            "from_location_type" => "VENDOR",
+            "from_location_id"   => $vendor_id,
+            "to_location_type"   => "CENTER",
+            "to_location_id"     => $center_id,
+            "quantity_change"    => $quantity_received,
+            "quantity_before"    => $quantity_before,
+            "quantity_after"     => $quantity_before + $quantity_received,
+            "unit_price"         => $item_data['purchase_price'],
+            "total_value"        => $item_data['total_amount'],
+            "reference_type"     => "PURCHASE_ORDER",
+            "reference_id"       => $item_data['po_id'],
+            "reference_number"   => $item_data['po_number'],
+            "remarks"            => $item_data['remarks'],
+            "created_by"         => $created_by,
+        ];
+        $this->db->insert("stock_movements", $movement_data);
+        // Update the original PO item's received quantity
+        $this->db->where('id', $po_item_id);
+        $this->db->set('quantity_received', 'quantity_received + ' . (float)$quantity_received, FALSE);
+        $this->db->update('hms_new_purchase_order_items'); 
+        // ***********************************************
+        // 8. Complete the transaction
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === FALSE) {
+            log_message('error', 'DB Transaction failed while receiving stock for batch ID: ' . $batch_id);
+            return ['status' => 'error', 'message' => 'Database transaction failed.'];
+        } else {
+            return ['status' => 'success', 'batch_id' => $batch_id, 'new_batch' => $is_new_batch];
+        }
     }
+
+    // public function add_purchase_batch($batch_data)
+    // {
+    //         if (empty($batch_data['medicine_id']) || empty($batch_data['batch_number']) || empty($batch_data['vendor_id'])) {
+    //             return ['status' => 'error', 'message' => 'Missing required batch data (medicine, batch no, vendor).'];
+    //         }
+    //         $this->db->insert('medicine_batches', $batch_data);
+
+    //         $new_batch_id = $this->db->insert_id();
+
+    //         if ($new_batch_id) {
+    //             return ['status' => 'success', 'batch_id' => $new_batch_id];
+    //         } else {
+    //             $db_error = $this->db->error();
+    //             if ($db_error['code'] == 1062) {
+    //                 log_message('error', "Duplicate batch entry attempt: Medicine ID {$batch_data['medicine_id']}, Batch No {$batch_data['batch_number']}");
+    //                 return ['status' => 'error', 'message' => 'Duplicate batch number for this medicine.'];
+    //             } else {
+    //                 log_message('error', "DB Error (medicine_batches insert): ".$db_error['message']);
+    //                 return ['status' => 'error', 'message' => 'Database error inserting batch.'];
+    //             }
+    //         }
+    // }
 
     /**
      * Adds received quantity to the stock at a specific location (Center or Central).
@@ -7086,7 +7225,7 @@ class Stock_model_new extends CI_Model
 
 public function add_stock_to_location($stock_data)
     {
-        try {
+        // try {
             // Check for required data
             if (empty($stock_data['batch_id']) || !isset($stock_data['quantity'])) {
                 return ['status' => 'error', 'message' => 'Missing batch_id or quantity for stock update.'];
@@ -7154,10 +7293,10 @@ public function add_stock_to_location($stock_data)
                  return ['status' => 'success', 'quantity_after' => $quantity_after];
             }
 
-        } catch (Exception $e) {
-             log_message('error', "Exception in add_stock_to_location: " . $e->getMessage());
-             return ['status' => 'error', 'message' => 'Exception occurred updating stock location.'];
-        }
+        // } catch (Exception $e) {
+        //      log_message('error', "Exception in add_stock_to_location: " . $e->getMessage());
+        //      return ['status' => 'error', 'message' => 'Exception occurred updating stock location.'];
+        // }
     }
     /**
      * Logs a stock movement in the stock_movements table.

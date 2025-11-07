@@ -489,7 +489,7 @@ class Stocks_new extends CI_Controller
                 $this->form_validation->set_rules(
                     "batch_number", 
                     "Batch Number", 
-                    "required|trim|callback_check_batch_unique" // This rule calls your function
+                    "required|trim" // This rule calls your function
                 );
                 $this->form_validation->set_rules("expiry_date", "Expiry Date", "required");
                 $this->form_validation->set_rules("purchase_price", "Purchase Price", "required|numeric");
@@ -612,7 +612,7 @@ class Stocks_new extends CI_Controller
             $this->form_validation->set_rules(
                 "batch_number", 
                 "Batch Number", 
-                "required|trim|callback_check_batch_unique" // The callback works for updates too
+                "required|trim" // The callback works for updates too
             );
             $this->form_validation->set_rules("expiry_date", "Expiry Date", "required");
             $this->form_validation->set_rules("purchase_price", "Purchase Price", "required|numeric");

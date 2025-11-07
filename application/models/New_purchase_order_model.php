@@ -567,6 +567,70 @@ class New_purchase_order_model extends CI_Model {
         }
         return false; // Vendor not found
     }
+    public function is_po_fully_received($po_id)
+    {
+        // try {
+            // We select the sum of all remaining quantities
+            $this->db->select('SUM(quantity - quantity_received) as total_remaining');
+            $this->db->from('hms_new_purchase_order_items');
+            $this->db->where('po_id', $po_id);
+            $query = $this->db->get();
+            $result = $query->row();
+            if ($result && $result->total_remaining <= 0) {
+                return true;
+            } else {
+                return false;
+            }
+        // } catch (Exception $e) {
+        //     log_message('error', 'Error in is_po_fully_received: ' . $e->getMessage());
+        //     return false; // Fail safe: assume it's not received if error occurs
+        // }
+    }
+     public function get_received_stock_report($filters = []) {
+        // try {
+            $this->db->select('
+                sm.created_at as received_date,
+                sm.quantity_change,
+                sm.unit_price,
+                sm.total_value,
+                sm.reference_number as po_number,
+                po.vendor_number,
+                v.name as vendor_name,
+                c.center_name,
+                m.medicine_name,
+                m.medicine_code as item_number,
+                mb.batch_number
+            ');
+            $this->db->from('stock_movements sm');
+            // This is the main logic for your report
+            $this->db->where('sm.movement_type', 'PURCHASE');
+            // Joins to get the details
+            $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+            $this->db->join('hms_new_purchase_orders po', 'sm.reference_id = po.id AND sm.reference_type = "PURCHASE_ORDER"', 'left');
+            $this->db->join('hms_vendors v', 'po.vendor_number = v.ID', 'left');
+            $this->db->join('hms_centers c', 'sm.to_location_id = c.ID AND sm.to_location_type = "CENTER"', 'left');
+            if (!empty($filters['po_number'])) {
+                $this->db->like('sm.reference_number', $filters['po_number'], 'both');
+            }
+            if (!empty($filters['vendor_id'])) {
+                $this->db->where('po.vendor_number', $filters['vendor_id']);
+            }
+            if (!empty($filters['start_date'])) {
+                $this->db->where('DATE(sm.created_at) >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $this->db->where('DATE(sm.created_at) <=', $filters['end_date']);
+            }
+
+            $this->db->order_by('sm.created_at', 'DESC');
+            return $this->db->get()->result();
+
+        // } catch (Exception $e) {
+        //     log_message('error', 'Error in get_received_stock_report: ' . $e->getMessage());
+        //     return [];
+        // }
+    }
     // public function get_items_by_vendor($vendor_id) {
     //     if (empty($vendor_id)) {
     //         return [];

@@ -1133,194 +1133,364 @@ class New_purchase_orders extends CI_Controller {
     /**
      * Receives stock against a PO using the NEW inventory system.
      */
-    public function save_add_stock() {
-        $logg = checklogin();
-        if($logg['status'] == true) {
-            if ($this->input->post()) {
-                $po_id_from_get = $this->input->get('id'); 
-                $po_id_from_post = $this->input->post('po_id');
-                if (!$po_id_from_get && !$po_id_from_post) {
-                    $this->session->set_flashdata('error', 'Purchase Order ID is missing!');
-                    redirect('new_purchase_orders'); 
-                    return;
-                }
-                $po_id = $po_id_from_post ?: $po_id_from_get;
-                $this->form_validation->set_rules('receipt_date', 'Receipt Date', 'required|trim');
-                $this->form_validation->set_rules('reference', 'Invoice/Reference Number', 'required|trim');
-                $this->form_validation->set_rules('product_1', 'First Item', 'required');
-                if ($this->form_validation->run() == FALSE) {
-                     $this->session->set_flashdata('error', validation_errors());
-                     redirect('new_purchase_orders/new_add_stock/' . $po_id);
-                     return;
-                }
+    // public function save_add_stock() {
+    //     $logg = checklogin();
+    //     if($logg['status'] == true) {
+    //         if ($this->input->post()) {
+    //             $po_id_from_get = $this->input->get('id'); 
+    //             $po_id_from_post = $this->input->post('po_id');
+    //             if (!$po_id_from_get && !$po_id_from_post) {
+    //                 $this->session->set_flashdata('error', 'Purchase Order ID is missing!');
+    //                 redirect('new_purchase_orders'); 
+    //                 return;
+    //             }
+    //             $po_id = $po_id_from_post ?: $po_id_from_get;
+    //             $this->form_validation->set_rules('receipt_date', 'Receipt Date', 'required|trim');
+    //             $this->form_validation->set_rules('reference', 'Invoice/Reference Number', 'required|trim');
+    //             $this->form_validation->set_rules('product_1', 'First Item', 'required');
+    //             if ($this->form_validation->run() == FALSE) {
+    //                  $this->session->set_flashdata('error', validation_errors());
+    //                  redirect('new_purchase_orders/new_add_stock/' . $po_id);
+    //                  return;
+    //             }
                 
-                $purchase_order = $this->New_purchase_order_model->get_purchase_order_by_id($po_id);
-                if (!$purchase_order) {
-                    $this->session->set_flashdata('error', 'Purchase order not found!');
-                    redirect('new_purchase_orders'); return;
-                }
-                $vendor_id = $purchase_order['vendor_number'];
-                 if (!$vendor_id) {
-                     $this->session->set_flashdata('error', 'Vendor details not found in the new system for vendor number: ' . $purchase_order['vendor_number']);
-                     redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
-                 }
-                 $center_id = (int)$this->input->post('center_id');
-                if(isset($_SESSION['logged_central_stock_manager']['employee_number'])) {
-                 $created_by_id = $this->employee_detail_number($_SESSION['logged_central_stock_manager']['employee_number'])['ID'] ?? null; // Use ID directly if available
-                 if (!$created_by_id) {
-                      $this->session->set_flashdata('error', 'Could not determine user ID.');
-                      redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
-                 }
-                } else {
-                     $this->session->set_flashdata('error', 'User not logged in as central stock manager.');
-                     redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
-                }
+    //             $purchase_order = $this->New_purchase_order_model->get_purchase_order_by_id($po_id);
+    //             if (!$purchase_order) {
+    //                 $this->session->set_flashdata('error', 'Purchase order not found!');
+    //                 redirect('new_purchase_orders'); return;
+    //             }
+    //             $vendor_id = $purchase_order['vendor_number'];
+    //              if (!$vendor_id) {
+    //                  $this->session->set_flashdata('error', 'Vendor details not found in the new system for vendor number: ' . $purchase_order['vendor_number']);
+    //                  redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
+    //              }
+    //              $center_id = (int)$this->input->post('center_id');
+    //             if(isset($_SESSION['logged_central_stock_manager']['employee_number'])) {
+    //              $created_by_id = $this->employee_detail_number($_SESSION['logged_central_stock_manager']['employee_number'])['ID'] ?? null; // Use ID directly if available
+    //              if (!$created_by_id) {
+    //                   $this->session->set_flashdata('error', 'Could not determine user ID.');
+    //                   redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
+    //              }
+    //             } else {
+    //                  $this->session->set_flashdata('error', 'User not logged in as central stock manager.');
+    //                  redirect('new_purchase_orders/new_add_stock/' . $po_id); return;
+    //             }
 
-                // --- Handle File Uploads ---
-                if(!empty($_FILES['receipt_files']['name'][0])) {
-                    $uploaded_files_info = $this->handleFileUploads();
-                }
-                $file_names_string = !empty($uploaded_files_info) ? json_encode($uploaded_files_info) : null;
-                // --- Start Transaction ---
-                $this->db->trans_start();
+    //             // --- Handle File Uploads ---
+    //             if(!empty($_FILES['receipt_files']['name'][0])) {
+    //                 $uploaded_files_info = $this->handleFileUploads();
+    //             }
+    //             $file_names_string = !empty($uploaded_files_info) ? json_encode($uploaded_files_info) : null;
+    //             // --- Start Transaction ---
+    //             $this->db->trans_start();
 
-                $success_count = 0;
-                $processed_items = 0;
-                $error_messages = [];
-                $i = 1;
-                while ($this->input->post('product_' . $i)) { // Loop through form items
-                    $medicine_id = (int)$this->input->post('product_' . $i); // Assuming this is medicines.id
-                    $qty_receiving = (float)($this->input->post('qty_receiving_' . $i) ?: 0);
-                    $free_qty = (float)($this->input->post('free_qty_' . $i) ?: 0);
-                    $batch_number = trim($this->input->post('batch_number_' . $i));
-                    $expiry_date = trim($this->input->post('expiry_date_' . $i));
-                    $purchase_price = (float)($this->input->post('unit_price_' . $i) ?: 0); // Actual price paid
-                    $mrp = (float)($this->input->post('mrp_' . $i) ?: 0); // Need MRP - Get from form or calc default
-                    $selling_price = (float)($this->input->post('selling_price_' . $i) ?: $$mrp); // Need selling price - Get from form or calc default
+    //             $success_count = 0;
+    //             $processed_items = 0;
+    //             $error_messages = [];
+    //             $i = 1;
+    //             while ($this->input->post('product_' . $i)) { 
+    //                 $medicine_id = (int)$this->input->post('product_' . $i); 
+    //                 $qty_receiving = (float)($this->input->post('qty_receiving_' . $i) ?: 0);
+    //                 $free_qty = (float)($this->input->post('free_qty_' . $i) ?: 0);
+    //                 $batch_number = trim($this->input->post('batch_number_' . $i));
+    //                 $expiry_date = trim($this->input->post('expiry_date_' . $i));
+    //                 $purchase_price = (float)($this->input->post('unit_price_' . $i) ?: 0);
+    //                 $tax_percentage = (float)($this->input->post('tax_percentage_' . $i) ?: 0);
+    //                 $mrp = (float)($this->input->post('mrp_' . $i) ?: 0); 
+    //                 $purchase_price_with_tax = $purchase_price + ($purchase_price * ($tax_percentage / 100));
+    //                 $selling_price = (float)($this->input->post('selling_price_' . $i) ?: $mrp); 
+    //                 $total_received = $qty_receiving + $free_qty;
 
-                    $total_received = $qty_receiving + $free_qty;
+    //                 if ($medicine_id > 0 && $total_received > 0 && !empty($batch_number) && !empty($expiry_date) && $purchase_price >= 0) {
+    //                     $processed_items++;
 
-                    if ($medicine_id > 0 && $total_received > 0 && !empty($batch_number) && !empty($expiry_date) && $purchase_price >= 0) {
-                        $processed_items++;
+    //                     // Prepare data for medicine_batches table
+    //                     $batch_data = [
+    //                         "medicine_id"       => $medicine_id,
+    //                         "vendor_id"         => $vendor_id,
+    //                         "batch_number"      => $batch_number,
+    //                         "manufacturing_date"=> $this->input->post("mfg_date_" . $i) ?: NULL, // Add if you have this field
+    //                         "expiry_date"       => $expiry_date,
+    //                         "purchase_price"    => $purchase_price_with_tax,
+    //                         "selling_price"     => $selling_price, // Ensure you have this value
+    //                         "mrp"               => $mrp,           // Ensure you have this value
+    //                         "quantity_purchased"=> $total_received,
+    //                         "quantity_remaining"=> $total_received, // Initially, remaining = purchased
+    //                         "purchase_date"     => $this->input->post('receipt_date'), // Date stock was received
+    //                         "invoice_number"    => $this->input->post('reference'),    // Invoice/Ref number
+    //                         "invoice_date"      => $this->input->post('invoice_date') ?: $this->input->post('receipt_date'), // Add invoice date field if possible
+    //                         "quality_status"    => "APPROVED", // Or 'PENDING' if QC needed
+    //                         "batch_status"      => "ACTIVE",
+    //                         "remarks"           => $this->input->post('comments_' . $i), // Item specific comments
+    //                         "created_by"        => $created_by_id,
+    //                         "created_at"        => date("Y-m-d H:i:s")
+    //                     ];
+    //                     $add_batch_result = $this->Stock_model_new->add_purchase_batch($batch_data);
+    //                     if ($add_batch_result['status'] === 'success') {
+    //                         $new_batch_id = $add_batch_result['batch_id'];
+    //                         $stock_data = [
+    //                             'batch_id' => $new_batch_id,
+    //                             'center_id' => $center_id,
+    //                             'quantity' => $total_received,
+    //                             'department' => $this->input->post('department'),
+    //                             'status'   => 'ACTIVE' // from center_stocks table
+    //                         ];
+    //                         $add_stock_result = $this->Stock_model_new->add_stock_to_location($stock_data);
+    //                         if ($add_stock_result['status'] === 'success') {
+    //                             // Log the stock movement
+    //                             $movement_data = [
+    //                                 "batch_id"           => $new_batch_id,
+    //                                 "movement_type"      => "PURCHASE",
+    //                                 "from_location_type" => "VENDOR",
+    //                                 "from_location_id"   => $vendor_id,
+    //                                 "to_location_type"   => "CENTER", 
+    //                                 "to_location_id"     => $center_id,
+    //                                 "quantity_before"    => 0, 
+    //                                 "quantity_change"    => $total_received,
+    //                                 "quantity_after"     => $add_stock_result['quantity_after'], 
+    //                                 "unit_price"         => $purchase_price,
+    //                                 "total_value"        => $purchase_price * $total_received,
+    //                                 "reference_type"     => "PURCHASE_RECEIPT",
+    //                                 "reference_id"       => $po_id, 
+    //                                 "reference_number"   => $this->input->post('reference'),
+    //                                 "remarks"            => ($i == 1 && $file_names_string) ? "Files: ".$file_names_string : null,
+    //                                 "created_by"         => $created_by_id,
+    //                                 "created_at"         => date("Y-m-d H:i:s")
+    //                             ];
+    //                             if ($this->Stock_model_new->log_stock_movement($movement_data)) {
+    //                                 $success_count++;
+    //                             } else {
+    //                                  $error_messages[] = "Item #{$i}: Failed to log stock movement for Batch ID {$new_batch_id}.";
+    //                                  $this->db->trans_rollback(); // Critical error, stop everything
+    //                                  break; // Exit the loop
+    //                             }
+    //                         } else {
+    //                              $error_messages[] = "Item #{$i}: Failed to add stock to center for Batch ID {$new_batch_id}. Error: " . ($add_stock_result['message'] ?? 'Unknown');
+    //                              $this->db->trans_rollback(); break;
+    //                         }
+    //                     } else {
+    //                         // Batch insertion failed (e.g., unique key violation)
+    //                          $error_messages[] = "Item #{$i} (Batch: {$batch_number}): Failed to add batch record. Error: " . ($add_batch_result['message'] ?? 'Unknown');
+    //                          // Decide if you want to stop or continue processing other items
+    //                          // $this->db->trans_rollback(); break; // Uncomment to stop on first batch error
+    //                     }
+    //                 } else {
+    //                      // Invalid data for this item row
+    //                      if ($medicine_id > 0 && $total_received > 0) { // Only log error if it seemed like a valid attempt
+    //                         $error_messages[] = "Item #{$i}: Invalid data provided (Batch No, Expiry, or Price missing/invalid).";
+    //                      }
+    //                 }
+    //                 $i++;
+    //             } // End while loop
 
-                        // Prepare data for medicine_batches table
-                        $batch_data = [
-                            "medicine_id"       => $medicine_id,
-                            "vendor_id"         => $vendor_id,
-                            "batch_number"      => $batch_number,
-                            "manufacturing_date"=> $this->input->post("mfg_date_" . $i) ?: NULL, // Add if you have this field
-                            "expiry_date"       => $expiry_date,
-                            "purchase_price"    => $purchase_price,
-                            "selling_price"     => $selling_price, // Ensure you have this value
-                            "mrp"               => $mrp,           // Ensure you have this value
-                            "quantity_purchased"=> $total_received,
-                            "quantity_remaining"=> $total_received, // Initially, remaining = purchased
-                            "purchase_date"     => $this->input->post('receipt_date'), // Date stock was received
-                            "invoice_number"    => $this->input->post('reference'),    // Invoice/Ref number
-                            "invoice_date"      => $this->input->post('invoice_date') ?: $this->input->post('receipt_date'), // Add invoice date field if possible
-                            "quality_status"    => "APPROVED", // Or 'PENDING' if QC needed
-                            "batch_status"      => "ACTIVE",
-                            "remarks"           => $this->input->post('comments_' . $i), // Item specific comments
-                            "created_by"        => $created_by_id,
-                            "created_at"        => date("Y-m-d H:i:s")
-                        ];
-                        $add_batch_result = $this->Stock_model_new->add_purchase_batch($batch_data);
-                        if ($add_batch_result['status'] === 'success') {
-                            $new_batch_id = $add_batch_result['batch_id'];
-                            // Add stock to the specific center
-                            $stock_data = [
-                                'batch_id' => $new_batch_id,
-                                'center_id' => $center_id,
-                                'quantity' => $total_received,
-                                'department' => $this->input->post('department'),
-                                'status'   => 'ACTIVE' // from center_stocks table
-                            ];
-                            $add_stock_result = $this->Stock_model_new->add_stock_to_location($stock_data);
-                            if ($add_stock_result['status'] === 'success') {
-                                // Log the stock movement
-                                $movement_data = [
-                                    "batch_id"           => $new_batch_id,
-                                    "movement_type"      => "PURCHASE",
-                                    "from_location_type" => "VENDOR",
-                                    "from_location_id"   => $vendor_id,
-                                    "to_location_type"   => "CENTER", 
-                                    "to_location_id"     => $center_id,
-                                    "quantity_before"    => 0, 
-                                    "quantity_change"    => $total_received,
-                                    "quantity_after"     => $add_stock_result['quantity_after'], 
-                                    "unit_price"         => $purchase_price,
-                                    "total_value"        => $purchase_price * $total_received,
-                                    "reference_type"     => "PURCHASE_RECEIPT",
-                                    "reference_id"       => $po_id, 
-                                    "reference_number"   => $this->input->post('reference'),
-                                    "remarks"            => ($i == 1 && $file_names_string) ? "Files: ".$file_names_string : null,
-                                    "created_by"         => $created_by_id,
-                                    "created_at"         => date("Y-m-d H:i:s")
-                                ];
-                                if ($this->Stock_model_new->log_stock_movement($movement_data)) {
-                                    $success_count++;
-                                } else {
-                                     $error_messages[] = "Item #{$i}: Failed to log stock movement for Batch ID {$new_batch_id}.";
-                                     $this->db->trans_rollback(); // Critical error, stop everything
-                                     break; // Exit the loop
-                                }
-                            } else {
-                                 $error_messages[] = "Item #{$i}: Failed to add stock to center for Batch ID {$new_batch_id}. Error: " . ($add_stock_result['message'] ?? 'Unknown');
-                                 $this->db->trans_rollback(); break;
-                            }
-                        } else {
-                            // Batch insertion failed (e.g., unique key violation)
-                             $error_messages[] = "Item #{$i} (Batch: {$batch_number}): Failed to add batch record. Error: " . ($add_batch_result['message'] ?? 'Unknown');
-                             // Decide if you want to stop or continue processing other items
-                             // $this->db->trans_rollback(); break; // Uncomment to stop on first batch error
-                        }
-                    } else {
-                         // Invalid data for this item row
-                         if ($medicine_id > 0 && $total_received > 0) { // Only log error if it seemed like a valid attempt
-                            $error_messages[] = "Item #{$i}: Invalid data provided (Batch No, Expiry, or Price missing/invalid).";
-                         }
-                    }
-                    $i++;
-                } // End while loop
-
-                // --- Complete Transaction ---
-                if (!empty($error_messages)) {
-                     // Rollback already happened if it was critical, otherwise maybe commit successful ones?
-                     // For simplicity now, if any error occurred that didn't stop the loop, we roll back.
-                     $this->db->trans_rollback();
-                     $this->session->set_flashdata('error', "Stock addition failed. Errors: <br>" . implode("<br>", $error_messages));
-                } else {
-                    $this->db->trans_complete();
-                    if ($this->db->trans_status() === FALSE) {
-                        $this->session->set_flashdata('error', 'Database transaction failed during stock addition.');
-                         if (!empty($uploaded_files_info)) {
-                             foreach($uploaded_files_info as $file) {
-                                 if(file_exists($upload_path . $file['stored_name'])) unlink($upload_path . $file['stored_name']);
-                             }
-                         }
-                    } else {
-                        if ($success_count == $processed_items && $processed_items > 0) {
-                             $this->session->set_flashdata('success', "Stock added successfully for all {$processed_items} received item(s)!");
-                             // Optionally update the OLD PO status here if needed
-                             // $this->New_purchase_order_model->update_purchase_order_status($po_id, 'received');
-                        } elseif ($success_count > 0) {
-                             $this->session->set_flashdata('warning', "Stock added successfully for {$success_count} out of {$processed_items} received item(s). Some items may have failed.");
-                        } else {
-                             $this->session->set_flashdata('error', 'Failed to add stock for any items processed. Please check errors.');
-                        }
-                    }
-                }
-                redirect('stocks_new/batches'); // Redirect to batch list or PO list
-            } else {
-                 // Not a POST request
-                 redirect('new_purchase_orders');
-            }
-        } else {
-            // Not logged in
-            redirect(base_url());
+    //             // --- Complete Transaction ---
+    //             if (!empty($error_messages)) {
+    //                  // Rollback already happened if it was critical, otherwise maybe commit successful ones?
+    //                  // For simplicity now, if any error occurred that didn't stop the loop, we roll back.
+    //                  $this->db->trans_rollback();
+    //                  $this->session->set_flashdata('error', "Stock addition failed. Errors: <br>" . implode("<br>", $error_messages));
+    //             } else {
+    //                 $this->db->trans_complete();
+    //                 if ($this->db->trans_status() === FALSE) {
+    //                     $this->session->set_flashdata('error', 'Database transaction failed during stock addition.');
+    //                      if (!empty($uploaded_files_info)) {
+    //                          foreach($uploaded_files_info as $file) {
+    //                              if(file_exists($upload_path . $file['stored_name'])) unlink($upload_path . $file['stored_name']);
+    //                          }
+    //                      }
+    //                 } else {
+    //                     if ($success_count == $processed_items && $processed_items > 0) {
+    //                          $this->session->set_flashdata('success', "Stock added successfully for all {$processed_items} received item(s)!");
+    //                          // Optionally update the OLD PO status here if needed
+    //                          // $this->New_purchase_order_model->update_purchase_order_status($po_id, 'received');
+    //                     } elseif ($success_count > 0) {
+    //                          $this->session->set_flashdata('warning', "Stock added successfully for {$success_count} out of {$processed_items} received item(s). Some items may have failed.");
+    //                     } else {
+    //                          $this->session->set_flashdata('error', 'Failed to add stock for any items processed. Please check errors.');
+    //                     }
+    //                 }
+    //             }
+    //             redirect('stocks_new/batches'); // Redirect to batch list or PO list
+    //         } else {
+    //              // Not a POST request
+    //              redirect('new_purchase_orders');
+    //         }
+    //     } else {
+    //         // Not logged in
+    //         redirect(base_url());
+    //     }
+    // }
+    public function save_add_stock() 
+    {
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+            $this->session->set_flashdata('error_message', 'You must be logged in to perform this action.');
+            redirect('login'); 
+            return;
         }
+        // Get main PO data from hidden fields
+        $po_id = $this->input->post('po_id');
+        $po_number = $this->input->post('po_number');
+        $vendor_id = $this->input->post('vendor_number'); // This is the hms_vendors.vendor_number
+        $center_id = $this->input->post('center_id'); // This is the hms_centers.ID
+        $receive_by = $this->input->post('receive_by');
+        $receipt_date = $this->input->post('receipt_date');
+        // Get the logged-in user's ID (You must implement this)
+        // $created_by_id = $this->get_employee_id_from_session(); 
+        $created_by_id = $this->Stock_model_new->get_employee_id_from_number($_SESSION['logged_central_stock_manager']['employee_number']); // Placeholder - FIX THIS
+        if (empty($po_id) || empty($center_id)) {
+            $this->session->set_flashdata('error', 'Error: Missing PO ID or Center ID.');
+            redirect('new_purchase_orders');
+            return;
+        }
+        if (!$vendor_id) {
+            $this->session->set_flashdata('error', 'Error: Invalid Vendor.');
+            redirect('new_purchase_orders/save_add_stock/' . $po_id);
+            return;
+        }
+        // --- Handle File Uploads ---
+        $uploaded_files_info = [];
+        if(!empty($_FILES['receipt_files']['name'][0])) {
+            $uploaded_files_info = $this->handleFileUploads(); 
+            if(isset($uploaded_files_info['error'])) {
+                $this->session->set_flashdata('error', $uploaded_files_info['error']);
+                redirect('new_purchase_orders/save_add_stock/' . $po_id);
+                return;
+            }
+        }
+        $file_names_string = !empty($uploaded_files_info) ? json_encode($uploaded_files_info) : null;
+        // --- End File Uploads ---
+        $items_processed = 0;
+        $items_failed = 0;
+        $error_messages = [];
+        // Loop through all possible item rows from the form
+        $row_counter = 1;
+        $max_rows = 20;   
+        while ($row_counter <= $max_rows) {
+            $product_id = $this->input->post('product_' . $row_counter);
+            $po_item_id = $this->input->post('po_item_id_' . $row_counter);
+            if (empty($product_id) && empty($po_item_id)) {
+                $next_exists = $this->input->post('product_' . ($row_counter + 1));
+                if (empty($next_exists)) {
+                    break;
+                } else {
+                    $row_counter++;
+                    continue;
+                }
+            }
+            $qty_receiving = (float)$this->input->post('qty_receiving_' . $row_counter);
+            if ($qty_receiving <= 0) {
+                $row_counter++;
+                continue; // skip rows with no received quantity
+            }
+
+
+            // Only process rows where quantity is being received
+            if ($qty_receiving > 0) {
+                $item_data = [
+                    'po_item_id'       => $po_item_id,
+                    'medicine_id'      => $this->input->post('product_' . $row_counter),
+                    'batch_number'     => $this->input->post('batch_number_' . $row_counter),
+                    'expiry_date'      => $this->input->post('expiry_date_' . $row_counter),
+                    'quantity'         => $qty_receiving,
+                    'free_qty'         => (float)$this->input->post('free_qty_' . $row_counter),
+                    'purchase_price'   => (float)$this->input->post('unit_price_' . $row_counter),
+                    'selling_price'    => 0, // This will be set by the model
+                    'mrp'              => (float)$this->input->post('mrp_' . $row_counter),
+                    'discount_percent' => (float)$this->input->post('discount_' . $row_counter),
+                    'tax_percent'      => (float)$this->input->post('tax_percentage_' . $row_counter),
+                    'tax_amount'       => (float)$this->input->post('tax_amount_' . $row_counter),
+                    'total_amount'     => (float)$this->input->post('amount_' . $row_counter),
+                    'vendor_id'        => $vendor_id,
+                    'po_id'            => $po_id,
+                    'po_number'        => $po_number,
+                    'invoice_number'   => $this->input->post('reference'), 
+                    'department'       => $this->input->post('department'),
+                    'invoice_date'     => $receipt_date,
+                    'receive_date'     => $this->input->post('date_receiving'),
+                    'remarks'          => $this->input->post('comments_' . $row_counter),
+                    'created_by'       => $created_by_id,
+                    'center_id'        => $center_id, // The destination center
+                    'uploaded_files'   => ($row_counter == 1) ? $file_names_string : null // Attach files to first item's log
+                ];
+                // *** THIS IS THE FIX ***
+                // Call the new, smart function from Stock_model_new
+                $result = $this->Stock_model_new->receive_stock_item($item_data);
+                if ($result['status'] == 'success') {
+                    $items_processed++;
+                } else {
+                    $items_failed++;
+                    $error_messages[] = "Item (Medicine ID {$item_data['medicine_id']}): " . $result['message'];
+                    log_message('error', 'Failed to process item: ' . $item_data['medicine_id'] . '. Error: ' . $result['message']);
+                }
+            }
+            $row_counter++;
+        }
+        if ($items_processed > 0 && $items_failed == 0) {
+            $this->session->set_flashdata('success', "Successfully received {$items_processed} items.");
+        } elseif ($items_processed > 0 && $items_failed > 0) {
+            $this->session->set_flashdata('error', "Partially processed: {$items_processed} items succeeded, {$items_failed} items failed. Errors: <br>" . implode("<br>", $error_messages));
+        } elseif ($items_failed > 0) {
+            $this->session->set_flashdata('error', "Error: All {$items_failed} items failed to process. Errors: <br>" . implode("<br>", $error_messages));
+        } else {
+            $this->session->set_flashdata('error', 'No items were marked for receiving.');
+        }
+
+        redirect('new_purchase_orders');
     }
     
+
+    public function received_stock_report() {
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+             redirect(base_url());
+             die();
+        }
+
+        // Get filters from URL
+        $filters = [
+            'po_number'  => $this->input->get('po_number'),
+            'vendor_id'  => $this->input->get('vendor_id'),
+            'start_date' => $this->input->get('start_date'),
+            'end_date'   => $this->input->get('end_date')
+        ];
+
+        // Get data from model
+        $data['received_items'] = $this->New_purchase_order_model->get_received_stock_report($filters);
+        
+        // Get data for filter dropdowns
+        $data['vendors'] = $this->get_vendors();
+        $data['filters'] = $filters; // Pass filters to the view
+
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("new_purchase_orders/received_stock_report", $data); 
+        $this->load->view($template["footer"]);
+    }
+
+
+    public function items_by_vendor_json() {
+        $logg = checklogin();
+        if($logg['status'] != true) {
+            return $thisoutput->set_content_type('application/json')
+                ->set_status_header(401) // Unauthorized
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+        }
+        $vendor_id = $this.input->get('vendor_number'); // This is the VENDOR ID (e.g. 73)
+        if (empty($vendor_id)) {
+            return $this->output->set_content_type('application/json')
+                ->set_status_header(400) // Bad Request
+                ->set_output(json_encode(['status' => 'error', 'message' => 'vendor_id is required']));
+        }
+        $items = $this->New_purchase_order_model->get_medicines_by_vendor_for_po($vendor_id);
+        return $this->output->set_content_type('application/json')
+            ->set_status_header(200) // OK
+            ->set_output(json_encode(['status' => 'success', 'data' => $items]));
+    }
+    
+    /**
+     * This function handles the file uploads.
+
     /**
      * Get or create medicine in stocks_new module
      */

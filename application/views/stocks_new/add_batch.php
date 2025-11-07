@@ -112,26 +112,25 @@
                             
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label class="col-sm-4 control-label">Purchase Price *</label>
+                                    <label class="col-sm-4 control-label">Purchase Price (with tax amount) *</label>
                                     <div class="col-sm-8">
-                                        <input type="number" name="purchase_price" id="purchase_price" class="form-control" placeholder="Enter purchase price per unit" value="<?php echo set_value('purchase_price'); ?>" step="0.01" min="0" required>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label class="col-sm-4 control-label">Selling Price *</label>
-                                    <div class="col-sm-8">
-                                        <input type="number" name="selling_price" id="selling_price" class="form-control" placeholder="Enter selling price per unit" value="<?php echo set_value('selling_price'); ?>" step="0.01" min="0" required>
+                                        <input type="number" name="purchase_price" id="purchase_price" class="form-control" placeholder="Enter purchase price per unit with tax" value="<?php echo set_value('purchase_price'); ?>" step="0.01" min="0" required>
                                     </div>
                                 </div>
                                 
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">MRP</label>
                                     <div class="col-sm-8">
-                                        <input type="number" name="mrp" class="form-control" placeholder="Enter MRP" value="<?php echo set_value('mrp'); ?>" step="0.01" min="0">
+                                        <input type="number" name="mrp" id="mrp" class="form-control" placeholder="Enter MRP" value="<?php echo set_value('mrp'); ?>" step="0.01" min="0">
                                     </div>
                                 </div>
                                 
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label">Selling Price(mrp price) *</label>
+                                    <div class="col-sm-8">
+                                        <input type="number" name="selling_price" id="selling_price" class="form-control" placeholder="Enter selling price per unit" value="<?php echo set_value('selling_price'); ?>" step="0.01" min="0" required>
+                                    </div>
+                                </div>
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Quantity Purchased *</label>
                                     <div class="col-sm-8">
@@ -315,16 +314,20 @@ $(document).ready(function() {
             });
         }
     });
-    $('#purchase_price').on('keyup change', function() {
+    $('#mrp').on('keyup change', function() {
         calculateSellingPrice();
     });
     function calculateSellingPrice() {
-        var purchasePrice = parseFloat($('#purchase_price').val());
+        // var purchasePrice = parseFloat($('#purchase_price').val());
+        var mrp = parseFloat($('#mrp').val());
+        console.log(mrp);
         var gstRate = parseFloat($('#gst_rate').val());
-        if (!isNaN(purchasePrice) && !isNaN(gstRate)) {
-            var taxAmount = purchasePrice * (gstRate / 100);
-            var sellingPrice = purchasePrice + taxAmount;
-            $('#selling_price').val(sellingPrice.toFixed(2));
+        if (!isNaN(mrp)) {
+        // if (!isNaN(mrp) && !isNaN(gstRate)) {
+            // var taxAmount = mrp * (gstRate / 100);
+            // var sellingPrice = mrp;
+            // var sellingPrice = purchasePrice + taxAmount;
+            $('#selling_price').val(mrp.toFixed(2));
         } else {
             $('#selling_price').val('');
         }

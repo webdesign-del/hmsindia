@@ -128,12 +128,13 @@
                   </a>
                <?php endif; ?>
                
-               <?php if ($purchase_order['status'] == 'completed'): ?>
+               
+               <!-- <?php if ($purchase_order['status'] == 'completed'): ?>
                   <a href="<?php echo base_url('new_purchase_orders/new_add_stock/' . $purchase_order['id']); ?>" 
                      class="btn btn-success btn-lg">
                      <i class="fa fa-plus"></i> Add Stock
                   </a>
-               <?php endif; ?>
+               <?php endif; ?> -->
                
                <?php if ($purchase_order['status'] == 'pending' || $purchase_order['status'] == 'rejected'): ?>
                   <a href="<?php echo base_url('new_purchase_orders/edit/' . $purchase_order['id']); ?>" 
@@ -165,7 +166,8 @@
                                     <th>Sr.</th>
                                     <th>Item Name</th>
                                     <th>Item Number</th>
-                                    <th>Quantity</th>
+                                    <th>Quantity Order</th>
+                                    <th>Quantity Received</th>
                                     <th>Batch</th>
                                     <th>Price</th>
                                     <th>Vendor Price</th>
@@ -185,6 +187,7 @@
                                        <td><?php echo $item['item_name']; ?></td>
                                        <td><?php echo $item['item_number']; ?></td>
                                        <td><?php echo $item['quantity']; ?></td>
+                                       <td><?php echo $item['quantity_received']; ?></td>
                                        <td><?php echo $item['batch_number']; ?></td>
                                        <td>₹<?php echo number_format($item['price'], 2); ?></td>
                                        <td>₹<?php echo number_format($item['vendor_price'], 2); ?></td>

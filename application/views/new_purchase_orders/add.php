@@ -167,7 +167,7 @@
                                             value="1" min="1" onchange="updateTotal(1)">
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control" name="consumables_batch_number_1" id="consumables_batch_number_1" readonly>
+                                        <input type="text" class="form-control" name="consumables_batch_number_1" id="consumables_batch_number_1">
                                     </td>
                                     <!-- <td>
                                         <input type="number" class="form-control" name="consumables_price_1" id="consumables_price_1" 
@@ -291,7 +291,7 @@ function addNewRow() {
                     value="1" min="1" onchange="updateTotal(${rowCounter})">
             </td>
             <td>
-                <input type="text" class="form-control" name="consumables_batch_number_${rowCounter}" id="consumables_batch_number_${rowCounter}" readonly>
+                <input type="text" class="form-control" name="consumables_batch_number_${rowCounter}" id="consumables_batch_number_${rowCounter}" >
             </td>
             <td>
                 <input type="number" class="form-control" name="consumables_vendor_price_${rowCounter}" id="consumables_vendor_price_${rowCounter}" 
