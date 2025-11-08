@@ -107,8 +107,8 @@
                                         <th>Vendor</th>
                                         <th>Expiry Date</th>
                                         <th>Days Left</th>
-                                        <th>Purchase Price</th>
-                                        <th>Selling Price</th>
+                                        <th>Vendor Price with gst</th>
+                                        <th>Mrp</th>
                                         <th>Quantity</th>
                                         <th>Status</th>
                                         <th>Quality</th>
