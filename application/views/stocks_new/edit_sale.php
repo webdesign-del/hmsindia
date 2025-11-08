@@ -281,7 +281,62 @@
                 </div>
             </div>
             
-            <!-- ... Sale Actions and FEFO Info ... -->
+               <!-- Sale Actions -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-cog"></i> Sale Actions
+                        </div>
+                        <div class="panel-body">
+                            <?php if($sale->status == 'DRAFT'): ?>
+                                <?php if(!empty($sale_items)): ?>
+                                    <a href="<?php echo base_url('stocks_new/confirm_sale/' . $sale->id); ?>" 
+                                    class="btn btn-success" 
+                                    onclick="return confirm('Are you sure you want to confirm this sale? This will reduce stock using FEFO.')">
+                                        <i class="fa fa-check"></i> Confirm Sale
+                                    </a>
+                                <?php else: ?>
+                                    <button class="btn btn-success" disabled>
+                                        <i class="fa fa-check"></i> Confirm Sale (Add items first)
+                                    </button>
+                                <?php endif; ?>
+                            <?php elseif($sale->status == 'CONFIRMED'): ?>
+                                <span class="badge badge-success">Sale confirmed and stock reduced using FEFO</span>
+                            <?php endif; ?>
+                            
+                            <a href="<?php echo base_url('stocks_new/print_sale/' . $sale->id); ?>" target="_blank" class="btn btn-info">
+                                <i class="fa fa-print"></i> Print Bill
+                            </a>
+                            
+                            <a href="<?php echo base_url('stocks_new/sales'); ?>" class="btn btn-default">
+                                <i class="fa fa-arrow-left"></i> Back to Sales
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FEFO Information -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <i class="fa fa-info-circle"></i> FEFO Sale Process
+                        </div>
+                        <div class="panel-body">
+                            <p><strong>FEFO (First Expiry First Out)</strong> ensures that batches with the earliest expiry dates are sold first.</p>
+                            <ul>
+                                <li>Batches are automatically sorted by expiry date (earliest first)</li>
+                                <li>Only available stock in the selected center is shown</li>
+                                <li>System prevents sale of expired medicines</li>
+                                <li>Complete traceability maintained for each batch sold</li>
+                                <li>Stock is automatically reduced when sale is confirmed</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
         </div>
     </div>

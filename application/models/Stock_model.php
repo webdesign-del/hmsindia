@@ -2199,16 +2199,13 @@ class Stock_model extends CI_Model
 	function get_center_stocks($start_date, $end_date, $generic_name, $item_name){
 		//$investigation_result = array();
 		$conditions = '';
-		
 		if (!empty($generic_name)){
 			$conditions .= " and generic_name like '%$generic_name%'";
 		}
 		if (!empty($item_name)){
 			$conditions .= " and item_name like '%$item_name%'";
 		}
-		
 		if (!empty($start_date) && !empty($end_date)){
-			//$conditions .= " and on_date >='$start_date' and  on_date <= '$end_date'";
 			$conditions .= " and expiry_day between '".$start_date."' AND '".$end_date."' ";
 		}
 		else if (!empty($start_date) && empty($end_date)){
@@ -2217,7 +2214,6 @@ class Stock_model extends CI_Model
 		else if (empty($start_date) && !empty($end_date)){
 			$conditions .= " and expiry_day='$end_date'";
 		}
-		
 		if($_SESSION['logged_stock_manager']['center']){
 	    $investigation_sql = "Select * from ".$this->config->item('db_prefix')."center_stocks where center_number='".$_SESSION['logged_stock_manager']['center']."' AND department='".$_SESSION['logged_stock_manager']['department']."' AND status='1' AND 1 ".$conditions."";
 		}else{

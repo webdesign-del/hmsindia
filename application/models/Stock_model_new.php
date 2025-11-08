@@ -7130,12 +7130,24 @@ class Stock_model_new extends CI_Model
             "reference_number"   => $item_data['po_number'],
             "remarks"            => $item_data['remarks'],
             "created_by"         => $created_by,
+            "uploaded_files"     => $item_data['uploaded_files'],
+            "receive_by"         => $item_data['receive_by'],
+            "receive_date"       => $item_data['receive_date']
         ];
         $this->db->insert("stock_movements", $movement_data);
         // Update the original PO item's received quantity
-        $this->db->where('id', $po_item_id);
-        $this->db->set('quantity_received', 'quantity_received + ' . (float)$quantity_received, FALSE);
-        $this->db->update('hms_new_purchase_order_items'); 
+        // $this->db->where('id', $po_item_id);
+        // $this->db->set('quantity_received', 'quantity_received + ' . (float)$quantity_received, FALSE);
+        // $this->db->set('uploaded_files', $item_data['uploaded_files']);
+        // $this->db->set('receive_by', $item_data['receive_by'], FALSE);
+        // $this->db->set('receive_date', $item_data['receive_date']);
+        // $this->db->update('hms_new_purchase_order_items'); 
+        $update = [
+            'quantity_received' => $item_data['quantity_received'] + $quantity_received,
+        ];
+        $this->db->where('id', $item_data['po_item_id']);
+        $this->db->update('hms_new_purchase_order_items', $update);
+
         // ***********************************************
         // 8. Complete the transaction
         $this->db->trans_complete();

@@ -77,7 +77,10 @@
                     <th>Item Code</th>
                     <th>Batch #</th>
                     <th>Qty Received</th>
-                    <th>Unit Price</th>
+                    <th>Vendor Price</th>
+                    <th>Vendor Price With GST</th>
+                    <th>Receive By</th>
+                    <th>file</th>
                     <th>Total Value</th>
                 </tr>
               </thead>
@@ -94,7 +97,33 @@
                             <td><?php echo htmlspecialchars($item->batch_number); ?></td>
                             <td><strong class="text-success"><?php echo $item->quantity_change; ?></strong></td>
                             <td><?php echo number_format($item->unit_price, 2); ?></td>
-                            <td><?php echo number_format($item->total_value, 2); ?></td>
+                            <td><?php echo number_format($item->vendor_price_with_tax, 2); ?></td>
+                            <td><?php echo htmlspecialchars($item->receive_by); ?></td>
+                            <td>
+                                 <?php 
+                                 if (!empty($item->uploaded_files)) {
+                                    $files = json_decode($item->uploaded_files); // decode JSON into array
+                                    
+                                    if (!empty($files)) {
+                                          foreach ($files as $file) {
+                                             $file_url = base_url($file);
+                                             $file_name = basename($file);
+
+                                             echo '<div style="margin-bottom:5px;">
+                                                      <a href="'.$file_url.'" target="_blank" style="color:#007bff; text-decoration:none;">View</a>
+                                                      |
+                                                      <a href="'.$file_url.'" download="'.$file_name.'" style="color:#28a745; text-decoration:none;">Download</a>
+                                                   </div>';
+                                          }
+                                    } else {
+                                          echo 'No files';
+                                    }
+                                 } else {
+                                    echo 'No files';
+                                 }
+                                 ?>
+                              </td>
+                             <td><?php echo number_format($item->total_value, 2); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>

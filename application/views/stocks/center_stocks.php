@@ -1,4 +1,4 @@
-  <?php  $all_method =&get_instance(); ?>
+  <?php   $all_method =&get_instance(); ?>
     <div class="col-md-12">
       <!-- Advanced Tables -->
       <div class="card">

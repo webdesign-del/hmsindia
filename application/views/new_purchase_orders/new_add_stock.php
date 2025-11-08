@@ -356,71 +356,72 @@ Batch Number	<div class="col-md-12">
      </div>
      
      <!-- File Upload Section (Hidden by default) -->
-     <div id="file-upload-section" class="form-section" style="display: none; margin-top: 0;">
-       <h4><i class="fa fa-upload"></i> Upload Multiple Receipt Files</h4>
-       <div class="row">
-          <div class="col-md-12">
-             <div class="form-group">
-                <label for="receipt_files">Receipt Files <span class="text-muted">(PDF, JPG, PNG - Max 5MB each, Multiple files allowed)</span></label>
-                <div class="file-upload-area" onclick="document.getElementById('receipt_files').click()">
-                   <div class="file-upload-content">
-                      <i class="fa fa-cloud-upload fa-3x"></i>
-                      <p>Click here to select multiple receipt files</p>
-                      <p class="text-muted">or drag and drop files here</p>
-                   </div>
-                </div>
-                <input type="file" class="form-control" id="receipt_files" name="receipt_files[]" multiple 
-                   accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelection(this)" style="display: none;">
-                
-                <!-- Existing Files Display -->
-                <div id="existing-files" class="mt-3">
-                   <?php if (isset($uploaded_files) && !empty($uploaded_files)): ?>
-                       <h5><i class="fa fa-files-o"></i> Previously Uploaded Files:</h5>
-                       <?php foreach ($uploaded_files as $index => $file): ?>
-                         <div class="file-item existing-file">
-                           <div style="display: flex; justify-content: space-between; align-items: center;">
-                              <span>
-                                 <i class="fa fa-file-<?php echo strtolower(pathinfo($file['original_name'], PATHINFO_EXTENSION)) == 'pdf' ? 'pdf' : 'image'; ?>-o"></i> 
-                                 <?php echo $file['original_name']; ?> 
-                                 <span class="text-muted">(<?php echo number_format($file['file_size'] / 1024, 2); ?> KB)</span>
-                                 <small class="text-muted">- Uploaded: <?php echo date('M d, Y H:i', strtotime($file['upload_date'])); ?></small>
-                              </span>
-                              <div>
-                                 <a href="<?php echo base_url('uploads/receipts/' . $file['stored_name']); ?>" 
-                                    target="_blank" class="btn btn-sm btn-info">
-                                    <i class="fa fa-eye"></i> View
-                                 </a>
-                                 <a href="<?php echo base_url('uploads/receipts/' . $file['stored_name']); ?>" 
-                                    download class="btn btn-sm btn-success">
-                                    <i class="fa fa-download"></i> Download
-                                 </a>
-                                 <button type="button" class="btn btn-sm btn-danger" onclick="removeExistingFile(<?php echo $index; ?>)">
-                                    <i class="fa fa-trash"></i> Remove
-                                 </button>
-                              </div>
-                           </div>
-                         </div>
-                       <?php endforeach; ?>
-                   <?php endif; ?>
-                </div>
-                
-                <!-- New Files Display -->
-                <div id="file-list" class="mt-3"></div>
-                
-                <!-- Upload Progress -->
-                <div id="upload-progress" class="mt-3" style="display: none;">
-                   <div class="progress">
-                      <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
-                   </div>
-                   <p class="text-center mt-2">Uploading files...</p>
-                </div>
-             </div>
-          </div>
-       </div>
-     </div>
+ 
      
      <form method="post" action="<?php echo base_url('new_purchase_orders/save_add_stock?id=' . $purchase_order['id']); ?>" id="purchase_receipt_form" enctype="multipart/form-data">
        <!-- Hidden fields for processing -->
+        <div id="file-upload-section" class="form-section" style="display: none; margin-top: 0;">
+        <h4><i class="fa fa-upload"></i> Upload Multiple Receipt Files</h4>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="receipt_files">Receipt Files <span class="text-muted">(PDF, JPG, PNG - Max 5MB each, Multiple files allowed)</span></label>
+                        <div class="file-upload-area" onclick="document.getElementById('receipt_files').click()">
+                        <div class="file-upload-content">
+                            <i class="fa fa-cloud-upload fa-3x"></i>
+                            <p>Click here to select multiple receipt files</p>
+                            <p class="text-muted">or drag and drop files here</p>
+                        </div>
+                        </div>
+                        <input type="file" class="form-control" id="receipt_files" name="receipt_files[]" multiple 
+                        accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelection(this)" style="display: none;">
+                        
+                        <!-- Existing Files Display -->
+                        <div id="existing-files" class="mt-3">
+                        <?php if (isset($uploaded_files) && !empty($uploaded_files)): ?>
+                            <h5><i class="fa fa-files-o"></i> Previously Uploaded Files:</h5>
+                            <?php foreach ($uploaded_files as $index => $file): ?>
+                                <div class="file-item existing-file">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span>
+                                        <i class="fa fa-file-<?php echo strtolower(pathinfo($file['original_name'], PATHINFO_EXTENSION)) == 'pdf' ? 'pdf' : 'image'; ?>-o"></i> 
+                                        <?php echo $file['original_name']; ?> 
+                                        <span class="text-muted">(<?php echo number_format($file['file_size'] / 1024, 2); ?> KB)</span>
+                                        <small class="text-muted">- Uploaded: <?php echo date('M d, Y H:i', strtotime($file['upload_date'])); ?></small>
+                                    </span>
+                                    <div>
+                                        <a href="<?php echo base_url('uploads/receipts/' . $file['stored_name']); ?>" 
+                                            target="_blank" class="btn btn-sm btn-info">
+                                            <i class="fa fa-eye"></i> View
+                                        </a>
+                                        <a href="<?php echo base_url('uploads/receipts/' . $file['stored_name']); ?>" 
+                                            download class="btn btn-sm btn-success">
+                                            <i class="fa fa-download"></i> Download
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="removeExistingFile(<?php echo $index; ?>)">
+                                            <i class="fa fa-trash"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                        </div>
+                        
+                        <!-- New Files Display -->
+                        <div id="file-list" class="mt-3"></div>
+                        
+                        <!-- Upload Progress -->
+                        <div id="upload-progress" class="mt-3" style="display: none;">
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <p class="text-center mt-2">Uploading files...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
        <input type="hidden" name="po_id" value="<?php echo $purchase_order['id']; ?>">
        <input type="hidden" name="po_number" value="<?php echo $purchase_order['po_number']; ?>">
        <input type="hidden" name="vendor_number" value="<?php echo $purchase_order['vendor_number']; ?>">
@@ -812,7 +813,81 @@ function updateAmount(rowId) {
     $('#tax_amount_' + rowId).val(taxAmount.toFixed(2));
     $('#amount_' + rowId).val(finalAmount.toFixed(2));
 }
+// ===================================================
+// 💡 START: ADD/REPLACE THIS FILE HANDLING CODE
+// ===================================================
+let newFileStore = new DataTransfer();
+function handleFileSelection(input) {
+    const fileListDiv = document.getElementById('file-list');
+    const newFiles = input.files;
+    for (let i = 0; i < newFiles.length; i++) {
+        newFileStore.items.add(newFiles[i]);
+    }
+    input.files = newFileStore.files;
+    renderNewFileList();
+}
 
+function renderNewFileList() {
+    const fileListDiv = document.getElementById('file-list');
+    fileListDiv.innerHTML = ''; // Clear the current list
+    if (newFileStore.files.length > 0) {
+        let listHtml = '<h5><i class="fa fa-file-plus-o"></i> New Files to Upload:</h5>';
+        
+        for (let i = 0; i < newFileStore.files.length; i++) {
+            const file = newFileStore.files[i];
+            const fileIcon = getFileIconClass(file.name);
+            const fileSize = formatFileSize(file.size);
+
+            listHtml += `
+                <div class="file-item new-file" id="new-file-${i}">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>
+                            <i class="fa ${fileIcon}"></i> 
+                            ${file.name}
+                            <span class="text-muted">(${fileSize})</span>
+                        </span>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeNewFile(${i})">
+                            <i class="fa fa-trash"></i> Remove
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        fileListDiv.innerHTML = listHtml;
+    }
+    updateTotalFileCount();
+}
+function removeNewFile(index) {
+    newFileStore.items.remove(index);
+    document.getElementById('receipt_files').files = newFileStore.files;
+    renderNewFileList();
+}
+function getFileIconClass(fileName) {
+    const extension = fileName.split('.').pop().toLowerCase();
+    if (extension === 'pdf') {
+        return 'fa-file-pdf-o';
+    }
+    if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+        return 'fa-file-image-o';
+    }
+    return 'fa-file-o'; // Default file icon
+}
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+/**
+ * Updates the total file count in the header button.
+ */
+function updateTotalFileCount() {
+    const existingFileCount = document.querySelectorAll('#existing-files .file-item').length;
+    const newFileCount = newFileStore.files.length;
+    document.getElementById('file-count').innerText = existingFileCount + newFileCount;
+}
 
 $(document).ready(function() {
     // Initialize date pickers (assuming jQuery UI is loaded)
@@ -908,5 +983,6 @@ $(document).ready(function() {
             updateAmount(<?php echo $i; ?>);
         <?php endfor; ?>
     <?php endif; ?>
+    updateTotalFileCount();
 });
 </script>

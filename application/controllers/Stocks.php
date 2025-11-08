@@ -839,7 +839,6 @@ class Stocks extends CI_Controller {
 		$logg = checklogin();
 		error_reporting(0);
 		if($logg['status'] == true){
-
 			$per_page = $this->input->get('per_page', true);
 			if(empty($per_page)){
 				$per_page = 0;
@@ -886,7 +885,6 @@ class Stocks extends CI_Controller {
 			
         	$data["links"] = $this->pagination->create_links();
 			$data['investigate_result'] = $this->stock_model->get_center_stocks_patination($config["per_page"], $per_page, $start_date, $end_date, $generic_name, $item_name);
-			//var_dump($data);die;
 			$data["billing_at"] = $center;
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;

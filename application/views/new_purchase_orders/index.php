@@ -174,32 +174,25 @@
                               </span>
                            </td>
                            <td>
-                                <?php
-                                $is_fully_received = false;
-                                if ($status == 'approved' || $status == 'completed') {
-                                    $is_fully_received = $all_method->New_purchase_order_model->is_po_fully_received($po['id']);
-                                }
-                                if ( ($status == 'approved' || $status == 'completed') && 
-                                     $user_role == 'central_stock_manager' && 
-                                     !$is_fully_received
-                                   ):
-                                ?>
+                                 <?php
+                                    $is_fully_received = false;
+                                    if ($status == 'approved' || $status == 'completed') {
+                                          $is_fully_received = $all_method->New_purchase_order_model->is_po_fully_received($po['id']);
+                                    }
+                                    if (($status == 'approved' || $status == 'completed') && $user_role == 'central_stock_manager' && !$is_fully_received):
+                                    ?>
                                     <a href="<?php echo base_url('new_purchase_orders/new_add_stock/' . (!empty($po['id']) ? $po['id'] : '0')); ?>" class="btn btn-info">
-                                        <i class="fa fa-file-text-o"></i>Add stocks
+                                       <i class="fa fa-file-text-o"></i>Add stocks
                                     </a>
-                                <?php 
-                                elseif ($is_fully_received): 
-                                ?>
-                                    <button class="btn btn-success" disabled title="All items for this PO have been received">
-                                        <i class="fa fa-check-circle"></i> Fully Received
-                                    </button>
-                                <?php 
-                                else: 
-                                ?>
-                                    <button class="btn btn-info" disabled title="Add Stock - Only available for approved/completed orders">
-                                        <i class="fa fa-file-text-o"></i>Add stocks
-                                    </button>
-                                <?php endif; ?>
+                                 <?php elseif ($is_fully_received): ?>
+                                       <button class="btn btn-success" disabled title="All items for this PO have been received">
+                                          <i class="fa fa-check-circle"></i> Fully Received
+                                       </button>
+                                 <?php else: ?>
+                                       <button class="btn btn-info" disabled title="Add Stock - Only available for approved/completed orders">
+                                          <i class="fa fa-file-text-o"></i>Add stocks
+                                       </button>
+                                 <?php endif; ?>
                            </td>   
                            <!-- <td>
                               <?php if ($status == 'completed' && $user_role == 'central_stock_manager'): ?>

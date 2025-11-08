@@ -105,8 +105,8 @@
                                     <th>Expiry Date</th>
                                     <th>Expiry Days</th>
                                     <th>Quantity</th>
-                                    <th>Purchase Price</th>
-                                    <th>Selling Price</th>
+                                    <th>Vendor Price With gst</th>
+                                    <th>Mrp</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>

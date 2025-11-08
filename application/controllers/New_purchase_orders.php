@@ -1093,43 +1093,7 @@ class New_purchase_orders extends CI_Controller {
     // }
 
     // Function to handle file uploads (keep your existing logic or adapt this)
-    private function handleFileUploads() {
-        $uploaded_files_info = [];
-        $upload_path = './uploads/receipts/'; 
-        if (!is_dir($upload_path)) {
-            mkdir($upload_path, 0777, TRUE);
-        }
-        $config['upload_path']   = $upload_path;
-        $config['allowed_types'] = 'pdf|jpg|jpeg|png';
-        $config['max_size']      = 5120; // 5MB
-        $config['encrypt_name']  = TRUE;
-        $this->load->library('upload', $config);
-        $files = $_FILES['receipt_files']; 
-        $count = count($files['name']);
-        for ($i = 0; $i < $count; $i++) {
-            $_FILES['userfile']['name']     = $files['name'][$i];
-            $_FILES['userfile']['type']     = $files['type'][$i];
-            $_FILES['userfile']['tmp_name'] = $files['tmp_name'][$i];
-            $_FILES['userfile']['error']    = $files['error'][$i];
-            $_FILES['userfile']['size']     = $files['size'][$i];
-            if ($this->upload->do_upload('userfile')) {
-                $upload_data = $this->upload->data();
-                $uploaded_files_info[] = [
-                    'original_name' => $files['name'][$i],
-                    'stored_name'   => $upload_data['file_name'],
-                    'file_type'     => $upload_data['file_type'],
-                    'file_size'     => $upload_data['file_size'] * 1024, // Size in bytes
-                    'upload_date'   => date('Y-m-d H:i:s')
-                 ];
-            } else {
-                 log_message('error', 'File Upload Error: '.$this->upload->display_errors('',''));
-                 $this->session->set_flashdata('error', 'Error uploading file: ' . $files['name'][$i] . ' - ' . $this->upload->display_errors('',''));
-                 redirect('stocks_new/new_add_stock/' . $this->input->get('id'));
-                 return;
-            }
-        }
-        return $uploaded_files_info; 
-    }
+  
     /**
      * Receives stock against a PO using the NEW inventory system.
      */
@@ -1320,6 +1284,44 @@ class New_purchase_orders extends CI_Controller {
     //         redirect(base_url());
     //     }
     // }
+      private function handleFileUploads() {
+        $uploaded_files_info = [];
+        $upload_path = './uploads/receipts/'; 
+        if (!is_dir($upload_path)) {
+            mkdir($upload_path, 0777, TRUE);
+        }
+        $config['upload_path']   = $upload_path;
+        $config['allowed_types'] = 'pdf|jpg|jpeg|png';
+        $config['max_size']      = 5120; // 5MB
+        $config['encrypt_name']  = TRUE;
+        $this->load->library('upload', $config);
+        $files = $_FILES['receipt_files']; 
+        $count = count($files['name']);
+        for ($i = 0; $i < $count; $i++) {
+            $_FILES['userfile']['name']     = $files['name'][$i];
+            $_FILES['userfile']['type']     = $files['type'][$i];
+            $_FILES['userfile']['tmp_name'] = $files['tmp_name'][$i];
+            $_FILES['userfile']['error']    = $files['error'][$i];
+            $_FILES['userfile']['size']     = $files['size'][$i];
+            if ($this->upload->do_upload('userfile')) {
+                $upload_data = $this->upload->data();
+                $uploaded_files_info[] = [
+                    'path'          => $upload_path . $upload_data['file_name'],
+                    'original_name' => $files['name'][$i],
+                    'stored_name'   => $upload_data['file_name'],
+                    'file_type'     => $upload_data['file_type'],
+                    'file_size'     => $upload_data['file_size'] * 1024, // Size in bytes
+                    'upload_date'   => date('Y-m-d H:i:s')
+                 ];
+            } else {
+                 log_message('error', 'File Upload Error: '.$this->upload->display_errors('',''));
+                 $this->session->set_flashdata('error', 'Error uploading file: ' . $files['name'][$i] . ' - ' . $this->upload->display_errors('',''));
+                 redirect('stocks_new/new_add_stock/' . $this->input->get('id'));
+                 return;
+            }
+        }
+        return $uploaded_files_info; 
+    }
     public function save_add_stock() 
     {
         $logg = checklogin();
@@ -1352,13 +1354,21 @@ class New_purchase_orders extends CI_Controller {
         $uploaded_files_info = [];
         if(!empty($_FILES['receipt_files']['name'][0])) {
             $uploaded_files_info = $this->handleFileUploads(); 
+            var_dump($uploaded_files_info);
             if(isset($uploaded_files_info['error'])) {
                 $this->session->set_flashdata('error', $uploaded_files_info['error']);
                 redirect('new_purchase_orders/save_add_stock/' . $po_id);
                 return;
             }
         }
-        $file_names_string = !empty($uploaded_files_info) ? json_encode($uploaded_files_info) : null;
+        $file_paths = [];
+        if (!empty($uploaded_files_info)) {
+            foreach ($uploaded_files_info as $file_info) {
+                $file_paths[] = $file_info['path']; // store only the path or full info if you prefer
+            }
+        }
+        $file_names = !empty($file_paths) ? json_encode($file_paths) : null;
+        // $file_names = !empty($uploaded_files_info['path']) ? json_encode($uploaded_files_info['path']) : null;
         // --- End File Uploads ---
         $items_processed = 0;
         $items_failed = 0;
@@ -1411,7 +1421,8 @@ class New_purchase_orders extends CI_Controller {
                     'remarks'          => $this->input->post('comments_' . $row_counter),
                     'created_by'       => $created_by_id,
                     'center_id'        => $center_id, // The destination center
-                    'uploaded_files'   => ($row_counter == 1) ? $file_names_string : null // Attach files to first item's log
+                    'receive_by'       => $receive_by,
+                    'uploaded_files'   => ($row_counter == 1) ? $file_names : null // Attach files to first item's log
                 ];
                 // *** THIS IS THE FIX ***
                 // Call the new, smart function from Stock_model_new

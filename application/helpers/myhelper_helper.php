@@ -5046,7 +5046,6 @@ function follow_medical_info($patient_id, $appointment_id){
         $medicine_suggestion_ipd = $patient_result['medicine_suggestion_ipd'];
         $male_medicine_html = $female_medicine_html = $male_medicine_html_ipd = $female_medicine_html_ipd = "";
         $male_medicine_suggestion_list = safe_unserialize($patient_result['male_medicine_suggestion_list']);
-            var_dump($male_medicine_suggestion_list,2);
         if($medicine_suggestion == 1 || $medicine_suggestion_ipd == 1){
             $male_medicine_suggestion_list = safe_unserialize($patient_result['male_medicine_suggestion_list']);
             // var_dump($male_medicine_suggestion_list,2);

@@ -586,20 +586,23 @@ class New_purchase_order_model extends CI_Model {
         //     return false; // Fail safe: assume it's not received if error occurs
         // }
     }
-     public function get_received_stock_report($filters = []) {
+    public function get_received_stock_report($filters = []) {
         // try {
             $this->db->select('
-                sm.created_at as received_date,
+                sm.receive_date as received_date,
                 sm.quantity_change,
                 sm.unit_price,
                 sm.total_value,
+                sm.receive_by,
+                sm.uploaded_files,
                 sm.reference_number as po_number,
                 po.vendor_number,
                 v.name as vendor_name,
                 c.center_name,
                 m.medicine_name,
                 m.medicine_code as item_number,
-                mb.batch_number
+                mb.batch_number,
+                mb.purchase_price as vendor_price_with_tax
             ');
             $this->db->from('stock_movements sm');
             // This is the main logic for your report

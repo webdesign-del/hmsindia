@@ -78,28 +78,40 @@
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Center *</label>
                                         <div class="col-sm-8">
-                                            <?php
-                                              if(isset($selected_center) && !empty($selected_center)){
-                                                    $disabled_center = 'disabled';                                                 
-                                              }else{
-                                                    $disabled_center = '';
-                                              }
+                                           <?php
+                                            if (isset($selected_center) && !empty($selected_center)) {
+                                                $disabled_center = 'disabled';
+                                            } else {
+                                                $disabled_center = '';
+                                            }
                                             ?>
-                                            <select name="center_id" class="form-control" required onchange="loadCenterStock()" <?php echo $disabled_center; ?>>
-                                            <option value="">Select Center</option>
-                                            <?php if (!empty($centers) && is_array($centers)): ?>
-                                                <?php foreach ($centers as $center): ?>
-                                                    <?php 
-                                                        $isSelected = ($center->center_number == $selected_center) ? 'selected' : '';
-                                                    ?>
-                                                    <option value="<?php echo isset($center->ID) ? $center->ID : ''; ?>" <?php echo $isSelected; ?>>
-                                                        <?php echo isset($center->center_name) ? htmlspecialchars($center->center_name) : 'N/A'; ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            <?php else: ?>
-                                                <option value="" disabled>No centers available</option>
+                                            <select name="center_id_display" class="form-control" required onchange="loadCenterStock()" <?php echo $disabled_center; ?>>
+                                                <option value="">Select Center</option>
+                                                <?php if (!empty($centers) && is_array($centers)): ?>
+                                                    <?php foreach ($centers as $center): ?>
+                                                        <?php 
+                                                            $isSelected = ($center->center_number == $selected_center) ? 'selected' : '';
+                                                        ?>
+                                                        <option value="<?php echo isset($center->ID) ? $center->ID : ''; ?>" <?php echo $isSelected; ?>>
+                                                            <?php echo isset($center->center_name) ? htmlspecialchars($center->center_name) : 'N/A'; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <option value="" disabled>No centers available</option>
+                                                <?php endif; ?>
+                                            </select>
+                                            <?php if (!empty($selected_center)): ?>
+                                                <?php 
+                                                    $selected_center_id = null;
+                                                    foreach ($centers as $center) {
+                                                        if ($center->center_number == $selected_center) {
+                                                            $selected_center_id = $center->ID;
+                                                            break;
+                                                        }
+                                                    }
+                                                ?>
+                                                <input type="hidden" name="center_id" value="<?php echo htmlspecialchars($selected_center_id); ?>">
                                             <?php endif; ?>
-                                        </select>
                                         </div>
                                     </div>
                                     
