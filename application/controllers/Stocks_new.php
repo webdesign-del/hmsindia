@@ -2296,27 +2296,6 @@ class Stocks_new extends CI_Controller
                         'total'           => $total,            // This is the final total
                         'remarks'         => $this->input->post('remarks')
                     ];
-                    // var_dump($this->input->post());
-                    // die;
-                    // $quantity = (float)$this->input->post("quantity_sold");
-                    //     $unit_price = (float)$this->input->post("unit_price");
-                    //     $discount_percent = (float)$this->input->post("discount_percent");
-                    //     $gst_rate = (float)$this->input->post("gst_rate");
-                    // $subtotal = $quantity * $unit_price;
-                    // $discount_amount = $subtotal * ($discount_percent / 100);
-                    // $item_data = [
-                    //     "sale_id" => $id,
-                    //     "batch_id" => $this->input->post("batch_id"),
-                    //     "quantity_sold" => $this->input->post("quantity_sold"),
-                    //     "unit_price" => $this->input->post("unit_price"),
-                    //     "discount_amount" => $this->input->post("discount_percent") / 100 * $this->input->post("unit_price"),
-                    //     "tax_amount"=>$this->input->post("tax_amount"),
-                    //     "subtotal" =>
-                    //         $this->input->post("quantity_sold") *
-                    //         $this->input->post("unit_price"),
-                    //     "total" =>$this->input->post("total"),
-                    //     "remarks" => $this->input->post("remarks"),
-                    // ];
                     $result = $this->Stock_model_new->add_sale_item($item_data);
                     if ($result) {
                         $this->session->set_flashdata(
@@ -2826,11 +2805,10 @@ class Stocks_new extends CI_Controller
         if ($logg["status"] == true) {
 
             $data["centers"] = $this->Stock_model_new->get_all_centers();
-            $data[
-                "available_batches"
-            ] = $this->Stock_model_new->get_available_batches_for_return();
+            $data["available_batches"] = $this->Stock_model_new->get_available_batches_for_return();
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
+            $data["departments"] = $this->get_departments_by_center();
             $this->load->view("stocks_new/medicine_returns", $data);
             $this->load->view($template["footer"]);
         } else {
@@ -2848,6 +2826,7 @@ class Stocks_new extends CI_Controller
                 $this->form_validation->set_rules('patient_name', 'Patient Name', 'required');
                 $this->form_validation->set_rules('receipt_number', 'Receipt Number', 'required');
                 $this->form_validation->set_rules('center_id', 'Center', 'required');
+                $this->form_validation->set_rules('department', 'Department', 'required');
                 $this->form_validation->set_rules('return_reason', 'Return Reason', 'required');
                 if ($this->form_validation->run() == true) {
                     // Get employee ID safely
@@ -2887,6 +2866,7 @@ class Stocks_new extends CI_Controller
                             "receipt_number",
                         ),
                         "center_id" => $this->input->post("center_id"),
+                        "department" => $this->input->post("department"),
                         "return_date" => $this->input->post("return_date"),
                         "return_reason" => $this->input->post("return_reason"),
                         "total_return_amount" => $this->input->post(

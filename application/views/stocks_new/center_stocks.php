@@ -104,6 +104,7 @@
                                     <th>Department</th>
                                     <th>Expiry Date</th>
                                     <th>Expiry Days</th>
+                                    <th>Pack Size</th>
                                     <th>Quantity</th>
                                     <th>Vendor Price With gst</th>
                                     <th>Mrp</th>
@@ -134,6 +135,9 @@
                                             <?php else: ?>
                                                 <span class="label label-success"><?php echo $stock->expiry_days; ?> days</span>
                                             <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <strong><?php echo $stock->pack_size; ?></strong>
                                         </td>
                                         <td>
                                             <strong><?php echo $stock->quantity; ?></strong>

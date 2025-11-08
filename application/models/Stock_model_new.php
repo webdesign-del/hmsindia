@@ -262,7 +262,7 @@ class Stock_model_new extends CI_Model
 
     public function get_low_stock_alerts()
     {
-        try {
+        // try {
             $this->db->select('
                 m.id as medicine_id,
                 m.medicine_name,
@@ -285,11 +285,6 @@ class Stock_model_new extends CI_Model
                 "m.id = mb.medicine_id",
                 "left",
             );
-            // $this->db->join(
-            //     $this->config->item("db_prefix") . "brands b",
-            //     "m.brand_id = b.ID",
-            //     "left",
-            // );
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
             $this->db->where("m.status", "active");
             $this->db->where("m.min_stock_level >", 0);
@@ -300,15 +295,65 @@ class Stock_model_new extends CI_Model
                 "(mb.quantity_remaining > 0 OR mb.quantity_remaining IS NULL)",
             );
             $this->db->group_by(
-                "m.id, m.medicine_name, m.medicine_code, m.generic_name, m.min_stock_level, m.max_stock_level, m.reorder_level, b.name",
+                "m.id, m.medicine_name, m.medicine_code, m.generic_name, m.min_stock_level, m.max_stock_level, m.reorder_level, b.brand_name",
             );
             $this->db->having("current_stock <= m.min_stock_level");
             $this->db->order_by("(current_stock - m.min_stock_level)", "ASC");
             return $this->db->get()->result();
-        } catch (Exception $e) {
-            return [];
-        }
+        // } catch (Exception $e) {
+        //     return [];
+        // }
     }
+    // public function get_low_stock_alerts()
+    // {
+    //     // try {
+    //         $this->db->select('
+    //             m.id as medicine_id,
+    //             m.medicine_name,
+    //             m.medicine_code,
+    //             m.generic_name,
+    //             m.min_stock_level,
+    //             m.max_stock_level,
+    //             m.reorder_level,
+    //             b.brand_name as brand_name,
+    //             -- This subquery calculates the total stock from all locations
+    //             (
+    //                 COALESCE((SELECT SUM(cs.quantity) 
+    //                           FROM central_stocks cs 
+    //                           JOIN medicine_batches mb_cs ON cs.batch_id = mb_cs.id
+    //                           WHERE mb_cs.medicine_id = m.id AND mb_cs.batch_status = "ACTIVE"
+    //                          ), 0) +
+    //                 COALESCE((SELECT SUM(ccs.quantity) 
+    //                           FROM center_stocks ccs 
+    //                           JOIN medicine_batches mb_ccs ON ccs.batch_id = mb_ccs.id
+    //                           WHERE mb_ccs.medicine_id = m.id AND mb_ccs.batch_status = "ACTIVE"
+    //                          ), 0)
+    //             ) as current_stock
+    //         ');
+    //         $this->db->from("medicines m");
+    //         $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+            
+    //         $this->db->where("m.status", "active");
+    //         // Only select medicines that are actually tracking stock levels
+    //         $this->db->where("m.min_stock_level >", 0); 
+            
+    //         // We group by medicine
+    //         $this->db->group_by("m.id, b.brand_name"); 
+            
+    //         // Use HAVING to filter based on the calculated 'current_stock'
+    //         $this->db->having("current_stock <= m.min_stock_level"); 
+            
+    //         // Order by the most urgent (most negative stock difference)
+    //         $this->db->order_by("(current_stock - m.min_stock_level)", "ASC"); 
+            
+    //         return $this->db->get()->result();
+
+    //     // } catch (Exception $e) {
+    //     //     log_message('error', 'Error in get_low_stock_alerts: ' . $e->getMessage());
+    //     //     return [];
+    //     // }
+    // }
+
 
     // public function get_expiry_alerts()
     // {
@@ -801,7 +846,7 @@ class Stock_model_new extends CI_Model
 
     public function search_medicines($search_term = "")
     {
-        $this->db->select("m.*, mb.name as brand_name");
+        $this->db->select("m.*, mb.brand_name as brand_name");
         $this->db->from("medicines m");
         $this->db->join(
             "medicine_brands mb",
@@ -1009,7 +1054,7 @@ class Stock_model_new extends CI_Model
     ) {
         // try {
             $this->db->select(
-                "cs.*, mb.batch_number, mb.expiry_date, mb.purchase_price, mb.selling_price, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
+                "cs.*, mb.batch_number,m.pack_size, mb.expiry_date, mb.purchase_price, mb.selling_price, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
             );
             $this->db->from("central_stocks cs");
             $this->db->join("medicine_batches mb", "cs.batch_id = mb.id");
@@ -1066,7 +1111,7 @@ class Stock_model_new extends CI_Model
     public function get_center_stocks($center_id = null,$medicine_id = null,$batch_number = null,$status = null) {
         // try {
             $this->db->select(
-                "ccs.*, mb.batch_number, mb.expiry_date, mb.purchase_price, mb.selling_price, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, c.center_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
+                "ccs.*, mb.batch_number,m.pack_size, mb.expiry_date, mb.purchase_price, mb.selling_price, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, c.center_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
             );
             $this->db->from("center_stocks ccs");
             $this->db->join("medicine_batches mb", "ccs.batch_id = mb.id");
@@ -2633,7 +2678,7 @@ class Stock_model_new extends CI_Model
                 mb.purchase_price,
                 m.medicine_name,
                 m.medicine_code,
-                COALESCE(b.name, "Unknown Brand") as brand_name,
+                COALESCE(b.brand_name, "Unknown Brand") as brand_name,
                 COALESCE(v.name, "Unknown Vendor") as vendor_name,
                 "Unknown Center" as center_name,
                 SUM(si.quantity_sold) as quantity_sold
@@ -2653,27 +2698,13 @@ class Stock_model_new extends CI_Model
             $this->db->where(
                 "s.sale_date >=",
                 date("Y-m-d", strtotime("-30 days")),
-            ); // Only last 30 days
+            ); 
             $this->db->where("s.status", "CONFIRMED"); // Only confirmed sales
             $this->db->group_by("si.batch_id");
             $this->db->order_by("mb.expiry_date", "ASC");
             $this->db->order_by("m.medicine_name", "ASC");
 
             $result = $this->db->get()->result();
-
-            // Note: Only using medicine_batches since center_stocks has different structure
-
-            // Debug: Log the result
-            if (ENVIRONMENT === "development") {
-                error_log(
-                    "get_available_batches_for_return (SOLD medicines) result count: " .
-                        count($result),
-                );
-                if (count($result) > 0) {
-                    error_log("First sold batch: " . print_r($result[0], true));
-                }
-            }
-
             return $result;
         } catch (Exception $e) {
             // If the complex query fails, try a simpler one
@@ -4361,33 +4392,22 @@ class Stock_model_new extends CI_Model
         // }
         public function process_medicine_return($return_data, $return_items)
         {
-            // 1. Check for empty items
             if (empty($return_items)) {
                 return false;
             }
-
-            // 2. Start Transaction
             $this->db->trans_start();
-
-            // 3. Insert Return Header (`medicine_returns`)
             $return_data["return_number"] = "RET" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
             $this->db->insert("medicine_returns", $return_data);
-
-            // 3a. Error Check
             $db_error = $this->db->error();
             if ($db_error["code"] != 0) {
                 $this->db->trans_rollback();
                 return false;
             }
             $return_id = $this->db->insert_id();
-
-            // 3b. Validate Return ID
             if (!$return_id) {
                 $this->db->trans_rollback();
                 return false;
             }
-
-            // 4. Get the original Sale ID from the Receipt Number
             $sale_id = null;
             if (!empty($return_data['receipt_number'])) {
                 $sale = $this->db->get_where('sales', ['sale_number' => $return_data['receipt_number']])->row();
@@ -4395,22 +4415,14 @@ class Stock_model_new extends CI_Model
                     $sale_id = $sale->id;
                 }
             }
-
             $total_items_processed = 0;
-
-            // 5. Loop through each item
             foreach ($return_items as $index => $item) {
-                
-                // 5a. Sanitize/Validate Item Data
                 $quantity = isset($item["return_quantity"]) ? (int)$item["return_quantity"] : 0;
                 $price = isset($item["price"]) ? (float)$item["price"] : 0;
                 $batch_id = isset($item["batch_id"]) ? (int)$item["batch_id"] : 0;
-
                 if ($batch_id <= 0 || $quantity <= 0) {
-                    continue; // Skip invalid item
+                    continue; 
                 }
-
-                // 5b. Insert Item Line (`medicine_return_items`)
                 $item_data = [
                     "return_id" => $return_id,
                     "batch_id" => $batch_id,
@@ -4420,48 +4432,38 @@ class Stock_model_new extends CI_Model
                     "created_at" => date("Y-m-d H:i:s")
                 ];
                 $this->db->insert("medicine_return_items", $item_data);
-                // 5c. Error Check
                 $db_error = $this->db->error();
                 if ($db_error["code"] != 0) {
                     $this->db->trans_rollback();
                     return false;
                 }
-                // 5d. Update Original Sale (`sale_items`)
                 if ($sale_id) {
                     $this->db->set('quantity_returned', 'quantity_returned + ' . $quantity, FALSE);
                     $this->db->set('updated_at', 'NOW()', false);
                     $this->db->where('sale_id', $sale_id);
                     $this->db->where('batch_id', $batch_id);
                     $this->db->update('sale_items');
-                    
-                    // Error Check
                     $db_error = $this->db->error();
                     if ($db_error["code"] != 0) {
                         $this->db->trans_rollback();
                         return false;
                     }
                 }
-                // 5e. Update Master Batch Stock (`medicine_batches`)
                 $this->db->set("quantity_remaining", "quantity_remaining + " . $quantity, false);
                 $this->db->set("updated_at", "NOW()", false);
                 $this->db->where("id", $batch_id);
                 $this->db->update("medicine_batches");
-
-                // 5f. Error Check
                 $db_error = $this->db->error();
                 if ($db_error["code"] != 0) {
                     $this->db->trans_rollback();
                     return false;
                 }
-                // 5g. Update Center-Specific Stock (`center_stocks`)
                 $this->db->where("batch_id", $batch_id);
                 $this->db->where("center_id", $return_data["center_id"]);
+                $this->db->where("department", $return_data["department"]);
                 $center_stock = $this->db->get("center_stocks")->row();
-
-                $quantity_before = 0; // For audit log
-
+                $quantity_before = 0; 
                 if ($center_stock) {
-                    // Update existing
                     $quantity_before = (int)$center_stock->quantity;
                     $this->db->where("id", $center_stock->id);
                     $this->db->set("quantity", "quantity + " . $quantity, false);
@@ -4473,6 +4475,7 @@ class Stock_model_new extends CI_Model
                     $center_stock_data = [
                         "batch_id" => $batch_id,
                         "center_id" => $return_data["center_id"],
+                        "department" => $return_data["department"],
                         "quantity" => $quantity,
                         "reserved_quantity" => 0,
                         "status" => "ACTIVE",
@@ -4515,7 +4518,6 @@ class Stock_model_new extends CI_Model
                         "created_by" => $return_data["created_by"],
                     ];
                     $this->db->insert("stock_movements", $movement_data);
-                    
                     // Error Check
                     $db_error = $this->db->error();
                     if ($db_error["code"] != 0) {

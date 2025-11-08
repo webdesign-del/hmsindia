@@ -99,6 +99,20 @@
                                             </select>
                                         </div>
                                     </div>
+                                    <div class="form-group" id="department">
+                                        <label class="col-sm-4 control-label">Department *</label>
+                                        <div class="col-sm-8">
+                                            <select name="department" class="form-control"  id="department">
+                                                <option value="">Select Department</option>
+                                                <?php foreach($departments as $dept): ?>
+                                                    <option value="<?php echo $dept['department']; ?>" <?php echo set_select('department', $dept['department']); ?>>
+                                                        <?php echo $dept['department']; ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
                                     
                                 </div>
                             </div>

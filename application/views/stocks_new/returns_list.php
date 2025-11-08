@@ -45,6 +45,7 @@
                                             <th>Patient</th>
                                             <th>Receipt #</th>
                                             <th>Center</th>
+                                            <th>Department<th>
                                             <th>Return Date</th>
                                             <th>Reason</th>
                                             <th>Items</th>
@@ -60,6 +61,7 @@
                                                 <td><?php echo $return->patient_name; ?></td>
                                                 <td><?php echo $return->receipt_number; ?></td>
                                                 <td><?php echo $return->center_name; ?></td>
+                                                <td><?php echo $return->department; ?></td>
                                                 <td><?php echo date('M d, Y', strtotime($return->return_date)); ?></td>
                                                 <td>
                                                     <span class="badge badge-info"><?php echo $return->return_reason; ?></span>

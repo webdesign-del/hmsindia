@@ -85,7 +85,7 @@
                                                 $disabled_center = '';
                                             }
                                             ?>
-                                            <select name="center_id_display" class="form-control" required onchange="loadCenterStock()" <?php echo $disabled_center; ?>>
+                                            <select name="center_id" class="form-control" required onchange="loadCenterStock()" <?php echo $disabled_center; ?>>
                                                 <option value="">Select Center</option>
                                                 <?php if (!empty($centers) && is_array($centers)): ?>
                                                     <?php foreach ($centers as $center): ?>
