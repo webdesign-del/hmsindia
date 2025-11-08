@@ -233,7 +233,7 @@ $(document).ready(function() {
                 // Ensure available_quantity is a number and greater than 0
                 const availableQty = parseInt(batch.available_quantity);
                 if (!isNaN(availableQty) && availableQty > 0) {
-                    var displayText = `${batch.medicine_name} - ${batch.batch_number} (Qty: ${availableQty})`;
+                    var displayText = `${batch.medicine_name} - ${batch.batch_number} - (Qty: ${availableQty}) - (Department: ${batch.department})`;
 
                     optionsHtml += `<option value="${batch.batch_id}"
                                         data-medicine="${escapeHtml(batch.medicine_name)}"
@@ -258,7 +258,6 @@ $(document).ready(function() {
     function fetchBatches() {
         const vendorId = $('#vendor_select').val();
         const centerId = $('#center_select').val();
-
         // Clear existing items and reset data if vendor or center is not selected
         if (!vendorId || !centerId) {
             availableBatchesData = [];
@@ -269,10 +268,8 @@ $(document).ready(function() {
             updateTotals();
             return; // Stop execution
         }
-
         $('#items_loading').show(); // Show loading indicator
         $('.batch_select').prop('disabled', true); // Disable selects while loading
-
         $.ajax({
             url: "<?php echo base_url('stocks_new/get_batches_for_vendor_center'); ?>",
             type: "GET", // Or POST if preferred

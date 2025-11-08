@@ -3042,27 +3042,32 @@ class Stocks_new extends CI_Controller
         $this->load->model('Stock_model_new');
         $data = [];
         // Get the selected center from the URL (from the filter form)
+        $selected_department = 0;
         $selected_center_id = $this->input->get('center_id');
         $data['selected_center_id'] = $selected_center_id;
+        $data['selected_department'] = $this->input->get('department');
         // Get all centers for the filter dropdown
         $data["centers"] = $this->Stock_model_new->get_all_centers();
         // Get available batches ONLY if a center has been selected
         $data["available_batches"] = [];
-        if (!empty($selected_center_id)) {
-            // This function gets all batches with stock at that location
-            $data["available_batches"] = $this->Stock_model_new->get_available_batches_for_audit($selected_center_id);
+        if (!empty($selected_center_id) || !empty($selected_department)) {
+            $data["available_batches"] = $this->Stock_model_new->get_available_batches_for_audit($selected_center_id,$data['selected_department']);
         }
-        // This is for the "Add Item" dropdown
-        // It's better to load this via AJAX, but for now we pass all batches.
-        // Or, we can just pass the same $available_batches list, as "Add Item" is complex.
-        // For simplicity, we'll assume "Add Item" needs a full list (or AJAX).
-        // Let's create a new variable for the "Add Item" dropdown
-        // This query is simplified for this example; an AJAX-based search is better.
-        $data["all_batches_list"] = $this->Stock_model_new->get_all_batches_list(); 
+        $data["all_batches_list"] = $this->Stock_model_new->get_all_batches_list();
+        $data['departments'] = $this->get_departments_by_center();
         $template = get_header_template($logg["role"]);
         $this->load->view($template["header"]);
         $this->load->view("stocks_new/stock_audit", $data); // Load your view
         $this->load->view($template["footer"]);
+    }
+    public function get_departments_for_center_json($center_id)
+    {
+        $departments = $this->get_departments_by_center();
+        if (!empty($departments)) {
+            echo json_encode(['success' => true, 'departments' => $departments]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No departments found.']);
+        }
     }
 
     /**
@@ -4253,8 +4258,7 @@ class Stocks_new extends CI_Controller
             $this->load->model('Stock_model_new'); // Load model
             $data["centers"] = $this->Stock_model_new->get_all_centers();
             $data["vendors"] = $this->Stock_model_new->get_vendors();
-            // $data["available_batches"] = []; // Load empty initially, JS will fetch via AJAX
-
+            // $data["available_batches"] = []; 
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $this->load->view("stocks_new/add_vendor_return", $data); // Your view file name

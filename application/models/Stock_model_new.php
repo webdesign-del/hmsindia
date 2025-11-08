@@ -2818,11 +2818,10 @@ class Stock_model_new extends CI_Model
      * Gets all active, in-stock batches from ALL locations (centers AND central warehouse)
      * for a stock audit.
      */
-    public function get_available_batches_for_audit($location_id)
+    public function get_available_batches_for_audit($location_id= null ,$selected_department = null)
     {
-        try {
+        // try {
             // $location_id can be a center ID (e.g., 5) or the string 'central'
-            
             if ($location_id == 'central' || $location_id == 0) {
                 // --- Query 1: Get stock from CENTRAL WAREHOUSE ---
                 $this->db->select([
@@ -2853,18 +2852,20 @@ class Stock_model_new extends CI_Model
                 $this->db->from('center_stocks cs');
                 $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
                 $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
-                $this->db->where('cs.center_id', (int)$location_id); // Filter by the selected center
+                $this->db->where('cs.center_id', (int)$location_id);
+                if ($selected_department != null) {
+                    $this->db->where('cs.department', $selected_department);
+                }
+                 // Filter by the selected center
                 $this->db->where('cs.quantity >', 0);
                 $this->db->where('mb.batch_status', 'ACTIVE');
                 $query = $this->db->get();
             }
-            
             return $query->result();
-
-        } catch (Exception $e) {
-            log_message('error', 'Error in get_available_batches_for_audit: ' . $e->getMessage());
-            return []; // Return empty array on any database error
-        }
+        // } catch (Exception $e) {
+        //     log_message('error', 'Error in get_available_batches_for_audit: ' . $e->getMessage());
+        //     return []; // Return empty array on any database error
+        // }
     }
     public function get_all_batches_list()
     {
@@ -3475,10 +3476,11 @@ class Stock_model_new extends CI_Model
         }
         public function get_batches_by_vendor_center($vendor_id, $center_id)
         {
-            try {
+            // try {
                 $this->db->select([
                     'cs.batch_id',
                     'cs.center_id',
+                    'cs.department',
                     'c.center_name',
                     'cs.quantity as available_quantity', 
                     'm.medicine_name',
@@ -3503,10 +3505,10 @@ class Stock_model_new extends CI_Model
                 $result = $this->db->get()->result();
                 return $result;
 
-            } catch (Exception $e) {
-                log_message('error', "Error in get_batches_by_vendor_center: " . $e->getMessage());
-                return []; // Return empty array on any database error
-            }
+            // } catch (Exception $e) {
+            //     log_message('error', "Error in get_batches_by_vendor_center: " . $e->getMessage());
+            //     return []; // Return empty array on any database error
+            // }
         }
         // ===============================================
         // PURCHASE ORDER BATCH TRACKING METHODS
