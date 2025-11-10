@@ -677,7 +677,7 @@
                                         continue; // Skip if no details found
                                     }
                                     ?>
-                     <tr><!-- >
+                     <tr>
                         <td><?php echo $sub_procedure_details['procedure_name']; ?>
                            <input value="<?php echo $procedure_id; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
                            <input value="<?php echo $sub_procedure_details['procedure_name']; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_name_<?php echo $sub_procedure_counter;?>" class="required_value" name="procedure_name_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
