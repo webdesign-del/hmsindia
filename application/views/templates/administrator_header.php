@@ -256,6 +256,7 @@
 		  <li> <a href="<?php echo base_url(); ?>accounts/donor_list">Donor List</a> </li>
 		</ul>
       </li>
+    <li><a href="<?php echo base_url(); ?>patients/timeline_view" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Patient Agent</a></li>
 	  <li> <a href="<?php echo base_url(); ?>billings/forma_invoice_list" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Forma Invoice</a></li>
 	  <li> <a href="<?php echo base_url(); ?>doctors/doctor_patient" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>OPD Register</a></li>
 	  <li> <a href="<?php echo base_url(); ?>accounts/revenue_potential" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Revenue Potential</a></li>
