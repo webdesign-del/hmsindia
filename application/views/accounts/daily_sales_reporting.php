@@ -119,7 +119,7 @@ $(document).ready(function() {
                                 <td>IVF with Bed</td>
                                 <td><input type="text" id="ivf_with_bed_c_count" name="ivf_with_bed_c_count"></td>
                                 <td><input type="text" id="ivf_with_bed_b_count" name="ivf_with_bed_b_count"></td>
-                                <td class="numeric"><input type="text" id="ivf_with_bed_amount" name="ivf_with_bed_amount"></td>
+                                <td class="numeric"><input type="text" id="ivf_with_bed_amount" name="ivf_with_bed_amount" ></td>
                             </tr>
                             <tr>
                                 <td>Non IVF with Bed</td>

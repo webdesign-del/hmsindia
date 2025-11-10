@@ -511,6 +511,10 @@
                         <td><?php echo $sub_procedure_details['code']; ?>
                            <input value="<?php echo $sub_procedure_details['code']; ?>" readonly="readonly" id="sub_procedures_code_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_code_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
                            <input value="<?php echo $sub_procedure_details['category']; ?>" readonly="readonly" id="sub_procedures_category_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_category_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['procedure']; ?>" readonly="readonly" id="procedure_<?php echo $sub_procedure_counter;?>" class="required_value" name="procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['broad_procedure']; ?>" readonly="readonly" id="broad_procedure_<?php echo $sub_procedure_counter;?>" class="required_value" name="broad_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['broad_procedure_count']; ?>" readonly="readonly" id="broad_procedure_count_<?php echo $sub_procedure_counter;?>" class="required_value" name="broad_procedure_count_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                       
                         </td>
                         <td><?php $sub_price = 0;
                            $sub_price = $sub_procedure_details['price']; echo 'Rs.'.$sub_price; ?>
@@ -677,7 +681,7 @@
                                         continue; // Skip if no details found
                                     }
                                     ?>
-                     <tr><!-- >
+                     <tr><!-- -->
                         <td><?php echo $sub_procedure_details['procedure_name']; ?>
                            <input value="<?php echo $procedure_id; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
                            <input value="<?php echo $sub_procedure_details['procedure_name']; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_name_<?php echo $sub_procedure_counter;?>" class="required_value" name="procedure_name_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
@@ -715,7 +719,10 @@
                            <input value="<?php echo $sub_procedure_details['code']; ?>" readonly="readonly" id="sub_procedures_code_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_code_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
                            <input value="<?php echo $sub_procedure_details['procedure_name']; ?>"  readonly="readonly" id="sub_procedure_name_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedure_name_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
                            <input value="<?php echo $sub_procedure_details['category']; ?>" readonly="readonly" id="sub_procedures_category_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_category_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
-                        
+                           <input value="<?php echo $sub_procedure_details['procedure']; ?>" readonly="readonly" id="procedure_<?php echo $sub_procedure_counter;?>" class="required_value" name="procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['broad_procedure']; ?>" readonly="readonly" id="broad_procedure_<?php echo $sub_procedure_counter;?>" class="required_value" name="broad_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['broad_procedure_count']; ?>" readonly="readonly" id="broad_procedure_count_<?php echo $sub_procedure_counter;?>" class="required_value" name="broad_procedure_count_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                       
                         </td>
                         <td>
                            <?php 
