@@ -1714,6 +1714,9 @@ function partial_billing($appointment_id){
 							 '".$_POST['procedure_name_'.$val]."',
 							 '".$_POST['sub_procedures_code_'.$val]."',
 							 '".$_POST['sub_procedures_category_'.$val]."',
+							 '".$_POST['procedure_'.$val]."',
+							 '".$_POST['broad_procedure_'.$val]."',
+							 '".$_POST['broad_procedure_count_'.$val]."',
 							 '".$fees."',
 							 '".$fees."',
 							 '".$totalpackage."',
@@ -1750,6 +1753,9 @@ function partial_billing($appointment_id){
 						unset($_POST["sub_procedure_$i"]);
 						unset($_POST["procedure_name_$i"]);
 						unset($_POST["sub_procedures_category_$i"]);
+						unset($_POST["procedure_$i"]);
+						unset($_POST["broad_procedure_$i"]);
+						unset($_POST["broad_procedure_count_$i"]);
 						unset($_POST["sub_procedures_code_$i"]);
 						unset($_POST["sub_procedures_price_$i"]);
 						unset($_POST["sub_procedures_discount_$i"]);
@@ -1999,6 +2005,9 @@ function partial_billing($appointment_id){
 							 '".$_POST['procedure_name_'.$val]."',
 							 '".$_POST['sub_procedures_code_'.$val]."',
 							 '".$_POST['sub_procedures_category_'.$val]."',
+							 '".$_POST['procedure_'.$val]."',
+							 '".$_POST['broad_procedure_'.$val]."',
+							 '".$_POST['broad_procedure_count_'.$val]."',
 							 '".$fees."',
 							 '".$fees."',
 							 '".$totalpackage."',
@@ -2025,6 +2034,9 @@ function partial_billing($appointment_id){
 						unset($_POST["sub_procedure_$i"]);
 						unset($_POST["procedure_name_$i"]);
 						unset($_POST["sub_procedures_category_$i"]);
+						unset($_POST["procedure_$i"]);
+						unset($_POST["broad_procedure_$i"]);
+						unset($_POST["broad_procedure_count_$i"]);
 						unset($_POST["sub_procedures_code_$i"]);
 						unset($_POST["sub_procedures_price_$i"]);
 						unset($_POST["sub_procedures_gst_$i"]);
@@ -3414,6 +3426,12 @@ public function billing_noreceipt_patient_payments(){
 		$doctor_referral = $this->billings_model->get_doctor_referral();
 		
 		return $doctor_referral;
+	}
+
+	function get_counsellor_list(){
+		$counsellor_name = $this->billings_model->get_counsellor();
+		
+		return $counsellor_name;
 	}
 	
 	public function print(){

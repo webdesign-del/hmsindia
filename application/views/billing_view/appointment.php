@@ -479,6 +479,19 @@
             </div>
 		</div>
 
+         <div class="row">            
+            <div class="form-group col-sm-6 col-xs-12 role">
+            	<label>Counsellor Name</label>
+                <select class="empty-field" id="councellor" name="councellor" required>
+                	<option value="">--Select--</option>
+                    <?php $counsellor_name = $all_method->get_counsellor_list();
+					foreach($counsellor_name as $key => $counsellor_name){  ?>
+                  	<option value="<?php echo $counsellor_name['name']; ?>"><?php echo $counsellor_name['name']; ?></option>
+                    <?php } ?>                  
+                </select>
+            </div>
+		</div>
+
         <!-- <div class="row" id="camp_center_div" style="display: none; margin-top: 10px;">            
             <div class="form-group col-sm-6 col-xs-12 role">
                 <label for="statuss">Camp Centre (Required)</label>

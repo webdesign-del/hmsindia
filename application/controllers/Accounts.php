@@ -1890,7 +1890,12 @@ public function procedure_reports(){
 			$start_date = $this->input->get('start_date', true);
 			$end_date = $this->input->get('end_date', true);
 			$patient_id = $this->input->get('iic_id', true);
-			$reason_of_visit = $this->input->get('reason_of_visit', true);
+			//$reason_of_visit = $this->input->get('reason_of_visit', true);
+
+			$reason_from_url = $this->input->get('reason_of_visit');
+    		// 2. Put this value into the $data array to send to the view
+    		$data['selectedReason'] = $reason_from_url;
+
 			$lead_source = $this->input->get('lead_source');
 			$export_billing = $this->input->get('export-billing', true);
 			$paid_amount = 0;
@@ -7775,6 +7780,53 @@ public function get_doctors_by_center() {
         ->set_content_type('application/json')
         ->set_output(json_encode($result));
 }*/
+
+
+    // ... your other functions ...
+
+    /**
+     * Receives the daily report data via AJAX and sends it as an email.
+     */
+    public function send_daily_report_email1() {
+    
+    $recipient_email = $this->input->post('recipient_email');
+    $email_subject   = $this->input->post('email_subject');
+    $data['report_data'] = $_POST;
+
+    // Load the email template file as a string
+    $email_body = $this->load->view('emails/daily_report_template', $data, TRUE);
+
+    // Load CodeIgniter's email library
+    $this->load->library('email'); // This will auto-load your config from Step 1
+
+    $this->email->from('no-reply@yourhospital.com', 'Daily Reports');
+    $this->email->to($recipient_email);
+    $this->email->subject($email_subject);
+    $this->email->message($email_body);
+    
+    // *** THIS IS THE CRITICAL LINE! ***
+    $this->email->set_mailtype("html"); 
+    // *** Without this, it sends plain text ***
+
+    if ($this->email->send()) {
+        $response = [
+            'success'   => true,
+            'message'   => 'Report sent successfully!',
+            'recipient' => $recipient_email,
+            'timestamp' => date('Y-m-d H:i:s')
+        ];
+    } else {
+        // Send back the *actual* error message
+        $response = [
+            'success' => false,
+            'message' => 'Failed to send email. Debug: ' . $this->email->print_debugger()
+        ];
+    }
+
+    header('Content-Type: application/json');
+    echo json_encode($response);
+}
+
 public function send_daily_report_email() {
         // Check if this is a POST request
         if ($this->input->method() !== 'post') {

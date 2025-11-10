@@ -30,13 +30,28 @@
             </div>
 			<div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Reason For Visit </label>
-               <select class="form-control" id="reason_of_visit" name="reason_of_visit">
+             <select class="form-control" id="reason_of_visit" name="reason_of_visit">
     <option value="">--Select From--</option>
-    <option value="First Visit" <?= ($selectedReason === 'First Visit') ? 'selected' : '' ?>>First Visit</option>
-    <option value="Consulted Not Booked" <?= ($selectedReason === 'Consulted Not Booked') ? 'selected' : '' ?>>Consulted Not Booked</option>
-    <option value="FOLLOW UP VISIT" <?= ($selectedReason === 'FOLLOW UP VISIT') ? 'selected' : '' ?>>Follow up Visit</option>
-    <option value="PROCEDURE" <?= ($selectedReason === 'PROCEDURE') ? 'selected' : '' ?>>Procedure</option>
-    <option value="TVS" <?= ($selectedReason === 'TVS') ? 'selected' : '' ?>>TVS</option>
+
+    <option value="First Visit" <?php if (isset($selectedReason) && $selectedReason === 'First Visit') { echo 'selected'; } ?>>
+        First Visit
+    </option>
+    
+    <option value="Consulted Not Booked" <?php if (isset($selectedReason) && $selectedReason === 'Consulted Not Booked') { echo 'selected'; } ?>>
+        Consulted Not Booked
+    </option>
+    
+    <option value="FOLLOW UP VISIT" <?php if (isset($selectedReason) && $selectedReason === 'FOLLOW UP VISIT') { echo 'selected'; } ?>>
+        Follow up Visit
+    </option>
+    
+    <option value="PROCEDURE" <?php if (isset($selectedReason) && $selectedReason === 'PROCEDURE') { echo 'selected'; } ?>>
+        Procedure
+    </option>
+    
+    <option value="TVS" <?php if (isset($selectedReason) && $selectedReason === 'TVS') { echo 'selected'; } ?>>
+        TVS
+    </option>
 </select>
 
 
@@ -168,14 +183,15 @@
                   <td><?php echo $vl['reason_of_visit']?></td>
 				  <td><?php echo $all_method->get_doctor_name($vl['doctor_id']); ?></td>
 				  <td><?php echo $select_result3['lead_source'];  ?></td>
-                  <td><?php echo $select_result3['agent'];  ?></td>
+                  <td><?php echo ucwords($select_result3['agent']); ?></td>
 				  <td><?php $counselor_name = $all_method->get_counselor_name($vl['appointment_id']);
 
 if (!empty($counselor_name)) {
-    echo $counselor_name;
+    echo ucwords($counselor_name);
 } else {
     // If no counselor is found, print the agent name from $select_result3
-    echo $select_result3['councellor'];
+  echo ucwords(strtolower($select_result3['counsellor'])); 
+
 } ?></td>
 
 <td><?php

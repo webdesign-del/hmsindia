@@ -1835,6 +1835,22 @@ function procedure_billings_patination($limit, $page, $center, $start_date, $end
         }
 	}
 
+	function get_counsellor(){
+		$result = array();
+		$sql_condition = '';
+		$sql = "Select * from ".$this->config->item('db_prefix')."employees where role='counselor' and status='1' ORDER by ID DESC";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result;
+        }
+        else
+        {
+            return $result;
+        }
+	}
+
 	function receipt_number_exists($receipt_number) {
 		$query = $this->db->query("SELECT COUNT(*) AS count FROM hms_patient_procedure WHERE receipt_number = ?", [$receipt_number]);
 		$row = $query->row();
