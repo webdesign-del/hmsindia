@@ -95,6 +95,16 @@
                   </ul>
                </li>
                <li>
+                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i> New Manage Billing Items<span class="fa arrow"></span></a>
+                  <ul class="nav nav-second-level">
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/add_billing_item">Add Consumptions</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_report">Patient Consumption Report</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_summary">Patient Consumption Summary</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/all_consumption_report">All Consumption Report</a> </li>
+                  </ul>
+               </li>
+                  
+               <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Orders<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
                      <li> <a href="<?php echo base_url(); ?>orders/center_order">Order Summary</a> </li>

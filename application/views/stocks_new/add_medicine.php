@@ -114,15 +114,15 @@
                                         <div class="col-sm-8">
                                             <select name="category" class="form-control" required>
                                                 <option value="">Select Category</option>
-                                                <option value="Analgesic" <?php echo set_select('category', 'Analgesic'); ?>>Analgesic</option>
-                                                <option value="Antibiotic" <?php echo set_select('category', 'Antibiotic'); ?>>Antibiotic</option>
-                                                <option value="Antihistamine" <?php echo set_select('category', 'Antihistamine'); ?>>Antihistamine</option>
-                                                <option value="Antacid" <?php echo set_select('category', 'Antacid'); ?>>Antacid</option>
-                                                <option value="PPI" <?php echo set_select('category', 'PPI'); ?>>PPI</option>
+                                                <option value="Package injections" <?php echo set_select('category', 'Package injections'); ?>>Package injections</option>
+                                                <option value="OT DCI" <?php echo set_select('category', 'OT DCI'); ?>>OT DCI</option>
+                                                <option value="EMBRYOLOGIST DCI" <?php echo set_select('category', 'EMBRYOLOGIST DCI'); ?>>EMBRYOLOGIST DCI</option>
+                                                <option value="Cash Medicines" <?php echo set_select('category', 'Cash Medicines'); ?>>Cash Medicines</option>
+                                                <!-- <option value="PPI" <?php echo set_select('category', 'PPI'); ?>>PPI</option>
                                                 <option value="Steroid" <?php echo set_select('category', 'Steroid'); ?>>Steroid</option>
                                                 <option value="Vitamin" <?php echo set_select('category', 'Vitamin'); ?>>Vitamin</option>
                                                 <option value="Supplements" <?php echo set_select('category', 'Supplements'); ?>>Supplements</option>
-                                                <option value="Other" <?php echo set_select('category', 'Other'); ?>>Other</option>
+                                                <option value="Other" <?php echo set_select('category', 'Other'); ?>>Other</option> -->
                                             </select>
                                         </div>
                                     </div>

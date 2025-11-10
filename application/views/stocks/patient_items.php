@@ -66,13 +66,13 @@
                         <th>Receipt number</th>
                         <th>Item name</th>
                         <th>Batch Number</th>
-						<th>Category</th>
-						<th>Openning Qty</th>
-                        <th>Qty</th>
-						<?php if($_SESSION['logged_administrator']){ ?>
-                        <th>Consumption Price</th>
-						<th>Vendor Price</th>
-						<?php } ?>
+                        <th>Category</th>
+                        <th>Openning Qty</th>
+                                    <th>Qty</th>
+                        <?php if($_SESSION['logged_administrator']){ ?>
+                                    <th>Consumption Price</th>
+                        <th>Vendor Price</th>
+                        <?php } ?>
                         <th>Added On Date</th>
                     </tr>
                 </thead>

@@ -7821,6 +7821,392 @@ public function add_stock_to_location($stock_data)
             return [];
         }
     }
+
+    // ===============================================
+    // PATIENT BILLING FUNCTIONS
+    // ===============================================
+
+    /**
+     * Get available batches for patient billing by category
+     * @param string $category_type - 'embryology', 'injections', or 'consumables'
+     * @param int $center_id - Center ID
+     * @param string $department - Department name
+     * @return array
+     */
+    // public function get_available_batches_for_billing($category_type, $center_id = null, $department = null)
+    // {
+    //     // try {
+    //         $category_map = [
+    //             'embryology' => '1565461628',
+    //             'injections' => '1565461619',
+    //             'consumables' => '1565461624'
+    //         ];
+    //         if (!isset($category_map[$category_type])) {
+    //             return [];
+    //         }
+
+    //         $category_id = $category_map[$category_type];
+    //         if (!$center_id) {
+    //             if (isset($_SESSION['logged_stock_manager']['center'])) {
+    //                 $center_id = $_SESSION['logged_stock_manager']['center'];
+    //                 $department = $_SESSION['logged_stock_manager']['department'];
+    //             } elseif (isset($_SESSION['logged_billing_manager']['center'])) {
+    //                 $center_id = $_SESSION['logged_billing_manager']['center'];
+    //                 $department = $_SESSION['logged_billing_manager']['department'];
+    //             }
+    //         }
+    //         // Query center_stocks table (old structure compatibility)
+    //         $this->db->select('*');
+    //         $this->db->from('center_stocks');
+    //         $this->db->where('category', $category_id);
+    //         $this->db->where('center_number', $center_id);
+    //         $this->db->where('department', $department);
+    //         $this->db->where('quantity >', 0);
+    //         if ($category_type == 'injections') {
+    //             $this->db->where('status', '1');
+    //         }
+    //         $this->db->order_by('expiry', 'ASC');
+    //         $result = $this->db->get()->result_array();
+    //         return $result;
+    // }
+    // public function billing_item_insert($data)
+    // {
+    //     try {
+    //         $sql = "INSERT INTO `" . $this->config->item('db_prefix') . "patient_items` SET ";
+    //         $sqlArr = array();
+    //         foreach ($data as $key => $value) {
+    //             $sqlArr[] = " $key = '" . addslashes($value) . "'";
+    //         }
+    //         $sql .= implode(',', $sqlArr);
+    //         $res = $this->db->query($sql);
+    //         if ($res) {
+    //             return $this->db->insert_id();
+    //         } else {
+    //             return 0;
+    //         }
+    //     } catch (Exception $e) {
+    //         return 0;
+    //     }
+    // }
+    // public function deduct_stock($ID, $serial, $qty)
+    // {
+    //     try {
+    //         if (isset($_SESSION['logged_stock_manager']['employee_number'])) {
+    //             $sql = "UPDATE " . $this->config->item('db_prefix') . "center_stocks
+    //                     SET `quantity` = `quantity` - " . $qty . "
+    //                     WHERE item_number='" . $serial . "'
+    //                     AND ID='" . $ID . "'
+    //                     AND department='" . $_SESSION['logged_stock_manager']['department'] . "'";
+    //         } else {
+    //             $sql = "UPDATE " . $this->config->item('db_prefix') . "center_stocks
+    //                     SET `quantity` = `quantity` - " . $qty . "
+    //                     WHERE item_number='" . $serial . "'
+    //                     AND ID='" . $ID . "'
+    //                     AND department='" . $_SESSION['logged_billing_manager']['department'] . "'";
+    //         }
+    //         $this->db->query($sql);
+    //         return 1;
+    //     } catch (Exception $e) {
+    //         return 0;
+    //     }
+    // }
+    public function get_batches_for_billing_form($category_name, $center_id, $department)
+    {
+        $this->db->select('
+            m.medicine_name as item_name,
+            m.medicine_code as item_number,
+            mb.id as ID,
+            mb.batch_number,
+            ccs.quantity,
+            mb.selling_price as price,
+            m.gst_rate as gstrate,
+            mb.expiry_date as expiry
+        ');
+        $this->db->from('center_stocks ccs');
+        $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id', 'inner');
+        $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+        // Filters
+        $this->db->where('m.category', $category_name);
+        $this->db->where('ccs.center_id', $center_id);
+        $this->db->where('ccs.department', $department);
+        // Stock checks
+        $this->db->where('ccs.quantity >', 0);
+        $this->db->where('ccs.status', 'ACTIVE');
+        $this->db->where('mb.batch_status', 'ACTIVE');
+        $this->db->where('mb.expiry_date >', date('Y-m-d'));
+        $this->db->order_by('mb.expiry_date', 'ASC');
+        return $this->db->get()->result_array();
+    }
+    public function process_sale_item($sale_id, $item_data, $created_by_id)
+    {
+        $this->db->trans_start();
+        // try {
+            $batch_id = $item_data['batch_id'];
+            $center_id = $item_data['center_id'];
+            $department = $item_data['department'];
+            $quantity = $item_data['quantity'];
+            // 1. Get Batch & Stock Details (and lock the rows)
+            $this->db->from('center_stocks ccs');
+            $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id', 'inner');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+            $this->db->where('ccs.batch_id', $batch_id);
+            $this->db->where('ccs.center_id', $center_id);
+            $this->db->where('ccs.department', $department);
+            $this->db->limit(1);
+            $stock_record = $this->db->get()->row();
+            if (!$stock_record) {
+                $this->db->trans_rollback();
+                return ['status' => 'error', 'message' => "Batch ID {$batch_id} not found in {$department}."];
+            }
+            $quantity_before = $stock_record->quantity;
+            $unit_price = $stock_record->selling_price; // This is the MRP
+            $gst_rate = $stock_record->gst_rate;
+            // 2. Check stock
+            if ($quantity_before < $quantity) {
+                $this->db->trans_rollback();
+                return ['status' => 'error', 'message' => "Not enough stock for {$stock_record->medicine_name} (Batch: {$stock_record->batch_number}). Available: {$quantity_before}, Requested: {$quantity}."];
+            }
+            // 3. Calculate Pricing (Tax-Inclusive)
+            // Price *before* tax
+            $taxable_unit_price = $unit_price / (1 + ($gst_rate / 100));
+            $subtotal = $taxable_unit_price * $quantity;
+            $tax_amount = $subtotal * ($gst_rate / 100);
+            $total_price = $subtotal + $tax_amount;
+            // 4. Insert into 'sale_items'
+            $sale_item_data = [
+                'sale_id'         => $sale_id,
+                'batch_id'        => $batch_id,
+                'quantity_sold'   => $quantity,
+                'unit_price'      => $unit_price, // The MRP
+                'subtotal'        => $subtotal,
+                'discount_amount' => 0,
+                'tax_amount'      => $tax_amount,
+                'total'           => $total_price
+            ];
+            $this->db->insert('sale_items', $sale_item_data);
+            // 5. Deduct from 'center_stocks'
+            $this->db->where('id', $stock_record->id);
+            $this->db->set('quantity', 'quantity - ' . (int)$quantity, FALSE);
+            $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
+            $this->db->update('center_stocks');
+            // 6. Deduct from 'medicine_batches'
+            $this->db->where('id', $batch_id);
+            $this->db->set('quantity_remaining', 'quantity_remaining - ' . (int)$quantity, FALSE);
+            $this->db->update('medicine_batches');
+            // 7. Log in 'stock_movements'
+            $movement_data = [
+                "batch_id"           => $batch_id,
+                "movement_type"      => "SALE",
+                "from_location_type" => "CENTER",
+                "from_location_id"   => $center_id,
+                "to_location_type"   => "SALE",
+                "to_location_id"     => $sale_id,
+                "quantity_before"    => $quantity_before,
+                "quantity_change"    => - (int)$quantity,
+                "quantity_after"     => $quantity_before - (int)$quantity,
+                "unit_price"         => $unit_price,
+                "total_value"        => $total_price,
+                "reference_type"     => "SALES_BILL",
+                "reference_id"       => $sale_id,
+                "patient_id"         => $item_data['patient_id'],
+                "patient_name"       => $item_data['patient_name'],
+                "created_by"         => $created_by_id,
+            ];
+            $this->db->insert("stock_movements", $movement_data);
+
+            $this->db->trans_complete();
+
+            if ($this->db->trans_status() === FALSE) {
+                log_message('error', 'DB Transaction failed while processing sale item for batch ID: ' . $batch_id);
+                return ['status' => 'error', 'message' => 'Database transaction failed for batch ' . $batch_id];
+            } else {
+                return ['status' => 'success', 'total_price' => $total_price];
+            }
+        // } catch (Exception $e) {
+        //     $this->db->trans_rollback();
+        //     log_message('error', 'Exception in process_sale_item: ' . $e->getMessage());
+        //     return ['status' => 'error', 'message' => $e->getMessage()];
+        // }
+    }
+    public function update_sale_totals($sale_id)
+    {
+        // This query calculates all totals from the 'sale_items' table
+        $this->db->select('
+            COUNT(id) as total_items,
+            SUM(quantity_sold) as total_quantity,
+            SUM(subtotal) as subtotal,
+            SUM(discount_amount) as discount_amount,
+            SUM(tax_amount) as tax_amount,
+            SUM(total) as total_amount
+        ');
+        $this->db->from('sale_items');
+        $this->db->where('sale_id', $sale_id);
+        $totals = $this->db->get()->row_array();
+
+        if ($totals) {
+            // Update the main 'sales' record
+            $this->db->where('id', $sale_id);
+            $this->db->update('sales', $totals);
+        }
+    }
+     public function get_patient_consumption($patient_id)
+    {
+        // try {
+            $this->db->select('
+                sm.created_at as received_date,
+                sm.quantity_change,
+                sm.unit_price,
+                sm.total_value,
+                sm.reference_number as sale_number,
+                c.center_name,
+                m.medicine_name,
+                m.medicine_code,
+                mb.batch_number,
+                e.name as user_name
+            ');
+            $this->db->from('stock_movements sm');
+            
+            // This is the main logic for your report
+            $this->db->where('sm.movement_type', 'SALE');
+            $this->db->where('sm.patient_id', $patient_id);
+
+            // Joins to get the details
+            $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+            $this->db->join('hms_centers c', 'sm.from_location_id = c.ID AND sm.from_location_type = "CENTER"', 'left');
+            $this->db->join('hms_employees e', 'sm.created_by = e.ID', 'left');
+
+            $this->db->order_by('sm.created_at', 'DESC');
+            return $this->db->get()->result();
+
+        // } catch (Exception $e) {
+        //     log_message('error', 'Error in get_patient_consumption: ' . $e->getMessage());
+        //     return [];
+        // }
+    }
+
+    /**
+     * *** NEW FUNCTION ***
+     * Searches for patients from the 'sales' table for the Select2 box.
+     */
+    public function search_patients($search)
+    {
+        // try {
+            $this->db->select('patient_id, patient_name');
+            $this->db->from('sales'); // Assumes 'sales' table has patient records
+            
+            $this->db->group_start();
+            $this->db->like('patient_id', $search, 'both');
+            $this->db->or_like('patient_name', $search, 'both');
+            $this->db->group_end();
+            
+            $this->db->where('patient_id IS NOT NULL');
+            $this->db->where('patient_id !=', '');
+            
+            $this->db->group_by('patient_id, patient_name');
+            $this->db->order_by('patient_name', 'ASC');
+            $this->db->limit(50);
+            
+            return $this->db->get()->result();
+
+        // } catch (Exception $e) {
+        //     log_message('error', 'Error in search_patients: ' . $e->getMessage());
+        //     return [];
+        // }
+    }
+
+
+    public function get_patient_details($patient_id)
+    {
+        // try {
+            $this->db->select('patient_id, patient_name');
+            $this->db->from('sales');
+            $this->db->where('patient_id', $patient_id);
+            $this->db->limit(1);
+            return $this->db->get()->row();
+        // } catch (Exception $e) {
+        //     log_message('error', 'Error in get_patient_details: ' . $e->getMessage());
+        //     return null;
+        // }
+    }
+    public function get_patient_consumption_summary($patient_id, $filters = [])
+    {
+        try {
+            $this->db->select('
+                DATE(sm.created_at) as consumption_date,
+                m.category,
+                SUM(sm.quantity_change) as total_consumed 
+            ');
+            $this->db->from('stock_movements sm');
+            $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'inner');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+            
+            $this->db->where('sm.movement_type', 'SALE');
+            $this->db->where('sm.patient_id', $patient_id);
+
+            // ** NEW: Apply Date Filters **
+            if (!empty($filters['start_date'])) {
+                $this->db->where('DATE(sm.created_at) >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $this->db->where('DATE(sm.created_at) <=', $filters['end_date']);
+            }
+            
+            // ** NEW: Group by Date as well **
+            $this->db->group_by('DATE(sm.created_at), m.category');
+            $this->db->order_by('consumption_date', 'DESC');
+            $this->db->order_by('m.category', 'ASC');
+            
+            return $this->db->get()->result();
+
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_patient_consumption_summary: ' . $e->getMessage());
+            return [];
+        }
+    }
+    public function get_consumption_report_pivoted($filters = [])
+    {
+        try {
+            $this->db->select('
+                sm.patient_id,
+                sm.patient_name,
+                DATE(sm.created_at) as consumption_date,
+                
+                -- This is the PIVOT logic
+                SUM(CASE WHEN m.category = "OT DCI" THEN sm.quantity_change ELSE 0 END) as ot_total,
+                SUM(CASE WHEN m.category = "Package injections" THEN sm.quantity_change ELSE 0 END) as injections_total,
+                SUM(CASE WHEN m.category = "EMBRYOLOGIST DCI" THEN sm.quantity_change ELSE 0 END) as embryologist_total,
+                SUM(sm.quantity_change) as grand_total
+            ');
+            $this->db->from('stock_movements sm');
+            $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'inner');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+            
+            // We only want 'SALE' transactions
+            $this->db->where('sm.movement_type', 'SALE');
+            
+            // Apply filters
+            if (!empty($filters['patient_id'])) {
+                $this->db->where('sm.patient_id', $filters['patient_id']);
+            }
+            if (!empty($filters['start_date'])) {
+                $this->db->where('DATE(sm.created_at) >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $this->db->where('DATE(sm.created_at) <=', $filters['end_date']);
+            }
+
+            // Group by patient and date to get a daily summary
+            $this->db->group_by('sm.patient_id, sm.patient_name, DATE(sm.created_at)');
+            $this->db->order_by('consumption_date', 'DESC');
+            
+            return $this->db->get()->result();
+
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_consumption_report_pivoted: ' . $e->getMessage());
+            return [];
+        }
+    }
 }
 
 // comment these new function using procedure 

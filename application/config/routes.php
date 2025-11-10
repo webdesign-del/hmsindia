@@ -482,7 +482,7 @@ $route['stocks_new/get_summary_stats'] = 'stocks_new/get_summary_stats';
 $route['stocks_new/search_stock_movements'] = 'stocks_new/search_stock_movements';
 $route['stocks_new/export_stock_report'] = 'stocks_new/export_stock_report';
 $route['stocks_new/update_payment_status'] = 'stocks_new/update_payment_status';
-
+$route['stocks_new/add_billing_item'] = 'stocks_new/add_billing_item';
 // export functinality  
 $route['stocks_new/central_stocks_export'] = 'stocks_new/central_stocks_export';
 $route['stocks_new/center_stocks_export'] = 'stocks_new/center_stocks_export';

@@ -6648,10 +6648,10 @@ class Stocks_new extends CI_Controller
                 'batch_number'  => $this->input->get('batch_number')   // *** NEW ***
             ];
             $data["stock_additions"] = $this->Stock_model_new->get_stock_additions_report($filters);
-            $data["centers"] = $this->Stock_model_new->get_all_centers(); 
+            $data["centers"] = $this->Stock_model_new->get_all_centers();
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
-            $this->load->view("stocks_new/stock_additions_report_view", $data); 
+            $this->load->view("stocks_new/stock_additions_report_view", $data);
             $this->load->view($template["footer"]); // Corrected typo
         } else {
             header("location:" . base_url() . "");
@@ -6659,6 +6659,591 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    public function patient_consumption_report()
+    {
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+            redirect(base_url());
+            die();
+        }
 
+        $data = [
+            'consumption_data' => [],
+            'selected_patient' => null
+        ];
+        $patient_id = $this->input->get('patient_id');
+        if (!empty($patient_id)) {
+            $data['consumption_data'] = $this->Stock_model_new->get_patient_consumption($patient_id);
+            $data['selected_patient'] = $this->Stock_model_new->get_patient_details($patient_id);
+        }
+
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/patient_consumption_report", $data); 
+        $this->load->view($template["footer"]);
+    }
+    public function patient_consumption_export()
+    {
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+            $this->session->set_flashdata('error', 'You must be logged in to export data.');
+            redirect('stocks_new/patient_consumption_report');
+            return;
+        }
+        
+        $patient_id = $this->input->get('patient_id');
+
+        if (empty($patient_id)) {
+            $this->session->set_flashdata('error', 'Please search for a patient before exporting.');
+            redirect('stocks_new/patient_consumption_report');
+            return;
+        }
+
+        // Get the data
+        $data = $this->Stock_model_new->get_patient_consumption($patient_id);
+        $patient = $this->Stock_model_new->get_patient_details($patient_id);
+        $filename = 'patient_consumption_' . $patient_id . '_' . date('Y-m-d') . '.csv';
+
+        // --- CSV Generation ---
+        header("Content-Description: File Transfer");
+        header("Content-Disposition: attachment; filename=$filename");
+        header("Content-Type: application/csv; charset=utf-8");
+
+        $file = fopen('php://output', 'w');
+        
+        // Add UTF-8 BOM
+        fputs($file, "\xEF\xBB\xBF"); 
+
+        // Add headers
+        $headers = [
+            "Patient ID", "Patient Name", "Received Date", "Sale # / Ref", "Medicine",
+            "Medicine Code", "Batch #", "Qty", "Unit Price", "Total",
+            "Consumed At", "Billed By"
+        ];
+        fputcsv($file, $headers);
+
+        // Add data
+        foreach ($data as $item) {
+            $row = [
+                $patient->patient_id ?? $patient_id, // Add patient ID
+                $patient->patient_name ?? 'N/A',     // Add patient name
+                date('d-m-Y H:i', strtotime($item->received_date)),
+                $item->sale_number,
+                $item->medicine_name,
+                $item->medicine_code,
+                $item->batch_number,
+                abs($item->quantity_change),
+                $item->unit_price,
+                $item->total_value,
+                $item->center_name,
+                $item->user_name
+            ];
+            fputcsv($file, $row);
+        }
+        
+        fclose($file);
+        exit;
+    }
+
+    public function search_patients_json() {
+        if (!checklogin()['status']) {
+            echo json_encode([]); // Return empty on no session
+            return;
+        }
+        
+        $search = $this->input->get('search');
+        $data = $this->Stock_model_new->search_patients($search);
+        echo json_encode($data);
+    }
+    public function patient_consumption_summary()
+    {
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+            redirect(base_url());
+            die();
+        }
+        // ** NEW: Get filters from URL **
+        $filters = [
+            'start_date' => $this->input->get('start_date'),
+            'end_date'   => $this->input->get('end_date'),
+            'patient_id' => $this->input->get('patient_id'),
+        ];
+        $data = [
+            'consumption_summary' => [],
+            'selected_patient' => null,
+            'filters' => $filters // Pass filters to the view
+        ];
+        $patient_id = $filters['patient_id'];
+        if (!empty($patient_id)) {
+            // ** NEW: Pass filters to the model **
+            $data['consumption_summary'] = $this->Stock_model_new->get_patient_consumption_summary($patient_id, $filters);
+            // Get the patient's details to display in the search box
+            $data['selected_patient'] = $this->Stock_model_new->get_patient_details($patient_id);
+        }
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        // Load the view file
+        $this->load->view("stocks_new/patient_consumption_summary", $data); 
+        $this->load->view($template["footer"]);
+    }
+
+    public function all_consumption_report()
+    {
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+            redirect(base_url());
+            die();
+        }
+
+        // Get filters from URL
+        $filters = [
+            'patient_id' => $this->input->get('patient_id'),
+            'start_date' => $this->input->get('start_date'),
+            'end_date'   => $this->input->get('end_date')
+        ];
+        
+        $data['filters'] = $filters;
+        $data['selected_patient'] = null;
+        $data['report_data'] = [];
+
+        // Get the data from the model
+        $data['report_data'] = $this->Stock_model_new->get_consumption_report_pivoted($filters);
+
+        // If a patient was searched, get their details to pre-fill the box
+        if (!empty($filters['patient_id'])) {
+            $data['selected_patient'] = $this->Stock_model_new->get_patient_details($filters['patient_id']);
+        }
+        
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view('stocks_new/all_consumption_report', $data); // Load the new view
+        $this->load->view($template["footer"]);
+    }
+    
+    // ===============================================
+    // PATIENT BILLING ITEMS
+    // ===============================================
+
+    /**
+     * Add billing items for patient procedures
+     * Handles Embryology, Injections, and OT Consumables
+     */
+    // public function add_billing_item()
+    // {
+    //     $logg = checklogin();
+    //     if ($logg['status'] == true) {
+    //         if (isset($_POST['action']) && $_POST['action'] == 'add_billing_item') {
+    //             unset($_POST['action']);
+
+    //             $post_arr['receipt_number'] = $_POST['receipt_number'];
+    //             unset($_POST['receipt_number']);
+
+    //             // Initialize counters
+    //             $icounte = $mcounte = $ccounte = 1;
+    //             $i_counte = $m_counte = $c_counte = array();
+    //             $i_counter = $m_counter = $c_counter = array();
+
+    //             // Parse POST data to find item counters
+    //             foreach ($_POST as $key => $val) {
+    //                 if (strpos($key, 'injections_name_') !== false) {
+    //                     $iid = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
+    //                     $i_counter[] = $iid;
+    //                 }
+    //                 if (strpos($key, 'medicine_name_') !== false) {
+    //                     $mid = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
+    //                     $m_counter[] = $mid;
+    //                 }
+    //                 if (strpos($key, 'consumables_name_') !== false) {
+    //                     $cid = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
+    //                     $c_counter[] = $cid;
+    //                 }
+    //             }
+
+    //             // Process Injections
+    //             if (!empty($i_counter)) {
+    //                 foreach ($i_counter as $key => $icounte) {
+    //                     if ($_POST['injections_name_' . $icounte] == '') {
+    //                         // Skip empty rows
+    //                         continue;
+    //                     } else {
+    //                         $this->process_injection_item($icounte, $i_counte);
+    //                     }
+    //                 }
+    //             }
+
+    //             // Process Medicine/Embryology
+    //             if (!empty($m_counter)) {
+    //                 foreach ($m_counter as $key => $mcounte) {
+    //                     if ($_POST['medicine_name_' . $mcounte] == '') {
+    //                         continue;
+    //                     } else {
+    //                         $this->process_medicine_item($mcounte, $m_counte);
+    //                     }
+    //                 }
+    //             }
+
+    //             // Process Consumables
+    //             if (!empty($c_counter)) {
+    //                 foreach ($c_counter as $key => $ccounte) {
+    //                     if ($_POST['consumables_name_' . $ccounte] == '') {
+    //                         continue;
+    //                     } else {
+    //                         $this->process_consumable_item($ccounte, $c_counte);
+    //                     }
+    //                 }
+    //             }
+
+    //             // Prepare final data
+    //             $details = array();
+    //             $details['data']['consumables'] = $c_counte;
+    //             $details['data']['injections'] = $i_counte;
+    //             $details['data']['medicine'] = $m_counte;
+    //             $post_arr['data'] = serialize($details);
+    //             $post_arr['employee_number'] = $_POST['employee_number'];
+    //             unset($_POST['employee_number']);
+    //             $post_arr['procedure_name'] = $_POST['procedure_name'];
+    //             unset($_POST['procedure_name']);
+    //             $post_arr['patient_id'] = $_POST['patient_id'];
+    //             unset($_POST['patient_id']);
+    //             $post_arr['add_on'] = date("Y-m-d H:i:s");
+
+    //             // Insert billing record
+    //             $result = $this->Stock_model_new->billing_item_insert($post_arr);
+
+    //             if ($result > 0) {
+    //                 // Deduct stock for all items
+    //                 if (!empty($i_counter)) {
+    //                     foreach ($i_counter as $key => $icounte) {
+    //                         if (isset($_POST['injections_ID_' . $icounte])) {
+    //                             $ID = $_POST['injections_ID_' . $icounte];
+    //                             $serial = $_POST['injections_serial_' . $icounte];
+    //                             $qty = $_POST['injections_quantity_' . $icounte];
+    //                             $this->Stock_model_new->deduct_stock($ID, $serial, $qty);
+    //                         }
+    //                     }
+    //                 }
+    //                 if (!empty($m_counter)) {
+    //                     foreach ($m_counter as $key => $mcounte) {
+    //                         if (isset($_POST['medicine_ID_' . $mcounte])) {
+    //                             $ID = $_POST['medicine_ID_' . $mcounte];
+    //                             $serial = $_POST['medicine_serial_' . $mcounte];
+    //                             $qty = $_POST['medicine_quantity_' . $mcounte];
+    //                             $this->Stock_model_new->deduct_stock($ID, $serial, $qty);
+    //                         }
+    //                     }
+    //                 }
+    //                 if (!empty($c_counter)) {
+    //                     foreach ($c_counter as $key => $ccounte) {
+    //                         if (isset($_POST['consumables_ID_' . $ccounte])) {
+    //                             $ID = $_POST['consumables_ID_' . $ccounte];
+    //                             $serial = $_POST['consumables_serial_' . $ccounte];
+    //                             $qty = $_POST['consumables_quantity_' . $ccounte];
+    //                             $this->Stock_model_new->deduct_stock($ID, $serial, $qty);
+    //                         }
+    //                     }
+    //                 }
+
+    //                 $this->session->set_flashdata('success', 'Patient Items added successfully!');
+    //                 redirect("stocks_new/add_billing_item");
+    //             } else {
+    //                 $this->session->set_flashdata('error', 'Something went wrong!');
+    //                 redirect("stocks_new/add_billing_item");
+    //             }
+    //         }
+
+    //         // Load view
+    //         $template = get_header_template($logg['role']);
+    //         $data['consumables'] = $this->Stock_model_new->get_available_batches_for_billing('consumables');
+    //         $data['injections'] = $this->Stock_model_new->get_available_batches_for_billing('injections');
+    //         $data['medicine'] = $this->Stock_model_new->get_available_batches_for_billing('embryology');
+
+    //         $this->load->view($template['header']);
+    //         $this->load->view('stocks_new/add_billing_item', $data);
+    //         $this->load->view($template['footer']);
+    //     } else {
+    //         redirect(base_url());
+    //     }
+    // }
+    // private function process_injection_item($icounte, &$i_counte)
+    // {
+    //     $i_counte[$icounte]['name'] = $_POST['injections_name_' . $icounte];
+    //     $i_counte[$icounte]['batch'] = $_POST['injections_batch_' . $icounte];
+    //     $i_counte[$icounte]['quantity'] = $_POST['injections_quantity_' . $icounte];
+    //     $i_counte[$icounte]['price'] = $_POST['injections_price_' . $icounte];
+    //     $i_counte[$icounte]['gst'] = $_POST['injections_gst_' . $icounte];
+    //     $i_counte[$icounte]['total'] = $_POST['injections_total_' . $icounte];
+
+    //     // Insert into central stock report
+    //     $report_data = array(
+    //         'item_name' => $_POST['injections_name_' . $icounte],
+    //         'batch_number' => $_POST['injections_batch_' . $icounte],
+    //         'quantity' => $_POST['injections_quantity_' . $icounte],
+    //         'center_number' => isset($_SESSION['logged_stock_manager']['center']) ?
+    //                           $_SESSION['logged_stock_manager']['center'] :
+    //                           $_SESSION['logged_billing_manager']['center'],
+    //         'department' => isset($_SESSION['logged_stock_manager']['department']) ?
+    //                        $_SESSION['logged_stock_manager']['department'] :
+    //                        $_SESSION['logged_billing_manager']['department'],
+    //         'add_on' => date("Y-m-d H:i:s"),
+    //         'type' => 'Injections'
+    //     );
+    //     $this->db->insert($this->config->item('db_prefix') . 'central_stock_report', $report_data);
+
+    //     // Insert into consumptions
+    //     $consumption_data = array(
+    //         'item_name' => $_POST['injections_name_' . $icounte],
+    //         'batch_number' => $_POST['injections_batch_' . $icounte],
+    //         'quantity' => $_POST['injections_quantity_' . $icounte],
+    //         'center_number' => isset($_SESSION['logged_stock_manager']['center']) ?
+    //                           $_SESSION['logged_stock_manager']['center'] :
+    //                           $_SESSION['logged_billing_manager']['center'],
+    //         'department' => isset($_SESSION['logged_stock_manager']['department']) ?
+    //                        $_SESSION['logged_stock_manager']['department'] :
+    //                        $_SESSION['logged_billing_manager']['department'],
+    //         'add_on' => date("Y-m-d H:i:s"),
+    //         'type' => 'Injections'
+    //     );
+    //     $this->db->insert($this->config->item('db_prefix') . 'consumptions', $consumption_data);
+    // }
+    // private function process_medicine_item($mcounte, &$m_counte)
+    // {
+    //     $m_counte[$mcounte]['name'] = $_POST['medicine_name_' . $mcounte];
+    //     $m_counte[$mcounte]['batch'] = $_POST['medicine_batch_' . $mcounte];
+    //     $m_counte[$mcounte]['quantity'] = $_POST['medicine_quantity_' . $mcounte];
+    //     $m_counte[$mcounte]['price'] = $_POST['medicine_price_' . $mcounte];
+    //     $m_counte[$mcounte]['gst'] = $_POST['medicine_gst_' . $mcounte];
+    //     $m_counte[$mcounte]['total'] = $_POST['medicine_total_' . $mcounte];
+
+    //     // Insert into central stock report
+    //     $report_data = array(
+    //         'item_name' => $_POST['medicine_name_' . $mcounte],
+    //         'batch_number' => $_POST['medicine_batch_' . $mcounte],
+    //         'quantity' => $_POST['medicine_quantity_' . $mcounte],
+    //         'center_number' => isset($_SESSION['logged_stock_manager']['center']) ?
+    //                           $_SESSION['logged_stock_manager']['center'] :
+    //                           $_SESSION['logged_billing_manager']['center'],
+    //         'department' => isset($_SESSION['logged_stock_manager']['department']) ?
+    //                        $_SESSION['logged_stock_manager']['department'] :
+    //                        $_SESSION['logged_billing_manager']['department'],
+    //         'add_on' => date("Y-m-d H:i:s"),
+    //         'type' => 'Medicine'
+    //     );
+    //     $this->db->insert($this->config->item('db_prefix') . 'central_stock_report', $report_data);
+
+    //     // Insert into consumptions
+    //     $consumption_data = array(
+    //         'item_name' => $_POST['medicine_name_' . $mcounte],
+    //         'batch_number' => $_POST['medicine_batch_' . $mcounte],
+    //         'quantity' => $_POST['medicine_quantity_' . $mcounte],
+    //         'center_number' => isset($_SESSION['logged_stock_manager']['center']) ?
+    //                           $_SESSION['logged_stock_manager']['center'] :
+    //                           $_SESSION['logged_billing_manager']['center'],
+    //         'department' => isset($_SESSION['logged_stock_manager']['department']) ?
+    //                        $_SESSION['logged_stock_manager']['department'] :
+    //                        $_SESSION['logged_billing_manager']['department'],
+    //         'add_on' => date("Y-m-d H:i:s"),
+    //         'type' => 'Medicine'
+    //     );
+    //     $this->db->insert($this->config->item('db_prefix') . 'consumptions', $consumption_data);
+    // }
+
+    // /**
+    //  * Process consumable item and insert into consumption records
+    //  */
+    // private function process_consumable_item($ccounte, &$c_counte)
+    // {
+    //     $c_counte[$ccounte]['name'] = $_POST['consumables_name_' . $ccounte];
+    //     $c_counte[$ccounte]['batch'] = $_POST['consumables_batch_' . $ccounte];
+    //     $c_counte[$ccounte]['quantity'] = $_POST['consumables_quantity_' . $ccounte];
+    //     $c_counte[$ccounte]['price'] = $_POST['consumables_price_' . $ccounte];
+    //     $c_counte[$ccounte]['gst'] = $_POST['consumables_gst_' . $ccounte];
+    //     $c_counte[$ccounte]['total'] = $_POST['consumables_total_' . $ccounte];
+
+    //     // Insert into central stock report
+    //     $report_data = array(
+    //         'item_name' => $_POST['consumables_name_' . $ccounte],
+    //         'batch_number' => $_POST['consumables_batch_' . $ccounte],
+    //         'quantity' => $_POST['consumables_quantity_' . $ccounte],
+    //         'center_number' => isset($_SESSION['logged_stock_manager']['center']) ?
+    //                           $_SESSION['logged_stock_manager']['center'] :
+    //                           $_SESSION['logged_billing_manager']['center'],
+    //         'department' => isset($_SESSION['logged_stock_manager']['department']) ?
+    //                        $_SESSION['logged_stock_manager']['department'] :
+    //                        $_SESSION['logged_billing_manager']['department'],
+    //         'add_on' => date("Y-m-d H:i:s"),
+    //         'type' => 'Consumables'
+    //     );
+    //     $this->db->insert($this->config->item('db_prefix') . 'central_stock_report', $report_data);
+
+    //     // Insert into consumptions
+    //     $consumption_data = array(
+    //         'item_name' => $_POST['consumables_name_' . $ccounte],
+    //         'batch_number' => $_POST['consumables_batch_' . $ccounte],
+    //         'quantity' => $_POST['consumables_quantity_' . $ccounte],
+    //         'center_number' => isset($_SESSION['logged_stock_manager']['center']) ?
+    //                           $_SESSION['logged_stock_manager']['center'] :
+    //                           $_SESSION['logged_billing_manager']['center'],
+    //         'department' => isset($_SESSION['logged_stock_manager']['department']) ?
+    //                        $_SESSION['logged_stock_manager']['department'] :
+    //                        $_SESSION['logged_billing_manager']['department'],
+    //         'add_on' => date("Y-m-d H:i:s"),
+    //         'type' => 'Consumables'
+    //     );
+    //     $this->db->insert($this->config->item('db_prefix') . 'consumptions', $consumption_data);
+    // }
+    public function get_center_id_by_number($center_number)
+    {
+        $center = $this->db->get_where('hms_centers', ['center_number' => $center_number])->row();
+        if (!$center) {
+            return false;
+        }
+        return $center->ID;
+    }
+
+    public function add_billing_item()
+    {
+        $logg = checklogin();
+        // var_dump($logg['status'] == true);die;
+        if ($logg['status'] == true) {
+            $employee_number = null;
+            $center_name = null;     
+            $department = null;
+            $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
+            $center_number = $_SESSION['logged_stock_manager']['center'];
+            $department = $_SESSION['logged_stock_manager']['department'];
+            $center_id = $this->get_center_id_by_number($center_number);
+            if (!$center_id) {
+                $this->session->set_flashdata('error', 'Your assigned center could not be found in the database.');
+                redirect('stocks_new/dashboard');
+                return;
+            }
+            $created_by_id = $this->get_employee_id_from_number($employee_number);
+            if (isset($_POST['action']) && $_POST['action'] == 'add_billing_item') {
+                $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
+                $this->form_validation->set_rules('procedure_name', 'Procedure Name', 'required');
+                if ($this->form_validation->run() == FALSE) {
+                    $this->session->set_flashdata('error', validation_errors());
+                    redirect("stocks_new/add_billing_item");
+                    return;
+                }
+                $sale_data = [
+                    'center_id'      => $center_id,
+                    'sale_number'    => 'SALE-' . date('YmdHis') . rand(100, 999), 
+                    'patient_id'     => $this->input->post('patient_id'),
+                    'patient_name'   => $this->input->post('patient_name'),
+                    'doctor_name'    => $this->input->post('procedure_name'), 
+                    'sale_date'      => date('Y-m-d'),
+                    'sale_time'      => date('H:i:s'),
+                    'payment_status' => 'PENDING', 
+                    'status'         => 'CONFIRMED', 
+                    'created_by'     => $created_by_id,
+                ];
+                $this->db->insert('sales', $sale_data);
+                
+                $sale_id = $this->db->insert_id();
+                if (!$sale_id) {
+                    $this->session->set_flashdata('error', 'Failed to create a new sale record.');
+                    redirect("stocks_new/add_billing_item");
+                    return;
+                }
+                $items_processed = 0;
+                $items_failed = 0;
+                $error_messages = [];
+                $total_amount = 0;
+                $m_counter = $this->input->post('medicine_name_1') ? [1] : []; // Simple check for first row
+                foreach ($m_counter as $mcounte) {
+                    if (!empty($_POST['medicine_name_' . $mcounte]) && (int)$_POST['medicine_quantity_' . $mcounte] > 0) {
+                        $batch_id = (int)$_POST['medicine_ID_' . $mcounte]; // Your form sends Batch ID in the 'ID' field
+                        $quantity = (int)$_POST['medicine_quantity_' . $mcounte];
+                        $item_data = [
+                            'batch_id'    => $batch_id,
+                            'center_id'   => $center_id,
+                            'department'  => $department,
+                            'quantity'    => $quantity,
+                            'patient_id'  => $this->input->post('patient_id'),
+                            'patient_name'=> $this->input->post('patient_name'),
+                        ];
+                        $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id);
+                        if ($result['status'] == 'success') {
+                            $items_processed++;
+                            $total_amount += $result['total_price'];
+                        } else {
+                            $items_failed++;
+                            $error_messages[] = "Medicine: " . $result['message'];
+                        }
+                    }
+                }
+                $i_counter = $this->input->post('injections_name_1') ? [1] : [];
+                foreach ($i_counter as $icounte) {
+                    if (!empty($_POST['injections_name_' . $icounte]) && (int)$_POST['injections_quantity_' . $icounte] > 0) {
+                        $batch_id = (int)$_POST['injections_ID_' . $icounte];
+                        $quantity = (int)$_POST['injections_quantity_' . $icounte];
+                        $item_data = [
+                            'batch_id'    => $batch_id,
+                            'center_id'   => $center_id,
+                            'department'  => $department,
+                            'quantity'    => $quantity,
+                            'patient_id'  => $this->input->post('patient_id'),
+                            'patient_name'=> $this->input->post('patient_name'),
+                        ];
+                        $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id);
+                        if ($result['status'] == 'success') {
+                            $items_processed++;
+                            $total_amount += $result['total_price'];
+                        } else {
+                            $items_failed++;
+                            $error_messages[] = "Injection: " . $result['message'];
+                        }
+                    }
+                }
+                $c_counter = $this->input->post('consumables_name_1') ? [1] : [];
+                foreach ($c_counter as $ccounte) {
+                    if (!empty($_POST['consumables_name_' . $ccounte]) && (int)$_POST['consumables_quantity_' . $ccounte] > 0) {
+                        $batch_id = (int)$_POST['consumables_ID_' . $ccounte];
+                        $quantity = (int)$_POST['consumables_quantity_' . $ccounte];
+                        $item_data = [
+                            'batch_id'    => $batch_id,
+                            'center_id'   => $center_id,
+                            'department'  => $department,
+                            'quantity'    => $quantity,
+                            'patient_id'  => $this->input->post('patient_id'),
+                            'patient_name'=> $this->input->post('patient_name'),
+                        ];
+                        $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id);
+                        if ($result['status'] == 'success') {
+                            $items_processed++;
+                            $total_amount += $result['total_price'];
+                        } else {
+                            $items_failed++;
+                            $error_messages[] = "Consumable: " . $result['message'];
+                        }
+                    }
+                }
+                // --- 5. Finalize Sale ---
+                if ($items_processed > 0) {
+                    $this->Stock_model_new->update_sale_totals($sale_id);
+                    $this->session->set_flashdata('success', "Billing created successfully with {$items_processed} items. Sale Number: " . $sale_data['sale_number']);
+                    if ($items_failed > 0) {
+                        $this->session->set_flashdata('error', "{$items_failed} items failed: <br>" . implode("<br>", $error_messages));
+                    }
+                } else {
+                    $this->db->delete('sales', ['id' => $sale_id]);
+                    $this->session->set_flashdata('error', 'No valid items were processed. Billing was not created. Errors: <br>' . implode("<br>", $error_messages));
+                }
+                redirect("stocks_new/add_billing_item");
+            } else {
+                $template = get_header_template($logg['role']);
+                $data['consumables'] = $this->Stock_model_new->get_batches_for_billing_form('OT DCI', $center_id, $department);
+                $data['injections'] = $this->Stock_model_new->get_batches_for_billing_form('Package injections', $center_id, $department);
+                $data['medicine'] = $this->Stock_model_new->get_batches_for_billing_form('EMBRYOLOGIST DCI', $center_id, $department);
+                $this->load->view($template['header']);
+                $this->load->view('stocks_new/add_billing_item', $data);
+                $this->load->view($template['footer']);
+            }
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
 
 }
