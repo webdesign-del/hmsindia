@@ -182,7 +182,11 @@
                   <td><?php echo $all_method->get_center_name($vl['billing_at']); ?></td>
                   <td><?php echo $vl['reason_of_visit']?></td>
 				  <td><?php echo $all_method->get_doctor_name($vl['doctor_id']); ?></td>
-				  <td><?php echo $select_result3['lead_source'];  ?></td>
+				  <td><?php if (
+    !in_array($select_result3['lead_source'], ['D/S'])
+) {
+    echo $select_result3['lead_source'];
+}  ?></td>
                   <td><?php echo ucwords($select_result3['agent']); ?></td>
 				  <td><?php $counselor_name = $all_method->get_counselor_name($vl['appointment_id']);
 

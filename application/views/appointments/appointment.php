@@ -108,10 +108,10 @@
                </thead>
                <tbody id="appointment_body">
                   <?php $count = 1; foreach($appointments as $ky => $vl){
-                     $sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $vl['paitent_id'] . "'";
-					      $appoint_result = run_select_query($sql);
+                    // $sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $vl['paitent_id'] . "'";
+					   //$appoint_result = run_select_query($sql);
 
-                     $sql3 = "SELECT * FROM hms_appointments WHERE wife_phone='" . $appoint_result['wife_phone'] . "' and paitent_type='new_patient'";
+                     $sql3 = "SELECT * FROM hms_appointments WHERE paitent_id='" . $vl['paitent_id'] . "' and paitent_type='new_patient'";
 					      $select_result3 = run_select_query($sql3);
                      
                      ?>
@@ -132,12 +132,10 @@
                      <td><?php echo $select_result3['lead_source']; ?></td>
                       <td><?php echo $vl['camp_name']; ?><?php echo $vl['doctor_name']; ?></td>
                       <td><?php echo $select_result3['agent']; ?></td>
-                       <td> <?php
-                       if($vl['status'] == 'consultation_done'){
-                         echo $select_result3['councellor']; 
-                         }else{ ?>
+                       <td><?php  if($vl['paitent_type'] == 'new_patient'){ ?>
                     <select class="form-control councellor-select" name="councellor" data-appointment-id="<?php echo $vl['ID']?>">
     <option value="">--Select Counselor--</option>
+    <option value="<?php echo $vl['councellor'];  ?>" selected><?php echo $vl['councellor'];  ?></option>
     <?php
     if (!empty($counselors_grouped)) {
         foreach ($counselors_grouped as $center_id => $counselors) {
@@ -165,7 +163,7 @@
         echo '<option value="">No counselors available</option>';
     }
     ?>
-</select><?php } ?></td>
+</select><?php }else{ ?><?php echo $select_result3['councellor']; } ?></td>
                      <td class="role appint_td_<?php echo $vl['ID']?>">
                         <?php if($vl['status'] == 'consultation_done'){echo 'Consultation Done';}
                            else{ 

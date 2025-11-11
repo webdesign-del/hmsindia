@@ -3046,7 +3046,7 @@ public function patient_procedure_consultation_count($center, $start_date, $end_
     // --- The New, Single, Efficient Query ---
     // This query JOINS the tables and counts in one step.
     // It's much faster than looping.
-    $sql = "
+   echo $sql = "
         SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
         FROM hms_consultation AS T1
         INNER JOIN hms_patient_procedure AS T2

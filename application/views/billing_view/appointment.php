@@ -573,54 +573,70 @@ function appointsubmit(){
 
 //Centre Doctor
 $('#appoitment_for').on("change", function() {
-	$('div.appoitmented_doctor').hide();
-	$('div.appoitmented_date').hide();
-	$('div.appoitmented_slot').hide();
-	$('div#camp_selection_div').hide();
-	$('#camp_selection').empty().append('<option value="">Select Camp</option>');
-	
-	$('#loader_div').show();
-	var centre_id = $(this).val();
-	if(centre_id != ''){
-		// Load camps for selected center
-		$.ajax({
-			url: '<?php echo base_url('billingcontroller/get_camps_by_center')?>',
-			data: {center_id: centre_id},
-			dataType: 'html',
-			type: 'POST',
-			success: function(data) {
-				$('#camp_selection').empty().append(data);
-				$('div#camp_selection_div').show();
-				$('#loader_div').hide();
-			},
-			error: function(xhr, status, error) {
-				console.log('Camp loading error:', status, error);
-				$('#camp_selection').empty().append('<option value="">Error loading camps</option>');
-				$('div#camp_selection_div').show();
-				$('#loader_div').hide();
-			}
-		});
-		
-		// Load doctors for selected center
-		$.ajax({
-		url: '<?php echo base_url('billingcontroller/search_doctor')?>',
-		data: {centre_id:centre_id},
-		dataType: 'json',
-		type: 'POST',
-		success: function(data)
-		{
-			$('#appoitmented_doctor').empty().append(data);
-			$('div.appoitmented_doctor').show();
-			$('#loader_div').hide();
-			
-		} 
-  });
+    // Hide and reset dependent fields
+    $('div.appoitmented_doctor').hide();
+    $('div.appoitmented_date').hide();
+    $('div.appoitmented_slot').hide();
+    $('div#camp_selection_div').hide();
+    $('#camp_selection').html('<option value="">Select Camp</option>');
+    $('#appoitmented_doctor').html('<option value="">Select Doctor</option>');
+    
+    // Show loader
+    $('#loader_div').show();
+
+    var centre_id = $(this).val();
+
+    if (centre_id !== '') {
+        /** ------------------------------
+         *  Load Camps for Selected Center
+         *  ------------------------------ */
+        $.ajax({
+            url: '<?php echo base_url('billingcontroller/get_camps_by_center')?>',
+            type: 'POST',
+            data: { center_id: centre_id },
+            dataType: 'html',
+            success: function(response) {
+                $('#camp_selection').html(response);
+                $('div#camp_selection_div').show();
+            },
+            error: function(xhr, status, error) {
+                console.error('Camp loading error:', status, error);
+                $('#camp_selection').html('<option value="">Error loading camps</option>');
+                $('div#camp_selection_div').show();
+            },
+            complete: function() {
+                $('#loader_div').hide();
+            }
+        });
+
+        /** ------------------------------
+         *  Load Doctors for Selected Center
+         *  ------------------------------ */
+        $.ajax({
+            url: '<?php echo base_url('billingcontroller/search_doctor')?>',
+            type: 'POST',
+            data: { centre_id: centre_id },
+            dataType: 'html',
+            success: function(response) {
+                console.log(response);
+                $('#appoitmented_doctor').html(response);
+                $('div.appoitmented_doctor').show();
+            },
+            error: function(xhr, status, error) {
+                console.error('Doctor loading error:', status, error);
+                $('#appoitmented_doctor').html('<option value="">Error loading doctors</option>');
+                $('div.appoitmented_doctor').show();
+            },
+            complete: function() {
+                $('#loader_div').hide();
+            }
+        });
+    } else {
+        // If no center selected, hide everything
+        $('div.appoitmented_doctor').hide();
+        $('div#camp_selection_div').hide();
+        $('#loader_div').hide();
     }
-	else{
-		$('div.appoitmented_doctor').hide();
-		$('div#camp_selection_div').hide();
-		$('#loader_div').hide();
-	}
 });
 
 $('#appoitmented_doctor').on("change", function() {
