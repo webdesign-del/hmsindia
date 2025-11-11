@@ -2683,4 +2683,6 @@ public function procedure_billings(){
 		    return $doctor_name['name'];
 		}else {return "";}
 	}
+
+	
 } 

@@ -1692,7 +1692,7 @@ function partial_billing($appointment_id){
 					      $query = "INSERT INTO `hms_patient_procedure` 
 							(appointment_id, consultation_done, patient_id, procedure_parent, on_date, 
 							receipt_number,transaction_img, billing_id, biller_id, transaction_id,
-							hospital_id, payment_in, data,procedure_id,procedure_name,code,category, center_share, fees, totalpackage, discount_amount, 
+							hospital_id, payment_in, data,procedure_id,procedure_name,code,category,procedures, broad_procedure, broad_procedure_count, center_share, fees, totalpackage, discount_amount, 
 							payment_done, wallet_payment, remaining_amount, payment_method, billing_from, 
 							billing_at, package_form, status, origins) 
 							VALUES 
@@ -1984,7 +1984,7 @@ function partial_billing($appointment_id){
 					    $query = "INSERT INTO `hms_patient_procedure` 
 							(appointment_id, consultation_done, patient_id, procedure_parent, on_date, 
 							receipt_number, billing_id, biller_id, transaction_id, transaction_img,
-							hospital_id, payment_in, data,procedure_id,procedure_name,code,category, center_share, fees, totalpackage, discount_amount, 
+							hospital_id, payment_in, data,procedure_id,procedure_name,code,category, procedures, broad_procedure, broad_procedure_count, center_share, fees, totalpackage, discount_amount, 
 							payment_done, wallet_payment, remaining_amount, payment_method, billing_from, 
 							billing_at, package_form, status, origins) 
 							VALUES 
@@ -2795,7 +2795,7 @@ function partial_billing($appointment_id){
 
 	
 
-	public function search_doctor(){
+	/*public function search_doctor(){
 		$centre_id = $_POST['centre_id'];
 		$doctors = $this->doctors_model->center_doctors($centre_id);
 		$option = "";
@@ -2807,7 +2807,31 @@ function partial_billing($appointment_id){
 		}
 		echo json_encode($option);
 		die;		
-	}
+	}*/
+
+	public function search_doctor()
+    {
+        $centre_id = $this->input->post('centre_id');
+        
+        if (empty($centre_id)) {
+            echo '<option value="">Invalid Centre</option>';
+            return;
+        }
+
+        $doctors = $this->doctors_model->center_doctors($centre_id);
+
+        $option = '<option value="">Select Doctor</option>';
+
+        if (!empty($doctors)) {
+            foreach ($doctors as $val) {
+                $option .= '<option value="' . $val['ID'] . '">' . htmlspecialchars($val['name'], ENT_QUOTES, 'UTF-8') . '</option>';
+            }
+        } else {
+            $option .= '<option value="">No doctors found</option>';
+        }
+
+        echo $option;
+    }
 
 	
 
@@ -3467,6 +3491,32 @@ public function billing_noreceipt_patient_payments(){
 		}
 		return null;
 	}
+
+public function get_camps_by_center() {
+        $center_id = $this->input->post('center_id');
+        if (!$center_id) {
+            echo '<option value="">Invalid Center</option>';
+            return;
+        }
+
+        $sql = "SELECT c.camp_number, c.camp_name 
+                FROM ".$this->config->item('db_prefix')."camps c 
+                LEFT JOIN ".$this->config->item('db_prefix')."centers cen ON c.center_id = cen.ID 
+                WHERE cen.center_number=? AND c.status='1' 
+                ORDER BY c.camp_name ASC";
+
+        $q = $this->db->query($sql, [$center_id]);
+        $result = $q->result_array();
+
+        echo '<option value="">Select Camp</option>';
+        if (!empty($result)) {
+            foreach ($result as $camp) {
+                echo '<option value="'.$camp['camp_number'].'">'.$camp['camp_name'].'</option>';
+            }
+        } else {
+            echo '<option value="">No camps found</option>';
+        }
+    }
 
 
 
