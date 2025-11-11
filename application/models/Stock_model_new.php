@@ -599,23 +599,47 @@ class Stock_model_new extends CI_Model
         // }
     }
 
+    // public function get_center_stock_summary()
+    // {
+    //     // try {
+    //         $this->db->select(
+    //             "c.center_name, COUNT(DISTINCT ccs.batch_id) as total_batches, SUM(ccs.quantity) as total_quantity",
+    //         );
+    //         $this->db->from("centers c");
+    //         $this->db->join(
+    //             "center_stocks ccs",
+    //             "c.id = ccs.center_id",
+    //             "left",
+    //         );
+    //         $this->db->where("c.status", "active");
+    //         $this->db->where("ccs.status", "ACTIVE");
+    //         $this->db->group_by("c.id, c.center_name");
+    //         return $this->db->get()->result();
+    //     // } catch (Exception $e) {
+    //     //     return [];
+    //     // }
+    // }
     public function get_center_stock_summary()
     {
         // try {
             $this->db->select(
-                "c.center_name, COUNT(DISTINCT ccs.batch_id) as total_batches, SUM(ccs.quantity) as total_quantity",
+                "c.center_name, 
+                COUNT(DISTINCT ccs.batch_id) as total_batches, 
+                COALESCE(SUM(ccs.quantity), 0) as total_quantity"
             );
-            $this->db->from("centers c");
+            $this->db->from("hms_centers c"); 
+            $join_condition = "c.ID = ccs.center_id AND ccs.status = 'ACTIVE'";
             $this->db->join(
                 "center_stocks ccs",
-                "c.id = ccs.center_id",
-                "left",
+                $join_condition,
+                "left" // This is the LEFT JOIN
             );
-            $this->db->where("c.status", "active");
-            $this->db->where("ccs.status", "ACTIVE");
-            $this->db->group_by("c.id, c.center_name");
+            $this->db->where("c.status", 1); 
+            $this->db->group_by("c.ID, c.center_name");
+            $this->db->order_by("c.center_name", "ASC");
             return $this->db->get()->result();
         // } catch (Exception $e) {
+        //     log_message('error', 'Error in get_center_stock_summary: ' . $e->getMessage());
         //     return [];
         // }
     }
