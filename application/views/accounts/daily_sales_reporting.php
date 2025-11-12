@@ -8,12 +8,17 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="recipient_email"><strong>Recipient Email:</strong></label>
-                        <input type="email" id="recipient_email" name="recipient_email" 
-                               class="form-control" required 
-                               placeholder="Enter email address"
-                               value="ghanshyam.it.kr@gmail.com">
-                    </div>
+    <label for="recipient_email"><strong>Recipient Emails:</strong></label>
+    
+    <input type="text" id="recipient_email" name="recipient_email" 
+           class="form-control" required 
+           placeholder="user1@example.com, user2@example.com"
+           value="ghanshyam.it.kr@gmail.com">
+           
+    <small class="text-muted">
+        You can enter multiple emails, separated by a comma.
+    </small>
+</div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
@@ -166,8 +171,9 @@ $(document).ready(function() {
                     <tr class="sub-header">
                         <td>A. Package Revenue Total</td>
                         <td><input type="text" id="package_customer_count" name="package_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                       <td><input type="text" id="package_amount" name="package_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
                         <td><input type="text" id="package_bill_count" name="package_bill_count" value="<?php echo round($vl['total_fees'],2); ?>"></td>
-                        <td><input type="text" id="package_amount" name="package_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                        
                     </tr>
                     <?php } ?>
                              <?php 
@@ -185,7 +191,8 @@ $(document).ready(function() {
                         <td>Medicine</td>
                         <td><input type="text" id="medicine_customer_count" name="medicine_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
                         <td><input type="text" id="medicine_bill_count" name="medicine_bill_count" value="<?php echo round($vl['total_payment'],2); ?>"></td>
-                        <td><input type="text" id="medicine_amount" name="medicine_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                     <td><input type="text" id="medicine_amount" name="medicine_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                        
                     </tr>
                     <?php } ?>
                             <?php 
@@ -203,7 +210,8 @@ $(document).ready(function() {
                         <td>Diagnosis</td>
                         <td><input type="text" id="diagnosis_customer_count" name="diagnosis_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
                         <td><input type="text" id="diagnosis_bill_count" name="diagnosis_bill_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
-                        <td><input type="text" id="diagnosis_amount" name="diagnosis_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                       <td><input type="text" id="diagnosis_amount" name="diagnosis_amount" value="<?php echo round($vl['total_payment'],2); ?>"></td>
+                        
                     </tr>
                     <?php } ?>
                            <?php 
@@ -224,8 +232,9 @@ $(document).ready(function() {
                     <tr>
                         <td>Consultation / Registration - Paid</td>
                         <td><input type="text" id="consultation_customer_count" name="consultation_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
-                        <td><input type="text" id="consultation_bill_count" name="consultation_bill_count" value="<?php echo round($vl['total_payment'],2) + $registration_payment; ?>"></td>
                         <td><input type="text" id="consultation_amount" name="consultation_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                        <td><input type="text" id="consultation_bill_count" name="consultation_bill_count" value="<?php echo round($vl['total_payment'],2) + $registration_payment; ?>"></td>
+                        
                     </tr>
                     <?php } ?>
                             <tr>

@@ -2185,12 +2185,7 @@ public function procedure_reports(){
 public function tally()
 {
     $logg = checklogin();
-    if ($logg['status'] != true) {
-        return $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode(['error' => 'Not logged in'], JSON_PRETTY_PRINT));
-    }
-
+    
     // Accept ids from POST or GET
     $ids = $this->input->post('ids');
     if (empty($ids)) {
