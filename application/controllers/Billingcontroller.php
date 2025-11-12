@@ -2824,9 +2824,7 @@ function partial_billing($appointment_id){
             }
         } else {
             $option .= '<option value="">No doctors found</option>';
-            var_dump("No doctors found in centre id: " . $centre_id);
         }
-		var_dump("Doctors found in centre id: " . $centre_id . " - " . $option);
         echo $option;
 		die;
     }
@@ -3490,7 +3488,8 @@ public function billing_noreceipt_patient_payments(){
 		return null;
 	}
 
-public function get_camps_by_center() {
+public function get_camps_by_center() 
+{
         $center_id = $this->input->post('center_id');
         if (!$center_id) {
             echo '<option value="">Invalid Center</option>';
@@ -3504,7 +3503,6 @@ public function get_camps_by_center() {
 
         $q = $this->db->query($sql, [$center_id]);
         $result = $q->result_array();
-
         echo '<option value="">Select Camp</option>';
         if (!empty($result)) {
             foreach ($result as $camp) {
@@ -3513,6 +3511,7 @@ public function get_camps_by_center() {
         } else {
             echo '<option value="">No camps found</option>';
         }
+		die;
     }
 
 
