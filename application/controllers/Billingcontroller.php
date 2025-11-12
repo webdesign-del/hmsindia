@@ -2811,7 +2811,6 @@ function partial_billing($appointment_id){
 
 	public function search_doctor_in_Camp()
     {
-		die('here');
         $centre_id = $this->input->post('centre_id');
         if (empty($centre_id)) {
             echo '<option value="">Invalid Centre</option>';
@@ -2819,6 +2818,8 @@ function partial_billing($appointment_id){
             return;
         }
         $doctors = $this->doctors_model->center_doctors($centre_id);
+		var_dump("Doctors found in centre id: " . $centre_id . " - " . json_encode($doctors));
+		die;
         $option = '<option value="">Select Doctor</option>';
         if (!empty($doctors)) {
             foreach ($doctors as $val) {
