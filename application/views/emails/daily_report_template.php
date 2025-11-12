@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title><?php echo $email_subject; ?></title>
+    <title>Daily Sales Report</title>
     <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; }
         .container { width: 90%; margin: 20px auto; }
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         th, td { border: 1px solid #ddd; padding: 10px; }
         th { background-color: #f4f4f4; text-align: left; }
         .numeric { text-align: right; }
@@ -49,7 +49,7 @@
                     <td>Non IVF without Bed</td>
                     <td><?php echo $report_data['non_ivf_without_bed_c_count']; ?></td>
                     <td><?php echo $report_data['non_ivf_without_bed_b_count']; ?></td>
-                    <td class="numeric"><?php echo $report_data['non_ivf_without_bed_amount']; ?></td>
+                    <td classs="numeric"><?php echo $report_data['non_ivf_without_bed_amount']; ?></td>
                 </tr>
                 <tr>
                     <td>(Not Tagged)</td>
@@ -83,6 +83,12 @@
                 </tr>
             </tbody>
         </table>
+        
+        <hr>
+        
+        <h3>Detailed Patient Lists</h3>
+        <?php echo $details_html; ?>
+        
     </div>
 </body>
 </html>

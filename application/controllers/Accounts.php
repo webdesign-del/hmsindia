@@ -7798,362 +7798,54 @@ public function get_doctors_by_center() {
 }*/
 
 
-    // ... your other functions ...
-
-    /**
-     * Receives the daily report data via AJAX and sends it as an email.
-     */
-    public function send_daily_report_email1() {
-    
-    $recipient_email = $this->input->post('recipient_email');
-    $email_subject   = $this->input->post('email_subject');
-    $data['report_data'] = $_POST;
-
-    // Load the email template file as a string
-    $email_body = $this->load->view('emails/daily_report_template', $data, TRUE);
-
-    // Load CodeIgniter's email library
-    $this->load->library('email'); // This will auto-load your config from Step 1
-
-    $this->email->from('no-reply@yourhospital.com', 'Daily Reports');
-    $this->email->to($recipient_email);
-    $this->email->subject($email_subject);
-    $this->email->message($email_body);
-    
-    // *** THIS IS THE CRITICAL LINE! ***
-    $this->email->set_mailtype("html"); 
-    // *** Without this, it sends plain text ***
-
-    if ($this->email->send()) {
-        $response = [
-            'success'   => true,
-            'message'   => 'Report sent successfully!',
-            'recipient' => $recipient_email,
-            'timestamp' => date('Y-m-d H:i:s')
-        ];
-    } else {
-        // Send back the *actual* error message
-        $response = [
-            'success' => false,
-            'message' => 'Failed to send email. Debug: ' . $this->email->print_debugger()
-        ];
-    }
-
-    header('Content-Type: application/json');
-    echo json_encode($response);
-}
-
 public function send_daily_report_email() {
-        // Check if this is a POST request
-        if ($this->input->method() !== 'post') {
-            show_404();
-        }
-
-        // Get recipient email from POST data
-        $recipient_email = $this->input->post('recipient_email');
         
-        // Validate email
-        if (!filter_var($recipient_email, FILTER_VALIDATE_EMAIL)) {
-            $result = array(
-                'success' => false,
-                'message' => 'Invalid recipient email address provided'
-            );
-        } else {
-            // Generate orderbook summary HTML with actual data
-            $email_content = $this->generate_daily_report_email_content();
-            
-            // Send email using your existing send_mail function
-            $subject = "Daily Sales Report - " . date('Y-m-d');
-            $sent = send_mail($recipient_email, $subject, $email_content);
-            
-            $result = array(
-                'success' => $sent,
-                'message' => $sent ? 'Daily sales report email sent successfully' : 'Failed to send daily sales report email',
+        // 1. Get the recipient and subject
+        $recipient_email = $this->input->post('recipient_email');
+        $email_subject   = $this->input->post('email_subject');
+
+        // 2. Get all the report data from the forms
+        $data['report_data'] = $_POST;
+        
+        // 3. Get the raw HTML of the detailed patient lists
+        $data['details_html'] = urldecode($this->input->post('details_html'));
+
+        // 4. Load the email template file (created in Step 2)
+        $email_body = $this->load->view('emails/daily_report_template', $data, TRUE);
+
+        // 5. Load CodeIgniter's email library
+        $this->load->library('email'); 
+        // This will auto-load your config from 'application/config/email.php'
+
+        $this->email->from('no-reply@yourhospital.com', 'Daily Reports');
+        $this->email->to($recipient_email);
+        $this->email->subject($email_subject);
+        $this->email->message($email_body);
+        
+        // ** CRITICAL: This tells CodeIgniter to send HTML **
+        $this->email->set_mailtype("html"); 
+
+        // 6. Send the email and return a JSON response
+        if ($this->email->send()) {
+            $response = [
+                'success'   => true,
+                'message'   => 'Report sent successfully!',
                 'recipient' => $recipient_email,
                 'timestamp' => date('Y-m-d H:i:s')
-            );
+            ];
+        } else {
+            // ** CRITICAL: This sends the real error message back to the user **
+            $response = [
+                'success' => false,
+                'message' => 'Failed to send email. Debug: ' . $this->email->print_debugger(['headers'])
+            ];
         }
-        
-        // Return JSON response
-        $this->output
-            ->set_content_type('application/json')
-            ->set_output(json_encode($result));
-    }
-/**
- * Generate Daily Report Email HTML Content with REAL DATA and FORM DATA
- */
-private function generate_daily_report_email_content($form_data = array()) {
-    // Use the same data that's already loaded in your daily_sales_reporting method
-    // Make sure these variables are available in your controller
-    
-    $html = '
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8">
-        <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f5f5f5; }
-            .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-            .card { border: 1px solid #ddd; border-radius: 8px; margin: 20px 0; }
-            .card-header { background: #f8f9fa; padding: 15px; border-bottom: 1px solid #ddd; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-            .card-content { padding: 15px; }
-            .summary-stats { display: flex; margin-bottom: 20px; gap: 20px; }
-            .stat { flex: 1; text-align: center; padding: 10px; background: #f8f9fa; border-radius: 5px; }
-            .stat-label { font-size: 12px; color: #666; margin-bottom: 5px; }
-            .stat-value { font-size: 18px; font-weight: bold; color: #333; }
-            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-            th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-            th { background: #f8f9fa; font-weight: bold; color: #333; }
-            .numeric { text-align: right; }
-            .total-row { font-weight: bold; background: #f0f0f0; }
-            .sub-header { background: #e9ecef; font-weight: bold; }
-            .approver-item { margin-bottom: 8px; padding: 8px; border-radius: 4px; border-left: 3px solid #ffc107; background-color: #f8f9fa; }
-            .status-icon { margin-right: 8px; }
-            .footer { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; font-size: 12px; color: #666; }
-            .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #007bff; }
-            .user-input { background-color: #fff3cd; padding: 2px 5px; border-radius: 3px; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <div class="header">
-                <h1>Daily Sales Report</h1>
-                <p><strong>HMS Indiaivf -  '.$_SESSION['logged_billing_manager']['center'].' </strong></p>
-                <p><strong>Date:</strong> ' . date('Y-m-d') . ' | <strong>Generated:</strong> ' . date('Y-m-d H:i:s') . '</p>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <span>Orderbook Summary</span>
-                    <span>📊</span>
-                </div>
-                <div class="card-content">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Type of procedures</th>
-                                <th>Customer Count</th>
-                                <th>Bill Count</th>
-                                <th>Amount (Rs)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>IVF Cycles Sold</td>
-                                <td><span class="user-input">' . (isset($form_data['ivf_cycles_sold_c_count']) ? htmlspecialchars($form_data['ivf_cycles_sold_c_count']) : '') . '</span></td>
-                                <td><span class="user-input">' . (isset($form_data['ivf_cycles_sold_b_count']) ? htmlspecialchars($form_data['ivf_cycles_sold_b_count']) : '') . '</span></td>
-                                <td class="numeric"><span class="user-input">' . (isset($form_data['ivf_cycles_sold_amount']) ? htmlspecialchars($form_data['ivf_cycles_sold_amount']) : '-') . '</span></td>
-                            </tr>
-                            <tr>
-                                <td>IVF with Bed</td>
-                                <td><span class="user-input">' . (isset($form_data['ivf_with_bed_c_count']) ? htmlspecialchars($form_data['ivf_with_bed_c_count']) : '') . '</span></td>
-                                <td><span class="user-input">' . (isset($form_data['ivf_with_bed_b_count']) ? htmlspecialchars($form_data['ivf_with_bed_b_count']) : '') . '</span></td>
-                                <td class="numeric"><span class="user-input">' . (isset($form_data['ivf_with_bed_amount']) ? htmlspecialchars($form_data['ivf_with_bed_amount']) : '-') . '</span></td>
-                            </tr>
-                            <tr>
-                                <td>Non IVF with Bed</td>
-                                <td><span class="user-input">' . (isset($form_data['non_ivf_with_bed_c_count']) ? htmlspecialchars($form_data['non_ivf_with_bed_c_count']) : '') . '</span></td>
-                                <td><span class="user-input">' . (isset($form_data['non_ivf_with_bed_b_count']) ? htmlspecialchars($form_data['non_ivf_with_bed_b_count']) : '-') . '</span></td>
-                                <td class="numeric"><span class="user-input">' . (isset($form_data['non_ivf_with_bed_amount']) ? htmlspecialchars($form_data['non_ivf_with_bed_amount']) : '-') . '</span></td>
-                            </tr>
-                            <tr>
-                                <td>Non IVF without Bed</td>
-                                <td><span class="user-input">' . (isset($form_data['non_ivf_without_bed_c_count']) ? htmlspecialchars($form_data['non_ivf_without_bed_c_count']) : '') . '</span></td>
-                                <td><span class="user-input">' . (isset($form_data['non_ivf_without_bed_b_count']) ? htmlspecialchars($form_data['non_ivf_without_bed_b_count']) : '-') . '</span></td>
-                                <td class="numeric"><span class="user-input">' . (isset($form_data['non_ivf_without_bed_amount']) ? htmlspecialchars($form_data['non_ivf_without_bed_amount']) : '-') . '</span></td>
-                            </tr>
-                            <tr>
-                                <td>(Not Tagged)</td>
-                                <td><span class="user-input">' . (isset($form_data['not_tagged_c_count']) ? htmlspecialchars($form_data['not_tagged_c_count']) : '-') . '</span></td>
-                                <td><span class="user-input">' . (isset($form_data['not_tagged_b_count']) ? htmlspecialchars($form_data['not_tagged_b_count']) : '-') . '</span></td>
-                                <td class="numeric"><span class="user-input">' . (isset($form_data['not_tagged_amount']) ? htmlspecialchars($form_data['not_tagged_amount']) : '-') . '</span></td>
-                            </tr>';
 
-    // Add Procedure Data (combining database data with form data)
-    if (isset($this->data['procedure_daily_result']) && !empty($this->data['procedure_daily_result'])) {
-        foreach($this->data['procedure_daily_result'] as $ky => $vl){
-            // Use form data if available, otherwise use database data
-            $customer_count = isset($form_data['package_customer_count']) ? $form_data['package_customer_count'] : round($vl['total_patients'],2);
-            $bill_count = isset($form_data['package_bill_count']) ? $form_data['package_bill_count'] : round($vl['total_fees'],2);
-            $amount = isset($form_data['package_amount']) ? $form_data['package_amount'] : round($vl['total_patients'],2);
-            
-            $html .= '
-                            <tr class="sub-header">
-                                <td>A. Package Revenue Total</td>
-                                <td>' . $customer_count . '</td>
-                                <td>' . $bill_count . '</td>
-                                <td class="numeric">' . $amount . '</td>
-                            </tr>';
-        }
+        // Return the JSON response to your JavaScript
+        header('Content-Type: application/json');
+        echo json_encode($response);
     }
 
-    // Add Medicine Data
-    if (isset($this->data['medicine_daily_result']) && !empty($this->data['medicine_daily_result'])) {
-        foreach($this->data['medicine_daily_result'] as $ky => $vl){
-            $customer_count = isset($form_data['medicine_customer_count']) ? $form_data['medicine_customer_count'] : round($vl['total_patients'],2);
-            $bill_count = isset($form_data['medicine_bill_count']) ? $form_data['medicine_bill_count'] : round($vl['total_payment'],2);
-            $amount = isset($form_data['medicine_amount']) ? $form_data['medicine_amount'] : round($vl['total_patients'],2);
-            
-            $html .= '
-                            <tr>
-                                <td>Medicine</td>
-                                <td>' . $customer_count . '</td>
-                                <td>' . $bill_count . '</td>
-                                <td class="numeric">' . $amount . '</td>
-                            </tr>';
-        }
-    }
-
-    // Add Investigations Data
-    if (isset($this->data['investigations_daily_result']) && !empty($this->data['investigations_daily_result'])) {
-        foreach($this->data['investigations_daily_result'] as $ky => $vl){
-            $customer_count = isset($form_data['diagnosis_customer_count']) ? $form_data['diagnosis_customer_count'] : round($vl['total_patients'],2);
-            $bill_count = isset($form_data['diagnosis_bill_count']) ? $form_data['diagnosis_bill_count'] : round($vl['total_payment'],2);
-            $amount = isset($form_data['diagnosis_amount']) ? $form_data['diagnosis_amount'] : round($vl['total_patients'],2);
-            
-            $html .= '
-                            <tr>
-                                <td>Diagnosis</td>
-                                <td>' . $customer_count . '</td>
-                                <td>' . $bill_count . '</td>
-                                <td class="numeric">' . $amount . '</td>
-                            </tr>';
-        }
-    }
-
-    // Add Consultation Data
-    $registration_payment = 0;
-    if (isset($this->data['registration_daily_result']) && !empty($this->data['registration_daily_result'])) {
-        foreach($this->data['registration_daily_result'] as $ky => $vl){
-            $registration_payment = round($vl['total_payment'],2);
-        }
-    }
-    
-    if (isset($this->data['consultation_daily_result']) && !empty($this->data['consultation_daily_result'])) {
-        foreach($this->data['consultation_daily_result'] as $ky => $vl){
-            $customer_count = isset($form_data['consultation_customer_count']) ? $form_data['consultation_customer_count'] : round($vl['total_patients'],2);
-            $bill_count = (isset($form_data['consultation_bill_count']) ? $form_data['consultation_bill_count'] : (round($vl['total_payment'],2) + $registration_payment));
-            $amount = isset($form_data['consultation_amount']) ? $form_data['consultation_amount'] : round($vl['total_patients'],2);
-            
-            $html .= '
-                            <tr>
-                                <td>Consultation / Registration - Paid</td>
-                                <td>' . $customer_count . '</td>
-                                <td>' . $bill_count . '</td>
-                                <td class="numeric">' . $amount . '</td>
-                            </tr>';
-        }
-    }
-
-    $html .= '
-                            <tr>
-                                <td>Fellowship</td>
-                                <td></td>
-                                <td></td>
-                                <td class="numeric"></td>
-                            </tr>
-                            <tr class="total-row">
-                                <td>Total Revenue</td>
-                                <td></td>
-                                <td></td>
-                                <td class="numeric"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                    <!-- Add the detailed patient transactions table here -->
-                    ' . $this->generate_detailed_transactions_table() . '
-
-                    <div class="footer">
-                        <p><strong>Report Summary:</strong></p>
-                        <p>• Procedures: ' . (isset($this->data['procedure_daily_result']) ? count($this->data['procedure_daily_result']) : 0) . ' entries</p>
-                        <p>• Medicine: ' . (isset($this->data['medicine_daily_result']) ? count($this->data['medicine_daily_result']) : 0) . ' entries</p>
-                        <p>• Investigations: ' . (isset($this->data['investigations_daily_result']) ? count($this->data['investigations_daily_result']) : 0) . ' entries</p>
-                        <p>• Consultation: ' . (isset($this->data['consultation_daily_result']) ? count($this->data['consultation_daily_result']) : 0) . ' entries</p>
-                        <p><em>This is an automated daily sales report generated from HMS India Accounts System.</em></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </body>
-    </html>';
-
-    return $html;
-}
-
-/**
- * Generate detailed transactions table
- */
-private function generate_detailed_transactions_table() {
-    $html = '
-    <div style="margin-top: 30px;">
-        <div class="card-header">
-            <span>Detailed Patient Transactions</span>
-            <span>📋</span>
-        </div>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px;">
-            <thead>
-                <tr>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">S No</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">IIC ID</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Patient Name</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Category</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Pkg Code</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Pkg Description</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Type</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Mode</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Collection Amount Inc GST</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Date</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Receipts No / Adjustment No</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Fresh/Partial/Advance</th>
-                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd; background: #e9ecef;">Remarks</th>
-                </tr>
-            </thead>
-            <tbody>';
-
-    $sno = 1;
-    
-    // Add all your patient transaction data here (similar to your existing PHP loops)
-    // Procedure transactions
-    if (isset($this->data['patient_procedure_daily_result']) && !empty($this->data['patient_procedure_daily_result'])) {
-        foreach($this->data['patient_procedure_daily_result'] as $ky => $vl){
-            $patient_name = $this->get_patient_name($vl['patient_id']);
-            $html .= '
-                <tr>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">' . $sno++ . '</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">' . $vl['patient_id'] . '</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">' . $patient_name . '</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Package</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">' . $vl['code'] . '</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">' . $vl['procedure_name'] . '</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Booking</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">' . $vl['payment_method'] . '</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">' . $vl['payment_done'] . '</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">' . $vl['on_date'] . '</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">' . $vl['receipt_number'] . '</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;">Fresh</td>
-                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #ddd;"></td>
-                </tr>';
-        }
-    }
-
-    // Add other transaction types (partial, medicine, diagnostic, consultation)...
-    // ... include all your existing PHP loops for other transaction types
-
-    if ($sno === 1) {
-        $html .= '
-                <tr>
-                    <td colspan="13" style="text-align: center; padding: 20px;">No transaction data available for today</td>
-                </tr>';
-    }
-
-    $html .= '
-            </tbody>
-        </table>
-    </div>';
-
-    return $html;
-}
 /*
 // Add this helper method to get patient names
 private function get_patient_name($patient_id) {

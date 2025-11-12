@@ -731,7 +731,8 @@ class Accounts_model extends CI_Model
             "origin_center" => $centers_result['center_name'],
             "on_date" => date('d-m-Y', strtotime($row['on_date'])),
             "receipt_number" => $row['receipt_number'],
-            "biller_name" => $employees_result['name'],
+            // This will use the name if it exists, or 'N/A' if it doesn't.
+"biller_name" => $employees_result['name'] ?? 'N/A',
             "procedure_type" => $type . ($date_of_admission ? " (Admission: " . $date_of_admission . ")" : ""),
             "patient_procedures" => [
                 [   
