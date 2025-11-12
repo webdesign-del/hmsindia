@@ -1,5 +1,4 @@
- <?php $all_method =&get_instance(); ?>
-<!-- Email Sending Section -->
+<?php $all_method =&get_instance(); ?>
 <div class="card mt-4">
     <div class="card-header bg-success text-white">
         <h5 class="mb-0"><i class="fas fa-envelope"></i> Send Report via Email</h5>
@@ -48,10 +47,21 @@ $(document).ready(function() {
         var originalText = submitBtn.html();
         submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Sending...');
         
+        // --- THIS IS THE CRITICAL FIX ---
+        // 1. Get data from the email form
+        var email_form_data = $(this).serialize();
+        // 2. Get data from the summary table form
+        var summary_data = $('#reportDataForm').serialize();
+        // 3. Get the raw HTML of the detailed patient lists
+        var details_html = $('.dashboard-2').html();
+        
+        // 4. Combine all data to be sent
+        var final_data = email_form_data + '&' + summary_data + '&details_html=' + encodeURIComponent(details_html);
+
         $.ajax({
             url: '<?php echo site_url("accounts/send_daily_report_email"); ?>',
             type: 'POST',
-            data: $(this).serialize(),
+            data: final_data, // Send all the combined data
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
@@ -72,10 +82,13 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr, status, error) {
+                 var errorMsg = xhr.responseText || 'Request Failed! Please check server logs.';
                 $('#emailResult').html(
-                    '<div class="alert alert-danger alert-dismissible fade show">' +
+                    '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
                     '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
-                    '<i class="fas fa-exclamation-circle"></i> <strong>Request Failed!</strong> Please try again.' +
+                    '<i class="fas fa-exclamation-circle"></i> <strong>Request Failed!</strong><br>' +
+                    '<small>The server returned this error:</small><br>' +
+                    '<pre style="white-space: pre-wrap; border: 1px solid #d4a5a5; padding: 5px; background: #f8d7da;">' + errorMsg + '</pre>' +
                     '</div>'
                 );
             },
@@ -87,7 +100,7 @@ $(document).ready(function() {
 });
 </script>
  
- 	<div class="container-2">
+    <div class="container-2">
         
         <div class="dashboard">
             <div class="card">
@@ -95,7 +108,7 @@ $(document).ready(function() {
                     <span>Orderbook Summary</span>
                     <i class="fas fa-clipboard-list"></i>
                 </div>
-                <form >
+                <form id="reportDataForm">
                 <div class="card-content">
                    
                     
@@ -156,8 +169,8 @@ $(document).ready(function() {
                         <td><input type="text" id="package_bill_count" name="package_bill_count" value="<?php echo round($vl['total_fees'],2); ?>"></td>
                         <td><input type="text" id="package_amount" name="package_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
                     </tr>
-					<?php } ?>
-                			 <?php 
+                    <?php } ?>
+                             <?php 
             $medicine_net = 0;
             $medicine_receive = 0;
             $medicine_total = 0;
@@ -174,8 +187,8 @@ $(document).ready(function() {
                         <td><input type="text" id="medicine_bill_count" name="medicine_bill_count" value="<?php echo round($vl['total_payment'],2); ?>"></td>
                         <td><input type="text" id="medicine_amount" name="medicine_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
                     </tr>
-					<?php } ?>
-							<?php 
+                    <?php } ?>
+                            <?php 
             $investigations_net = 0;
             $investigations_receive = 0;
             $investigations_total = 0;
@@ -192,15 +205,15 @@ $(document).ready(function() {
                         <td><input type="text" id="diagnosis_bill_count" name="diagnosis_bill_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
                         <td><input type="text" id="diagnosis_amount" name="diagnosis_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
                     </tr>
-					<?php } ?>
+                    <?php } ?>
                            <?php 
             $consultation_net = 0;
             $consultation_receive = 0;
             $consultation_total = 0;
             $consultation_discount = 0;
-			$registration_payment = 0 ;
-			foreach($registration_daily_result as $ky => $vl){
-            	$registration_payment = round($vl['total_payment'],2);
+            $registration_payment = 0 ;
+            foreach($registration_daily_result as $ky => $vl){
+                $registration_payment = round($vl['total_payment'],2);
             } 
             foreach($consultation_daily_result as $ky => $vl){
                 $consultation_net += round($vl['total_patients'],2);
@@ -210,11 +223,11 @@ $(document).ready(function() {
             ?>
                     <tr>
                         <td>Consultation / Registration - Paid</td>
-                        <td><input type="text" id="diagnosis_amount" name="diagnosis_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
-                        <td><input type="text" id="diagnosis_amount" name="diagnosis_amount" value="<?php echo round($vl['total_payment'],2) + $registration_payment; ?>"></td>
-                        <td><input type="text" id="diagnosis_amount" name="diagnosis_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                        <td><input type="text" id="consultation_customer_count" name="consultation_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                        <td><input type="text" id="consultation_bill_count" name="consultation_bill_count" value="<?php echo round($vl['total_payment'],2) + $registration_payment; ?>"></td>
+                        <td><input type="text" id="consultation_amount" name="consultation_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
                     </tr>
-					<?php } ?>
+                    <?php } ?>
                             <tr>
                                 <td>Fellowship</td>
                                 <td></td>
@@ -227,25 +240,24 @@ $(document).ready(function() {
                                 <td></td>
                                 <td class="numeric"></td>
                             </tr>
-							<tr class="total-row">
+                            <tr class="total-row">
                                 <td>Status</td>
                                 <td></td>
                                 <td colspan="2">
-								<div class="approver-item"><div style="display: flex; align-items: center; margin-bottom: 4px;"><a href="javascript:void(0);" class="btn btn-large" onclick="approveProcedure('<?php echo $vl['ID']; ?>')">Approve</a></div><div class="approver-email"><?php echo $_SESSION['logged_billing_manager']['name']?></div></div>
-								<div class="approver-item"><div style="display: flex; align-items: center; margin-bottom: 4px;"><a href="javascript:void(0);" class="btn btn-large" onclick="approveProcedure('<?php echo $vl['ID']; ?>')">Approve</a></div><div class="approver-email"><?php echo $_SESSION['logged_counselor']['name']?></div></div>
-								</td>
+                                <div class="approver-item"><div style="display: flex; align-items: center; margin-bottom: 4px;"><a href="javascript:void(0);" class="btn btn-large" onclick="approveProcedure('<?php echo $vl['ID']; ?>')">Approve</a></div><div class="approver-email"><?php echo $_SESSION['logged_billing_manager']['name']?></div></div>
+                                <div class="approver-item"><div style="display: flex; align-items: center; margin-bottom: 4px;"><a href="javascript:void(0);" class="btn btn-large" onclick="approveProcedure('<?php echo $vl['ID']; ?>')">Approve</a></div><div class="approver-email"><?php echo $_SESSION['logged_counselor']['name']?></div></div>
+                                </td>
                                 
                             </tr>
                         </tbody>
                     </table>
-
-                     
                 </div>
                 <input type="submit" id="submit">
             </form>
             </div>
         </div>
-        <div class="dashboard-2">
+        
+       <div class="dashboard-2">
     <div class="card">
     <div class="card-content">
                  <table>
@@ -262,6 +274,7 @@ $(document).ready(function() {
                                 <th>Collection Amount Inc GST</th>
                                 <th>Date</th>
                                 <th>Receipts No / Adjustment No</th>
+                                <th>Screenshort</th>
                                 <th>Fresh/Partial/Advance</th>
                                 <th>Remarks</th>
                             </tr>
@@ -284,6 +297,7 @@ $(document).ready(function() {
                         <td><?php echo $vl['payment_done']; ?></td>
                         <td><?php echo $vl['on_date']; ?></td>
                         <td><?php echo $vl['receipt_number']; ?></td>
+                         <td><?php echo $vl['transaction_img']; ?></td>
                     </tr>
 					<?php } ?>
                     <?php 
@@ -302,6 +316,7 @@ $(document).ready(function() {
                         <td><?php echo $vl['payment_done']; ?></td>
                         <td><?php echo $vl['on_date']; ?></td>
                         <td><?php echo $vl['refrence_number']; ?></td>
+                         <td><?php echo $vl['transaction_img']; ?></td>
                     </tr>
 					<?php } ?>
                     <?php 
@@ -319,6 +334,7 @@ $(document).ready(function() {
                         <td><?php echo $vl['payment_done']; ?></td>
                         <td><?php echo $vl['on_date']; ?></td>
                         <td><?php echo $vl['receipt_number']; ?></td>
+                         <td><?php echo $vl['transaction_img']; ?></td>
                     </tr>
 					<?php } ?>
                      <?php 
@@ -336,6 +352,7 @@ $(document).ready(function() {
                         <td><?php echo $vl['payment_done']; ?></td>
                         <td><?php echo $vl['on_date']; ?></td>
                         <td><?php echo $vl['receipt_number']; ?></td>
+                         <td><?php echo $vl['transaction_img']; ?></td>
                     </tr>
 					<?php } ?>
                       <?php 
@@ -353,6 +370,7 @@ $(document).ready(function() {
                         <td><?php echo $vl['payment_done']; ?></td>
                         <td><?php echo $vl['on_date']; ?></td>
                         <td><?php echo $vl['receipt_number']; ?></td>
+                         <td><?php echo $vl['transaction_img']; ?></td>
                     </tr>
 					<?php } ?>
                       <?php 
@@ -370,6 +388,7 @@ $(document).ready(function() {
                         <td><?php echo $vl['payment_done']; ?></td>
                         <td><?php echo $vl['on_date']; ?></td>
                         <td><?php echo $vl['receipt_number']; ?></td>
+                         <td><?php echo $vl['transaction_img']; ?></td>
                     </tr>
 					<?php } ?>
             </tbody>
