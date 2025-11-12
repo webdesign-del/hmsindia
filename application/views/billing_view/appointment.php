@@ -469,7 +469,7 @@
 		 <div class="row" id="sub_lead_source_div" style="display: none; margin-top: 10px;">            
             <div class="form-group col-sm-6 col-xs-12 role">
             	<label>Doctor Name</label>
-                <select class="form-control" id="sub_lead_source" name="sub_lead_source">
+                <select class="empty-field" id="sub_lead_source" name="sub_lead_source">
                 	<option value="">--Select--</option>
                     <?php $doctor_referral = $all_method->doctor_referral_list();
 					foreach($doctor_referral as $key => $doctor_referral){  ?>

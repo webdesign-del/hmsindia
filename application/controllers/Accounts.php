@@ -13,6 +13,7 @@ class Accounts extends CI_Controller {
 	    $this->load->library('session');
 		$this->load->model('accounts_model');
 		$this->load->model('billings_model');
+		$this->load->model('procedures_model');
 		$this->load->model('Purchase_order_model');
 		$this->load->model('billingmodel_model');
 		$this->load->model('center_model');
@@ -3481,6 +3482,21 @@ public function moulist(){
 	function get_all_centers(){
 		$all_centers = $this->center_model->get_centers();
 		return $all_centers;
+	}
+
+	function get_all_procedures_category(){
+		$all_procedures_category = $this->procedures_model->get_procedures_category();
+		return $all_procedures_category;
+	}
+
+	function get_all_broad_procedure(){
+		$all_broad_procedure = $this->procedures_model->get_broad_procedure();
+		return $all_broad_procedure;
+	}
+
+	function get_all_procedures(){
+		$all_procedures = $this->procedures_model->get_origin_procedures();
+		return $all_procedures;
 	}
 	
 	function get_all_status(){

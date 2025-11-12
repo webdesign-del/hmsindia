@@ -3517,7 +3517,29 @@ public function get_camps_by_center() {
             echo '<option value="">No camps found</option>';
         }
     }
+public function search_doctor_in_Camp()
+    {
+        $centre_id = $this->input->post('centre_id');
+        
+        if (empty($centre_id)) {
+            echo '<option value="">Invalid Centre</option>';
+            return;
+        }
 
+        $doctors = $this->doctors_model->center_doctors($centre_id);
+
+        $option = '<option value="">Select Doctor</option>';
+
+        if (!empty($doctors)) {
+            foreach ($doctors as $val) {
+                $option .= '<option value="' . $val['ID'] . '">' . htmlspecialchars($val['name'], ENT_QUOTES, 'UTF-8') . '</option>';
+            }
+        } else {
+            $option .= '<option value="">No doctors found</option>';
+        }
+
+        echo $option;
+    }
 
 
 }
