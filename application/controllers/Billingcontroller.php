@@ -2828,6 +2828,7 @@ function partial_billing($appointment_id){
         }
 		var_dump("Doctors found in centre id: " . $centre_id . " - " . $option);
         echo $option;
+		die;
     }
 
 	
