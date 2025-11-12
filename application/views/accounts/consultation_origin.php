@@ -5,7 +5,7 @@
       <div class="col-md-12"><h3>Consultation Revenue Reports </h3></div>
       <div class="clearfix"></div>
 	    <form action="<?php echo base_url().'accounts/consultation_origin'; ?>" method="get">
-		   <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+		   <div class="col-sm-3 col-xs-12">
     <label>Filter by billing at</label>
     <select class="form-control" id="billing_at" name="billing_at">
         <option value=''>--Select Center--</option>
@@ -31,50 +31,73 @@
 			<div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Reason For Visit </label>
              <select class="form-control" id="reason_of_visit" name="reason_of_visit">
-    <option value="">--Select From--</option>
+                <option value="">--Select From--</option>
+                <option value="First Visit" <?php if (isset($selectedReason) && $selectedReason === 'First Visit') { echo 'selected'; } ?>>First Visit</option>    
+                <option value="Consulted Not Booked" <?php if (isset($selectedReason) && $selectedReason === 'Consulted Not Booked') { echo 'selected'; } ?>>Consulted Not Booked</option>
+                <option value="FOLLOW UP VISIT" <?php if (isset($selectedReason) && $selectedReason === 'FOLLOW UP VISIT') { echo 'selected'; } ?>>Follow up Visit</option>
+                <option value="PROCEDURE" <?php if (isset($selectedReason) && $selectedReason === 'PROCEDURE') { echo 'selected'; } ?>>Procedure</option>
+                <option value="TVS" <?php if (isset($selectedReason) && $selectedReason === 'TVS') { echo 'selected'; } ?>>TVS</option>
+            </select>
+        </div>
 
-    <option value="First Visit" <?php if (isset($selectedReason) && $selectedReason === 'First Visit') { echo 'selected'; } ?>>
-        First Visit
-    </option>
-    
-    <option value="Consulted Not Booked" <?php if (isset($selectedReason) && $selectedReason === 'Consulted Not Booked') { echo 'selected'; } ?>>
-        Consulted Not Booked
-    </option>
-    
-    <option value="FOLLOW UP VISIT" <?php if (isset($selectedReason) && $selectedReason === 'FOLLOW UP VISIT') { echo 'selected'; } ?>>
-        Follow up Visit
-    </option>
-    
-    <option value="PROCEDURE" <?php if (isset($selectedReason) && $selectedReason === 'PROCEDURE') { echo 'selected'; } ?>>
-        Procedure
-    </option>
-    
-    <option value="TVS" <?php if (isset($selectedReason) && $selectedReason === 'TVS') { echo 'selected'; } ?>>
-        TVS
-    </option>
+       <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+                <label>Filter by Category</label>
+                <select class="form-control" id="category" name="category">
+                    <option value=''>--Select category--</option>
+                    <?php $all_procedures_category = $all_method->get_all_procedures_category();
+                        foreach($all_procedures_category as $key => $val){ 
+                            if($category == $val['category']){
+                                echo '<option value="'.$val['category'].'" selected>'.$val['category'].'</option>';
+                            }else{
+                                echo '<option value="'.$val['category'].'">'.$val['category'].'</option>';
+                            }
+                        } 
+                    ?>
+                </select>
+            </div>
+
+             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+                <label>Filter by Procedures</label>
+                <select class="form-control" id="procedures" name="procedures">
+    <option value=''>--Select Procedures--</option>
+    <?php 
+        // 1. Get ALL procedures (you are already doing this)
+        $all_procedures = $all_method->get_all_procedures();
+        // 2. Loop through them
+        foreach($all_procedures as $key => $val) {
+            
+                // 4. Check if this procedure is the one that was saved
+                // (I am guessing the variable is $procedures)
+                if(isset($procedures) && $procedures == $val['procedures']) {
+                    echo '<option value="'.$val['procedures'].'" selected>'.$val['procedures'].'</option>';
+                } else {
+                    echo '<option value="'.$val['procedures'].'">'.$val['procedures'].'</option>';
+                }
+        } 
+    ?>
 </select>
+            </div>
 
-
-            </div>
-            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
-            	<label>Start Date</label>
-              <input type="text" class="particular_date_filter form-control" id="start_date" name="start_date" value="<?php echo $start_date;?>" />
-            </div>
-            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
-            	<label>End Date</label>
-                <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
-            </div>
-          <!--<div class="col-sm-3 col-xs-12" style="margin-top:10px;">
-            	<label>Start Booking Date</label>
-              <input type="text" class="particular_date_filter form-control" id="start_booking_date" name="start_booking_date" value="<?php echo $start_booking_date;?>" />
-            </div>
-            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
-            	<label>End Booking Date</label>
-                <input type="text" class="particular_date_filter form-control" id="end_booking_date" name="end_booking_date" value="<?php echo $end_booking_date;?>" />
-            </div>-->
-            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
-            	<label>IIC ID </label>
-                <input type="text" class="form-control" id="iic_id" name="iic_id" value="<?php echo $patient_id;?>" />
+             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+                <label>Filter by Broad Procedures</label>
+                <select class="form-control" id="broad_procedure" name="broad_procedure">
+    <option value=''>--Select Broad Procedure--</option>
+    <?php 
+        // 1. Get ALL procedures (you are already doing this)
+        $all_broad_procedure = $all_method->get_all_broad_procedure();
+        // 2. Loop through them
+        foreach($all_broad_procedure as $key => $val) {
+            
+                // 4. Check if this procedure is the one that was saved
+                // (I am guessing the variable is $procedures)
+                if(isset($broad_procedure) && $broad_procedure == $val['broad_procedure']) {
+                    echo '<option value="'.$val['broad_procedure'].'" selected>'.$val['broad_procedure'].'</option>';
+                } else {
+                    echo '<option value="'.$val['broad_procedure'].'">'.$val['broad_procedure'].'</option>';
+                }
+        } 
+    ?>
+</select>
             </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Lead Source </label>
@@ -101,7 +124,21 @@
     <?php endif; ?>
 </select>
             </div>
-            <div class="col-sm-3" style="margin-top: 30px;">
+
+            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            	<label>Start Date</label>
+              <input type="text" class="particular_date_filter form-control" id="start_date" name="start_date" value="<?php echo $start_date;?>" />
+            </div>
+            <div class="col-sm-3 col-xs-12">
+            	<label>End Date</label>
+                <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
+            </div>
+            <div class="col-sm-3 col-xs-12">
+            	<label>IIC ID </label>
+                <input type="text" class="form-control" id="iic_id" name="iic_id" value="<?php echo $patient_id;?>" />
+            </div>
+            
+            <div class="col-sm-3" style="margin-top: 20px;">
             	<button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>
             	<a href="<?php echo base_url().'accounts/consultation_origin'; ?>" style="text-decoration: none;">
                 <button name="btnreset" id="btnreset" type="button"  class="btn btn-secondary">RESET</button>

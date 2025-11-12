@@ -77,6 +77,8 @@
                   <th>Center Of Origin</th>
 				  <th>Procedure Name & Code</th>
 				  <th>Category</th>
+				  <th>Procedures</th>
+				  <th>Broad Procedure</th>
 				  <th>Doctor Name</th>
 				  <th>Lead Source</th>
 				  <th>Counselor Name</th>
@@ -141,9 +143,11 @@
 												 echo " = ". $v2_data['sub_procedures_code'];
 											}
 									echo '</td><td>';
-									foreach ($select_result1 as $res_val){
-												 echo $res_val->category;
-											}
+									  echo $vl['category'];
+									echo '</td><td>';
+									 echo $vl['procedures'];
+									 echo '</td><td>';
+									 echo $vl['broad_procedure'];
 									echo '</td>';			
 							  }
 						  }
@@ -190,9 +194,11 @@
 								 echo " = ". $v2_data['sub_procedures_code'];
 							}
 						echo '</td><td>';
-									foreach ($select_result1 as $res_val){
-												 echo $res_val->category;
-											}
+						  echo $vl['category'];
+									echo '</td><td>';
+									 echo $vl['procedures'];
+									 echo '</td><td>';
+									 echo $vl['broad_procedure'];
 						echo '</td>';
 						  }					  					  
 				}

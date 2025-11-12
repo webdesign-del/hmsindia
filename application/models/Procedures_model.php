@@ -522,6 +522,27 @@ class Procedures_model extends CI_Model
         }
 	}
 
+	function get_procedures_category() {
+		$sql = "SELECT DISTINCT category FROM hms_procedures";
+		$q = $this->db->query($sql);
+		$result = $q->result_array();
+		return $result;
+	}
+
+	function get_origin_procedures() {
+		$sql = "SELECT DISTINCT procedures FROM hms_procedures";
+		$q = $this->db->query($sql);
+		$result = $q->result_array();
+		return $result;
+	}
+
+	function get_broad_procedure() {
+		$sql = "SELECT DISTINCT broad_procedure FROM hms_procedures";
+		$q = $this->db->query($sql);
+		$result = $q->result_array();
+		return $result;
+	}
+
 }
 // END Stock_model class
 

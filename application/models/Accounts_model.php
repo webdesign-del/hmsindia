@@ -648,7 +648,7 @@ class Accounts_model extends CI_Model
 	}
 	
 	function approve_registation($ID){
-		echo $sql = "UPDATE `".$this->config->item('db_prefix')."registation` SET `status`='approved',`modified_on`='".date('Y-m-d H:i:s')."' WHERE ID='".$ID."'";
+		 $sql = "UPDATE `".$this->config->item('db_prefix')."registation` SET `status`='approved',`modified_on`='".date('Y-m-d H:i:s')."' WHERE ID='".$ID."'";
 	    $this->db->query($sql);
         return 1;
 	}
@@ -1011,12 +1011,12 @@ class Accounts_model extends CI_Model
 	}
 	
 	function approve_procedure($ID){
-	echo $sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `status`='approved',`modified_on`='".date('Y-m-d H:i:s')."' WHERE ID='".$ID."'";
+	 $sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `status`='approved',`modified_on`='".date('Y-m-d H:i:s')."' WHERE ID='".$ID."'";
 		$this->db->query($sql);
 		
 		$inserted_ids = []; // To store IDs of inserted records
 
-	echo $sql = "SELECT * FROM hms_patient_procedure WHERE ID = " . (int)$ID;
+	 $sql = "SELECT * FROM hms_patient_procedure WHERE ID = " . (int)$ID;
 		$result = run_select_query($sql);
 
 		if (!empty($result)) {
@@ -1086,16 +1086,16 @@ class Accounts_model extends CI_Model
 				 $patient_id = $row['patient_id'];
 				 $procedure_code = $procedure['sub_procedures_code'];
 				 
-			echo $sql = "SELECT * FROM hms_procedures WHERE code ='$procedure_code'";
+			 $sql = "SELECT * FROM hms_procedures WHERE code ='$procedure_code'";
 				$procedure_result = run_select_query($sql);
 				
-			echo $app_sql = "SELECT * FROM hms_appointments WHERE paitent_id ='$patient_id'";
+			 $app_sql = "SELECT * FROM hms_appointments WHERE paitent_id ='$patient_id'";
 				$appointme_result = run_select_query($app_sql);
 				
-			echo $center_sql = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$row['origins']."'";
+			 $center_sql = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$row['origins']."'";
 				$center_result = run_select_query($center_sql);
 				
-			echo $billing_center_sql = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$result['billing_at']."'";
+			 $billing_center_sql = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$result['billing_at']."'";
 				$billing_center_result = run_select_query($billing_center_sql);
 				
 				$procedure_name = $procedure_result['procedure_name'];
@@ -1114,13 +1114,13 @@ class Accounts_model extends CI_Model
 				$formattedDate = date('m_d', strtotime($result['on_date']));
 				$formattedmonth = date('M', strtotime($result['on_date']));
 				
-				echo $lead_sql = "SELECT * FROM hms_leads WHERE lead_id ='$crm_id'";
+				 $lead_sql = "SELECT * FROM hms_leads WHERE lead_id ='$crm_id'";
 				$lead_result = run_select_query($lead_sql);
 				
 				$lead_source = $lead_result['lead_source'];
 				$agent = $lead_result['agent'];
 				
-			  echo $insert_sql = "INSERT INTO hms_package_collections (`pkg_booking_date`,`pkg_month`,`pkg_booking_year`,`financial_year`,`pkg_no`,`iic_id`,`pkg_code`,`pkg_description`,`category`,`sub_category2`,`patient_name`,`patient_category_2`,`origin_booking_centre`,`sales_reporting_centre`,`billing_centre`,`lead_source_id`,`source_category`,`source_3_agent_name`,`gross_revenue_pkg`,`discount`,`booked_pkg_amt_inc_gst`,`gst_in_booked_pkg_amt`,`booked_pkg_amt_ex_gst`,`collection_year_$formattedDate`,`collection_$formattedmonth`,`total_collection`) 
+			   $insert_sql = "INSERT INTO hms_package_collections (`pkg_booking_date`,`pkg_month`,`pkg_booking_year`,`financial_year`,`pkg_no`,`iic_id`,`pkg_code`,`pkg_description`,`category`,`sub_category2`,`patient_name`,`patient_category_2`,`origin_booking_centre`,`sales_reporting_centre`,`billing_centre`,`lead_source_id`,`source_category`,`source_3_agent_name`,`gross_revenue_pkg`,`discount`,`booked_pkg_amt_inc_gst`,`gst_in_booked_pkg_amt`,`booked_pkg_amt_ex_gst`,`collection_year_$formattedDate`,`collection_$formattedmonth`,`total_collection`) 
 			    VALUES ('$formatted_date','$pkg_month','$pkg_booking_year','$financial_year',' $receipt_number','$patient_id','$procedure_code','$procedure_name','$category','$type','$wife_name','$nationality','$origin','$billing_center','$billing_center','$crm_id','$lead_source','$agent','$totalpackage','$discount','$fees','0','$fees','$payment_done','$payment_done','$payment_done')";
 				$this->db->query($insert_sql);
 				
@@ -3046,7 +3046,7 @@ public function patient_procedure_consultation_count($center, $start_date, $end_
     // --- The New, Single, Efficient Query ---
     // This query JOINS the tables and counts in one step.
     // It's much faster than looping.
-   echo $sql = "
+    $sql = "
         SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
         FROM hms_consultation AS T1
         INNER JOIN hms_patient_procedure AS T2
