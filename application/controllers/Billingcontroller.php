@@ -2809,29 +2809,29 @@ function partial_billing($appointment_id){
 		die;		
 	}
 
-	// public function search_doctor_in()
-    // {
-    //     $centre_id = $this->input->post('centre_id');
+	public function search_doctor_in_Camp()
+    {
+        $centre_id = $this->input->post('centre_id');
         
-    //     if (empty($centre_id)) {
-    //         echo '<option value="">Invalid Centre</option>';
-    //         return;
-    //     }
+        if (empty($centre_id)) {
+            echo '<option value="">Invalid Centre</option>';
+            return;
+        }
 
-    //     $doctors = $this->doctors_model->center_doctors($centre_id);
+        $doctors = $this->doctors_model->center_doctors($centre_id);
 
-    //     $option = '<option value="">Select Doctor</option>';
+        $option = '<option value="">Select Doctor</option>';
 
-    //     if (!empty($doctors)) {
-    //         foreach ($doctors as $val) {
-    //             $option .= '<option value="' . $val['ID'] . '">' . htmlspecialchars($val['name'], ENT_QUOTES, 'UTF-8') . '</option>';
-    //         }
-    //     } else {
-    //         $option .= '<option value="">No doctors found</option>';
-    //     }
+        if (!empty($doctors)) {
+            foreach ($doctors as $val) {
+                $option .= '<option value="' . $val['ID'] . '">' . htmlspecialchars($val['name'], ENT_QUOTES, 'UTF-8') . '</option>';
+            }
+        } else {
+            $option .= '<option value="">No doctors found</option>';
+        }
 
-    //     echo $option;
-    // }
+        echo $option;
+    }
 
 	
 

@@ -587,9 +587,7 @@ $('#appoitment_for').on("change", function() {
     var centre_id = $(this).val();
 
     if (centre_id !== '') {
-        /** ------------------------------
-         *  Load Camps for Selected Center
-         *  ------------------------------ */
+  
         $.ajax({
             url: '<?php echo base_url('billingcontroller/get_camps_by_center')?>',
             type: 'POST',
@@ -608,12 +606,11 @@ $('#appoitment_for').on("change", function() {
                 $('#loader_div').hide();
             }
         });
-
         /** ------------------------------
          *  Load Doctors for Selected Center
          *  ------------------------------ */
         $.ajax({
-            url: '<?php echo base_url('billingcontroller/search_doctor')?>',
+            url: '<?php echo base_url('billingcontroller/search_doctor_in_Camp')?>',
             type: 'POST',
             data: { centre_id: centre_id },
             dataType: 'html',
