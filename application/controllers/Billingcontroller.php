@@ -2811,6 +2811,7 @@ function partial_billing($appointment_id){
 
 	public function search_doctor_in_Camp()
     {
+		die;
         $centre_id = $this->input->post('centre_id');
         if (empty($centre_id)) {
             echo '<option value="">Invalid Centre</option>';
