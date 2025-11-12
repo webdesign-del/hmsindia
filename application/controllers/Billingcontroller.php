@@ -2812,24 +2812,22 @@ function partial_billing($appointment_id){
 	public function search_doctor_in_Camp()
     {
         $centre_id = $this->input->post('centre_id');
-        
         if (empty($centre_id)) {
             echo '<option value="">Invalid Centre</option>';
+			var_dump("No doctors found in centre id: " . $centre_id);
             return;
         }
-
         $doctors = $this->doctors_model->center_doctors($centre_id);
-
         $option = '<option value="">Select Doctor</option>';
-
         if (!empty($doctors)) {
             foreach ($doctors as $val) {
                 $option .= '<option value="' . $val['ID'] . '">' . htmlspecialchars($val['name'], ENT_QUOTES, 'UTF-8') . '</option>';
             }
         } else {
             $option .= '<option value="">No doctors found</option>';
+            var_dump("No doctors found in centre id: " . $centre_id);
         }
-
+		var_dump("Doctors found in centre id: " . $centre_id . " - " . $option);
         echo $option;
     }
 
@@ -3498,7 +3496,6 @@ public function get_camps_by_center() {
             echo '<option value="">Invalid Center</option>';
             return;
         }
-
         $sql = "SELECT c.camp_number, c.camp_name 
                 FROM ".$this->config->item('db_prefix')."camps c 
                 LEFT JOIN ".$this->config->item('db_prefix')."centers cen ON c.center_id = cen.ID 

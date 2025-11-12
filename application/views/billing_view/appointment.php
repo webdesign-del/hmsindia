@@ -580,14 +580,10 @@ $('#appoitment_for').on("change", function() {
     $('div#camp_selection_div').hide();
     $('#camp_selection').html('<option value="">Select Camp</option>');
     $('#appoitmented_doctor').html('<option value="">Select Doctor</option>');
-    
     // Show loader
     $('#loader_div').show();
-
     var centre_id = $(this).val();
-
     if (centre_id !== '') {
-  
         $.ajax({
             url: '<?php echo base_url('billingcontroller/get_camps_by_center')?>',
             type: 'POST',
@@ -606,9 +602,6 @@ $('#appoitment_for').on("change", function() {
                 $('#loader_div').hide();
             }
         });
-        /** ------------------------------
-         *  Load Doctors for Selected Center
-         *  ------------------------------ */
         $.ajax({
             url: '<?php echo base_url('billingcontroller/search_doctor_in_Camp')?>',
             type: 'POST',
@@ -629,7 +622,6 @@ $('#appoitment_for').on("change", function() {
             }
         });
     } else {
-        // If no center selected, hide everything
         $('div.appoitmented_doctor').hide();
         $('div#camp_selection_div').hide();
         $('#loader_div').hide();
