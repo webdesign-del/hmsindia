@@ -840,72 +840,149 @@ class Patients extends CI_Controller {
 
 	
 
-	public function timeline_view(){
-		$logg = checklogin();
-		error_reporting(0);
-		if($logg['status'] == true){
+	
+    /**
+     * This function now handles BOTH the HTML page (with pagination)
+     * AND the Excel (CSV) export.
+     */
+    public function timeline_view() {
+        $logg = checklogin();
+        error_reporting(0);
+        
+        if($logg['status'] == false) {
+             header("location:" .base_url(). "");
+             die();
+        }
 
-			$per_page = $this->input->get('per_page', true);
-			if(empty($per_page)){
-				$per_page = 0;
-			}
-			$start_date = $this->input->get('start_date', true);
-			$end_date = $this->input->get('end_date', true);
-			$paitent_id = $this->input->get('paitent_id', true);
-			$crm_id = $this->input->get('crm_id', true);
-			$export_billing = $this->input->get('export-billing', true);
-			if (isset($export_billing)){
-				$data = $this->patients_model->export_consultation_data($start_date, $end_date, $paitent_id, $crm_id);
-				header('Content-Type: text/csv; charset=utf-8');
-				header('Content-Disposition: attachment; filename=Agent-Reports-'.$start_date.'-'.$end_date.'.csv');
-				$fp = fopen('php://output','w');
-				$headers = 'CRM ID, IIC ID,Appointment Create, Agent ,Appoitmented Date, Type,  Agent, Date Of consultation,	Booking,	Agent,	Date Of Booking';
-				//Add the headers
-				fwrite($fp, $headers. "\r\n");
-				foreach ($data as $key => $val) {//var_dump($val);die;
-					
-					$sql_consultation = "SELECT * FROM hms_consultation WHERE patient_id='" . $vl['paitent_id'] . "' and reason_of_visit='First Visit' ";
-          			$select_consultation = run_select_query($sql_consultation);
+        // --- 1. Get all filters from the URL ---
+        $start_date = $this->input->get('start_date', true);
+        $end_date = $this->input->get('end_date', true);
+        $paitent_id = $this->input->get('paitent_id', true); // Note: 'paitent_id' is a typo
+        $crm_id = $this->input->get('crm_id', true);
+        $export_billing = $this->input->get('export-billing', true);
+        
+        // --- 2. Check if we are exporting ---
+        if (!empty($export_billing)) {
+            
+            // --- IF YES: Run the export function and stop ---
+            $this->_export_timeline_csv($start_date, $end_date, $paitent_id, $crm_id);
+            exit; // Stop the script, the file is downloading
+            
+        } else {
+            
+            // --- IF NO: Load the page with pagination (your original code) ---
+            $per_page = $this->input->get('per_page', true);
+            if(empty($per_page)){
+                $per_page = 0;
+            }
+            
+            $config = array();
+            $config["base_url"] = base_url() . "patients/timeline_view";
+            $config["total_rows"] = $this->patients_model->get_patient_timeline_count($start_date, $end_date, $paitent_id, $crm_id);
+            $config["per_page"] = 20;
+            $config["uri_segment"] = 2; // This might need to be 3 if your controller is 'patients'
+            $config['use_page_numbers'] = true;
+            $config['num_links'] = 5;
+            $config['page_query_string'] = true;
+            $config['reuse_query_string'] = true;
+            $this->pagination->initialize($config);
+            
+            $data["links"] = $this->pagination->create_links();
+            $data['timeline_data'] = $this->patients_model->get_patient_timeline($config["per_page"], $per_page, $start_date, $end_date, $paitent_id, $crm_id);
+            $data["start_date"] = $start_date;
+            $data["end_date"] = $end_date;
+            $data["paitent_id"] = $paitent_id;
+            $data["crm_id"] = $crm_id;
+            
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('patients/timeline_view', $data);
+            $this->load->view($template['footer']);
+        }
+    }
 
-             		$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $select_consultation['paitent_id'] . "'";
-              		$select_result4 = run_select_query($sql4);
+    /**
+     * PRIVATE HELPER FUNCTION
+     * This function generates the CSV file based on the logic from your view.
+     * It is called by timeline_view() when 'export-billing' is set.
+     */
+    private function _export_timeline_csv($start_date, $end_date, $paitent_id, $crm_id) {
+        
+        // --- 1. Get ALL data (no pagination) ---
+        // Get the total row count to use as the limit
+        $total_rows = $this->patients_model->get_patient_timeline_count($start_date, $end_date, $paitent_id, $crm_id);
+        
+        // Get all data by passing $total_rows as limit and 0 as offset
+        $timeline_data = $this->patients_model->get_patient_timeline($total_rows, 0, $start_date, $end_date, $paitent_id, $crm_id);
 
-					$lead_arr = array($val['crm_id'],$val['paitent_id'], 'Appointment', $val['agent'], $val['appoitmented_date'], 'Consultation', $val['agent'], $select_consultation['on_date'], 'Procedure', $val['agent'], $select_result4['on_date']);
-					fputcsv($fp, $lead_arr);
-				}
-				$final_arr = array("", "", "", "", $total_package, $discounted_package, $paid_amount, "", "", "", "", "", "", "");
-				fputcsv($fp, $final_arr);
-				fclose($fp);
-				exit();
-			}
-			
-			$config = array();
-        	$config["base_url"] = base_url() . "patients/timeline_view";
-        	$config["total_rows"] = $this->patients_model->get_patient_timeline_count($start_date, $end_date, $paitent_id, $crm_id);
-        	$config["per_page"] = 20;
-        	$config["uri_segment"] = 2;
-			$config['use_page_numbers'] = true;
-			$config['num_links'] = 5;
-			$config['page_query_string'] = true;
-			$config['reuse_query_string'] = true;
-        	$this->pagination->initialize($config);
-        	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
-			
-        	$data["links"] = $this->pagination->create_links();
-			$data['timeline_data'] = $this->patients_model->get_patient_timeline($config["per_page"], $per_page, $start_date, $end_date, $paitent_id, $crm_id);
-			$data["start_date"] = $start_date;
-			$data["end_date"] = $end_date;
-			$data["paitent_id"] = $paitent_id;
-			$data["crm_id"] = $crm_id;
-			$template = get_header_template($logg['role']);
-			$this->load->view($template['header']);
-			$this->load->view('patients/timeline_view', $data);
-			$this->load->view($template['footer']);
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}
+        // --- 2. Set HTTP Headers for CSV Download ---
+        $filename = "timeline_report_" . date('Y-m-d') . ".csv";
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        
+        $fp = fopen('php://output', 'w');
+
+        // --- 3. Write the Header Row to the CSV ---
+        $header = [
+            'S.No', 'CRM ID', 'Patient ID', 'Type', 'Agent', 'Appointment Date',
+            'Consultation Status', 'Consultation Agent', 'Consultation Date',
+            'Procedure Status', 'Procedure Agent', 'Procedure Date'
+        ];
+        fputcsv($fp, $header);
+
+        // --- 4. Loop Through Data and Write to CSV ---
+        // This is the same logic from your view, but secure and fixed.
+        $count = 1;
+        foreach ($timeline_data as $ky => $vl) {
+            
+            // --- SECURE, FIXED query ---
+            // It's safer to use the 'patient_id' from $vl, not crm_id
+            $sql_patient_timeline = "SELECT * FROM hms_patient_timeline WHERE crm_id = ?";
+            $q = $this->db->query($sql_patient_timeline, [$vl['crm_id']]);
+            $select_result = $q->row_array(); // Get a single row
+
+            // --- Prepare variables (copied from your view) ---
+            $consultation_status = !empty($vl['consultation_date']) ? 'Consultation' : '';
+            $consultation_agent  = !empty($vl['consultation_date']) ? $vl['agent'] : '';
+            $consultation_date   = !empty($vl['consultation_date']) ? $vl['consultation_date'] : '';
+            
+            $procedure_status = !empty($vl['procedure_date']) ? 'Procedure' : '';
+            $procedure_date   = !empty($vl['procedure_date']) ? $vl['procedure_date'] : '';
+
+            $procedure_agent = ''; // Default
+            if (!empty($vl['procedure_date'])) {
+                if (!empty($select_result['agent'])) {
+                    $procedure_agent = $select_result['agent'];
+                } else {
+                    $procedure_agent = $vl['agent']; // Fallback
+                }
+            }
+            
+            // --- Create the array for this row ---
+            $row_data = [
+                $count,
+                $vl['crm_id'],
+                $vl['paitent_id'], // Kept your typo
+                'Appointment',
+                $vl['agent'],
+                $vl['appointment_added'],
+                $consultation_status,
+                $consultation_agent,
+                $consultation_date,
+                $procedure_status,
+                $procedure_agent,
+                $procedure_date
+            ];
+
+            // Write the row to the CSV file
+            fputcsv($fp, $row_data);
+            
+            $count++;
+        }
+
+        // --- 5. Close the file ---
+        fclose($fp);
+    }
 
  public function insert_timeline()
 {

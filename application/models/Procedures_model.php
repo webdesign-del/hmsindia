@@ -536,6 +536,13 @@ class Procedures_model extends CI_Model
 		return $result;
 	}
 
+	function get_booked_status() {
+		$sql = "SELECT DISTINCT booked_status FROM hms_procedures";
+		$q = $this->db->query($sql);
+		$result = $q->result_array();
+		return $result;
+	}
+
 	function get_broad_procedure() {
 		$sql = "SELECT DISTINCT broad_procedure FROM hms_procedures";
 		$q = $this->db->query($sql);

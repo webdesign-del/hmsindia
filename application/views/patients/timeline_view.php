@@ -27,7 +27,9 @@
                </a>
                <a href="<?php echo base_url('patients/agent-reports'); ?>" style="text-decoration: none;">
                 <button name="export-billing" type="submit"  class="btn btn-secondary" id="export-billing">Export Reports</button>
-               </a>
+               </a><button type="submit" name="export-billing" value="1" class="btn btn-success">
+        <i class="fas fa-file-excel"></i> Export to Excel
+    </button>
             </div>
         </form>
 
@@ -42,7 +44,7 @@
                   <th>IIC ID</th>
                   <th>Appointment Create</th>
                   <th>Agent</th>
-                  <th>Date of Appointment </th>
+                  <th>Appointment Created Date</th>
                   <th>Consultation</th>
                   <th>Agent</th>
                   <th>Date Of consultation</th>
@@ -57,6 +59,9 @@
             foreach($timeline_data as $ky => $vl){
                   //$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $vl['patient_id'] . "'";
 					        //$appoint_result = run_select_query($sql);
+
+                  $sql_patient_timeline = "SELECT * FROM hms_patient_timeline WHERE crm_id='" . $vl['crm_id'] . "'";
+					        $select_result = run_select_query($sql_patient_timeline);
                   ?>
                    <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
@@ -64,12 +69,23 @@
                    <td><?php echo $vl['paitent_id']?></td>
                   <td>Appointment</td>
                   <td><?php echo $vl['agent']; ?></td>
-                  <td><?php echo $vl['appoitmented_date']?></td>
+                  <td><?php echo $vl['appointment_added']?></td>
                   <td><?php if(!empty($vl['consultation_date'])){ ?>Consultation <?php } ?></td>
                   <td><?php if(!empty($vl['consultation_date'])){ ?><?php echo $vl['agent']; ?><?php } ?></td>
                   <td><?php if(!empty($vl['consultation_date'])){ ?><?php echo $vl['consultation_date']?> <?php } ?></td>
-                  <td><?php if(!empty($vl['procedure_date'])){ ?>Procedure<?php } ?></td>
-                  <td><?php if(!empty($vl['procedure_date'])){ ?><?php echo $vl['agent']; ?><?php } ?></td>
+                  <td><?php if(!empty($vl['procedure_date'])){ ?>Booking<?php } ?></td>
+                  <td><?php
+if (!empty($vl['procedure_date'])) {
+    if (!empty($select_result['agent'])) {
+        if ($select_result['agent']) {
+            echo $select_result['agent'];
+        } else {
+            echo $vl['agent'];
+        }
+    }
+}
+?>
+</td>
                   <td><?php if(!empty($vl['procedure_date'])){ ?><?php echo $vl['procedure_date']; ?><?php } ?></td>
                   
                 </tr>

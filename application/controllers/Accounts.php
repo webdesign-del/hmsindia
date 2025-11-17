@@ -1891,11 +1891,13 @@ public function procedure_reports(){
 			$start_date = $this->input->get('start_date', true);
 			$end_date = $this->input->get('end_date', true);
 			$patient_id = $this->input->get('iic_id', true);
-			//$reason_of_visit = $this->input->get('reason_of_visit', true);
-
-			$reason_from_url = $this->input->get('reason_of_visit');
-    		// 2. Put this value into the $data array to send to the view
-    		$data['selectedReason'] = $reason_from_url;
+			$reason_of_visit = $this->input->get('reason_of_visit');
+    		$category = $this->input->get('category');
+			$procedures = $this->input->get('procedures');
+			$agent = $this->input->get('agent');
+			$councellor = $this->input->get('councellor');
+			$broad_procedure = $this->input->get('broad_procedure');
+			$booked_status = $this->input->get('booked_status');
 
 			$lead_source = $this->input->get('lead_source');
 			$export_billing = $this->input->get('export-billing', true);
@@ -1993,7 +1995,7 @@ public function procedure_reports(){
 
 			$config = array();
         	$config["base_url"] = base_url() . "accounts/consultation_origin";
-        	$config["total_rows"] = $this->accounts_model->patient_consultation_report_count($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id,$lead_source);
+        	$config["total_rows"] = $this->accounts_model->patient_consultation_report_count($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id,$lead_source,$category, $agent, $councellor);
         	$config["per_page"] = 10;
         	$config["uri_segment"] = 2;
 			$config['use_page_numbers'] = true;
@@ -2004,9 +2006,9 @@ public function procedure_reports(){
         	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
 			
         	$data["links"] = $this->pagination->create_links();
-			$data['consultation_result'] = $this->accounts_model->patient_consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id,$lead_source);
+			$data['consultation_result'] = $this->accounts_model->patient_consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id ,$agent, $councellor ,$lead_source);
 			$data['reason_counts'] = $this->accounts_model->patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source);
-			$data['patient_counts'] = $this->accounts_model->patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id,$reason_of_visit);
+			$data['patient_counts'] = $this->accounts_model->patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id,$reason_of_visit,$category,$procedures,$broad_procedure,$agent,$councellor,$booked_status);
 			$data['lead_sources'] = $this->accounts_model->get_lead_source_dropdown_data();
 
 			//$data['booked_patient_count'] = $booked_count; 
@@ -2016,7 +2018,14 @@ public function procedure_reports(){
 			$data["patient_id"] = $patient_id;
 			$data["doctor_id"] = $doctor_id;
 			$data["lead_source"] = $lead_source;
-			$data["reason_of_visit"] = $reason_of_visit;
+			//$data["reason_of_visit"] = $reason_of_visit;
+			$data["category"] = $category;
+			$data["procedures"] = $procedures;
+			$data["broad_procedure"] = $broad_procedure;
+			$data["agent"] = $agent;
+			$data["councellor"] = $councellor;
+			$data["booked_status"] = $booked_status;
+			$data['selectedReason'] = $reason_of_visit;
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
 			$this->load->view('accounts/consultation_origin', $data);
@@ -3492,6 +3501,11 @@ public function moulist(){
 	function get_all_procedures(){
 		$all_procedures = $this->procedures_model->get_origin_procedures();
 		return $all_procedures;
+	}
+
+	function get_all_booked_status(){
+		$all_booked_status = $this->procedures_model->get_booked_status();
+		return $all_booked_status;
 	}
 	
 	function get_all_status(){
