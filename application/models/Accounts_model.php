@@ -2796,7 +2796,7 @@ function export_consultation_patients_data($start_date,$status, $end_date, $cent
     }
 	
 	// Count function for pagination
-function patient_consultation_report_count($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source = ''){
+function patient_consultation_report_count($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id,$category,$agent, $lead_source = ''){
     
     $this->db->distinct();
     $this->db->select('T1.patient_id, T1.totalpackage, T1.payment_done, T1.discount_amount,	T1.appointment_id');
@@ -2825,6 +2825,9 @@ function patient_consultation_report_count($center, $start_date, $end_date, $pat
     }
     if (!empty($reason_of_visit)){
         $this->db->where('T1.reason_of_visit', $reason_of_visit);
+    }
+	if (!empty($agent)){
+        $this->db->where('T2.agent', $agent);
     }
     if (!empty($start_date) && !empty($end_date)){
         $this->db->where('T1.on_date >=', $start_date);
@@ -2882,7 +2885,7 @@ function patient_consultation_count($center, $status, $start_date, $end_date, $p
     return $this->db->count_all_results();
 }
 
-function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source = '') {
+function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, $lead_source = '') {
     // This array will hold the values for secure query binding
     $bindings = [];
 
@@ -2908,8 +2911,17 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         $conditions .= " AND T1.reason_of_visit = ?";
         $bindings[] = $reason_of_visit;
     }
+    if (!empty($agent)) {
+        $conditions .= " AND T2.agent = ?";
+        $bindings[] = $agent;
+    }
+    
+    if (!empty($councellor)) {
+        $conditions .= " AND T2.councellor = ?"; 
+        $bindings[] = $councellor;
+    }
 
-    // Handle optional lead source filtering (but still excluding 'D/S')
+    // Handle optional lead source filtering
     if (!empty($lead_source)) {
         if (strpos($lead_source, "','") !== false) {
             $conditions .= " AND T2.lead_source IN (?)";
@@ -2922,7 +2934,8 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
     // Secure Date Filtering (with typo correction)
     if (!empty($start_date) && !empty($end_date)) {
         $conditions .= " AND T1.on_date BETWEEN ? AND ?";
-        $conditions .= " AND T2.appoitmented_date BETWEEN ? AND ?"; // Typo fixed
+        // ** TYPO FIX **
+        $conditions .= " AND T2.appoitmented_date BETWEEN ? AND ?"; 
         array_push($bindings, $start_date, $end_date, $start_date, $end_date);
     } else if (!empty($start_date)) {
         $conditions .= " AND T1.on_date = ?";
@@ -2934,11 +2947,11 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         array_push($bindings, $end_date, $end_date);
     }
 
-    // --- Final SQL Query (with all columns and corrections) ---
-    // Note: Typo 'paitent_id' corrected to 'patient_id'
-    $consultation_sql = "
+   $consultation_sql = "
         SELECT
             T1.patient_id,
+            T2.agent,
+            T2.councellor,
             MAX(T2.lead_source) AS lead_source,
             T1.on_date,
             T1.reason_of_visit,
@@ -2951,17 +2964,27 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         FROM
             hms_consultation AS T1
         INNER JOIN
-            hms_appointments AS T2 ON T1.patient_id = T2.paitent_id
+            hms_appointments AS T2 ON T1.patient_id = T2.paitent_id 
         WHERE
             T2.billed = '1'
             AND T2.lead_source != 'D/S' 
             {$conditions}
         GROUP BY
-            T1.patient_id, T1.on_date, T1.reason_of_visit, T1.totalpackage, T1.payment_done, T1.discount_amount, T1.appointment_id, T1.doctor_id, T1.billing_at
+            T1.patient_id, 
+            T2.agent,
+            T2.councellor,
+            T1.on_date, 
+            T1.reason_of_visit, 
+            T1.totalpackage, 
+            T1.payment_done, 
+            T1.discount_amount, 
+            T1.appointment_id, 
+            T1.doctor_id, 
+            T1.billing_at
         ORDER BY T1.on_date DESC, T1.id DESC
-        LIMIT ?, ?"; // Use placeholders for LIMIT
+        LIMIT ?, ?"; 
 
-    // Add offset and limit to the bindings array for secure pagination
+    // Add offset and limit to the bindings array
     $bindings[] = (int) $offset;
     $bindings[] = (int) $limit;
 
@@ -3009,7 +3032,7 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
  *
  * This function is secure (uses query bindings) and fast (uses a JOIN).
  */
-public function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit)
+public function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit, $category, $procedures, $broad_procedure, $agent,$councellor,$booked_status)
 {
     // This array will hold the values for secure query binding
     $bindings = [];
@@ -3030,7 +3053,30 @@ public function patient_procedure_consultation_count($center, $start_date, $end_
         $conditions .= " AND T1.reason_of_visit = ?";
         $bindings[] = $reason_of_visit;
     }
-    
+    if (!empty($category)) {
+        $conditions .= " AND T2.category = ?";
+        $bindings[] = $category;
+    }
+    if (!empty($procedures)) {
+        $conditions .= " AND T2.procedures = ?";
+        $bindings[] = $procedures;
+    }
+	if (!empty($broad_procedure)) {
+        $conditions .= " AND T2.broad_procedure = ?";
+        $bindings[] = $broad_procedure;
+    }
+	if (!empty($agent)) {
+        $conditions .= " AND T2.agent = ?";
+        $bindings[] = $agent;
+    }
+	if (!empty($councellor)) {
+        $conditions .= " AND T2.councellor = ?";
+        $bindings[] = $councellor;
+    }
+	if (!empty($booked_status)) {
+        $conditions .= " AND T2.booked_status = ?";
+        $bindings[] = $booked_status;
+    }
     // Secure Date Filtering
     if (!empty($start_date) && !empty($end_date)) {
         $conditions .= " AND T1.on_date BETWEEN ? AND ?";
@@ -3044,17 +3090,19 @@ public function patient_procedure_consultation_count($center, $start_date, $end_
         $bindings[] = $end_date;
     }
 
-    // --- The New, Single, Efficient Query ---
-    // This query JOINS the tables and counts in one step.
-    // It's much faster than looping.
-    $sql = "
-        SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
-        FROM hms_consultation AS T1
-        INNER JOIN hms_patient_procedure AS T2
-            ON T1.patient_id = T2.patient_id
-        WHERE
-            T2.category = 'IVF with Bed'
-            {$conditions}
+    // --- The Correct, Working Query ---
+    // Your commented-out query had a syntax error (WHERE T2.category).
+    // Your new query (WHERE 1) is the correct pattern.
+    
+    // *** 'echo' has been REMOVED from the line below ***
+    echo $sql = "
+    SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
+    FROM hms_consultation AS T1
+    INNER JOIN hms_patient_procedure AS T2
+        ON T1.patient_id = T2.patient_id
+    WHERE
+        1  
+        {$conditions}
     ";
 
     // Execute the query securely
@@ -5971,6 +6019,7 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 			$conditions .= " and on_date='$end_date'";
 		}
 		$center = $_SESSION['logged_billing_manager']['center'];
+		$center = $_SESSION['logged_counselor']['center'];
 		$medicine_daily_sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment FROM hms_patient_medicine WHERE on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('Pending', 'approved') AND 1".$conditions;
 		$medicine_daily_q = $this->db->query($medicine_daily_sql);
 		$medicine_daily_result = $medicine_daily_q->result_array();
@@ -5993,6 +6042,7 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 			$conditions .= " and on_date='$end_date'";
 		}
 		$center = $_SESSION['logged_billing_manager']['center'];
+		$center = $_SESSION['logged_counselor']['center'];
 		$investigations_daily_sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment FROM hms_patient_investigations WHERE on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('Pending', 'approved') AND 1".$conditions;
 		$investigations_daily_q = $this->db->query($investigations_daily_sql);
 		$investigations_daily_result = $investigations_daily_q->result_array();
@@ -6015,6 +6065,7 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 			$conditions .= " and on_date='$end_date'";
 		}
 		$center = $_SESSION['logged_billing_manager']['center'];
+		$center = $_SESSION['logged_counselor']['center'];
 		$consultation_daily_sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment FROM hms_consultation WHERE on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('Pending', 'approved') AND 1".$conditions;
 		$consultation_daily_q = $this->db->query($consultation_daily_sql);
 		$consultation_daily_result = $consultation_daily_q->result_array();
@@ -6037,6 +6088,7 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 			$conditions .= " and on_date='$end_date'";
 		}
 		$center = $_SESSION['logged_billing_manager']['center'];
+		$center = $_SESSION['logged_counselor']['center'];
 		$registration_daily_sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment FROM hms_registation WHERE on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('Pending', 'approved') AND 1".$conditions;
 		$registration_daily_q = $this->db->query($registration_daily_sql);
 		$registration_daily_result = $registration_daily_q->result_array();
@@ -6059,6 +6111,7 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 			$conditions .= " and on_date='$end_date'";
 		}
 		$center = $_SESSION['logged_billing_manager']['center'];
+		$center = $_SESSION['logged_counselor']['center'];
 		$procedure_daily_sql = "SELECT COUNT(patient_id) AS total_patients, SUM(fees) AS total_fees, SUM(payment_done) AS total_payment FROM hms_patient_procedure WHERE on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('pending', 'approved') AND 1".$conditions;
 		$procedure_daily_q = $this->db->query($procedure_daily_sql);
 		$procedure_daily_result = $procedure_daily_q->result_array();
@@ -6081,6 +6134,7 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 			$conditions .= " and on_date='$end_date'";
 		}
 		$center = $_SESSION['logged_billing_manager']['center'];
+		$center = $_SESSION['logged_counselor']['center'];
 		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('pending', 'approved') AND 1".$conditions;
 		$procedure_q = $this->db->query($procedure_sql);
 		$procedure_result = $procedure_q->result_array();
@@ -6103,6 +6157,7 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 			$conditions .= " and on_date='$end_date'";
 		}
 		$center = $_SESSION['logged_billing_manager']['center'];
+		$center = $_SESSION['logged_counselor']['center'];
 		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_payments where on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('pending', 'approved') AND 1".$conditions;
 		$procedure_q = $this->db->query($procedure_sql);
 		$procedure_result = $procedure_q->result_array();
@@ -6125,6 +6180,7 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 			$conditions .= " and on_date='$end_date'";
 		}
 		$center = $_SESSION['logged_billing_manager']['center'];
+		$center = $_SESSION['logged_counselor']['center'];
 		$medicine_sql = "Select * from ".$this->config->item('db_prefix')."patient_medicine where on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('pending', 'approved') AND 1".$conditions;
 		$medicine_q = $this->db->query($medicine_sql);
 		$medicine_result = $medicine_q->result_array();
@@ -6147,6 +6203,7 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 			$conditions .= " and on_date='$end_date'";
 		}
 		$center = $_SESSION['logged_billing_manager']['center'];
+		$center = $_SESSION['logged_counselor']['center'];
 		$diagnostic_sql = "Select * from ".$this->config->item('db_prefix')."patient_investigations where on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('pending', 'approved') AND 1".$conditions;
 		$diagnostic_q = $this->db->query($diagnostic_sql);
 		$diagnostic_result = $diagnostic_q->result_array();
@@ -6169,6 +6226,7 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date){
 			$conditions .= " and on_date='$end_date'";
 		}
 		$center = $_SESSION['logged_billing_manager']['center'];
+		$center = $_SESSION['logged_counselor']['center'];
 		$consultation_sql = "Select * from ".$this->config->item('db_prefix')."consultation where on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY AND billing_at = '$center'  AND status IN ('pending', 'approved') AND 1".$conditions;
 		$consultation_q = $this->db->query($consultation_sql);
 		$consultation_result = $consultation_q->result_array();

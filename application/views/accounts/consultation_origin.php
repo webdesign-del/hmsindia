@@ -137,6 +137,35 @@
             	<label>IIC ID </label>
                 <input type="text" class="form-control" id="iic_id" name="iic_id" value="<?php echo $patient_id;?>" />
             </div>
+             <div class="col-sm-3 col-xs-12">
+            	<label>Agent </label>
+                <input type="text" class="form-control" id="agent" name="agent" value="<?php echo $agent;?>" />
+            </div>
+             <div class="col-sm-3 col-xs-12">
+            	<label>Councellor </label>
+                <input type="text" class="form-control" id="councellor" name="councellor" value="<?php echo $councellor;?>" />
+            </div>
+             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            	<label>Booked Status </label>
+            <select name="booked_status" id="booked_status" class="form-control">
+                <option value="">--- Booked Status ---</option>
+            <?php 
+                    // 1. Get ALL procedures (you are already doing this)
+                   $all_booked_status = $all_method->get_all_booked_status();
+                    // 2. Loop through them
+                    foreach($all_booked_status as $key => $val) {
+                        
+                            // 4. Check if this procedure is the one that was saved
+                            // (I am guessing the variable is $procedures)
+                            if(isset($booked_status) && $booked_status == $val['booked_status']) {
+                                echo '<option value="'.$val['booked_status'].'" selected>'.$val['booked_status'].'</option>';
+                            } else {
+                                echo '<option value="'.$val['booked_status'].'">'.$val['booked_status'].'</option>';
+                            }
+                    } 
+                ?>
+            </select>
+            </div>
             
             <div class="col-sm-3" style="margin-top: 20px;">
             	<button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>
@@ -224,119 +253,31 @@
 ) {
     echo $select_result3['lead_source'];
 }  ?></td>
-                  <td><?php echo ucwords($select_result3['agent']); ?></td>
-				  <td><?php $counselor_name = $all_method->get_counselor_name($vl['appointment_id']);
+                  <td><?php $na_sources = ['Walk In', 'Doctor-Referral'];
 
-if (!empty($counselor_name)) {
-    echo ucwords($counselor_name);
+// 2. Use in_array() to check if the lead_source is in that list
+if (in_array($select_result3['lead_source'], $na_sources)) {
+    echo 'NA';
 } else {
-    // If no counselor is found, print the agent name from $select_result3
-  echo ucwords(strtolower($select_result3['counsellor'])); 
-
+    echo ucwords($select_result3['agent']);
 } ?></td>
+				  <td><?php echo ucwords(strtolower($select_result3['councellor'])); ?></td>
 
 <td><?php
+ $sql_check = "SELECT * FROM hms_patient_procedure WHERE patient_id = '".$vl['patient_id']."' AND category = 'IVF with Bed'  LIMIT 1";
 
-$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $vl['patient_id'] . "'";
+ $procedure_result = run_select_query($sql_check);
 
-$select_result4 = run_select_query($sql4);
-
-// Check if 'data' exists and is not empty before proceeding
-
-if (!empty($select_result4['data'])) {
-
-$unserialized_data = unserialize($select_result4['data']);
-
-// 1. CRITICAL CORRECTION: Access the array structure using index [0]
-
-if (isset($unserialized_data['patient_procedures'][0]['sub_procedure'])) {
-
-
-$sub_procedure = $unserialized_data['patient_procedures'][0]['sub_procedure'];
-
-
-// 2. CRITICAL CORRECTION: Use the correct SQL variable ($sql5)
-
- $sql5 = "SELECT * FROM hms_procedures WHERE ID='" . $sub_procedure . "'";
-
-$select_result5 = run_select_query($sql5);
-
-
-$category = 'not found';
-
-if (!empty($select_result5) && isset($select_result5['category'])) {
-
-// 4. Assuming the category is in the first result row and named 'category_column_name'
-
-$category = $select_result5['category'];
-
-}
-
-
-// 5. CRITICAL CORRECTION: Use DOUBLE EQUALS (==) for comparison, not single equals (=) for assignment.
-
-if($category == 'IVF with Bed'){
-
-echo ' booked';
-
+if (!empty($procedure_result)) {
+    // A record was found, so the patient is booked.
+   echo $booking_status[] = 'booked';
 } else {
-
-echo ' not booked';
-
-}
-
-
+    // No record was found matching the criteria.
+   echo $booking_status[] = 'Not Booked';
 }
 
 
 
-} 
-
-
-// Fetch all procedures for the patient
-$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $vl['patient_id'] . "'";
-$select_result4 = run_select_query($sql4);
-
-$booking_status = []; // <-- Store all results here
-
-if (!empty($select_result4['data'])) {
-    $unserialized_data = unserialize($select_result4['data']);
-
-    if (!empty($unserialized_data['patient_procedures'])) {
-        foreach ($unserialized_data['patient_procedures'] as $procedure_item) {
-
-            if (isset($procedure_item['sub_procedure'])) {
-                $sub_procedure = $procedure_item['sub_procedure'];
-
-                // Get procedure info
-                $sql5 = "SELECT * FROM hms_procedures WHERE ID='" . $sub_procedure . "'";
-                $select_result5 = run_select_query($sql5);
-
-                // Safely extract category
-                $category = 'not found';
-                if (!empty($select_result5['data']['category'])) {
-                    $category = $select_result5['data']['category'];
-                }
-
-                // Store in array instead of printing
-                if ($category == 'IVF with Bed') {
-                    $booking_status[] = 'booked';
-                } else {
-                    $booking_status[] = '';
-                }
-            }
-        }
-    }
-}
-
-// 🔹 Print results *outside* the loop
-if (!empty($booking_status)) {
-    foreach ($booking_status as $status) {
-        echo $status . "<br>";
-    }
-} else {
-    echo "not booked";
-}
 
 ?>
 </td>

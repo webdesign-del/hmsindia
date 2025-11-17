@@ -486,16 +486,17 @@ class Patients_model extends CI_Model
 			$conditions .= ' and crm_id="'.$crm_id.'"';
         }
 		if (!empty($start_date) && !empty($end_date)){
-        $conditions .= " AND appoitmented_date BETWEEN '".$start_date."' AND '".$end_date."'";
+        $conditions .= " AND appointment_added BETWEEN '".$start_date."' AND '".$end_date."'";
 		}
 		else if (!empty($start_date) && empty($end_date)){
-			$conditions .= " AND appoitmented_date='$start_date'";
+			$conditions .= " AND appointment_added='$start_date'";
 		}
 		else if (empty($start_date) && !empty($end_date)){
-			$conditions .= " AND appoitmented_date='$end_date'";
+			$conditions .= " AND appointment_added='$end_date'";
 		}
 		
-	    $consultation_sql = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_type='new_patient' and 1 $conditions order by appoitmented_date desc";
+	    $consultation_sql = "
+		Select * from ".$this->config->item('db_prefix')."appointments where paitent_type='new_patient' and 1 $conditions order by appointment_added desc";
         $consultation_q = $this->db->query($consultation_sql);
         $consultation_result = $consultation_q->result_array();
         if(!empty($consultation_result)){
@@ -503,10 +504,10 @@ class Patients_model extends CI_Model
 				//$patient_name = $this->get_patient_name($val['patient_id']);
 				$response[] = array(
                         'crm_id' => $val['crm_id'],
-                       // 'wife_name' => $patient_name,
+                        'paitent_id' => $val['paitent_id'],
 						'agent' => $val['agent'],
-				        'appoitmented_date' => $val['appoitmented_date'],
-                        'billing_type' => 'Appointment',
+				        'appointment_added' => $val['appointment_added'],
+                        'billing_type' => 'Consultation',
                 );
             }
         }    
@@ -522,13 +523,13 @@ class Patients_model extends CI_Model
 			$conditions .= " and paitent_id='$paitent_id'";
 		}
 		if (!empty($start_date) && !empty($end_date)){
-			$conditions .= " and appoitmented_date between '".$start_date."' AND '".$end_date."' ";
+			$conditions .= " and appointment_added between '".$start_date."' AND '".$end_date."' ";
 		}
 		else if (!empty($start_date) && empty($end_date)){
-			$conditions .= " and appoitmented_date='$start_date'";
+			$conditions .= " and appointment_added='$start_date'";
 		}
 		else if (empty($start_date) && !empty($end_date)){
-			$conditions .= " and appoitmented_date='$end_date'";
+			$conditions .= " and appointment_added='$end_date'";
 		}
 		$semen_analysis_sql = "Select * from hms_appointments where 1 ".$conditions."";
 		$q = $this->db->query($semen_analysis_sql);
@@ -559,14 +560,14 @@ class Patients_model extends CI_Model
 
     // --- Secure Date Filtering ---
     if (!empty($start_date) && !empty($end_date)) {
-        $conditions .= " AND T1.appoitmented_date BETWEEN ? AND ?"; // Typo fixed
+        $conditions .= " AND T1.appointment_added BETWEEN ? AND ?"; // Typo fixed
         $bindings[] = $start_date;
         $bindings[] = $end_date;
     } else if (!empty($start_date)) {
-        $conditions .= " AND T1.appoitmented_date = ?"; // Typo fixed
+        $conditions .= " AND T1.appointment_added = ?"; // Typo fixed
         $bindings[] = $start_date;
     } else if (!empty($end_date)) {
-        $conditions .= " AND T1.appoitmented_date = ?"; // Typo fixed
+        $conditions .= " AND T1.appointment_added = ?"; // Typo fixed
         $bindings[] = $end_date;
     }
 
@@ -577,7 +578,7 @@ class Patients_model extends CI_Model
         SELECT
             T1.crm_id,
             T1.paitent_id,
-            T1.appoitmented_date,
+            T1.appointment_added,
             T1.agent,
             MAX(T2.on_date) AS consultation_date,
             MAX(T3.on_date) AS procedure_date
@@ -593,10 +594,10 @@ class Patients_model extends CI_Model
         GROUP BY
             T1.paitent_id, 
             T1.crm_id, 
-            T1.appoitmented_date, 
+            T1.appointment_added, 
             T1.agent
         ORDER BY
-            T1.appoitmented_date DESC
+            T1.appointment_added DESC
         LIMIT ? OFFSET ?
     ";
 
