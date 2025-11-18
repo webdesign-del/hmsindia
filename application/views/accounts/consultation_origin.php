@@ -190,7 +190,12 @@
             	<a href="<?php echo base_url('accounts/consultation-reports'); ?>" style="text-decoration: none;">
                 <button name="export-billing" type="submit"  class="btn btn-secondary" id="export-billing">Export Reports</button>
                </a>
-               
+              <button type="submit" 
+            formaction="<?php echo site_url('accounts/export_consultation_csv'); ?>" 
+            class="btn btn-success" 
+            style="margin-left: 10px;">
+        <i class="fa fa-file-excel-o"></i> Export to Excel
+    </button>
             </div>	
 		  </form>  
         </div>

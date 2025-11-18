@@ -3008,6 +3008,8 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
     $consultation_q = $this->db->query($consultation_sql, $bindings);
     return $consultation_q->result_array();
 }
+
+
 /*
 public function patient_consultation_report_patination($center, $start_date, $end_date, $patient_id, $reason_of_visit, $category, $procedures, $broad_procedure, $agent, $councellor, $booked_status, $lead_source = '') 
 {

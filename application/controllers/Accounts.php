@@ -2036,7 +2036,72 @@ public function procedure_reports(){
 		}
 	} 
 	
+// In application/controllers/Accounts.php
 
+public function export_consultation_csv() {
+    // 1. Get ALL filters from URL (GET request)
+    $center = $this->input->get('center');
+    $start_date = $this->input->get('start_date');
+    $end_date = $this->input->get('end_date');
+    $patient_id = $this->input->get('patient_id');
+    $reason_of_visit = $this->input->get('reason_of_visit');
+    $doctor_id = $this->input->get('doctor_id');
+    $agent = $this->input->get('agent');
+    $councellor = $this->input->get('councellor');
+    $lead_source = $this->input->get('lead_source');
+    
+    // New Procedure Filters
+    $category = $this->input->get('category');
+    $procedures = $this->input->get('procedures');
+    $broad_procedure = $this->input->get('broad_procedure');
+    $booked_status = $this->input->get('booked_status');
+
+    // 2. Call Model with High Limit (to get all records)
+    $report_data = $this->accounts_model->patient_consultation_report_patination(
+        100000, // Limit
+        0,      // Page
+        $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, 
+        $category, $procedures, $broad_procedure, $booked_status, $lead_source
+    );
+
+    // 3. Create CSV File
+    $filename = 'consultation_report_' . date('Ymd') . '.csv';
+    header("Content-Description: File Transfer");
+    header("Content-Disposition: attachment; filename=$filename");
+    header("Content-Type: application/csv; ");
+    
+    $file = fopen('php://output', 'w');
+
+    // 4. Write Headers
+    $header = array(
+        "Patient ID", "Agent", "Counsellor", "Lead Source", "Visit Date", 
+        "Reason", "Doctor ID", "Total Package", "Payment Done", 
+        "Category", "Procedure", "Booked Status"
+    );
+    fputcsv($file, $header);
+
+    // 5. Write Data Rows
+    foreach ($report_data as $row) {
+        $line = array(
+            $row['patient_id'],
+            $row['agent'],
+            $row['councellor'],
+            $row['lead_source'],
+            $row['on_date'],
+            $row['reason_of_visit'],
+            $row['doctor_id'],
+            $row['totalpackage'],
+            $row['payment_done'],
+            $row['category'],
+            $row['procedures'],
+            $row['booked_status']
+        );
+        fputcsv($file, $line);
+    }
+
+    fclose($file);
+    exit;
+}
 	public function approve($request = NULL){
 
 		$logg = checklogin();
