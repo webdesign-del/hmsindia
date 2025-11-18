@@ -537,7 +537,7 @@ class Procedures_model extends CI_Model
 	}
 
 	function get_booked_status() {
-		$sql = "SELECT DISTINCT booked_status FROM hms_procedures";
+		$sql = "SELECT DISTINCT booked_status FROM hms_patient_procedure";
 		$q = $this->db->query($sql);
 		$result = $q->result_array();
 		return $result;
