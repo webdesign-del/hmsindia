@@ -2006,7 +2006,7 @@ public function procedure_reports(){
         	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
 			
         	$data["links"] = $this->pagination->create_links();
-			$data['consultation_result'] = $this->accounts_model->patient_consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id ,$agent, $councellor ,$lead_source);
+			$data['consultation_result'] = $this->accounts_model->patient_consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id ,$agent, $councellor, $category,$procedures,$broad_procedure, $booked_status, $lead_source);
 			$data['reason_counts'] = $this->accounts_model->patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source);
 			$data['patient_counts'] = $this->accounts_model->patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id,$reason_of_visit,$category,$procedures,$broad_procedure,$agent,$councellor,$booked_status);
 			$data['lead_sources'] = $this->accounts_model->get_lead_source_dropdown_data();
@@ -7704,6 +7704,103 @@ public function partial_procedure(){
 			die();
 		}
 	}
+
+// 1. SAVE DRAFT (For Billing Manager)
+public function save_draft_report() {
+    $logg = checklogin();
+    if(!$logg['status']) { echo json_encode(['success'=>false, 'message'=>'Login required']); return; }
+
+    // Prepare Data
+    $data = $this->_get_post_report_data(); // Helper function below
+    $data['approval_status'] = 'Pending';   // Set status to Pending
+    
+    if ($this->accounts_model->save_daily_sales_report($data)) {
+        echo json_encode(['success' => true, 'message' => 'Report saved as Draft (Pending Approval).']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Database Error. Could not save.']);
+    }
+}
+
+// 2. APPROVE & SEND (For Counsellor)
+public function approve_and_send_email() {
+    $logg = checklogin();
+    
+    // Security Check: Only Counsellors can approve
+    if (!isset($_SESSION['logged_counselor'])) {
+        echo json_encode(['success' => false, 'message' => 'Permission Denied: Only Counsellors can approve.']);
+        return;
+    }
+
+    // A. Save/Update the Report as APPROVED
+    $data = $this->_get_post_report_data();
+    $data['approval_status'] = 'Approved';
+    $data['approved_by']     = $_SESSION['logged_counselor']['name'];
+    $data['approved_at']     = date('Y-m-d H:i:s');
+
+    if (!$this->accounts_model->save_daily_sales_report($data)) {
+        echo json_encode(['success' => false, 'message' => 'Database Error during approval.']);
+        return;
+    }
+
+    // B. Send the Email (Now that it is approved)
+    $recipient_email = $this->input->post('recipient_email');
+    $email_subject   = $this->input->post('email_subject');
+    
+    // Get data for email view
+    $email_data['report_data']  = $_POST; // Use POST data for the view logic
+    $email_data['details_html'] = urldecode($this->input->post('details_html'));
+
+    $email_body = $this->load->view('emails/daily_report_template', $email_data, TRUE);
+
+    $this->load->library('email');
+    $this->email->from('ranjeet.kumar@indiaivf.in', 'IndiaIVF Reports'); // Use your config email
+    $this->email->to($recipient_email);
+    $this->email->subject("APPROVED: " . $email_subject); // Add APPROVED prefix
+    $this->email->message($email_body);
+    $this->email->set_mailtype("html");
+
+    if ($this->email->send()) {
+        echo json_encode(['success' => true, 'message' => 'Report Approved, Saved, and Email Sent!']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Approved & Saved, but Email Failed: ' . $this->email->print_debugger()]);
+    }
+}
+
+// Helper to collect POST data (prevents repeating code)
+private function _get_post_report_data() {
+    $center = isset($_SESSION['logged_billing_manager']['center']) ? $_SESSION['logged_billing_manager']['center'] : $_SESSION['logged_counselor']['center'];
+    return array(
+        'report_date' => $this->input->post('start_date') ? $this->input->post('start_date') : date('Y-m-d'),
+        'center'      => $center,
+        'ivf_cycles_sold_c_count' => $this->input->post('ivf_cycles_sold_c_count'),
+        'ivf_cycles_sold_b_count' => $this->input->post('ivf_cycles_sold_b_count'),
+        'ivf_cycles_sold_amount'  => $this->input->post('ivf_cycles_sold_amount'),
+        'ivf_with_bed_c_count' => $this->input->post('ivf_with_bed_c_count'),
+        'ivf_with_bed_b_count' => $this->input->post('ivf_with_bed_b_count'),
+        'ivf_with_bed_amount'  => $this->input->post('ivf_with_bed_amount'),
+        'non_ivf_with_bed_c_count' => $this->input->post('non_ivf_with_bed_c_count'),
+        'non_ivf_with_bed_b_count' => $this->input->post('non_ivf_with_bed_b_count'),
+        'non_ivf_with_bed_amount'  => $this->input->post('non_ivf_with_bed_amount'),
+        'non_ivf_without_bed_c_count' => $this->input->post('non_ivf_without_bed_c_count'),
+        'non_ivf_without_bed_b_count' => $this->input->post('non_ivf_without_bed_b_count'),
+        'non_ivf_without_bed_amount'  => $this->input->post('non_ivf_without_bed_amount'),
+        'not_tagged_c_count' => $this->input->post('not_tagged_c_count'),
+        'not_tagged_b_count' => $this->input->post('not_tagged_b_count'),
+        'not_tagged_amount'  => $this->input->post('not_tagged_amount'),
+        'package_customer_count' => $this->input->post('package_customer_count'),
+        'package_bill_count'     => $this->input->post('package_bill_count'),
+        'package_amount'         => $this->input->post('package_amount'),
+        'medicine_customer_count' => $this->input->post('medicine_customer_count'),
+        'medicine_bill_count'     => $this->input->post('medicine_bill_count'),
+        'medicine_amount'         => $this->input->post('medicine_amount'),
+        'diagnosis_customer_count' => $this->input->post('diagnosis_customer_count'),
+        'diagnosis_bill_count'     => $this->input->post('diagnosis_bill_count'),
+        'diagnosis_amount'         => $this->input->post('diagnosis_amount'),
+        'consultation_customer_count' => $this->input->post('consultation_customer_count'),
+        'consultation_bill_count'     => $this->input->post('consultation_bill_count'),
+        'consultation_amount'         => $this->input->post('consultation_amount'),
+    );
+}	
 
 public function get_doctors_by_center() {
     // Enable CORS if needed

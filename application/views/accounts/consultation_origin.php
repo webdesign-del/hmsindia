@@ -240,20 +240,20 @@
 
 
 			  $count=1; foreach($consultation_result as $ky => $vl){
-			  			$patient_data = get_patient_detail($vl['patient_id']);
+			  		//	$patient_data = get_patient_detail($vl['patient_id']);
             $currency = '';
-           $sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $vl['patient_id'] . "'";
-					        $appoint_result = run_select_query($sql);
+          // $sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $vl['patient_id'] . "'";
+					      //  $appoint_result = run_select_query($sql);
 
-					        $sql3 = "SELECT * FROM hms_appointments WHERE wife_phone='" . $appoint_result['wife_phone'] . "' and paitent_type='new_patient'";
-					        $select_result3 = run_select_query($sql3);
+					        //$sql3 = "SELECT * FROM hms_appointments WHERE wife_phone='" . $appoint_result['wife_phone'] . "' and paitent_type='new_patient'";
+					       // $select_result3 = run_select_query($sql3);
            
 
 			   ?>
 
                 <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
-                  <td><?php echo $select_result3['crm_id'];  ?></td>
+                  <td><?php echo $vl['crm_id'];  ?></td>
                   <td><?php echo $vl['patient_id']; ?></td>
                   <td><?php $patient_name = $all_method->get_patient_name($vl['patient_id']); echo strtoupper($patient_name); ?></td>
                   <td><?php echo $vl['on_date']?></td>
@@ -264,21 +264,21 @@
                   <td><?php echo $vl['reason_of_visit']?></td>
 				  <td><?php echo $all_method->get_doctor_name($vl['doctor_id']); ?></td>
 				  <td><?php if (
-    !in_array($select_result3['lead_source'], ['D/S'])
+    !in_array($vl['lead_source'], ['D/S'])
 ) {
-    echo $select_result3['lead_source'];
+    echo $vl['lead_source'];
 }  ?></td>
                   <td><?php $na_sources = ['Walk In', 'Doctor-Referral'];
 
 // 2. Use in_array() to check if the lead_source is in that list
-if (in_array($select_result3['lead_source'], $na_sources)) {
+if (in_array($vl['lead_source'], $na_sources)) {
     echo 'NA';
 } else {
-    echo ucwords($select_result3['agent']);
+    echo ucwords($vl['agent']);
 } ?></td>
-				  <td><?php echo ucwords(strtolower($select_result3['councellor'])); ?></td>
+				  <td><?php echo ucwords(strtolower($vl['councellor'])); ?></td>
 
-<td><?php
+<td><?php /*
  $sql_check = "SELECT * FROM hms_patient_procedure WHERE patient_id = '".$vl['patient_id']."' AND category = 'IVF with Bed'  LIMIT 1";
 
  $procedure_result = run_select_query($sql_check);
@@ -291,10 +291,10 @@ if (!empty($procedure_result)) {
    echo $booking_status[] = 'Not Booked';
 }
 
+*/
 
 
-
-?>
+?><?php echo $vl['booked_status']?>
 </td>
 
 				</tr>
