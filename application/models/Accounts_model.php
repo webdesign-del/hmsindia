@@ -3095,7 +3095,7 @@ public function patient_procedure_consultation_count($center, $start_date, $end_
     // Your new query (WHERE 1) is the correct pattern.
     
     // *** 'echo' has been REMOVED from the line below ***
-    echo $sql = "
+     $sql = "
     SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
     FROM hms_consultation AS T1
     INNER JOIN hms_patient_procedure AS T2
@@ -5798,6 +5798,15 @@ function get_available_lead_sources_for_consultations(){
         $this->db->query($sql);
         return 1;
     }
+
+	function get_counselor() {
+    // FIX: The WHERE clause was written incorrectly.
+    $sql = "SELECT * FROM `hms_employees` WHERE `role` = 'counselor' AND `status` = '1'";
+    
+    $q = $this->db->query($sql);
+    $result = $q->result_array();
+    return $result;
+}
 	
 /*******End Partial Payment********/
 

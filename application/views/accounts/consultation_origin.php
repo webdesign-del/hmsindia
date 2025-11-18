@@ -141,10 +141,6 @@
             	<label>Agent </label>
                 <input type="text" class="form-control" id="agent" name="agent" value="<?php echo $agent;?>" />
             </div>
-             <div class="col-sm-3 col-xs-12">
-            	<label>Councellor </label>
-                <input type="text" class="form-control" id="councellor" name="councellor" value="<?php echo $councellor;?>" />
-            </div>
              <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Booked Status </label>
             <select name="booked_status" id="booked_status" class="form-control">
@@ -166,6 +162,25 @@
                 ?>
             </select>
             </div>
+
+             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+    <label>councellor </label>
+    <select name="councellor" id="councellor" class="form-control">
+        <option value="">--- Booked Status ---</option>
+        <?php 
+            $all_counselor = $all_method->get_all_counselor();
+            foreach($all_counselor as $key => $val) {
+                
+                // FIX: Check against $booked_status, not $name
+                if(isset($booked_status) && $booked_status == $val['name']) {
+                    echo '<option value="'.$val['name'].'" selected>'.$val['name'].'</option>';
+                } else {
+                    echo '<option value="'.$val['name'].'">'.$val['name'].'</option>';
+                }
+            } 
+        ?>
+    </select>
+</div>
             
             <div class="col-sm-3" style="margin-top: 20px;">
             	<button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>

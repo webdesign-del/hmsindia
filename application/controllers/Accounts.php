@@ -3507,6 +3507,11 @@ public function moulist(){
 		$all_booked_status = $this->procedures_model->get_booked_status();
 		return $all_booked_status;
 	}
+
+	function get_all_counselor(){
+		$all_counselor = $this->accounts_model->get_counselor();
+		return $all_counselor;
+	}
 	
 	function get_all_status(){
 		$all_status = $this->accounts_model->get_status();
