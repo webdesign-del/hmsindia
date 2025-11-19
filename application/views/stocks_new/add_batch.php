@@ -134,7 +134,7 @@
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Quantity Purchased *</label>
                                     <div class="col-sm-8">
-                                        <input type="number" name="quantity_purchased" class="form-control" placeholder="Enter quantity purchased" value="<?php echo set_value('quantity_purchased'); ?>" min="1" required>
+                                        <input type="number" name="quantity_purchased" class="form-control" placeholder="Enter quantity purchased" value="<?php echo set_value('quantity_purchased'); ?>" min="0" required>
                                     </div>
                                 </div>
                                 

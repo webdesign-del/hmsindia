@@ -494,7 +494,7 @@ class Stocks_new extends CI_Controller
                 $this->form_validation->set_rules("expiry_date", "Expiry Date", "required");
                 $this->form_validation->set_rules("purchase_price", "Purchase Price", "required|numeric");
                 $this->form_validation->set_rules("selling_price", "Selling Price", "required|numeric");
-                $this->form_validation->set_rules("quantity_purchased", "Quantity Purchased", "required|numeric|greater_than[0]");
+                $this->form_validation->set_rules("quantity_purchased", "Quantity Purchased", "required|numeric|greater_than_equal_to[0]");
 
                 if ($this->form_validation->run() == true) {
                     
