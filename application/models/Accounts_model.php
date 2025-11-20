@@ -661,12 +661,17 @@ class Accounts_model extends CI_Model
 
 	public function get_all_sales_for_tally()
 {
+
+
+	// echo $sql = "SELECT * FROM hms_patient_procedure where `status`='approved' ORDER BY ID DESC limit 10";
+    //$result = run_select_query($sql);
+
     $this->db->select('*'); // adjust your fields
     $this->db->from('hms_patient_procedure'); // replace with your actual table
     $this->db->order_by('id', 'DESC');
     $this->db->limit(10); // prevent loading thousands at once
 
-    $query = $this->db->get();
+   $query = $this->db->get();
     return $query->result_array();
 }
 
@@ -2966,19 +2971,19 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
    $consultation_sql = "
     SELECT
         T1.patient_id,
-        MAX(T2.agent) AS agent,            -- Use MAX() to pick one value if multiple exist
-        MAX(T2.councellor) AS councellor,  -- Use MAX() here as well
-        MAX(T2.crm_id) AS crm_id,          -- And here
+        MAX(T2.agent) AS agent,            
+        MAX(T2.councellor) AS councellor,  
+        MAX(T2.crm_id) AS crm_id,          
         MAX(T2.lead_source) AS lead_source,
         T1.on_date,
         T1.reason_of_visit,
-        MAX(T1.totalpackage) AS totalpackage, -- Aggregating potentially varying fields is safer
+        MAX(T1.totalpackage) AS totalpackage, 
         MAX(T1.payment_done) AS payment_done,
         MAX(T1.discount_amount) AS discount_amount,
         MAX(T1.appointment_id) AS appointment_id,
         MAX(T1.doctor_id) AS doctor_id,
         T1.billing_at,
-        MAX(T3.category) as category,  -- FIX: Use MAX() to merge duplicates from T3
+        MAX(T3.category) as category,  
 		MAX(T3.procedures) as procedures,
 		MAX(T3.broad_procedure) as broad_procedure,
 		MAX(T3.booked_status) as booked_status
@@ -3008,8 +3013,6 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
     $consultation_q = $this->db->query($consultation_sql, $bindings);
     return $consultation_q->result_array();
 }
-
-
 /*
 public function patient_consultation_report_patination($center, $start_date, $end_date, $patient_id, $reason_of_visit, $category, $procedures, $broad_procedure, $agent, $councellor, $booked_status, $lead_source = '') 
 {
@@ -3601,6 +3604,30 @@ function get_available_lead_sources_for_consultations(){
 		return $response;
     }
 	
+public function add_advance_payment($data) {
+    // Insert the data
+    $this->db->insert('hms_advance_payments', $data);
+    return $this->db->insert_id();
+}
+
+// Helper to generate unique Receipt Number (e.g., ADV-202311-001)
+public function generate_advance_receipt_number() {
+    $prefix = "ADV-" . date('ym') . "-";
+    $this->db->select('id');
+    $this->db->order_by('id', 'DESC');
+    $this->db->limit(1);
+    $query = $this->db->get('hms_advance_payments');
+    
+    if ($query->num_rows() > 0) {
+        $last_row = $query->row();
+        $last_id = $last_row->id + 1;
+    } else {
+        $last_id = 1;
+    }
+    
+    return $prefix . str_pad($last_id, 4, '0', STR_PAD_LEFT);
+}
+
 	function procedure_billing_list_patination($limit, $page, $center, $start_date, $end_date, $patient_id){
 		$procedure_result = array();
 		$conditions = '';
