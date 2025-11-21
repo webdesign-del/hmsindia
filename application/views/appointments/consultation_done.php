@@ -339,6 +339,9 @@ $countdownDuration = 7200;
 		transition: width 0.3s ease;
 		border-radius: 2px;
 	}
+	.form-horizontal .form-group {
+		margin-right: 20px !important;
+	}
 </style>
 <form class="form-horizontal" method="post" id="consultation_done_form" onsubmit="return submitForm(this);" action="" enctype="multipart/form-data" >
 <input type="hidden" name="action" value="add_consultation_done" />
@@ -403,14 +406,14 @@ $countdownDuration = 7200;
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">9</div>
 							<div>Treatment</div>
 						</div>
-						<!-- <div class="step-nav-item" data-step="10">
+						<div class="step-nav-item" data-step="10">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">10</div>
 							<div>Management</div>
 						</div>
 						<div class="step-nav-item" data-step="11">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">11</div>
 							<div>Medicines</div>
-						</div> -->
+						</div>
 						<div class="step-nav-item" data-step="12">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">12</div>
 							<div>Final</div>
