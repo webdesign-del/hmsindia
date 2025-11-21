@@ -543,6 +543,13 @@ class Procedures_model extends CI_Model
 		return $result;
 	}
 
+	function get_broad_procedure_count() {
+		$sql = "SELECT DISTINCT broad_procedure_count FROM hms_patient_procedure";
+		$q = $this->db->query($sql);
+		$result = $q->result_array();
+		return $result;
+	}
+
 	function get_broad_procedure() {
 		$sql = "SELECT DISTINCT broad_procedure FROM hms_procedures";
 		$q = $this->db->query($sql);
