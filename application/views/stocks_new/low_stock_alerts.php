@@ -1,5 +1,97 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 
+<!-- DataTables CSS and Extensions -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.3.0/css/responsive.bootstrap.min.css">
+
+<!-- DataTables JS and Extensions -->
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.bootstrap.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.html5.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.3/js/buttons.print.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/responsive/2.3.0/js/dataTables.responsive.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/responsive/2.3.0/js/responsive.bootstrap.min.js"></script>
+
+<style>
+/* Custom styles for low stock alerts */
+.huge {
+    font-size: 40px;
+}
+
+.badge-danger {
+    background-color: #d9534f;
+}
+
+.badge-warning {
+    background-color: #f0ad4e;
+}
+
+.badge-info {
+    background-color: #5bc0de;
+}
+
+.badge-success {
+    background-color: #5cb85c;
+}
+
+/* DataTable search styling */
+.dataTables_filter input {
+    width: 300px !important;
+    margin-left: 10px;
+}
+
+/* Filter controls styling */
+.filter-controls {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+/* Responsive table improvements */
+@media (max-width: 768px) {
+    .table-responsive {
+        border: none;
+    }
+    
+    .btn-group {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+    }
+}
+
+/* Priority badges */
+.priority-critical {
+    background-color: #d9534f !important;
+    color: white;
+}
+
+.priority-high {
+    background-color: #f0ad4e !important;
+    color: white;
+}
+
+.priority-medium {
+    background-color: #5bc0de !important;
+    color: white;
+}
+
+.priority-low {
+    background-color: #5cb85c !important;
+    color: white;
+}
+</style>
+
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
@@ -41,6 +133,49 @@
                     </div>
                     <div class="panel-body">
                         <?php if(!empty($low_stock_alerts)): ?>
+                            <!-- Search and Filter Controls -->
+                            <div class="row" style="margin-bottom: 15px;">
+                                <div class="col-md-3">
+                                    <label for="priorityFilter">Filter by Priority:</label>
+                                    <select id="priorityFilter" class="form-control">
+                                        <option value="">All Priorities</option>
+                                        <option value="CRITICAL">Critical</option>
+                                        <option value="HIGH">High</option>
+                                        <option value="MEDIUM">Medium</option>
+                                        <option value="LOW">Low</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="statusFilter">Filter by Status:</label>
+                                    <select id="statusFilter" class="form-control">
+                                        <option value="">All Status</option>
+                                        <option value="OUT_OF_STOCK">Out of Stock</option>
+                                        <option value="LOW_STOCK">Low Stock</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>&nbsp;</label><br>
+                                    <button id="clearFilters" class="btn btn-default">
+                                        <i class="fa fa-refresh"></i> Clear Filters
+                                    </button>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>&nbsp;</label><br>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+                                            <i class="fa fa-download"></i> Export <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" onclick="exportTable('copy')"><i class="fa fa-copy"></i> Copy</a></li>
+                                            <li><a href="#" onclick="exportTable('csv')"><i class="fa fa-file-text-o"></i> CSV</a></li>
+                                            <li><a href="#" onclick="exportTable('excel')"><i class="fa fa-file-excel-o"></i> Excel</a></li>
+                                            <li><a href="#" onclick="exportTable('pdf')"><i class="fa fa-file-pdf-o"></i> PDF</a></li>
+                                            <li><a href="#" onclick="exportTable('print')"><i class="fa fa-print"></i> Print</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered table-hover" id="lowStockTable">
                                     <thead>
@@ -258,13 +393,76 @@
 
 <script>
 $(document).ready(function() {
-    $('#lowStockTable').DataTable({
+    // Initialize DataTable with enhanced search functionality
+    var table = $('#lowStockTable').DataTable({
         "pageLength": 25,
         "order": [[ 7, "desc" ], [ 2, "asc" ]], // Sort by priority, then current stock
         "columnDefs": [
             { "orderable": false, "targets": 8 }
-        ]
+        ],
+        "dom": 'Bfrtip',
+        "buttons": [
+            'copy', 'csv', 'excel', 'pdf', 'print'
+        ],
+        "language": {
+            "search": "Search medicines:",
+            "searchPlaceholder": "Enter medicine name, brand, or status...",
+            "emptyTable": "No low stock alerts found",
+            "info": "Showing _START_ to _END_ of _TOTAL_ alerts",
+            "infoEmpty": "No alerts to display",
+            "infoFiltered": "(filtered from _MAX_ total alerts)"
+        },
+        "responsive": true,
+        "processing": true,
+        "searchHighlight": true
     });
+
+    // Add custom search filters
+    $('#priorityFilter').on('change', function() {
+        var priority = $(this).val();
+        if (priority === '') {
+            table.column(7).search('').draw();
+        } else {
+            table.column(7).search(priority).draw();
+        }
+    });
+
+    $('#statusFilter').on('change', function() {
+        var status = $(this).val();
+        if (status === '') {
+            table.column(6).search('').draw();
+        } else {
+            table.column(6).search(status).draw();
+        }
+    });
+
+    // Clear all filters
+    $('#clearFilters').on('click', function() {
+        table.search('').columns().search('').draw();
+        $('#priorityFilter').val('');
+        $('#statusFilter').val('');
+    });
+
+    // Export functionality
+    window.exportTable = function(type) {
+        switch(type) {
+            case 'copy':
+                table.button('.buttons-copy').trigger();
+                break;
+            case 'csv':
+                table.button('.buttons-csv').trigger();
+                break;
+            case 'excel':
+                table.button('.buttons-excel').trigger();
+                break;
+            case 'pdf':
+                table.button('.buttons-pdf').trigger();
+                break;
+            case 'print':
+                table.button('.buttons-print').trigger();
+                break;
+        }
+    };
 });
 </script>
 

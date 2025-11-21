@@ -3206,6 +3206,42 @@ class Stocks_new extends CI_Controller
         $this->load->view($template["footer"]);
     }
 
+    /**
+     * Print-friendly view of audit report
+     */
+    public function print_audit($id = 0)
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+
+        if (empty($id) || !is_numeric($id)) {
+            $this->session->set_flashdata('error', 'Invalid Audit ID.');
+            redirect('stocks_new/audit_reports');
+            return;
+        }
+
+        $this->load->model('Stock_model_new');
+        $data = [];
+
+        // 1. Get the main audit report details
+        $data['audit_report'] = $this->Stock_model_new->get_audit_report_by_id($id);
+
+        if (!$data['audit_report']) {
+            $this->session->set_flashdata('error', 'Audit Report not found.');
+            redirect('stocks_new/audit_reports');
+            return;
+        }
+
+        // 2. Get all adjusted items from the stock movement log
+        $data['audit_items'] = $this->Stock_model_new->get_audit_items_from_log($id);
+        
+        // 3. Load the print view (no header/footer)
+        $this->load->view('stocks_new/print_audit', $data);
+    }
+
 
 
     // ===============================================
@@ -4166,6 +4202,329 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    /**
+     * Export vendor returns list to Excel or PDF
+     */
+    public function export_vendor_returns_list()
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+
+        $format = $this->input->get('format'); // 'excel' or 'pdf'
+        $filters = [
+            'vendor_id' => $this->input->get('vendor_id'),
+            'status'    => $this->input->get('status'),
+            'from_date' => $this->input->get('from_date'),
+            'to_date'   => $this->input->get('to_date')
+        ];
+
+        // Get vendor returns data
+        $vendor_returns = $this->Stock_model_new->get_vendor_returns($filters);
+
+        if (empty($vendor_returns)) {
+            $this->session->set_flashdata('error', 'No vendor returns found to export.');
+            redirect('stocks_new/vendor_returns');
+            return;
+        }
+
+        if ($format == 'excel') {
+            $this->export_vendor_returns_excel($vendor_returns, $filters);
+        } elseif ($format == 'pdf') {
+            $this->export_vendor_returns_pdf($vendor_returns, $filters);
+        } else {
+            $this->session->set_flashdata('error', 'Invalid export format.');
+            redirect('stocks_new/vendor_returns');
+        }
+    }
+
+    /**
+     * Export vendor returns to Excel
+     */
+    private function export_vendor_returns_excel($vendor_returns, $filters)
+    {
+        // Set headers for Excel download
+        $filename = 'Vendor_Returns_' . date('Y-m-d_H-i-s') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+
+        // Create file pointer
+        $output = fopen('php://output', 'w');
+
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Add headers
+        $headers = [
+            'Return Number',
+            'Vendor Name',
+            'Center',
+            'Return Date',
+            'Total Items',
+            'Total Quantity',
+            'Total Value (₹)',
+            'Status',
+            'Created Date',
+            'Created By'
+        ];
+        fputcsv($output, $headers);
+
+        // Add data rows
+        foreach ($vendor_returns as $return) {
+            $row = [
+                $return->return_number ?? 'N/A',
+                $return->vendor_name ?? 'N/A',
+                $return->center_name ?? 'N/A',
+                date('d-m-Y', strtotime($return->return_date)),
+                $return->total_items ?? 0,
+                $return->total_quantity ?? 0,
+                number_format($return->total_value ?? 0, 2),
+                $return->status ?? 'N/A',
+                isset($return->created_at) ? date('d-m-Y H:i', strtotime($return->created_at)) : 'N/A',
+                $return->created_by ?? 'N/A'
+            ];
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit();
+    }
+
+    /**
+     * Export vendor returns to PDF (HTML print version)
+     */
+    private function export_vendor_returns_pdf($vendor_returns, $filters)
+    {
+        // Create a print-friendly HTML page that can be printed as PDF
+        $data = [
+            'vendor_returns' => $vendor_returns,
+            'filters' => $filters,
+            'generated_date' => date('M d, Y H:i A')
+        ];
+        
+        // Load the print view
+        $this->load->view('stocks_new/print_vendor_returns', $data);
+    }
+
+    /**
+     * Export disposal reports list to Excel or PDF
+     */
+    public function export_disposal_reports()
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+
+        $format = $this->input->get('format'); // 'excel' or 'pdf'
+        $filters = [
+            'center_id' => $this->input->get('center_id'),
+            'status'    => $this->input->get('status'),
+            'from_date' => $this->input->get('from_date'),
+            'to_date'   => $this->input->get('to_date')
+        ];
+
+        // Get disposal reports data
+        $disposal_reports = $this->Stock_model_new->get_disposal_reports($filters);
+
+        if (empty($disposal_reports)) {
+            $this->session->set_flashdata('error', 'No disposal reports found to export.');
+            redirect('stocks_new/disposal_reports');
+            return;
+        }
+
+        if ($format == 'excel') {
+            $this->export_disposal_reports_excel($disposal_reports, $filters);
+        } elseif ($format == 'pdf') {
+            $this->export_disposal_reports_pdf($disposal_reports, $filters);
+        } else {
+            $this->session->set_flashdata('error', 'Invalid export format.');
+            redirect('stocks_new/disposal_reports');
+        }
+    }
+
+    /**
+     * Export disposal reports to Excel
+     */
+    private function export_disposal_reports_excel($disposal_reports, $filters)
+    {
+        // Set headers for Excel download
+        $filename = 'Disposal_Reports_' . date('Y-m-d_H-i-s') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+
+        // Create file pointer
+        $output = fopen('php://output', 'w');
+
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Add headers
+        $headers = [
+            'Disposal Number',
+            'Center Name',
+            'Disposal Date',
+            'Disposal Type',
+            'Disposal Method',
+            'Total Items',
+            'Total Cost (₹)',
+            'Status',
+            'Disposal Reason',
+            'Created Date',
+            'Created By'
+        ];
+        fputcsv($output, $headers);
+
+        // Add data rows
+        foreach ($disposal_reports as $report) {
+            $row = [
+                $report->disposal_number ?? 'N/A',
+                $report->center_name ?? 'N/A',
+                date('d-m-Y', strtotime($report->disposal_date)),
+                $report->disposal_type ?? 'N/A',
+                $report->disposal_method ?? 'N/A',
+                $report->total_items ?? 0,
+                number_format($report->total_cost ?? 0, 2),
+                $report->status ?? 'N/A',
+                $report->disposal_reason ?? 'N/A',
+                isset($report->created_at) ? date('d-m-Y H:i', strtotime($report->created_at)) : 'N/A',
+                $report->created_by ?? 'N/A'
+            ];
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit();
+    }
+
+    /**
+     * Export disposal reports to PDF (HTML print version)
+     */
+    private function export_disposal_reports_pdf($disposal_reports, $filters)
+    {
+        // Create a print-friendly HTML page that can be printed as PDF
+        $data = [
+            'disposal_reports' => $disposal_reports,
+            'filters' => $filters,
+            'generated_date' => date('M d, Y H:i A')
+        ];
+        
+        // Load the print view
+        $this->load->view('stocks_new/print_disposal_reports', $data);
+    }
+
+    /**
+     * Export sales list to Excel or PDF
+     */
+    public function export_sales_list()
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+
+        $format = $this->input->get('format'); // 'excel' or 'pdf'
+        $filters = [
+            'center_id' => $this->input->get('center_id'),
+            'patient_name' => $this->input->get('patient_name'),
+            'status' => $this->input->get('status'),
+            'date_from' => $this->input->get('date_from'),
+            'date_to' => $this->input->get('date_to')
+        ];
+
+        // Get sales data
+        $sales = $this->Stock_model_new->get_sales($filters);
+
+        if (empty($sales)) {
+            $this->session->set_flashdata('error', 'No sales found to export.');
+            redirect('stocks_new/sales');
+            return;
+        }
+
+        if ($format == 'excel') {
+            $this->export_sales_excel($sales, $filters);
+        } elseif ($format == 'pdf') {
+            $this->export_sales_pdf($sales, $filters);
+        } else {
+            $this->session->set_flashdata('error', 'Invalid export format.');
+            redirect('stocks_new/sales');
+        }
+    }
+
+    /**
+     * Export sales to Excel
+     */
+    private function export_sales_excel($sales, $filters)
+    {
+        // Set headers for Excel download
+        $filename = 'Sales_List_' . date('Y-m-d_H-i-s') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+
+        // Create file pointer
+        $output = fopen('php://output', 'w');
+
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Add headers
+        $headers = [
+            'Sale Number',
+            'Patient Name',
+            'Patient ID',
+            'Doctor Name',
+            'Center',
+            'Sale Date',
+            'Total Items',
+            'Total Amount (₹)',
+            'Payment Status',
+            'Sale Status',
+            'Created Date'
+        ];
+        fputcsv($output, $headers);
+
+        // Add data rows
+        foreach ($sales as $sale) {
+            $row = [
+                $sale->sale_number ?? 'N/A',
+                $sale->patient_name ?? 'N/A',
+                $sale->patient_id ?? 'N/A',
+                $sale->doctor_name ?? 'N/A',
+                $sale->center_name ?? 'N/A',
+                date('d-m-Y', strtotime($sale->sale_date)),
+                $sale->total_items ?? 0,
+                number_format($sale->total_amount ?? 0, 2),
+                $sale->payment_status ?? 'N/A',
+                $sale->status ?? 'N/A',
+                isset($sale->created_at) ? date('d-m-Y H:i', strtotime($sale->created_at)) : 'N/A'
+            ];
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit();
+    }
+
+    /**
+     * Export sales to PDF (HTML print version)
+     */
+    private function export_sales_pdf($sales, $filters)
+    {
+        // Create a print-friendly HTML page that can be printed as PDF
+        $data = [
+            'sales' => $sales,
+            'filters' => $filters,
+            'generated_date' => date('M d, Y H:i A')
+        ];
+        
+        // Load the print view
+        $this->load->view('stocks_new/print_sales_list', $data);
+    }
+
     public function vendor_return_reports()
     {
         $logg = checklogin();
@@ -4502,10 +4861,13 @@ class Stocks_new extends CI_Controller
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
+            // Get format parameter (excel or pdf)
+            $format = $this->input->get('format');
+            
             // 1. Get all filters from the URL query string
             $filters = [
-                "date_from"   => $this->input->get("date_from"),
-                "date_to"     => $this->input->get("date_to"),
+                "date_from"   => $this->input->get("date_from") ?: $this->input->get("start_date"),
+                "date_to"     => $this->input->get("date_to") ?: $this->input->get("end_date"),
                 "center_id"   => $this->input->get("center_id"),
                 "medicine_id" => $this->input->get("medicine_id"), // Filter by medicine
                 "patient_id"  => $this->input->get("patient_id"),  // Filter by patient
@@ -4515,9 +4877,48 @@ class Stocks_new extends CI_Controller
             // 2. Load the model
             $this->load->model('Stock_model_new');
 
-            // 3. Call the model function that does all the work
-            // The model will generate the CSV and call exit;
-            $this->Stock_model_new->export_sales_report($filters);
+            if ($format == 'pdf') {
+                // Handle PDF export
+                $sales = $this->Stock_model_new->get_sales_report(
+                    $filters['date_from'], 
+                    $filters['date_to'], 
+                    $filters['center_id']
+                );
+
+                if (empty($sales)) {
+                    $this->session->set_flashdata('error', 'No sales report data found to export.');
+                    redirect('stocks_new/sales_report');
+                    return;
+                }
+
+                // Get centers for filter display
+                $centers = $this->Stock_model_new->get_all_centers();
+                $center_name = 'All Centers';
+                if (!empty($filters['center_id'])) {
+                    foreach ($centers as $center) {
+                        if ($center->ID == $filters['center_id']) {
+                            $center_name = $center->center_name;
+                            break;
+                        }
+                    }
+                }
+
+                // Create a print-friendly HTML page that can be printed as PDF
+                $data = [
+                    'sales' => $sales,
+                    'filters' => $filters,
+                    'center_name' => $center_name,
+                    'generated_date' => date('M d, Y H:i A')
+                ];
+                
+                // Load the print view
+                $this->load->view('stocks_new/print_sales_report', $data);
+            } else {
+                // Default to Excel/CSV export (existing functionality)
+                // 3. Call the model function that does all the work
+                // The model will generate the CSV and call exit;
+                $this->Stock_model_new->export_sales_report($filters);
+            }
 
         } else {
             // Not logged in, redirect to login
@@ -6484,6 +6885,7 @@ class Stocks_new extends CI_Controller
         // 2. Get the data from the AJAX POST request
         $sale_id = $this->input->post('sale_id');
         $new_status = $this->input->post('new_status'); 
+        $remark = $this->input->post('remarks'); 
         $response = [];
         // 3. Basic validation
         if (!$sale_id || !$new_status) {
@@ -6493,7 +6895,7 @@ class Stocks_new extends CI_Controller
             ];
         } else {
             // 4. Call the model to update the database
-            $success = $this->Stock_model_new->change_payment_status($sale_id, $new_status);
+            $success = $this->Stock_model_new->change_payment_status($sale_id, $new_status, $remark);
             // 5. Prepare the JSON response
             if ($success) {
                 $response = [

@@ -23,6 +23,16 @@
                         <a href="<?php echo base_url('stocks_new/vendor_return_reports'); ?>" class="btn btn-info">
                             <i class="fa fa-bar-chart-o"></i> Return Reports
                         </a>
+                        <?php if(isset($vendor_returns) && !empty($vendor_returns)): ?>
+                        <div class="btn-group" style="margin-left: 10px;">
+                            <button type="button" class="btn btn-success" onclick="exportVendorReturnsList('excel')">
+                                <i class="fa fa-file-excel-o"></i> Export Excel
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="exportVendorReturnsList('pdf')">
+                                <i class="fa fa-file-pdf-o"></i> Export PDF
+                            </button>
+                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -128,7 +138,7 @@
                                                         <a href="<?php echo base_url('stocks_new/view_vendor_return/' . $return->id); ?>" class="btn btn-info btn-sm">
                                                             <i class="fa fa-eye"></i> View
                                                         </a>
-                                                        <?php if($return->status == 'PENDING'): ?>
+                                                            <?php if($return->status == 'PENDING'): ?>
                                                             <a href="<?php echo base_url('stocks_new/edit_vendor_return/' . $return->id); ?>" class="btn btn-warning btn-sm">
                                                                 <i class="fa fa-edit"></i> Edit
                                                             </a>
@@ -171,6 +181,25 @@
                     "zeroRecords": "No matching vendor returns found"
                 }
             });
+
+            // Export functionality
+            window.exportVendorReturnsList = function(format) {
+                // Get current filter values
+                var vendorId = $('select[name="vendor_id"]').val() || '';
+                var status = $('select[name="status"]').val() || '';
+                var fromDate = $('input[name="from_date"]').val() || '';
+                var toDate = $('input[name="to_date"]').val() || '';
+                
+                // Build export URL with filters
+                var url = '<?php echo base_url("stocks_new/export_vendor_returns_list"); ?>?format=' + format;
+                if(vendorId) url += '&vendor_id=' + vendorId;
+                if(status) url += '&status=' + status;
+                if(fromDate) url += '&from_date=' + fromDate;
+                if(toDate) url += '&to_date=' + toDate;
+                
+                // Open in new window for download
+                window.open(url, '_blank');
+            };
         });
         </script>
         <?php endif; ?>

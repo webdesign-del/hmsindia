@@ -349,7 +349,7 @@ Batch Number	<div class="col-md-12">
                 <i class="fa fa-rupee"></i> Base Currency : INR
              </div>
              <a href="#" class="attached-files-btn" onclick="toggleFileUpload()">
-                <i class="fa fa-paperclip"></i> Attached Files (<span id="file-count">0</span>)
+                <i class="fa fa-paperclip"></i> Receipt Files (<span id="file-count">0</span>) <span class="text-danger">*Required</span>
              </a>
           </div>
        </div>
@@ -360,16 +360,16 @@ Batch Number	<div class="col-md-12">
      
      <form method="post" action="<?php echo base_url('new_purchase_orders/save_add_stock?id=' . $purchase_order['id']); ?>" id="purchase_receipt_form" enctype="multipart/form-data">
        <!-- Hidden fields for processing -->
-        <div id="file-upload-section" class="form-section" style="display: none; margin-top: 0;">
-        <h4><i class="fa fa-upload"></i> Upload Multiple Receipt Files</h4>
+        <div id="file-upload-section" class="form-section" style="display: block; margin-top: 0;">
+        <h4><i class="fa fa-upload"></i> Upload Receipt Files (Required)</h4>
             <div class="row">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <label for="receipt_files">Receipt Files <span class="text-muted">(PDF, JPG, PNG - Max 5MB each, Multiple files allowed)</span></label>
+                        <label for="receipt_files">Receipt Files <span class="text-danger">*</span> <span class="text-muted">(PDF, JPG, PNG - Max 5MB each, Multiple files required)</span></label>
                         <div class="file-upload-area" onclick="document.getElementById('receipt_files').click()">
                         <div class="file-upload-content">
                             <i class="fa fa-cloud-upload fa-3x"></i>
-                            <p>Click here to select multiple receipt files</p>
+                            <p>Click here to select receipt files (PDF/Images)</p>
                             <p class="text-muted">or drag and drop files here</p>
                         </div>
                         </div>
@@ -820,11 +820,38 @@ let newFileStore = new DataTransfer();
 function handleFileSelection(input) {
     const fileListDiv = document.getElementById('file-list');
     const newFiles = input.files;
+    
+    // Validate that only PDF and image files are selected
     for (let i = 0; i < newFiles.length; i++) {
-        newFileStore.items.add(newFiles[i]);
+        const file = newFiles[i];
+        const fileType = file.type.toLowerCase();
+        const fileName = file.name.toLowerCase();
+        
+        // Check if file is PDF or image
+        const isPDF = fileType === 'application/pdf' || fileName.endsWith('.pdf');
+        const isImage = fileType.startsWith('image/') || fileName.match(/\.(jpg|jpeg|png)$/);
+        
+        if (!isPDF && !isImage) {
+            alert('Only PDF and image files (PDF, JPG, PNG) are allowed. Please select valid files only.');
+            input.value = ''; // Clear the input
+            return;
+        }
+        
+        // Check file size (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File "' + file.name + '" is too large. Maximum file size is 5MB.');
+            input.value = ''; // Clear the input
+            return;
+        }
+        
+        newFileStore.items.add(file);
     }
+    
     input.files = newFileStore.files;
     renderNewFileList();
+    
+    // Clear any error styling when files are selected
+    $('.file-upload-area').css('border-color', '').css('background-color', '');
 }
 
 function renderNewFileList() {
@@ -934,6 +961,27 @@ $(document).ready(function() {
     // Form submission validation
     $('#purchase_receipt_form').on('submit', function(e) {
         var isValid = true;
+        
+        // Check if receipt files are uploaded
+        var existingFileCount = document.querySelectorAll('#existing-files .file-item').length;
+        var newFileCount = newFileStore.files.length;
+        var totalFileCount = existingFileCount + newFileCount;
+        
+        if (totalFileCount === 0) {
+            alert('Please upload at least one receipt file (PDF or Image). Receipt files are required.');
+            // Show the file upload section if it's hidden
+            $('#file-upload-section').show();
+            // Add visual indicator for required field
+            $('.file-upload-area').css('border-color', '#dc3545').css('background-color', '#f8d7da');
+            // Scroll to the file upload section
+            $('html, body').animate({
+                scrollTop: $('#file-upload-section').offset().top - 100
+            }, 500);
+            isValid = false;
+        } else {
+            // Remove error styling if files are present
+            $('.file-upload-area').css('border-color', '').css('background-color', '');
+        }
         
         var hasReceivingItems = false;
         $('input[name^="qty_receiving_"]').each(function() {

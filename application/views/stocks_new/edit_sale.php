@@ -43,6 +43,9 @@
                                     </p>
                                     <p><strong>Items:</strong> <?php echo $sale->total_items; ?></p>
                                     <p><strong>Total Amount:</strong> ₹<?php echo number_format($sale->total_amount, 2); ?></p>
+                                    <?php if(!empty($sale->remarks)): ?>
+                                    <p><strong>Payment Remarks:</strong> <?php echo htmlspecialchars($sale->remarks); ?></p>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>

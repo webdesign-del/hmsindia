@@ -1,5 +1,4 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-
         <div class="row">
             <div class="col-md-12">
                 <h1 class="page-header">
@@ -8,7 +7,6 @@
                 </h1>
             </div>
         </div>
-        
         <!-- Action Buttons -->
         <div class="row">
             <div class="col-md-12">
@@ -55,11 +53,11 @@
                             </div>
                             <div class="form-group">
                                 <label>From Date:</label>
-                                <input type="date" name="start_date" class="form-control" value="<?php echo isset($start_date) ? $start_date : date('Y-m-01'); ?>">
+                                <input type="date" name="start_date" class="form-control" value="">
                             </div>
                             <div class="form-group">
                                 <label>To Date:</label>
-                                <input type="date" name="end_date" class="form-control" value="<?php echo isset($end_date) ? $end_date : date('Y-m-d'); ?>">
+                                <input type="date" name="end_date" class="form-control" value="">
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa fa-search"></i> Generate Report
@@ -67,6 +65,16 @@
                             <a href="<?php echo base_url('stocks_new/sales_report'); ?>" class="btn btn-default">
                                 <i class="fa fa-refresh"></i> Reset
                             </a>
+                            <?php if(isset($sales) && !empty($sales)): ?>
+                            <div class="btn-group" style="margin-left: 10px;">
+                                <button type="button" class="btn btn-success" onclick="exportSalesReport('excel')">
+                                    <i class="fa fa-file-excel-o"></i> Export Excel
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="exportSalesReport('pdf')">
+                                    <i class="fa fa-file-pdf-o"></i> Export PDF
+                                </button>
+                            </div>
+                            <?php endif; ?>
                         </form>
                     </div>
                 </div>
@@ -296,5 +304,22 @@ $(document).ready(function() {
             console.error('DataTables initialization failed:', e);
         }
     }
+
+    // Export functionality for sales report
+    window.exportSalesReport = function(format) {
+        // Get current filter values
+        var centerId = $('select[name="center_id"]').val() || '';
+        var startDate = $('input[name="start_date"]').val() || '';
+        var endDate = $('input[name="end_date"]').val() || '';
+        
+        // Build export URL with filters (using parameter names that match existing method)
+        var url = '<?php echo base_url("stocks_new/export_sales_report"); ?>?format=' + format;
+        if(centerId) url += '&center_id=' + centerId;
+        if(startDate) url += '&date_from=' + startDate;
+        if(endDate) url += '&date_to=' + endDate;
+        
+        // Open in new window for download
+        window.open(url, '_blank');
+    };
 });
 </script>

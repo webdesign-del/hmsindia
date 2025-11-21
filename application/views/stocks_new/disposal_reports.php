@@ -54,6 +54,16 @@
                             <a href="<?php echo base_url('stocks_new/disposal_reports'); ?>" class="btn btn-default">
                                 <i class="fa fa-refresh"></i> Reset
                             </a>
+                            <?php if(isset($disposal_reports) && !empty($disposal_reports)): ?>
+                            <div class="btn-group" style="margin-left: 10px;">
+                                <button type="button" class="btn btn-success" onclick="exportDisposalReports('excel')">
+                                    <i class="fa fa-file-excel-o"></i> Export Excel
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="exportDisposalReports('pdf')">
+                                    <i class="fa fa-file-pdf-o"></i> Export PDF
+                                </button>
+                            </div>
+                            <?php endif; ?>
                         </form>
                     </div>
                 </div>
@@ -150,6 +160,25 @@
                     "zeroRecords": "No matching disposal reports found"
                 }
             });
+
+            // Export functionality
+            window.exportDisposalReports = function(format) {
+                // Get current filter values
+                var centerId = $('select[name="center_id"]').val() || '';
+                var status = $('select[name="status"]').val() || '';
+                var fromDate = $('input[name="from_date"]').val() || '';
+                var toDate = $('input[name="to_date"]').val() || '';
+                
+                // Build export URL with filters
+                var url = '<?php echo base_url("stocks_new/export_disposal_reports"); ?>?format=' + format;
+                if(centerId) url += '&center_id=' + centerId;
+                if(status) url += '&status=' + status;
+                if(fromDate) url += '&from_date=' + fromDate;
+                if(toDate) url += '&to_date=' + toDate;
+                
+                // Open in new window for download
+                window.open(url, '_blank');
+            };
         });
         </script>
         <?php endif; ?>

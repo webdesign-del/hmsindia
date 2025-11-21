@@ -98,6 +98,16 @@
                             <a href="<?php echo base_url('stocks_new/sales'); ?>" class="btn btn-default">
                                 <i class="fa fa-refresh"></i> Reset
                             </a>
+                            <?php if(isset($sales) && !empty($sales)): ?>
+                            <div class="btn-group" style="margin-left: 10px;">
+                                <button type="button" class="btn btn-success" onclick="exportSalesList('excel')">
+                                    <i class="fa fa-file-excel-o"></i> Export Excel
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="exportSalesList('pdf')">
+                                    <i class="fa fa-file-pdf-o"></i> Export PDF
+                                </button>
+                            </div>
+                            <?php endif; ?>
                         </form>
                     </div>
                 </div>
@@ -273,6 +283,11 @@
                         <option value="CANCELLED" <?= $sale->payment_status == 'CANCELLED' ? 'selected' : '' ?>>CANCELLED</option>
                     </select>
                 </div>
+                
+                <div class="form-group">
+                    <label for="modal_payment_remark">Remark:</label>
+                    <textarea id="modal_payment_remark" class="form-control" rows="3" placeholder="Enter remark for payment status change (optional)"></textarea>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -351,6 +366,7 @@ $(document).ready(function() {
         // Populate the modal
         $('#modal_sale_id').val(saleId);
         $('#modal_payment_status').val(currentStatus);
+        $('#modal_payment_remark').val(''); // Clear remark field
         
         // *** MODIFICATION: Use Materialize 'open' command ***
         $('#paymentModal').modal('open');
@@ -360,13 +376,14 @@ $(document).ready(function() {
     $('#savePaymentStatus').on('click', function() {
         var saleId = $('#modal_sale_id').val();
         var newStatus = $('#modal_payment_status').val();
+        var remark = $('#modal_payment_remark').val();
 
         var $button = $(this);
         // Show loading state
         $button.html('<i class="fa fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
 
         // 3. Perform the AJAX POST request to the controller
-        $.post(updateUrl, { sale_id: saleId, new_status: newStatus })
+        $.post(updateUrl, { sale_id: saleId, new_status: newStatus, remarks: remark })
             .done(function(response) {
                 // Check if the response from the controller is 'success'
                 if (response.success) {
@@ -446,6 +463,26 @@ $(document).ready(function() {
         }
     });
 
+    // Export functionality
+    window.exportSalesList = function(format) {
+        // Get current filter values
+        var centerId = $('select[name="center_id"]').val() || '';
+        var patientName = $('input[name="patient_name"]').val() || '';
+        var status = $('select[name="status"]').val() || '';
+        var dateFrom = $('input[name="date_from"]').val() || '';
+        var dateTo = $('input[name="date_to"]').val() || '';
+        
+        // Build export URL with filters
+        var url = '<?php echo base_url("stocks_new/export_sales_list"); ?>?format=' + format;
+        if(centerId) url += '&center_id=' + centerId;
+        if(patientName) url += '&patient_name=' + patientName;
+        if(status) url += '&status=' + status;
+        if(dateFrom) url += '&date_from=' + dateFrom;
+        if(dateTo) url += '&date_to=' + dateTo;
+        
+        // Open in new window for download
+        window.open(url, '_blank');
+    };
 
 });
 </script>

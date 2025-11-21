@@ -4,93 +4,111 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 <style>
-    /* Add basic print styles */
+    /* Simple Working Print Styles */
     @media print {
+        /* Basic page setup */
         body {
-            font-size: 12pt;
-            /* Remove any default browser margins */
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
             margin: 0;
-            padding: 0;
+            padding: 20px;
+            color: black !important;
+            background: white !important;
         }
         
-        /* These are your correct rules: hide non-print elements */
-        .panel-heading, .breadcrumb, .print-actions {
+        /* Hide buttons and non-essential elements */
+        .btn, .print-actions, .panel-heading, .breadcrumb, .fa {
             display: none !important;
         }
         
+        /* Page title */
         .page-header {
-            border-bottom: 2px solid #000;
-            font-size: 24px;
-            margin-top: 0; /* Start at the top */
+            text-align: center;
+            border-bottom: 2px solid black;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
         }
         
-        /* These are your correct rules: remove panel styling */
+        .page-header h1 {
+            font-size: 18pt;
+            margin: 0;
+            color: black !important;
+        }
+        
+        /* Remove panel borders */
         .panel {
-            border: none !D;
+            border: none !important;
             box-shadow: none !important;
+            margin-bottom: 20px;
         }
         
-        .table-bordered th, .table-bordered td {
-            border: 1px solid #666 !important;
+        .panel-body {
+            padding: 0 !important;
         }
-
-        /* --- START: THE FIXES --- */
-
-        /* 1. Reset the Bootstrap Grid */
-        /* Force all columns to be full-width and stack vertically */
+        
+        /* Fix grid layout */
         .row {
-            margin-left: 0;
-            margin-right: 0;
+            margin: 0 !important;
         }
+        
         .col-md-6, .col-md-12 {
             width: 100% !important;
-            float: none;
-            display: block;
+            float: none !important;
+            padding: 0 !important;
         }
-
-        /* 2. Fix Colors (Browsers don't print backgrounds) */
-        /* We will change backgrounds to text color or borders */
-
-        /* Fix the Status labels */
+        
+        /* Table styling */
+        .table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin-bottom: 20px;
+        }
+        
+        .table th {
+            background-color: #f0f0f0 !important;
+            border: 1px solid black !important;
+            padding: 8px !important;
+            text-align: center;
+            font-weight: bold;
+            color: black !important;
+        }
+        
+        .table td {
+            border: 1px solid black !important;
+            padding: 8px !important;
+            color: black !important;
+        }
+        
+        /* Labels */
         .label {
-            /* Reset all labels to be transparent */
             background-color: transparent !important;
-            padding: 2px 6px;
-            border: 1px solid #666; /* Default border */
-            font-size: 11pt; /* Make labels a bit more readable */
-        }
-        .label-success {
-            color: #3c763d !important; /* Green text */
-            border-color: #3c763d !important; /* Green border */
-        }
-        .label-danger {
-            color: #a94442 !important; /* Red text */
-            border-color: #a94442 !important; /* Red border */
-        }
-         .label-info {
-            color: #31708f !important; /* Blue text */
-            border-color: #31708f !important; /* Blue border */
-        }
-        .label-warning {
-             color: #8a6d3b !important; /* Yellow text */
-            border-color: #8a6d3b !important; /* Yellow border */
+            color: black !important;
+            border: 1px solid black !important;
+            padding: 2px 4px;
+            font-weight: bold;
         }
         
-        /* Fix the table row colors (tr.success / tr.danger) */
-        /* We apply the color to the cells *inside* the row */
-        .table > tbody > tr.success > td {
-             color: #3c763d !important; /* Make text green */
-             /* Note: We don't change the background, as it won't print */
-        }
-        .table > tbody > tr.danger > td {
-             color: #a94442 !important; /* Make text red */
+        /* Text elements */
+        p, div, span, strong {
+            color: black !important;
         }
         
-        /* Your original (but unused) rules - they are fine but not needed */
-        /* .text-danger { color: #d9534f !important; } */
-        /* .text-success { color: #5cb85c !important; } */
-
-        /* --- END: THE FIXES --- */
+        /* Page breaks */
+        .table {
+            page-break-inside: avoid;
+        }
+        
+        /* Make sure everything is visible and black */
+        * {
+            color: black !important;
+            background-color: transparent !important;
+        }
+        
+        /* Override any hidden elements that should show */
+        .table, .panel-body, p, div {
+            display: block !important;
+        }
     }
 </style>
 
@@ -112,9 +130,9 @@
         <a href="<?php echo base_url('stocks_new/stock_audit'); ?>" class="btn btn-primary">
             <i class="fa fa-plus"></i> New Audit
         </a>
-        <button type="button" class="btn btn-info" onclick="window.print();">
+        <a href="<?php echo base_url('stocks_new/print_audit/' . (isset($audit_report->id) ? $audit_report->id : 0)); ?>" target="_blank" class="btn btn-info">
             <i class="fa fa-print"></i> Print Report
-        </button>
+        </a>
     </div>
 </div>
 

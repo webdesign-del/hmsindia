@@ -532,6 +532,51 @@ class Stock_model_new extends CI_Model
             return [];
         }
     }
+
+    /**
+     * Get sales list with filters
+     */
+    public function get_sales($filters = [])
+    {
+        $this->db->select('
+            s.*,
+            c.center_name,
+            COALESCE(COUNT(si.id), 0) as total_items,
+            COALESCE(SUM(si.quantity_sold), 0) as total_quantity,
+            COALESCE(SUM(si.total), 0) as total_amount
+        ');
+        $this->db->from('sales s');
+        $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
+        $this->db->join('sale_items si', 's.id = si.sale_id', 'left');
+        
+        // Apply filters
+        if (!empty($filters['center_id'])) {
+            $this->db->where('s.center_id', $filters['center_id']);
+        }
+        
+        if (!empty($filters['patient_name'])) {
+            $this->db->like('s.patient_name', $filters['patient_name']);
+        }
+        
+        if (!empty($filters['status'])) {
+            $this->db->where('s.status', $filters['status']);
+        }
+        
+        if (!empty($filters['date_from'])) {
+            $this->db->where('DATE(s.sale_date) >=', $filters['date_from']);
+        }
+        
+        if (!empty($filters['date_to'])) {
+            $this->db->where('DATE(s.sale_date) <=', $filters['date_to']);
+        }
+        
+        $this->db->group_by('s.id, c.center_name');
+        $this->db->order_by('s.sale_date', 'DESC');
+        $this->db->order_by('s.id', 'DESC');
+        
+        return $this->db->get()->result();
+    }
+
     public function get_sales_analytics($days = 30)
     {
         $this->db->reset_query(); // 🔥 Clears any old joins or selects
@@ -7747,12 +7792,19 @@ public function add_stock_to_location($stock_data)
         }
     }
 
-    public function change_payment_status($sale_id, $new_status)
+    public function change_payment_status($sale_id, $new_status, $remark = null)
     {
         // Data to update in an associative array
         $data = [
-            'payment_status' => $new_status
+            'payment_status' => $new_status,
+            'updated_at' => date('Y-m-d H:i:s')
         ];
+        
+        // Add remark if provided
+        if (!empty($remark)) {
+            $data['remarks'] = $remark;
+        }
+        
         // Specify which sale to update (I assume your table is 'sales')
         $this->db->where('id', $sale_id);
         // Run the UPDATE query on the 'sales' table

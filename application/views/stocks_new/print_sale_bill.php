@@ -239,6 +239,44 @@
                     </table>
                 </div>
             </div>
+            
+            <!-- Payment Status and Remarks Section -->
+            <div class="row" style="margin-top: 20px;">
+                <div class="col-xs-12">
+                    <div style="border-top: 1px solid #ddd; padding-top: 15px;">
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <p><strong>Payment Status:</strong> 
+                                    <span style="padding: 3px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; 
+                                        <?php 
+                                        echo $sale->payment_status == 'PAID' ? 'background: #d4edda; color: #155724;' : 
+                                            ($sale->payment_status == 'PARTIAL' ? 'background: #fff3cd; color: #856404;' : 'background: #f8d7da; color: #721c24;'); 
+                                        ?>">
+                                        <?php echo strtoupper($sale->payment_status ?? 'PENDING'); ?>
+                                    </span>
+                                </p>
+                                <p><strong>Sale Status:</strong> 
+                                    <span style="padding: 3px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; 
+                                        <?php 
+                                        echo $sale->status == 'CONFIRMED' ? 'background: #d4edda; color: #155724;' : 
+                                            ($sale->status == 'CANCELLED' ? 'background: #f8d7da; color: #721c24;' : 'background: #fff3cd; color: #856404;'); 
+                                        ?>">
+                                        <?php echo strtoupper($sale->status ?? 'DRAFT'); ?>
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="col-xs-6">
+                                <?php if (!empty($sale->remarks)): ?>
+                                <p><strong>Payment Remarks:</strong></p>
+                                <!-- <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border-left: 4px solid #007bff; font-style: italic;"> -->
+                                    <?php echo nl2br(htmlspecialchars($sale->remarks)); ?>
+                                <!-- </div> -->
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="invoice-footer">
