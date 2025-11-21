@@ -2890,7 +2890,7 @@ function patient_consultation_count($center, $status, $start_date, $end_date, $p
     return $this->db->count_all_results();
 }
 
-function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, $category, $procedures, $broad_procedure, $booked_status, $lead_source = '') {
+function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, $category, $procedures, $broad_procedure, $broad_procedure_count, $lead_source = '') {
     // This array will hold the values for secure query binding
     $bindings = [];
 
@@ -2963,9 +2963,9 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         $conditions .= " AND T3.broad_procedure = ?";
         $bindings[] = $broad_procedure;
     }
-	if (!empty($booked_status)) {
-        $conditions .= " AND T3.booked_status = ?";
-        $bindings[] = $booked_status;
+	if (!empty($broad_procedure_count)) {
+        $conditions .= " AND T3.broad_procedure_count = ?";
+        $bindings[] = $broad_procedure_count;
     }
 
    $consultation_sql = "
@@ -2986,7 +2986,7 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         MAX(T3.category) as category,  
 		MAX(T3.procedures) as procedures,
 		MAX(T3.broad_procedure) as broad_procedure,
-		MAX(T3.booked_status) as booked_status
+		MAX(T3.broad_procedure_count) as broad_procedure_count
     FROM
         hms_consultation AS T1
     INNER JOIN
@@ -3013,135 +3013,15 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
     $consultation_q = $this->db->query($consultation_sql, $bindings);
     return $consultation_q->result_array();
 }
-/*
-public function patient_consultation_report_patination($center, $start_date, $end_date, $patient_id, $reason_of_visit, $category, $procedures, $broad_procedure, $agent, $councellor, $booked_status, $lead_source = '') 
+
+
+public function insert_advance_payment($data)
 {
-    // This array will hold the values for secure query binding
-    $bindings = [];
-    $conditions = '';
-
-    // --- 1. Build Conditions for T1 (Consultation) ---
-    
-    if (!empty($center)) {
-        $conditions .= " AND T1.billing_at = ?";
-        $bindings[] = $center;
-    }
-    if (!empty($patient_id)) {
-        $conditions .= " AND T1.patient_id = ?";
-        $bindings[] = $patient_id;
-    }
-    if (!empty($reason_of_visit)) {
-        $conditions .= " AND T1.reason_of_visit = ?";
-        $bindings[] = $reason_of_visit;
-    }
-    // Note: doctor_id is usually in T1 (consultation) or T2 (appointments). 
-    // Assuming T1 here based on your report function.
-    if (!empty($doctor_id)) { 
-        $conditions .= " AND T1.doctor_id = ?";
-        $bindings[] = $doctor_id;
-    }
-
-    // --- 2. Build Conditions for T2 (Appointments) ---
-    
-    if (!empty($agent)) {
-        $conditions .= " AND T2.agent = ?";
-        $bindings[] = $agent;
-    }
-    
-    if (!empty($councellor)) {
-        $conditions .= " AND T2.councellor = ?";
-        $bindings[] = $councellor;
-    }
-
-    if (!empty($lead_source)) {
-        if (strpos($lead_source, "','") !== false) {
-            $conditions .= " AND T2.lead_source IN (?)"; // Consider expanding if array
-        } else {
-            $conditions .= " AND T2.lead_source = ?";
-        }
-        $bindings[] = $lead_source;
-    }
-
-    // --- 3. Secure Date Filtering ---
-    if (!empty($start_date) && !empty($end_date)) {
-        $conditions .= " AND T1.on_date BETWEEN ? AND ?";
-        // IMPORTANT: Your report used 'T2.appoitmented_date' (with typo)
-        // I am fixing the typo to 'appointment_date'. Check your DB column name!
-        $conditions .= " AND T2.appointment_date BETWEEN ? AND ?"; 
-        
-        array_push($bindings, $start_date, $end_date, $start_date, $end_date);
-    } else if (!empty($start_date)) {
-        $conditions .= " AND T1.on_date = ?";
-        $conditions .= " AND T2.appointment_date = ?"; 
-        array_push($bindings, $start_date, $start_date);
-    } else if (!empty($end_date)) {
-        $conditions .= " AND T1.on_date = ?";
-        $conditions .= " AND T2.appointment_date = ?";
-        array_push($bindings, $end_date, $end_date);
-    }
-
-    // --- 4. Build Conditions for T3 (Procedures) ---
-    // Note: We define T3 in the join logic below
-    
-    if (!empty($category)) {
-        $conditions .= " AND T3.category = ?";
-        $bindings[] = $category;
-    }
-    if (!empty($procedures)) {
-        // Assuming 'procedures' is the column name in T3
-        $conditions .= " AND T3.procedures = ?"; 
-        $bindings[] = $procedures;
-    }
-    if (!empty($broad_procedure)) {
-        $conditions .= " AND T3.broad_procedure = ?";
-        $bindings[] = $broad_procedure;
-    }
-    
-    // --- 5. Determine JOIN Logic based on 'booked_status' ---
-    // Default is LEFT JOIN (include everyone)
-    $join_type_t3 = "LEFT JOIN";
-    $booked_logic = "";
-
-    if ($booked_status == 'Booked') {
-        // If we want ONLY booked patients, use INNER JOIN
-        $join_type_t3 = "INNER JOIN";
-    } elseif ($booked_status == 'Not Booked') {
-        // If we want ONLY non-booked, use LEFT JOIN ... WHERE id IS NULL
-        $join_type_t3 = "LEFT JOIN";
-        $booked_logic = " AND T3.patient_id IS NULL";
-    } elseif (!empty($category) || !empty($procedures) || !empty($broad_procedure)) {
-        // Implicitly, if you filter by a specific procedure, you only want booked patients
-        $join_type_t3 = "INNER JOIN";
-    }
+    return $this->db->insert('hms_advance_payments', $data);
+}
 
 
-    // --- 6. The Final COUNT Query ---
-    // We count DISTINCT patient_ids to get the number of unique patients
-    
-    // *** 'echo' REMOVED ***
-    $sql = "
-        SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
-        FROM hms_consultation AS T1
-        INNER JOIN hms_appointments AS T2 
-            ON T1.patient_id = T2.paitent_id 
-            -- (If your DB column is 'paitent_id', change T2.paitent_id to T2.paitent_id above)
-        
-        $join_type_t3 hms_patient_procedure AS T3 
-            ON T1.patient_id = T3.patient_id
-            
-        WHERE
-            T2.billed = '1'
-            AND T2.lead_source != 'D/S'
-            {$conditions}
-            {$booked_logic}
-    ";
 
-    // Execute the query securely
-    $q = $this->db->query($sql, $bindings);
-    
-    // Return the result array (e.g., ['unique_patient_count' => 10])
-    return $q->row_array();
-}*/
 
 function patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source){
     $conditions = '';
@@ -3182,7 +3062,7 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
  *
  * This function is secure (uses query bindings) and fast (uses a JOIN).
  */
-public function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit, $category, $procedures, $broad_procedure, $agent,$councellor,$booked_status)
+public function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit, $category, $procedures, $broad_procedure, $agent,$councellor,$broad_procedure_count)
 {
     // This array will hold the values for secure query binding
     $bindings = [];
@@ -3223,9 +3103,9 @@ public function patient_procedure_consultation_count($center, $start_date, $end_
         $conditions .= " AND T2.councellor = ?";
         $bindings[] = $councellor;
     }
-	if (!empty($booked_status)) {
-        $conditions .= " AND T2.booked_status = ?";
-        $bindings[] = $booked_status;
+	if (!empty($broad_procedure_count)) {
+        $conditions .= " AND T2.broad_procedure_count = ?";
+        $bindings[] = $broad_procedure_count;
     }
     // Secure Date Filtering
     if (!empty($start_date) && !empty($end_date)) {

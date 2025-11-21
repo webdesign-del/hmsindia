@@ -1897,8 +1897,7 @@ public function procedure_reports(){
 			$agent = $this->input->get('agent');
 			$councellor = $this->input->get('councellor');
 			$broad_procedure = $this->input->get('broad_procedure');
-			$booked_status = $this->input->get('booked_status');
-
+			$broad_procedure_count = $this->input->get('broad_procedure_count');
 			$lead_source = $this->input->get('lead_source');
 			$export_billing = $this->input->get('export-billing', true);
 			$paid_amount = 0;
@@ -2006,9 +2005,9 @@ public function procedure_reports(){
         	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
 			
         	$data["links"] = $this->pagination->create_links();
-			$data['consultation_result'] = $this->accounts_model->patient_consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id ,$agent, $councellor, $category,$procedures,$broad_procedure, $booked_status, $lead_source);
+			$data['consultation_result'] = $this->accounts_model->patient_consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id ,$agent, $councellor, $category,$procedures,$broad_procedure, $broad_procedure_count, $lead_source);
 			$data['reason_counts'] = $this->accounts_model->patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source);
-			$data['patient_counts'] = $this->accounts_model->patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id,$reason_of_visit,$category,$procedures,$broad_procedure,$agent,$councellor,$booked_status);
+			$data['patient_counts'] = $this->accounts_model->patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id,$reason_of_visit,$category,$procedures,$broad_procedure,$agent,$councellor,$broad_procedure_count);
 			$data['lead_sources'] = $this->accounts_model->get_lead_source_dropdown_data();
 
 			//$data['booked_patient_count'] = $booked_count; 
@@ -2022,9 +2021,9 @@ public function procedure_reports(){
 			$data["category"] = $category;
 			$data["procedures"] = $procedures;
 			$data["broad_procedure"] = $broad_procedure;
+			$data["broad_procedure_count"] = $broad_procedure_count;
 			$data["agent"] = $agent;
 			$data["councellor"] = $councellor;
-			$data["booked_status"] = $booked_status;
 			$data['selectedReason'] = $reason_of_visit;
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
@@ -2054,14 +2053,16 @@ public function export_consultation_csv() {
     $category = $this->input->get('category');
     $procedures = $this->input->get('procedures');
     $broad_procedure = $this->input->get('broad_procedure');
-    $booked_status = $this->input->get('booked_status');
+	$broad_procedure_count = $this->input->get('broad_procedure_count');
+	
+    
 
     // 2. Call Model with High Limit (to get all records)
     $report_data = $this->accounts_model->patient_consultation_report_patination(
         100000, // Limit
         0,      // Page
         $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, 
-        $category, $procedures, $broad_procedure, $booked_status, $lead_source
+        $category, $procedures, $broad_procedure, $broad_procedure_count, $lead_source
     );
 
     // 3. Create CSV File
@@ -2076,7 +2077,7 @@ public function export_consultation_csv() {
     $header = array(
         "Patient ID", "Agent", "Counsellor", "Lead Source", "Visit Date", 
         "Reason", "Doctor ID", "Total Package", "Payment Done", 
-        "Category", "Procedure", "Booked Status"
+        "Category", "Procedure","Broad Procedure", "Broad Procedure Count"
     );
     fputcsv($file, $header);
 
@@ -2094,7 +2095,8 @@ public function export_consultation_csv() {
             $row['payment_done'],
             $row['category'],
             $row['procedures'],
-            $row['booked_status']
+			$row['broad_procedure'],
+			$row['broad_procedure_count']
         );
         fputcsv($file, $line);
     }
@@ -3691,8 +3693,13 @@ public function moulist(){
 		$all_status = $this->accounts_model->get_status();
 		return $all_status;
 	}
+
+	function get_all_broad_procedure_count(){
+		$all_broad_procedure_count = $this->procedures_model->get_broad_procedure_count();
+		return $all_broad_procedure_count;
+	}
 	
-		public function procedure_billings(){
+	public function procedure_billings(){
 		$logg = checklogin();
 		error_reporting(0);
 		if($logg['status'] == true){
@@ -3919,7 +3926,7 @@ public function moulist(){
 			die();
 		}
 	}	
-	
+
 	public function reports(){
 		$logg = checklogin();
 		error_reporting(0);
@@ -7977,60 +7984,57 @@ private function _get_post_report_data() {
 }	
 
 
-// 1. Load the "Add Advance Payment" Page
-public function add_advance_payment_view() {
-    $logg = checklogin();
-    if(!$logg['status']){ redirect(base_url()); exit; }
-    
-    // Load any necessary data (e.g., list of patients if needed)
-    // $data['patients'] = $this->accounts_model->get_active_patients(); 
+public function save_advance_payment()
+{
+    $patient_id     = trim($this->input->post('patient_id'));
+    $payment_date   = trim($this->input->post('payment_date'));
+    $amount         = trim($this->input->post('amount'));
+    $payment_mode   = trim($this->input->post('payment_mode'));
+    $transaction_id = trim($this->input->post('transaction_id'));
+    $remarks        = trim($this->input->post('remarks'));
+    $employee_number = $this->input->post('employee_number');
+    $center          = $this->session->userdata('center');
 
-    $template = get_header_template($logg['role']);
-    $this->load->view($template['header']);
-    $this->load->view('accounts/add_advance_payment'); // We will create this file next
-    $this->load->view($template['footer']);
-}
-
-// 2. Save the Payment (Called via AJAX)
-public function save_advance_payment() {
-    $logg = checklogin();
-    if(!$logg['status']){ echo json_encode(['success'=>false,'message'=>'Login required']); return; }
-
-    // Validation
-    $this->load->library('form_validation');
-    $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
-    $this->form_validation->set_rules('amount', 'Amount', 'required|numeric');
-    $this->form_validation->set_rules('payment_mode', 'Payment Mode', 'required');
-    $this->form_validation->set_rules('payment_date', 'Date', 'required');
-
-    if ($this->form_validation->run() == FALSE) {
-        echo json_encode(['success' => false, 'message' => validation_errors()]);
+    // Required Field Validation
+   /* if(empty($patient_id) || empty($payment_date) || empty($amount) || empty($payment_mode)){
+        echo json_encode(["success" => false, "message" => "Required fields missing"]);
         return;
-    }
+    }*/
 
-    // Prepare Data
+    // Generate receipt number
+    $receipt_number = "ADV".time();
+
     $data = array(
-        'patient_id'     => $this->input->post('patient_id'),
-        'receipt_number' => $this->accounts_model->generate_advance_receipt_number(),
-        'amount'         => $this->input->post('amount'),
-        'payment_mode'   => $this->input->post('payment_mode'),
-        'transaction_id' => $this->input->post('transaction_id'),
-        'payment_date'   => $this->input->post('payment_date'),
-        'remarks'        => $this->input->post('remarks'),
-        'center'         => $_SESSION['logged_billing_manager']['center'] ?? 'Unknown',
-        'created_by'     => $_SESSION['logged_billing_manager']['id'] ?? 0
+        "patient_id"     => $patient_id,
+        "receipt_number" => $receipt_number,
+        "amount"         => $amount,
+        "payment_mode"   => $payment_mode,
+        "transaction_id" => $transaction_id,
+        "payment_date"   => $payment_date,
+        "center"         => $center,
+        "remarks"        => $remarks,
+        "employee_number"=> $employee_number,
+        "created_by"     => $this->session->userdata('user_id'),
+        "created_at"     => date("Y-m-d H:i:s")
     );
 
-    // Save to DB
-    if ($this->accounts_model->add_advance_payment($data)) {
-        echo json_encode([
-            'success' => true, 
-            'message' => 'Advance Payment Added Successfully! Receipt: ' . $data['receipt_number']
-        ]);
+    $saved = $this->Accounts_model->insert_advance_payment($data);
+
+   /* if($saved){
+        echo json_encode(["success" => true, "message" => "Advance payment saved successfully!"]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to save payment.']);
-    }
+        echo json_encode(["success" => false, "message" => "Error saving data"]);
+    } */
+
+		echo json_encode([
+    'success' => true,
+    'message' => 'Advance payment added successfully',
+    'insert_id' => $saved
+]);
 }
+
+
+
 
 public function get_doctors_by_center() {
     // Enable CORS if needed

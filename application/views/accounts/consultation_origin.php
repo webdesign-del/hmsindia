@@ -5,7 +5,7 @@
       <div class="col-md-12"><h3>Consultation Revenue Reports </h3></div>
       <div class="clearfix"></div>
 	    <form action="<?php echo base_url().'accounts/consultation_origin'; ?>" method="get">
-		   <div class="col-sm-3 col-xs-12">
+		   <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
     <label>Filter by billing at</label>
     <select class="form-control" id="billing_at" name="billing_at">
         <option value=''>--Select Center--</option>
@@ -129,39 +129,19 @@
             	<label>Start Date</label>
               <input type="text" class="particular_date_filter form-control" id="start_date" name="start_date" value="<?php echo $start_date;?>" />
             </div>
-            <div class="col-sm-3 col-xs-12">
+            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>End Date</label>
                 <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
             </div>
-            <div class="col-sm-3 col-xs-12">
+            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>IIC ID </label>
                 <input type="text" class="form-control" id="iic_id" name="iic_id" value="<?php echo $patient_id;?>" />
             </div>
-             <div class="col-sm-3 col-xs-12">
+             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Agent </label>
                 <input type="text" class="form-control" id="agent" name="agent" value="<?php echo $agent;?>" />
             </div>
-             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
-            	<label>Booked Status </label>
-            <select name="booked_status" id="booked_status" class="form-control">
-                <option value="">--- Booked Status ---</option>
-            <?php 
-                    // 1. Get ALL procedures (you are already doing this)
-                   $all_booked_status = $all_method->get_all_booked_status();
-                    // 2. Loop through them
-                    foreach($all_booked_status as $key => $val) {
-                        
-                            // 4. Check if this procedure is the one that was saved
-                            // (I am guessing the variable is $procedures)
-                            if(isset($booked_status) && $booked_status == $val['booked_status']) {
-                                echo '<option value="'.$val['booked_status'].'" selected>'.$val['booked_status'].'</option>';
-                            } else {
-                                echo '<option value="'.$val['booked_status'].'">'.$val['booked_status'].'</option>';
-                            }
-                    } 
-                ?>
-            </select>
-            </div>
+            
 
              <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
     <label>councellor </label>
@@ -181,7 +161,26 @@
         ?>
     </select>
 </div>
-            
+
+  <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+                <label>Broad Procedure Count </label>
+                <select name="broad_procedure_count" id="broad_procedure_count" class="form-control">
+                    <option value="">--- Broad Procedure Count ---</option>
+                    <?php 
+                        $all_broad_procedure_count = $all_method->get_all_broad_procedure_count();
+                        foreach($all_broad_procedure_count as $key => $val) {
+                            
+                            // FIX: Check against $booked_status, not $name
+                            if(isset($broad_procedure_count) && $broad_procedure_count == $val['broad_procedure_count']) {
+                                echo '<option value="'.$val['broad_procedure_count'].'" selected>'.$val['broad_procedure_count'].'</option>';
+                            } else {
+                                echo '<option value="'.$val['broad_procedure_count'].'">'.$val['broad_procedure_count'].'</option>';
+                            }
+                        } 
+                    ?>
+                </select>
+            </div>
+
             <div class="col-sm-3" style="margin-top: 20px;">
             	<button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>
             	<a href="<?php echo base_url().'accounts/consultation_origin'; ?>" style="text-decoration: none;">
@@ -190,7 +189,7 @@
             	<a href="<?php echo base_url('accounts/consultation-reports'); ?>" style="text-decoration: none;">
                 <button name="export-billing" type="submit"  class="btn btn-secondary" id="export-billing">Export Reports</button>
                </a>
-              <button type="submit" 
+               <button type="submit" 
             formaction="<?php echo site_url('accounts/export_consultation_csv'); ?>" 
             class="btn btn-success" 
             style="margin-left: 10px;">
@@ -283,24 +282,7 @@ if (in_array($vl['lead_source'], $na_sources)) {
 } ?></td>
 				  <td><?php echo ucwords(strtolower($vl['councellor'])); ?></td>
 
-<td><?php /*
- $sql_check = "SELECT * FROM hms_patient_procedure WHERE patient_id = '".$vl['patient_id']."' AND category = 'IVF with Bed'  LIMIT 1";
-
- $procedure_result = run_select_query($sql_check);
-
-if (!empty($procedure_result)) {
-    // A record was found, so the patient is booked.
-   echo $booking_status[] = 'booked';
-} else {
-    // No record was found matching the criteria.
-   echo $booking_status[] = 'Not Booked';
-}
-
-*/
-
-
-?><?php echo $vl['booked_status']?>
-</td>
+<td><?php echo $vl['broad_procedure_count']?></td>
 
 				</tr>
                  <?php $count++;} ?>
@@ -425,9 +407,6 @@ $(document).ready(function() {
    .form-control{
    height: 30px!important;
    border: 1px solid #9e9e9e!important;
-   }
-   .form-control#billing_at{
-   height: 40px!important;
-   border: 1px solid #9e9e9e!important;
+   margin:0 0 20px 0;
    }
 </style>
