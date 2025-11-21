@@ -2063,6 +2063,168 @@ class Doctors extends CI_Controller {
 			die();
 		}
 	}
+	
+	// AJAX endpoint for live saving patient medical info and doctor consultation
+	public function save_patient_medical_info_live() {
+		$logg = checklogin();
+		if($logg['status'] == true){
+			header('Content-Type: application/json');
+			
+			if(isset($_POST['appointment_id']) && isset($_POST['patient_id'])){
+				// Fields that belong to doctor_consultation table (using EXACT column names from table)
+				$consultation_fields = array(
+					'appointment_id',
+					'patient_id',
+					'wife_phone',
+					'doctor_id',              // Column name in doctor_consultation table
+					'center_number',          // Column name in doctor_consultation table
+					'urosurgeon_findings',
+					'female_findings',        // Column name in doctor_consultation table
+					'male_findings',          // Column name in doctor_consultation table
+					'follow_up',
+					'follow_up_date',
+					'follow_slot',
+					'follow_up_purpose',
+					'medicine_suggestion',
+					'medicine_suggestion_ipd',
+					'investigation_suggestion',  // Form field name (will be mapped to investation_suggestion)
+					'investation_suggestion',    // Database column name in doctor_consultation
+					'procedure_suggestion',
+					'package_suggestion',
+					'prescription',
+					'consultation_date',
+					'edit_mode',
+					'final_mode',
+					'disapproval_reason',
+					'male_medicine_suggestion_list',
+					'female_medicine_suggestion_list',
+					'male_medicine_suggestion_list_ipd',
+					'female_medicine_suggestion_list_ipd',
+					'male_investigation_suggestion_list',
+					'female_investigation_suggestion_list',
+					'male_minvestigation_suggestion_list',
+					'female_minvestigation_suggestion_list',
+					'sub_procedure_suggestion_list',
+					'package_suggestion_list'
+				);
+				
+				// Fields to exclude completely (form-only fields)
+				$exclude_fields = array(
+					'action', 
+					'submit_type',
+					'save_live',
+					'appoitment_for',
+					'appoitmented_doctor',
+					'appoitmented_slot',
+					'management_intervention',
+					'male_provisional_diagnosis_list',
+					'female_provisional_diagnosis_list'
+				);
+				
+				// Prepare data for doctor_consultation table
+				$consultation_data = array();
+				foreach($consultation_fields as $field) {
+					// Skip investigation_suggestion as we'll map it separately
+					if($field == 'investigation_suggestion') {
+						continue;
+					}
+					if(isset($_POST[$field]) && !in_array($field, $exclude_fields)) {
+						$consultation_data[$field] = $_POST[$field];
+					}
+				}
+				
+				// Map investigation_suggestion to investation_suggestion (database column name)
+				if(isset($_POST['investigation_suggestion'])) {
+					$consultation_data['investation_suggestion'] = $_POST['investigation_suggestion'];
+				}
+				
+				// Add required fields for consultation (using EXACT column names)
+				if(!isset($consultation_data['doctor_id'])) {
+					$consultation_data['doctor_id'] = isset($_POST['doctor_id']) ? $_POST['doctor_id'] : (isset($logg['doctor_id']) ? $logg['doctor_id'] : '');
+				}
+				$consultation_data['appointment_id'] = $_POST['appointment_id'];
+				$consultation_data['patient_id'] = $_POST['patient_id'];
+				if(isset($_POST['wife_phone'])) {
+					$consultation_data['wife_phone'] = $_POST['wife_phone'];
+				}
+				
+				// Add center_number if present (column exists in doctor_consultation table)
+				if(isset($_POST['center_number']) && !isset($consultation_data['center_number'])) {
+					$consultation_data['center_number'] = $_POST['center_number'];
+				}
+				
+				// Add female_findings and male_findings if present (columns exist in doctor_consultation table)
+				if(isset($_POST['female_findings']) && !isset($consultation_data['female_findings'])) {
+					$consultation_data['female_findings'] = $_POST['female_findings'];
+				}
+				if(isset($_POST['male_findings']) && !isset($consultation_data['male_findings'])) {
+					$consultation_data['male_findings'] = $_POST['male_findings'];
+				}
+				
+				// Map appoitmented_slot to follow_slot if needed
+				if(isset($_POST['appoitmented_slot']) && !isset($consultation_data['follow_slot'])) {
+					$consultation_data['follow_slot'] = $_POST['appoitmented_slot'];
+				}
+				
+				// Set consultation_date if not set
+				if(!isset($consultation_data['consultation_date'])) {
+					$consultation_data['consultation_date'] = date("Y-m-d H:i:s");
+				}
+				
+				// Prepare data for patient_medical_info table (all other fields)
+				// Exclude fields that belong to doctor_consultation table
+				$medical_exclude_fields = array_merge($consultation_fields, $exclude_fields, array('investigation_suggestion', 'doctor_id'));
+				$medical_data = array();
+				foreach($_POST as $key => $value) {
+					// Include fields that are not in consultation_fields and not in exclude_fields
+					// Also exclude investigation_suggestion and doctor_id (will be mapped to 'doctor')
+					if(!in_array($key, $medical_exclude_fields)) {
+						$medical_data[$key] = $value;
+					}
+				}
+				
+				// Ensure appointment_id and patient_id are set for medical_info
+				$medical_data['appointment_id'] = $_POST['appointment_id'];
+				$medical_data['patient_id'] = $_POST['patient_id'];
+				
+				// Map doctor_id to 'doctor' for patient_medical_info table (column name is 'doctor' not 'doctor_id')
+				if(!isset($medical_data['doctor'])) {
+					$medical_data['doctor'] = isset($_POST['doctor_id']) ? $_POST['doctor_id'] : (isset($logg['doctor_id']) ? $logg['doctor_id'] : '');
+				}
+				// Remove doctor_id from medical_data if it exists (use 'doctor' instead)
+				unset($medical_data['doctor_id']);
+				
+				// Add center_number if present (column exists in patient_medical_info table)
+				if(isset($_POST['center_number']) && !isset($medical_data['center_number'])) {
+					$medical_data['center_number'] = $_POST['center_number'];
+				}
+				
+				// Save to both tables
+				$consultation_result = 0;
+				$medical_result = 0;
+				
+				// Save to doctor_consultation table
+				if(!empty($consultation_data)) {
+					$consultation_result = $this->doctors_model->consultation_done($consultation_data);
+				}
+				
+				// Save to patient_medical_info table
+				if(!empty($medical_data)) {
+					$medical_result = $this->doctors_model->patient_medical_info($medical_data);
+				}
+				
+				if($consultation_result > 0 || $medical_result > 0){
+					echo json_encode(array('status' => 'success', 'message' => 'Data saved successfully', 'consultation' => $consultation_result, 'medical' => $medical_result));
+				} else {
+					echo json_encode(array('status' => 'error', 'message' => 'Failed to save data'));
+				}
+			} else {
+				echo json_encode(array('status' => 'error', 'message' => 'Missing required fields'));
+			}
+		} else {
+			echo json_encode(array('status' => 'error', 'message' => 'Unauthorized'));
+		}
+	}
 
 	/**
 	 * ORIGINAL FOLLOW-UP CONSULTATION FUNCTION

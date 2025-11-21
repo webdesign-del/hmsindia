@@ -33,13 +33,13 @@
                <div class="row">
                   <div class="col-sm-6 form-group">
                      <label>PO Other Charges and Taxes</label>
-                     <input value="<?php echo $purchase_order['po_other_charges_and_taxes']; ?>" 
+                     <input value="<?php echo $purchase_order['po_other_charges_and_taxes'] ?? 0; ?>" 
                         readonly id="po_other_charges_and_taxes" name="po_other_charges_and_taxes" 
                         type="text" class="form-control" required>
                   </div>
                   <div class="col-sm-6 form-group">
                      <label>PO Total</label>
-                     <input value="<?php echo $purchase_order['po_po_total']; ?>" 
+                     <input value="<?php echo $purchase_order['po_po_total'] ?? 0; ?>" 
                         readonly id="po_po_total" name="po_po_total" 
                         type="text" class="form-control" required>
                   </div>

@@ -4,15 +4,20 @@ if (isset($select_result2) && is_array($select_result2) && isset($select_result2
 } else {
     $center_number = '';
 }
+
 $all_method =&get_instance();
 $consultation_data = $all_method->get_consultation($appointments['ID']);
 $patient_data = get_patient_detail($consultation_data['patient_id']);
+//var_dump($patient_data);die;
 $consultation_data['patient_id'] = get_patient_by_number($patient_data['wife_phone']);
 $patient_medical_info = patient_medical_info_data($appointments['ID'], $consultation_data['patient_id']);
 $patient_doctor_consultation = patient_doctor_consultation_data($appointments['ID'], $consultation_data['patient_id']);
+//var_dump($consultation_data); echo '<br/><br/><br/>'; 
+//var_dump($patient_medical_info);die;
 ?>
 <?php
-$countdownDuration = 7200;
+// Set the countdown duration in seconds (e.g., 5 minutes)
+$countdownDuration = 7200; // 5 minutes
 ?>
 
 
@@ -157,201 +162,31 @@ $countdownDuration = 7200;
 		opacity: 1!important;
     }
 	#example1{background:#fff;}
-	
-	/* Multi-Step Form Styles - Enhanced Design */
-	.form-steps-container {
-		margin-bottom: 30px;
-	}
-	.form-steps-nav {
-		display: flex;
-		justify-content: space-between;
-		/* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
-		padding: 20px 15px;
-		border-radius: 10px;
-		margin-bottom: 30px;
-		flex-wrap: wrap;
-		box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-	}
-	.step-nav-item {
-		flex: 1;
-		min-width: 100px;
-		text-align: center;
-		padding: 12px 8px;
-		margin: 3px;
-		background: rgba(255,255,255,0.95);
-		border: 2px solid rgba(255,255,255,0.3);
-		border-radius: 8px;
-		cursor: pointer;
-		transition: all 0.3s ease;
-		font-size: 12px;
-		font-weight: 500;
-		color: #555;
-		position: relative;
-		box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-	}
-	.step-nav-item:hover {
-		background: rgba(255,255,255,1);
-		border-color: #fff;
-		transform: translateY(-2px);
-		box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-	}
-	.step-nav-item.active {
-		background: #fff;
-		color: #667eea;
-		border-color: #fff;
-		font-weight: bold;
-		box-shadow: 0 4px 15px rgba(102,126,234,0.4);
-		transform: translateY(-2px);
-	}
-	.step-nav-item.active:before {
-		content: '';
-		position: absolute;
-		top: -2px;
-		left: 50%;
-		transform: translateX(-50%);
-		width: 0;
-		height: 0;
-		border-left: 8px solid transparent;
-		border-right: 8px solid transparent;
-		border-top: 8px solid #fff;
-	}
-	.step-nav-item.completed {
-		background: #28a745;
-		color: #fff;
-		border-color: #28a745;
-	}
-	.step-nav-item.completed:hover {
-		background: #218838;
-		border-color: #218838;
-	}
-	.form-step {
-		display: none;
-		padding: 30px;
-		background: #fff;
-		border: none;
-		border-radius: 10px;
-		margin-bottom: 20px;
-		box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-	}
-	.form-step.active {
-		display: block;
-		animation: fadeIn 0.5s ease-in;
-	}
-	@keyframes fadeIn {
-		from { opacity: 0; transform: translateY(10px); }
-		to { opacity: 1; transform: translateY(0); }
-	}
-	.form-step h4 {
-		color: #667eea;
-		margin-bottom: 25px;
-		border-bottom: 3px solid #667eea;
-		padding-bottom: 12px;
-		font-size: 22px;
-		font-weight: 600;
-	}
-	.step-navigation-buttons {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 25px 30px;
-		background: linear-gradient(to right, #f8f9fa, #e9ecef);
-		border-top: 2px solid #dee2e6;
-		margin-top: 30px;
-		border-radius: 0 0 10px 10px;
-		gap: 15px;
-		flex-wrap: wrap;
-	}
-	.step-navigation-buttons button {
-		padding: 12px 35px;
-		font-size: 15px;
-		border-radius: 6px;
-		cursor: pointer;
-		font-weight: 600;
-		transition: all 0.3s ease;
-		border: none;
-		box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-	}
-	.step-navigation-buttons button:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-	}
-	.step-navigation-buttons button:active {
-		transform: translateY(0);
-	}
-	.btn-step-prev {
-		background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-		color: #fff;
-	}
-	.btn-step-prev:hover {
-		background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
-	}
-	.btn-step-next, .btn-step-save {
-		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-		color: #fff;
-	}
-	.btn-step-next:hover, .btn-step-save:hover {
-		background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-	}
-	.btn-step-save-continue {
-		background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-		color: #fff;
-	}
-	.btn-step-save-continue:hover {
-		background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
-	}
-	/* Improve table styling within steps */
-	.form-step .table {
-		margin-bottom: 0;
-	}
-	.form-step .table thead th {
-		/* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
-		color: #fff;
-		border: none;
-		padding: 15px;
-		font-weight: 600;
-	}
-	.form-step .table tbody td {
-		padding: 12px 15px;
-		vertical-align: middle;
-	}
-	.form-step .form-control {
-		border-radius: 6px;
-		border: 1px solid #ced4da;
-		padding: 8px 12px;
-		transition: all 0.3s ease;
-	}
-	.form-step .form-control:focus {
-		border-color: #667eea;
-		box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
-	}
-	/* Progress indicator */
-	.step-progress {
-		width: 100%;
-		height: 4px;
-		background: #e9ecef;
-		border-radius: 2px;
-		margin-bottom: 20px;
-		overflow: hidden;
-	}
-	.step-progress-bar {
-		height: 100%;
-		background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-		transition: width 0.3s ease;
-		border-radius: 2px;
-	}
 </style>
+
+
+
 <form class="form-horizontal" method="post" id="consultation_done_form" onsubmit="return submitForm(this);" action="" enctype="multipart/form-data" >
+
 <input type="hidden" name="action" value="add_consultation_done" />
+
 <input type="hidden" id="submit_type" name="submit_type" value="" />
+
 <input type="hidden" name="appointment_id" value="<?php echo $appointments['ID']; ?>" />
+
 <input type="hidden" name="disapproval_reason" value="<?php echo isset($patient_doctor_consultation['disapproval_reason'])?$patient_doctor_consultation['disapproval_reason']:""; ?>" />
+
 <input type="hidden" name="patient_id" value="<?php echo $patient_data['patient_id']; ?>" />
+
 <input type="hidden" name="wife_phone" value="<?php echo $patient_data['wife_phone']; ?>" />
+
 <input type="hidden" name="doctor_id" id="doctor_id" value="<?php echo $_SESSION['logged_doctor']['doctor_id']?>" />
+
 <input type="hidden" name="doctor" id="doctor" value="<?php echo $_SESSION['logged_doctor']['doctor_id']?>" />
+
 <input type="hidden" name="center_number" id="center_number" value="<?php echo htmlspecialchars($center_number); ?>" />
 
-<div class="container-fluid">
+	<div class="container-fluid">
 		<div class="row">
 			<div class="col-md-12">
 			<!-- Patient Information Panel -->
@@ -360,66 +195,6 @@ $countdownDuration = 7200;
 					<h3 class="panel-title"><i class="fa fa-user"></i> Patient Consultation Form</h3>
 				</div>
 				<div class="panel-body">
-					<!-- Progress Bar -->
-					<div class="step-progress">
-						<div class="step-progress-bar" id="stepProgressBar" style="width: 8.33%;"></div>
-					</div>
-					
-					<!-- Step Navigation -->
-					<div class="form-steps-nav" id="formStepsNav">
-						<div class="step-nav-item active" data-step="1">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">1</div>
-							<div>Basic Info</div>
-						</div>
-						<div class="step-nav-item" data-step="2">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">2</div>
-							<div>Pregnancy</div>
-						</div>
-						<div class="step-nav-item" data-step="3">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">3</div>
-							<div>Menstrual</div>
-						</div>
-						<div class="step-nav-item" data-step="4">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">4</div>
-							<div>Medical</div>
-						</div>
-						<div class="step-nav-item" data-step="5">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">5</div>
-							<div>Surgical</div>
-						</div>
-						<div class="step-nav-item" data-step="6">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">6</div>
-							<div>Drug History</div>
-						</div>
-						<div class="step-nav-item" data-step="7">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">7</div>
-							<div>Family</div>
-						</div>
-						<div class="step-nav-item" data-step="8">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">8</div>
-							<div>Investigations</div>
-						</div>
-						<div class="step-nav-item" data-step="9">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">9</div>
-							<div>Treatment</div>
-						</div>
-						<!-- <div class="step-nav-item" data-step="10">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">10</div>
-							<div>Management</div>
-						</div>
-						<div class="step-nav-item" data-step="11">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">11</div>
-							<div>Medicines</div>
-						</div> -->
-						<div class="step-nav-item" data-step="12">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">12</div>
-							<div>Final</div>
-						</div>
-					</div>
-					
-					<!-- Step 1: Basic Information -->
-					<div class="form-step active" id="step1" data-step="1">
-						<h4>Step 1: Basic Patient Information</h4>
 						<table id="example1" class="table table-bordered table-striped">
 							<thead>
 							<tr>
@@ -611,26 +386,7 @@ $countdownDuration = 7200;
 					</td>
 
                   </tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(1)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 1 -->
-					
-					<!-- Step 2: Previous Pregnancies -->
-					<div class="form-step" id="step2" data-step="2">
-						<h4>Step 2: Previous Pregnancies History</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
                   <tr>
 
                     <th style="color: red;">
@@ -981,27 +737,7 @@ $countdownDuration = 7200;
 					</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(1)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(2)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 2 -->
-					
-					<!-- Step 3: Menstrual & Gynecological History -->
-					<div class="form-step" id="step3" data-step="3">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 3: Menstrual & Gynecological History</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">TYPE OF INFERTILITY</th>
@@ -1316,27 +1052,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(2)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(3)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 3 -->
-					
-					<!-- Step 4: Past/Present Medical History -->
-					<div class="form-step" id="step4" data-step="4">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 4: Past/Present Medical History</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">PAST /PRESENT MEDICAL HISTORY</th>
@@ -2462,27 +2178,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(3)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(4)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 4 -->
-					
-					<!-- Step 5: Past Anesthesia and Surgical Procedures -->
-					<div class="form-step" id="step5" data-step="5">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 5: Past Anesthesia and Surgical Procedures</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">PAST ANESTHESIA AND SURGICAL PROCEDURES</th>
@@ -2861,204 +2557,6 @@ $countdownDuration = 7200;
 
 								</tr>
 
-							</table>
-
-						</td>
-
-						<td>
-
-							<table>
-
-								<tr>
-
-									<td>Dentures</td>
-
-												<td width="30%">
-
-													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_dentures_text'])?$patient_medical_info['male_dentures_text']:""; ?>" type="text" maxlength="25" name="male_dentures_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>Loose teeth</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
-
-													<label>No</label>
-
-													<input  value="<?php echo !empty($patient_medical_info['male_loose_teeth_text'])?$patient_medical_info['male_loose_teeth_text']:""; ?>" type="text" maxlength="25" name="male_loose_teeth_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>Hearing aid</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" checked >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_hearing_aid_text'])?$patient_medical_info['male_hearing_aid_text']:""; ?>" type="text" maxlength="25" name="male_hearing_aid_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>Caps on front teeth</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_caps_on_front_teeth_text'])?$patient_medical_info['male_caps_on_front_teeth_text']:""; ?>" type="text" maxlength="25" name="male_caps_on_front_teeth_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>Contact lenses</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" checked >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_contact_lenses_text'])?$patient_medical_info['male_contact_lenses_text']:""; ?>" type="text" maxlength="25" name="male_contact_lenses_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>Body piercing</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" checked >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_body_piercing_text'])?$patient_medical_info['male_body_piercing_text']:""; ?>" type="text" maxlength="25" name="male_body_piercing_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>H/o blood transfusion</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_blood_transfusion_text'])?$patient_medical_info['male_blood_transfusion_text']:""; ?>" type="text" maxlength="25" name="male_blood_transfusion_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>H/o road traffic accident/any injury</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_traffic_accident_text'])?$patient_medical_info['male_traffic_accident_text']:""; ?>" type="text" maxlength="25" name="male_traffic_accident_text">
-
-												</td>
-
-								</tr>
-
-							</table>
-
-						</td>
-
-					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(4)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(5)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 5 -->
-					
-					<!-- Step 6: Social Drug Intake History -->
-					<div class="form-step" id="step6" data-step="6">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 6: Social Drug Intake History</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
-					<tr>
-						<th style="color: red;">SOCIAL DRUG INTAKE HISTORY</th>
-						<td>
-							<table width="100%">
 								<tr>
 
 									<td>Smoke(past)daily</td>
@@ -3451,16 +2949,19 @@ $countdownDuration = 7200;
 
 									<td>Smoke(present)daily</td>
 
-											<td>
-												<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-												<label>Yes</label>
-												<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+												<td>
 
-												<label>No</label>	
+													<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
 
-												<input value="<?php echo !empty($patient_medical_info['male_smoke_present_text'])?$patient_medical_info['male_smoke_present_text']:""; ?>" type="text" maxlength="25" name="male_smoke_present_text">
+													<label>Yes</label>
 
-											</td>
+													<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['male_smoke_present_text'])?$patient_medical_info['male_smoke_present_text']:""; ?>" type="text" maxlength="25" name="male_smoke_present_text">
+
+												</td>
 
 								</tr>
 
@@ -3629,27 +3130,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(5)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(6)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 6 -->
-					
-					<!-- Step 7: Family History -->
-					<div class="form-step" id="step7" data-step="7">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 7: Family History</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">FAMILY HISTORY</th>
@@ -4147,27 +3628,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(6)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(7)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 7 -->
-					
-					<!-- Step 8: Past Investigations -->
-					<div class="form-step" id="step8" data-step="8">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 8: Past Investigations</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">PAST INVESTIGATIONS</th>
@@ -4583,27 +4044,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(7)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(8)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 8 -->
-					
-					<!-- Step 9: Previous Infertility Treatment Details -->
-					<div class="form-step" id="step9" data-step="9">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 9: Previous Infertility Treatment Details</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">PREVIOUS INFERTILITY TREATMENT DETAILS </th>
@@ -5090,27 +4531,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(8)">Previous</button>
-						<!-- <button type="button" class="btn-step-save-continue" onclick="saveAndContinue(9)">Save & Continue</button> -->
-					</div>
-					</div>
-					<!-- End Step 9 -->
-					
-					<!-- Step 10: Intervention & Management -->
-					<div class="form-step" id="step10" data-step="10">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 10: Intervention & Management</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">Intervention</th>
@@ -5205,24 +4626,24 @@ $countdownDuration = 7200;
 								}?>
 								<select class="form-control multidselect_dropdown_2"  multiple="multiple" id="package_suggestion_list" name="package_suggestion_list[]" <?php echo $disabled; ?> required>
 									<?php
-							if (!isset($package_suggestion_list) || !is_array($package_suggestion_list)) {
-								$package_suggestion_list = [];
-							}
+if (!isset($package_suggestion_list) || !is_array($package_suggestion_list)) {
+    $package_suggestion_list = [];
+}
 
-							if (!empty($package)) {
-								foreach ($package as $key => $val) {
-									$selected = "";
-									if (in_array($val['ID'], $package_suggestion_list)) {
-										$selected = 'checked="checked"';
-									}
-							?>
-									<option value="<?php echo $val['procedure_ids']; ?>" <?php echo $selected; ?>>
-										<?php echo $val['package_name']; ?>
-									</option>
-							<?php
-								}
-							}
-							?>
+if (!empty($package)) {
+    foreach ($package as $key => $val) {
+        $selected = "";
+        if (in_array($val['ID'], $package_suggestion_list)) {
+            $selected = 'checked="checked"';
+        }
+?>
+        <option value="<?php echo $val['procedure_ids']; ?>" <?php echo $selected; ?>>
+            <?php echo $val['package_name']; ?>
+        </option>
+<?php
+    }
+}
+?>
 
 								</select>
 							</td>
@@ -5547,27 +4968,6 @@ $countdownDuration = 7200;
 						</td>
 					</tr>
 					<?php } ?>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(9)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(10)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 10 -->
-					
-					<!-- Step 11: Medicines Advised -->
-					<div class="form-step" id="step11" data-step="11">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 11: Medicines Advised</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
 					<?php if($appointments['partial_billing'] == 0){ ?>
 						<tr>
 							<th>MEDICINES ADVISED Opd <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="medicine_suggestion" value="1" <?php if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){echo 'checked="checked"';}?> name="medicine_suggestion"   /></th>
@@ -6043,27 +5443,6 @@ $countdownDuration = 7200;
                             </td>
                         </tr>
 					<?php } ?>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(10)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(11)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 11 -->
-					
-					<!-- Step 12: Procedures & Final -->
-					<div class="form-step" id="step12" data-step="12">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 12: Follow Up & Final</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
 					<tr>
 						<th>NEXT FOLLOW UP <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="hidden" id="follow_up" checked value="1" name="follow_up" /></th>
 						<td colspan="2">
@@ -6129,25 +5508,13 @@ $countdownDuration = 7200;
 					</tr>
             </thead>
               </table>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<!-- <button type="button" class="btn-step-prev" onclick="goToStep(11)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(12)">Save & Continue</button>
-						<button type="button" id="save_exit-button" class="btn btn-primary">Save & Exit</button>
-						<?php if($_SESSION['logged_doctor']['junior_doctor'] == 0){ ?>
-							<button type="button" id="exit-button" class="btn btn-primary pull-right">Submit</button>
-						<?php } ?> -->
-					</div>
-					</div>
-					<!-- End Step 12 -->
-			<div class="card-footer" style="display:none;">
+			<div class="card-footer">
 
-				<button type="button" id="save_exit-button-old" class="btn btn-primary">Save & Exit</button>
+				<button type="button" id="save_exit-button" class="btn btn-primary">Save & Exit</button>
 
 				<?php if($_SESSION['logged_doctor']['junior_doctor'] == 0){ ?>
 
-					<button type="button" id="exit-button-old" class="btn btn-primary pull-right">Submit</button>
+					<button type="button" id="exit-button" class="btn btn-primary pull-right">Submit</button>
 
 				<?php } ?>
 
@@ -6166,301 +5533,6 @@ $countdownDuration = 7200;
 </form>
 
 <script>
-	// Multi-Step Form Navigation
-	var currentStep = 1;
-	var totalSteps = 12;
-	
-	// Initialize step navigation
-	$(document).ready(function() {
-		// Step navigation click handlers
-		$('.step-nav-item').click(function() {
-			var step = $(this).data('step');
-			goToStep(step);
-		});
-		
-		// Show first step by default
-		showStep(1);
-	});
-	
-	// Function to navigate to a specific step
-	function goToStep(step) {
-		if (step >= 1 && step <= totalSteps) {
-			showStep(step);
-			currentStep = step;
-		}
-	}
-	
-	// Function to show a specific step
-	function showStep(step) {
-		// Hide all steps
-		$('.form-step').removeClass('active');
-		
-		// Show selected step
-		$('#step' + step).addClass('active');
-		
-		// Update navigation highlighting
-		$('.step-nav-item').removeClass('active');
-		$('.step-nav-item[data-step="' + step + '"]').addClass('active');
-		
-		// Mark previous steps as completed
-		for (var i = 1; i < step; i++) {
-			$('.step-nav-item[data-step="' + i + '"]').addClass('completed');
-		}
-		
-		// Reset all save buttons to enabled state
-		$('.btn-step-save-continue').prop('disabled', false).text('Save & Continue');
-		
-		// Update progress bar
-		var progress = (step / totalSteps) * 100;
-		$('#stepProgressBar').css('width', progress + '%');
-		
-		// Scroll to top of form
-		$('html, body').animate({
-			scrollTop: $('.form-steps-nav').offset().top - 20
-		}, 300);
-	}
-	
-	// Function to save and continue to next step
-	var isProcessing = false; // Flag to prevent double-clicks
-	function saveAndContinue(step) {
-		// Prevent double-clicks
-		if (isProcessing) {
-			return false;
-		}
-		
-		// Set processing flag
-		isProcessing = true;
-		
-		// Disable the button to prevent multiple clicks
-		var saveButton = $('#step' + step).find('.btn-step-save-continue');
-		saveButton.prop('disabled', true).text('Saving...');
-		
-		// Validate current step - STRICT validation for Step 1
-		var isValid = true;
-		var missingFields = [];
-		
-		// Get all required fields in current step
-		var currentStepElement = $('#step' + step);
-		var requiredFields = currentStepElement.find('input[required], select[required], textarea[required]');
-		
-		// Strict validation - check all required fields
-		requiredFields.each(function() {
-			var $field = $(this);
-			var fieldValue = $field.val();
-			var fieldName = $field.attr('name') || $field.attr('id');
-			
-			// Check if field is visible and empty
-			if ($field.is(':visible') && (!fieldValue || fieldValue.trim() === '')) {
-				isValid = false;
-				$field.css('border-color', 'red');
-				missingFields.push(fieldName);
-			} else {
-				$field.css('border-color', '');
-			}
-			
-			// Special validation for select fields
-			if ($field.is('select') && fieldValue === '') {
-				isValid = false;
-				$field.css('border-color', 'red');
-				missingFields.push(fieldName);
-			}
-		});
-		
-		if (!isValid) {
-			var errorMsg = 'Please fill in all required fields before continuing.';
-			if (step === 1) {
-				errorMsg = 'Please complete all required fields in Step 1 before proceeding. Missing: ' + missingFields.join(', ');
-			}
-			alert(errorMsg);
-			// Re-enable button on validation failure
-			isProcessing = false;
-			saveButton.prop('disabled', false).text('Save & Continue');
-			return;
-		}
-		
-		// Save data to database before moving to next step
-		saveDataToDatabase(function(success) {
-			if (success) {
-				// Mark current step as completed
-				$('.step-nav-item[data-step="' + step + '"]').addClass('completed');
-				
-				// Save form data to localStorage (optional - for auto-save)
-				saveFormData();
-				
-				// Move to next step
-				if (step < totalSteps) {
-					// Reset processing flag before navigating
-					isProcessing = false;
-					goToStep(step + 1);
-				} else {
-					// Last step - show final buttons
-					alert('You have completed all steps! You can now submit the form.');
-					// Reset processing flag
-					isProcessing = false;
-					saveButton.prop('disabled', false).text('Save & Continue');
-				}
-			} else {
-				alert('Failed to save data. Please try again.');
-				isProcessing = false;
-				saveButton.prop('disabled', false).text('Save & Continue');
-			}
-		});
-	}
-	
-	// Function to save data to database via AJAX
-	function saveDataToDatabase(callback) {
-		// Get form data but exclude action and submit_type fields
-		var formData = new FormData();
-		var form = $('#consultation_done_form')[0];
-		
-		// Track processed radio button names to avoid duplicates
-		var processedRadios = {};
-		
-		// Add all form fields except excluded ones
-		$(form).find('input, select, textarea').each(function() {
-			var $field = $(this);
-			var name = $field.attr('name');
-			var type = $field.attr('type');
-			
-			// Skip excluded fields
-			if (name && name !== 'action' && name !== 'submit_type') {
-				if (type === 'checkbox') {
-					// Handle checkboxes - only send if checked
-					if ($field.is(':checked')) {
-						// For checkboxes with same name (arrays), append multiple values
-						if (formData.has(name)) {
-							// If already exists, it's an array - append to existing
-							var existing = formData.getAll(name);
-							formData.delete(name);
-							existing.forEach(function(val) {
-								formData.append(name, val);
-							});
-							formData.append(name, $field.val());
-						} else {
-							formData.append(name, $field.val());
-						}
-					}
-				} else if (type === 'radio') {
-					// Handle radio buttons - only send checked one per name
-					if ($field.is(':checked') && !processedRadios[name]) {
-						formData.append(name, $field.val());
-						processedRadios[name] = true;
-					}
-				} else if (type === 'file') {
-					// Handle file inputs if needed
-					if ($field[0].files.length > 0) {
-						formData.append(name, $field[0].files[0]);
-					}
-				} else {
-					// Regular input, select, textarea
-					formData.append(name, $field.val() || '');
-				}
-			}
-		});
-		
-		$.ajax({
-			url: '<?php echo base_url("doctors/save_patient_medical_info_live"); ?>',
-			type: 'POST',
-			data: formData,
-			processData: false,
-			contentType: false,
-			success: function(response) {
-				try {
-					var result = typeof response === 'string' ? JSON.parse(response) : response;
-					if (result.status === 'success') {
-						if (callback) callback(true);
-					} else {
-						console.error('Save error:', result.message);
-						if (callback) callback(false);
-					}
-				} catch (e) {
-					console.error('Parse error:', e);
-					if (callback) callback(false);
-				}
-			},
-			error: function(xhr, status, error) {
-				console.error('AJAX error:', error);
-				if (callback) callback(false);
-			}
-		});
-	}
-	
-	// Auto-save functionality with debouncing - INSTANT SAVE
-	var autoSaveTimer = null;
-	var autoSaveDelay = 500; // 500ms delay for instant save
-	
-	function autoSaveData() {
-		// Clear existing timer
-		if (autoSaveTimer) {
-			clearTimeout(autoSaveTimer);
-		}
-		
-		// Set new timer
-		autoSaveTimer = setTimeout(function() {
-			saveDataToDatabase(function(success) {
-				if (success) {
-					// Show subtle save indicator
-					var saveIndicator = $('#auto-save-indicator');
-					if (saveIndicator.length === 0) {
-						$('body').append('<div id="auto-save-indicator" style="position:fixed;bottom:20px;right:20px;background:#28a745;color:white;padding:10px 20px;border-radius:5px;z-index:9999;display:none;">Saved</div>');
-						saveIndicator = $('#auto-save-indicator');
-					}
-					saveIndicator.fadeIn().delay(2000).fadeOut();
-				}
-			});
-		}, autoSaveDelay);
-	}
-	
-	// Attach auto-save to all form fields
-	$(document).ready(function() {
-		// Auto-save on input change
-		$('#consultation_done_form').on('input change', 'input, select, textarea', function() {
-			autoSaveData();
-		});
-		
-		// Auto-save on radio/checkbox change
-		$('#consultation_done_form').on('change', 'input[type="radio"], input[type="checkbox"]', function() {
-			autoSaveData();
-		});
-	});
-	
-	// Function to save form data to localStorage
-	function saveFormData() {
-		var formData = {};
-		$('#consultation_done_form').find('input, select, textarea').each(function() {
-			var name = $(this).attr('name');
-			if (name) {
-				if ($(this).is(':checkbox') || $(this).is(':radio')) {
-					if ($(this).is(':checked')) {
-						if (!formData[name]) {
-							formData[name] = [];
-						}
-						formData[name].push($(this).val());
-					}
-				} else {
-					formData[name] = $(this).val();
-				}
-			}
-		});
-		localStorage.setItem('consultation_form_data', JSON.stringify(formData));
-	}
-	
-	// Function to load saved form data (optional - for page reload)
-	function loadFormData() {
-		var savedData = localStorage.getItem('consultation_form_data');
-		if (savedData) {
-			var formData = JSON.parse(savedData);
-			$.each(formData, function(name, value) {
-				var field = $('[name="' + name + '"]');
-				if (field.is(':checkbox') || field.is(':radio')) {
-					field.filter('[value="' + value + '"]').prop('checked', true);
-				} else {
-					field.val(value);
-				}
-			});
-		}
-	}
-	
         // Set the countdown duration from PHP
         var countdownDuration = <?php echo $countdownDuration; ?>;
         var countdownForm = document.getElementById('countdownForm');

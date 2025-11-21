@@ -1,74 +1,74 @@
 <?php $all_method =&get_instance(); ?>
 <style>
-.stats-card {
-    background: #fff;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+    .stats-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 
-.stats-number {
-    font-size: 2.5em;
-    font-weight: bold;
-    margin: 10px 0;
-}
+    .stats-number {
+        font-size: 2.5em;
+        font-weight: bold;
+        margin: 10px 0;
+    }
 
-.stats-label {
-    font-size: 1.1em;
-    color: #6c757d;
-    margin-bottom: 5px;
-}
+    .stats-label {
+        font-size: 1.1em;
+        color: #6c757d;
+        margin-bottom: 5px;
+    }
 
-.stats-approved { color: #28a745; }
-.stats-disapproved { color: #dc3545; }
-.stats-pending { color: #ffc107; }
-.stats-total { color: #007bff; }
+    .stats-approved { color: #28a745; }
+    .stats-disapproved { color: #dc3545; }
+    .stats-pending { color: #ffc107; }
+    .stats-total { color: #007bff; }
 
-.search-section {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 30px;
-}
+    .search-section {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
 
-.po-detail-row {
-    border-bottom: 1px solid #e9ecef;
-    padding: 15px 0;
-}
+    .po-detail-row {
+        border-bottom: 1px solid #e9ecef;
+        padding: 15px 0;
+    }
 
-.po-detail-row:last-child {
-    border-bottom: none;
-}
+    .po-detail-row:last-child {
+        border-bottom: none;
+    }
 
-.status-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
 
-.status-approved { background-color: #d4edda; color: #155724; }
-.status-disapproved { background-color: #f8d7da; color: #721c24; }
-.status-pending { background-color: #fff3cd; color: #856404; }
+    .status-approved { background-color: #d4edda; color: #155724; }
+    .status-disapproved { background-color: #f8d7da; color: #721c24; }
+    .status-pending { background-color: #fff3cd; color: #856404; }
 
-.no-data {
-    text-align: center;
-    padding: 40px;
-    color: #6c757d;
-    font-style: italic;
-}
+    .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+        font-style: italic;
+    }
 
-.filter-row {
-    margin-bottom: 15px;
-}
+    .filter-row {
+        margin-bottom: 15px;
+    }
 
-.filter-row .form-control {
-    height: 35px;
-}
+    .filter-row .form-control {
+        height: 35px;
+    }
 </style>
 
 <div class="col-md-12">
@@ -118,13 +118,11 @@
                             <option value="pending" <?php echo (isset($filters['status_filter']) && $filters['status_filter'] == 'pending') ? 'selected' : ''; ?>>Pending</option>
                         </select>
                     </div>
-                    
                     <!-- PO Number Filter -->
                     <div class="col-md-2">
                         <label><strong>PO Number:</strong></label>
                         <input type="text" name="po_number" class="form-control" placeholder="Enter PO Number" value="<?php echo isset($filters['po_number']) ? $filters['po_number'] : ''; ?>">
                     </div>
-                    
                     <!-- Search Button -->
                     <div class="col-md-4 mt-4 d-flex">
                         <label>&nbsp;</label><br>
@@ -136,7 +134,6 @@
                         </a>
                     </div>
                 </div>
-                
                 <!-- Debug info -->
                 <?php if (empty($all_users)): ?>
                 <div class="alert alert-warning" style="margin-top: 10px;">

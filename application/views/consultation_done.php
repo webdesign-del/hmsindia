@@ -1,4 +1,5 @@
-<?php $all_method =&get_instance();
+<?php 
+$all_method =&get_instance();
 $consultation_data = $all_method->get_consultation($appointments['ID']);
 $patient_data = get_patient_detail($consultation_data['patient_id']);
 $patient_medical_info = patient_medical_info_data($appointments['ID'], $consultation_data['patient_id']);

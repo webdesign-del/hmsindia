@@ -6500,6 +6500,5 @@ public function save_daily_sales_report($data) {
         );
     }
 
-    
 
 }
