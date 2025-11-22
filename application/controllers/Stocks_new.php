@@ -2308,7 +2308,6 @@ class Stocks_new extends CI_Controller
                             "Error adding sale item!",
                         );
                     }
-                    var_dump($id);
                     redirect("stocks_new/edit_sale/" . $id);
                 }
             }
