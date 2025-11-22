@@ -593,26 +593,22 @@ $countdownDuration = 7200;
 				   <tr>
 
                     <th style="color: red;">Center</th>
-
-                   <td>
-				  
-				  <select name="center" required class="empty-field" id="center">
-
-										<option value="">Select</option>
-
-										<?php $center = $all_method->get_center_list(); foreach($center as $key => $center){?>
-
-										<option value="<?php echo $center['center_name']; ?>"><?php echo $center['center_name']; ?></option>
-
-										<?php } ?>
-
-									</select>
-				  
-				   </td>
-
+                       <td>
+				         <select name="center" required class="empty-field" id="center">
+							<option value="">Select</option>
+							<?php
+								$centers = $all_method->get_center_list();
+								foreach ($centers as $c) {
+							?>
+								<option value="<?php echo $c['center_name']; ?>"
+									<?php echo (!empty($patient_medical_info['center']) && $patient_medical_info['center'] == $c['center_name']) ? 'selected' : ''; ?>>
+									<?php echo $c['center_name']; ?>
+								</option>
+							<?php } ?>
+						</select>
+						</td>
                     <td>
 					</td>
-
                   </tr>
 						</tbody>
 					</table>

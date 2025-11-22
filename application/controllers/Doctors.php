@@ -2186,6 +2186,7 @@ class Doctors extends CI_Controller {
 				// Ensure appointment_id and patient_id are set for medical_info
 				$medical_data['appointment_id'] = $_POST['appointment_id'];
 				$medical_data['patient_id'] = $_POST['patient_id'];
+				$medical_data['center'] = $_POST['center'];
 				
 				// Map doctor_id to 'doctor' for patient_medical_info table (column name is 'doctor' not 'doctor_id')
 				if(!isset($medical_data['doctor'])) {
