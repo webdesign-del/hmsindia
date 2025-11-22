@@ -7,6 +7,9 @@
    
    $centers_sql = "SELECT * FROM `hms_centers` WHERE center_number=".$_SESSION['logged_billing_manager']['center']."";
    $centers_result = run_select_query($centers_sql);
+
+   $appointments_sql = "SELECT * FROM `hms_appointments` WHERE paitent_id=".$billing_details['patient_id']." and paitent_type='new_patient'";
+   $appointments_result = run_select_query($appointments_sql);
    
    $date=date_create("2024-07-25");
    if (date_format($date,"m") >= 4) {//On or After April (FY is current year - next year)
@@ -64,20 +67,20 @@
       $consultation_result = $consultation_q->result_array();
    
    $registation_sql = "Select receipt_number, payment_done, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."registation where status='adjust' and patient_id='".$billing_details['patient_id']."'";
-      $registation_q = $ci->db->query($registation_sql);
-      $registation_result = $registation_q->result_array();
+   $registation_q = $ci->db->query($registation_sql);
+   $registation_result = $registation_q->result_array();
    
    $investigation_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."patient_investigations where status='cancel' and patient_id='".$billing_details['patient_id']."'";
-      $investigation_q = $ci->db->query($investigation_sql);
-      $investigation_result = $investigation_q->result_array();
+   $investigation_q = $ci->db->query($investigation_sql);
+   $investigation_result = $investigation_q->result_array();
    
    $medicine_sql = "Select receipt_number, payment_done, fees, remaining_amount, billing_at from ".$db_prefix."patient_medicine where status='cancel' and patient_id='".$billing_details['patient_id']."'";
-      $medicine_q = $ci->db->query($medicine_sql);
-      $medicine_result = $medicine_q->result_array();
+   $medicine_q = $ci->db->query($medicine_sql);
+   $medicine_result = $medicine_q->result_array();
    
    $total = 0;
    
-      $done_sql = "Select sum(payment_done) as payment_done from ".$db_prefix."patient_payments where patient_id='".$billing_details['patient_id']."' AND status='3'";
+   $done_sql = "Select sum(payment_done) as payment_done from ".$db_prefix."patient_payments where patient_id='".$billing_details['patient_id']."' AND status='3'";
    $done_q = $ci->db->query($done_sql);
    $done_result = $done_q->result_array();
    
@@ -112,8 +115,8 @@
       //wallete
    $consultation_wallet_result = $procedure_wallet_result = $investigation_wallet_result = $partialpayments_wallet_result = $medicine_wallet_result = $done_wallet_result = $wallet_remaining_billing = $wallet_arr = $wallet_bill_total = array();
    $procedure_wallet_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."patient_procedure where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
-      $procedure_wallet_q = $ci->db->query($procedure_wallet_sql);
-      $procedure_wallet_result = $procedure_wallet_q->result_array();
+   $procedure_wallet_q = $ci->db->query($procedure_wallet_sql);
+   $procedure_wallet_result = $procedure_wallet_q->result_array();
    
    $consultation_wallet_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."consultation where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
       $consultation_wallet_q = $ci->db->query($consultation_wallet_sql);
@@ -511,9 +514,11 @@
                         <td><?php echo $sub_procedure_details['code']; ?>
                            <input value="<?php echo $sub_procedure_details['code']; ?>" readonly="readonly" id="sub_procedures_code_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_code_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
                            <input value="<?php echo $sub_procedure_details['category']; ?>" readonly="readonly" id="sub_procedures_category_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_category_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
-                           <input value="<?php echo $sub_procedure_details['procedure']; ?>" readonly="readonly" id="procedure_<?php echo $sub_procedure_counter;?>" name="procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
+                           <input value="<?php echo $sub_procedure_details['procedures']; ?>" readonly="readonly" id="procedure_<?php echo $sub_procedure_counter;?>" name="procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
                            <input value="<?php echo $sub_procedure_details['broad_procedure']; ?>" readonly="readonly" id="broad_procedure_<?php echo $sub_procedure_counter;?>" name="broad_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
                            <input value="<?php echo $sub_procedure_details['broad_procedure_count']; ?>" readonly="readonly" id="broad_procedure_count_<?php echo $sub_procedure_counter;?>" name="broad_procedure_count_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
+                           <input value="<?php echo $appointments_result['agent']; ?>" readonly="readonly" id="agent_<?php echo $sub_procedure_counter;?>" name="agent_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
+                           <input value="<?php echo $appointments_result['councellor']; ?>" readonly="readonly" id="councellor_<?php echo $sub_procedure_counter;?>" name="councellor_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
                        
                         </td>
                         <td><?php $sub_price = 0;
@@ -719,10 +724,11 @@
                            <input value="<?php echo $sub_procedure_details['code']; ?>" readonly="readonly" id="sub_procedures_code_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_code_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
                            <input value="<?php echo $sub_procedure_details['procedure_name']; ?>"  readonly="readonly" id="sub_procedure_name_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedure_name_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
                            <input value="<?php echo $sub_procedure_details['category']; ?>" readonly="readonly" id="sub_procedures_category_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_category_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
-                           <input value="<?php echo $sub_procedure_details['procedure']; ?>" readonly="readonly" id="procedure_<?php echo $sub_procedure_counter;?>" name="procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
+                           <input value="<?php echo $sub_procedure_details['procedures']; ?>" readonly="readonly" id="procedure_<?php echo $sub_procedure_counter;?>" name="procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
                            <input value="<?php echo $sub_procedure_details['broad_procedure']; ?>" readonly="readonly" id="broad_procedure_<?php echo $sub_procedure_counter;?>" name="broad_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
                            <input value="<?php echo $sub_procedure_details['broad_procedure_count']; ?>" readonly="readonly" id="broad_procedure_count_<?php echo $sub_procedure_counter;?>" name="broad_procedure_count_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
-                       
+                           <input value="<?php echo $appointments_result['agent']; ?>" readonly="readonly" id="agent_<?php echo $sub_procedure_counter;?>" name="agent_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
+                           <input value="<?php echo $appointments_result['councellor']; ?>" readonly="readonly" id="councellor_<?php echo $sub_procedure_counter;?>" name="councellor_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
                         </td>
                         <td>
                            <?php 

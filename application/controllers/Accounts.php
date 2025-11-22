@@ -7863,15 +7863,19 @@ public function partial_procedure(){
 			$config = array();
         	$data['medicine_daily_result'] = $this->accounts_model->dashboard_medicine_daily_sales($center, $start_date, $end_date);
 			$data['investigations_daily_result'] = $this->accounts_model->dashboard_investigation_daily_sales($center, $start_date, $end_date);
+			$data['advance_daily_result'] = $this->accounts_model->dashboard_advance_daily_sales($center, $start_date, $end_date);
 			$data['consultation_daily_result'] = $this->accounts_model->dashboard_consultation_daily_sales($center, $start_date, $end_date);
 			$data['registration_daily_result'] = $this->accounts_model->dashboard_registration_daily_sales($center, $start_date, $end_date);
 			$data['procedure_daily_result'] = $this->accounts_model->dashboard_procedure_daily_sales($center, $start_date, $end_date);
+			$data['partial_daily_result'] = $this->accounts_model->dashboard_partial_daily_sales($center, $start_date, $end_date);
 			$data['patient_procedure_daily_result'] = $this->accounts_model->dashboard_procedure_reports_list_patination($center, $start_date, $end_date);
 			$data['patient_partial_daily_result'] = $this->accounts_model->dashboard_partial_daily_sales_report($center, $start_date, $end_date);
 			$data['patient_medicine_daily_result'] = $this->accounts_model->dashboard_medicine_reports_list_patination($center, $start_date, $end_date);
 			$data['patient_diagnostic_daily_result'] = $this->accounts_model->dashboard_diagnostic_reports_list_patination($center, $start_date, $end_date);
 			$data['patient_consultation_daily_result'] = $this->accounts_model->dashboard_consultation_reports_list_patination($center, $start_date, $end_date);
+			$data['patient_advance_daily_result'] = $this->accounts_model->dashboard_advance_reports_list_patination($center, $start_date, $end_date);
 			
+
 			$data["billing_at"] = $center;
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;
@@ -7983,59 +7987,6 @@ private function _get_post_report_data() {
     );
 }	
 
-
-public function save_advance_payment()
-{
-    $patient_id     = trim($this->input->post('patient_id'));
-    $payment_date   = trim($this->input->post('payment_date'));
-    $amount         = trim($this->input->post('amount'));
-    $payment_mode   = trim($this->input->post('payment_mode'));
-    $transaction_id = trim($this->input->post('transaction_id'));
-    $remarks        = trim($this->input->post('remarks'));
-    $employee_number = $this->input->post('employee_number');
-    $center          = $this->session->userdata('center');
-
-    // Required Field Validation
-   /* if(empty($patient_id) || empty($payment_date) || empty($amount) || empty($payment_mode)){
-        echo json_encode(["success" => false, "message" => "Required fields missing"]);
-        return;
-    }*/
-
-    // Generate receipt number
-    $receipt_number = "ADV".time();
-
-    $data = array(
-        "patient_id"     => $patient_id,
-        "receipt_number" => $receipt_number,
-        "amount"         => $amount,
-        "payment_mode"   => $payment_mode,
-        "transaction_id" => $transaction_id,
-        "payment_date"   => $payment_date,
-        "center"         => $center,
-        "remarks"        => $remarks,
-        "employee_number"=> $employee_number,
-        "created_by"     => $this->session->userdata('user_id'),
-        "created_at"     => date("Y-m-d H:i:s")
-    );
-
-    $saved = $this->Accounts_model->insert_advance_payment($data);
-
-   /* if($saved){
-        echo json_encode(["success" => true, "message" => "Advance payment saved successfully!"]);
-    } else {
-        echo json_encode(["success" => false, "message" => "Error saving data"]);
-    } */
-
-		echo json_encode([
-    'success' => true,
-    'message' => 'Advance payment added successfully',
-    'insert_id' => $saved
-]);
-}
-
-
-
-
 public function get_doctors_by_center() {
     // Enable CORS if needed
     header('Content-Type: application/json');
@@ -8090,57 +8041,70 @@ public function get_doctors_by_center() {
     exit;
 }
 
-// ... your existing Accounts controller code ...
+public function save_advance_payment()
+	{
+		$logg = checklogin();
+		if($logg['status'] == true){
+			
+			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'save_advance_payment'){
+				unset($_POST['action']);
+				$data = $this->accounts_model->advance_payment_insert($_POST);
+				if($data > 0){
+					header("location:" .base_url(). "accounts/save_advance_payment?m=".base64_encode('Item added successfully !').'&t='.base64_encode('success'));
+					die();
+				}else{
+					header("location:" .base_url(). "accounts/save_advance_payment?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+					die();
+				}				
+			}
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('accounts/save_advance_payment', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
 
-    /**
-     * Send Daily Sales Report via Email
-     *//*
- public function send_daily_report_email() {
-    // Check if this is a POST request
-    if ($this->input->method() !== 'post') {
-        show_404();
-    }
 
-    // Get recipient email from POST data
-    $recipient_email = $this->input->post('recipient_email');
-    $form_data_json = $this->input->post('form_data');
-    
-    // Validate email
-    if (!filter_var($recipient_email, FILTER_VALIDATE_EMAIL)) {
-        $result = array(
-            'success' => false,
-            'message' => 'Invalid recipient email address provided'
-        );
-    } else {
-        // Load the same data that's used in your daily_sales_reporting method
-        $this->load_daily_report_data();
-        
-        // Decode form data if provided
-        $form_data = array();
-        if (!empty($form_data_json)) {
-            $form_data = json_decode($form_data_json, true);
-        }
-        
-        // Generate orderbook summary HTML with actual data AND form data
-        $email_content = $this->generate_daily_report_email_content($form_data);
-        
-        // Send email using your existing send_mail function
-        $subject = $this->input->post('email_subject') ?: "Daily Sales Report - " . date('Y-m-d');
-        $sent = send_mail($recipient_email, $subject, $email_content);
-        
-        $result = array(
-            'success' => $sent,
-            'message' => $sent ? 'Daily sales report email sent successfully' : 'Failed to send daily sales report email',
-            'recipient' => $recipient_email,
-            'timestamp' => date('Y-m-d H:i:s')
-        );
-    }
-    
-    // Return JSON response
-    $this->output
-        ->set_content_type('application/json')
-        ->set_output(json_encode($result));
-}*/
+	public function advance_payment_list(){
+		$logg = checklogin();
+		error_reporting(0);
+		if($logg['status'] == true){
+
+			$per_page = $this->input->get('per_page', true);
+			if(empty($per_page)){
+				$per_page = 0;
+			}
+			$training_name = $this->input->get('training_name', true);
+			
+			$config = array();
+        	$config["base_url"] = base_url() . "accounts/advance_payment_list";
+        	$config["total_rows"] = $this->accounts_model->advance_payment_count($training_name);
+        	$config["per_page"] = 10;
+        	$config["uri_segment"] = 2;
+			$config['use_page_numbers'] = true;
+			$config['num_links'] = 5;
+			$config['page_query_string'] = true;
+			$config['reuse_query_string'] = true;
+        	$this->pagination->initialize($config);
+        	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
+			
+        	$data["links"] = $this->pagination->create_links();
+			$data['consultation_cancel_result'] = $this->accounts_model->advance_payment_pagination($config["per_page"], $per_page, $training_name);
+			$data["training_name"] = $training_name;
+			
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('accounts/advance_payment_list', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}	
 
 
 public function send_daily_report_email() {
@@ -8436,6 +8400,35 @@ private function get_patient_name($patient_id) {
 		
 		echo json_encode(array('status' => true, 'procedures' => $procedures));
 	}
+
+
+function assessment_form(){
+	$logg = checklogin();
+	if($logg['status'] == true){
+		if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_assessment_form'){
+			unset($_POST['action']);
+			$data = $this->accounts_model->fellowship_insert_payment($_POST);
+			if($data > 0){
+				header("location:" .base_url(). "accounts/assessment_form?m=".base64_encode('Item added successfully !').'&t='.base64_encode('success'));
+				die();
+			}else{
+				header("location:" .base_url(). "accounts/assessment_form?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+				die();
+			}				
+		}
+		$data = array();
+		$template = get_header_template($logg['role']);
+		$this->load->view($template['header']);
+		//$data['data'] = $this->accounts_model->get_fellowship_payments($ID);
+		$this->load->view('accounts/assessment_form', $data);
+		$this->load->view($template['footer']);
+	}else{
+		header("Location: " . base_url() . "accounts/assessment_form");
+		die();
+	}
+}
+
+
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 
 	

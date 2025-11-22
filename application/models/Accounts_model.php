@@ -3015,10 +3015,7 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
 }
 
 
-public function insert_advance_payment($data)
-{
-    return $this->db->insert('hms_advance_payments', $data);
-}
+
 
 
 
@@ -5135,6 +5132,51 @@ public function generate_advance_receipt_number() {
 			return 0;
 	}
 	
+	function advance_payment_insert($data){
+		$sql = "INSERT INTO `" . $this->config->item('db_prefix') . "advance_payments` SET ";
+		$sqlArr = array();
+		foreach( $data as $key=> $value )
+		{
+			$sqlArr[] = " $key = '".addslashes($value)."'";
+		}
+		$sql .= implode(',' , $sqlArr);
+       	$res =  $this->db->query($sql);
+		if ($res)
+		{
+			return $this->db->insert_id();
+		}
+		else
+			return 0;
+	}
+
+	function advance_payment_count($ctraining_name){
+		$consultation_cancel_result = array();
+		$conditions = '';
+		if(!empty($training_name)){
+			$conditions .= " and training_name like '%$training_name%'";
+        }
+		$consultation_sql = "Select * from ".$this->config->item('db_prefix')."advance_payments where 1 ".$conditions."";
+		$q = $this->db->query($consultation_sql);
+		return $q->num_rows();
+	}
+
+	function advance_payment_pagination($limit, $page, $training_name){
+		$consultation_cancel_result = array();
+		$conditions = '';
+		if(empty($page)){
+			$offset = 0;
+		}else{
+			$offset = ($page - 1) * $limit;
+		}
+		if(!empty($training_name)){
+			$conditions .= " and training_name like '%$training_name%'";
+        }
+		$consultation_sql = "Select * from ".$this->config->item('db_prefix')."advance_payments where 1".$conditions." order by ID desc limit ". $limit." OFFSET ".$offset."";
+		$consultation_q = $this->db->query($consultation_sql);
+		$consultation_cancel_result = $consultation_q->result_array();
+		return $consultation_cancel_result;
+	}
+
 	function export_fellowship_and_training($name){
 		$consultation_result = $response = array();
         $conditions = '';
@@ -6122,6 +6164,14 @@ function dashboard_investigation_daily_sales($center, $start_date, $end_date) {
     return $q->result_array();
 }
 
+function dashboard_advance_daily_sales($center, $start_date, $end_date) {
+    $data = $this->_get_common_conditions($center, $start_date, $end_date);
+   echo $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment 
+            FROM hms_advance_payments WHERE 1 " . $data['sql'];
+    $q = $this->db->query($sql, $data['bindings']);
+    return $q->result_array();
+}
+
 function dashboard_consultation_daily_sales($center, $start_date, $end_date) {
     $data = $this->_get_common_conditions($center, $start_date, $end_date);
     $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment 
@@ -6143,6 +6193,15 @@ function dashboard_procedure_daily_sales($center, $start_date, $end_date) {
     // Added 'status' check to base conditions to match your original
     $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(fees) AS total_fees, SUM(payment_done) AS total_payment 
             FROM hms_patient_procedure WHERE 1 " . $data['sql'];
+    $q = $this->db->query($sql, $data['bindings']);
+    return $q->result_array();
+}
+
+function dashboard_partial_daily_sales($center, $start_date, $end_date) {
+    $data = $this->_get_common_conditions($center, $start_date, $end_date);
+    // Added 'status' check to base conditions to match your original
+    $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment 
+            FROM hms_patient_payments WHERE 1 " . $data['sql'];
     $q = $this->db->query($sql, $data['bindings']);
     return $q->result_array();
 }
@@ -6180,6 +6239,13 @@ function dashboard_diagnostic_reports_list_patination($center, $start_date, $end
 function dashboard_consultation_reports_list_patination($center, $start_date, $end_date) {
     $data = $this->_get_common_conditions($center, $start_date, $end_date);
     $sql = "SELECT * FROM " . $this->config->item('db_prefix') . "consultation WHERE 1 " . $data['sql'];
+    $q = $this->db->query($sql, $data['bindings']);
+    return $q->result_array();
+}
+
+function dashboard_advance_reports_list_patination($center, $start_date, $end_date) {
+    $data = $this->_get_common_conditions($center, $start_date, $end_date);
+    $sql = "SELECT * FROM " . $this->config->item('db_prefix') . "advance_payments WHERE 1 " . $data['sql'];
     $q = $this->db->query($sql, $data['bindings']);
     return $q->result_array();
 }
@@ -6379,6 +6445,7 @@ public function save_daily_sales_report($data) {
             'website' => 'WWW.INDIAIVF.IN'
         );
     }
+
 
     
 
