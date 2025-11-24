@@ -1,244 +1,799 @@
-<style>
-/* ===== A4 PAGE DESIGN ===== */
-.a4-container {
-    width: 210mm;
-    min-height: 297mm;
-    background: #fff;
-    padding: 20mm;
-    margin: auto;
-    font-family: Arial, sans-serif;
-    border: 1px solid #ddd;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPD Initial Assessment Sheet - India IVF Clinic</title>
+    <style>
+        /* ===== CSS VARIABLES ===== */
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --background: #ffffff;
+            --foreground: #1f2937;
+            --muted: #6b7280;
+            --muted-foreground: #9ca3af;
+            --border: #d1d5db;
+            --input: #f9fafb;
+            --ring: #3b82f6;
+            --radius: 0.75rem;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* ===== RESET & BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: var(--foreground);
+            line-height: 1.5;
+        }
+
+        /* ===== LAYOUT ===== */
+        .container {
+            min-height: 100vh;
+            width: 100%;
+            padding: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: 2rem;
+            }
+        }
+
+        .main-content {
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* ===== CARD COMPONENT ===== */
+        .card {
+            background: var(--background);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--foreground);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.875rem;
+            color: var(--muted);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        /* ===== FORM ELEMENTS ===== */
+        .form-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: 1fr;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-cols-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        @media (max-width: 768px) {
+            .grid-cols-2,
+            .grid-cols-3,
+            .grid-cols-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .label {
+            text-align:left;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--foreground);
+        }
+
+        .required::after {
+            content: " *";
+            color: var(--danger);
+        }
+
+        .input,
+        .textarea,
+        .select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            background: var(--input);
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .input:focus,
+        .textarea:focus,
+        .select:focus {
+            outline: none;
+            border-color: var(--ring);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .textarea {
+            resize: vertical;
+            min-height: 5rem;
+        }
+
+        .select {
+            display:flex;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        /* ===== CHECKBOX & RADIO ===== */
+        .checkbox-group,
+        .radio-group {
+           /* display: flex;*/
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item,
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox-item:hover,
+        .radio-item:hover {
+            border-color: var(--ring);
+        }
+
+        .checkbox-input,
+        .radio-input {
+            width: 1rem;
+            height: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+
+        .radio-input {
+            border-radius: 50%;
+        }
+
+        .checkbox-input:checked,
+        .radio-input:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* ===== BUTTONS ===== */
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid transparent;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .button-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .button-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .button-outline {
+            background: transparent;
+            border-color: var(--border);
+            color: var(--foreground);
+        }
+
+        .button-outline:hover {
+            background: var(--input);
+        }
+
+        /* ===== SEPARATOR ===== */
+        .separator {
+            height: 1px;
+            background: var(--border);
+            margin: 1.5rem 0;
+        }
+
+        /* ===== SECTIONS ===== */
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--foreground);
+            margin-bottom: 1rem;
+        }
+
+        .subsection-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--foreground);
+            margin: 1rem 0 0.5rem 0;
+            padding-left: 0.5rem;
+            border-left: 3px solid var(--primary);
+        }
+
+        /* ===== UTILITY CLASSES ===== */
+        .text-sm {
+            font-size: 0.875rem;
+        }
+
+        .text-xs {
+            font-size: 0.75rem;
+        }
+
+        .text-muted {
+            color: var(--muted);
+        }
+
+        .text-danger {
+            color: var(--danger);
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .space-y-2 > * + * {
+            margin-top: 0.5rem;
+        }
+
+        .space-y-4 > * + * {
+            margin-top: 1rem;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .justify-end {
+            justify-content: flex-end;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .md\:flex-row {
+                flex-direction: row;
+            }
+            
+            .md\:grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .md\:grid-cols-3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .md\:grid-cols-4 {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .md\:col-span-2 {
+                grid-column: span 2;
+            }
+        }
+
+        /* ===== PRINT STYLES ===== */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            body {
+                background: white;
+            }
+            
+            .card {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-in {
+            animation: fadeIn 0.35s ease-out;
+        }
+
+input:not([type]), input[type=text], input[type=password], input[type=email], input[type=url], input[type=time], input[type=date], input[type=datetime], input[type=datetime-local], input[type=tel], input[type=number], input[type=search], textarea.materialize-textarea, .select{
+    background-color: transparent;
+    border: none;
+    border: 1px solid #9e9e9e;
+    border-radius: 0;
+    outline: none;
+    height: 3rem;
+    width: 100%;
+    font-size: 1rem;
+    margin: 0 0 20px 0;
+    padding: 0;
+    box-shadow: none;
+    box-sizing: content-box;
+    transition: all 0.3s;
+    font-size: 14px;
+    padding: 4px;
 }
-
-/* ===== HEADINGS ===== */
-.header-section h2 {
-    font-weight: bold;
-    margin-bottom: 5px;
+label.radio-item {
+    width: 50%;
+    float: right;
+    display: flex;
 }
-
-.section-title {
-    margin-top: 20px;
-    font-size: 18px;
-    font-weight: bold;
-    border-bottom: 2px solid #333;
-    padding-bottom: 4px;
-}
-
-/* ===== GENERAL STYLES ===== */
-.form-label {
-    font-weight: bold;
-}
-
-textarea {
-    resize: none;
-}
-
-.checkbox-group .form-check {
-    margin-right: 20px;
-}
-
-/* ===== PRINT STYLES ===== */
-@media print {
-    .btn-print, .btn {
-        display: none !important;
-    }
-    body {
-        background: white;
-    }
-    .a4-container {
-        border: none;
-        margin: 0;
-        padding: 0;
-    }
-}
-</style>
-
-
-<div class="container a4-container">
-
-    <div class="header-section text-center mb-4">
-        <h2>INDIA IVF CLINIC</h2>
-        <h4>OPD INITIAL ASSESSMENT SHEET</h4>
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <!-- Header Card -->
+            <div class="card animate-in">
+                <div class="card-header">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h1 class="card-title">OPD Initial Assessment Sheet</h1>
+                            <p class="card-subtitle">India IVF Clinic · Out-Patient Department</p>
+                        </div>
+                        <div class="button-group mt-4 md:mt-0">
+                            <button type="button" class="button button-secondary no-print" onclick="window.print()">
+                                📄 Print
+                            </button>
+                            <button type="button" class="button button-outline no-print" onclick="resetForm()">
+                                🔄 Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-content">
+                    <form id="opdForm" onsubmit="handleSubmit(event)" class="form-grid space-y-4">
+                        <!-- Patient & Visit Information -->
+                        <section class="form-grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="form-group">
+                                <label class="label required" for="date">Date</label>
+                                <input type="date" id="date" class="input" required>
+                                <div class="error-message text-xs text-danger hidden" id="date-error"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="label required" for="centre">Centre</label>
+                                <select id="centre" class="select" required>
+                                    <option value="">Select centre</option>
+                                    <option value="Vasant Lok">Vasant Lok</option>
+                                    <option value="Rohini">Rohini</option>
+                                    <option value="Noida Sec 18">Noida Sec 18</option>
+                                    <option value="Gurgaon Sec 51">Gurgaon Sec 51</option>
+                                    <option value="Ghaziabad RDC">Ghaziabad RDC</option>
+                                    <option value="Srinagar">Srinagar</option>
+                                </select>
+                                <div class="error-message text-xs text-danger hidden" id="centre-error"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="label" for="keyword">Keyword / Case Tag</label>
+                                <input type="text" id="keyword" class="input" placeholder="e.g., Low AMH, Failed IVF">
+                            </div>
+                            
+                            <div class="form-group md:col-span-2">
+                                <label class="label required" for="name">Patient Name</label>
+                                <input type="text" id="name" class="input" placeholder="Full name" required>
+                                <div class="error-message text-xs text-danger hidden" id="name-error"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="label" for="age">Age</label>
+                                <input type="number" id="age" class="input" placeholder="Years" min="0" max="80">
+                                <div class="error-message text-xs text-danger hidden" id="age-error"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="label">Type of Infertility</label>
+                                <div class="radio-group grid-cols-2">
+                                    <label class="radio-item">
+                                        <input type="radio" name="infertilityType" value="Primary" class="radio-input" checked>
+                                        Primary
+                                    </label>
+                                    <label class="radio-item">
+                                        <input type="radio" name="infertilityType" value="Secondary" class="radio-input">
+                                        Secondary
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group md:col-span-2">
+                                <label class="label" for="menstruationHistory">Menstruation History (Female)</label>
+                                <input type="text" id="menstruationHistory" class="input" placeholder="Cycle length, flow, regularity">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="label" for="lmp">LMP</label>
+                                <input type="date" id="lmp" class="input">
+                            </div>
+                        </section>
+                        
+                        <div class="separator"></div>
+                        
+                        <!-- Medical Histories -->
+                        <section class="form-grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="label" for="pastMedicalHistory">Past Medical History</label>
+                                <textarea id="pastMedicalHistory" class="textarea" placeholder="Diabetes, thyroid, TB, HTN, etc."></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="label" for="pastSurgicalHistory">Past Surgical History</label>
+                                <textarea id="pastSurgicalHistory" class="textarea" placeholder="LSCS, laparoscopy, myomectomy, etc."></textarea>
+                            </div>
+                        </section>
+                        
+                        <div class="separator"></div>
+                        
+                        <!-- Investigations -->
+                        <section class="form-grid space-y-4">
+                            <h3 class="section-title">Investigations</h3>
+                            
+                            <div class="form-grid grid-cols-2 md:grid-cols-4 gap-2">
+                                <label class="checkbox-item">
+                                    <input type="checkbox" id="investigation-hsg" class="checkbox-input">
+                                    HSG
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" id="investigation-usg" class="checkbox-input">
+                                    USG
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" id="investigation-amh" class="checkbox-input">
+                                    S. AMH
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" id="investigation-semen" class="checkbox-input">
+                                    Semen Analysis
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="label" for="investigation-other">Any Other</label>
+                                <input type="text" id="investigation-other" class="input" placeholder="e.g., TSH, PRL, AFC">
+                            </div>
+                        </section>
+                        
+                        <div class="separator"></div>
+                        
+                        <!-- Diagnosis & Management -->
+                        <section class="form-grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Diagnosis -->
+                            <div class="form-grid space-y-4">
+                                <h3 class="section-title">Diagnosis / Factors</h3>
+                                
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="diagnosis" value="Low ovarian reserve" class="checkbox-input">
+                                        Low ovarian reserve
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="diagnosis" value="Tubal Factor" class="checkbox-input">
+                                        Tubal Factor
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="diagnosis" value="Male Factor" class="checkbox-input">
+                                        Male Factor
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="diagnosis" value="Female Factor" class="checkbox-input">
+                                        Female Factor
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="diagnosis" value="Unexplained infertility" class="checkbox-input">
+                                        Unexplained infertility
+                                    </label>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="label" for="diagnosis-other">Other diagnosis (free text)</label>
+                                    <input type="text" id="diagnosis-other" class="input" placeholder="Add other notes">
+                                    <p class="text-xs text-muted">Press Enter to add tag.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Management -->
+                            <div class="form-grid space-y-4">
+                                <h3 class="section-title">Management Advised</h3>
+                                
+                                <div class="checkbox-group grid-cols-2">
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="management" value="Natural" class="checkbox-input">
+                                        Natural
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="management" value="Medical" class="checkbox-input">
+                                        Medical
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="management" value="Surgical" class="checkbox-input">
+                                        Surgical
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="management" value="IUI" class="checkbox-input">
+                                        IUI
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="management" value="ART" class="checkbox-input">
+                                        ART
+                                    </label>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="label" for="reason">Reason for advised management</label>
+                                    <textarea id="reason" class="textarea" placeholder="Clinical reasoning / plan"></textarea>
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <div class="separator"></div>
+                        
+                        <!-- Advice & Follow-up -->
+                        <section class="form-grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="form-group md:col-span-2">
+                                <label class="label" for="advice">Advice</label>
+                                <textarea id="advice" class="textarea" placeholder="Medications, lifestyle, next steps"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="label">Next Follow-up On</label>
+                                <input type="date" id="nextFollowUpDate" class="input mb-2">
+                                <input type="time" id="nextFollowUpTime" class="input">
+                                <p class="text-xs text-muted">Time optional.</p>
+                            </div>
+                        </section>
+                        
+                        <div class="separator"></div>
+                        
+                        <!-- Sign-off -->
+                        <section class="form-grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="label" for="doctorName">Doctor / Counsellor Name</label>
+                                <input type="text" id="doctorName" class="input" placeholder="Dr. …">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="label">Signature</label>
+                                <div class="input text-muted" style="border-style: dashed; display: flex; align-items: center; justify-content: center; min-height: 3rem;">
+                                    Digital signature pad / upload here
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <!-- Submit Button -->
+                        <div class="flex justify-end">
+                            <button type="submit" class="button button-primary">
+                                💾 Save Assessment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Summary Card -->
+            <div class="card animate-in">
+                <div class="card-header">
+                    <h2 class="card-title">Quick Summary (auto-generated)</h2>
+                </div>
+                <div class="card-content">
+                    <div class="form-grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="summary-item">
+                            <div class="text-xs text-muted">Patient</div>
+                            <div class="text-sm font-medium" id="summary-patient">—</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="text-xs text-muted">Infertility</div>
+                            <div class="text-sm font-medium" id="summary-infertility">—</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="text-xs text-muted">Diagnosis</div>
+                            <div class="text-sm font-medium" id="summary-diagnosis">—</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="text-xs text-muted">Management</div>
+                            <div class="text-sm font-medium" id="summary-management">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <form id="opdForm">
-
-        <!-- ================= 1. CENTER & DATE ================= -->
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label class="form-label">Centre:</label>
-                <input type="text" class="form-control" name="centre">
-            </div>
-
-            <div class="col-md-6">
-                <label class="form-label">Date:</label>
-                <input type="date" class="form-control" name="date" value="<?php echo date('Y-m-d'); ?>">
-            </div>
-        </div>
-
-        <hr>
-
-        <!-- ================= 2. PATIENT DETAILS ================= -->
-        <div class="section-title">Patient Details</div>
-
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label">Patient Name</label>
-                <input type="text" class="form-control" name="name" required>
-            </div>
-
-            <div class="col-md-2">
-                <label class="form-label">Age</label>
-                <input type="number" class="form-control" name="age">
-            </div>
-
-            <div class="col-md-4">
-                <label class="form-label">Type of Infertility</label>
-                <select name="type_of_infertility" class="form-select">
-                    <option value="">Select</option>
-                    <option value="Primary">Primary</option>
-                    <option value="Secondary">Secondary</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- ================= 3. CLINICAL HISTORY ================= -->
-        <div class="section-title">Clinical History</div>
-
-        <div class="row g-3">
-            <div class="col-md-6">
-                <label class="form-label">Menstruation History / LMP</label>
-                <input type="text" class="form-control" name="menstruation_history">
-            </div>
-
-            <div class="col-md-6">
-                <label class="form-label">Past Medical History</label>
-                <textarea class="form-control" name="past_medical_history"></textarea>
-            </div>
-
-            <div class="col-md-6">
-                <label class="form-label">Past Surgical History</label>
-                <textarea class="form-control" name="past_surgical_history"></textarea>
-            </div>
-
-            <div class="col-md-6">
-                <label class="form-label">Fertility Treatments Taken (IVF/IUI)</label>
-                <textarea class="form-control" name="past_treatment"></textarea>
-            </div>
-        </div>
-
-        <!-- ================= 4. INVESTIGATIONS ================= -->
-        <div class="section-title">Investigations</div>
-
-        <div class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label">S. AMH</label>
-                <input type="text" class="form-control" name="amh">
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label">USG</label>
-                <input type="text" class="form-control" name="usg">
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label">HSG</label>
-                <input type="text" class="form-control" name="hsg">
-            </div>
-
-            <div class="col-md-3">
-                <label class="form-label">Semen Analysis</label>
-                <input type="text" class="form-control" name="semen_analysis">
-            </div>
-
-            <div class="col-md-12">
-                <label class="form-label">Any Other</label>
-                <textarea class="form-control" name="investigations"></textarea>
-            </div>
-        </div>
-
-        <!-- ================= 5. DIAGNOSIS ================= -->
-        <div class="section-title">Diagnosis</div>
-
-        <div class="row mb-3 checkbox-group">
-            <div class="form-check form-check-inline">
-                <input type="checkbox" name="low_ovarian_reserve" value="1" class="form-check-input">
-                <label class="form-check-label">Low Ovarian Reserve</label>
-            </div>
-
-            <div class="form-check form-check-inline">
-                <input type="checkbox" name="tubal_factor" value="1" class="form-check-input">
-                <label class="form-check-label">Tubal Factor</label>
-            </div>
-
-            <div class="form-check form-check-inline">
-                <input type="checkbox" name="male_factor" value="1" class="form-check-input">
-                <label class="form-check-label">Male Factor</label>
-            </div>
-
-            <div class="form-check form-check-inline">
-                <input type="checkbox" name="female_factor" value="1" class="form-check-input">
-                <label class="form-check-label">Female Factor</label>
-            </div>
-
-            <div class="form-check form-check-inline">
-                <input type="checkbox" name="unexplained_infertility" value="1" class="form-check-input">
-                <label class="form-check-label">Unexplained Infertility</label>
-            </div>
-        </div>
-
-        <!-- ================= 6. MANAGEMENT ================= -->
-        <div class="section-title">Management & Advice</div>
-
-        <div class="row g-3">
-            <div class="col-12">
-                <label class="form-label">Management Advised</label>
-                <select class="form-select" name="management_advised">
-                    <option selected>Select...</option>
-                    <option value="Natural">Natural</option>
-                    <option value="Medical">Medical</option>
-                    <option value="Surgical">Surgical</option>
-                    <option value="IUI">IUI</option>
-                    <option value="ART">ART (IVF/ICSI)</option>
-                </select>
-            </div>
-
-            <div class="col-12">
-                <label class="form-label">Reason for Advised Management</label>
-                <textarea class="form-control" rows="2" name="reason_for_management"></textarea>
-            </div>
-
-            <div class="col-12">
-                <label class="form-label">Advice / Remarks</label>
-                <textarea class="form-control" rows="3" name="advice"></textarea>
-            </div>
-        </div>
-
-        <!-- ================= 7. FOLLOW UP ================= -->
-        <div class="row mt-4">
-            <div class="col-md-4">
-                <label class="form-label">Next Follow Up Date:</label>
-                <input type="date" class="form-control" name="next_follow_up">
-
-                <label class="form-label mt-2">At:</label>
-                <input type="time" class="form-control" name="followup_time">
-            </div>
-
-            <div class="col-md-4">
-                <label class="form-label">Keyword:</label>
-                <input type="text" class="form-control" name="keyword">
-            </div>
-
-            <div class="col-md-4 text-center">
-                <div style="border-bottom: 1px solid #000; height: 45px;"></div>
-                <label class="form-label">Doctor / Counsellor Signature</label>
-            </div>
-        </div>
-
-        <div class="text-center mt-5 btn-print">
-            <button type="button" class="btn btn-primary btn-lg" onclick="window.print()">Print Sheet</button>
-        </div>
-
-    </form>
-
-</div>
+    <script>
+        // Form handling logic
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            // Basic validation
+            const errors = {};
+            const date = document.getElementById('date').value;
+            const centre = document.getElementById('centre').value;
+            const name = document.getElementById('name').value;
+            const age = document.getElementById('age').value;
+            
+            if (!date) errors.date = 'Date required';
+            if (!centre) errors.centre = 'Centre required';
+            if (!name) errors.name = 'Patient name required';
+            if (age && (Number(age) < 0 || Number(age) > 80)) errors.age = 'Enter valid age';
+            
+            // Show errors
+            Object.keys(errors).forEach(field => {
+                const errorElement = document.getElementById(`${field}-error`);
+                if (errorElement) {
+                    errorElement.textContent = errors[field];
+                    errorElement.classList.remove('hidden');
+                }
+            });
+            
+            // Hide errors for valid fields
+            ['date', 'centre', 'name', 'age'].forEach(field => {
+                if (!errors[field]) {
+                    const errorElement = document.getElementById(`${field}-error`);
+                    if (errorElement) errorElement.classList.add('hidden');
+                }
+            });
+            
+            // If no errors, proceed
+            if (Object.keys(errors).length === 0) {
+                alert('Assessment saved successfully! (Demo)');
+                updateSummary();
+            }
+        }
+        
+        function resetForm() {
+            if (!confirm('Clear all fields?')) return;
+            
+            document.getElementById('opdForm').reset();
+            
+            // Clear custom checkboxes
+            document.querySelectorAll('.checkbox-input, .radio-input').forEach(input => {
+                if (input.type === 'checkbox') input.checked = false;
+                if (input.type === 'radio' && input.value === 'Primary') input.checked = true;
+            });
+            
+            // Clear error messages
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            updateSummary();
+        }
+        
+        function updateSummary() {
+            const name = document.getElementById('name').value || '—';
+            const age = document.getElementById('age').value || '—';
+            const infertilityType = document.querySelector('input[name="infertilityType"]:checked')?.value || '—';
+            
+            const diagnosis = Array.from(document.querySelectorAll('input[name="diagnosis"]:checked'))
+                .map(cb => cb.value).join(', ') || '—';
+                
+            const management = Array.from(document.querySelectorAll('input[name="management"]:checked'))
+                .map(cb => cb.value).join(', ') || '—';
+            
+            document.getElementById('summary-patient').textContent = `${name} (${age})`;
+            document.getElementById('summary-infertility').textContent = infertilityType;
+            document.getElementById('summary-diagnosis').textContent = diagnosis;
+            document.getElementById('summary-management').textContent = management;
+        }
+        
+        // Update summary on input changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('opdForm');
+            form.addEventListener('input', updateSummary);
+            updateSummary(); // Initial update
+            
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+        });
+    </script>
+</body>
+</html>

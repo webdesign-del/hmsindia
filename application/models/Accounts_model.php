@@ -6166,7 +6166,7 @@ function dashboard_investigation_daily_sales($center, $start_date, $end_date) {
 
 function dashboard_advance_daily_sales($center, $start_date, $end_date) {
     $data = $this->_get_common_conditions($center, $start_date, $end_date);
-   echo $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment 
+    $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment 
             FROM hms_advance_payments WHERE 1 " . $data['sql'];
     $q = $this->db->query($sql, $data['bindings']);
     return $q->result_array();
