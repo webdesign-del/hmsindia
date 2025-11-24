@@ -2595,7 +2595,6 @@ class Stock_model_new extends CI_Model
         ];
         $this->db->where("id", $id);
         $this->db->update("sales", $update_data);
-        var_dump($this->db->last_query());
         foreach ($items as $item) {
              // Get current stock quantity for the log
             $stock_before = $this->db->select('quantity')->from('center_stocks')->where('batch_id', $item->batch_id)->where('center_id', $sale->center_id)->get()->row();

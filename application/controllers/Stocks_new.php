@@ -6649,8 +6649,6 @@ class Stocks_new extends CI_Controller
     {
         $center_id = $this->input->post("center_id");
         $department = $this->input->post("department");
-        var_dump($center_id, $department);
-        exit();
         $result = [];
         $sql_condition = "";
         if (!empty($center_id)) {
@@ -7571,7 +7569,6 @@ class Stocks_new extends CI_Controller
     public function add_billing_item()
     {
         $logg = checklogin();
-        // var_dump($logg['status'] == true);die;
         if ($logg['status'] == true) {
             $employee_number = null;
             $center_name = null;     

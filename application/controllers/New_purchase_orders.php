@@ -1351,7 +1351,6 @@ class New_purchase_orders extends CI_Controller {
         $uploaded_files_info = [];
         if(!empty($_FILES['receipt_files']['name'][0])) {
             $uploaded_files_info = $this->handleFileUploads(); 
-            var_dump($uploaded_files_info);
             if(isset($uploaded_files_info['error'])) {
                 $this->session->set_flashdata('error', $uploaded_files_info['error']);
                 redirect('new_purchase_orders/save_add_stock/' . $po_id);
