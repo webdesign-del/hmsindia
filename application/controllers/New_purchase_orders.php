@@ -170,7 +170,7 @@ class New_purchase_orders extends CI_Controller {
                     'serial_number' => $i,
                     'item_name' => $this->input->post('consumables_item_name_' . $i),
                     'item_number' => $item_number,
-                    'quantity' => $this->input->post('consumables_quantity_' . $i),
+                    'quantity' => $this->input->post('consumables_quantity_' . $i) ,
                     'batch_number' => $this->input->post('consumables_batch_number_' . $i),
                     'price' => $this->input->post('consumables_price_' . $i),
                     'vendor_price' => $this->input->post('consumables_vendor_price_' . $i),
@@ -1330,15 +1330,12 @@ class New_purchase_orders extends CI_Controller {
             redirect('login'); 
             return;
         }
-        // Get main PO data from hidden fields
         $po_id = $this->input->post('po_id');
         $po_number = $this->input->post('po_number');
         $vendor_id = $this->input->post('vendor_number'); // This is the hms_vendors.vendor_number
         $center_id = $this->input->post('center_id'); // This is the hms_centers.ID
         $receive_by = $this->input->post('receive_by');
         $receipt_date = $this->input->post('receipt_date');
-        // Get the logged-in user's ID (You must implement this)
-        // $created_by_id = $this->get_employee_id_from_session(); 
         $created_by_id = $this->Stock_model_new->get_employee_id_from_number($_SESSION['logged_central_stock_manager']['employee_number']); // Placeholder - FIX THIS
         if (empty($po_id) || empty($center_id)) {
             $this->session->set_flashdata('error', 'Error: Missing PO ID or Center ID.');
@@ -1368,12 +1365,9 @@ class New_purchase_orders extends CI_Controller {
             }
         }
         $file_names = !empty($file_paths) ? json_encode($file_paths) : null;
-        // $file_names = !empty($uploaded_files_info['path']) ? json_encode($uploaded_files_info['path']) : null;
-        // --- End File Uploads ---
         $items_processed = 0;
         $items_failed = 0;
         $error_messages = [];
-        // Loop through all possible item rows from the form
         $row_counter = 1;
         $max_rows = 20;   
         while ($row_counter <= $max_rows) {
@@ -1391,19 +1385,16 @@ class New_purchase_orders extends CI_Controller {
             $qty_receiving = (float)$this->input->post('qty_receiving_' . $row_counter);
             if ($qty_receiving <= 0) {
                 $row_counter++;
-                continue; // skip rows with no received quantity
+                continue; 
             }
-
-
-            // Only process rows where quantity is being received
             if ($qty_receiving > 0) {
                 $item_data = [
                     'po_item_id'       => $po_item_id,
                     'medicine_id'      => $this->input->post('product_' . $row_counter),
                     'batch_number'     => $this->input->post('batch_number_' . $row_counter),
                     'expiry_date'      => $this->input->post('expiry_date_' . $row_counter),
-                    'quantity'         => $qty_receiving,
-                    'free_qty'         => (float)$this->input->post('free_qty_' . $row_counter),
+                    'quantity'         => $qty_receiving * $this->input->post('uom_' . $row_counter),
+                    'free_qty'         => (float)$this->input->post('free_qty_' . $row_counter) * $this->input->post('uom_' . $row_counter),
                     'purchase_price'   => (float)$this->input->post('unit_price_' . $row_counter),
                     'selling_price'    => 0, // This will be set by the model
                     'mrp'              => (float)$this->input->post('mrp_' . $row_counter),
@@ -1644,8 +1635,7 @@ class New_purchase_orders extends CI_Controller {
      */
     private function update_existing_batch($batch_id, $row_index, $center_id, $vendor_id, $purchase_order) {
         $additional_qty = floatval($this->input->post('qty_receiving_' . $row_index)) + floatval($this->input->post('free_qty_' . $row_index));
-        
-        // Update batch quantity
+            // Update batch quantity
         $this->db->where('id', $batch_id);
         $this->db->set('quantity_purchased', 'quantity_purchased + ' . $additional_qty, FALSE);
         $this->db->set('quantity_remaining', 'quantity_remaining + ' . $additional_qty, FALSE);

@@ -69,7 +69,8 @@
                                         ?>
                                             <option value="<?php echo $selected_medicine_details->id; ?>" 
                                                     selected="selected" 
-                                                    data-gst="<?php echo $selected_medicine_details->gst_rate; ?>">
+                                                    data-gst="<?php echo $selected_medicine_details->gst_rate; ?>"
+                                                    data-pack-size="<?php echo isset($selected_medicine_details->pack_size) ? $selected_medicine_details->pack_size : '1'; ?>">
                                                 <?php echo htmlspecialchars($selected_medicine_details->text); ?>
                                             </option>
                                         <?php else: ?>
@@ -83,6 +84,9 @@
                                 <!-- GST Rate (Fetched by JavaScript) -->
                                 <input type="hidden" step="0.01" class="form-control" id="gst_rate" name="gst_rate" 
                                        value="<?php echo isset($batch->gst_rate) ? $batch->gst_rate : '0.00'; ?>" readonly>
+                                <!-- Pack Size (Fetched by JavaScript) -->
+                                <input type="hidden" class="form-control" id="pack_size" name="pack_size" 
+                                       value="<?php echo isset($selected_medicine_details->pack_size) ? $selected_medicine_details->pack_size : '1'; ?>" readonly>
                                 
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Vendor *</label>
@@ -330,24 +334,28 @@ $(document).ready(function() {
     $('#medicine_select').on('select2:select', function (e) {
         var data = e.params.data;
         var gstRate = data.gst_rate; 
+        var packSize = data.pack_size || 1;
 
         if (gstRate !== undefined) {
             $('#gst_rate').val(gstRate);
+            $('#pack_size').val(packSize);
             calculateSellingPrice(); 
         } else {
             var medicineId = data.id;
             $.ajax({
-                url: '<?php echo base_url("stocks_new/get_medicine_details_json"); ?>',
+                url: '<?php echo base_url("stocks_new/search_medicines"); ?>',
                 type: 'POST',
                 data: { id: medicineId },
                 dataType: 'json',
                 success: function(response) {
                     if(response.success && response.medicine) {
                         $('#gst_rate').val(response.medicine.gst_rate);
+                        $('#pack_size').val(response.medicine.pack_size || 1);
                         calculateSellingPrice(); 
                     } else {
                         alert('Could not fetch medicine details.');
                         $('#gst_rate').val('');
+                        $('#pack_size').val('1');
                     }
                 },
                 error: function() {
@@ -387,6 +395,10 @@ $(document).ready(function() {
         } 
         // If not, use the hidden field's value (already set by PHP)
         // No 'else' needed, as the field is already populated
+        
+        // Set pack_size from data attribute or hidden field
+        var packSize = $selectedOption.data('pack-size') || $('#pack_size').val() || 1;
+        $('#pack_size').val(packSize);
         
         // Run calculation in case purchase price is also pre-filled
         calculateSellingPrice();

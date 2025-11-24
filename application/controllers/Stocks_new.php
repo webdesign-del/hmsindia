@@ -478,9 +478,7 @@ class Stocks_new extends CI_Controller
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
-            
             $this->load->model('Stock_model_new'); // Load model at the top
-
             // --- Handle Form Submission ---
             if ($this->input->post("action") == "add_batch") {
                 $this->form_validation->set_rules("medicine_id", "Medicine", "required");
@@ -495,14 +493,27 @@ class Stocks_new extends CI_Controller
                 $this->form_validation->set_rules("purchase_price", "Purchase Price", "required|numeric");
                 $this->form_validation->set_rules("selling_price", "Selling Price", "required|numeric");
                 $this->form_validation->set_rules("quantity_purchased", "Quantity Purchased", "required|numeric|greater_than_equal_to[0]");
-
                 if ($this->form_validation->run() == true) {
-                    
-                    // --- Get Employee ID (Make sure function exists) ---
-                    // Assuming get_employee_id_from_number() is a helper you've defined
                     $created_by_id = $this->get_employee_id_from_number(
                         $_SESSION["logged_central_stock_manager"]["employee_number"]
                     );
+
+                    // Get pack_size from form (default to 1 if not provided)
+                    $pack_size = floatval($this->input->post("pack_size")) ?: 1;
+                    
+                    // Get quantity purchased (in packs)
+                    $quantity_purchased_packs = floatval($this->input->post("quantity_purchased"));
+                    
+                    // Calculate quantity in units (multiply packs by pack_size)
+                    $quantity_purchased_units = $quantity_purchased_packs * $pack_size;
+                    
+                    // Get prices (these are pack prices)
+                    $purchase_price_unit = floatval($this->input->post("purchase_price"));
+                    $selling_price_pack = floatval($this->input->post("selling_price"));
+                    $mrp_pack = $this->input->post("mrp") ? floatval($this->input->post("mrp")) : NULL;
+                    // Calculate per unit prices (divide pack price by pack_size)
+                    $selling_price_unit = $selling_price_pack / $pack_size;
+                    $mrp_unit = $mrp_pack ? ($mrp_pack / $pack_size) : NULL;
 
                     $batch_data = [
                         "medicine_id" => $this->input->post("medicine_id"),
@@ -510,11 +521,11 @@ class Stocks_new extends CI_Controller
                         "batch_number" => $this->input->post("batch_number"), // Unique check should be in model
                         "manufacturing_date" => $this->input->post("manufacturing_date") ?: NULL,
                         "expiry_date" => $this->input->post("expiry_date"),
-                        "purchase_price" => $this->input->post("purchase_price"),
-                        "selling_price" => $this->input->post("selling_price"),
-                        "mrp" => $this->input->post("mrp") ?: NULL,
-                        "quantity_purchased" => $this->input->post("quantity_purchased"),
-                        "quantity_remaining" => $this->input->post("quantity_purchased"), // Set remaining to purchased
+                        "purchase_price" => $purchase_price_unit, // Store per unit price
+                        "selling_price" => $selling_price_unit, // Store per unit price
+                        "mrp" => $mrp_unit, // Store per unit MRP
+                        "quantity_purchased" => $quantity_purchased_units, // Store quantity in units
+                        "quantity_remaining" => $quantity_purchased_units, // Set remaining to purchased (in units)
                         "purchase_date" => $this->input->post("purchase_date") ?: date('Y-m-d'),
                         "invoice_number" => $this->input->post("invoice_number"),
                         "invoice_date" => $this->input->post("invoice_date") ?: NULL,
@@ -524,38 +535,29 @@ class Stocks_new extends CI_Controller
                         "created_by" => $created_by_id,
                         "created_at" => date("Y-m-d H:i:s")
                     ];
-                    // --- Call Model (Assuming add_batch also adds to central_stocks) ---
                     $result = $this->Stock_model_new->add_batch($batch_data); 
                     if ($result) {
                         $this->session->set_flashdata("success", "Batch added successfully!");
                     } else {
-                        // Check for specific unique constraint error
                         if ($this->db->error()['code'] == 1062) {
                              $this->session->set_flashdata("error", "Error: A batch with this number already exists for this medicine.");
                         } else {
                              $this->session->set_flashdata("error", "Error adding batch!");
                         }
                     }
-                    redirect("stocks_new/batches"); // Redirect to batch list
+                    redirect("stocks_new/batches");
                 }
-                // --- End Form Submission ---
             }
-            // --- Prepare Data for View ---
             $data = [];
             $data["selected_medicine_details"] = null; // Default to null
-            // Check for pre-selection from URL (GET request)
             if ($this->input->get("medicine_id")) {
                 $selected_id = (int)$this->input->get("medicine_id");
                 $data["selected_medicine_details"] = $this->Stock_model_new->get_medicine_details_by_id($selected_id);
             }
-            // Check for re-population after validation fail (POST request)
             elseif ($this->input->post("medicine_id")) {
                  $selected_id = (int)$this->input->post("medicine_id");
                  $data["selected_medicine_details"] = $this->Stock_model_new->get_medicine_details_by_id($selected_id);
             }
-            // Do NOT load all medicines. AJAX will handle searching.
-            // $data["medicines"] = ...; 
-            // Load vendors
             $data["vendors"] = $this->Stock_model_new->get_all_vendors(); // Use your function for this
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
@@ -586,6 +588,22 @@ class Stocks_new extends CI_Controller
         $data['selected_medicine_details'] = $this->Stock_model_new->get_medicine_details_by_id(
             $data['batch']->medicine_id
         );
+        
+        // Convert unit prices to pack prices for display (prices in DB are per unit)
+        $pack_size = isset($data['selected_medicine_details']->pack_size) ? floatval($data['selected_medicine_details']->pack_size) : 1;
+        if ($pack_size > 0) {
+            // Convert unit prices to pack prices for display
+            if (isset($data['batch']->purchase_price)) {
+                $data['batch']->purchase_price = floatval($data['batch']->purchase_price) * $pack_size;
+            }
+            if (isset($data['batch']->selling_price)) {
+                $data['batch']->selling_price = floatval($data['batch']->selling_price) * $pack_size;
+            }
+            if (isset($data['batch']->mrp) && $data['batch']->mrp) {
+                $data['batch']->mrp = floatval($data['batch']->mrp) * $pack_size;
+            }
+        }
+        
         // 3. Get the list of all vendors for the vendor dropdown
         $data['vendors'] = $this->Stock_model_new->get_all_vendors();
         // 4. Load the view
@@ -625,15 +643,28 @@ class Stocks_new extends CI_Controller
 
             // Quantity is not validated here as it's handled by stock movements
             if ($this->form_validation->run() == true) {
+                // Get pack_size from form (default to 1 if not provided)
+                $pack_size = floatval($this->input->post("pack_size")) ?: 1;
+                
+                // Get prices (these are pack prices from the form)
+                $purchase_price_pack = floatval($this->input->post("purchase_price"));
+                $selling_price_pack = floatval($this->input->post("selling_price"));
+                $mrp_pack = $this->input->post("mrp") ? floatval($this->input->post("mrp")) : NULL;
+                
+                // Calculate per unit prices (divide pack price by pack_size)
+                $purchase_price_unit = $purchase_price_pack / $pack_size;
+                $selling_price_unit = $selling_price_pack / $pack_size;
+                $mrp_unit = $mrp_pack ? ($mrp_pack / $pack_size) : NULL;
+                
                 $batch_data = [
                     "medicine_id" => $this->input->post("medicine_id"),
                     "vendor_id" => $this->input->post("vendor_id"),
                     "batch_number" => $this->input->post("batch_number"),
                     "manufacturing_date" => $this->input->post("manufacturing_date") ?: NULL,
                     "expiry_date" => $this->input->post("expiry_date"),
-                    "purchase_price" => $this->input->post("purchase_price"),
-                    "selling_price" => $this->input->post("selling_price"),
-                    "mrp" => $this->input->post("mrp") ?: NULL,
+                    "purchase_price" => $purchase_price_unit, // Store per unit price
+                    "selling_price" => $selling_price_unit, // Store per unit price
+                    "mrp" => $mrp_unit, // Store per unit MRP
                     "purchase_date" => $this->input->post("purchase_date") ?: date('Y-m-d'),
                     "invoice_number" => $this->input->post("invoice_number"),
                     "invoice_date" => $this->input->post("invoice_date") ?: NULL,
@@ -654,9 +685,26 @@ class Stocks_new extends CI_Controller
                 // We must reload the data just like in the edit_batch() function
                 $data = [];
                 $data['batch'] = $this->Stock_model_new->get_batch_details_by_id($batch_id);
+                $data['is_editable'] = $this->Stock_model_new->is_batch_editable($batch_id);
                 $data['selected_medicine_details'] = $this->Stock_model_new->get_medicine_details_by_id(
                     $data['batch']->medicine_id
                 );
+                
+                // Convert unit prices to pack prices for display (prices in DB are per unit)
+                $pack_size = isset($data['selected_medicine_details']->pack_size) ? floatval($data['selected_medicine_details']->pack_size) : 1;
+                if ($pack_size > 0) {
+                    // Convert unit prices to pack prices for display
+                    if (isset($data['batch']->purchase_price)) {
+                        $data['batch']->purchase_price = floatval($data['batch']->purchase_price) * $pack_size;
+                    }
+                    if (isset($data['batch']->selling_price)) {
+                        $data['batch']->selling_price = floatval($data['batch']->selling_price) * $pack_size;
+                    }
+                    if (isset($data['batch']->mrp) && $data['batch']->mrp) {
+                        $data['batch']->mrp = floatval($data['batch']->mrp) * $pack_size;
+                    }
+                }
+                
                 $data['vendors'] = $this->Stock_model_new->get_all_vendors();
                 $template = get_header_template($logg["role"]);
                 $this->load->view($template["header"]);
@@ -806,9 +854,28 @@ class Stocks_new extends CI_Controller
              return;
         }
 
-        $search_term = $this->input->get('q');
         $this->load->model('Stock_model_new');
-        // You need to create this model function:
+        
+        // Handle POST request with id parameter (for fetching single medicine details)
+        if ($this->input->post('id')) {
+            $medicine_id = $this->input->post('id');
+            $medicine = $this->Stock_model_new->get_medicine_details_by_id($medicine_id);
+            if ($medicine) {
+                $this->output->set_content_type('application/json')->set_output(json_encode([
+                    'success' => true,
+                    'medicine' => $medicine
+                ]));
+            } else {
+                $this->output->set_content_type('application/json')->set_output(json_encode([
+                    'success' => false,
+                    'message' => 'Medicine not found'
+                ]));
+            }
+            return;
+        }
+        
+        // Handle GET request with search term (for Select2 search)
+        $search_term = $this->input->get('search') ?: $this->input->get('q');
         $medicines = $this->Stock_model_new->search_medicines_for_select2($search_term); 
         $this->output->set_content_type('application/json')->set_output(json_encode($medicines));
     }

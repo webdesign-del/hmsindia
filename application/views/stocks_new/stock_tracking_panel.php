@@ -168,7 +168,7 @@
                                                     <th>From Center</th>
                                                     <th>To Center</th>
                                                     <th>Quantity</th>
-                                                    <th>Price</th>
+                                                    <!-- <th>Price</th> -->
                                                     <th>Reference</th>
                                                     <th>Status</th>
                                                 </tr>
@@ -318,7 +318,7 @@ function loadStockMovements() {
                         movement.from_center || '',
                         movement.to_center || '',
                         movement.quantity_change || 0,
-                        '₹' + (movement.unit_price || 0),
+                        // '₹' + (movement.unit_price || 0),
                         movement.reference_number || '',
                         movement.status || ''
                     ]);

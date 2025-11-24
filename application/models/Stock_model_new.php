@@ -1060,9 +1060,9 @@ class Stock_model_new extends CI_Model
             "to_location_type" => "CENTRAL",
             "quantity_change" => $data["quantity_purchased"],
             "quantity_after" => $data["quantity_purchased"],
-            "unit_price" => $data["purchase_price"],
+            "unit_price" => $data["selling_price"],
             "total_value" =>
-                $data["quantity_purchased"] * $data["purchase_price"],
+                $data["quantity_purchased"] * $data["selling_price"],
             "reference_type" => "PURCHASE_RECEIPT",
             "reference_id" => $batch_id,
             "reference_number" => $data["invoice_number"],
@@ -6999,7 +6999,8 @@ class Stock_model_new extends CI_Model
             'm.generic_name',
             'm.medicine_code',
             'b.brand_name',
-            'm.gst_rate'
+            'm.gst_rate',
+            'm.pack_size'
         ]);
         $this->db->from('medicines m');
         $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
@@ -7031,6 +7032,7 @@ class Stock_model_new extends CI_Model
         $this->db->select([
             'm.id',
             'm.gst_rate',
+            'm.pack_size',
             'm.medicine_name as text', // Select2 uses 'text' property
             'm.medicine_name',
             'm.generic_name',
@@ -7099,6 +7101,8 @@ class Stock_model_new extends CI_Model
      }
     public function receive_stock_item($item_data)
     {
+        var_dump($item_data);
+        die;
         $po_item_id = $item_data['po_item_id'];
         $medicine_id = $item_data['medicine_id'];
         $batch_number = $item_data['batch_number'];
@@ -7180,11 +7184,12 @@ class Stock_model_new extends CI_Model
         }
         // 7. Update main batch 'quantity_remaining' IF IT WAS AN EXISTING BATCH
         // This is now outside the `if ($stock_record)` block.
-        if (!$is_new_batch) { 
-            $this->db->where('id', $batch_id);
-            $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
-            $this->db->update('medicine_batches');
-        }
+        // if (!$is_new_batch) { 
+        //     $this->db->where('id', $batch_id);
+        //     $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
+        //     $this->db->update('medicine_batches');
+        // }
+        // die;
         // **********************************
         $movement_data = [
             "batch_id"           => $batch_id,
@@ -7208,15 +7213,16 @@ class Stock_model_new extends CI_Model
             "receive_date"       => $item_data['receive_date']
         ];
         $this->db->insert("stock_movements", $movement_data);
-        // Update the original PO item's received quantity
-        // $this->db->where('id', $po_item_id);
-        // $this->db->set('quantity_received', 'quantity_received + ' . (float)$quantity_received, FALSE);
-        // $this->db->set('uploaded_files', $item_data['uploaded_files']);
-        // $this->db->set('receive_by', $item_data['receive_by'], FALSE);
-        // $this->db->set('receive_date', $item_data['receive_date']);
-        // $this->db->update('hms_new_purchase_order_items'); 
+        $this->db->select('quantity_received, pack_size');
+        $this->db->from('hms_new_purchase_order_items');
+        $this->db->where('id', $item_data['po_item_id']);
+        $row = $this->db->get()->row_array();
+        $old_qty = $row['quantity_received'];
+        $pack_size = $row['pack_size'];
+        $total_qty = $old_qty + ($quantity_received/$pack_size);
+        // $new_quantity = ($pack_size > 0) ? ($total_qty / $pack_size) : 0;
         $update = [
-            'quantity_received' => $item_data['quantity_received'] + $quantity_received,
+            'quantity_received' => $total_qty
         ];
         $this->db->where('id', $item_data['po_item_id']);
         $this->db->update('hms_new_purchase_order_items', $update);

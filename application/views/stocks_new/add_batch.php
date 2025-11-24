@@ -54,7 +54,7 @@
                                             // Check if a medicine is pre-selected from the controller
                                             if (isset($selected_medicine_details) && $selected_medicine_details): 
                                             ?>
-                                                <option value="<?php echo $selected_medicine_details->id; ?>" selected="selected" data-gst="<?php echo $selected_medicine_details->gst_rate; ?>">
+                                                <option value="<?php echo $selected_medicine_details->id; ?>" selected="selected" data-gst="<?php echo $selected_medicine_details->gst_rate; ?>" data-pack-size="<?php echo isset($selected_medicine_details->pack_size) ? $selected_medicine_details->pack_size : '1'; ?>">
                                                     <?php echo htmlspecialchars($selected_medicine_details->text); // Use 'text' property ?>
                                                 </option>
                                             <?php else: ?>
@@ -66,6 +66,8 @@
                                 </div>
                                 <!-- GST Rate (Fetched by JavaScript) -->
                                     <input type="hidden" step="0.01" class="form-control" id="gst_rate" name="gst_rate" placeholder="GST rate will be fetched automatically" readonly>
+                                <!-- Pack Size (Fetched by JavaScript) -->
+                                    <input type="hidden" class="form-control" id="pack_size" name="pack_size" placeholder="Pack size will be fetched automatically" readonly>
                                 
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Vendor *</label>
@@ -289,8 +291,11 @@ $(document).ready(function() {
     $('#medicine_select').on('select2:select', function (e) {
         var data = e.params.data;
         var gstRate = data.gst_rate; // Get GST from the selected data
+        var packSize = data.pack_size || 1; // Get pack_size from the selected data, default to 1
+        
         if (gstRate !== undefined) {
             $('#gst_rate').val(gstRate);
+            $('#pack_size').val(packSize);
             calculateSellingPrice(); // Re-calculate price
         } else {
             var medicineId = data.id;
@@ -302,10 +307,12 @@ $(document).ready(function() {
                 success: function(response) {
                     if(response.success && response.medicine) {
                         $('#gst_rate').val(response.medicine.gst_rate);
+                        $('#pack_size').val(response.medicine.pack_size || 1);
                         calculateSellingPrice(); // Re-calculate price
                     } else {
                         alert('Could not fetch medicine details.');
                         $('#gst_rate').val('');
+                        $('#pack_size').val('1');
                     }
                 },
                 error: function() {
@@ -338,6 +345,8 @@ $(document).ready(function() {
     if ($selectedOption.val() && $selectedOption.data('gst') !== undefined) {
         // Found a pre-selected option with a 'data-gst' attribute
         $('#gst_rate').val($selectedOption.data('gst'));
+        var packSize = $selectedOption.data('pack-size') || 1;
+        $('#pack_size').val(packSize);
         // Run calculation in case purchase price is also pre-filled
         calculateSellingPrice();
     }

@@ -73,8 +73,8 @@
                                             <?php echo date('d-m-Y', strtotime($batch_details->expiry_date)); ?>
                                         </div>
                                         <div class="col-md-3">
-                                            <strong>Current Stock:</strong><br>
-                                            <span class="label label-success"><?php echo isset($batch_details->current_stock) ? $batch_details->current_stock : ($batch_details->quantity_remaining ?? 0); ?> units</span>
+                                            <strong>Current Quantity:</strong><br>
+                                            <span class="label label-success"><?php echo isset($batch_details->current_stock) ? $batch_details->current_stock : ($batch_details->quantity_remaining ?? 0); ?> Quantity</span>
                                         </div>
                                     </div>
                                 </div>
@@ -101,8 +101,8 @@
                                                     <th>From Center</th>
                                                     <th>To Center</th>
                                                     <th>Quantity</th>
-                                                    <th>Unit Price</th>
-                                                    <th>Total Value</th>
+                                                    <!-- <th>Unit Price</th>
+                                                    <th>Total Value</th> -->
                                                     <th>Reference</th>
                                                     <th>Patient</th>
                                                     <th>Remarks</th>
@@ -127,8 +127,8 @@
                                                             <?php echo ($movement->quantity_change > 0) ? '+' : ''; ?><?php echo $movement->quantity_change; ?>
                                                         </span>
                                                     </td>
-                                                    <td>₹<?php echo number_format($movement->unit_price, 2); ?></td>
-                                                    <td>₹<?php echo number_format($movement->total_value, 2); ?></td>
+                                                    <!-- <td>₹<?php echo number_format($movement->unit_price, 2); ?></td>
+                                                    <td>₹<?php echo number_format($movement->total_value, 2); ?></td> -->
                                                     <td><?php echo htmlspecialchars($movement->reference_number ?: 'N/A'); ?></td>
                                                     <td><?php echo htmlspecialchars($movement->patient_name ?: 'N/A'); ?></td>
                                                     <td><?php echo htmlspecialchars($movement->remarks ?: 'N/A'); ?></td>
