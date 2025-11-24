@@ -7101,8 +7101,6 @@ class Stock_model_new extends CI_Model
      }
     public function receive_stock_item($item_data)
     {
-        var_dump($item_data);
-        die;
         $po_item_id = $item_data['po_item_id'];
         $medicine_id = $item_data['medicine_id'];
         $batch_number = $item_data['batch_number'];
