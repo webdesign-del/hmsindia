@@ -7207,7 +7207,8 @@ class Stock_model_new extends CI_Model
             "created_by"         => $created_by,
             "uploaded_files"     => $item_data['uploaded_files'],
             "receive_by"         => $item_data['receive_by'],
-            "receive_date"       => $item_data['receive_date']
+            "receive_date"       => $item_data['receive_date'],
+            "receipt_number"     => $item_data['receipt_number']
         ];
         $this->db->insert("stock_movements", $movement_data);
         $this->db->select('quantity_received, pack_size');

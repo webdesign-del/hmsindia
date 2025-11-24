@@ -80,6 +80,7 @@
                     <th>Vendor Price</th>
                     <th>Vendor Price With GST</th>
                     <th>Receive By</th>
+                    <th>Receipt Number</th>
                     <th>file</th>
                     <th>Total Value</th>
                 </tr>
@@ -99,6 +100,7 @@
                             <td><?php echo number_format($item->unit_price, 2); ?></td>
                             <td><?php echo number_format($item->vendor_price_with_tax, 2); ?></td>
                             <td><?php echo htmlspecialchars($item->receive_by); ?></td>
+                            <td><?php echo htmlspecialchars($item->receipt_number); ?></td>
                             <td>
                                  <?php 
                                  if (!empty($item->uploaded_files)) {

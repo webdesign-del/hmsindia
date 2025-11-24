@@ -447,8 +447,8 @@ Batch Number	<div class="col-md-12">
                        </div>
                        <div class="col-md-6">
                           <div class="form-group">
-                             <label for="credit_term">Credit Term</label>
-                             <input type="text" class="form-control" id="credit_term" name="credit_term">
+                             <label for="receipt_number">Receipt Number</label>
+                             <input type="text" class="form-control" id="receipt_number" name="receipt_number" required>
                           </div>
                        </div>
                    </div>

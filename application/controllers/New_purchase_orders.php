@@ -1336,6 +1336,7 @@ class New_purchase_orders extends CI_Controller {
         $center_id = $this->input->post('center_id'); // This is the hms_centers.ID
         $receive_by = $this->input->post('receive_by');
         $receipt_date = $this->input->post('receipt_date');
+        $receipt_number = $this->input->post('receipt_number');
         $created_by_id = $this->Stock_model_new->get_employee_id_from_number($_SESSION['logged_central_stock_manager']['employee_number']); // Placeholder - FIX THIS
         if (empty($po_id) || empty($center_id)) {
             $this->session->set_flashdata('error', 'Error: Missing PO ID or Center ID.');
@@ -1412,6 +1413,7 @@ class New_purchase_orders extends CI_Controller {
                     'created_by'       => $created_by_id,
                     'center_id'        => $center_id, // The destination center
                     'receive_by'       => $receive_by,
+                    'receipt_number'   => $receipt_number,
                     'uploaded_files'   => ($row_counter == 1) ? $file_names : null // Attach files to first item's log
                 ];
                 // *** THIS IS THE FIX ***
@@ -1458,7 +1460,6 @@ class New_purchase_orders extends CI_Controller {
 
         // Get data from model
         $data['received_items'] = $this->New_purchase_order_model->get_received_stock_report($filters);
-        
         // Get data for filter dropdowns
         $data['vendors'] = $this->get_vendors();
         $data['filters'] = $filters; // Pass filters to the view

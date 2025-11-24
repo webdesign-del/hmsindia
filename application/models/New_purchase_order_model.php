@@ -596,6 +596,7 @@ class New_purchase_order_model extends CI_Model {
                 sm.receive_by,
                 sm.uploaded_files,
                 sm.reference_number as po_number,
+                sm.receipt_number,
                 po.vendor_number,
                 v.name as vendor_name,
                 c.center_name,
