@@ -234,7 +234,7 @@
                                        <!-- <input type="hidden" name="consumables_vendor_price_<?php echo $index + 1; ?>" 
                                           id="consumables_vendor_price_hidden_<?php echo $index + 1; ?>" value="<?php echo $item['vendor_price']; ?>"> -->
                                        <input type="hidden" name="consumables_pack_size_<?php echo $index + 1; ?>" 
-                                          id="consumables_pack_size_hidden_<?php echo $index + 1; ?>" value="<?php echo $item['pack_size']; ?>">
+                                          id="consumables_pack_size_hidden_<?php echo $index + 1; ?>" value="<?php echo $item['pack_size']; ?>" >
                                        <!-- <input type="hidden" name="consumables_mrp_<?php echo $index + 1; ?>" 
                                           id="consumables_mrp_hidden_<?php echo $index + 1; ?>" value="<?php echo $item['mrp']; ?>"> -->
                                        <!-- <input type="hidden" name="consumables_gstrate_<?php echo $index + 1; ?>" 
@@ -258,7 +258,7 @@
                                     <td>
                                        <input type="text" class="form-control" name="consumables_pack_size_<?php echo $index + 1; ?>" 
                                           id="consumables_pack_size_<?php echo $index + 1; ?>" 
-                                          value="<?php echo $item['pack_size']; ?>" >
+                                          value="<?php echo $item['pack_size']; ?>" readonly >
                                     </td>
                                     <td>
                                        <input type="number" class="form-control" name="consumables_mrp_<?php echo $index + 1; ?>" 
@@ -385,7 +385,7 @@ function addNewRow() {
                     step="0.01" min="0" onchange="updateTotal(${rowCounter})">
             </td>
             <td>
-                <input type="text" class="form-control" name="consumables_pack_size_${rowCounter}" id="consumables_pack_size_${rowCounter}" >
+                <input type="text" class="form-control" name="consumables_pack_size_${rowCounter}" id="consumables_pack_size_${rowCounter}" readonly >
             </td>
             <td>
                 <input type="number" class="form-control" name="consumables_mrp_${rowCounter}" id="consumables_mrp_${rowCounter}" 

@@ -178,7 +178,7 @@
                                             step="0.01" min="0" onchange="updateTotal(1)">
                                     </td>
                                     <td>
-                                        <input type="text" class="form-control" name="consumables_pack_size_1" id="consumables_pack_size_1" >
+                                        <input type="text" class="form-control" name="consumables_pack_size_1" id="consumables_pack_size_1" readonly >
                                     </td>
                                     <td>
                                         <input type="number" class="form-control" name="consumables_mrp_1" id="consumables_mrp_1" 
