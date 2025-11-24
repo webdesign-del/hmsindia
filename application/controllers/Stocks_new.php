@@ -512,8 +512,8 @@ class Stocks_new extends CI_Controller
                     $selling_price_pack = floatval($this->input->post("selling_price"));
                     $mrp_pack = $this->input->post("mrp") ? floatval($this->input->post("mrp")) : NULL;
                     // Calculate per unit prices (divide pack price by pack_size)
-                    $selling_price_unit = $selling_price_pack / $pack_size;
-                    $mrp_unit = $mrp_pack ? ($mrp_pack / $pack_size) : NULL;
+                    // $selling_price_unit = $selling_price_pack / $pack_size;
+                    // $mrp_unit = $mrp_pack ? ($mrp_pack / $pack_size) : NULL;
 
                     $batch_data = [
                         "medicine_id" => $this->input->post("medicine_id"),
@@ -522,8 +522,8 @@ class Stocks_new extends CI_Controller
                         "manufacturing_date" => $this->input->post("manufacturing_date") ?: NULL,
                         "expiry_date" => $this->input->post("expiry_date"),
                         "purchase_price" => $purchase_price_unit, // Store per unit price
-                        "selling_price" => $selling_price_unit, // Store per unit price
-                        "mrp" => $mrp_unit, // Store per unit MRP
+                        "selling_price" => $selling_price_pack, // Store per unit price
+                        "mrp" => $mrp_pack, // Store per unit MRP
                         "quantity_purchased" => $quantity_purchased_units, // Store quantity in units
                         "quantity_remaining" => $quantity_purchased_units, // Set remaining to purchased (in units)
                         "purchase_date" => $this->input->post("purchase_date") ?: date('Y-m-d'),

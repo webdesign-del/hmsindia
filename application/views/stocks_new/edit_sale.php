@@ -353,25 +353,16 @@
      */
     function calculateTotals() {
         var quantity = parseFloat($('input[name="quantity_sold"]').val()) || 0;
-        // This is now the Taxable Amount (Price before GST)
         var unitPrice = parseFloat($('input[name="unit_price"]').val()) || 0;
         var discountPercent = parseFloat($('input[name="discount_percent"]').val()) || 0;
-        
-        // Get GST rate from our hidden field
         var gstRate = parseFloat($('#gst_rate').val()) || 0;
-        
-        // --- 1. Check Quantity ---
         var maxAvailable = parseInt($('input[name="quantity_sold"]').attr('max')) || 0;
         if (quantity > maxAvailable && maxAvailable > 0) {
             alert('Quantity cannot exceed available stock (' + maxAvailable + ').');
             $('input[name="quantity_sold"]').val(maxAvailable);
             quantity = maxAvailable;
         }
-
-        // --- 2. Calculate Subtotal (Price before discount or tax) ---
         var subtotal = quantity * unitPrice;
-        
-        // --- 3. Calculate Discount ---
         var discountAmount = 0;
         if (discountPercent > 100) {
             alert('Discount cannot be greater than 100%.');
@@ -379,70 +370,42 @@
             discountPercent = 100;
         }
         discountAmount = subtotal * (discountPercent / 100);
-        
-        // --- 4. Calculate Final Taxable Amount ---
         var finalTaxableAmount = subtotal - discountAmount;
-        
-        // --- 5. Calculate Tax ---
         var taxAmount = 0;
         if (gstRate > 0) {
-            // Tax is calculated on the amount *after* discount
             taxAmount = finalTaxableAmount * (gstRate / 100);
         }
-        
-        // --- 6. Calculate Total ---
         var finalTotal = finalTaxableAmount + taxAmount;
-        
-        // --- 7. Update all read-only fields ---
         $('input[name="subtotal"]').val(subtotal.toFixed(2));
         $('input[name="tax_amount"]').val(taxAmount.toFixed(2)); // Now readonly
         $('input[name="total"]').val(finalTotal.toFixed(2));
     }
-
-    /**
-     * This function runs when the batch dropdown changes.
-     */
     function loadBatchDetails() {
         var selectedOption = $('#batch_id_select option:selected');
         
         if (selectedOption.val()) {
             var gstRate = selectedOption.data('gst-rate');
-            var unitPrice_MRP = selectedOption.data('price'); // This is the MRP (e.g., 130)
-            
-            // --- NEW: Calculate Taxable Amount ---
+            var quentity =selectedOption.data('available')
+            var unitPrice_MRP = selectedOption.data('price')/quentity; 
             var taxableAmount = 0;
             if (gstRate > 0) {
                 taxableAmount = unitPrice_MRP / (1 + (gstRate / 100));
             } else {
                 taxableAmount = unitPrice_MRP;
             }
-            // --- END NEW ---
-
-            // Populate Details Box
             $('#medicine_name').text(selectedOption.data('medicine'));
             $('#brand_name').text(selectedOption.data('brand'));
             $('#expiry_date').text(selectedOption.data('expiry'));
             $('#available_qty').text(selectedOption.data('available'));
-            
-            // --- THIS IS THE FIX ---
             $('#gst_rate_display').text(gstRate + '%'); 
             $('#taxable_amount_display').text('₹' + taxableAmount.toFixed(2)); 
-            // --- END FIX ---
-            
             $('#medicine_details').show();
-            
-            // Set form values
             $('input[name="unit_price"]').val(taxableAmount.toFixed(2));
             $('input[name="quantity_sold"]').attr('max', selectedOption.data('available'));
             $('input[name="quantity_sold"]').val(1); // Default to 1
             $('input[name="discount_percent"]').val(''); // Clear discount
-            
-            // Store the GST rate in our hidden field
             $('#gst_rate').val(gstRate);
-            
-            // Calculate totals for the new item
             calculateTotals();
-            
         } else {
             // Clear all fields
             $('#medicine_details').hide();
