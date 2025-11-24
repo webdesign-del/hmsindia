@@ -79,7 +79,9 @@
             color: var(--foreground);
             margin-bottom: 0.25rem;
         }
-
+        label {
+            margin-bottom: 10px !important;
+        }
         .card-subtitle {
             font-size: 0.875rem;
             color: var(--muted);
@@ -426,6 +428,15 @@ label.radio-item {
     float: right;
     display: flex;
 }
+[type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+    position: static;
+    left: -9999px;
+    opacity: 1;
+    margin: 0px;
+}
+textarea {
+    height: 100px !important;
+}
     </style>
 </head>
 <body>
@@ -567,7 +578,7 @@ label.radio-item {
                         <!-- Diagnosis & Management -->
                         <section class="form-grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Diagnosis -->
-                            <div class="form-grid space-y-4">
+                            <div class="form-grid space-y-4" style="margin-top:-15px;">
                                 <h3 class="section-title">Diagnosis / Factors</h3>
                                 
                                 <div class="checkbox-group">
@@ -604,28 +615,28 @@ label.radio-item {
                             <div class="form-grid space-y-4">
                                 <h3 class="section-title">Management Advised</h3>
                                 
-                                <div class="checkbox-group grid-cols-2">
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="management" value="Natural" class="checkbox-input">
-                                        Natural
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="management" value="Medical" class="checkbox-input">
-                                        Medical
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="management" value="Surgical" class="checkbox-input">
-                                        Surgical
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="management" value="IUI" class="checkbox-input">
-                                        IUI
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="management" value="ART" class="checkbox-input">
-                                        ART
-                                    </label>
-                                </div>
+                                <div class="checkbox-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <label class="checkbox-item">
+        <input type="checkbox" name="management" value="Natural" class="checkbox-input">
+        Natural
+    </label>
+    <label class="checkbox-item">
+        <input type="checkbox" name="management" value="IUI" class="checkbox-input">
+        IUI
+    </label>
+    <label class="checkbox-item">
+        <input type="checkbox" name="management" value="Medical" class="checkbox-input">
+        Medical
+    </label>
+    <label class="checkbox-item">
+        <input type="checkbox" name="management" value="ART" class="checkbox-input">
+        ART
+    </label>
+    <label class="checkbox-item">
+        <input type="checkbox" name="management" value="Surgical" class="checkbox-input">
+        Surgical
+    </label>
+</div>
                                 
                                 <div class="form-group">
                                     <label class="label" for="reason">Reason for advised management</label>

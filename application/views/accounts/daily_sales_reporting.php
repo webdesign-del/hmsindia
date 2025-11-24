@@ -296,7 +296,7 @@ $(document).ready(function() {
                     <td>A. Package Revenue Total</td>
                     <td><input type="text" id="package_customer_count" name="package_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
                    <td><input type="text" id="package_amount" name="package_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
-                    <td><input type="text" id="package_bill_count" name="package_bill_count" value="<?php echo round($vl['total_fees'],2); ?>"></td>
+                    <td><input type="text" id="package_bill_count" name="package_bill_count" value="<?php echo round($vl['total_payment'],2); ?>"></td>
                     
                 </tr>
                 <?php } ?>
