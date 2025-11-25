@@ -55,7 +55,7 @@
                                     </option>
                                     <?php endforeach; ?>
                                     <?php endif; ?>
-                            <option value ="">Central warehouse Noida</option>
+                            <option value="CENTRAL_WAREHOUSE_NOIDA">Central warehouse Noida</option>
                         </select>
                     </div>
                 </div>
@@ -71,7 +71,7 @@
                                     </option>
                                 <?php endforeach; ?>
                             <?php endif; ?>
-                            <option value ="">Central warehouse Noida</option>
+                            <option value="CENTRAL_WAREHOUSE_NOIDA">Central warehouse Noida</option>
                         </select>
                     </div>
                 </div>
@@ -80,7 +80,7 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="department">Department <span class="text-danger">*</span></label>
+                        <label for="department">Department <span class="text-danger" id="dept_required">*</span></label>
                         <!-- <select name="department" class="form-control"  id="department" required>
                             <option value="">Select Department</option>
                             <?php foreach($departments as $dept): ?>
@@ -89,7 +89,7 @@
                                     </option>
                             <?php endforeach; ?>
                         </select> -->
-                        	<select name="department" id="department" class="form-control" required>
+                        	<select name="department" id="department" class="form-control">
                                 <option value="">Select Department</option>
                                 <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
                                 <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
@@ -425,6 +425,29 @@ $(document).ready(function() {
         width: '100%'
     });
 
+    // Handle Ship To change - show/hide department field for Central Warehouse Noida
+    $('#ship_to').on('change', function() {
+        var shipTo = $(this).val();
+        if (shipTo === 'CENTRAL_WAREHOUSE_NOIDA') {
+            // Hide and make department not required
+            $('#department').closest('.form-group').hide();
+            $('#department').removeAttr('required');
+            $('#dept_required').hide();
+        } else {
+            // Show and make department required
+            $('#department').closest('.form-group').show();
+            $('#department').attr('required', 'required');
+            $('#dept_required').show();
+        }
+    });
+
+    // Trigger on page load if value is already selected
+    if ($('#ship_to').val() === 'CENTRAL_WAREHOUSE_NOIDA') {
+        $('#department').closest('.form-group').hide();
+        $('#department').removeAttr('required');
+        $('#dept_required').hide();
+    }
+
     // Filter items by selected vendor on add page
     $('#vendor_number').on('change', function() {
         var vendorNumber = $(this).val();
@@ -485,6 +508,13 @@ $(document).ready(function() {
     // Initialize form validation
     $('#add_po_form').on('submit', function(e) {
         var isValid = true;
+        
+        // Check department requirement based on ship_to
+        var shipTo = $('#ship_to').val();
+        if (shipTo !== 'CENTRAL_WAREHOUSE_NOIDA' && !$('#department').val()) {
+            alert('Please select a department.');
+            isValid = false;
+        }
         
         // Check if at least one item is selected
         var hasItems = false;

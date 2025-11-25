@@ -7105,6 +7105,11 @@ class Stock_model_new extends CI_Model
         $batch_number = $item_data['batch_number'];
         $vendor_id = $item_data['vendor_id'];
         $center_id = $item_data['center_id'];
+        $is_central_warehouse = isset($item_data['is_central_warehouse']) && $item_data['is_central_warehouse'] === true;
+        // Also check if center_id is null/empty as fallback
+        if (!$is_central_warehouse && (empty($center_id) || $center_id === 'CENTRAL_WAREHOUSE_NOIDA')) {
+            $is_central_warehouse = true;
+        }
         $quantity_received = $item_data['quantity'] + $item_data['free_qty']; // Total quantity
         $created_by = $item_data['created_by'];
         if (empty($medicine_id) || empty($batch_number) || empty($vendor_id)) {
@@ -7148,44 +7153,85 @@ class Stock_model_new extends CI_Model
             $this->db->trans_rollback();
             return ['status' => 'error', 'message' => 'Could not create or find batch.'];
         }
-        // 5. Now, update the correct stock location (center_stocks)
-        $this->db->from('center_stocks');
-        $this->db->where('batch_id', $batch_id);
-        $this->db->where('center_id', $center_id);
-        $stock_record = $this->db->get()->row();
+        
+        // 5. Determine stock location - central_stocks or center_stocks
         $quantity_before = 0;
-        if ($stock_record) {
-            // 6A. STOCK RECORD EXISTS: Update it.
-            $quantity_before = $stock_record->quantity;
-            $this->db->where('id', $stock_record->id);
-            $this->db->set('quantity', 'quantity + ' . (float)$quantity_received, FALSE);
-            $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
-            $this->db->set('department',$item_data['department'] ?? null);
-            $this->db->update('center_stocks');
-            // Also update the main batch 'quantity_remaining'
-            if (!$is_new_batch) { // Only if it wasn't a new batch
-                $this->db->where('id', $batch_id);
-                $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
-                $this->db->update('medicine_batches');
+        if ($is_central_warehouse) {
+            // Save to central_stocks (no center_id, no department)
+            $this->db->from('central_stocks');
+            $this->db->where('batch_id', $batch_id);
+            $stock_record = $this->db->get()->row();
+            
+            if ($stock_record) {
+                // 6A. STOCK RECORD EXISTS: Update it.
+                $quantity_before = $stock_record->quantity;
+                $this->db->where('id', $stock_record->id);
+                $this->db->set('quantity', 'quantity + ' . (float)$quantity_received, FALSE);
+                $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
+                $this->db->set('status', 'ACTIVE');
+                $this->db->update('central_stocks');
+                // Also update the main batch 'quantity_remaining'
+                if (!$is_new_batch) {
+                    $this->db->where('id', $batch_id);
+                    $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
+                    $this->db->update('medicine_batches');
+                }
+            } else {
+                // 6B. NEW STOCK RECORD: Insert it.
+                $central_stock_data = [
+                    "batch_id"  => $batch_id,
+                    "quantity"  => $quantity_received,
+                    "last_movement_date" => date("Y-m-d H:i:s"),
+                    "status"    => "ACTIVE"
+                ];
+                $this->db->insert("central_stocks", $central_stock_data);
             }
+            $to_location_type = "CENTRAL";
+            $to_location_id = null;
         } else {
-            $center_stock_data = [
-                "batch_id"  => $batch_id,
-                "center_id" => $center_id,
-                "quantity"  => $quantity_received,
-                "last_movement_date" => date("Y-m-d H:i:s"),
-                "department" => $item_data['department'] ?? null,
-                "status"    => "ACTIVE"
-            ];
-            $this->db->insert("center_stocks", $center_stock_data);
+            // Save to center_stocks (with center_id and department)
+            $this->db->from('center_stocks');
+            $this->db->where('batch_id', $batch_id);
+            $this->db->where('center_id', $center_id);
+            $stock_record = $this->db->get()->row();
+            
+            if ($stock_record) {
+                // 6A. STOCK RECORD EXISTS: Update it.
+                $quantity_before = $stock_record->quantity;
+                $this->db->where('id', $stock_record->id);
+                $this->db->set('quantity', 'quantity + ' . (float)$quantity_received, FALSE);
+                $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
+                $this->db->set('department', $item_data['department'] ?? null);
+                $this->db->update('center_stocks');
+                // Also update the main batch 'quantity_remaining'
+                if (!$is_new_batch) {
+                    $this->db->where('id', $batch_id);
+                    $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
+                    $this->db->update('medicine_batches');
+                }
+            } else {
+                // 6B. NEW STOCK RECORD: Insert it.
+                $center_stock_data = [
+                    "batch_id"  => $batch_id,
+                    "center_id" => $center_id,
+                    "quantity"  => $quantity_received,
+                    "last_movement_date" => date("Y-m-d H:i:s"),
+                    "department" => $item_data['department'] ?? null,
+                    "status"    => "ACTIVE"
+                ];
+                $this->db->insert("center_stocks", $center_stock_data);
+            }
+            $to_location_type = "CENTER";
+            $to_location_id = $center_id;
         }
+        
         $movement_data = [
             "batch_id"           => $batch_id,
             "movement_type"      => "PURCHASE", 
             "from_location_type" => "VENDOR",
             "from_location_id"   => $vendor_id,
-            "to_location_type"   => "CENTER",
-            "to_location_id"     => $center_id,
+            "to_location_type"   => $to_location_type,
+            "to_location_id"     => $to_location_id,
             "quantity_change"    => $quantity_received,
             "quantity_before"    => $quantity_before,
             "quantity_after"     => $quantity_before + $quantity_received,

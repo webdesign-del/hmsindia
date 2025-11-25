@@ -729,12 +729,18 @@ class New_purchase_orders extends CI_Controller {
             $data['vendor_id'] = $data['purchase_order']['vendor_number'] ?? null;
             $bill_to_id = $data['purchase_order']['bill_to'] ?? null;
             $ship_to_id = $data['purchase_order']['ship_to'] ?? null;
-            $bill_to_center = $bill_to_id ? $this->get_center_by_id($bill_to_id) : null;
-            $ship_to_center = $ship_to_id ? $this->get_center_by_id($ship_to_id) : null;
-            $data['bill_to_address'] = $bill_to_center ? ($bill_to_center->center_name . ', ' . $bill_to_center->center_address) : 'N/A'; // Use address from hms_centers
-            $data['ship_to_address'] = $ship_to_center ? ($ship_to_center->center_name . ', ' . $ship_to_center->center_address) : 'N/A'; // Use address from hms_centers
-            $data['ship_to_center_id'] = $ship_to_center ? $ship_to_center->ID : null;
-            if (empty($data['ship_to_center_id'])) {
+            
+            // Check if it's Central Warehouse Noida
+            $is_central_warehouse = ($ship_to_id === 'CENTRAL_WAREHOUSE_NOIDA');
+            $data['is_central_warehouse'] = $is_central_warehouse;
+            
+            $bill_to_center = ($bill_to_id && $bill_to_id !== 'CENTRAL_WAREHOUSE_NOIDA') ? $this->get_center_by_id($bill_to_id) : null;
+            $ship_to_center = ($ship_to_id && !$is_central_warehouse) ? $this->get_center_by_id($ship_to_id) : null;
+            
+            $data['bill_to_address'] = $bill_to_center ? ($bill_to_center->center_name . ', ' . $bill_to_center->center_address) : ($bill_to_id === 'CENTRAL_WAREHOUSE_NOIDA' ? 'Central Warehouse Noida' : 'N/A');
+            $data['ship_to_address'] = $is_central_warehouse ? 'Central Warehouse Noida' : ($ship_to_center ? ($ship_to_center->center_name . ', ' . $ship_to_center->center_address) : 'N/A');
+            $data['ship_to_center_id'] = $is_central_warehouse ? null : ($ship_to_center ? $ship_to_center->ID : null);
+            if (!$is_central_warehouse && empty($data['ship_to_center_id'])) {
                  $this->session->set_flashdata('error', 'Valid destination center (Ship To) not found for this PO!');
                  // Optionally redirect back, or let the view handle showing an error
                  // redirect('new_purchase_orders/view/' . $id);
@@ -1339,8 +1345,24 @@ class New_purchase_orders extends CI_Controller {
         $receipt_date = $this->input->post('receipt_date');
         $receipt_number = $this->input->post('receipt_number');
         $created_by_id = $this->Stock_model_new->get_employee_id_from_number($_SESSION['logged_central_stock_manager']['employee_number']); // Placeholder - FIX THIS
-        if (empty($po_id) || empty($center_id)) {
-            $this->session->set_flashdata('error', 'Error: Missing PO ID or Center ID.');
+        
+        // Get purchase order to check if it's for Central Warehouse Noida
+        $purchase_order = $this->New_purchase_order_model->get_purchase_order_by_id($po_id);
+        $is_central_warehouse = false;
+        if ($purchase_order && $purchase_order['ship_to'] === 'CENTRAL_WAREHOUSE_NOIDA') {
+            $is_central_warehouse = true;
+            $center_id = null; // No center_id for central warehouse
+        }
+        
+        if (empty($po_id)) {
+            $this->session->set_flashdata('error', 'Error: Missing PO ID.');
+            redirect('new_purchase_orders');
+            return;
+        }
+        
+        // Only require center_id if it's not central warehouse
+        if (!$is_central_warehouse && empty($center_id)) {
+            $this->session->set_flashdata('error', 'Error: Missing Center ID.');
             redirect('new_purchase_orders');
             return;
         }
@@ -1407,15 +1429,16 @@ class New_purchase_orders extends CI_Controller {
                     'po_id'            => $po_id,
                     'po_number'        => $po_number,
                     'invoice_number'   => $this->input->post('reference'), 
-                    'department'       => $this->input->post('department'),
+                    'department'       => $is_central_warehouse ? null : $this->input->post('department'), // No department for central warehouse
                     'invoice_date'     => $receipt_date,
                     'receive_date'     => $this->input->post('date_receiving'),
                     'remarks'          => $this->input->post('comments_' . $row_counter),
                     'created_by'       => $created_by_id,
-                    'center_id'        => $center_id, // The destination center
+                    'center_id'        => $center_id, // null for central warehouse
                     'receive_by'       => $receive_by,
                     'receipt_number'   => $receipt_number,
-                    'uploaded_files'   => ($row_counter == 1) ? $file_names : null // Attach files to first item's log
+                    'uploaded_files'   => ($row_counter == 1) ? $file_names : null, // Attach files to first item's log
+                    'is_central_warehouse' => $is_central_warehouse // Flag to indicate central warehouse
                 ];
                 // *** THIS IS THE FIX ***
                 // Call the new, smart function from Stock_model_new
