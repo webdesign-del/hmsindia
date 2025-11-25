@@ -75,14 +75,35 @@
                                     <div class="form-group" id="from_department_group" style="display: none;">
                                         <label class="col-sm-4 control-label">From Department *</label>
                                         <div class="col-sm-8">
-                                            <select name="from_department" class="form-control"  id="from_department_select">
+                                            <!-- <select name="from_department" class="form-control"  id="from_department_select">
                                                 <option value="">Select Department</option>
                                                 <?php foreach($departments as $dept): ?>
                                                     <option value="<?php echo $dept['department']; ?>" <?php echo set_select('from_department', $dept['department']); ?>>
                                                         <?php echo $dept['department']; ?>
                                                     </option>
                                                 <?php endforeach; ?>
-                                            </select>
+                                            </select> -->
+                                                <select name="from_department" id="from_department" class="form-control" required>
+                                                    <option value="">Select Department</option>
+                                                    <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
+                                                    <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
+                                                    <option value="CASH MEDICINE GP">CASH MEDICINE BASANT LOK</option>
+                                                    <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
+                                                    <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
+                                                    <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE  ROHINI</option>
+                                                    <option value="CASH MEDICINE GHAZIABAD">HORMONAL ROHINI</option>
+                                                    <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
+                                                    <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
+                                                    <option value="Hormonal Delhi">Hormonal Basant Lok</option>
+                                                    <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
+                                                    <option value="Hormonal Noida">Hormonal Noida</option>
+                                                    <option value="Embryologist Noida">Embryologist Noida</option>
+                                                    <option value="OT Noida">OT Noida</option>
+                                                    <option value="OT Basant Lok">OT Basant Lok</option>
+                                                    <option value="Embryology Basant Lok">Embryology Basant Lok</option>
+                                                    <option value="Embryology Srinagar">Embryology Srinagar</option>
+                                                    <option value="OT Srinagar">OT Srinagar</option>
+                                                </select>
                                         </div>
                                     </div>
                                     
@@ -117,11 +138,32 @@
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">To Department *</label>
                                         <div class="col-sm-8">
-                                            <select name="to_department" class="form-control" >
+                                            <!-- <select name="to_department" class="form-control" >
                                                 <option value="">Select Department</option>
                                                 <?php foreach($departments as $dept): ?>
                                                     <option value="<?php echo $dept['department']; ?>"><?php echo $dept['department']; ?></option>
                                                 <?php endforeach; ?>
+                                            </select> -->
+                                            <select name="to_department" id="to_department" class="form-control" required>
+                                                <option value="">Select Department</option>
+                                                <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
+                                                <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
+                                                <option value="CASH MEDICINE GP">CASH MEDICINE BASANT LOK</option>
+                                                <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
+                                                <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
+                                                <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE  ROHINI</option>
+                                                <option value="CASH MEDICINE GHAZIABAD">HORMONAL ROHINI</option>
+                                                <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
+                                                <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
+                                                <option value="Hormonal Delhi">Hormonal Basant Lok</option>
+                                                <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
+                                                <option value="Hormonal Noida">Hormonal Noida</option>
+                                                <option value="Embryologist Noida">Embryologist Noida</option>
+                                                <option value="OT Noida">OT Noida</option>
+                                                <option value="OT Basant Lok">OT Basant Lok</option>
+                                                <option value="Embryology Basant Lok">Embryology Basant Lok</option>
+                                                <option value="Embryology Srinagar">Embryology Srinagar</option>
+                                                <option value="OT Srinagar">OT Srinagar</option>
                                             </select>
                                         </div>
                                     </div>
