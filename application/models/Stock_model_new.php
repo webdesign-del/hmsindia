@@ -2644,7 +2644,7 @@ class Stock_model_new extends CI_Model
     public function get_available_batches_for_sale($center_id)
     {
         $this->db->select(
-            "mb.*, m.medicine_name, m.medicine_code, mb2.brand_name as brand_name,m.gst_rate as gst_rate, ccs.quantity as available_quantity",
+            "mb.*, m.medicine_name,m.pack_size, m.medicine_code, mb2.brand_name as brand_name,m.gst_rate as gst_rate, ccs.quantity as available_quantity",
         );
         $this->db->from("medicine_batches mb");
         $this->db->join("medicines m", "mb.medicine_id = m.id");

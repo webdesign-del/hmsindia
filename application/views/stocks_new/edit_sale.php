@@ -98,6 +98,7 @@
                                                                 data-available="<?php echo $batch->available_quantity; ?>"
                                                                 data-medicine="<?php echo $batch->medicine_name; ?>"
                                                                 data-gst-rate="<?php echo $batch->gst_rate; ?>"
+                                                                data-pack-size="<?php echo $batch->pack_size; ?>"
                                                                 data-brand="<?php echo $batch->brand_name; ?>">
                                                             <?php echo $batch->medicine_name . ' - ' . $batch->batch_number . ' (Exp: ' . date('M d, Y', strtotime($batch->expiry_date)) . ') - Available: ' . $batch->available_quantity; ?>
                                                         </option>
@@ -385,8 +386,9 @@
         
         if (selectedOption.val()) {
             var gstRate = selectedOption.data('gst-rate');
-            var quentity =selectedOption.data('available')
-            var unitPrice_MRP = selectedOption.data('price')/quentity; 
+            var quentity =selectedOption.data('available');
+            var pack_size =selectedOption.data('pack-size');
+            var unitPrice_MRP = selectedOption.data('price')/pack_size; 
             var taxableAmount = 0;
             if (gstRate > 0) {
                 taxableAmount = unitPrice_MRP / (1 + (gstRate / 100));
