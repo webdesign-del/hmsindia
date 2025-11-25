@@ -7067,15 +7067,19 @@ class Stocks_new extends CI_Controller
         // 6. Write CSV Header Row
         fputcsv($output, [
             'Center Name',
+            'Department',
             'Medicine Code',
             'Medicine Name',
             'Brand',
             'Batch Number',
             'Expiry Date',
             'Days Left',
-            'Purchase Price',
-            'Selling Price',
             'Quantity',
+            'Vendor Price',
+            'Single unit price',
+            'Total Vendor Price',
+            'Mrp',
+            'Pack Size',
             'Status'
         ]);
         
@@ -7084,15 +7088,19 @@ class Stocks_new extends CI_Controller
             foreach ($stock_data as $row) {
                 fputcsv($output, [
                     $row->center_name,
+                    $row->department,
                     $row->medicine_code,
                     $row->medicine_name,
                     $row->brand_name,
                     $row->batch_number,
                     $row->expiry_date,
                     $row->expiry_days,
-                    $row->purchase_price,
-                    $row->selling_price,
                     $row->quantity, // from ccs.quantity
+                    $row->purchase_price,
+                    $row->purchase_price/$row->pack_size,
+                    ($row->purchase_price/$row->pack_size)*$row->quantity,
+                    $row->selling_price,
+                    $row->pack_size,
                     $row->status    // from ccs.status
                 ]);
             }

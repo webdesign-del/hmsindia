@@ -7179,15 +7179,6 @@ class Stock_model_new extends CI_Model
             ];
             $this->db->insert("center_stocks", $center_stock_data);
         }
-        // 7. Update main batch 'quantity_remaining' IF IT WAS AN EXISTING BATCH
-        // This is now outside the `if ($stock_record)` block.
-        // if (!$is_new_batch) { 
-        //     $this->db->where('id', $batch_id);
-        //     $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
-        //     $this->db->update('medicine_batches');
-        // }
-        // die;
-        // **********************************
         $movement_data = [
             "batch_id"           => $batch_id,
             "movement_type"      => "PURCHASE", 

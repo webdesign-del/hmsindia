@@ -214,7 +214,7 @@
                                  </a>
                                  
                                  <!-- Edit button - disabled if approved or completed -->
-                                 <?php if ($status == 'pending' || $status == 'rejected'): ?>
+                                 <?php if ($status == 'pending' || $status != 'rejected'): ?>
                                     <a href="<?php echo base_url('new_purchase_orders/edit/' . (!empty($po['id']) ? $po['id'] : '0')); ?>" 
                                        class="btn btn-xs btn-warning" title="Edit">
                                        <i class="fa fa-edit"></i>

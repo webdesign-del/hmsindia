@@ -53,8 +53,9 @@
                                     <option value="<?php echo $center['center_number']; ?>">
                                         <?php echo $center['center_name']; ?>
                                     </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                                    <?php endforeach; ?>
+                                    <?php endif; ?>
+                            <option value ="">Central warehouse Noida</option>
                         </select>
                     </div>
                 </div>
@@ -70,6 +71,7 @@
                                     </option>
                                 <?php endforeach; ?>
                             <?php endif; ?>
+                            <option value ="">Central warehouse Noida</option>
                         </select>
                     </div>
                 </div>
