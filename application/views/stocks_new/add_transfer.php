@@ -83,7 +83,7 @@
                                                     </option>
                                                 <?php endforeach; ?>
                                             </select> -->
-                                                <select name="from_department" id="from_department" class="form-control" required>
+                                                <select name="from_department" id="from_department" class="form-control" >
                                                     <option value="">Select Department</option>
                                                     <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
                                                     <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
@@ -445,7 +445,6 @@ function displayAvailableStocks(stocks) {
     html += '<th>Brand</th>';
     html += '<th>Vendor</th>';
     html += '<th>Location</th>';
-    html += '<th>Actions</th>';
     html += '</tr>';
     html += '</thead>';
     html += '<tbody>';
@@ -474,11 +473,6 @@ function displayAvailableStocks(stocks) {
         html += '<td>' + (stock.brand_name || 'N/A') + '</td>';
         html += '<td>' + (stock.vendor_name || 'N/A') + '</td>';
         html += '<td>' + (stock.center_name || 'Central') + '<br><small class="text-muted">' + (stock.department_name || 'N/A') + '</small></td>';
-        html += '<td>';
-        html += '<button class="btn btn-sm btn-success" onclick="selectStockForTransfer(' + stock.batch_id + ', \'' + stock.medicine_name + '\', \'' + stock.batch_number + '\', ' + stock.quantity_remaining + ')">';
-        html += '<i class="fa fa-plus"></i> Select';
-        html += '</button>';
-        html += '</td>';
         html += '</tr>';
     });
     
