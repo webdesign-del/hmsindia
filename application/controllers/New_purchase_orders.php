@@ -57,6 +57,7 @@ class New_purchase_orders extends CI_Controller {
                         $data['filters'] = $filters;
             $data['current_page'] = $page;
             $data['total_pages'] = ceil($data['total_count'] / $limit);
+            $data['vendors'] = $this->get_vendors();
             
             // Get pending count for administrators
             if ($logg['role'] == 'administrator') {

@@ -48,8 +48,16 @@
          <div class="col-sm-2 col-xs-12">
             <div class="form-group">
                <label for="vendor_number">Vendor</label>
-               <input type="text" class="form-control" id="vendor_number" name="vendor_number" 
-                  value="<?php echo $filters['vendor_number']; ?>" placeholder="Vendor">
+               <select class="form-control" id="vendor_number" name="vendor_number">
+                  <option value="">All Vendors</option>
+                  <?php if (!empty($vendors)): ?>
+                     <?php foreach ($vendors as $vendor): ?>
+                        <option value="<?php echo $vendor['ID']; ?>" <?php echo ($filters['vendor_number'] == $vendor['ID']) ? 'selected' : ''; ?>>
+                           <?php echo htmlspecialchars($vendor['name']); ?>
+                        </option>
+                     <?php endforeach; ?>
+                  <?php endif; ?>
+               </select>
             </div>
          </div>
          <!-- Buttons -->

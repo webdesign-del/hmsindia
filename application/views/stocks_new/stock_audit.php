@@ -56,36 +56,26 @@
                     <div class="form-group" id="department_filter_group" 
                          style="display: <?php echo (is_numeric($selected_center_id)) ? 'inline-block' : 'none'; ?>;">
                         <label for="department_select_filter">Department:</label>
-                        <!-- <select name="department" id="department_select_filter" class="form-control" style="min-width: 250px;">
+                        <select name="department" id="department_select_filter" class="form-control" style="min-width: 250px;">
                             <option value="">All Departments</option>
-                            <?php if(!empty($departments)): ?>
-                                <?php foreach($departments as $dept): ?>
-                                    <option value="<?php echo $dept['department']; ?>" <?php echo ($selected_department == $dept['department']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($dept['department']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </select> -->
-                        <select name="department" id="department" class="form-control" required>
-                            <option value="">Select Department</option>
-                            <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
-                            <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
-                            <option value="CASH MEDICINE GP">CASH MEDICINE BASANT LOK</option>
-                            <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
-                            <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
-                            <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE  ROHINI</option>
-                            <option value="CASH MEDICINE GHAZIABAD">HORMONAL ROHINI</option>
-                            <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
-                            <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
-                            <option value="Hormonal Delhi">Hormonal Basant Lok</option>
-                            <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
-                            <option value="Hormonal Noida">Hormonal Noida</option>
-                            <option value="Embryologist Noida">Embryologist Noida</option>
-                            <option value="OT Noida">OT Noida</option>
-                            <option value="OT Basant Lok">OT Basant Lok</option>
-                            <option value="Embryology Basant Lok">Embryology Basant Lok</option>
-                            <option value="Embryology Srinagar">Embryology Srinagar</option>
-                            <option value="OT Srinagar">OT Srinagar</option>
+                            <option value="CASH MEDICINE NOIDA" <?php echo ($selected_department == 'CASH MEDICINE NOIDA') ? 'selected' : ''; ?>>CASH MEDICINE NOIDA</option>
+                            <option value="CASH MEDICINE GGN" <?php echo ($selected_department == 'CASH MEDICINE GGN') ? 'selected' : ''; ?>>CASH MEDICINE GGN</option>
+                            <option value="CASH MEDICINE GP" <?php echo ($selected_department == 'CASH MEDICINE GP') ? 'selected' : ''; ?>>CASH MEDICINE BASANT LOK</option>
+                            <option value="CASH MEDICINE SRINAGAR" <?php echo ($selected_department == 'CASH MEDICINE SRINAGAR') ? 'selected' : ''; ?>>CASH MEDICINE SRINAGAR</option>
+                            <option value="CASH MEDICINE GHAZIABAD" <?php echo ($selected_department == 'CASH MEDICINE GHAZIABAD') ? 'selected' : ''; ?>>CASH MEDICINE GHAZIABAD</option>
+                            <option value="CASH MEDICINE  ROHINI" <?php echo ($selected_department == 'CASH MEDICINE  ROHINI') ? 'selected' : ''; ?>>CASH MEDICINE  ROHINI</option>
+                            <option value="HORMONAL ROHINI" <?php echo ($selected_department == 'HORMONAL ROHINI') ? 'selected' : ''; ?>>HORMONAL ROHINI</option>
+                            <option value="Hormonal Ghaziabad" <?php echo ($selected_department == 'Hormonal Ghaziabad') ? 'selected' : ''; ?>>Hormonal Ghaziabad</option>
+                            <option value="HORMONAL SRINAGAR" <?php echo ($selected_department == 'HORMONAL SRINAGAR') ? 'selected' : ''; ?>>HORMONAL SRINAGAR</option>
+                            <option value="Hormonal Basant Lok" <?php echo ($selected_department == 'Hormonal Basant Lok') ? 'selected' : ''; ?>>Hormonal Basant Lok</option>
+                            <option value="Hormonal Gurgaon" <?php echo ($selected_department == 'Hormonal Gurgaon') ? 'selected' : ''; ?>>Hormonal Gurgaon</option>
+                            <option value="Hormonal Noida" <?php echo ($selected_department == 'Hormonal Noida') ? 'selected' : ''; ?>>Hormonal Noida</option>
+                            <option value="Embryologist Noida" <?php echo ($selected_department == 'Embryologist Noida') ? 'selected' : ''; ?>>Embryologist Noida</option>
+                            <option value="OT Noida" <?php echo ($selected_department == 'OT Noida') ? 'selected' : ''; ?>>OT Noida</option>
+                            <option value="OT Basant Lok" <?php echo ($selected_department == 'OT Basant Lok') ? 'selected' : ''; ?>>OT Basant Lok</option>
+                            <option value="Embryology Basant Lok" <?php echo ($selected_department == 'Embryology Basant Lok') ? 'selected' : ''; ?>>Embryology Basant Lok</option>
+                            <option value="Embryology Srinagar" <?php echo ($selected_department == 'Embryology Srinagar') ? 'selected' : ''; ?>>Embryology Srinagar</option>
+                            <option value="OT Srinagar" <?php echo ($selected_department == 'OT Srinagar') ? 'selected' : ''; ?>>OT Srinagar</option>
                         </select>
                     </div>
                     <!-- *** END NEW *** -->
