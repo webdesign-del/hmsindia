@@ -3099,9 +3099,18 @@ class Stock_model_new extends CI_Model
         try {
             $this->db->select("ar.*, c.center_name");
             $this->db->from("audit_reports ar");
-            $this->db->join("hms_centers c", "ar.center_id = c.ID");
+            $this->db->join("hms_centers c", "ar.center_id = c.ID", "left"); // Use LEFT JOIN to include central warehouse (NULL center_id)
             $this->db->order_by("ar.created_at", "DESC");
-            return $this->db->get()->result();
+            $results = $this->db->get()->result();
+            
+            // Handle central warehouse display for records with NULL center_id
+            foreach ($results as $result) {
+                if ($result->center_id === null || $result->center_id == 0) {
+                    $result->center_name = 'Central Warehouse';
+                }
+            }
+            
+            return $results;
         } catch (Exception $e) {
             return [];
         }
@@ -5286,10 +5295,11 @@ class Stock_model_new extends CI_Model
             $location_type = $is_central_audit ? 'CENTRAL' : 'CENTER';
             // Use NULL for location_id if central, otherwise use the integer ID
             $location_id = $is_central_audit ? null : (int)$audit_location_key;
-            // The audit_reports.center_id column should store the integer ID or 0
-            $audit_report_center_id = $is_central_audit ? 0 : (int)$audit_location_key; // Use 0 for central
+            // The audit_reports.center_id column should store the integer ID or NULL for central warehouse
+            // Using NULL instead of 0 to satisfy foreign key constraint
+            $audit_report_center_id = $is_central_audit ? null : (int)$audit_location_key;
             
-            // Replace the 'center_id' key with the correct integer ID for the database
+            // Replace the 'center_id' key with the correct integer ID for the database (or NULL for central)
             $audit_header['center_id'] = $audit_report_center_id;
 
             $this->db->insert('audit_reports', $audit_header);
