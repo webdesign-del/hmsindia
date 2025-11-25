@@ -447,7 +447,7 @@ Batch Number	<div class="col-md-12">
                        </div>
                        <div class="col-md-6">
                           <div class="form-group">
-                             <label for="receipt_number">Receipt Number</label>
+                             <label for="receipt_number">Invoice No  <span class="text-danger">*</span></label>
                              <input type="text" class="form-control" id="receipt_number" name="receipt_number" required>
                           </div>
                        </div>

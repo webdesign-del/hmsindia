@@ -80,7 +80,7 @@
                     <th>Vendor Price</th>
                     <th>Vendor Price With GST</th>
                     <th>Receive By</th>
-                    <th>Receipt Number</th>
+                    <th>Invoice Number</th>
                     <th>file</th>
                     <th>Total Value</th>
                 </tr>
