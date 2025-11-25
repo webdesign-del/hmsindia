@@ -5093,7 +5093,7 @@ $countdownDuration = 7200;
 					</table>
 					<div class="step-navigation-buttons">
 						<button type="button" class="btn-step-prev" onclick="goToStep(8)">Previous</button>
-						<!-- <button type="button" class="btn-step-save-continue" onclick="saveAndContinue(9)">Save & Continue</button> -->
+						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(9)">Save & Continue</button>
 					</div>
 					</div>
 					<!-- End Step 9 -->
@@ -5121,24 +5121,25 @@ $countdownDuration = 7200;
 								$management_intervention = array();
 
 								if(!empty($patient_medical_info['management_intervention']) && isset($patient_medical_info['management_intervention'])){
-
-									$management_intervention = unserialize($patient_medical_info['management_intervention']);
-
+									$unserialized = @unserialize($patient_medical_info['management_intervention']);
+									if(is_array($unserialized)){
+										$management_intervention = $unserialized;
+									}
 								}
 
 							?>
 
-							<input type="checkbox" name="management_intervention[]" <?php if(in_array('Natural', $management_intervention)){echo 'checked="checked"';}?> value="Natural"> NATURAL <br>
+							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('Natural', $management_intervention)){echo 'checked="checked"';}?> value="Natural"> NATURAL <br>
 
-							<input type="checkbox" name="management_intervention[]" <?php if(in_array('Medical', $management_intervention)){echo 'checked="checked"';}?> value="Medical"> Medical <br>
+							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('Medical', $management_intervention)){echo 'checked="checked"';}?> value="Medical"> Medical <br>
 
-							<input type="checkbox" name="management_intervention[]" <?php if(in_array('Surgical', $management_intervention)){echo 'checked="checked"';}?> value="Surgical"> Surgical <br>
+							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('Surgical', $management_intervention)){echo 'checked="checked"';}?> value="Surgical"> Surgical <br>
 
-							<input type="checkbox" name="management_intervention[]" <?php if(in_array('IUI', $management_intervention)){echo 'checked="checked"';}?> value="IUI"> IUI <br>
+							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('IUI', $management_intervention)){echo 'checked="checked"';}?> value="IUI"> IUI <br>
 
-							<input type="checkbox" name="management_intervention[]" <?php if(in_array('ART', $management_intervention)){echo 'checked="checked"';}?> value="ART"> ART<br>
+							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('ART', $management_intervention)){echo 'checked="checked"';}?> value="ART"> ART<br>
 
-							<input type="checkbox" name="management_intervention[]" <?php if(in_array('Rejuvenation_techniques', $management_intervention)){echo 'checked="checked"';}?> value="Rejuvenation_techniques"> Rejuvenation techniques
+							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('Rejuvenation_techniques', $management_intervention)){echo 'checked="checked"';}?> value="Rejuvenation_techniques"> Rejuvenation techniques
 
 						</td>
 
@@ -6064,15 +6065,20 @@ $countdownDuration = 7200;
 							</thead>
 							<tbody>
 					<tr>
-						<th>NEXT FOLLOW UP <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="hidden" id="follow_up" checked value="1" name="follow_up" /></th>
+						<th>NEXT FOLLOW UP <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="follow_up" value="1" <?php if(isset($patient_doctor_consultation['follow_up']) && $patient_doctor_consultation['follow_up'] == "1"){echo 'checked="checked"';}?> name="follow_up" /></th>
 						<td colspan="2">
 							<div class="row">            
 								<div class="form-group col-sm-6 col-xs-12 role">
 									<label for="statuss">Centre (Required)</label>
 									<select name="appoitment_for"   class="empty-field" id="appoitment_for">
-										<option value="<?php echo $center['center_number']; ?>"><?php echo $center['center_name']; ?></option>
-										<?php $center = $all_method->get_center_list(); foreach($center as $key => $center){?>
-										<option value="<?php echo $center['center_number']; ?>"><?php echo $center['center_name']; ?></option>
+										<option value="">Select Centre</option>
+										<?php 
+										$centers = $all_method->get_center_list(); 
+										$selected_center = isset($appointments['appoitment_for']) ? $appointments['appoitment_for'] : (isset($center_number) ? $center_number : '');
+										foreach($centers as $key => $center_item){
+											$selected = ($selected_center == $center_item['center_number']) ? 'selected="selected"' : '';
+										?>
+										<option value="<?php echo $center_item['center_number']; ?>" <?php echo $selected; ?>><?php echo $center_item['center_name']; ?></option>
 										<?php } ?>
 									</select>
 								</div>
@@ -6131,12 +6137,12 @@ $countdownDuration = 7200;
 						</tbody>
 					</table>
 					<div class="step-navigation-buttons">
-						<!-- <button type="button" class="btn-step-prev" onclick="goToStep(11)">Previous</button>
+						<button type="button" class="btn-step-prev" onclick="goToStep(11)">Previous</button>
 						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(12)">Save & Continue</button>
 						<button type="button" id="save_exit-button" class="btn btn-primary">Save & Exit</button>
 						<?php if($_SESSION['logged_doctor']['junior_doctor'] == 0){ ?>
 							<button type="button" id="exit-button" class="btn btn-primary pull-right">Submit</button>
-						<?php } ?> -->
+						<?php } ?>
 					</div>
 					</div>
 					<!-- End Step 12 -->
@@ -6248,8 +6254,11 @@ $countdownDuration = 7200;
 			var fieldValue = $field.val();
 			var fieldName = $field.attr('name') || $field.attr('id');
 			
+			// Convert fieldValue to string and trim (handle null, undefined, numbers, etc.)
+			var fieldValueStr = (fieldValue != null) ? String(fieldValue).trim() : '';
+			
 			// Check if field is visible and empty
-			if ($field.is(':visible') && (!fieldValue || fieldValue.trim() === '')) {
+			if ($field.is(':visible') && (!fieldValue || fieldValueStr === '')) {
 				isValid = false;
 				$field.css('border-color', 'red');
 				missingFields.push(fieldName);
