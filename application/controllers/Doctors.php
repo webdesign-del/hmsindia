@@ -2120,7 +2120,6 @@ class Doctors extends CI_Controller {
 					'male_provisional_diagnosis_list',
 					'female_provisional_diagnosis_list'
 				);
-				
 				// Prepare data for doctor_consultation table
 				$consultation_data = array();
 				foreach($consultation_fields as $field) {
@@ -2128,7 +2127,9 @@ class Doctors extends CI_Controller {
 					if($field == 'investigation_suggestion') {
 						continue;
 					}
-					if(isset($_POST[$field]) && !in_array($field, $exclude_fields)) {
+					// Check if field exists in POST (use array_key_exists to catch empty strings and '0' values)
+					// Radio buttons send values when checked, so we need to capture them even if empty string
+					if(array_key_exists($field, $_POST) && !in_array($field, $exclude_fields)) {
 						$consultation_data[$field] = $_POST[$field];
 					}
 				}
@@ -2178,8 +2179,11 @@ class Doctors extends CI_Controller {
 				foreach($_POST as $key => $value) {
 					// Include fields that are not in consultation_fields and not in exclude_fields
 					// Also exclude investigation_suggestion and doctor_id (will be mapped to 'doctor')
+					// Use array_key_exists check to ensure we capture all fields including empty strings and '0' values
+					// This is important for radio buttons which send values when checked
 					if(!in_array($key, $medical_exclude_fields)) {
-						$medical_data[$key] = $value;
+						// Trim whitespace but preserve empty strings and '0' values
+						$medical_data[$key] = is_string($value) ? trim($value) : $value;
 					}
 				}
 				
@@ -2194,7 +2198,6 @@ class Doctors extends CI_Controller {
 				}
 				// Remove doctor_id from medical_data if it exists (use 'doctor' instead)
 				unset($medical_data['doctor_id']);
-				
 				// Add center_number if present (column exists in patient_medical_info table)
 				if(isset($_POST['center_number']) && !isset($medical_data['center_number'])) {
 					$medical_data['center_number'] = $_POST['center_number'];

@@ -1354,7 +1354,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="heart_attack"  <?php if(isset($patient_medical_info['heart_attack']) && $patient_medical_info['heart_attack'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="heart_attack"  <?php if(!isset($patient_medical_info['heart_attack']) || (isset($patient_medical_info['heart_attack']) && $patient_medical_info['heart_attack'] == "No")){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -1374,7 +1374,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="pacemaker"  <?php if(isset($patient_medical_info['pacemaker']) && $patient_medical_info['pacemaker'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="pacemaker"  <?php if(!isset($patient_medical_info['pacemaker']) || (isset($patient_medical_info['pacemaker']) && $patient_medical_info['pacemaker'] == "No")){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -1394,7 +1394,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="other_heart_disease"  <?php if(isset($patient_medical_info['other_heart_disease']) && $patient_medical_info['other_heart_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="other_heart_disease"  <?php if(!isset($patient_medical_info['other_heart_disease']) || (isset($patient_medical_info['other_heart_disease']) && $patient_medical_info['other_heart_disease'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1414,7 +1414,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="high_blood_pressure"  <?php if(isset($patient_medical_info['high_blood_pressure']) && $patient_medical_info['high_blood_pressure'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="high_blood_pressure"  <?php if(!isset($patient_medical_info['high_blood_pressure']) || (isset($patient_medical_info['high_blood_pressure']) && $patient_medical_info['high_blood_pressure'] == "No")){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -1434,7 +1434,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="blood_clots"  <?php if(isset($patient_medical_info['blood_clots']) && $patient_medical_info['blood_clots'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="blood_clots"  <?php if(!isset($patient_medical_info['blood_clots']) || (isset($patient_medical_info['blood_clots']) && $patient_medical_info['blood_clots'] == "No")){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -1454,7 +1454,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="chest_pain"  <?php if(isset($patient_medical_info['chest_pain']) && $patient_medical_info['chest_pain'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="chest_pain"  <?php if(!isset($patient_medical_info['chest_pain']) || (isset($patient_medical_info['chest_pain']) && $patient_medical_info['chest_pain'] == "No")){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -1474,7 +1474,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="stroke"  <?php if(isset($patient_medical_info['stroke']) && $patient_medical_info['stroke'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="stroke"  <?php if(!isset($patient_medical_info['stroke']) || (isset($patient_medical_info['stroke']) && $patient_medical_info['stroke'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1494,7 +1494,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="asthma"  <?php if(isset($patient_medical_info['asthma']) && $patient_medical_info['asthma'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="asthma"  <?php if(!isset($patient_medical_info['asthma']) || (isset($patient_medical_info['asthma']) && $patient_medical_info['asthma'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1514,7 +1514,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="lung_disease"  <?php if(isset($patient_medical_info['lung_disease']) && $patient_medical_info['lung_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="lung_disease"  <?php if(!isset($patient_medical_info['lung_disease']) || (isset($patient_medical_info['lung_disease']) && $patient_medical_info['lung_disease'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1534,7 +1534,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="difficulty_breathing"  <?php if(isset($patient_medical_info['difficulty_breathing']) && $patient_medical_info['difficulty_breathing'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="difficulty_breathing"  <?php if(!isset($patient_medical_info['difficulty_breathing']) || (isset($patient_medical_info['difficulty_breathing']) && $patient_medical_info['difficulty_breathing'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1554,7 +1554,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="snoring"  <?php if(isset($patient_medical_info['snoring']) && $patient_medical_info['snoring'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="snoring"  <?php if(!isset($patient_medical_info['snoring']) || (isset($patient_medical_info['snoring']) && $patient_medical_info['snoring'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1574,7 +1574,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="epilepsy"  <?php if(isset($patient_medical_info['epilepsy']) && $patient_medical_info['epilepsy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="epilepsy"  <?php if(isset($patient_medical_info['epilepsy']) && $patient_medical_info['epilepsy'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1594,7 +1594,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="fainting_spells"  <?php if(isset($patient_medical_info['fainting_spells']) && $patient_medical_info['fainting_spells'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="fainting_spells"  <?php if(isset($patient_medical_info['fainting_spells']) && $patient_medical_info['fainting_spells'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1614,7 +1614,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="diabetes"  <?php if(isset($patient_medical_info['diabetes']) && $patient_medical_info['diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="diabetes"  <?php if(isset($patient_medical_info['diabetes']) && $patient_medical_info['diabetes'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1634,7 +1634,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="muscle_disorders"  <?php if(isset($patient_medical_info['muscle_disorders']) && $patient_medical_info['muscle_disorders'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="muscle_disorders"  <?php if(isset($patient_medical_info['muscle_disorders']) && $patient_medical_info['muscle_disorders'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1654,7 +1654,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="kidney_disease"  <?php if(isset($patient_medical_info['kidney_disease']) && $patient_medical_info['kidney_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="kidney_disease"  <?php if(isset($patient_medical_info['kidney_disease']) && $patient_medical_info['kidney_disease'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1674,7 +1674,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="hepatitis"  <?php if(isset($patient_medical_info['hepatitis']) && $patient_medical_info['hepatitis'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="hepatitis"  <?php if(isset($patient_medical_info['hepatitis']) && $patient_medical_info['hepatitis'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1694,7 +1694,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="tuberculosis"  <?php if(isset($patient_medical_info['tuberculosis']) && $patient_medical_info['tuberculosis'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="tuberculosis"  <?php if(isset($patient_medical_info['tuberculosis']) && $patient_medical_info['tuberculosis'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1714,7 +1714,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="hiv"  <?php if(isset($patient_medical_info['hiv']) && $patient_medical_info['hiv'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="hiv"  <?php if(isset($patient_medical_info['hiv']) && $patient_medical_info['hiv'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1734,7 +1734,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="heart_burn"  <?php if(isset($patient_medical_info['heart_burn']) && $patient_medical_info['heart_burn'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="heart_burn"  <?php if(isset($patient_medical_info['heart_burn']) && $patient_medical_info['heart_burn'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1754,7 +1754,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="cancer"  <?php if(isset($patient_medical_info['cancer']) && $patient_medical_info['cancer'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="cancer"  <?php if(isset($patient_medical_info['cancer']) && $patient_medical_info['cancer'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1774,7 +1774,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="blood_disorders"  <?php if(isset($patient_medical_info['blood_disorders']) && $patient_medical_info['blood_disorders'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="blood_disorders"  <?php if(isset($patient_medical_info['blood_disorders']) && $patient_medical_info['blood_disorders'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1794,7 +1794,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="rheumatic_disease"  <?php if(isset($patient_medical_info['rheumatic_disease']) && $patient_medical_info['rheumatic_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="rheumatic_disease"  <?php if(isset($patient_medical_info['rheumatic_disease']) && $patient_medical_info['rheumatic_disease'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1814,7 +1814,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="psychiatric_disorder"  <?php if(isset($patient_medical_info['psychiatric_disorder']) && $patient_medical_info['psychiatric_disorder'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="psychiatric_disorder"  <?php if(isset($patient_medical_info['psychiatric_disorder']) && $patient_medical_info['psychiatric_disorder'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1834,7 +1834,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="thyroid_disorder"  <?php if(isset($patient_medical_info['thyroid_disorder']) && $patient_medical_info['thyroid_disorder'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="thyroid_disorder"  <?php if(isset($patient_medical_info['thyroid_disorder']) && $patient_medical_info['thyroid_disorder'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1854,7 +1854,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="urinary_infection"  <?php if(isset($patient_medical_info['urinary_infection']) && $patient_medical_info['urinary_infection'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="urinary_infection"  <?php if(isset($patient_medical_info['urinary_infection']) && $patient_medical_info['urinary_infection'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1874,7 +1874,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="sexually_transmitted"  <?php if(isset($patient_medical_info['sexually_transmitted']) && $patient_medical_info['sexually_transmitted'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="sexually_transmitted"  <?php if(isset($patient_medical_info['sexually_transmitted']) && $patient_medical_info['sexually_transmitted'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1914,7 +1914,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_heart_attack"  <?php if(isset($patient_medical_info['male_heart_attack']) && $patient_medical_info['male_heart_attack'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_heart_attack"  <?php if(isset($patient_medical_info['male_heart_attack']) && $patient_medical_info['male_heart_attack'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1934,7 +1934,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_pacemaker"  <?php if(isset($patient_medical_info['male_pacemaker']) && $patient_medical_info['male_pacemaker'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_pacemaker"  <?php if(isset($patient_medical_info['male_pacemaker']) && $patient_medical_info['male_pacemaker'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1954,7 +1954,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_other_heart_disease"  <?php if(isset($patient_medical_info['male_other_heart_disease']) && $patient_medical_info['male_other_heart_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_other_heart_disease"  <?php if(isset($patient_medical_info['male_other_heart_disease']) && $patient_medical_info['male_other_heart_disease'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1974,7 +1974,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_high_blood_pressure"  <?php if(isset($patient_medical_info['male_high_blood_pressure']) && $patient_medical_info['male_high_blood_pressure'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_high_blood_pressure"  <?php if(isset($patient_medical_info['male_high_blood_pressure']) && $patient_medical_info['male_high_blood_pressure'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -1994,7 +1994,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_blood_clots"  <?php if(isset($patient_medical_info['male_blood_clots']) && $patient_medical_info['male_blood_clots'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_blood_clots"  <?php if(isset($patient_medical_info['male_blood_clots']) && $patient_medical_info['male_blood_clots'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2014,7 +2014,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_chest_pain"  <?php if(isset($patient_medical_info['male_chest_pain']) && $patient_medical_info['male_chest_pain'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_chest_pain"  <?php if(isset($patient_medical_info['male_chest_pain']) && $patient_medical_info['male_chest_pain'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2034,7 +2034,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_stroke"  <?php if(isset($patient_medical_info['male_stroke']) && $patient_medical_info['male_stroke'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_stroke"  <?php if(isset($patient_medical_info['male_stroke']) && $patient_medical_info['male_stroke'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2054,7 +2054,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_asthma"  <?php if(isset($patient_medical_info['male_asthma']) && $patient_medical_info['male_asthma'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_asthma"  <?php if(isset($patient_medical_info['male_asthma']) && $patient_medical_info['male_asthma'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2074,7 +2074,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_lung_disease"  <?php if(isset($patient_medical_info['male_lung_disease']) && $patient_medical_info['male_lung_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_lung_disease"  <?php if(isset($patient_medical_info['male_lung_disease']) && $patient_medical_info['male_lung_disease'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2094,7 +2094,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_difficulty_breathing"  <?php if(isset($patient_medical_info['male_difficulty_breathing']) && $patient_medical_info['male_difficulty_breathing'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_difficulty_breathing"  <?php if(isset($patient_medical_info['male_difficulty_breathing']) && $patient_medical_info['male_difficulty_breathing'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2114,7 +2114,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_snoring"  <?php if(isset($patient_medical_info['male_snoring']) && $patient_medical_info['male_snoring'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_snoring"  <?php if(isset($patient_medical_info['male_snoring']) && $patient_medical_info['male_snoring'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2134,7 +2134,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_epilepsy"  <?php if(isset($patient_medical_info['male_epilepsy']) && $patient_medical_info['male_epilepsy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_epilepsy"  <?php if(isset($patient_medical_info['male_epilepsy']) && $patient_medical_info['male_epilepsy'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2154,7 +2154,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_fainting_spells"  <?php if(isset($patient_medical_info['male_fainting_spells']) && $patient_medical_info['male_fainting_spells'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_fainting_spells"  <?php if(isset($patient_medical_info['male_fainting_spells']) && $patient_medical_info['male_fainting_spells'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2174,7 +2174,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_diabetes"  <?php if(isset($patient_medical_info['male_diabetes']) && $patient_medical_info['male_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_diabetes"  <?php if(isset($patient_medical_info['male_diabetes']) && $patient_medical_info['male_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2194,7 +2194,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_muscle_disorders"  <?php if(isset($patient_medical_info['male_muscle_disorders']) && $patient_medical_info['male_muscle_disorders'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_muscle_disorders"  <?php if(isset($patient_medical_info['male_muscle_disorders']) && $patient_medical_info['male_muscle_disorders'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2214,7 +2214,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_kidney_disease"  <?php if(isset($patient_medical_info['male_kidney_disease']) && $patient_medical_info['male_kidney_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_kidney_disease"  <?php if(isset($patient_medical_info['male_kidney_disease']) && $patient_medical_info['male_kidney_disease'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2234,7 +2234,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_hepatitis"  <?php if(isset($patient_medical_info['male_hepatitis']) && $patient_medical_info['male_hepatitis'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_hepatitis"  <?php if(isset($patient_medical_info['male_hepatitis']) && $patient_medical_info['male_hepatitis'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2254,7 +2254,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_tuberculosis"  <?php if(isset($patient_medical_info['male_tuberculosis']) && $patient_medical_info['male_tuberculosis'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" id="text1" name="male_tuberculosis"  <?php if(isset($patient_medical_info['male_tuberculosis']) && $patient_medical_info['male_tuberculosis'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label>No</label>
 
@@ -2274,7 +2274,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_hiv"  <?php if(isset($patient_medical_info['male_hiv']) && $patient_medical_info['male_hiv'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" id="text1" name="male_hiv"  <?php if(isset($patient_medical_info['male_hiv']) && $patient_medical_info['male_hiv'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label>No</label>
 
@@ -2294,7 +2294,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_heart_burn"  <?php if(isset($patient_medical_info['male_heart_burn']) && $patient_medical_info['male_heart_burn'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="male_heart_burn"  <?php if(isset($patient_medical_info['male_heart_burn']) && $patient_medical_info['male_heart_burn'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label for="type2">No</label>
 
@@ -2314,7 +2314,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_cancer"  <?php if(isset($patient_medical_info['male_cancer']) && $patient_medical_info['male_cancer'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="male_cancer"  <?php if(isset($patient_medical_info['male_cancer']) && $patient_medical_info['male_cancer'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label for="type2">No</label>
 
@@ -2334,7 +2334,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_blood_disorders"  <?php if(isset($patient_medical_info['male_blood_disorders']) && $patient_medical_info['male_blood_disorders'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="male_blood_disorders"  <?php if(isset($patient_medical_info['male_blood_disorders']) && $patient_medical_info['male_blood_disorders'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label for="type2">No</label>
 
@@ -2354,7 +2354,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_rheumatic_disease"  <?php if(isset($patient_medical_info['male_rheumatic_disease']) && $patient_medical_info['male_rheumatic_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+										<input type="radio" name="male_rheumatic_disease"  <?php if(isset($patient_medical_info['male_rheumatic_disease']) && $patient_medical_info['male_rheumatic_disease'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 										<label for="type2">No</label>
 
@@ -2374,7 +2374,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_psychiatric_disorder"  <?php if(isset($patient_medical_info['male_psychiatric_disorder']) && $patient_medical_info['male_psychiatric_disorder'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="male_psychiatric_disorder"  <?php if(isset($patient_medical_info['male_psychiatric_disorder']) && $patient_medical_info['male_psychiatric_disorder'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label for="type2">No</label>
 
@@ -2394,7 +2394,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_thyroid_disorder"  <?php if(isset($patient_medical_info['male_thyroid_disorder']) && $patient_medical_info['male_thyroid_disorder'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="male_thyroid_disorder"  <?php if(isset($patient_medical_info['male_thyroid_disorder']) && $patient_medical_info['male_thyroid_disorder'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label for="type2">No</label>
 
@@ -2414,7 +2414,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_urinary_infection"  <?php if(isset($patient_medical_info['male_urinary_infection']) && $patient_medical_info['male_urinary_infection'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="male_urinary_infection"  <?php if(isset($patient_medical_info['male_urinary_infection']) && $patient_medical_info['male_urinary_infection'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label for="type2">No</label>
 
@@ -2434,7 +2434,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_sexually_transmitted"  <?php if(isset($patient_medical_info['male_sexually_transmitted']) && $patient_medical_info['male_sexually_transmitted'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="male_sexually_transmitted"  <?php if(isset($patient_medical_info['male_sexually_transmitted']) && $patient_medical_info['male_sexually_transmitted'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label for="type2">No</label>
 
@@ -2502,7 +2502,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="abdominal_operations"  <?php if(isset($patient_medical_info['abdominal_operations']) && $patient_medical_info['abdominal_operations'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" id="text1" name="abdominal_operations"  <?php if(isset($patient_medical_info['abdominal_operations']) && $patient_medical_info['abdominal_operations'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label>No</label></p>
 
@@ -2526,7 +2526,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="other_operations"  <?php if(isset($patient_medical_info['other_operations']) && $patient_medical_info['other_operations'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" id="text1" name="other_operations"  <?php if(isset($patient_medical_info['other_operations']) && $patient_medical_info['other_operations'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label>No</label>
 
@@ -2554,7 +2554,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_abdominal_operations"  <?php if(isset($patient_medical_info['male_abdominal_operations']) && $patient_medical_info['male_abdominal_operations'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" id="text1" name="male_abdominal_operations"  <?php if(isset($patient_medical_info['male_abdominal_operations']) && $patient_medical_info['male_abdominal_operations'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label>No</label>
 
@@ -2574,7 +2574,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_other_operations"  <?php if(isset($patient_medical_info['male_other_operations']) && $patient_medical_info['male_other_operations'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" id="text1" name="male_other_operations"  <?php if(isset($patient_medical_info['male_other_operations']) && $patient_medical_info['male_other_operations'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label>No</label>
 
@@ -2608,7 +2608,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="medications"  <?php if(isset($patient_medical_info['medications']) && $patient_medical_info['medications'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" id="text1" name="medications"  <?php if(isset($patient_medical_info['medications']) && $patient_medical_info['medications'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label>No</label>
 
@@ -2628,7 +2628,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="environmental_factors"  <?php if(isset($patient_medical_info['environmental_factors']) && $patient_medical_info['environmental_factors'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+										<input type="radio" id="text1" name="environmental_factors"  <?php if(isset($patient_medical_info['environmental_factors']) && $patient_medical_info['environmental_factors'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 										<label>No</label>
 
@@ -2656,7 +2656,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_medications"  <?php if(isset($patient_medical_info['male_medications']) && $patient_medical_info['male_medications'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" id="text1" name="male_medications"  <?php if(isset($patient_medical_info['male_medications']) && $patient_medical_info['male_medications'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label>No</label>
 
@@ -2676,7 +2676,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_environmental_factors"  <?php if(isset($patient_medical_info['male_environmental_factors']) && $patient_medical_info['male_environmental_factors'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" id="text1" name="male_environmental_factors"  <?php if(isset($patient_medical_info['male_environmental_factors']) && $patient_medical_info['male_environmental_factors'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label>No</label>
 
@@ -2710,7 +2710,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="dentures"  <?php if(isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="dentures"  <?php if(isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2730,7 +2730,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="loose_teeth"  <?php if(isset($patient_medical_info['loose_teeth']) && $patient_medical_info['loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="loose_teeth"  <?php if(isset($patient_medical_info['loose_teeth']) && $patient_medical_info['loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2750,7 +2750,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="hearing_aid"  <?php if(isset($patient_medical_info['hearing_aid']) && $patient_medical_info['hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="hearing_aid"  <?php if(isset($patient_medical_info['hearing_aid']) && $patient_medical_info['hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2770,7 +2770,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="caps_on_front_teeth"  <?php if(isset($patient_medical_info['caps_on_front_teeth']) && $patient_medical_info['caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="caps_on_front_teeth"  <?php if(isset($patient_medical_info['caps_on_front_teeth']) && $patient_medical_info['caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2790,7 +2790,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="contact_lenses"  <?php if(isset($patient_medical_info['contact_lenses']) && $patient_medical_info['contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="contact_lenses"  <?php if(isset($patient_medical_info['contact_lenses']) && $patient_medical_info['contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2810,7 +2810,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="body_piercing"  <?php if(isset($patient_medical_info['body_piercing']) && $patient_medical_info['body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="body_piercing"  <?php if(isset($patient_medical_info['body_piercing']) && $patient_medical_info['body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2830,7 +2830,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="blood_transfusion"  <?php if(isset($patient_medical_info['blood_transfusion']) && $patient_medical_info['blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="blood_transfusion"  <?php if(isset($patient_medical_info['blood_transfusion']) && $patient_medical_info['blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2850,7 +2850,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="traffic_accident"  <?php if(isset($patient_medical_info['traffic_accident']) && $patient_medical_info['traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="traffic_accident"  <?php if(isset($patient_medical_info['traffic_accident']) && $patient_medical_info['traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2878,7 +2878,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2898,7 +2898,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2918,7 +2918,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2938,7 +2938,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2958,7 +2958,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2978,7 +2978,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2998,7 +2998,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3018,7 +3018,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3068,7 +3068,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="smoke_past"  <?php if(isset($patient_medical_info['smoke_past']) && $patient_medical_info['smoke_past'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="smoke_past"  <?php if(isset($patient_medical_info['smoke_past']) && $patient_medical_info['smoke_past'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3088,7 +3088,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="smoke_present"  <?php if(isset($patient_medical_info['smoke_present']) && $patient_medical_info['smoke_present'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="smoke_present"  <?php if(isset($patient_medical_info['smoke_present']) && $patient_medical_info['smoke_present'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3108,7 +3108,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="drink_past"  <?php if(isset($patient_medical_info['drink_past']) && $patient_medical_info['drink_past'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="drink_past"  <?php if(isset($patient_medical_info['drink_past']) && $patient_medical_info['drink_past'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3128,7 +3128,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="drink_present"  <?php if(isset($patient_medical_info['drink_present']) && $patient_medical_info['drink_present'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="drink_present"  <?php if(isset($patient_medical_info['drink_present']) && $patient_medical_info['drink_present'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3148,7 +3148,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="abusive_drugs"  <?php if(isset($patient_medical_info['abusive_drugs']) && $patient_medical_info['abusive_drugs'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="abusive_drugs"  <?php if(isset($patient_medical_info['abusive_drugs']) && $patient_medical_info['abusive_drugs'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3168,7 +3168,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="steroid"  <?php if(isset($patient_medical_info['steroid']) && $patient_medical_info['steroid'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="steroid"  <?php if(isset($patient_medical_info['steroid']) && $patient_medical_info['steroid'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3188,7 +3188,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="medication"  <?php if(isset($patient_medical_info['medication']) && $patient_medical_info['medication'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="medication"  <?php if(isset($patient_medical_info['medication']) && $patient_medical_info['medication'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3208,7 +3208,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="herbal_products"  <?php if(isset($patient_medical_info['herbal_products']) && $patient_medical_info['herbal_products'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="herbal_products"  <?php if(isset($patient_medical_info['herbal_products']) && $patient_medical_info['herbal_products'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3228,7 +3228,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="eye_drops"  <?php if(isset($patient_medical_info['eye_drops']) && $patient_medical_info['eye_drops'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="eye_drops"  <?php if(isset($patient_medical_info['eye_drops']) && $patient_medical_info['eye_drops'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3248,7 +3248,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="non_prescription_drugs"  <?php if(isset($patient_medical_info['non_prescription_drugs']) && $patient_medical_info['non_prescription_drugs'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="non_prescription_drugs"  <?php if(isset($patient_medical_info['non_prescription_drugs']) && $patient_medical_info['non_prescription_drugs'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3276,7 +3276,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3296,7 +3296,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3316,7 +3316,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3336,7 +3336,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3356,7 +3356,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3376,7 +3376,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3396,7 +3396,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3416,7 +3416,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3436,7 +3436,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_smoke_past"  <?php if(isset($patient_medical_info['male_smoke_past']) && $patient_medical_info['male_smoke_past'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_smoke_past"  <?php if(isset($patient_medical_info['male_smoke_past']) && $patient_medical_info['male_smoke_past'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3453,7 +3453,7 @@ $countdownDuration = 7200;
 											<td>
 												<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
 												<label>Yes</label>
-												<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+												<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 												<label>No</label>	
 
@@ -3473,7 +3473,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_drink_past"  <?php if(isset($patient_medical_info['male_drink_past']) && $patient_medical_info['male_drink_past'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_drink_past"  <?php if(isset($patient_medical_info['male_drink_past']) && $patient_medical_info['male_drink_past'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3493,7 +3493,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_drink_present"  <?php if(isset($patient_medical_info['male_drink_present']) && $patient_medical_info['male_drink_present'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_drink_present"  <?php if(isset($patient_medical_info['male_drink_present']) && $patient_medical_info['male_drink_present'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3513,7 +3513,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_abusive_drugs"  <?php if(isset($patient_medical_info['male_abusive_drugs']) && $patient_medical_info['male_abusive_drugs'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_abusive_drugs"  <?php if(isset($patient_medical_info['male_abusive_drugs']) && $patient_medical_info['male_abusive_drugs'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3533,7 +3533,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_steroid"  <?php if(isset($patient_medical_info['male_steroid']) && $patient_medical_info['male_steroid'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_steroid"  <?php if(isset($patient_medical_info['male_steroid']) && $patient_medical_info['male_steroid'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3553,7 +3553,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_medication"  <?php if(isset($patient_medical_info['male_medication']) && $patient_medical_info['male_medication'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_medication"  <?php if(isset($patient_medical_info['male_medication']) && $patient_medical_info['male_medication'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3573,7 +3573,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_herbal_products"  <?php if(isset($patient_medical_info['male_herbal_products']) && $patient_medical_info['male_herbal_products'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" id="text1" name="male_herbal_products"  <?php if(isset($patient_medical_info['male_herbal_products']) && $patient_medical_info['male_herbal_products'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3593,7 +3593,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_eye_drops"  <?php if(isset($patient_medical_info['male_eye_drops']) && $patient_medical_info['male_eye_drops'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_eye_drops"  <?php if(isset($patient_medical_info['male_eye_drops']) && $patient_medical_info['male_eye_drops'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3613,7 +3613,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_non_prescription_drugs"  <?php if(isset($patient_medical_info['male_non_prescription_drugs']) && $patient_medical_info['male_non_prescription_drugs'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" id="text1" name="male_non_prescription_drugs"  <?php if(isset($patient_medical_info['male_non_prescription_drugs']) && $patient_medical_info['male_non_prescription_drugs'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3667,7 +3667,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" name="member_with_anesthesia"  <?php if(isset($patient_medical_info['member_with_anesthesia']) && $patient_medical_info['member_with_anesthesia'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+										<input type="radio" name="member_with_anesthesia"  <?php if(isset($patient_medical_info['member_with_anesthesia']) && $patient_medical_info['member_with_anesthesia'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 										<label>No</label>
 
@@ -3701,7 +3701,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_diabetes"  <?php if(isset($patient_medical_info['maternal_diabetes']) && $patient_medical_info['maternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="maternal_diabetes"  <?php if(isset($patient_medical_info['maternal_diabetes']) && $patient_medical_info['maternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3715,7 +3715,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_diabetes"  <?php if(isset($patient_medical_info['paternal_diabetes']) && $patient_medical_info['paternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="paternal_diabetes"  <?php if(isset($patient_medical_info['paternal_diabetes']) && $patient_medical_info['paternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3735,7 +3735,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_thrombo_embolism"  <?php if(isset($patient_medical_info['maternal_thrombo_embolism']) && $patient_medical_info['maternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="maternal_thrombo_embolism"  <?php if(isset($patient_medical_info['maternal_thrombo_embolism']) && $patient_medical_info['maternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3749,7 +3749,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_thrombo_embolism"  <?php if(isset($patient_medical_info['paternal_thrombo_embolism']) && $patient_medical_info['paternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="paternal_thrombo_embolism"  <?php if(isset($patient_medical_info['paternal_thrombo_embolism']) && $patient_medical_info['paternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3769,7 +3769,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_metabolic"  <?php if(isset($patient_medical_info['maternal_metabolic']) && $patient_medical_info['maternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" name="maternal_metabolic"  <?php if(isset($patient_medical_info['maternal_metabolic']) && $patient_medical_info['maternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3783,7 +3783,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_metabolic"  <?php if(isset($patient_medical_info['paternal_metabolic']) && $patient_medical_info['paternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="paternal_metabolic"  <?php if(isset($patient_medical_info['paternal_metabolic']) && $patient_medical_info['paternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3803,7 +3803,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_urinary_tract"  <?php if(isset($patient_medical_info['maternal_urinary_tract']) && $patient_medical_info['maternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="maternal_urinary_tract"  <?php if(isset($patient_medical_info['maternal_urinary_tract']) && $patient_medical_info['maternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3817,7 +3817,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_urinary_tract"  <?php if(isset($patient_medical_info['paternal_urinary_tract']) && $patient_medical_info['paternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="paternal_urinary_tract"  <?php if(isset($patient_medical_info['paternal_urinary_tract']) && $patient_medical_info['paternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3837,7 +3837,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_neurological"  <?php if(isset($patient_medical_info['maternal_neurological']) && $patient_medical_info['maternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="maternal_neurological"  <?php if(isset($patient_medical_info['maternal_neurological']) && $patient_medical_info['maternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3851,7 +3851,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_neurological"  <?php if(isset($patient_medical_info['paternal_neurological']) && $patient_medical_info['paternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="paternal_neurological"  <?php if(isset($patient_medical_info['paternal_neurological']) && $patient_medical_info['paternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3871,7 +3871,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_malignancy"  <?php if(isset($patient_medical_info['maternal_malignancy']) && $patient_medical_info['maternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="maternal_malignancy"  <?php if(isset($patient_medical_info['maternal_malignancy']) && $patient_medical_info['maternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3885,7 +3885,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_malignancy"  <?php if(isset($patient_medical_info['paternal_malignancy']) && $patient_medical_info['paternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="paternal_malignancy"  <?php if(isset($patient_medical_info['paternal_malignancy']) && $patient_medical_info['paternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3913,7 +3913,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" name="male_member_with_anesthesia"  <?php if(isset($patient_medical_info['male_member_with_anesthesia']) && $patient_medical_info['male_member_with_anesthesia'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="male_member_with_anesthesia"  <?php if(isset($patient_medical_info['male_member_with_anesthesia']) && $patient_medical_info['male_member_with_anesthesia'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label>No</label>
 
@@ -3947,7 +3947,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_diabetes"  <?php if(isset($patient_medical_info['male_maternal_diabetes']) && $patient_medical_info['male_maternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_maternal_diabetes"  <?php if(isset($patient_medical_info['male_maternal_diabetes']) && $patient_medical_info['male_maternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3961,7 +3961,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_diabetes"  <?php if(isset($patient_medical_info['male_paternal_diabetes']) && $patient_medical_info['male_paternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
+													<input type="radio" name="male_paternal_diabetes"  <?php if(isset($patient_medical_info['male_paternal_diabetes']) && $patient_medical_info['male_paternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -3981,7 +3981,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_thrombo_embolism"  <?php if(isset($patient_medical_info['male_maternal_thrombo_embolism']) && $patient_medical_info['male_maternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_maternal_thrombo_embolism"  <?php if(isset($patient_medical_info['male_maternal_thrombo_embolism']) && $patient_medical_info['male_maternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -3995,7 +3995,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_thrombo_embolism"  <?php if(isset($patient_medical_info['male_paternal_thrombo_embolism']) && $patient_medical_info['male_paternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_paternal_thrombo_embolism"  <?php if(isset($patient_medical_info['male_paternal_thrombo_embolism']) && $patient_medical_info['male_paternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -4015,7 +4015,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_metabolic"  <?php if(isset($patient_medical_info['male_maternal_metabolic']) && $patient_medical_info['male_maternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_maternal_metabolic"  <?php if(isset($patient_medical_info['male_maternal_metabolic']) && $patient_medical_info['male_maternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -4029,7 +4029,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_metabolic"  <?php if(isset($patient_medical_info['male_paternal_metabolic']) && $patient_medical_info['male_paternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_paternal_metabolic"  <?php if(isset($patient_medical_info['male_paternal_metabolic']) && $patient_medical_info['male_paternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -4049,7 +4049,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_urinary_tract"  <?php if(isset($patient_medical_info['male_maternal_urinary_tract']) && $patient_medical_info['male_maternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_maternal_urinary_tract"  <?php if(isset($patient_medical_info['male_maternal_urinary_tract']) && $patient_medical_info['male_maternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -4063,7 +4063,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_urinary_tract"  <?php if(isset($patient_medical_info['male_paternal_urinary_tract']) && $patient_medical_info['male_paternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_paternal_urinary_tract"  <?php if(isset($patient_medical_info['male_paternal_urinary_tract']) && $patient_medical_info['male_paternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -4083,7 +4083,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_neurological"  <?php if(isset($patient_medical_info['male_maternal_neurological']) && $patient_medical_info['male_maternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_maternal_neurological"  <?php if(isset($patient_medical_info['male_maternal_neurological']) && $patient_medical_info['male_maternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -4097,7 +4097,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_neurological"  <?php if(isset($patient_medical_info['male_paternal_neurological']) && $patient_medical_info['male_paternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_paternal_neurological"  <?php if(isset($patient_medical_info['male_paternal_neurological']) && $patient_medical_info['male_paternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -4117,7 +4117,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_malignancy"  <?php if(isset($patient_medical_info['male_maternal_malignancy']) && $patient_medical_info['male_maternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_maternal_malignancy"  <?php if(isset($patient_medical_info['male_maternal_malignancy']) && $patient_medical_info['male_maternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -4131,7 +4131,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_malignancy"  <?php if(isset($patient_medical_info['male_paternal_malignancy']) && $patient_medical_info['male_paternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+													<input type="radio" name="male_paternal_malignancy"  <?php if(isset($patient_medical_info['male_paternal_malignancy']) && $patient_medical_info['male_paternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -5025,7 +5025,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="female_local_exam_pap"  <?php if(isset($patient_medical_info['female_local_exam_pap']) && $patient_medical_info['female_local_exam_pap'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="female_local_exam_pap"  <?php if(isset($patient_medical_info['female_local_exam_pap']) && $patient_medical_info['female_local_exam_pap'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label for="type2">No</label>
 										
@@ -5045,7 +5045,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="female_hvs_taken"  <?php if(isset($patient_medical_info['female_hvs_taken']) && $patient_medical_info['female_hvs_taken'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="female_hvs_taken"  <?php if(isset($patient_medical_info['female_hvs_taken']) && $patient_medical_info['female_hvs_taken'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label for="type2">No</label>
 										
@@ -5065,7 +5065,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="female_endometrial_biopsy"  <?php if(isset($patient_medical_info['female_endometrial_biopsy']) && $patient_medical_info['female_endometrial_biopsy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+										<input type="radio" name="female_endometrial_biopsy"  <?php if(isset($patient_medical_info['female_endometrial_biopsy']) && $patient_medical_info['female_endometrial_biopsy'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 										<label for="type2">No</label>
 
