@@ -69,27 +69,26 @@
            <table class="table table-striped table-bordered table-hover" id="received_items_table">
               <thead>
                 <tr>
-                    <th>Received Date</th>
-                    <th>PO Number</th>
-                    <th>Vendor</th>
-                    <th>Center</th>
-                    <th>Item Name</th>
-                    <th>Item Code</th>
-                    <th>Batch #</th>
-                    <th>Qty Received</th>
-                    <th>Vendor Price</th>
-                    <th>Vendor Price With GST</th>
-                    <th>Receive By</th>
-                    <th>Invoice Number</th>
-                    <th>file</th>
-                    <th>Total Value</th>
+                   <th>PO Number</th>
+                   <th>Vendor</th>
+                   <th>Center</th>
+                   <th>Item Name</th>
+                   <th>Item Code</th>
+                   <th>Batch #</th>
+                   <th>Qty Received</th>
+                   <th>Vendor Price</th>
+                   <th>Vendor Price With GST</th>
+                   <th>Receive By</th>
+                   <th>Invoice Number</th>
+                   <th>Received Date</th>
+                   <th>file</th>
+                  <th>Total Value</th>
                 </tr>
               </thead>
               <tbody>
                 <?php if (!empty($received_items)): ?>
                     <?php foreach ($received_items as $item): ?>
                         <tr class="odd gradeX">
-                            <td><?php echo date('d-m-Y H:i', strtotime($item->received_date)); ?></td>
                             <td><strong><?php echo htmlspecialchars($item->po_number); ?></strong></td>
                             <td><?php echo htmlspecialchars($item->vendor_name); ?></td>
                             <td><?php echo htmlspecialchars($item->center_name); ?></td>
@@ -101,6 +100,7 @@
                             <td><?php echo number_format($item->vendor_price_with_tax, 2); ?></td>
                             <td><?php echo htmlspecialchars($item->receive_by); ?></td>
                             <td><?php echo htmlspecialchars($item->receipt_number); ?></td>
+                            <td><?php echo date('d-m-Y H:i', strtotime($item->received_date)); ?></td>
                             <td>
                                  <?php 
                                  if (!empty($item->uploaded_files)) {

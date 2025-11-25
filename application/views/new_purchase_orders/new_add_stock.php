@@ -512,7 +512,7 @@ Batch Number	<div class="col-md-12">
                    <div class="row">
                        <div class="col-md-4">
                           <div class="form-group">
-                             <label for="reference_date">Receipt Date</label>
+                             <label for="reference_date">Invoice  Date</label>
                              <div class="date-input-group">
                                 <input type="date" class="form-control" id="receipt_date" name="receipt_date" 
                                    value="<?php echo date('Y-m-d'); ?>" placeholder="YYYY-MM-DD">
@@ -560,11 +560,11 @@ Batch Number	<div class="col-md-12">
                          <th style="min-width: 80px;">Rec.All?</th>
                          <th style="min-width: 120px;">Qty Receiving</th>
                          <th style="min-width: 100px;">Free Qty</th>
-                         <th style="min-width: 100px;">Qty Rej</th>
+                         <!-- <th style="min-width: 100px;">Qty Rej</th> -->
                          <th style="min-width: 120px;">Batch Number</th>
                          <th style="min-width: 120px;">Expiry Date</th>
                          <!-- <th style="min-width: 140px;">Notify Expiry On</th> -->
-                         <th style="min-width: 150px;">Comments</th>
+                         <!-- <th style="min-width: 150px;">Comments</th> -->
                          <th style="min-width: 100px;">Vendor Price</th>
                          <th style="min-width: 100px;">Tax %</th>
                          <th style ="min-width: 100px;">Mrp</th>
@@ -630,10 +630,10 @@ Batch Number	<div class="col-md-12">
                                   <input type="number" class="form-control" name="free_qty_<?php echo $row_counter; ?>" id="free_qty_<?php echo $row_counter; ?>" 
                                      value="0" step="0.001" placeholder="Free Quantity" <?php echo $disabled_attr; ?>>
                                </td>
-                               <td>
+                               <!-- <td style ="hidden">
                                   <input type="number" class="form-control" name="qty_rejected_<?php echo $row_counter; ?>" id="qty_rejected_<?php echo $row_counter; ?>" 
                                      value="0" step="0.001" onchange="updateAmount(<?php echo $row_counter; ?>)" <?php echo $disabled_attr; ?>>
-                               </td>
+                               </td> -->
                                <td>
                                   <input type="text" class="form-control" name="batch_number_<?php echo $row_counter; ?>" id="batch_number_<?php echo $row_counter; ?>" 
                                      value="<?php echo isset($item['batch_number']) ? $item['batch_number'] : ''; ?>" placeholder="Enter batch number" <?php echo $disabled_attr; ?>>
@@ -645,10 +645,10 @@ Batch Number	<div class="col-md-12">
                                      <i class="fa fa-calendar"></i>
                                   </div>
                                </td>
-                               <td>
+                               <!-- <td>
                                   <textarea class="form-control" name="comments_<?php echo $row_counter; ?>" id="comments_<?php echo $row_counter; ?>" 
                                      rows="2" placeholder="Enter comments" <?php echo $disabled_attr; ?>><?php echo isset($item['comments']) ? $item['comments'] : ''; ?></textarea>
-                               </td>
+                               </td> -->
                                <td>
                                   <input type="number" class="form-control" name="unit_price_<?php echo $row_counter; ?>" id="unit_price_<?php echo $row_counter; ?>" 
                                      value="<?php echo isset($item['vendor_price']) ? $item['vendor_price'] : '0'; ?>" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)" <?php echo $disabled_attr; ?>>
