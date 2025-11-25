@@ -4882,7 +4882,8 @@ class Stock_model_new extends CI_Model
                 $this->db->select('mr.*, c.center_name,
                     COALESCE(COUNT(mri.id), 0) as total_items,
                     COALESCE(SUM(mri.quantity_returned), 0) as total_quantity,
-                    COALESCE(SUM(mri.total_amount), 0) as total_return_amount
+                    COALESCE(SUM(mri.total_amount), 0) as total_return_amount,
+                    GROUP_CONCAT(DISTINCT CONCAT(m.medicine_name, IF(b.brand_name IS NOT NULL, CONCAT(" (", b.brand_name, ")"), "")) SEPARATOR ", ") as medicine_names
                 ');
                 $this->db->from("medicine_returns mr");
                 $this->db->join("hms_centers c", "mr.center_id = c.ID", "left");
@@ -4891,6 +4892,9 @@ class Stock_model_new extends CI_Model
                     "mr.id = mri.return_id",
                     "left",
                 );
+                $this->db->join("medicine_batches mb", "mri.batch_id = mb.id", "left");
+                $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+                $this->db->join("medicine_brands b", "m.brand_id = b.id", "left");
                 $this->db->group_by("mr.id");
                 $this->db->order_by("mr.created_at", "DESC");
                 return $this->db->get()->result();

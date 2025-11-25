@@ -56,8 +56,23 @@
                     </div>
                     <div class="panel-body">
                         <?php if(!empty($returns)): ?>
+                            <!-- Search Bar -->
+                            <div class="row" style="margin-bottom: 15px;">
+                                <div class="col-md-12">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                                        <input type="text" id="searchReturns" class="form-control" placeholder="Search by return number, patient name, receipt number, center, medicine name, or reason...">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-default" type="button" id="clearSearch">
+                                                <i class="fa fa-times"></i> Clear
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered table-hover">
+                                <table class="table table-striped table-bordered table-hover" id="returnsTable">
                                     <thead>
                                         <tr>
                                             <th>Return #</th>
@@ -65,6 +80,7 @@
                                             <th>Receipt #</th>
                                             <th>Center</th>
                                             <th>Department</th>
+                                            <th>Medicine Names</th>
                                             <th>Return Date</th>
                                             <th>Reason</th>
                                             <th>Items</th>
@@ -76,14 +92,17 @@
                                     <tbody>
                                         <?php foreach($returns as $return): ?>
                                             <tr>
-                                                <td><strong><?php echo $return->return_number; ?></strong></td>
-                                                <td><?php echo $return->patient_name; ?></td>
-                                                <td><?php echo $return->receipt_number; ?></td>
-                                                <td><?php echo $return->center_name; ?></td>
-                                                <td><?php echo $return->department; ?></td>
+                                                <td><strong><?php echo htmlspecialchars($return->return_number); ?></strong></td>
+                                                <td><?php echo htmlspecialchars($return->patient_name); ?></td>
+                                                <td><?php echo htmlspecialchars($return->receipt_number); ?></td>
+                                                <td><?php echo htmlspecialchars($return->center_name ?? 'N/A'); ?></td>
+                                                <td><?php echo htmlspecialchars($return->department ?? 'N/A'); ?></td>
+                                                <td>
+                                                    <small><?php echo htmlspecialchars($return->medicine_names ?? 'N/A'); ?></small>
+                                                </td>
                                                 <td><?php echo date('M d, Y', strtotime($return->return_date)); ?></td>
                                                 <td>
-                                                    <span class="badge badge-info"><?php echo $return->return_reason; ?></span>
+                                                    <span class="badge badge-info"><?php echo htmlspecialchars($return->return_reason); ?></span>
                                                 </td>
                                                 <td><?php echo $return->total_items ?? '0'; ?></td>
                                                 <td>₹<?php echo number_format($return->total_return_amount ?? 0, 2); ?></td>
@@ -100,6 +119,10 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <div id="noResults" style="display: none;" class="text-center text-muted">
+                                <i class="fa fa-info-circle fa-2x"></i><br>
+                                No returns found matching your search criteria.
+                            </div>
                         <?php else: ?>
                             <div class="text-center text-muted">
                                 <i class="fa fa-info-circle fa-2x"></i><br>
@@ -111,6 +134,54 @@
                 </div>
             </div>
         </div>
+
+        <script>
+        $(document).ready(function() {
+            var $searchInput = $('#searchReturns');
+            var $table = $('#returnsTable');
+            var $rows = $table.find('tbody tr');
+            var $noResults = $('#noResults');
+            
+            function filterTable() {
+                var searchText = $searchInput.val().toLowerCase();
+                var visibleCount = 0;
+                
+                if (searchText === '') {
+                    $rows.show();
+                    $noResults.hide();
+                    return;
+                }
+                
+                $rows.each(function() {
+                    var $row = $(this);
+                    var rowText = $row.text().toLowerCase();
+                    
+                    if (rowText.indexOf(searchText) !== -1) {
+                        $row.show();
+                        visibleCount++;
+                    } else {
+                        $row.hide();
+                    }
+                });
+                
+                if (visibleCount === 0) {
+                    $table.hide();
+                    $noResults.show();
+                } else {
+                    $table.show();
+                    $noResults.hide();
+                }
+            }
+            
+            $searchInput.on('keyup', filterTable);
+            
+            $('#clearSearch').on('click', function() {
+                $searchInput.val('');
+                filterTable();
+                $searchInput.focus();
+            });
+        });
+        </script>
     </div>
 </div>
 

@@ -226,16 +226,17 @@
         <table class="returns-table">
             <thead>
                 <tr>
-                    <th style="width: 10%;">Return #</th>
-                    <th style="width: 12%;">Patient</th>
-                    <th style="width: 10%;">Receipt #</th>
-                    <th style="width: 12%;">Center</th>
-                    <th style="width: 10%;">Department</th>
-                    <th style="width: 10%;">Return Date</th>
-                    <th style="width: 12%;">Reason</th>
-                    <th style="width: 6%;">Items</th>
-                    <th style="width: 10%;">Amount (₹)</th>
-                    <th style="width: 8%;">Status</th>
+                    <th style="width: 8%;">Return #</th>
+                    <th style="width: 10%;">Patient</th>
+                    <th style="width: 8%;">Receipt #</th>
+                    <th style="width: 10%;">Center</th>
+                    <th style="width: 8%;">Department</th>
+                    <th style="width: 18%;">Medicine Names</th>
+                    <th style="width: 8%;">Return Date</th>
+                    <th style="width: 10%;">Reason</th>
+                    <th style="width: 5%;">Items</th>
+                    <th style="width: 8%;">Amount (₹)</th>
+                    <th style="width: 7%;">Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -246,6 +247,7 @@
                         <td class="text-left"><?php echo htmlspecialchars($return->receipt_number ?? 'N/A'); ?></td>
                         <td class="text-left"><?php echo htmlspecialchars($return->center_name ?? 'N/A'); ?></td>
                         <td class="text-center"><?php echo htmlspecialchars($return->department ?? 'N/A'); ?></td>
+                        <td class="text-left" style="font-size: 7pt;"><?php echo htmlspecialchars($return->medicine_names ?? 'N/A'); ?></td>
                         <td class="text-center"><?php echo isset($return->return_date) ? date('d-m-Y', strtotime($return->return_date)) : 'N/A'; ?></td>
                         <td class="text-left"><?php echo htmlspecialchars($return->return_reason ?? 'N/A'); ?></td>
                         <td class="text-center"><?php echo $return->total_items ?? 0; ?></td>
