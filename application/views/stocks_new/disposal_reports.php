@@ -29,6 +29,7 @@
                                             </option>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
+                                    <option value="CENTRAL_WAREHOUSE_NOIDA" <?php echo $this->input->get('center_id') == 'CENTRAL_WAREHOUSE_NOIDA' ? 'selected' : ''; ?>>Central warehouse Noida</option>
                                 </select>
                             </div>
                             <div class="form-group">

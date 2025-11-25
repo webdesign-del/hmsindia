@@ -3519,7 +3519,13 @@ class Stocks_new extends CI_Controller
             if ($this->input->post("action") == "medicine_disposal") {
                 // --- Validation Rules ---
                 $this->form_validation->set_rules("disposal_date", "Disposal Date", "required|trim");
-                $this->form_validation->set_rules("center_id", "Center", "required|numeric");
+                // Allow center_id to be numeric or 'CENTRAL_WAREHOUSE_NOIDA'
+                $center_id = $this->input->post('center_id');
+                if (!empty($center_id) && $center_id !== 'CENTRAL_WAREHOUSE_NOIDA' && !is_numeric($center_id)) {
+                    $this->form_validation->set_rules("center_id", "Center", "required|numeric");
+                } else {
+                    $this->form_validation->set_rules("center_id", "Center", "required");
+                }
                 $this->form_validation->set_rules("disposal_type", "Disposal Type", "required|trim");
                 $this->form_validation->set_rules("disposal_method", "Disposal Method", "required|trim");
                 $this->form_validation->set_rules("authorized_by", "Authorized By", "required|trim");
@@ -4768,13 +4774,25 @@ class Stocks_new extends CI_Controller
         }
         $vendor_id = $this->input->get('vendor_id', TRUE);
         $center_id = $this->input->get('center_id', TRUE);
-        if (empty($vendor_id) || empty($center_id) || !is_numeric($vendor_id) || !is_numeric($center_id)) {
+        
+        // Validate vendor_id (must be numeric)
+        if (empty($vendor_id) || !is_numeric($vendor_id)) {
             $this->output->set_status_header(400); // Bad Request
-            echo json_encode(['error' => 'Invalid Vendor ID or Center ID']);
+            echo json_encode(['error' => 'Invalid Vendor ID']);
             return;
         }
+        
+        // Validate center_id (can be numeric or 'CENTRAL_WAREHOUSE_NOIDA')
+        if (empty($center_id) || (!is_numeric($center_id) && $center_id !== 'CENTRAL_WAREHOUSE_NOIDA')) {
+            $this->output->set_status_header(400); // Bad Request
+            echo json_encode(['error' => 'Invalid Center ID']);
+            return;
+        }
+        
         $this->load->model('Stock_model_new');
-        $batches = $this->Stock_model_new->get_batches_by_vendor_center((int)$vendor_id, (int)$center_id);
+        // Pass center_id as-is (string for CENTRAL_WAREHOUSE_NOIDA, or cast to int for regular centers)
+        $center_id_param = ($center_id === 'CENTRAL_WAREHOUSE_NOIDA') ? $center_id : (int)$center_id;
+        $batches = $this->Stock_model_new->get_batches_by_vendor_center((int)$vendor_id, $center_id_param);
         $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode($batches ?? []));
@@ -4799,7 +4817,13 @@ class Stocks_new extends CI_Controller
         $logg = checklogin();
         if($logg['status'] == true) {
             if($this->input->post('action') == 'add_vendor_return') {
-                $this->form_validation->set_rules('center_id', 'From Center', 'required|numeric');
+                // Allow center_id to be numeric or 'CENTRAL_WAREHOUSE_NOIDA'
+                $center_id = $this->input->post('center_id');
+                if (!empty($center_id) && $center_id !== 'CENTRAL_WAREHOUSE_NOIDA' && !is_numeric($center_id)) {
+                    $this->form_validation->set_rules('center_id', 'From Center', 'required|numeric');
+                } else {
+                    $this->form_validation->set_rules('center_id', 'From Center', 'required');
+                }
                 $this->form_validation->set_rules('vendor_id', 'Vendor', 'required|numeric');
                 $this->form_validation->set_rules('return_date', 'Return Date', 'required|trim');
                 $this->form_validation->set_rules('return_reason', 'Return Reason', 'trim');

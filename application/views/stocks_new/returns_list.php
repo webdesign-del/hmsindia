@@ -80,7 +80,7 @@
                                             <th>Receipt #</th>
                                             <th>Center</th>
                                             <th>Department</th>
-                                            <th>Medicine Names</th>
+                                            <!-- <th>Medicine Names</th> -->
                                             <th>Return Date</th>
                                             <th>Reason</th>
                                             <th>Items</th>
@@ -97,9 +97,9 @@
                                                 <td><?php echo htmlspecialchars($return->receipt_number); ?></td>
                                                 <td><?php echo htmlspecialchars($return->center_name ?? 'N/A'); ?></td>
                                                 <td><?php echo htmlspecialchars($return->department ?? 'N/A'); ?></td>
-                                                <td>
+                                                <!-- <td>
                                                     <small><?php echo htmlspecialchars($return->medicine_names ?? 'N/A'); ?></small>
-                                                </td>
+                                                </td> -->
                                                 <td><?php echo date('M d, Y', strtotime($return->return_date)); ?></td>
                                                 <td>
                                                     <span class="badge badge-info"><?php echo htmlspecialchars($return->return_reason); ?></span>

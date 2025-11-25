@@ -83,6 +83,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                                  </option>
                                              <?php endforeach; ?>
                                          <?php endif; ?>
+                                         <option value="CENTRAL_WAREHOUSE_NOIDA" <?php echo set_select('center_id', 'CENTRAL_WAREHOUSE_NOIDA'); ?>>Central warehouse Noida</option>
                                     </select>
                                 </div>
                             </div>

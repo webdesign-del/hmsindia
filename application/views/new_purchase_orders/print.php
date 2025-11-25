@@ -47,7 +47,7 @@
         }
 
         .meta-stack {
-            min-width: 220px;
+            min-width: 252px;
             border: 1px solid #d1d5db;
             border-radius: 8px;
             overflow: hidden;
@@ -268,8 +268,8 @@
             </div>
             <div class="meta-stack">
                 <div class="meta-row">
-                    <span class="meta-label">PO Number</span>
-                    <span><?php echo $purchase_order['po_number']; ?></span>
+                    <span class="meta-label"> PO Number     </span>
+                    <span>   <?php echo $purchase_order['po_number']; ?></span>
                 </div>
                 <div class="meta-row">
                     <span class="meta-label">Created On</span>

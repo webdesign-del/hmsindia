@@ -58,6 +58,7 @@
                                                         <?php echo $center->center_name; ?>
                                                     </option>
                                                 <?php endforeach; ?>
+                                                <option value="CENTRAL_WAREHOUSE_NOIDA" <?php echo set_select('center_id', 'CENTRAL_WAREHOUSE_NOIDA'); ?>>Central warehouse Noida</option>
                                             </select>
                                         </div>
                                     </div>

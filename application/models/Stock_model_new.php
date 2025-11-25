@@ -2979,6 +2979,7 @@ class Stock_model_new extends CI_Model
     public function get_available_batches_for_disposal()
     {
         try {
+            // Get batches from center_stocks
             $this->db->select([
                 'cs.batch_id',           // The actual batch ID from medicine_batches
                 'mb.batch_number',
@@ -3012,7 +3013,32 @@ class Stock_model_new extends CI_Model
             $this->db->order_by('c.center_name', 'ASC'); // Group by center first
             $this->db->order_by('mb.expiry_date', 'ASC'); // Show soonest to expire first
             $this->db->order_by('m.medicine_name', 'ASC');
-            $result = $this->db->get()->result();
+            $center_batches = $this->db->get()->result();
+            
+            // Get batches from central_stocks
+            $this->db->select('cs.batch_id, mb.batch_number, mb.expiry_date, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days, cs.quantity as available_quantity, mb.purchase_price, m.medicine_name, m.medicine_code, b.brand_name, "Central warehouse Noida" as center_name, NULL as center_id', FALSE);
+            $this->db->from('central_stocks cs');
+            $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+            $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+            $this->db->where('cs.quantity >', 0);
+            $this->db->where('mb.batch_status', 'ACTIVE');
+            $this->db->order_by('mb.expiry_date', 'ASC');
+            $this->db->order_by('m.medicine_name', 'ASC');
+            $central_batches = $this->db->get()->result();
+            
+            // Combine both results
+            $result = array_merge($center_batches, $central_batches);
+            
+            // Sort combined results
+            usort($result, function($a, $b) {
+                $center_compare = strcmp($a->center_name ?? '', $b->center_name ?? '');
+                if ($center_compare !== 0) return $center_compare;
+                $expiry_compare = strcmp($a->expiry_date ?? '', $b->expiry_date ?? '');
+                if ($expiry_compare !== 0) return $expiry_compare;
+                return strcmp($a->medicine_name ?? '', $b->medicine_name ?? '');
+            });
+            
             return $result;
         } catch (Exception $e) {
             // Log error if needed for debugging
@@ -3134,11 +3160,16 @@ class Stock_model_new extends CI_Model
     public function get_disposal_reports($filters = [])
     {
         try {
-            $this->db->select("dr.*, c.center_name");
+            $this->db->select("dr.*, COALESCE(c.center_name, 'Central warehouse Noida') as center_name");
             $this->db->from("disposal_reports dr");
-            $this->db->join("hms_centers c", "dr.center_id = c.ID");
+            $this->db->join("hms_centers c", "dr.center_id = c.ID", "left");
             if (!empty($filters['center_id'])) {
-                $this->db->where('dr.center_id', $filters['center_id']);
+                // Handle filtering for central warehouse
+                if ($filters['center_id'] === 'CENTRAL_WAREHOUSE_NOIDA' || $filters['center_id'] === 'NULL') {
+                    $this->db->where('dr.center_id IS NULL');
+                } else {
+                    $this->db->where('dr.center_id', $filters['center_id']);
+                }
             }
             if (!empty($filters['status'])) {
                 $this->db->where('dr.status', $filters['status']);
@@ -3283,7 +3314,7 @@ class Stock_model_new extends CI_Model
     public function get_vendor_returns($filters = [])
     {
         try {
-            $this->db->select("vr.*, v.name as vendor_name, c.center_name");
+            $this->db->select("vr.*, v.name as vendor_name, COALESCE(c.center_name, 'Central warehouse Noida') as center_name");
             $this->db->from("vendor_returns vr");
             $this->db->join(
                 $this->config->item("db_prefix") . "vendors v",
@@ -3321,7 +3352,7 @@ class Stock_model_new extends CI_Model
         $to_date = null,
     ) {
         try {
-            $this->db->select("vr.*, v.name as vendor_name, c.center_name");
+            $this->db->select("vr.*, v.name as vendor_name, COALESCE(c.center_name, 'Central warehouse Noida') as center_name");
             $this->db->from("vendor_returns vr");
             $this->db->join(
                 $this->config->item("db_prefix") . "vendors v",
@@ -3407,7 +3438,7 @@ class Stock_model_new extends CI_Model
             $this->db->select([
                 "vr.*", 
                 "v.name as vendor_name", 
-                "c.center_name"
+                "COALESCE(c.center_name, 'Central warehouse Noida') as center_name"
             ]);
             $this->db->from("vendor_returns vr");
             // Join with hms_vendors to get the name
@@ -3554,34 +3585,54 @@ class Stock_model_new extends CI_Model
         public function get_batches_by_vendor_center($vendor_id, $center_id)
         {
             // try {
-                $this->db->select([
-                    'cs.batch_id',
-                    'cs.center_id',
-                    'cs.department',
-                    'c.center_name',
-                    'cs.quantity as available_quantity', 
-                    'm.medicine_name',
-                    'mb.batch_number',
-                    'mb.purchase_price', 
-                    'mb.expiry_date'   
-                ]);
-                $this->db->from('center_stocks cs');
-                $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
-                $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
-                $this->db->join('hms_centers c', 'cs.center_id = c.ID', 'inner');
+                // Check if it's Central Warehouse Noida
+                if ($center_id === 'CENTRAL_WAREHOUSE_NOIDA') {
+                    // Use select with FALSE to allow raw SQL expressions
+                    $this->db->select('cs.batch_id, NULL as center_id, NULL as department, "Central warehouse Noida" as center_name, cs.quantity as available_quantity, m.medicine_name, mb.batch_number, mb.purchase_price, mb.expiry_date', FALSE);
+                    $this->db->from('central_stocks cs');
+                    $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
+                    $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
 
-                // --- Filters ---
-                $this->db->where('cs.quantity >', 0); // Must have stock at the center
-                $this->db->where('cs.center_id', $center_id); // Filter by selected center
-                $this->db->where('mb.vendor_id', $vendor_id); // Filter by selected vendor
-                $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
-                // --- Ordering ---
-                $this->db->order_by('m.medicine_name', 'ASC');
-                $this->db->order_by('mb.expiry_date', 'ASC');
+                    // --- Filters ---
+                    $this->db->where('cs.quantity >', 0); // Must have stock at central warehouse
+                    $this->db->where('mb.vendor_id', $vendor_id); // Filter by selected vendor
+                    $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
+                    // --- Ordering ---
+                    $this->db->order_by('m.medicine_name', 'ASC');
+                    $this->db->order_by('mb.expiry_date', 'ASC');
 
-                $result = $this->db->get()->result();
-                return $result;
+                    $result = $this->db->get()->result();
+                    return $result;
+                } else {
+                    // Regular center query
+                    $this->db->select([
+                        'cs.batch_id',
+                        'cs.center_id',
+                        'cs.department',
+                        'c.center_name',
+                        'cs.quantity as available_quantity', 
+                        'm.medicine_name',
+                        'mb.batch_number',
+                        'mb.purchase_price', 
+                        'mb.expiry_date'   
+                    ]);
+                    $this->db->from('center_stocks cs');
+                    $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
+                    $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+                    $this->db->join('hms_centers c', 'cs.center_id = c.ID', 'inner');
 
+                    // --- Filters ---
+                    $this->db->where('cs.quantity >', 0); // Must have stock at the center
+                    $this->db->where('cs.center_id', $center_id); // Filter by selected center
+                    $this->db->where('mb.vendor_id', $vendor_id); // Filter by selected vendor
+                    $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
+                    // --- Ordering ---
+                    $this->db->order_by('m.medicine_name', 'ASC');
+                    $this->db->order_by('mb.expiry_date', 'ASC');
+
+                    $result = $this->db->get()->result();
+                    return $result;
+                }
             // } catch (Exception $e) {
             //     log_message('error', "Error in get_batches_by_vendor_center: " . $e->getMessage());
             //     return []; // Return empty array on any database error
@@ -5082,10 +5133,24 @@ class Stock_model_new extends CI_Model
                 $this->session->set_flashdata('error', 'No items selected for disposal.'); // Add user feedback
                 return false;
             }
-            if (empty($disposal_data['center_id']) || empty($disposal_data['created_by'])) {
-                $this->session->set_flashdata('error', 'Center ID or User ID missing.');
+            // Check if it's Central Warehouse Noida (before converting to NULL)
+            $is_central_warehouse = ($disposal_data['center_id'] === 'CENTRAL_WAREHOUSE_NOIDA');
+            
+            // Validate: For regular centers, center_id must be provided. For central warehouse, it's allowed to be CENTRAL_WAREHOUSE_NOIDA
+            if (!$is_central_warehouse && (empty($disposal_data['center_id']) || !is_numeric($disposal_data['center_id']))) {
+                $this->session->set_flashdata('error', 'Center ID is required and must be valid.');
                 return false;
             }
+            if (empty($disposal_data['created_by'])) {
+                $this->session->set_flashdata('error', 'User ID missing.');
+                return false;
+            }
+            
+            // Set center_id to NULL for central warehouse to satisfy foreign key constraint
+            if ($is_central_warehouse) {
+                $disposal_data['center_id'] = null;
+            }
+            
             $this->db->trans_start();
             // 3. Insert Disposal Header (`disposal_reports`)
             // Initialize totals to 0, they will be calculated and updated at the end.
@@ -5126,25 +5191,45 @@ class Stock_model_new extends CI_Model
                     return false;
                 }
                 $unit_cost = (float)$batch_info->purchase_price;
-                $this->db->where("batch_id", $batch_id);
-                $this->db->where("center_id", $disposal_data["center_id"]);
-                $center_stock = $this->db->select('quantity')->get("center_stocks")->row();
-                $quantity_before = ($center_stock) ? (int)$center_stock->quantity : 0;
+                
+                // Check stock availability - either from center_stocks or central_stocks
+                if ($is_central_warehouse) {
+                    $this->db->where("batch_id", $batch_id);
+                    $central_stock = $this->db->select('quantity')->get("central_stocks")->row();
+                    $quantity_before = ($central_stock) ? (int)$central_stock->quantity : 0;
+                } else {
+                    $this->db->where("batch_id", $batch_id);
+                    $this->db->where("center_id", $disposal_data["center_id"]);
+                    $center_stock = $this->db->select('quantity')->get("center_stocks")->row();
+                    $quantity_before = ($center_stock) ? (int)$center_stock->quantity : 0;
+                }
+                
                 $actual_disposed_qty = min($quantity_to_dispose, $quantity_before);
                 if ($actual_disposed_qty <= 0) {
                     continue;
                 }
                 $quantity_after = $quantity_before - $actual_disposed_qty;
                 $item_total_cost = $unit_cost * $actual_disposed_qty; // Cost based on actual disposed qty
-                $this->db->set("quantity", "GREATEST(0, quantity - " . $actual_disposed_qty . ")", FALSE);
-                $this->db->set("last_movement_date", "NOW()", false);
-                $this->db->set("updated_at", "NOW()", false);
-                $this->db->where("batch_id", $batch_id);
-                $this->db->where("center_id", $disposal_data["center_id"]);
-                $this->db->update("center_stocks");
+                
+                // Update stock - either central_stocks or center_stocks
+                if ($is_central_warehouse) {
+                    $this->db->set("quantity", "GREATEST(0, quantity - " . $actual_disposed_qty . ")", FALSE);
+                    $this->db->set("last_movement_date", "NOW()", false);
+                    $this->db->set("updated_at", "NOW()", false);
+                    $this->db->where("batch_id", $batch_id);
+                    $this->db->update("central_stocks");
+                } else {
+                    $this->db->set("quantity", "GREATEST(0, quantity - " . $actual_disposed_qty . ")", FALSE);
+                    $this->db->set("last_movement_date", "NOW()", false);
+                    $this->db->set("updated_at", "NOW()", false);
+                    $this->db->where("batch_id", $batch_id);
+                    $this->db->where("center_id", $disposal_data["center_id"]);
+                    $this->db->update("center_stocks");
+                }
                 $db_error = $this->db->error();
                 if ($db_error["code"] != 0) {
-                    log_message('error', "DB Error (center_stocks update): " . $db_error["message"]);
+                    $table_name = $is_central_warehouse ? "central_stocks" : "center_stocks";
+                    log_message('error', "DB Error ({$table_name} update): " . $db_error["message"]);
                     $this->db->trans_rollback();
                     return false;
                 }
@@ -5162,8 +5247,8 @@ class Stock_model_new extends CI_Model
                     $movement_data = [
                         "batch_id"           => $batch_id,
                         "movement_type"      => "DISPOSAL", // Correct ENUM value
-                        "from_location_type" => "CENTER",
-                        "from_location_id"   => $disposal_data["center_id"],
+                        "from_location_type" => $is_central_warehouse ? "CENTRAL" : "CENTER",
+                        "from_location_id"   => $is_central_warehouse ? 0 : $disposal_data["center_id"],
                         "to_location_type"   => "WASTAGE", // Correct ENUM value
                         "to_location_id"     => null,
                         "quantity_before"    => $quantity_before, // Qty at center before
@@ -5196,7 +5281,8 @@ class Stock_model_new extends CI_Model
             if ($calculated_total_items == 0) {
                 log_message('error', "Disposal failed: No valid items found with available stock.");
                 $this->db->trans_rollback();
-                $this->session->set_flashdata('error', 'No stock available for the selected items/batches at this center.'); // User feedback
+                $location = $is_central_warehouse ? 'central warehouse' : 'this center';
+                $this->session->set_flashdata('error', "No stock available for the selected items/batches at {$location}."); // User feedback
                 return false;
             }
             $update_data = [
@@ -5633,9 +5719,22 @@ class Stock_model_new extends CI_Model
                 $this->session->set_flashdata('error', 'No items selected for return.');
                 return false;
             }
-            if (empty($return_data['center_id']) || empty($return_data['vendor_id']) || empty($return_data['created_by'])) {
-                $this->session->set_flashdata('error', 'Center ID, Vendor ID, or User ID missing.');
+            // Check if it's Central Warehouse Noida (before converting to NULL)
+            $is_central_warehouse = ($return_data['center_id'] === 'CENTRAL_WAREHOUSE_NOIDA');
+            
+            // Validate: For regular centers, center_id must be provided. For central warehouse, it's allowed to be CENTRAL_WAREHOUSE_NOIDA
+            if (!$is_central_warehouse && (empty($return_data['center_id']) || !is_numeric($return_data['center_id']))) {
+                $this->session->set_flashdata('error', 'Center ID is required and must be valid.');
                 return false;
+            }
+            if (empty($return_data['vendor_id']) || empty($return_data['created_by'])) {
+                $this->session->set_flashdata('error', 'Vendor ID or User ID missing.');
+                return false;
+            }
+            
+            // Set center_id to NULL for central warehouse to satisfy foreign key constraint
+            if ($is_central_warehouse) {
+                $return_data['center_id'] = null;
             }
             $this->db->trans_start();
             $return_data["return_number"] = "VRET" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
@@ -5668,25 +5767,43 @@ class Stock_model_new extends CI_Model
                 if ($batch_id <= 0 || $quantity_to_return <= 0 || $unit_price <= 0) {
                     continue; 
                 }
-                $this->db->where("batch_id", $batch_id);
-                $this->db->where("center_id", $return_data["center_id"]);
-                $center_stock = $this->db->select('quantity')->get("center_stocks")->row();
-                $quantity_before = ($center_stock) ? (int)$center_stock->quantity : 0;
+                // Check stock availability - either from center_stocks or central_stocks
+                if ($is_central_warehouse) {
+                    $this->db->where("batch_id", $batch_id);
+                    $central_stock = $this->db->select('quantity')->get("central_stocks")->row();
+                    $quantity_before = ($central_stock) ? (int)$central_stock->quantity : 0;
+                } else {
+                    $this->db->where("batch_id", $batch_id);
+                    $this->db->where("center_id", $return_data["center_id"]);
+                    $center_stock = $this->db->select('quantity')->get("center_stocks")->row();
+                    $quantity_before = ($center_stock) ? (int)$center_stock->quantity : 0;
+                }
                 $actual_returned_qty = min($quantity_to_return, $quantity_before);
                 if ($actual_returned_qty <= 0) {
                     continue;
                 }
                 $quantity_after = $quantity_before - $actual_returned_qty;
                 $actual_item_total_value = $unit_price * $actual_returned_qty; // Value based on actual returned qty
-                $this->db->set("quantity", "GREATEST(0, quantity - " . $actual_returned_qty . ")", FALSE);
-                $this->db->set("last_movement_date", "NOW()", false);
-                $this->db->set("updated_at", "NOW()", false);
-                $this->db->where("batch_id", $batch_id);
-                $this->db->where("center_id", $return_data["center_id"]);
-                $this->db->update("center_stocks");
+                
+                // Update stock - either central_stocks or center_stocks
+                if ($is_central_warehouse) {
+                    $this->db->set("quantity", "GREATEST(0, quantity - " . $actual_returned_qty . ")", FALSE);
+                    $this->db->set("last_movement_date", "NOW()", false);
+                    $this->db->set("updated_at", "NOW()", false);
+                    $this->db->where("batch_id", $batch_id);
+                    $this->db->update("central_stocks");
+                } else {
+                    $this->db->set("quantity", "GREATEST(0, quantity - " . $actual_returned_qty . ")", FALSE);
+                    $this->db->set("last_movement_date", "NOW()", false);
+                    $this->db->set("updated_at", "NOW()", false);
+                    $this->db->where("batch_id", $batch_id);
+                    $this->db->where("center_id", $return_data["center_id"]);
+                    $this->db->update("center_stocks");
+                }
                 $db_error = $this->db->error();
                 if ($db_error["code"] != 0) {
-                    log_message('error', "DB Error (center_stocks update): " . $db_error["message"]);
+                    $table_name = $is_central_warehouse ? "central_stocks" : "center_stocks";
+                    log_message('error', "DB Error ({$table_name} update): " . $db_error["message"]);
                     $this->db->trans_rollback();
                     return false;
                 }
@@ -5704,8 +5821,8 @@ class Stock_model_new extends CI_Model
                     $movement_data = [
                         "batch_id"           => $batch_id,
                         "movement_type"      => "PURCHASE_RETURN", // Correct ENUM value
-                        "from_location_type" => "CENTER",          // Assuming return from center
-                        "from_location_id"   => $return_data["center_id"],
+                        "from_location_type" => $is_central_warehouse ? "CENTRAL" : "CENTER",
+                        "from_location_id"   => $is_central_warehouse ? 0 : $return_data["center_id"],
                         "to_location_type"   => "VENDOR",          // Correct ENUM value
                         "to_location_id"     => $return_data["vendor_id"],
                         "quantity_before"    => $quantity_before, // Qty at center before
@@ -5737,7 +5854,8 @@ class Stock_model_new extends CI_Model
             if ($calculated_total_items == 0) {
                 log_message('error', "Vendor Return failed: No valid items found with available stock.");
                 $this->db->trans_rollback();
-                $this->session->set_flashdata('error', 'No stock available for the selected items/batches at this center.'); // User feedback
+                $location = $is_central_warehouse ? 'central warehouse' : 'this center';
+                $this->session->set_flashdata('error', "No stock available for the selected items/batches at {$location}."); // User feedback
                 return false;
             }
             $update_data = [
