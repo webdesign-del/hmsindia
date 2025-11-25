@@ -39,7 +39,7 @@
                 <form action="<?php echo base_url('stocks_new/stock_audit'); ?>" method="get" class="form-inline">
                     <div class="form-group">
                         <label for="center_select_filter">Select Location:</label>
-                        <select name="center_id" id="center_select_filter" class="form-control" style="min-width: 300px;">
+                        <select name="center_id" class="form-control" style="min-width: 300px;">
                             <option value="">-- Select a Center or Warehouse --</option>
                             <option value="central" <?php echo ($selected_center_id == 'central') ? 'selected' : ''; ?>>
                                 Central Warehouse

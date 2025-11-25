@@ -10,14 +10,21 @@
      
      <!-- Filters Section -->
      <form class="row" style="margin: 0px !important; margin-top: 20px !important;" action="<?php echo base_url('new_purchase_orders/received_stock_report'); ?>" method="get">
-       <div class="col-sm-3 col-xs-12">
+       <div class="col-sm-2 col-xs-12">
           <div class="form-group">
              <label for="po_number">PO Number</label>
              <input type="text" class="form-control" id="po_number" name="po_number" 
                 value="<?php echo htmlspecialchars($filters['po_number'] ?? ''); ?>" placeholder="Search PO">
           </div>
        </div>
-       <div class="col-sm-3 col-xs-12">
+       <div class="col-sm-2 col-xs-12">
+          <div class="form-group">
+             <label for="invoice_number">Invoice Number</label>
+             <input type="text" class="form-control" id="invoice_number" name="invoice_number" 
+                value="<?php echo htmlspecialchars($filters['invoice_number'] ?? ''); ?>" placeholder="Search Invoice">
+          </div>
+       </div>
+       <div class="col-sm-2 col-xs-12">
           <div class="form-group">
              <label for="vendor_id">Vendor</label>
              <select class="form-control" id="vendor_id" name="vendor_id">
@@ -30,6 +37,16 @@
                        </option>
                    <?php endforeach; ?>
                 <?php endif; ?>
+             </select>
+          </div>
+       </div>
+       <div class="col-sm-2 col-xs-12">
+          <div class="form-group">
+             <label for="has_file">File Status</label>
+             <select class="form-control" id="has_file" name="has_file">
+                <option value="">All</option>
+                <option value="1" <?= (($filters['has_file'] ?? '') == '1') ? 'selected' : ''; ?>>With Files</option>
+                <option value="0" <?= (($filters['has_file'] ?? '') == '0') ? 'selected' : ''; ?>>Without Files</option>
              </select>
           </div>
        </div>
@@ -50,14 +67,16 @@
           </div>
        </div>
        <!-- Buttons -->
-       <div class="col-sm-2 col-xs-12">
-          <label>&nbsp;</label>
+       <div class="col-sm-12 col-xs-12">
           <div class="form-group">
              <button type="submit" name="btnsearch" id="btnsearch" class="btn btn-primary">
                 <i class="fa fa-search"></i> Search
              </button>
              <a href="<?php echo base_url('new_purchase_orders/received_stock_report'); ?>" class="btn btn-default">
                 <i class="fa fa-refresh"></i> Reset
+             </a>
+             <a href="<?php echo base_url('new_purchase_orders/export_received_stock_report?' . http_build_query($filters)); ?>" class="btn btn-success">
+                <i class="fa fa-file-excel-o"></i> Export to Excel
              </a>
           </div>
        </div>
@@ -130,7 +149,7 @@
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                         <td colspan="10" class="text-center text-muted">
+                         <td colspan="14" class="text-center text-muted">
                             <i class="fa fa-inbox fa-3x" style="margin-bottom: 10px;"></i>
                             <br>No received items found matching your criteria.
                          </td>

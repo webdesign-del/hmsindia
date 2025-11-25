@@ -1453,10 +1453,12 @@ class New_purchase_orders extends CI_Controller {
 
         // Get filters from URL
         $filters = [
-            'po_number'  => $this->input->get('po_number'),
-            'vendor_id'  => $this->input->get('vendor_id'),
-            'start_date' => $this->input->get('start_date'),
-            'end_date'   => $this->input->get('end_date')
+            'po_number'      => $this->input->get('po_number'),
+            'invoice_number' => $this->input->get('invoice_number'),
+            'vendor_id'      => $this->input->get('vendor_id'),
+            'has_file'       => $this->input->get('has_file'),
+            'start_date'     => $this->input->get('start_date'),
+            'end_date'       => $this->input->get('end_date')
         ];
 
         // Get data from model
@@ -1469,6 +1471,103 @@ class New_purchase_orders extends CI_Controller {
         $this->load->view($template["header"]);
         $this->load->view("new_purchase_orders/received_stock_report", $data); 
         $this->load->view($template["footer"]);
+    }
+
+    /**
+     * Export received stock report to Excel (CSV format)
+     */
+    public function export_received_stock_report() {
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+             redirect(base_url());
+             die();
+        }
+
+        // Get filters from URL (same as received_stock_report)
+        $filters = [
+            'po_number'      => $this->input->get('po_number'),
+            'invoice_number' => $this->input->get('invoice_number'),
+            'vendor_id'      => $this->input->get('vendor_id'),
+            'has_file'       => $this->input->get('has_file'),
+            'start_date'     => $this->input->get('start_date'),
+            'end_date'       => $this->input->get('end_date')
+        ];
+
+        // Get data from model
+        $received_items = $this->New_purchase_order_model->get_received_stock_report($filters);
+
+        if (empty($received_items)) {
+            $this->session->set_flashdata('error', 'No data found to export.');
+            redirect('new_purchase_orders/received_stock_report');
+            return;
+        }
+
+        // Set headers for Excel download
+        $filename = 'Received_Stock_Report_' . date('Y-m-d_H-i-s') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+
+        // Create file pointer
+        $output = fopen('php://output', 'w');
+
+        // Add BOM for UTF-8 (Excel compatibility)
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Add headers
+        $headers = [
+            'PO Number',
+            'Vendor',
+            'Center',
+            'Item Name',
+            'Item Code',
+            'Batch Number',
+            'Quantity Received',
+            'Vendor Price',
+            'Vendor Price With GST',
+            'Receive By',
+            'Invoice Number',
+            'Received Date',
+            'Files',
+            'Total Value'
+        ];
+        fputcsv($output, $headers);
+
+        // Add data rows
+        foreach ($received_items as $item) {
+            // Process files
+            $files_display = 'No files';
+            if (!empty($item->uploaded_files)) {
+                $files = json_decode($item->uploaded_files);
+                if (!empty($files) && is_array($files)) {
+                    $file_names = [];
+                    foreach ($files as $file) {
+                        $file_names[] = basename($file);
+                    }
+                    $files_display = implode(', ', $file_names);
+                }
+            }
+
+            $row = [
+                $item->po_number,
+                $item->vendor_name,
+                $item->center_name,
+                $item->medicine_name,
+                $item->item_number,
+                $item->batch_number,
+                $item->quantity_change,
+                number_format($item->unit_price, 2),
+                number_format($item->vendor_price_with_tax, 2),
+                $item->receive_by,
+                $item->receipt_number,
+                date('d-m-Y H:i', strtotime($item->received_date)),
+                $files_display,
+                number_format($item->total_value, 2)
+            ];
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit();
     }
 
 

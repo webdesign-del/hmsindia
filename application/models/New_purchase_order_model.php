@@ -617,8 +617,27 @@ class New_purchase_order_model extends CI_Model {
             if (!empty($filters['po_number'])) {
                 $this->db->like('sm.reference_number', $filters['po_number'], 'both');
             }
+            if (!empty($filters['invoice_number'])) {
+                $this->db->like('sm.receipt_number', $filters['invoice_number'], 'both');
+            }
             if (!empty($filters['vendor_id'])) {
                 $this->db->where('po.vendor_number', $filters['vendor_id']);
+            }
+            // File filter: has_file = 1 means with files, has_file = 0 means without files
+            if (isset($filters['has_file']) && $filters['has_file'] !== '') {
+                if ($filters['has_file'] == '1') {
+                    // With files: uploaded_files is not null and not empty
+                    $this->db->where('sm.uploaded_files IS NOT NULL');
+                    $this->db->where('sm.uploaded_files !=', '');
+                    $this->db->where('sm.uploaded_files !=', '[]');
+                } elseif ($filters['has_file'] == '0') {
+                    // Without files: uploaded_files is null or empty
+                    $this->db->group_start();
+                    $this->db->where('sm.uploaded_files IS NULL');
+                    $this->db->or_where('sm.uploaded_files', '');
+                    $this->db->or_where('sm.uploaded_files', '[]');
+                    $this->db->group_end();
+                }
             }
             if (!empty($filters['start_date'])) {
                 $this->db->where('DATE(sm.created_at) >=', $filters['start_date']);
