@@ -23,6 +23,25 @@
                         <a href="<?php echo base_url('stocks_new/sales'); ?>" class="btn btn-info">
                             <i class="fa fa-shopping-cart"></i> Sales
                         </a>
+                        <?php if(!empty($returns)): ?>
+                            <div class="btn-group pull-right">
+                                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fa fa-download"></i> Export <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a href="<?php echo base_url('stocks_new/export_returns_list?format=excel'); ?>" target="_blank">
+                                            <i class="fa fa-file-excel-o"></i> Export to Excel (CSV)
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="<?php echo base_url('stocks_new/export_returns_list?format=pdf'); ?>" target="_blank">
+                                            <i class="fa fa-file-pdf-o"></i> Print as PDF
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -45,7 +64,7 @@
                                             <th>Patient</th>
                                             <th>Receipt #</th>
                                             <th>Center</th>
-                                            <th>Department<th>
+                                            <th>Department</th>
                                             <th>Return Date</th>
                                             <th>Reason</th>
                                             <th>Items</th>

@@ -3005,6 +3005,107 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    /**
+     * Export medicine returns list to Excel or PDF
+     */
+    public function export_returns_list()
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+
+        $format = $this->input->get('format'); // 'excel' or 'pdf'
+
+        // Get returns data
+        $returns = $this->Stock_model_new->get_medicine_returns();
+
+        if (empty($returns)) {
+            $this->session->set_flashdata('error', 'No returns found to export.');
+            redirect('stocks_new/returns');
+            return;
+        }
+
+        if ($format == 'excel') {
+            $this->export_returns_excel($returns);
+        } elseif ($format == 'pdf') {
+            $this->export_returns_pdf($returns);
+        } else {
+            $this->session->set_flashdata('error', 'Invalid export format.');
+            redirect('stocks_new/returns');
+        }
+    }
+
+    /**
+     * Export medicine returns to Excel
+     */
+    private function export_returns_excel($returns)
+    {
+        // Set headers for Excel download
+        $filename = 'Medicine_Returns_' . date('Y-m-d_H-i-s') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+
+        // Create file pointer
+        $output = fopen('php://output', 'w');
+
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Add headers
+        $headers = [
+            'Return Number',
+            'Patient Name',
+            'Receipt Number',
+            'Center',
+            'Department',
+            'Return Date',
+            'Reason',
+            'Total Items',
+            'Total Amount (₹)',
+            'Status',
+            'Created Date'
+        ];
+        fputcsv($output, $headers);
+
+        // Add data rows
+        foreach ($returns as $return) {
+            $row = [
+                $return->return_number ?? 'N/A',
+                $return->patient_name ?? 'N/A',
+                $return->receipt_number ?? 'N/A',
+                $return->center_name ?? 'N/A',
+                $return->department ?? 'N/A',
+                isset($return->return_date) ? date('d-m-Y', strtotime($return->return_date)) : 'N/A',
+                $return->return_reason ?? 'N/A',
+                $return->total_items ?? 0,
+                number_format($return->total_return_amount ?? 0, 2),
+                $return->status ?? 'COMPLETED',
+                isset($return->created_at) ? date('d-m-Y H:i', strtotime($return->created_at)) : 'N/A'
+            ];
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit();
+    }
+
+    /**
+     * Export medicine returns to PDF (HTML print version)
+     */
+    private function export_returns_pdf($returns)
+    {
+        // Create a print-friendly HTML page that can be printed as PDF
+        $data = [
+            'returns' => $returns,
+            'generated_date' => date('M d, Y H:i A')
+        ];
+        
+        // Load the print view
+        $this->load->view('stocks_new/print_returns_list', $data);
+    }
+
     // ===============================================
     // STOCK AUDIT
     // ===============================================
@@ -7008,13 +7109,15 @@ class Stocks_new extends CI_Controller
             'Medicine Code',
             'Medicine Name',
             'Brand',
-            'Vendor',
             'Batch Number',
             'Expiry Date',
             'Days Left',
-            'Purchase Price',
-            'Selling Price',
             'Quantity',
+            'Vendor Price',
+            'Single unit price',
+            'Total Vendor Price',
+            'Mrp',
+            'Pack Size',
             'Status'
         ]);
         // 7. Write CSV Data Rows
@@ -7024,14 +7127,16 @@ class Stocks_new extends CI_Controller
                     $row->medicine_code,
                     $row->medicine_name,
                     $row->brand_name,
-                    $row->vendor_name,
                     $row->batch_number,
                     $row->expiry_date,
                     $row->expiry_days,
+                    $row->quantity, // from ccs.quantity
                     $row->purchase_price,
+                    $row->purchase_price/$row->pack_size,
+                    ($row->purchase_price/$row->pack_size)*$row->quantity,
                     $row->selling_price,
-                    $row->quantity, // from cs.quantity
-                    $row->status    // from cs.status
+                    $row->pack_size,
+                    $row->status 
                 ]);
             }
         }
