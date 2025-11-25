@@ -130,7 +130,7 @@
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Pack Size</label>
                                         <div class="col-sm-8">
-                                            <input type="text" name="pack_size" class="form-control" placeholder="e.g., 10x10, 1x30" value="<?php echo set_value('pack_size'); ?>">
+                                            <input type="text" name="pack_size" class="form-control" placeholder="" value="<?php echo set_value('pack_size'); ?>">
                                         </div>
                                     </div>
                                     

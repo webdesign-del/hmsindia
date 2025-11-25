@@ -65,7 +65,7 @@
          <div class="sidebar-collapse">
             <ul class="nav" id="main-menu">
                <li> <a class="active-menu waves-effect waves-dark" href="<?php echo base_url(); ?>"><i class="fa fa-dashboard"></i> Dashboard</a> </li>
-               <li>
+               <!-- <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Stocks<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
                      <li> <a href="<?php echo base_url(); ?>brands">All Brands</a> </li>
@@ -82,16 +82,16 @@
                      <li> <a href="<?php echo base_url(); ?>stocks/active_stocks">Active Stocks Lists</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks/add">Add Central Item</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks/all_center_stocks">All Centre Stocks</a> </li>
-                     <!--<li> <a href="<?php echo base_url(); ?>stocks/add_invoice">Add Invoice</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks/add_invoice">Add Invoice</a> </li>
                         <li> <a href="<?php echo base_url(); ?>stocks/invoice_list">Invoice List</a> </li>
                         <li> <a href="<?php echo base_url(); ?>stocks/categories">Categories</a></li>
-                              <li> <a href="<?php echo base_url(); ?>stocks/add_category">Add Category</a></li> -->
-                     <!-- <li><a href="<?php echo base_url(); ?>orders/inventory_dispense">Patient consumption</a></li> -->
+                              <li> <a href="<?php echo base_url(); ?>stocks/add_category">Add Category</a></li>
+                     <li><a href="<?php echo base_url(); ?>orders/inventory_dispense">Patient consumption</a></li>
                   </ul>
-               </li>
+               </li> -->
                <!-- New Stocks Module -->
                <li>
-                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>New Stocks Module<span class="fa arrow"></span></a>
+                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Stocks<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
                      <li> <a href="<?php echo base_url(); ?>stocks_new/dashboard"> Dashboard</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/brands"> Brands</a> </li>
@@ -108,51 +108,60 @@
                   </ul>
                </li>
                <li>
-                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>New Stock Transfers<span class="fa arrow"></span></a>
+                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Stock Transfers<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">        
                      <li> <a href="<?php echo base_url(); ?>stocks_new/transfers"> Transfers</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/add_transfer"> Add Transfer</a> </li>
                   </ul>
                </li>
                <li>
-                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>New Sales Management<span class="fa arrow"></span></a>
+                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Sales & Return<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
                      <li> <a href="<?php echo base_url(); ?>stocks_new/sales"> Sales</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/add_sale"> Add Sale</a> </li>
-                  </ul>
-               </li>
-               <li>
-                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>New Reports & Alerts<span class="fa arrow"></span></a>
-                  <ul class="nav nav-second-level">
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> Reports</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/low_stock_alerts"> Low Stock Alerts</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/expiry_alerts"> Expiry Alerts</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/returns"> Medicine Return List</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/medicine_returns"> Medicine Returns</a> </li>
                   </ul>
                </li>
                <li>
-                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>New Stock Audit & Disposal<span class="fa arrow"></span></a>
-                  <ul class="nav nav-second-level"> 
-                  <li> <a href="<?php echo base_url(); ?>stocks_new/stock_audit"> Stock Audit</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/disposal_reports"> Medicine Disposal List</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/medicine_disposal"> Medicine Disposal</a> </li>
+                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Reports & Alerts<span class="fa arrow"></span></a>
+                  <ul class="nav nav-second-level">
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> Reports</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/low_stock_alerts">Low Stock Alerts</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/expiry_alerts"> Expiry Alerts</a> </li>
+                      <li> <a href="<?php echo base_url(); ?>stocks_new/stock_audit"> Stock Audit</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/audit_reports"> Audit Reports</a> </li>
                   </ul>
                </li>
                <li>
-                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>New Stock Management<span class="fa arrow"></span></a>
+                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Vendor Return and Disposal<span class="fa arrow"></span></a>
+                  <ul class="nav nav-second-level"> 
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/vendor_returns"> Vendor Returns</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/disposal_reports"> Medicine Disposal List</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/medicine_disposal"> Medicine Disposal</a> </li>
+                  </ul>
+               </li>
+               <li>
+                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Stock Management<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks_new/categories"> Categories</a> </li> -->
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks_new/generic_names"> Generic Names</a> </li> -->
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/vendor_returns"> Vendor Returns</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/stock_tracking_panel"> Stock Tracking Panel</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/stock_movements">Stock Movements</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/stock_additions_report">Stock Additions Report</a> </li>
                   </ul>
                </li>
                <li>
-                  <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Orders<span class="fa arrow"></span></a>
+               <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i> Patient Consumption Report<span class="fa arrow"></span></a>
+                  <ul class="nav nav-second-level">
+                     <!-- <li> <a href="<?php echo base_url(); ?>stocks_new/add_billing_item">Add Consumptions</a> </li> -->
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_report">Patient Consumption Report</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_summary">Patient Consumption Summary</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/all_consumption_report">All Consumption Report</a> </li>
+                  </ul>
+               </li>
+               <!-- <li>
+               <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Orders<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
                      <li> <a href="<?php echo base_url(); ?>orders/orders">Centre requisition</a> </li>
                      <li> <a href="<?php echo base_url(); ?>orders/purchase_orders_list">Purchase orders</a> </li>
@@ -161,7 +170,7 @@
                      <li> <a href="<?php echo base_url(); ?>stocks/medicine_center_order">Medicine Order</a> </li>
                      <li><a href="<?php echo base_url(); ?>stocks/patient_items">Patient consumption</a></li>
                   </ul>
-               </li>
+               </li> -->
                <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Purchase Orders<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
@@ -170,7 +179,7 @@
                      <li> <a href="<?php echo base_url(); ?>new_purchase_orders/received_stock_report">Received Stock Report</a> </li>
                   </ul>
                </li>
-               
+               <!--                
                <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Return<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
@@ -178,7 +187,7 @@
                      <li> <a href="<?php echo base_url(); ?>stocks/vendor_return_list">Vendor Return</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks/product_discard_list">Discard Product</a> </li>
                   </ul>
-               </li>
+               </li> -->
                <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Reports<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
