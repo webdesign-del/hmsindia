@@ -275,7 +275,7 @@ $(document).ready(function() {
             '<option value="">Select Medicine</option>' +
             '<?php if(isset($available_batches) && !empty($available_batches)): ?>' +
             '<?php foreach($available_batches as $batch): ?>' +
-            '<option value="<?php echo isset($batch->batch_id) ? $batch->batch_id : $batch->id; ?>" data-medicine="<?php echo isset($batch->medicine_name) ? $batch->medicine_name : 'Unknown'; ?>" data-batch-number="<?php echo isset($batch->batch_number) ? $batch->batch_number : 'N/A'; ?>" data-price="<?php echo isset($batch->selling_price) ? $batch->selling_price : 0; ?>" data-sold-qty="<?php echo isset($batch->quantity_sold) ? $batch->quantity_sold : 0; ?>"><?php echo (isset($batch->medicine_name) ? $batch->medicine_name : 'Unknown') . ' - ' . (isset($batch->batch_number) ? $batch->batch_number : 'N/A'); ?></option>' +
+            '<option value="<?php echo isset($batch->batch_id) ? $batch->batch_id : $batch->id; ?>" data-medicine="<?php echo isset($batch->medicine_name) ? $batch->medicine_name : 'Unknown'; ?>" data-batch-number="<?php echo isset($batch->batch_number) ? $batch->batch_number : 'N/A'; ?>" data-pack-size="<?php echo isset($batch->pack_size) ? $batch->pack_size : 'N/A'; ?>" data-price="<?php echo isset($batch->selling_price) ? $batch->selling_price : 0; ?>" data-sold-qty="<?php echo isset($batch->quantity_sold) ? $batch->quantity_sold : 0; ?>"><?php echo (isset($batch->medicine_name) ? $batch->medicine_name : 'Unknown') . ' - ' . (isset($batch->batch_number) ? $batch->batch_number : 'N/A'); ?></option>' +
             '<?php endforeach; ?>' +
             '<?php endif; ?>' +
             '</select></td>' +
@@ -302,17 +302,30 @@ $(document).ready(function() {
         var selectedOption = $(this).find('option:selected');
         var row = $(this).closest('tr');
         if (selectedOption.val()) {
-            var price = selectedOption.data('price');
-            var pack_size =selectedOption.data('pack-size');
-            var unitPrice_MRP = selectedOption.data('price')/pack_size;
+            var price = parseFloat(selectedOption.data('price')) || 0;
+            var pack_size = parseFloat(selectedOption.data('pack-size')) || 1;
+            var unitPrice_MRP = pack_size > 0 ? (price / pack_size) : price;
+            var soldQty = parseFloat(selectedOption.data('sold-qty')) || 0;
+            
             row.find('.batch_number').text(selectedOption.data('batch-number'));
-            row.find('.sold_quantity').text(selectedOption.data('sold-qty'));
-            row.find('.unit_price').text('₹' + unitPrice_MRP);
+            row.find('.sold_quantity').text(soldQty);
+            row.find('.unit_price').text('₹' + unitPrice_MRP.toFixed(2));
             row.find('.hidden_price').val(price);
-            row.find('.return_quantity').attr('max', selectedOption.data('sold-qty'));
+            row.find('.return_quantity').attr('max', soldQty);
+            
+            // Validate existing return quantity if it exceeds sold quantity
+            var currentReturnQty = parseFloat(row.find('.return_quantity').val()) || 0;
+            if (currentReturnQty > soldQty && soldQty > 0) {
+                row.find('.return_quantity').val(soldQty);
+                alert('Return quantity adjusted to sold quantity (' + soldQty + ')');
+            }
+            
+            // Trigger input event to recalculate return amount
+            row.find('.return_quantity').trigger('input');
         } else {
             row.find('.batch_number, .sold_quantity, .unit_price').text('-');
             row.find('.hidden_price').val(0);
+            row.find('.return_quantity').removeAttr('max');
         }
     });
 
@@ -320,11 +333,35 @@ $(document).ready(function() {
     $(document).on('input', '.return_quantity', function() {
         var row = $(this).closest('tr');
         var quantity = parseFloat($(this).val()) || 0;
+        var soldQty = parseFloat(row.find('.sold_quantity').text()) || 0;
+        
+        // Validate: return quantity cannot exceed sold quantity
+        if (soldQty > 0 && quantity > soldQty) {
+            $(this).val(soldQty);
+            quantity = soldQty;
+            alert('Return quantity cannot exceed sold quantity (' + soldQty + ')');
+        }
+        
         var unitPrice = parseFloat(row.find('.unit_price').text().replace('₹', '')) || 0;
         var returnAmount = quantity * unitPrice;
 
         row.find('.return_amount').text('₹' + returnAmount.toFixed(2));
         calculateTotal();
+    });
+
+    // Validate on blur (when user leaves the field)
+    $(document).on('blur', '.return_quantity', function() {
+        var row = $(this).closest('tr');
+        var quantity = parseFloat($(this).val()) || 0;
+        var soldQty = parseFloat(row.find('.sold_quantity').text()) || 0;
+        
+        // Validate: return quantity cannot exceed sold quantity
+        if (soldQty > 0 && quantity > soldQty) {
+            $(this).val(soldQty);
+            alert('Return quantity cannot exceed sold quantity (' + soldQty + ')');
+            // Recalculate after correction
+            $(this).trigger('input');
+        }
     });
 
     // Calculate total return amount
