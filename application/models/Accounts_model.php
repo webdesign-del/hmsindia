@@ -4165,7 +4165,7 @@ public function generate_advance_receipt_number() {
 		$procedure_result = array();
 		$conditions = '';
 		if(isset($_SESSION['logged_doctor']['center']) && !empty($_SESSION['logged_doctor']['center'])){ 
-			$conditions = ' and billing_at="'.$_SESSION['logged_doctor']['center'].'"'; 
+			$conditions = ' and center="'.$_SESSION['logged_doctor']['center'].'"'; 
 		}
 
 		if (!empty($center)){
@@ -4209,7 +4209,7 @@ public function generate_advance_receipt_number() {
 			$offset = ($page - 1) * $limit;
 		}
 		if(isset($_SESSION['logged_doctor']['center']) && !empty($_SESSION['logged_doctor']['center'])){ 
-			$conditions = ' and billing_at="'.$_SESSION['logged_doctor']['center'].'"'; 
+			$conditions = ' and center="'.$_SESSION['logged_doctor']['center'].'"'; 
 		}
 
 		if (!empty($center)){
@@ -6446,7 +6446,96 @@ public function save_daily_sales_report($data) {
         );
     }
 
+	function assessment_form_insert_payment($data){
+		$sql = "INSERT INTO `" . $this->config->item('db_prefix') . "opd_assessment` SET ";
+		$sqlArr = array();
 
+		foreach( $data as $key => $value )
+		{
+			// FIX: Check if the value is an array (like checkboxes)
+			if (is_array($value)) {
+				// Convert array to a comma-separated string (e.g., "HSG,USG")
+				$value = implode(',', $value);
+			}
+
+			// Now it is safe to use addslashes
+			$sqlArr[] = " $key = '".addslashes($value)."'";
+		}
+
+		$sql .= implode(',' , $sqlArr);
+		
+		// Debugging (Optional: remove 'echo' in production)
+		// echo $sql; 
+
+		$res =  $this->db->query($sql);
+		
+		if ($res)
+		{
+			return $this->db->insert_id();
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	function get_assessment_form($ID){
+		$result = array();
+		$sql = "Select * from `".$this->config->item('db_prefix')."opd_assessment` WHERE ID='".$ID."'";
+		$q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result[0];
+        }
+        else
+        {
+            return $result;
+        }
+	}
+
+	function get_assessment_appointment_form($patient_id){
+		$result = array();
+		$sql = "Select * from `".$this->config->item('db_prefix')."appointments` WHERE paitent_id='".$patient_id."' and paitent_type='new_patient'";
+		$q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result[0];
+        }
+        else
+        {
+            return $result;
+        }
+	}
+
+	function assessment_form_count($patient_id){
+		$wallet_result = array();
+		$conditions = '';
+		if(!empty($patient_id)){
+			$conditions .= " and patient_id like '%$patient_id%'";
+        }
+		$wallet_sql = "Select * from ".$this->config->item('db_prefix')."opd_assessment where 1 ".$conditions."";
+		$walletq = $this->db->query($wallet_sql);
+		return $walletq->num_rows();
+	}
+
+	function assessment_form_pagination($limit, $page, $patient_id){
+		$wallet_result = array();
+		$conditions = '';
+		if(empty($page)){
+			$offset = 0;
+		}else{
+			$offset = ($page - 1) * $limit;
+		}
+		if(!empty($patient_id)){
+			$conditions .= " and patient_id like '%$patient_id%'";
+        }
+		$wallet_sql = "Select * from ".$this->config->item('db_prefix')."opd_assessment where 1".$conditions." order by ID desc limit ". $limit." OFFSET ".$offset."";
+		$wallet_q = $this->db->query($wallet_sql);
+		$wallet_result = $wallet_q->result_array();
+		return $wallet_result;
+	}
     
 
 }

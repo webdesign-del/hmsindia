@@ -8402,12 +8402,14 @@ private function get_patient_name($patient_id) {
 	}
 
 
-function assessment_form(){
+function assessment_form($patient_id){
 	$logg = checklogin();
 	if($logg['status'] == true){
 		if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_assessment_form'){
 			unset($_POST['action']);
-			$data = $this->accounts_model->fellowship_insert_payment($_POST);
+			//var_dump($_POST);
+			$data = $this->accounts_model->assessment_form_insert_payment($_POST);
+			//die();
 			if($data > 0){
 				header("location:" .base_url(). "accounts/assessment_form?m=".base64_encode('Item added successfully !').'&t='.base64_encode('success'));
 				die();
@@ -8419,7 +8421,8 @@ function assessment_form(){
 		$data = array();
 		$template = get_header_template($logg['role']);
 		$this->load->view($template['header']);
-		//$data['data'] = $this->accounts_model->get_fellowship_payments($ID);
+		//$data['data'] = $this->accounts_model->get_assessment_form($patient_id);
+		$data['data'] = $this->accounts_model->get_assessment_appointment_form($patient_id);
 		$this->load->view('accounts/assessment_form', $data);
 		$this->load->view($template['footer']);
 	}else{
@@ -8428,6 +8431,56 @@ function assessment_form(){
 	}
 }
 
+public function assessment_form_list(){
+		$logg = checklogin();
+		error_reporting(0);
+		if($logg['status'] == true){
+
+			$per_page = $this->input->get('per_page', true);
+			if(empty($per_page)){
+				$per_page = 0;
+			}
+			$patient_id = $this->input->get('patient_id', true);
+			
+			$config = array();
+        	$config["base_url"] = base_url() . "accounts/assessment_form_list";
+        	$config["total_rows"] = $this->accounts_model->assessment_form_count($patient_id);
+        	$config["per_page"] = 10;
+        	$config["uri_segment"] = 2;
+			$config['use_page_numbers'] = true;
+			$config['num_links'] = 5;
+			$config['page_query_string'] = true;
+			$config['reuse_query_string'] = true;
+        	$this->pagination->initialize($config);
+        	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
+			
+        	$data["links"] = $this->pagination->create_links();
+			$data['wallet_result'] = $this->accounts_model->assessment_form_pagination($config["per_page"], $per_page, $patient_id);
+			$data["patient_id"] = $patient_id;
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('accounts/assessment_form_list', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+function assessment_print($ID){
+	$logg = checklogin();
+	if($logg['status'] == true){
+		$data = array();
+		$template = get_header_template($logg['role']);
+		$this->load->view($template['header']);
+		$data['data'] = $this->accounts_model->get_assessment_form($ID);
+		//$data['data'] = $this->accounts_model->get_assessment_appointment_form($ID);
+		$this->load->view('accounts/assessment_print', $data);
+		$this->load->view($template['footer']);
+	}else{
+		header("Location: " . base_url() . "accounts/assessment_form");
+		die();
+	}
+}
 
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 
