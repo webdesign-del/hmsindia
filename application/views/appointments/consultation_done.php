@@ -7089,134 +7089,134 @@ $( function() {
 
 
 $("#medicine_suggestion").change(function() {
-
-//Male Investigation
-
-$("select#male_medicine_suggestion_list").prop('disabled',true);
-
-$("select#male_medicine_suggestion_list").parent().find('button').prop('disabled',true);
-
-$("select#male_medicine_suggestion_list").parent().find('button').addClass('disabled');
-
-$('option', $('#male_medicine_suggestion_list')).each(function(element) {
-
-	$(this).removeAttr('selected').prop('selected', false);
-
-});
-
-$("#male_medicine_suggestion_list").multiselect('refresh');	
-
-$("select#male_medicine_suggestion_list").prop('disabled',false);
-
-//Female Investigation
-
-$("select#female_medicine_suggestion_list").prop('disabled',true);
-
-$("select#female_medicine_suggestion_list").parent().find('button').prop('disabled',true);
-
-$("select#female_medicine_suggestion_list").parent().find('button').addClass('disabled');
-
-$('option', $('#female_medicine_suggestion_list')).each(function(element) {
-
-	$(this).removeAttr('selected').prop('selected', false);
-
-});
-
-$("#female_medicine_suggestion_list").multiselect('refresh');	
-
-$("select#female_medicine_suggestion_list").prop('disabled',false);
+	// If unchecked, disable and clear selections
+	if(!this.checked) {
+		// Male Medicine
+		$('option', $('#male_medicine_suggestion_list')).each(function() {
+			$(this).removeAttr('selected').prop('selected', false);
+		});
+		$("select#male_medicine_suggestion_list").prop('disabled', true);
+		$("select#male_medicine_suggestion_list").parent().find('button').prop('disabled', true);
+		$("select#male_medicine_suggestion_list").parent().find('button').addClass('disabled');
+		if($("#male_medicine_suggestion_list").data('multiselect')) {
+			$("#male_medicine_suggestion_list").multiselect('refresh');
+		}
+		
+		// Female Medicine
+		$('option', $('#female_medicine_suggestion_list')).each(function() {
+			$(this).removeAttr('selected').prop('selected', false);
+		});
+		$("select#female_medicine_suggestion_list").prop('disabled', true);
+		$("select#female_medicine_suggestion_list").parent().find('button').prop('disabled', true);
+		$("select#female_medicine_suggestion_list").parent().find('button').addClass('disabled');
+		if($("#female_medicine_suggestion_list").data('multiselect')) {
+			$("#female_medicine_suggestion_list").multiselect('refresh');
+		}
+	}
 
 
 
 if(this.checked) {
-
-	//Male Investigation
-
-	$("select#male_medicine_suggestion_list").prop('disabled',false);
-
-	$("select#male_medicine_suggestion_list").prop('disabled',false);
-
-	$("select#male_medicine_suggestion_list").parent().find('button').prop('disabled',false);
-
+	// Male Medicine - Enable and rebuild multiselect
+	$("select#male_medicine_suggestion_list").prop('disabled', false);
+	$("select#male_medicine_suggestion_list").parent().find('button').prop('disabled', false);
 	$("select#male_medicine_suggestion_list").parent().find('button').removeClass('disabled');
-
-	//Female Investigation
-
-	$("select#female_medicine_suggestion_list").prop('disabled',true);
-
-	$("select#female_medicine_suggestion_list").prop('disabled',false);
-
-	$("select#female_medicine_suggestion_list").parent().find('button').prop('disabled',false);
-
+	// Rebuild multiselect to show options properly
+	setTimeout(function() {
+		if($("#male_medicine_suggestion_list").data('multiselect')) {
+			$("#male_medicine_suggestion_list").multiselect('rebuild');
+		} else {
+			$("#male_medicine_suggestion_list").multiselect({
+				includeSelectAllOption: true,
+				enableFiltering: true,
+				enableCaseInsensitiveFiltering: true
+			});
+		}
+	}, 100);
+	
+	// Female Medicine - Enable and rebuild multiselect
+	$("select#female_medicine_suggestion_list").prop('disabled', false);
+	$("select#female_medicine_suggestion_list").parent().find('button').prop('disabled', false);
 	$("select#female_medicine_suggestion_list").parent().find('button').removeClass('disabled');
-
+	// Rebuild multiselect to show options properly
+	setTimeout(function() {
+		if($("#female_medicine_suggestion_list").data('multiselect')) {
+			$("#female_medicine_suggestion_list").multiselect('rebuild');
+		} else {
+			$("#female_medicine_suggestion_list").multiselect({
+				includeSelectAllOption: true,
+				enableFiltering: true,
+				enableCaseInsensitiveFiltering: true
+			});
+		}
+	}, 100);
 }
 
 });
 
 // IPD Medicine Suggestion Handler
 $("#medicine_suggestion_ipd").change(function() {
-
-//Male Investigation
-
-$("select#male_medicine_suggestion_list_ipd").prop('disabled',true);
-
-$("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',true);
-
-$("select#male_medicine_suggestion_list_ipd").parent().find('button').addClass('disabled');
-
-$('option', $('#male_medicine_suggestion_list_ipd')).each(function(element) {
-
-	$(this).removeAttr('selected').prop('selected', false);
-
-});
-
-$("#male_medicine_suggestion_list_ipd").multiselect('refresh');	
-
-$("select#male_medicine_suggestion_list_ipd").prop('disabled',false);
-
-//Female Investigation
-
-$("select#female_medicine_suggestion_list_ipd").prop('disabled',true);
-
-$("select#female_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',true);
-
-$("select#female_medicine_suggestion_list_ipd").parent().find('button').addClass('disabled');
-
-$('option', $('#female_medicine_suggestion_list_ipd')).each(function(element) {
-
-	$(this).removeAttr('selected').prop('selected', false);
-
-});
-
-$("#female_medicine_suggestion_list_ipd").multiselect('refresh');	
-
-$("select#female_medicine_suggestion_list_ipd").prop('disabled',false);
+	// If unchecked, disable and clear selections
+	if(!this.checked) {
+		// Male Medicine IPD
+		$('option', $('#male_medicine_suggestion_list_ipd')).each(function() {
+			$(this).removeAttr('selected').prop('selected', false);
+		});
+		$("select#male_medicine_suggestion_list_ipd").prop('disabled', true);
+		$("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled', true);
+		$("select#male_medicine_suggestion_list_ipd").parent().find('button').addClass('disabled');
+		if($("#male_medicine_suggestion_list_ipd").data('multiselect')) {
+			$("#male_medicine_suggestion_list_ipd").multiselect('refresh');
+		}
+		
+		// Female Medicine IPD
+		$('option', $('#female_medicine_suggestion_list_ipd')).each(function() {
+			$(this).removeAttr('selected').prop('selected', false);
+		});
+		$("select#female_medicine_suggestion_list_ipd").prop('disabled', true);
+		$("select#female_medicine_suggestion_list_ipd").parent().find('button').prop('disabled', true);
+		$("select#female_medicine_suggestion_list_ipd").parent().find('button').addClass('disabled');
+		if($("#female_medicine_suggestion_list_ipd").data('multiselect')) {
+			$("#female_medicine_suggestion_list_ipd").multiselect('refresh');
+		}
+	}
 
 
 
 if(this.checked) {
-
-	//Male Investigation
-
-	$("select#male_medicine_suggestion_list_ipd").prop('disabled',false);
-
-	$("select#male_medicine_suggestion_list_ipd").prop('disabled',false);
-
-	$("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',false);
-
+	// Male Medicine IPD - Enable and rebuild multiselect
+	$("select#male_medicine_suggestion_list_ipd").prop('disabled', false);
+	$("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled', false);
 	$("select#male_medicine_suggestion_list_ipd").parent().find('button').removeClass('disabled');
-
-	//Female Investigation
-
-	$("select#female_medicine_suggestion_list_ipd").prop('disabled',false);
-
-	$("select#female_medicine_suggestion_list_ipd").prop('disabled',false);
-
-	$("select#female_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',false);
-
+	// Rebuild multiselect to show options properly
+	setTimeout(function() {
+		if($("#male_medicine_suggestion_list_ipd").data('multiselect')) {
+			$("#male_medicine_suggestion_list_ipd").multiselect('rebuild');
+		} else {
+			$("#male_medicine_suggestion_list_ipd").multiselect({
+				includeSelectAllOption: true,
+				enableFiltering: true,
+				enableCaseInsensitiveFiltering: true
+			});
+		}
+	}, 100);
+	
+	// Female Medicine IPD - Enable and rebuild multiselect
+	$("select#female_medicine_suggestion_list_ipd").prop('disabled', false);
+	$("select#female_medicine_suggestion_list_ipd").parent().find('button').prop('disabled', false);
 	$("select#female_medicine_suggestion_list_ipd").parent().find('button').removeClass('disabled');
-
+	// Rebuild multiselect to show options properly
+	setTimeout(function() {
+		if($("#female_medicine_suggestion_list_ipd").data('multiselect')) {
+			$("#female_medicine_suggestion_list_ipd").multiselect('rebuild');
+		} else {
+			$("#female_medicine_suggestion_list_ipd").multiselect({
+				includeSelectAllOption: true,
+				enableFiltering: true,
+				enableCaseInsensitiveFiltering: true
+			});
+		}
+	}, 100);
 }
 
 });
