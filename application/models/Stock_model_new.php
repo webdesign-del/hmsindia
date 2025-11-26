@@ -1213,6 +1213,7 @@ class Stock_model_new extends CI_Model
             // // if (isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') {
             //     $this->db->where('ccs.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
             // }
+            $center = null;
             if (!empty($_SESSION['logged_billing_manager']) &&
                 ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
                 $center = $_SESSION['logged_billing_manager']['center'];
@@ -1289,6 +1290,7 @@ class Stock_model_new extends CI_Model
             // if (isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') {
             //     $this->db->where('center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
             // }
+            $center = null;
             if (!empty($_SESSION['logged_billing_manager']) &&
                 ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
                 $center = $_SESSION['logged_billing_manager']['center'];
@@ -2432,6 +2434,7 @@ class Stock_model_new extends CI_Model
             // ) {
             //     $this->db->where("s.center_id", $this->get_center_id($_SESSION['logged_billing_manager']['center']));
             // }
+            $center = null;
             if (!empty($_SESSION['logged_billing_manager']) &&
                 ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
                 $center = $_SESSION['logged_billing_manager']['center'];
@@ -2805,6 +2808,7 @@ class Stock_model_new extends CI_Model
             // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
             //     $this->db->where('s.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
             // }
+            $center = null;
             if (!empty($_SESSION['logged_billing_manager']) &&
                 ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
                 $center = $_SESSION['logged_billing_manager']['center'];
@@ -3173,6 +3177,7 @@ class Stock_model_new extends CI_Model
     {
         // try {
             $this->db->select("ar.*, c.center_name");
+            $center = null;
             if (!empty($_SESSION['logged_billing_manager']) &&
                 ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
                 $center = $_SESSION['logged_billing_manager']['center'];
@@ -5007,6 +5012,7 @@ class Stock_model_new extends CI_Model
                 // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
                 //     $this->db->where('mr.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
                 // }
+                $center = null;
                 if (!empty($_SESSION['logged_billing_manager']) &&
                     ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
                     $center = $_SESSION['logged_billing_manager']['center'];
