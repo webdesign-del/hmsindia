@@ -442,71 +442,76 @@ textarea {
 <body>
     <div class="container">
         <div class="main-content">
+
+           <!-- Summary Card -->
+            <div class="card animate-in">
+                <div class="card-header">
+                     <div class="button-group mt-4 md:mt-0">
+                   <button type="button" class="button button-secondary no-print" onclick="window.print()">
+                                📄 Print
+                            </button>
+                             </div>
+                </div>
+             
+            </div>
             <!-- Header Card -->
             <div class="card animate-in">
                 <div class="card-header">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
                         <div>
-                            <h1 class="card-title">Camp Initial Assessment Sheet</h1>
+                            <h1 class="card-title">India IVF Initial Assessment Sheet</h1>
                         </div>
                     </div>
                 </div>
                 
                 <div class="card-content">
                     <form method="post" action="" enctype="multipart/form-data" id="opdForm"  class="form-grid space-y-4">
-                        <input type="hidden" name="action" value="add_assessment_form" />
-                        <input type="hidden" name="patient_id" id="patient_id" value="<?php $patient_id = $data['paitent_id']; echo $patient_id; ?>">
-                        <input type="hidden" name="wife_phone" id="wife_phone" value="<?php echo $data['wife_phone']; ?>">
-                        <input type="hidden" name="centre" id="centre" value="<?php echo $data['appoitment_for']; ?>">
-                        <input type="hidden" name="camp" id="camp" class="input" value="<?php echo $data['camp_selection']; ?>">
-                        <!-- Patient & Visit Information -->
-                        <section class="form-grid grid-cols-1 md:grid-cols-3 gap-4">
+                       <section class="form-grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="form-group">
                                 <label class="label required" for="name">Patient Name</label>
-                                <input type="text" name="name" id="name" class="input" placeholder="Patient Name" required>
+                                <input type="text" name="name" id="name" class="input" value="<?php echo $data['name']; ?>" readonly="">
                                 <div class="error-message text-xs text-danger hidden" id="date-error"></div>
                             </div>
                             
                             <div class="form-group">
                                 <label class="label required"  for="centre">Spouse Name</label>
-                                <input type="text" name="spouse_name" id="spouse_name" class="input" placeholder="Spouse Name" required>
+                                <input type="text" name="spouse_name" id="spouse_name"  class="input" value="<?php echo $data['spouse_name']; ?>" readonly="">
                             </div>
                             
                             <div class="form-group">
                                 <label class="label" for="city">City</label>
-                                <input type="text" name="city" id="city" class="input" placeholder="City ">
+                                <input type="text" name="city" id="city" class="input" value="<?php echo $data['city']; ?>" readonly="">
                             </div>
                             
                             <div class="form-group">
                                 <label class="label" for="age">Patient Age</label>
-                                <input type="number" id="patient_age" name="patient_age" class="input" placeholder="Years" min="0" max="80">
+                                <input type="number" id="patient_age" name="patient_age" class="input" value="<?php echo $data['patient_age']; ?>" min="0" max="80" readonly="">
                                 <div class="error-message text-xs text-danger hidden" id="age-error"></div>
                             </div>
                             <div class="form-group">
                                 <label class="label" for="age">Spouse Age</label>
-                                <input type="number" id="spouse_age" name="spouse_age" class="input" placeholder="Years" min="0" max="80">
+                                <input type="number" id="spouse_age" name="spouse_age" class="input" value="<?php echo $data['spouse_age']; ?>" min="0" max="80" readonly="">
                                 <div class="error-message text-xs text-danger hidden" id="age-error"></div>
                             </div>
 
                             <div class="form-group">
-                                <label class="label required" for="name">Keyword / Case Tag</label>
-                                 <select id="keyword" name="keyword" class="select" required>
-                                    <option value="">Select Keyword / Case Tag</option>
-                                    <option value="Low AMH">Low AMH</option>
-                                    <option value="Failed IVF">Failed IVF</option>
-                                </select>
-                                <div class="error-message text-xs text-danger hidden" id="centre-error"></div>
+                                <label class="label" for="age">Keyword / Case Tag</label>
+                                <input type="text" id="spouse_age" name="spouse_age" class="input" value="<?php echo $data['keyword']; ?>" readonly="">
+                                <div class="error-message text-xs text-danger hidden" id="age-error"></div>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label class="label">Type of Infertility</label>
                                 <div class="radio-group grid-cols-2">
                                     <label class="radio-item">
-                                        <input type="radio" name="infertilityType" value="Primary" class="radio-input" checked>
+                                        <input type="radio" name="infertilityType" value="Primary" class="radio-input" 
+                                        <?php echo ($data['infertilityType'] == 'Primary') ? 'checked' : ''; ?>>
                                         Primary
                                     </label>
+
                                     <label class="radio-item">
-                                        <input type="radio" name="infertilityType" value="Secondary" class="radio-input">
+                                        <input type="radio" name="infertilityType" value="Secondary" class="radio-input" 
+                                        <?php echo ($data['infertilityType'] == 'Secondary') ? 'checked' : ''; ?>>
                                         Secondary
                                     </label>
                                 </div>
@@ -514,7 +519,7 @@ textarea {
                             
                             <div class="form-group md:col-span-2">
                                 <label class="label" for="menstruationHistory">Menstruation History (Female)</label>
-                                <input type="text" id="menstruationHistory" name="menstruationHistory" class="input" placeholder="Cycle length, flow, regularity">
+                                <input type="text" id="menstruationHistory" name="menstruationHistory" readonly="" class="input" value="<?php echo $data['menstruationHistory']; ?>" >
                             </div>
                             
                             <div class="form-group">
@@ -635,7 +640,7 @@ textarea {
                                 
                                 <div class="form-group">
                                     <label class="label" for="reason">Reason for advised management</label>
-                                    <textarea id="reason" name="reason" class="textarea" placeholder="Clinical reasoning / plan"></textarea>
+                                    <textarea id="reason" name="reason" class="textarea" value="<?php echo $data['textarea']; ?>"></textarea>
                                 </div>
                             </div>
                         </section>
@@ -646,13 +651,13 @@ textarea {
                         <section class="form-grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="form-group md:col-span-2">
                                 <label class="label" for="advice">Advice</label>
-                                <textarea id="advice" name="advice" class="textarea" placeholder="Medications, lifestyle, next steps"></textarea>
+                                <textarea id="advice" name="advice" class="textarea" value="<?php echo $data['advice']; ?>"></textarea>
                             </div>
                             
                             <div class="form-group">
                                 <label class="label">Next Follow-up On</label>
-                                <input type="date" id="next_follow_up" name="next_follow_up" class="input mb-2">
-                                <input type="time" id="nextFollowUpTime" name="nextFollowUpTime" class="input">
+                                <input type="date" id="next_follow_up" name="next_follow_up" value="<?php echo $data['next_follow_up']; ?>" class="input mb-2">
+                                <input type="time" id="nextFollowUpTime" name="nextFollowUpTime" value="<?php echo $data['nextFollowUpTime']; ?>" class="input">
                                 <p class="text-xs text-muted">Time optional.</p>
                             </div>
                         </section>
@@ -663,116 +668,15 @@ textarea {
                         <section class="form-grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-group">
                                 <label class="label" for="doctorName">Doctor / Counsellor Name</label>
-                                <input type="text" id="counsellor_name" name="counsellor_name" class="input" placeholder="Dr. …">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label class="label">Signature</label>
-                                <div class="input text-muted" style="border-style: dashed; display: flex; align-items: center; justify-content: center; min-height: 3rem;">
-                                    Digital signature pad / upload here
-                                </div>
+                                <input type="text" id="counsellor_name" name="counsellor_name" class="input" value="<?php echo $data['counsellor_name']; ?>">
                             </div>
                         </section>
-                        
-                        <!-- Submit Button -->
-                        <div class="flex justify-end">
-                            <input type="submit" id="submitbutton" class="btn btn-large" value="Submit" />
-                        </div>
                     </form>
                 </div>
             </div>
             
-         
+          
         </div>
     </div>
-
-    <script>
-        // Form handling logic
-        function handleSubmit(event) {
-            event.preventDefault();
-            
-            // Basic validation
-            const errors = {};
-            const date = document.getElementById('date').value;
-            const centre = document.getElementById('centre').value;
-            const name = document.getElementById('name').value;
-            const age = document.getElementById('age').value;
-            
-            if (!date) errors.date = 'Date required';
-            if (!centre) errors.centre = 'Centre required';
-            if (!name) errors.name = 'Patient name required';
-            if (age && (Number(age) < 0 || Number(age) > 80)) errors.age = 'Enter valid age';
-            
-            // Show errors
-            Object.keys(errors).forEach(field => {
-                const errorElement = document.getElementById(`${field}-error`);
-                if (errorElement) {
-                    errorElement.textContent = errors[field];
-                    errorElement.classList.remove('hidden');
-                }
-            });
-            
-            // Hide errors for valid fields
-            ['date', 'centre', 'name', 'age'].forEach(field => {
-                if (!errors[field]) {
-                    const errorElement = document.getElementById(`${field}-error`);
-                    if (errorElement) errorElement.classList.add('hidden');
-                }
-            });
-            
-            // If no errors, proceed
-            if (Object.keys(errors).length === 0) {
-                alert('Assessment saved successfully! (Demo)');
-                updateSummary();
-            }
-        }
-        
-        function resetForm() {
-            if (!confirm('Clear all fields?')) return;
-            
-            document.getElementById('opdForm').reset();
-            
-            // Clear custom checkboxes
-            document.querySelectorAll('.checkbox-input, .radio-input').forEach(input => {
-                if (input.type === 'checkbox') input.checked = false;
-                if (input.type === 'radio' && input.value === 'Primary') input.checked = true;
-            });
-            
-            // Clear error messages
-            document.querySelectorAll('.error-message').forEach(el => {
-                el.classList.add('hidden');
-            });
-            
-            updateSummary();
-        }
-        
-        function updateSummary() {
-            const name = document.getElementById('name').value || '—';
-            const age = document.getElementById('age').value || '—';
-            const infertilityType = document.querySelector('input[name="infertilityType"]:checked')?.value || '—';
-            
-            const diagnosis = Array.from(document.querySelectorAll('input[name="diagnosis"]:checked'))
-                .map(cb => cb.value).join(', ') || '—';
-                
-            const management = Array.from(document.querySelectorAll('input[name="management"]:checked'))
-                .map(cb => cb.value).join(', ') || '—';
-            
-            document.getElementById('summary-patient').textContent = `${name} (${age})`;
-            document.getElementById('summary-infertility').textContent = infertilityType;
-            document.getElementById('summary-diagnosis').textContent = diagnosis;
-            document.getElementById('summary-management').textContent = management;
-        }
-        
-        // Update summary on input changes
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('opdForm');
-            form.addEventListener('input', updateSummary);
-            updateSummary(); // Initial update
-            
-            // Set today's date as default
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
-        });
-    </script>
 </body>
 </html>

@@ -173,7 +173,7 @@
                               <option value="">--Select status--</option>
                               <option value="in_clinic" <?php if($vl['status'] == 'in_clinic')echo 'selected="selected"';?>>In clinic</option>
                               <option value="cancelled" <?php if($vl['status'] == 'cancelled')echo 'selected="selected"';?>>Cancelled</option>
-                              <option value="rescheduled" <?php if($vl['status'] == 'rescheduled')echo 'selected="selected"';?>>Rescheduled</option>
+                              <option value="" <?php if($vl['status'] == 'rescheduled')echo 'selected="selected"';?>>Rescheduled</option>
                               <option value="no_show" <?php if($vl['status'] == 'no_show')echo 'selected="selected"';?>>No show</option>
                            </select>
                         </div>
