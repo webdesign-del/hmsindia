@@ -73,24 +73,23 @@
   <div class="sidebar-collapse">
     <ul class="nav" id="main-menu">
       <li> <a class="active-menu waves-effect waves-dark" href="<?php echo base_url(); ?>"><i class="fa fa-dashboard"></i> Dashboard</a> </li>
-      <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Stocks<span class="fa arrow"></span></a>
+      <!-- <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Stocks<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>stocks">All Central Stocks</a> </li>
-          <!--<li> <a href="<?php echo base_url(); ?>stocks/products">Products</a></li>-->
-		  <li> <a href="<?php echo base_url(); ?>stocks/all_center_stocks">All Centre Stocks</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>stocks/medicine_stock">Cash Medicine Sale Report</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks/all_center_stocks">All Centre Stocks</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks/medicine_stock">Cash Medicine Sale Report</a> </li>
           <li> <a href="<?php echo base_url(); ?>stocks/categories">Categories</a></li>
           <li> <a href="<?php echo base_url(); ?>vendors">All Vendors</a> </li>
           <li> <a href="<?php echo base_url(); ?>brands">All Brands</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>stocks/generic">Generic Name</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>stocks/stocks_reports">Live Stocks Report</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>stocks/all_audit_report">All Audit Report</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>stocks/add_invoice">Add Invoice</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>stocks/invoice_list">Invoice List</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>add-medicine">Add Medicine</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>medicine">Medicine List</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks/generic">Generic Name</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks/stocks_reports">Live Stocks Report</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks/all_audit_report">All Audit Report</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks/add_invoice">Add Invoice</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks/invoice_list">Invoice List</a> </li>
+          <li> <a href="<?php echo base_url(); ?>add-medicine">Add Medicine</a> </li>
+          <li> <a href="<?php echo base_url(); ?>medicine">Medicine List</a> </li>
         </ul>
-      </li>
+      </li> -->
       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Modern Stock Management<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>stocks_new/dashboard"> Dashboard</a> </li>
@@ -110,7 +109,7 @@
           <li> <a href="<?php echo base_url(); ?>accounts/consultation_origin">Consultation</a> </li>
           <li> <a href="<?php echo base_url(); ?>accounts/investigation_origin">Investigation</a> </li>
 		  <li> <a href="<?php echo base_url(); ?>accounts/procedure_origin">Procedure</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>stocks/medicine_origin">Medicine</a> </li>
+		  <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_origin">Medicine</a> </li> -->
 		</ul>
       </li>
       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Centers<span class="fa arrow"></span></a>
@@ -220,12 +219,13 @@
         <ul class="nav nav-second-level">
            <li> <a href="<?php echo base_url(); ?>accounts/procedure_reports">Procedure</a> </li>
 		   <li> <a href="<?php echo base_url(); ?>accounts/investigation_sales">Investigation</a> </li>
-		   <li> <a href="<?php echo base_url(); ?>stocks/medicine_stock">Medicine Report (Item Wise)</a> </li>
+		   <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_stock">Medicine Report (Item Wise)</a> </li> -->
 		   <li> <a href="<?php echo base_url(); ?>accounts/medicine_patients">Medicine Report (Patient Wise)</a> </li>
 		   <li> <a href="<?php echo base_url(); ?>accounts/consultation_reports">Consultation</a> </li>
 		   <li> <a href="<?php echo base_url(); ?>accounts/partialpayments_report">Partial</a> </li>
-		   <li> <a href="<?php echo base_url(); ?>stocks/patient_items">Patient consumption</a></li>
-		   <li> <a href="<?php echo base_url(); ?>stocks/consumption_price">All Consumption Report</a> </li>
+		   <!-- <li> <a href="<?php echo base_url(); ?>stocks/patient_items">Patient consumption</a></li> -->
+                            <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_report">Patient Consumption Report</a> </li>
+		   <!-- <li> <a href="<?php echo base_url(); ?>stocks/consumption_price">All Consumption Report</a> </li> -->
         </ul>
       </li>
 	  <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Clinical Reports<span class="fa arrow"></span></a>

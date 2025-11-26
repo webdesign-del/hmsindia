@@ -142,11 +142,11 @@
                                                         <i class="fa fa-search"></i>
                                                     </a>
                                                 <?php } ?>
-                                                <?php if ($vl['medicine_suggestion'] == 1) { ?>
+                                                <!-- <?php if ($vl['medicine_suggestion'] == 1) { ?>
                                                     <a href="<?php echo base_url().'stocks/add_billing_medicine?appointment_id='; ?><?php echo $vl['appointment_id']; ?>" class="btn btn-success btn-xs" target="_blank" title="Medicine">
                                                         <i class="fa fa-medkit"></i>
                                                     </a>
-                                                <?php } ?>
+                                                <?php } ?> -->
                                                 <?php if ($vl['medicine_suggestion'] == 1) { ?>
                                                     <a href="<?php echo base_url().'stocks_new/add_sale?appointment_id='; ?><?php echo $vl['appointment_id']; ?>" class="btn btn-success btn-xs" target="_blank" title="Medicine">
                                                         <i class="fa fa-medkit"></i>

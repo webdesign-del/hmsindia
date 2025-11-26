@@ -1209,8 +1209,20 @@ class Stock_model_new extends CI_Model
             if ($status && $status != "") {
                 $this->db->where("ccs.status", $status);
             }
-            if (isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') {
-                $this->db->where('ccs.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+            // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
+            // // if (isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') {
+            //     $this->db->where('ccs.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+            // }
+            if (!empty($_SESSION['logged_billing_manager']) &&
+                ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+                $center = $_SESSION['logged_billing_manager']['center'];
+            }
+            if (!empty($_SESSION['logged_stock_manager']) &&
+                ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+                $center = $_SESSION['logged_stock_manager']['center'];
+            }
+            if ($center !== null) {
+                $this->db->where('ccs.center_id', $this->get_center_id($center));
             }
             $this->db->order_by("mb.expiry_date", "ASC");
             return $this->db->get()->result();
@@ -1274,8 +1286,19 @@ class Stock_model_new extends CI_Model
             if ($stock_status && $stock_status != "") {
                 $this->db->where("expiry_status", $stock_status);
             }
-            if (isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') {
-                $this->db->where('center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+            // if (isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') {
+            //     $this->db->where('center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+            // }
+            if (!empty($_SESSION['logged_billing_manager']) &&
+                ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+                $center = $_SESSION['logged_billing_manager']['center'];
+            }
+            if (!empty($_SESSION['logged_stock_manager']) &&
+                ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+                $center = $_SESSION['logged_stock_manager']['center'];
+            }
+            if ($center !== null) {
+                $this->db->where('center_id', $this->get_center_id($center));
             }
 
             $this->db->order_by("medicine_name", "ASC");
@@ -2397,17 +2420,28 @@ class Stock_model_new extends CI_Model
             $this->db->join("sale_items si", "s.id = si.sale_id", "left"); // LEFT JOIN is important
 
             // --- Session Filter (Your original logic) ---
-            if (
-                isset(
-                    $_SESSION['logged_billing_manager']
-                        ['center'],
-                ) &&
-                !empty(
-                    $_SESSION['logged_billing_manager']
-                        ['center']
-                )
-            ) {
-                $this->db->where("s.center_id", $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+            // if (
+            //     isset(
+            //         $_SESSION['logged_billing_manager']
+            //             ['center'],
+            //     ) &&
+            //     !empty(
+            //         $_SESSION['logged_billing_manager']
+            //             ['center']
+            //     )
+            // ) {
+            //     $this->db->where("s.center_id", $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+            // }
+            if (!empty($_SESSION['logged_billing_manager']) &&
+                ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+                $center = $_SESSION['logged_billing_manager']['center'];
+            }
+            if (!empty($_SESSION['logged_stock_manager']) &&
+                ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+                $center = $_SESSION['logged_stock_manager']['center'];
+            }
+            if ($center !== null) {
+                $this->db->where('s.center_id', $this->get_center_id($center));
             }
             // --- End Filter ---
             // Correct GROUP BY for all non-aggregated columns
@@ -2733,7 +2767,7 @@ class Stock_model_new extends CI_Model
 
     public function get_available_batches_for_return()
     {
-        try {
+        // try {
             // Get medicines that have been SOLD (from sale_items table)
             // This ensures we only show medicines that can actually be returned
             $this->db->select('
@@ -2746,6 +2780,7 @@ class Stock_model_new extends CI_Model
                 mb.purchase_price,
                 m.medicine_name,
                 m.medicine_code,
+                s.center_id,
                 COALESCE(b.brand_name, "Unknown Brand") as brand_name,
                 COALESCE(v.name, "Unknown Vendor") as vendor_name,
                 "Unknown Center" as center_name,
@@ -2767,6 +2802,20 @@ class Stock_model_new extends CI_Model
                 "s.sale_date >=",
                 date("Y-m-d", strtotime("-30 days")),
             ); 
+            // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
+            //     $this->db->where('s.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+            // }
+            if (!empty($_SESSION['logged_billing_manager']) &&
+                ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+                $center = $_SESSION['logged_billing_manager']['center'];
+            }
+            if (!empty($_SESSION['logged_stock_manager']) &&
+                ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+                $center = $_SESSION['logged_stock_manager']['center'];
+            }
+            if ($center !== null) {
+                $this->db->where('s.center_id', $this->get_center_id($center));
+            }
             $this->db->where("s.status", "CONFIRMED"); // Only confirmed sales
             $this->db->group_by("si.batch_id");
             $this->db->order_by("mb.expiry_date", "ASC");
@@ -2774,41 +2823,41 @@ class Stock_model_new extends CI_Model
 
             $result = $this->db->get()->result();
             return $result;
-        } catch (Exception $e) {
-            // If the complex query fails, try a simpler one
-            error_log(
-                "Error in get_available_batches_for_return: " .
-                    $e->getMessage(),
-            );
+        // } catch (Exception $e) {
+        //     // If the complex query fails, try a simpler one
+        //     error_log(
+        //         "Error in get_available_batches_for_return: " .
+        //             $e->getMessage(),
+        //     );
 
-            try {
-                // Simple fallback - get medicines that have been sold
-                $this->db->select(
-                    "DISTINCT si.batch_id, mb.batch_number, m.medicine_name, m.medicine_code, si.quantity_sold",
-                );
-                $this->db->from("sale_items si");
-                $this->db->join(
-                    "medicine_batches mb",
-                    "si.batch_id = mb.id",
-                    "left",
-                );
-                $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
-                $this->db->join("sales s", "si.sale_id = s.id", "left");
-                $this->db->where(
-                    "s.sale_date >=",
-                    date("Y-m-d", strtotime("-30 days")),
-                );
-                $this->db->where("s.status", "CONFIRMED");
-                $this->db->order_by("m.medicine_name", "ASC");
+        //     try {
+        //         // Simple fallback - get medicines that have been sold
+        //         $this->db->select(
+        //             "DISTINCT si.batch_id, mb.batch_number, m.medicine_name, m.medicine_code, si.quantity_sold",
+        //         );
+        //         $this->db->from("sale_items si");
+        //         $this->db->join(
+        //             "medicine_batches mb",
+        //             "si.batch_id = mb.id",
+        //             "left",
+        //         );
+        //         $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+        //         $this->db->join("sales s", "si.sale_id = s.id", "left");
+        //         $this->db->where(
+        //             "s.sale_date >=",
+        //             date("Y-m-d", strtotime("-30 days")),
+        //         );
+        //         $this->db->where("s.status", "CONFIRMED");
+        //         $this->db->order_by("m.medicine_name", "ASC");
 
-                $result = $this->db->get()->result();
+        //         $result = $this->db->get()->result();
 
-                return $result;
-            } catch (Exception $e2) {
-                error_log("Error in fallback query: " . $e2->getMessage());
-                return [];
-            }
-        }
+        //         return $result;
+        //     } catch (Exception $e2) {
+        //         error_log("Error in fallback query: " . $e2->getMessage());
+        //         return [];
+        //     }
+        // }
     }
 
     // public function get_available_batches_for_audit()
@@ -3122,11 +3171,23 @@ class Stock_model_new extends CI_Model
 
     public function get_audit_reports()
     {
-        try {
+        // try {
             $this->db->select("ar.*, c.center_name");
+            if (!empty($_SESSION['logged_billing_manager']) &&
+                ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+                $center = $_SESSION['logged_billing_manager']['center'];
+            }
+            if (!empty($_SESSION['logged_stock_manager']) &&
+                ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+                $center = $_SESSION['logged_stock_manager']['center'];
+            }
+            if ($center !== null) {
+                $this->db->where('ar.center_id', $this->get_center_id($center));
+            }
             $this->db->from("audit_reports ar");
             $this->db->join("hms_centers c", "ar.center_id = c.ID", "left"); // Use LEFT JOIN to include central warehouse (NULL center_id)
             $this->db->order_by("ar.created_at", "DESC");
+            
             $results = $this->db->get()->result();
             
             // Handle central warehouse display for records with NULL center_id
@@ -3135,11 +3196,10 @@ class Stock_model_new extends CI_Model
                     $result->center_name = 'Central Warehouse';
                 }
             }
-            
             return $results;
-        } catch (Exception $e) {
-            return [];
-        }
+        // } catch (Exception $e) {
+        //     return [];
+        // }
     }
 
     // public function get_disposal_reports()
@@ -4943,6 +5003,21 @@ class Stock_model_new extends CI_Model
                     "mr.id = mri.return_id",
                     "left",
                 );
+
+                // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
+                //     $this->db->where('mr.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+                // }
+                if (!empty($_SESSION['logged_billing_manager']) &&
+                    ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+                    $center = $_SESSION['logged_billing_manager']['center'];
+                }
+                if (!empty($_SESSION['logged_stock_manager']) &&
+                    ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+                    $center = $_SESSION['logged_stock_manager']['center'];
+                }
+                if ($center !== null) {
+                    $this->db->where('mr.center_id', $this->get_center_id($center));
+                }
                 $this->db->join("medicine_batches mb", "mri.batch_id = mb.id", "left");
                 $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
                 $this->db->join("medicine_brands b", "m.brand_id = b.id", "left");
@@ -8177,7 +8252,7 @@ public function add_stock_to_location($stock_data)
         // Filters
         $this->db->where('m.category', $category_name);
         $this->db->where('ccs.center_id', $center_id);
-        $this->db->where('ccs.department', $department);
+        // $this->db->where('ccs.department', $department);
         // Stock checks
         $this->db->where('ccs.quantity >', 0);
         $this->db->where('ccs.status', 'ACTIVE');

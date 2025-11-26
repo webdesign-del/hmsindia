@@ -39,7 +39,7 @@
   </div>
   <?php $notice = get_center_notification(); ?>
   <ul class="nav navbar-top-links navbar-right">
-    <li><a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown4">
+    <li><a class="drOPD Registerown-button waves-effect waves-dark" href="#!" data-activates="dropdown4">
     	<?php if($notice['count'] > 0){
 			echo '<span class="notice_count">'.$notice['count'].'</span>';
         } ?>

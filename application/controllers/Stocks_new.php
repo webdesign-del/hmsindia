@@ -2872,6 +2872,7 @@ class Stocks_new extends CI_Controller
 
             $data["centers"] = $this->Stock_model_new->get_all_centers();
             $data["available_batches"] = $this->Stock_model_new->get_available_batches_for_return();
+         
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $data["departments"] = $this->get_departments_by_center();
@@ -2975,7 +2976,6 @@ class Stocks_new extends CI_Controller
         if ($logg["status"] == true) {
             $data["returns"] = $this->Stock_model_new->get_medicine_returns();
             $data["centers"] = $this->Stock_model_new->get_all_centers();
-
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $this->load->view("stocks_new/returns_list", $data);

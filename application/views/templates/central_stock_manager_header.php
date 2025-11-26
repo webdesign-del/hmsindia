@@ -188,7 +188,7 @@
                      <li> <a href="<?php echo base_url(); ?>stocks/product_discard_list">Discard Product</a> </li>
                   </ul>
                </li> -->
-               <li>
+               <!-- <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Reports<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
                      <li><a href="<?php echo base_url(); ?>stocks/medicine_stock">Cash Medicine Sale Report</a> </li>
@@ -200,8 +200,8 @@
                      <li><a href="<?php echo base_url(); ?>stocks/all_center_audit_report">Audit Report Add</a></li>
                      <li><a href="<?php echo base_url(); ?>stocks/audit_report">Audit Report All Center</a></li>
                   </ul>
-               </li>
-               <li>
+               </li> -->
+               <!-- <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Transfer Stocks<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
                     <li>
@@ -212,11 +212,11 @@
                      <li> <a href="<?php echo base_url(); ?>stocks/add_center_item">Add Center Item</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks/add_center_new_item">Add Center New Item</a> </li>
                   </ul>
-               </li>
-               <li> <a href="<?php echo base_url(); ?>stocks/center_stocks"><i class="fa fa-sitemap"></i>All Stocks</a> </li>
+               </li> -->
+               <!-- <li> <a href="<?php echo base_url(); ?>stocks/center_stocks"><i class="fa fa-sitemap"></i>All Stocks</a> </li>
                <li> <a href="<?php echo base_url(); ?>stocks/add_orders" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Add PO</a></li>
                <li> <a href="<?php echo base_url(); ?>stocks/internal_orders" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Add Internal PO</a></li>
-               
+                -->
                
             </ul>
          </div>

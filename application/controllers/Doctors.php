@@ -3926,7 +3926,6 @@ class Doctors extends CI_Controller {
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;
 			$data["patient_id"] = $patient_id;
-			//$data["center_number"] = $center_number;
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
 			$this->load->view('doctors/doctor_patient', $data);
