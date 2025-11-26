@@ -2032,9 +2032,6 @@ class Doctors extends CI_Controller {
 			}
 					
 					$patient_medical_info = $this->doctors_model->patient_medical_info($_POST, $doctor_id);
-					
-					
-					
 					$appointment_status = $this->appointment_model->appointment_status('consultation_done', $consultation_post['appointment_id']);
 					
 					header("location:" .base_url().$redirect_url."?m=".base64_encode('Consultation done!').'&t='.base64_encode('success'));
@@ -2115,10 +2112,7 @@ class Doctors extends CI_Controller {
 					'save_live',
 					'appoitment_for',
 					'appoitmented_doctor',
-					'appoitmented_slot',
-					'management_intervention',
-					'male_provisional_diagnosis_list',
-					'female_provisional_diagnosis_list'
+					'appoitmented_slot'
 				);
 				// Prepare data for doctor_consultation table
 				$consultation_data = array();
@@ -2177,11 +2171,53 @@ class Doctors extends CI_Controller {
 				$medical_exclude_fields = array_merge($consultation_fields, $exclude_fields, array('investigation_suggestion', 'doctor_id'));
 				$medical_data = array();
 				foreach($_POST as $key => $value) {
+					// Exclude dynamic medicine fields (these are form-only fields that get processed into serialized lists)
+					// These fields should not be saved directly to patient_medical_info table
+					$is_medicine_field = false;
+					// Check if field name starts with any medicine field pattern (using strpos for better matching)
+					// This catches all variations including numbered fields like female_medicine_frequency_1, female_medicine_frequency_ipd_1, etc.
+					if (strpos($key, "male_medicine_name_") === 0 || 
+						strpos($key, "female_medicine_name_") === 0 ||
+						strpos($key, "male_medicine_name_ipd_") === 0 ||
+						strpos($key, "female_medicine_name_ipd_") === 0 ||
+						strpos($key, "male_medicine_dosage") === 0 ||
+						strpos($key, "female_medicine_dosage") === 0 ||
+						strpos($key, "male_medicine_dosage_ipd") === 0 ||
+						strpos($key, "female_medicine_dosage_ipd") === 0 ||
+						strpos($key, "male_medicine_when_start") === 0 ||
+						strpos($key, "female_medicine_when_start") === 0 ||
+						strpos($key, "male_medicine_when_start_ipd") === 0 ||
+						strpos($key, "female_medicine_when_start_ipd") === 0 ||
+						strpos($key, "male_medicine_days") === 0 ||
+						strpos($key, "female_medicine_days") === 0 ||
+						strpos($key, "male_medicine_days_ipd") === 0 ||
+						strpos($key, "female_medicine_days_ipd") === 0 ||
+						strpos($key, "male_medicine_route") === 0 ||
+						strpos($key, "female_medicine_route") === 0 ||
+						strpos($key, "male_medicine_route_ipd") === 0 ||
+						strpos($key, "female_medicine_route_ipd") === 0 ||
+						strpos($key, "male_medicine_frequency") === 0 ||
+						strpos($key, "female_medicine_frequency") === 0 ||
+						strpos($key, "male_medicine_timing") === 0 ||
+						strpos($key, "female_medicine_timing") === 0 ||
+						strpos($key, "male_medicine_timing_ipd") === 0 ||
+						strpos($key, "female_medicine_timing_ipd") === 0 ||
+						strpos($key, "male_medicine_take") === 0 ||
+						strpos($key, "female_medicine_take") === 0 ||
+						strpos($key, "male_medicine_take_ipd") === 0 ||
+						strpos($key, "female_medicine_take_ipd") === 0 ||
+						strpos($key, "male_medicine_remarks") === 0 ||
+						strpos($key, "female_medicine_remarks") === 0 ||
+						strpos($key, "male_medicine_remarks_ipd") === 0 ||
+						strpos($key, "female_medicine_remarks_ipd") === 0) {
+						$is_medicine_field = true;
+					}
+					
 					// Include fields that are not in consultation_fields and not in exclude_fields
 					// Also exclude investigation_suggestion and doctor_id (will be mapped to 'doctor')
 					// Use array_key_exists check to ensure we capture all fields including empty strings and '0' values
 					// This is important for radio buttons which send values when checked
-					if(!in_array($key, $medical_exclude_fields)) {
+					if(!in_array($key, $medical_exclude_fields) && !$is_medicine_field) {
 						// Trim whitespace but preserve empty strings and '0' values
 						$medical_data[$key] = is_string($value) ? trim($value) : $value;
 					}

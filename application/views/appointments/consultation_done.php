@@ -5097,7 +5097,6 @@ $countdownDuration = 7200;
 					</div>
 					</div>
 					<!-- End Step 9 -->
-					
 					<!-- Step 10: Intervention & Management -->
 					<div class="form-step" id="step10" data-step="10">
 						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 10: Intervention & Management</h4>
@@ -5115,32 +5114,21 @@ $countdownDuration = 7200;
 						<th style="color: red;">Intervention</th>
 
 						<td colspan="2">
-
-							<?php //var_dump($patient_medical_info);die; 
-
+							<?php 
 								$management_intervention = array();
-
-								if(!empty($patient_medical_info['management_intervention']) && isset($patient_medical_info['management_intervention'])){
+								if(isset($patient_medical_info['management_intervention']) && $patient_medical_info['management_intervention'] !== '' && $patient_medical_info['management_intervention'] !== null){
 									$unserialized = @unserialize($patient_medical_info['management_intervention']);
-									if(is_array($unserialized)){
+									if($unserialized !== false && is_array($unserialized)){
 										$management_intervention = $unserialized;
 									}
 								}
-
 							?>
-
-							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('Natural', $management_intervention)){echo 'checked="checked"';}?> value="Natural"> NATURAL <br>
-
-							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('Medical', $management_intervention)){echo 'checked="checked"';}?> value="Medical"> Medical <br>
-
-							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('Surgical', $management_intervention)){echo 'checked="checked"';}?> value="Surgical"> Surgical <br>
-
-							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('IUI', $management_intervention)){echo 'checked="checked"';}?> value="IUI"> IUI <br>
-
-							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('ART', $management_intervention)){echo 'checked="checked"';}?> value="ART"> ART<br>
-
-							<input type="checkbox" name="management_intervention[]" <?php if(!empty($management_intervention) && is_array($management_intervention) && in_array('Rejuvenation_techniques', $management_intervention)){echo 'checked="checked"';}?> value="Rejuvenation_techniques"> Rejuvenation techniques
-
+							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('Natural', $management_intervention)){echo 'checked="checked"';}?> value="Natural"> NATURAL <br>
+							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('Medical', $management_intervention)){echo 'checked="checked"';}?> value="Medical"> Medical <br>
+							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('Surgical', $management_intervention)){echo 'checked="checked"';}?> value="Surgical"> Surgical <br>
+							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('IUI', $management_intervention)){echo 'checked="checked"';}?> value="IUI"> IUI <br>
+							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('ART', $management_intervention)){echo 'checked="checked"';}?> value="ART"> ART<br>
+							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('Rejuvenation_techniques', $management_intervention)){echo 'checked="checked"';}?> value="Rejuvenation_techniques"> Rejuvenation techniques
 						</td>
 
 						<td></td>
@@ -5348,45 +5336,69 @@ $countdownDuration = 7200;
 					</tr>
 					
 					<tr>
-						<th style="color: red;">Provisional Diagnosis (ICD 10 CODES)  <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="provisional_diagnosis_suggestion" <?php if(isset($patient_doctor_consultation['provisional_diagnosis']) && $patient_doctor_consultation['provisional_diagnosis'] == "1"){echo 'checked="checked"';}?> value="1" name="provisional_diagnosis_suggestion" required /></th>
+						<th style="color: red;">Provisional Diagnosis (ICD 10 CODES)  <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="provisional_diagnosis_suggestion" <?php if(isset($patient_medical_info['provisional_diagnosis_suggestion']) && $patient_medical_info['provisional_diagnosis_suggestion'] == "1"){echo 'checked="checked"';}?> value="1" name="provisional_diagnosis_suggestion" required /></th>
 						<td>
 						<div class="col-sm-12 col-xs-12 role">
-							<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['provisional_diagnosis']) && $patient_doctor_consultation['provisional_diagnosis'] == "1"){
-									$female_provisional_diagnosis_list = unserialize($patient_doctor_consultation['female_provisional_diagnosis_list']); 
+							<?php $disabled = "disabled";  if(isset($patient_medical_info['provisional_diagnosis_suggestion']) && $patient_medical_info['provisional_diagnosis_suggestion'] == "1"){
+									$female_provisional_diagnosis_list = array();
+									if(isset($patient_medical_info['female_provisional_diagnosis_list']) && !empty($patient_medical_info['female_provisional_diagnosis_list'])){
+										$unserialized = @unserialize($patient_medical_info['female_provisional_diagnosis_list']);
+										if($unserialized !== false && is_array($unserialized)){
+											$female_provisional_diagnosis_list = $unserialized;
+										}
+									}
 									$disabled = "";
 									//var_dump($sub_procedure_suggestion_list);die;
 							}?>
 							<select class="multidselect_dropdown_1" multiple id="female_provisional_diagnosis_list" <?php echo $disabled; ?> name="female_provisional_diagnosis_list[]"  >
-								<?php if(!empty($consultation_provisional_diagnosis)) { foreach($consultation_provisional_diagnosis as $key => $val) { ?>
-										<option value="<?php echo $val['code']; ?> - <?php echo $val['name']; ?>"><?php echo $val['code']; ?> - <?php echo $val['name']; ?></option>
+								<?php if(!empty($consultation_provisional_diagnosis)) { 
+									foreach($consultation_provisional_diagnosis as $key => $val) { 
+										$selected = "";
+										if(isset($female_provisional_diagnosis_list) && is_array($female_provisional_diagnosis_list) && in_array($val['ID'], $female_provisional_diagnosis_list)){
+											$selected = 'selected="selected"';
+										}
+								?>
+										<option value="<?php echo $val['ID']; ?>" <?php echo $selected; ?>><?php echo $val['code']; ?> - <?php echo $val['name']; ?></option>
 								<?php  } } ?>
 							</select>
+							<?php if(isset($female_provisional_diagnosis_list) && !empty($female_provisional_diagnosis_list)): ?>
 							<script type='text/javascript'>
-								$('#female_provisional_diagnosis_list').val(
-									<?php echo isset($female_provisional_diagnosis_list) ? json_encode($female_provisional_diagnosis_list) : '""'; ?> 
-								);
+								window.female_provisional_diagnosis_list_values = <?php echo json_encode($female_provisional_diagnosis_list); ?>;
 							</script>
+							<?php endif; ?>
 
 						</div>
 						
 						</td>
 						<td>
 							<div class="col-sm-12 col-xs-12 role">
-								<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['provisional_diagnosis']) && $patient_doctor_consultation['provisional_diagnosis'] == "1"){
-										$male_provisional_diagnosis_list = unserialize($patient_doctor_consultation['male_provisional_diagnosis_list']); 
+								<?php $disabled = "disabled";  if(isset($patient_medical_info['provisional_diagnosis_suggestion']) && $patient_medical_info['provisional_diagnosis_suggestion'] == "1"){
+										$male_provisional_diagnosis_list = array();
+										if(isset($patient_medical_info['male_provisional_diagnosis_list']) && !empty($patient_medical_info['male_provisional_diagnosis_list'])){
+											$unserialized = @unserialize($patient_medical_info['male_provisional_diagnosis_list']);
+											if($unserialized !== false && is_array($unserialized)){
+												$male_provisional_diagnosis_list = $unserialized;
+											}
+										}
 										$disabled = "";
 										//var_dump($sub_procedure_suggestion_list);die;
 								}?>
 								<select class="multidselect_dropdown_1" multiple id="male_provisional_diagnosis_list" <?php echo $disabled; ?> name="male_provisional_diagnosis_list[]">
-									<?php if(!empty($consultation_provisional_diagnosis)) { foreach($consultation_provisional_diagnosis as $key => $val) { ?>
-											<option value="<?php echo $val['ID']; ?>"><?php echo $val['code']; ?> - <?php echo $val['name']; ?></option>
+									<?php if(!empty($consultation_provisional_diagnosis)) { 
+										foreach($consultation_provisional_diagnosis as $key => $val) { 
+											$selected = "";
+											if(isset($male_provisional_diagnosis_list) && is_array($male_provisional_diagnosis_list) && in_array($val['ID'], $male_provisional_diagnosis_list)){
+												$selected = 'selected="selected"';
+											}
+									?>
+											<option value="<?php echo $val['ID']; ?>" <?php echo $selected; ?>><?php echo $val['code']; ?> - <?php echo $val['name']; ?></option>
 									<?php  } } ?>
 								</select>
+								<?php if(isset($male_provisional_diagnosis_list) && !empty($male_provisional_diagnosis_list)): ?>
 								<script type='text/javascript'>
-									$('#male_provisional_diagnosis_list').val(
-										<?php echo isset($male_provisional_diagnosis_list) ? json_encode($male_provisional_diagnosis_list) : '""'; ?>
-									);
+									window.male_provisional_diagnosis_list_values = <?php echo json_encode($male_provisional_diagnosis_list); ?>;
 								</script>
+								<?php endif; ?>
 							</div>
 						</td>
 					</tr>
@@ -5481,15 +5493,21 @@ $countdownDuration = 7200;
 									$disabled = "";
 							}?>
 							<select class="multidselect_dropdown_1" multiple id="female_minvestigation_suggestion_list" <?php echo $disabled; ?> name="female_minvestigation_suggestion_list[]"  >
-								<?php if(!empty($master_investigations)) { foreach($master_investigations as $key => $val) { ?>
-										<option value="<?php echo $val['master_id']; ?>"><?php echo $val['investigation_name']; ?></option>
+								<?php if(!empty($master_investigations)) { 
+									foreach($master_investigations as $key => $val) { 
+										$selected = "";
+										if(isset($female_minvestigation_suggestion_list) && is_array($female_minvestigation_suggestion_list) && in_array($val['master_id'], $female_minvestigation_suggestion_list)){
+											$selected = 'selected="selected"';
+										}
+								?>
+										<option value="<?php echo $val['master_id']; ?>" <?php echo $selected; ?>><?php echo $val['investigation_name']; ?></option>
 								<?php  } } ?>
 							</select>
+							<?php if(isset($female_minvestigation_suggestion_list) && !empty($female_minvestigation_suggestion_list)): ?>
 							<script type='text/javascript'>
-								$('#female_minvestigation_suggestion_list').val(
-									<?php echo isset($female_minvestigation_suggestion_list) ? json_encode($female_minvestigation_suggestion_list) : '""'; ?>
-								);
+								window.female_minvestigation_suggestion_list_values = <?php echo json_encode($female_minvestigation_suggestion_list); ?>;
 							</script>
+							<?php endif; ?>
 						</div>
 						</td>
 						<td>
@@ -5499,15 +5517,21 @@ $countdownDuration = 7200;
 										$disabled = "";
 								}?>
 								<select class="multidselect_dropdown_1" multiple id="male_minvestigation_suggestion_list" <?php echo $disabled; ?> name="male_minvestigation_suggestion_list[]">
-									<?php if(!empty($master_investigations)) { foreach($master_investigations as $key => $val) { ?>
-											<option value="<?php echo $val['master_id']; ?>"><?php echo $val['investigation_name']; ?></option>
+									<?php if(!empty($master_investigations)) { 
+										foreach($master_investigations as $key => $val) { 
+											$selected = "";
+											if(isset($male_minvestigation_suggestion_list) && is_array($male_minvestigation_suggestion_list) && in_array($val['master_id'], $male_minvestigation_suggestion_list)){
+												$selected = 'selected="selected"';
+											}
+									?>
+											<option value="<?php echo $val['master_id']; ?>" <?php echo $selected; ?>><?php echo $val['investigation_name']; ?></option>
 									<?php  } } ?>
 								</select>
+								<?php if(isset($male_minvestigation_suggestion_list) && !empty($male_minvestigation_suggestion_list)): ?>
 								<script type='text/javascript'>
-									$('#male_minvestigation_suggestion_list').val(
-										<?php echo isset($male_minvestigation_suggestion_list) ? json_encode($male_minvestigation_suggestion_list) : '""'; ?>
-									);
+									window.male_minvestigation_suggestion_list_values = <?php echo json_encode($male_minvestigation_suggestion_list); ?>;
 								</script>
+								<?php endif; ?>
 							</div>
 						</td>
 					</tr>
@@ -7488,6 +7512,27 @@ $(function() {
 		filterPlaceholder: 'Search for something...'
 
 	});
+
+	// Set saved values for multiselect dropdowns AFTER initialization
+	if(typeof window.female_provisional_diagnosis_list_values !== 'undefined' && window.female_provisional_diagnosis_list_values && window.female_provisional_diagnosis_list_values.length > 0) {
+		$('#female_provisional_diagnosis_list').val(window.female_provisional_diagnosis_list_values);
+		$('#female_provisional_diagnosis_list').multiselect('refresh');
+	}
+	
+	if(typeof window.male_provisional_diagnosis_list_values !== 'undefined' && window.male_provisional_diagnosis_list_values && window.male_provisional_diagnosis_list_values.length > 0) {
+		$('#male_provisional_diagnosis_list').val(window.male_provisional_diagnosis_list_values);
+		$('#male_provisional_diagnosis_list').multiselect('refresh');
+	}
+	
+	if(typeof window.female_minvestigation_suggestion_list_values !== 'undefined' && window.female_minvestigation_suggestion_list_values && window.female_minvestigation_suggestion_list_values.length > 0) {
+		$('#female_minvestigation_suggestion_list').val(window.female_minvestigation_suggestion_list_values);
+		$('#female_minvestigation_suggestion_list').multiselect('refresh');
+	}
+	
+	if(typeof window.male_minvestigation_suggestion_list_values !== 'undefined' && window.male_minvestigation_suggestion_list_values && window.male_minvestigation_suggestion_list_values.length > 0) {
+		$('#male_minvestigation_suggestion_list').val(window.male_minvestigation_suggestion_list_values);
+		$('#male_minvestigation_suggestion_list').multiselect('refresh');
+	}
 
 });
 
