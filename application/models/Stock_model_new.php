@@ -2784,6 +2784,7 @@ class Stock_model_new extends CI_Model
                 m.medicine_name,
                 m.medicine_code,
                 s.center_id,
+                m.pack_size,
                 COALESCE(b.brand_name, "Unknown Brand") as brand_name,
                 COALESCE(v.name, "Unknown Vendor") as vendor_name,
                 "Unknown Center" as center_name,

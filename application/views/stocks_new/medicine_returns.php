@@ -165,6 +165,7 @@
                                                                     <option value="<?php echo isset($batch->batch_id) ? $batch->batch_id : $batch->id; ?>"
                                                                             data-medicine="<?php echo isset($batch->medicine_name) ? $batch->medicine_name : 'Unknown'; ?>"
                                                                             data-batch-number="<?php echo isset($batch->batch_number) ? $batch->batch_number : 'N/A'; ?>"
+                                                                            data-pack-size="<?php echo isset($batch->pack_size) ? $batch->pack_size : 'N/A'; ?>"
                                                                             data-price="<?php echo isset($batch->selling_price) ? $batch->selling_price : 0; ?>"
                                                                             data-sold-qty="<?php echo isset($batch->quantity_sold) ? $batch->quantity_sold : 0; ?>">
                                                                         <?php echo (isset($batch->medicine_name) ? $batch->medicine_name : 'Unknown') . ' - ' . (isset($batch->batch_number) ? $batch->batch_number : 'N/A'); ?>
@@ -300,12 +301,13 @@ $(document).ready(function() {
     $(document).on('change', '.batch_select', function() {
         var selectedOption = $(this).find('option:selected');
         var row = $(this).closest('tr');
-
         if (selectedOption.val()) {
             var price = selectedOption.data('price');
+            var pack_size =selectedOption.data('pack-size');
+            var unitPrice_MRP = selectedOption.data('price')/pack_size;
             row.find('.batch_number').text(selectedOption.data('batch-number'));
             row.find('.sold_quantity').text(selectedOption.data('sold-qty'));
-            row.find('.unit_price').text('₹' + price);
+            row.find('.unit_price').text('₹' + unitPrice_MRP);
             row.find('.hidden_price').val(price);
             row.find('.return_quantity').attr('max', selectedOption.data('sold-qty'));
         } else {
