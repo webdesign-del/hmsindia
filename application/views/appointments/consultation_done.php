@@ -5599,7 +5599,13 @@ $countdownDuration = 7200;
 								<div class="col-sm-12 col-xs-12">
 									<?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
 										if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){
-											$female_medicine_suggestion_list = unserialize($patient_doctor_consultation['female_medicine_suggestion_list']); 
+											$female_medicine_suggestion_list = array();
+											if(isset($patient_doctor_consultation['female_medicine_suggestion_list']) && !empty($patient_doctor_consultation['female_medicine_suggestion_list'])){
+												$unserialized = @unserialize($patient_doctor_consultation['female_medicine_suggestion_list']);
+												if($unserialized !== false && is_array($unserialized)){
+													$female_medicine_suggestion_list = $unserialized;
+												}
+											}
 											$disabled = "";
 											$display="block";
 											if(!empty($female_medicine_suggestion_list['female_medicine_suggestion_list']) && isset($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
@@ -5627,9 +5633,16 @@ $countdownDuration = 7200;
 													<th style="border:1px solid #000; padding:10px;">Take</th>
 												</tr>
 												<tbody id="female_medicine_suggestion_table">
-													<?php if(!empty($female_medicine_suggestion_arr )){
+													<?php if(!empty($female_medicine_suggestion_arr ) && !empty($female_medicine_suggestion_list)){
 														$fmd_count = 1;
-														foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
+														// Handle both nested and flat array structures
+														$medicine_list_to_loop = array();
+														if(isset($female_medicine_suggestion_list['female_medicine_suggestion_list']) && is_array($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
+															$medicine_list_to_loop = $female_medicine_suggestion_list['female_medicine_suggestion_list'];
+														} elseif(is_array($female_medicine_suggestion_list)){
+															$medicine_list_to_loop = $female_medicine_suggestion_list;
+														}
+														foreach($medicine_list_to_loop as $key => $val){
 														?>
 														<tr style='border:1px solid #000;' count="<?php echo $fmd_count; ?>">
 															<td style='border:1px solid #000;'><?php echo get_medicine_name($val['female_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['female_medicine_name']?>' style='margin:0;padding:0;' name='female_medicine_name_<?php echo $fmd_count; ?>' id='female_medicine_name_<?php echo $fmd_count; ?>'></td>
@@ -5687,7 +5700,13 @@ $countdownDuration = 7200;
 								<div class="col-sm-12 col-xs-12">
 									<?php $disabled = "disabled"; $display="none"; $male_medicine_suggestion_arr = array(); 
 									if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){
-											$male_medicine_suggestion_list = unserialize($patient_doctor_consultation['male_medicine_suggestion_list']); 
+											$male_medicine_suggestion_list = array();
+											if(isset($patient_doctor_consultation['male_medicine_suggestion_list']) && !empty($patient_doctor_consultation['male_medicine_suggestion_list'])){
+												$unserialized = @unserialize($patient_doctor_consultation['male_medicine_suggestion_list']);
+												if($unserialized !== false && is_array($unserialized)){
+													$male_medicine_suggestion_list = $unserialized;
+												}
+											}
 											$disabled = "";
 											$display="block";
 											if(!empty($male_medicine_suggestion_list['male_medicine_suggestion_list']) && isset($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
@@ -5715,9 +5734,16 @@ $countdownDuration = 7200;
 													<th style="border:1px solid #000; padding:10px;">Take</th>
 												</tr>
 												<tbody id="male_medicine_suggestion_table">
-													<?php if(!empty($male_medicine_suggestion_arr )){
+													<?php if(!empty($male_medicine_suggestion_arr ) && !empty($male_medicine_suggestion_list)){
 														$mmd_count = 1;
-														foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
+														// Handle both nested and flat array structures
+														$medicine_list_to_loop = array();
+														if(isset($male_medicine_suggestion_list['male_medicine_suggestion_list']) && is_array($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
+															$medicine_list_to_loop = $male_medicine_suggestion_list['male_medicine_suggestion_list'];
+														} elseif(is_array($male_medicine_suggestion_list)){
+															$medicine_list_to_loop = $male_medicine_suggestion_list;
+														}
+														foreach($medicine_list_to_loop as $key => $val){
 														?>
 														<tr style='border:1px solid #000;' count="<?php echo $mmd_count; ?>">
 															<td style='border:1px solid #000;'><?php echo get_medicine_name($val['male_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['male_medicine_name']?>' style='margin:0;padding:0;' name='male_medicine_name_<?php echo $mmd_count; ?>' id='male_medicine_name_<?php echo $mmd_count; ?>'></td>
@@ -5779,12 +5805,28 @@ $countdownDuration = 7200;
 									<div class="col-sm-12 col-xs-12">
 										<?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
 											if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == "1"){
-												$female_medicine_suggestion_list = unserialize($patient_doctor_consultation['female_medicine_suggestion_list_ipd']); 
+												$female_medicine_suggestion_list = array();
+												if(isset($patient_doctor_consultation['female_medicine_suggestion_list_ipd']) && !empty($patient_doctor_consultation['female_medicine_suggestion_list_ipd'])){
+													$unserialized = @unserialize($patient_doctor_consultation['female_medicine_suggestion_list_ipd']);
+													if($unserialized !== false && is_array($unserialized)){
+														$female_medicine_suggestion_list = $unserialized;
+													}
+												}
 												$disabled = "";
 												$display="block";
-												if(!empty($female_medicine_suggestion_list['female_medicine_suggestion_list']) && isset($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
+												// Handle both nested and flat array structures
+												if(isset($female_medicine_suggestion_list['female_medicine_suggestion_list']) && is_array($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
 													foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
-														$female_medicine_suggestion_arr[] = $val['female_medicine_name'];
+														if(isset($val['female_medicine_name'])){
+															$female_medicine_suggestion_arr[] = $val['female_medicine_name'];
+														}
+													}
+												} elseif(is_array($female_medicine_suggestion_list)){
+													// Handle flat array structure (IPD format)
+													foreach($female_medicine_suggestion_list as $key => $val){
+														if(isset($val['female_medicine_name'])){
+															$female_medicine_suggestion_arr[] = $val['female_medicine_name'];
+														}
 													}
 												}
 										}?>
@@ -5807,9 +5849,16 @@ $countdownDuration = 7200;
 														<th style="border:1px solid #000; padding:10px;">Take</th>
 													</tr>
 													<tbody id="female_medicine_suggestion_table_ipd">
-														<?php if(!empty($female_medicine_suggestion_arr )){
+														<?php if(!empty($female_medicine_suggestion_arr ) && !empty($female_medicine_suggestion_list)){
 															$fmd_count = 1;
-															foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
+															// Handle both nested and flat array structures
+															$medicine_list_to_loop = array();
+															if(isset($female_medicine_suggestion_list['female_medicine_suggestion_list']) && is_array($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
+																$medicine_list_to_loop = $female_medicine_suggestion_list['female_medicine_suggestion_list'];
+															} elseif(is_array($female_medicine_suggestion_list)){
+																$medicine_list_to_loop = $female_medicine_suggestion_list;
+															}
+															foreach($medicine_list_to_loop as $key => $val){
 															?>
 															<tr style='border:1px solid #000;' count="<?php echo $fmd_count; ?>">
 																<td style='border:1px solid #000;'><?php echo get_medicine_name($val['female_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['female_medicine_name']?>' style='margin:0;padding:0;' name='female_medicine_name_ipd_<?php echo $fmd_count; ?>' id='female_medicine_name_ipd_<?php echo $fmd_count; ?>'></td>
@@ -5867,12 +5916,28 @@ $countdownDuration = 7200;
 									<div class="col-sm-12 col-xs-12">
 										<?php $disabled = "disabled"; $display="none"; $male_medicine_suggestion_arr = array(); 
 										if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == "1"){
-												$male_medicine_suggestion_list = unserialize($patient_doctor_consultation['male_medicine_suggestion_list_ipd']); 
+												$male_medicine_suggestion_list = array();
+												if(isset($patient_doctor_consultation['male_medicine_suggestion_list_ipd']) && !empty($patient_doctor_consultation['male_medicine_suggestion_list_ipd'])){
+													$unserialized = @unserialize($patient_doctor_consultation['male_medicine_suggestion_list_ipd']);
+													if($unserialized !== false && is_array($unserialized)){
+														$male_medicine_suggestion_list = $unserialized;
+													}
+												}
 												$disabled = "";
 												$display="block";
-												if(!empty($male_medicine_suggestion_list['male_medicine_suggestion_list']) && isset($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
+												// Handle both nested and flat array structures
+												if(isset($male_medicine_suggestion_list['male_medicine_suggestion_list']) && is_array($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
 													foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
-														$male_medicine_suggestion_arr[] = $val['male_medicine_name'];
+														if(isset($val['male_medicine_name'])){
+															$male_medicine_suggestion_arr[] = $val['male_medicine_name'];
+														}
+													}
+												} elseif(is_array($male_medicine_suggestion_list)){
+													// Handle flat array structure (IPD format)
+													foreach($male_medicine_suggestion_list as $key => $val){
+														if(isset($val['male_medicine_name'])){
+															$male_medicine_suggestion_arr[] = $val['male_medicine_name'];
+														}
 													}
 												}
 										}?>
@@ -5895,9 +5960,16 @@ $countdownDuration = 7200;
 														<th style="border:1px solid #000; padding:10px;">Take</th>
 													</tr>
 													<tbody id="male_medicine_suggestion_table_ipd">
-														<?php if(!empty($male_medicine_suggestion_arr )){
+														<?php if(!empty($male_medicine_suggestion_arr ) && !empty($male_medicine_suggestion_list)){
 															$mmd_count = 1;
-															foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
+															// Handle both nested and flat array structures
+															$medicine_list_to_loop = array();
+															if(isset($male_medicine_suggestion_list['male_medicine_suggestion_list']) && is_array($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
+																$medicine_list_to_loop = $male_medicine_suggestion_list['male_medicine_suggestion_list'];
+															} elseif(is_array($male_medicine_suggestion_list)){
+																$medicine_list_to_loop = $male_medicine_suggestion_list;
+															}
+															foreach($medicine_list_to_loop as $key => $val){
 															?>
 															<tr style='border:1px solid #000;' count="<?php echo $mmd_count; ?>">
 																<td style='border:1px solid #000;'><?php echo get_medicine_name($val['male_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['male_medicine_name']?>' style='margin:0;padding:0;' name='male_medicine_name_ipd_<?php echo $mmd_count; ?>' id='male_medicine_name_ipd_<?php echo $mmd_count; ?>'></td>
@@ -5961,12 +6033,27 @@ $countdownDuration = 7200;
                                 <div class="col-sm-12 col-xs-12">
                                     <?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
                                             if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){
-                                            $female_medicine_suggestion_list = unserialize($patient_doctor_consultation['female_medicine_suggestion_list']); 
+                                            $female_medicine_suggestion_list = array();
+                                            if(isset($patient_doctor_consultation['female_medicine_suggestion_list']) && !empty($patient_doctor_consultation['female_medicine_suggestion_list'])){
+                                                $unserialized = @unserialize($patient_doctor_consultation['female_medicine_suggestion_list']);
+                                                if($unserialized !== false && is_array($unserialized)){
+                                                    $female_medicine_suggestion_list = $unserialized;
+                                                }
+                                            }
                                             $disabled = "";
                                             $display="block";
-                                            if(!empty($female_medicine_suggestion_list['female_medicine_suggestion_list']) && isset($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
+                                            if(isset($female_medicine_suggestion_list['female_medicine_suggestion_list']) && is_array($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
                                                 foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
-                                                    $female_medicine_suggestion_arr[] = $val['female_medicine_name'];
+                                                    if(isset($val['female_medicine_name'])){
+                                                        $female_medicine_suggestion_arr[] = $val['female_medicine_name'];
+                                                    }
+                                                }
+                                            } elseif(is_array($female_medicine_suggestion_list)){
+                                                // Handle flat array structure
+                                                foreach($female_medicine_suggestion_list as $key => $val){
+                                                    if(isset($val['female_medicine_name'])){
+                                                        $female_medicine_suggestion_arr[] = $val['female_medicine_name'];
+                                                    }
                                                 }
                                             }
                                     }?>
@@ -5983,9 +6070,16 @@ $countdownDuration = 7200;
                                                     <th style="border:1px solid #000; padding:10px;">Take</th>
                                                 </tr>
                                                 <tbody id="female_medicine_suggestion_table">
-                                                    <?php if(!empty($female_medicine_suggestion_arr )){
+                                                    <?php if(!empty($female_medicine_suggestion_arr ) && !empty($female_medicine_suggestion_list)){
                                                         $fmd_count = 1;
-                                                        foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
+                                                        // Handle both nested and flat array structures
+                                                        $medicine_list_to_loop = array();
+                                                        if(isset($female_medicine_suggestion_list['female_medicine_suggestion_list']) && is_array($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
+                                                            $medicine_list_to_loop = $female_medicine_suggestion_list['female_medicine_suggestion_list'];
+                                                        } elseif(is_array($female_medicine_suggestion_list)){
+                                                            $medicine_list_to_loop = $female_medicine_suggestion_list;
+                                                        }
+                                                        foreach($medicine_list_to_loop as $key => $val){
                                                             ?>
                                                         <tr style='border:1px solid #000;' count="<?php echo $fmd_count; ?>">
                                                             <td style='border:1px solid #000;'><?php echo get_medicine_name($val['female_medicine_name']);?></td>
@@ -6037,9 +6131,16 @@ $countdownDuration = 7200;
                                                     <th style="border:1px solid #000; padding:10px;">Take</th>
                                                 </tr>
                                                 <tbody id="male_medicine_suggestion_table">
-                                                    <?php if(!empty($male_medicine_suggestion_arr )){
+                                                    <?php if(!empty($male_medicine_suggestion_arr ) && !empty($male_medicine_suggestion_list)){
                                                         $mmd_count = 1;
-                                                        foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
+                                                        // Handle both nested and flat array structures
+                                                        $medicine_list_to_loop = array();
+                                                        if(isset($male_medicine_suggestion_list['male_medicine_suggestion_list']) && is_array($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
+                                                            $medicine_list_to_loop = $male_medicine_suggestion_list['male_medicine_suggestion_list'];
+                                                        } elseif(is_array($male_medicine_suggestion_list)){
+                                                            $medicine_list_to_loop = $male_medicine_suggestion_list;
+                                                        }
+                                                        foreach($medicine_list_to_loop as $key => $val){
                                                             //var_dump($val);die;?>
                                                             <tr style='border:1px solid #000;' count="<?php echo $mmd_count; ?>">
                                                                 <td style='border:1px solid #000;'><?php echo get_medicine_name($val['male_medicine_name']);?></td>
