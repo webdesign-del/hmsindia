@@ -2968,7 +2968,7 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         $bindings[] = $broad_procedure_count;
     }
 
-   $consultation_sql = "
+ /* echo $consultation_sql = "
     SELECT
         T1.patient_id,
         MAX(T2.agent) AS agent,            
@@ -3003,8 +3003,38 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         T1.reason_of_visit, 
         T1.billing_at
     ORDER BY T1.on_date DESC, T1.id DESC
-    LIMIT ?, ?"; 
+    LIMIT ?, ?"; */
 
+	 $consultation_sql = "SELECT 
+    T1.patient_id, 
+    T2.agent, 
+    T2.councellor, 
+    T2.crm_id, 
+    T2.lead_source, 
+    T1.on_date, 
+    T1.reason_of_visit, 
+    T1.totalpackage, 
+    T1.payment_done, 
+    T1.discount_amount, 
+    T1.appointment_id, 
+    T1.doctor_id, 
+    T1.billing_at, 
+    T3.category, 
+    T3.procedures, 
+    T3.broad_procedure, 
+    T3.broad_procedure_count 
+FROM hms_consultation AS T1 
+INNER JOIN hms_appointments AS T2 
+    ON T1.patient_id = T2.paitent_id 
+INNER JOIN hms_patient_procedure AS T3 
+    ON T1.patient_id = T3.patient_id 
+WHERE 
+    T2.billed = '1' 
+    AND T2.lead_source != 'D/S' 
+     {$conditions}
+ORDER BY 
+    T1.on_date DESC, 
+    T1.id DESC LIMIT ?, ?";
     // Add offset and limit to the bindings array
     $bindings[] = (int) $offset;
     $bindings[] = (int) $limit;
