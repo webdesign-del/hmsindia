@@ -3140,15 +3140,20 @@ function patient_export_report_patination($limit, $page, $center, $start_date, $
     T3.category, 
     T3.procedures, 
     T3.broad_procedure, 
-    T3.broad_procedure_count 
+    T3.broad_procedure_count, 
+    T3.status 
 FROM hms_consultation AS T1 
+-- Join Appointment by ID (Correct)
 INNER JOIN hms_appointments AS T2 
-    ON T1.patient_id = T2.paitent_id 
+    ON T1.appointment_id = T2.id  
+-- Join Procedures by Appointment ID (Correct)
 INNER JOIN hms_patient_procedure AS T3 
-    ON T1.patient_id = T3.patient_id 
+    ON T1.appointment_id = T3.appointment_id 
 WHERE 
     T2.billed = '1' 
     AND T2.lead_source != 'D/S' 
+    -- FIXED LINE BELOW: Use IN for multiple status checks
+    AND T3.status IN ('pending', 'approved')
      {$conditions}
 ORDER BY 
     T1.on_date DESC, 
