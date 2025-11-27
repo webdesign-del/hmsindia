@@ -222,6 +222,535 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    public function import_medicines_excel()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            // Check if file was uploaded
+            if (!isset($_FILES["excel_file"]) || $_FILES["excel_file"]["error"] != 0) {
+                $this->session->set_flashdata(
+                    "error",
+                    "Please select a valid Excel file to upload.",
+                );
+                redirect("stocks_new/add_medicine");
+                return;
+            }
+
+            $file = $_FILES["excel_file"];
+            $fileExtension = strtolower(
+                pathinfo($file["name"], PATHINFO_EXTENSION),
+            );
+
+            // Validate file extension
+            if (!in_array($fileExtension, ["xlsx", "xls"])) {
+                $this->session->set_flashdata(
+                    "error",
+                    "Invalid file format. Please upload .xlsx or .xls file.",
+                );
+                redirect("stocks_new/add_medicine");
+                return;
+            }
+
+            // Load PhpSpreadsheet
+            // Try multiple possible paths for vendor/autoload.php
+            $possiblePaths = [
+                FCPATH . "vendor/autoload.php",
+                APPPATH . "../vendor/autoload.php",
+                __DIR__ . "/../../vendor/autoload.php",
+                dirname(FCPATH) . "/vendor/autoload.php",
+            ];
+            
+            $vendorPath = null;
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path)) {
+                    $vendorPath = $path;
+                    break;
+                }
+            }
+            
+            if (!$vendorPath) {
+                $this->session->set_flashdata(
+                    "error",
+                    "PhpSpreadsheet library not found. Please run 'composer install' in the project root directory.",
+                );
+                redirect("stocks_new/add_medicine");
+                return;
+            }
+            require_once $vendorPath;
+
+            try {
+                $inputFileType =
+                    $fileExtension == "xlsx"
+                        ? \PhpOffice\PhpSpreadsheet\IOFactory::READER_XLSX
+                        : \PhpOffice\PhpSpreadsheet\IOFactory::READER_XLS;
+
+                $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader(
+                    $inputFileType,
+                );
+                $spreadsheet = $reader->load($file["tmp_name"]);
+                $worksheet = $spreadsheet->getActiveSheet();
+                $highestRow = $worksheet->getHighestRow();
+
+                // Get all brands for mapping
+                $brands = $this->Stock_model_new->get_medicine_brands();
+                $brandMap = [];
+                foreach ($brands as $brand) {
+                    $brandId = isset($brand->ID) ? $brand->ID : (isset($brand->id) ? $brand->id : null);
+                    $brandName = isset($brand->brand_name)
+                        ? $brand->brand_name
+                        : (isset($brand->name) ? $brand->name : "");
+                    if (!empty($brandName) && $brandId !== null) {
+                        $brandMap[strtolower(trim($brandName))] = $brandId;
+                    }
+                }
+
+                // Read header row (row 1)
+                $headerRow = [];
+                for ($col = 1; $col <= 15; $col++) {
+                    $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                    $cellValue = $worksheet->getCell($columnLetter . '1')->getValue();
+                    $headerRow[$col] = strtolower(trim($cellValue));
+                }
+
+                // Map column indices
+                $colMap = [];
+                foreach ($headerRow as $colIndex => $header) {
+                    if (strpos($header, "medicine code") !== false) {
+                        $colMap["medicine_code"] = $colIndex;
+                    } elseif (strpos($header, "medicine name") !== false) {
+                        $colMap["medicine_name"] = $colIndex;
+                    } elseif (strpos($header, "generic name") !== false) {
+                        $colMap["generic_name"] = $colIndex;
+                    } elseif (strpos($header, "brand") !== false) {
+                        $colMap["brand"] = $colIndex;
+                    } elseif (strpos($header, "strength") !== false) {
+                        $colMap["strength"] = $colIndex;
+                    } elseif (strpos($header, "unit") !== false) {
+                        $colMap["unit"] = $colIndex;
+                    } elseif (strpos($header, "category") !== false) {
+                        $colMap["category"] = $colIndex;
+                    } elseif (strpos($header, "pack size") !== false) {
+                        $colMap["pack_size"] = $colIndex;
+                    } elseif (strpos($header, "hsn code") !== false) {
+                        $colMap["hsn_code"] = $colIndex;
+                    } elseif (strpos($header, "gst rate") !== false) {
+                        $colMap["gst_rate"] = $colIndex;
+                    } elseif (strpos($header, "min stock") !== false) {
+                        $colMap["min_stock_level"] = $colIndex;
+                    } elseif (strpos($header, "max stock") !== false) {
+                        $colMap["max_stock_level"] = $colIndex;
+                    } elseif (strpos($header, "reorder level") !== false) {
+                        $colMap["reorder_level"] = $colIndex;
+                    } elseif (strpos($header, "narcotic") !== false) {
+                        $colMap["is_narcotic"] = $colIndex;
+                    } elseif (strpos($header, "controlled") !== false) {
+                        $colMap["is_controlled_substance"] = $colIndex;
+                    } elseif (strpos($header, "psychotropic") !== false) {
+                        $colMap["is_psychotropic"] = $colIndex;
+                    }
+                }
+
+                // Validate required columns
+                $requiredColumns = [
+                    "medicine_code",
+                    "medicine_name",
+                    "generic_name",
+                    "brand",
+                    "strength",
+                    "unit",
+                    "category",
+                    "min_stock_level",
+                    "max_stock_level",
+                ];
+
+                $missingColumns = [];
+                foreach ($requiredColumns as $reqCol) {
+                    if (!isset($colMap[$reqCol])) {
+                        $missingColumns[] = $reqCol;
+                    }
+                }
+
+                if (!empty($missingColumns)) {
+                    $this->session->set_flashdata(
+                        "error",
+                        "Missing required columns: " .
+                            implode(", ", $missingColumns) .
+                            ". Please check your Excel file format.",
+                    );
+                    redirect("stocks_new/add_medicine");
+                    return;
+                }
+
+                // Process data rows (starting from row 2)
+                $successCount = 0;
+                $errorCount = 0;
+                $errors = [];
+
+                for ($row = 2; $row <= $highestRow; $row++) {
+                    // Get cell values using coordinate-based access
+                    $getCellValue = function($colIndex, $rowNum) use ($worksheet) {
+                        $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+                        return $worksheet->getCell($columnLetter . $rowNum)->getValue();
+                    };
+                    
+                    $medicine_code = trim($getCellValue($colMap["medicine_code"], $row));
+                    $medicine_name = trim($getCellValue($colMap["medicine_name"], $row));
+                    $generic_name = trim($getCellValue($colMap["generic_name"], $row));
+                    $brand_name = trim($getCellValue($colMap["brand"], $row));
+                    $strength = trim($getCellValue($colMap["strength"], $row));
+                    $unit = trim($getCellValue($colMap["unit"], $row));
+                    $category = trim($getCellValue($colMap["category"], $row));
+
+                    // Skip empty rows
+                    if (
+                        empty($medicine_code) &&
+                        empty($medicine_name) &&
+                        empty($generic_name)
+                    ) {
+                        continue;
+                    }
+
+                    // Validate required fields
+                    if (empty($medicine_code)) {
+                        $errors[] = "Row $row: Medicine Code is required";
+                        $errorCount++;
+                        continue;
+                    }
+                    if (empty($medicine_name)) {
+                        $errors[] = "Row $row: Medicine Name is required";
+                        $errorCount++;
+                        continue;
+                    }
+                    if (empty($generic_name)) {
+                        $errors[] = "Row $row: Generic Name is required";
+                        $errorCount++;
+                        continue;
+                    }
+                    if (empty($brand_name)) {
+                        $errors[] = "Row $row: Brand is required";
+                        $errorCount++;
+                        continue;
+                    }
+                    if (empty($strength)) {
+                        $errors[] = "Row $row: Strength is required";
+                        $errorCount++;
+                        continue;
+                    }
+                    if (empty($unit)) {
+                        $errors[] = "Row $row: Unit is required";
+                        $errorCount++;
+                        continue;
+                    }
+                    if (empty($category)) {
+                        $errors[] = "Row $row: Category is required";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Get brand_id from brand name
+                    $brand_id = null;
+                    $brand_name_lower = strtolower(trim($brand_name));
+                    if (isset($brandMap[$brand_name_lower])) {
+                        $brand_id = $brandMap[$brand_name_lower];
+                    } else {
+                        $errors[] =
+                            "Row $row: Brand '$brand_name' not found in system";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Check if medicine_code already exists
+                    $this->db->where("medicine_code", $medicine_code);
+                    $existing = $this->db->get("medicines")->row();
+                    if ($existing) {
+                        $errors[] =
+                            "Row $row: Medicine Code '$medicine_code' already exists";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Get optional fields
+                    $pack_size = isset($colMap["pack_size"])
+                        ? trim($getCellValue($colMap["pack_size"], $row))
+                        : "";
+                    $hsn_code = isset($colMap["hsn_code"])
+                        ? trim($getCellValue($colMap["hsn_code"], $row))
+                        : "";
+                    $gst_rate = isset($colMap["gst_rate"])
+                        ? trim($getCellValue($colMap["gst_rate"], $row))
+                        : "12";
+                    $min_stock_level = isset($colMap["min_stock_level"])
+                        ? trim($getCellValue($colMap["min_stock_level"], $row))
+                        : "0";
+                    $max_stock_level = isset($colMap["max_stock_level"])
+                        ? trim($getCellValue($colMap["max_stock_level"], $row))
+                        : "0";
+                    $reorder_level = isset($colMap["reorder_level"])
+                        ? trim($getCellValue($colMap["reorder_level"], $row))
+                        : "";
+                    $is_narcotic = isset($colMap["is_narcotic"])
+                        ? trim($getCellValue($colMap["is_narcotic"], $row))
+                        : "0";
+                    $is_controlled_substance = isset($colMap["is_controlled_substance"])
+                        ? trim($getCellValue($colMap["is_controlled_substance"], $row))
+                        : "0";
+                    $is_psychotropic = isset($colMap["is_psychotropic"])
+                        ? trim($getCellValue($colMap["is_psychotropic"], $row))
+                        : "0";
+
+                    // Prepare medicine data
+                    $medicine_data = [
+                        "medicine_code" => $medicine_code,
+                        "brand_id" => $brand_id,
+                        "medicine_name" => $medicine_name,
+                        "generic_name" => $generic_name,
+                        "strength" => $strength,
+                        "unit" => $unit,
+                        "category" => $category,
+                        "pack_size" => $pack_size,
+                        "hsn_code" => $hsn_code,
+                        "gst_rate" => !empty($gst_rate) ? $gst_rate : "12",
+                        "min_stock_level" => !empty($min_stock_level)
+                            ? $min_stock_level
+                            : "0",
+                        "max_stock_level" => !empty($max_stock_level)
+                            ? $max_stock_level
+                            : "0",
+                        "reorder_level" => !empty($reorder_level)
+                            ? $reorder_level
+                            : "",
+                        "is_narcotic" => in_array(
+                            strtolower($is_narcotic),
+                            ["1", "yes", "y", "true"],
+                        )
+                            ? 1
+                            : 0,
+                        "is_controlled_substance" => in_array(
+                            strtolower($is_controlled_substance),
+                            ["1", "yes", "y", "true"],
+                        )
+                            ? 1
+                            : 0,
+                        "is_psychotropic" => in_array(
+                            strtolower($is_psychotropic),
+                            ["1", "yes", "y", "true"],
+                        )
+                            ? 1
+                            : 0,
+                        "status" => "active",
+                    ];
+
+                    // Insert medicine
+                    if ($this->Stock_model_new->add_medicine($medicine_data)) {
+                        $successCount++;
+                    } else {
+                        $errors[] =
+                            "Row $row: Failed to insert medicine '$medicine_name'";
+                        $errorCount++;
+                    }
+                }
+
+                // Set flash messages
+                if ($successCount > 0) {
+                    $message =
+                        "Successfully imported $successCount medicine(s).";
+                    if ($errorCount > 0) {
+                        $message .=
+                            " $errorCount row(s) failed. Please check the errors below.";
+                    }
+                    $this->session->set_flashdata("success", $message);
+                } else {
+                    $this->session->set_flashdata(
+                        "error",
+                        "No medicines were imported. Please check your Excel file.",
+                    );
+                }
+
+                if ($errorCount > 0 && !empty($errors)) {
+                    $errorMessage =
+                        "Errors encountered:<br>" .
+                        implode("<br>", array_slice($errors, 0, 10));
+                    if (count($errors) > 10) {
+                        $errorMessage .=
+                            "<br>... and " .
+                            (count($errors) - 10) .
+                            " more errors.";
+                    }
+                    $this->session->set_flashdata("error_details", $errorMessage);
+                }
+
+                redirect("stocks_new/add_medicine");
+            } catch (Exception $e) {
+                $this->session->set_flashdata(
+                    "error",
+                    "Error reading Excel file: " . $e->getMessage(),
+                );
+                redirect("stocks_new/add_medicine");
+            }
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+    public function download_medicine_template()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            // Load PhpSpreadsheet
+            // Try multiple possible paths for vendor/autoload.php
+            $possiblePaths = [
+                FCPATH . "vendor/autoload.php",
+                APPPATH . "../vendor/autoload.php",
+                __DIR__ . "/../../vendor/autoload.php",
+                dirname(FCPATH) . "/vendor/autoload.php",
+            ];
+            
+            $vendorPath = null;
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path)) {
+                    $vendorPath = $path;
+                    break;
+                }
+            }
+            
+            if (!$vendorPath) {
+                $this->session->set_flashdata(
+                    "error",
+                    "PhpSpreadsheet library not found. Please run 'composer install' in the project root directory.",
+                );
+                redirect("stocks_new/add_medicine");
+                return;
+            }
+            require_once $vendorPath;
+
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set headers
+            $headers = [
+                "A1" => "Medicine Code",
+                "B1" => "Medicine Name",
+                "C1" => "Generic Name",
+                "D1" => "Brand",
+                "E1" => "Strength",
+                "F1" => "Unit",
+                "G1" => "Category",
+                "H1" => "Pack Size",
+                "I1" => "HSN Code",
+                "J1" => "GST Rate (%)",
+                "K1" => "Min Stock Level",
+                "L1" => "Max Stock Level",
+                "M1" => "Reorder Level",
+                "N1" => "Is Narcotic (Yes/No)",
+                "O1" => "Is Controlled Substance (Yes/No)",
+                "P1" => "Is Psychotropic (Yes/No)",
+            ];
+
+            foreach ($headers as $cell => $value) {
+                $sheet->setCellValue($cell, $value);
+            }
+
+            // Style header row
+            $sheet
+                ->getStyle("A1:P1")
+                ->getFont()
+                ->setBold(true);
+            $sheet
+                ->getStyle("A1:P1")
+                ->getFill()
+                ->setFillType(
+                    \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                )
+                ->getStartColor()
+                ->setARGB("FFE0E0E0");
+
+            // Set column widths
+            $sheet->getColumnDimension("A")->setWidth(15);
+            $sheet->getColumnDimension("B")->setWidth(25);
+            $sheet->getColumnDimension("C")->setWidth(25);
+            $sheet->getColumnDimension("D")->setWidth(20);
+            $sheet->getColumnDimension("E")->setWidth(15);
+            $sheet->getColumnDimension("F")->setWidth(12);
+            $sheet->getColumnDimension("G")->setWidth(20);
+            $sheet->getColumnDimension("H")->setWidth(12);
+            $sheet->getColumnDimension("I")->setWidth(15);
+            $sheet->getColumnDimension("J")->setWidth(12);
+            $sheet->getColumnDimension("K")->setWidth(15);
+            $sheet->getColumnDimension("L")->setWidth(15);
+            $sheet->getColumnDimension("M")->setWidth(15);
+            $sheet->getColumnDimension("N")->setWidth(20);
+            $sheet->getColumnDimension("O")->setWidth(25);
+            $sheet->getColumnDimension("P")->setWidth(25);
+
+            // Add sample data row
+            $sampleData = [
+                "A2" => "MED001",
+                "B2" => "Paracetamol 500mg",
+                "C2" => "Paracetamol",
+                "D2" => "Sample Brand",
+                "E2" => "500mg",
+                "F2" => "TABLET",
+                "G2" => "Cash Medicines",
+                "H2" => "10",
+                "I2" => "30049099",
+                "J2" => "12",
+                "K2" => "100",
+                "L2" => "1000",
+                "M2" => "200",
+                "N2" => "No",
+                "O2" => "No",
+                "P2" => "No",
+            ];
+
+            foreach ($sampleData as $cell => $value) {
+                $sheet->setCellValue($cell, $value);
+            }
+
+            // Get available brands for reference
+            $brands = $this->Stock_model_new->get_medicine_brands();
+            $brandNames = [];
+            foreach ($brands as $brand) {
+                $brandName = isset($brand->brand_name)
+                    ? $brand->brand_name
+                    : (isset($brand->name) ? $brand->name : "");
+                if (!empty($brandName)) {
+                    $brandNames[] = $brandName;
+                }
+            }
+
+            // Add note about available brands
+            if (!empty($brandNames)) {
+                $sheet->setCellValue(
+                    "A4",
+                    "Available Brands: " . implode(", ", array_slice($brandNames, 0, 10)),
+                );
+                if (count($brandNames) > 10) {
+                    $sheet->setCellValue(
+                        "A5",
+                        "... and " . (count($brandNames) - 10) . " more brands",
+                    );
+                }
+            }
+
+            // Set headers for download
+            header(
+                "Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            );
+            header(
+                "Content-Disposition: attachment;filename=medicine_import_template.xlsx",
+            );
+            header("Cache-Control: max-age=0");
+
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->save("php://output");
+            exit();
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
     public function edit_medicine($id)
     {
         $logg = checklogin();

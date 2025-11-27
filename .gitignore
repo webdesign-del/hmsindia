@@ -102,7 +102,7 @@ backups/*
 # ===========================================
 # Dependencies
 # ===========================================
-vendor/
+# vendor/
 node_modules/
 composer.lock
 

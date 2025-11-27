@@ -20,6 +20,43 @@
             </div>
         </div>
         
+        <!-- Excel Import Section -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <i class="fa fa-file-excel-o"></i> Import Medicines from Excel
+                    </div>
+                    <div class="panel-body">
+                        <div class="alert alert-info">
+                            <strong><i class="fa fa-info-circle"></i> Instructions:</strong>
+                            <ul style="margin-bottom: 0;">
+                                <li>Upload an Excel file (.xlsx, .xls) with medicine data</li>
+                                <li>First row should contain column headers</li>
+                                <li>Required columns: Medicine Code, Medicine Name, Generic Name, Brand Name, Strength, Unit, Category, Min Stock Level, Max Stock Level</li>
+                                <li>Optional columns: Pack Size, HSN Code, GST Rate, Reorder Level, Is Narcotic, Is Controlled Substance, Is Psychotropic</li>
+                                <li>Download <a href="<?php echo base_url('stocks_new/download_medicine_template'); ?>" target="_blank"><strong>Excel Template</strong></a> for reference</li>
+                            </ul>
+                        </div>
+                        <form action="<?php echo base_url('stocks_new/import_medicines_excel'); ?>" method="post" enctype="multipart/form-data" class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label">Select Excel File *</label>
+                                <div class="col-sm-6">
+                                    <input type="file" name="excel_file" class="form-control" accept=".xlsx,.xls" required>
+                                    <small class="help-block">Supported formats: .xlsx, .xls</small>
+                                </div>
+                                <div class="col-sm-3">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fa fa-upload"></i> Import Medicines
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Add Medicine Form -->
         <div class="row">
             <div class="col-md-12">
@@ -37,6 +74,18 @@
                         <?php if($this->session->flashdata('error')): ?>
                             <div class="alert alert-danger">
                                 <?php echo $this->session->flashdata('error'); ?>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <?php if($this->session->flashdata('error_details')): ?>
+                            <div class="alert alert-warning">
+                                <?php echo $this->session->flashdata('error_details'); ?>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <?php if($this->session->flashdata('success')): ?>
+                            <div class="alert alert-success">
+                                <?php echo $this->session->flashdata('success'); ?>
                             </div>
                         <?php endif; ?>
                         
