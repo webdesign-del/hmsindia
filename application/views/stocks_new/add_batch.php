@@ -35,7 +35,7 @@
                                 <li>First row should contain column headers</li>
                                 <li>Required columns: Medicine Code/Name, Vendor Name, Batch Number, Expiry Date, Purchase Date, Purchase Price, Selling Price, Quantity Purchased</li>
                                 <li>Optional columns: MRP, Invoice Number, Invoice Date, Quality Status, Remarks</li>
-                                <li>Download <a href="<?php echo base_url('stocks_new/download_batch_template'); ?>" target="_blank"><strong>Excel Template</strong></a> for reference</li>
+                                <!-- <li>Download <a href="<?php echo base_url('stocks_new/download_batch_template'); ?>" target="_blank"><strong>Excel Template</strong></a> for reference</li> -->
                                 <li>Download <a href="<?php echo base_url('stocks_new/download_batch_sample'); ?>" target="_blank"><strong>Sample Excel File</strong></a> with example data</li>
                             </ul>
                     </div>
