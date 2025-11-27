@@ -2058,7 +2058,7 @@ public function export_consultation_csv() {
     
 
     // 2. Call Model with High Limit (to get all records)
-    $report_data = $this->accounts_model->patient_consultation_report_patination(
+    $report_data = $this->accounts_model->patient_export_report_patination(
         100000, // Limit
         0,      // Page
         $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, 
@@ -2104,6 +2104,7 @@ public function export_consultation_csv() {
     fclose($file);
     exit;
 }
+
 	public function approve($request = NULL){
 
 		$logg = checklogin();

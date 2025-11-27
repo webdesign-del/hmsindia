@@ -1881,318 +1881,293 @@ function partial_billing($appointment_id){
 					die();
 				}
 			if (isset($_POST['action']) && !empty($_POST['action']) && $_POST['action'] == "add_package") {
-				unset($_POST['action']);
-					
-					// --- 1. INITIALIZE COMMON VARIABLES ---
-					$post_arr = array();
-					$post_arr['patient_id'] = $_POST['patient_id']; unset($_POST['patient_id']);
-					$post_arr['appointment_id'] = $_POST['appointment_id']; unset($_POST['appointment_id']);
-					$post_arr['consultation_done'] = $_POST['consultation_done']; unset($_POST['consultation_done']);
-					$post_arr['billing_from'] = $_POST['billing_from']; unset($_POST['billing_from']);
-					$post_arr['billing_at'] = $_POST['billing_at']; unset($_POST['billing_at']);
-					$post_arr['on_date'] = $_POST['on_date']; unset($_POST['on_date']);
-					$post_arr['billing_id'] = isset($_POST['billing_id']) ? $_POST['billing_id'] : ''; unset($_POST['billing_id']);
-					$post_arr['biller_id'] = $_POST['biller_id']; unset($_POST['biller_id']);
-					$post_arr['billing_type'] = $_POST['billing_type'];
-					$post_arr['transaction_id'] = ($_POST['transaction_id']) ? $_POST['transaction_id'] : 0; unset($_POST['transaction_id']);
-					$post_arr['subvention_charges'] = isset($_POST['subvention_charges']) ? $_POST['subvention_charges'] : 0; unset($_POST['subvention_charges']);
-					
-					// Handle Main Transaction Image (Global)
-					$transaction_img = '';
-					if (!empty($_FILES['transaction_img']['tmp_name'])) {
-						$dest_path = $this->config->item('upload_path');
-						$destination = $dest_path . 'patient_files/';
-						$NewImageName = rand(4, 10000) . "-" . $post_arr['patient_id'] . "-" . $_FILES['transaction_img']['name'];
-						$transaction_img = base_url() . 'assets/patient_files/' . $NewImageName;
-						move_uploaded_file($_FILES['transaction_img']['tmp_name'], $destination . $NewImageName);
-						$post_arr['transaction_img'] = $transaction_img;
-					}
+    unset($_POST['action']);
+    
+    // --- 1. INITIALIZE VARIABLES ---
+    $post_arr = array();
+    $post_arr['patient_id'] = $_POST['patient_id']; unset($_POST['patient_id']);
+    $post_arr['appointment_id'] = $_POST['appointment_id']; unset($_POST['appointment_id']);
+    $post_arr['consultation_done'] = $_POST['consultation_done']; unset($_POST['consultation_done']);
+    $post_arr['billing_from'] = $_POST['billing_from']; unset($_POST['billing_from']);
+    $post_arr['billing_at'] = $_POST['billing_at']; unset($_POST['billing_at']);
+    $post_arr['on_date'] = $_POST['on_date']; unset($_POST['on_date']);
+    $post_arr['billing_id'] = isset($_POST['billing_id']) ? $_POST['billing_id'] : ''; unset($_POST['billing_id']);
+    $post_arr['biller_id'] = $_POST['biller_id']; unset($_POST['biller_id']);
+    $post_arr['billing_type'] = $_POST['billing_type'];
+    $post_arr['transaction_id'] = ($_POST['transaction_id']) ? $_POST['transaction_id'] : 0; unset($_POST['transaction_id']);
+    $post_arr['subvention_charges'] = isset($_POST['subvention_charges']) ? $_POST['subvention_charges'] : 0; unset($_POST['subvention_charges']);
+    
+    // Handle Images
+    $transaction_img = '';
+    if (!empty($_FILES['transaction_img']['tmp_name'])) {
+        $dest_path = $this->config->item('upload_path');
+        $destination = $dest_path . 'patient_files/';
+        $NewImageName = rand(4, 10000) . "-" . $post_arr['patient_id'] . "-" . $_FILES['transaction_img']['name'];
+        $transaction_img = base_url() . 'assets/patient_files/' . $NewImageName;
+        move_uploaded_file($_FILES['transaction_img']['tmp_name'], $destination . $NewImageName);
+        $post_arr['transaction_img'] = $transaction_img;
+    }
 
-					$post_arr['hospital_id'] = isset($_POST['hospital_id']) ? $_POST['hospital_id'] : ''; unset($_POST['hospital_id']);
-					
-					// Handle Package Form (Global)
-					$package_form = '';
-					if (!empty($_FILES['package_form']['tmp_name'])) {
-						$dest_path = $this->config->item('upload_path');
-						$destination = $dest_path . 'package_form/';
-						$NewImageName = rand(4, 10000) . "-" . $post_arr['patient_id'] . "-" . $_FILES['package_form']['name']; 
-						$package_form = base_url() . 'assets/package_form/' . $NewImageName;
-						move_uploaded_file($_FILES['package_form']['tmp_name'], $destination . $NewImageName);
-					}
-					$post_arr['package_form'] = $package_form;
+    $post_arr['hospital_id'] = isset($_POST['hospital_id']) ? $_POST['hospital_id'] : ''; unset($_POST['hospital_id']);
+    
+    $package_form = '';
+    if (!empty($_FILES['package_form']['tmp_name'])) {
+        $dest_path = $this->config->item('upload_path');
+        $destination = $dest_path . 'package_form/';
+        $NewImageName = rand(4, 10000) . "-" . $post_arr['patient_id'] . "-" . $_FILES['package_form']['name']; 
+        $package_form = base_url() . 'assets/package_form/' . $NewImageName;
+        move_uploaded_file($_FILES['package_form']['tmp_name'], $destination . $NewImageName);
+    }
+    $post_arr['package_form'] = $package_form;
 
-					// Common Payment Details
-					$post_arr['payment_method'] = $_POST['payment_method']; unset($_POST['payment_method']);
-					$post_arr['cash_payment'] = $_POST['cash_payment']; unset($_POST['cash_payment']);
-					$post_arr['card_payment'] = $_POST['card_payment']; unset($_POST['card_payment']);
-					$post_arr['upi_payment'] = $_POST['upi_payment']; unset($_POST['upi_payment']);
-					$post_arr['neft_payment'] = $_POST['neft_payment']; unset($_POST['neft_payment']);
-					$post_arr['wallet_payment'] = $_POST['wallet_payment']; unset($_POST['wallet_payment']);
-					$post_arr['origins'] = $_POST['origins']; unset($_POST['origins']);
-					$post_arr['series_number'] = $_POST['series_number']; unset($_POST['series_number']);
-					$post_arr['expiry_date'] = $_POST['expiry_date']; unset($_POST['expiry_date']);
-					$post_arr['renewal_type'] = $_POST['renewal_type']; unset($_POST['renewal_type']);
-					$post_arr['status'] = 'pending';
+    // Payments
+    $post_arr['payment_method'] = $_POST['payment_method']; unset($_POST['payment_method']);
+    $post_arr['cash_payment'] = $_POST['cash_payment']; unset($_POST['cash_payment']);
+    $post_arr['card_payment'] = $_POST['card_payment']; unset($_POST['card_payment']);
+    $post_arr['upi_payment'] = $_POST['upi_payment']; unset($_POST['upi_payment']);
+    $post_arr['neft_payment'] = $_POST['neft_payment']; unset($_POST['neft_payment']);
+    $post_arr['wallet_payment'] = $_POST['wallet_payment']; unset($_POST['wallet_payment']);
+    $post_arr['origins'] = $_POST['origins']; unset($_POST['origins']);
+    $post_arr['series_number'] = $_POST['series_number']; unset($_POST['series_number']);
+    $post_arr['expiry_date'] = $_POST['expiry_date']; unset($_POST['expiry_date']);
+    $post_arr['renewal_type'] = $_POST['renewal_type']; unset($_POST['renewal_type']);
+    $post_arr['status'] = 'pending';
 
-					// Global Currency Logic (used for center share calculation)
-					if ($_POST['payment_in'] == 'rs_payment') {
-						$post_arr['payment_done'] = $_POST['payment_done']; unset($_POST['payment_done']);
-						$post_arr['remaining_amount'] = $_POST['remaining_amount']; unset($_POST['remaining_amount']);
-						$post_arr['fees'] = ($_POST['rs_fees']); unset($_POST['rs_fees']);
-						$post_arr['totalpackage'] = $_POST['rs_totalpackage']; unset($_POST['rs_totalpackage']);
-						$post_arr['discount_amount'] = $_POST['rs_discount']; unset($_POST['rs_discount']);
-					} else {
-						$post_arr['usd_totalpackage'] = $_POST['usd_totalpackage']; unset($_POST['usd_totalpackage']);
-						$post_arr['usd_fees'] = $_POST['usd_fees']; unset($_POST['usd_fees']);
-						$post_arr['us_discount'] = $_POST['us_discount']; unset($_POST['us_discount']);
-						$post_arr['conversion_rate'] = get_converstion_rate();
-						$post_arr['payment_done'] = ($_POST['payment_done'] * get_converstion_rate()); unset($_POST['payment_done']);
-						$post_arr['remaining_amount'] = ($_POST['remaining_amount'] * get_converstion_rate()); unset($_POST['remaining_amount']);
-						$post_arr['fees'] = ($_POST['rs_totalpackage'] - $_POST['rs_discount']); unset($_POST['rs_fees']);
-						$post_arr['totalpackage'] = $_POST['rs_totalpackage']; unset($_POST['rs_totalpackage']);
-						$post_arr['discount_amount'] = $_POST['rs_discount']; unset($_POST['rs_discount']);
-					}
-					
-					$post_arr['center_share'] = $post_arr['fees'];
-					$post_arr['share'] = 1;
-					$post_arr['payment_in'] = $_POST['payment_in']; unset($_POST['payment_in']);
+    // Currency Logic
+    if ($_POST['payment_in'] == 'rs_payment') {
+        $post_arr['payment_done'] = $_POST['payment_done']; unset($_POST['payment_done']);
+        $post_arr['remaining_amount'] = $_POST['remaining_amount']; unset($_POST['remaining_amount']);
+        $post_arr['fees'] = ($_POST['rs_fees']); unset($_POST['rs_fees']);
+        $post_arr['totalpackage'] = $_POST['rs_totalpackage']; unset($_POST['rs_totalpackage']);
+        $post_arr['discount_amount'] = $_POST['rs_discount']; unset($_POST['rs_discount']);
+    } else {
+        $post_arr['usd_totalpackage'] = $_POST['usd_totalpackage']; unset($_POST['usd_totalpackage']);
+        $post_arr['usd_fees'] = $_POST['usd_fees']; unset($_POST['usd_fees']);
+        $post_arr['us_discount'] = $_POST['us_discount']; unset($_POST['us_discount']);
+        $post_arr['conversion_rate'] = get_converstion_rate();
+        $post_arr['payment_done'] = ($_POST['payment_done'] * get_converstion_rate()); unset($_POST['payment_done']);
+        $post_arr['remaining_amount'] = ($_POST['remaining_amount'] * get_converstion_rate()); unset($_POST['remaining_amount']);
+        $post_arr['fees'] = ($_POST['rs_totalpackage'] - $_POST['rs_discount']); unset($_POST['rs_fees']);
+        $post_arr['totalpackage'] = $_POST['rs_totalpackage']; unset($_POST['rs_totalpackage']);
+        $post_arr['discount_amount'] = $_POST['rs_discount']; unset($_POST['rs_discount']);
+    }
+    
+    $post_arr['center_share'] = $post_arr['fees'];
+    $post_arr['share'] = 1;
+    $post_arr['payment_in'] = $_POST['payment_in']; unset($_POST['payment_in']);
 
-					// --- 2. FETCH STATIC DATA ONCE (Optimization) ---
-					// We fetch Patient, Doctor, and Appointment details here because they don't change inside the loop
-					
-					// Consultation Data
-					$sql_con = "SELECT * FROM " . $this->config->item('db_prefix') . "consultation WHERE patient_id = '" . $post_arr['patient_id'] . "' ORDER BY id ASC";
-					$select_con = run_select_query($sql_con);
-					$visit_month = date('F y', strtotime($select_con['on_date']));
-					$first_visit_date = date('Y-m-d', strtotime($select_con['on_date']));
+    // --- 2. FETCH STATIC DATA ---
+    $sql_con = "SELECT * FROM " . $this->config->item('db_prefix') . "consultation WHERE patient_id = '" . $post_arr['patient_id'] . "' ORDER BY id ASC";
+    $select_con = run_select_query($sql_con);
+    $visit_month = date('F y', strtotime($select_con['on_date']));
+    $first_visit_date = date('Y-m-d', strtotime($select_con['on_date']));
 
-					// Doctor Data from Consultation
-					$sql_doct_con = "SELECT * FROM " . $this->config->item('db_prefix') . "consultation WHERE appointment_id = '" . $post_arr['appointment_id'] . "'";
-					$select_doc_con = run_select_query($sql_doct_con);
+    $sql_doct_con = "SELECT * FROM " . $this->config->item('db_prefix') . "consultation WHERE appointment_id = '" . $post_arr['appointment_id'] . "'";
+    $select_doc_con = run_select_query($sql_doct_con);
 
-					// Counsellor Data
-					$sql_doctor_consultation = "SELECT * FROM " . $this->config->item('db_prefix') . "doctor_consultation WHERE appointment_id = '" . $post_arr['appointment_id'] . "'";
-					$select_doctor_consultation = run_select_query($sql_doctor_consultation);
+    $sql_doctor_consultation = "SELECT * FROM " . $this->config->item('db_prefix') . "doctor_consultation WHERE appointment_id = '" . $post_arr['appointment_id'] . "'";
+    $select_doctor_consultation = run_select_query($sql_doctor_consultation);
 
-					// Doctor Name
-					$sql3 = "Select * from " . $this->config->item('db_prefix') . "doctors where ID='" . $select_doc_con['doctor_id'] . "'";
-					$select_result3 = run_select_query($sql3);
+    $select_result3 = run_select_query("Select * from " . $this->config->item('db_prefix') . "doctors where ID='" . $select_doc_con['doctor_id'] . "'");
+    $select_result4 = run_select_query("Select * from " . $this->config->item('db_prefix') . "appointments where paitent_id='" . $post_arr['patient_id'] . "'");
+    $select_result5 = run_select_query("Select * from " . $this->config->item('db_prefix') . "appointments where wife_phone='" . $select_result4['wife_phone'] . "' and paitent_type='new_patient'");
 
-					// Patient Phone
-					$sql4 = "Select * from " . $this->config->item('db_prefix') . "appointments where paitent_id='" . $post_arr['patient_id'] . "'";
-					$select_result4 = run_select_query($sql4);
+    $procedure_billed = 0; // Initialize outside loop
 
-					// CRM Lead ID and Name
-					$sql5 = "Select * from " . $this->config->item('db_prefix') . "appointments where wife_phone='" . $select_result4['wife_phone'] . "' and paitent_type='new_patient'";
-					$select_result5 = run_select_query($sql5);
+    // --- 3. START LOOP ---
+    if (isset($_POST['package_suggestion']) && $_POST['package_suggestion'] == 1) {
+        
+        $extract_procedure_array = array();
+        foreach ($_POST as $key => $val) {
+            if (substr($key, 0, 14) === "sub_procedure_") {
+                $extract_procedure_array[] = $key;
+            }
+        }
+        $male_number = array();
+        foreach ($extract_procedure_array as $key => $val) {
+            $explode = explode('sub_procedure_', $val);
+            $male_number[] = $explode[1];
+        }
+        $male_number = array_unique($male_number);
 
+        foreach ($male_number as $key => $val) {
+            
+            // A. DYNAMIC VARIABLES
+            $receipt_number = $_POST['receipt_number_' . $val];
+            
+            // ** DUPLICATE CHECK START **
+            // Check if this receipt already exists in DB to prevent duplicates on refresh
+            $dup_check_sql = "SELECT id FROM `hms_patient_procedure` WHERE receipt_number = '$receipt_number'";
+            $dup_check = run_select_query($dup_check_sql);
+            if(!empty($dup_check)){
+                // If exists, skip insertion for this specific item
+                continue; 
+            }
+            // ** DUPLICATE CHECK END **
 
-					// --- 3. PROCESS EACH PROCEDURE (LOOP START) ---
-					if (isset($_POST['procedure_suggestion']) && $_POST['procedure_suggestion'] == 1) {
-						
-						// Identify which sub_procedures were submitted (e.g., 1, 2, 3, 4)
-						$extract_procedure_array = array();
-						foreach ($_POST as $key => $val) {
-							if (substr($key, 0, 14) === "sub_procedure_") {
-								$extract_procedure_array[] = $key;
-							}
-						}
-						
-						$male_number = array();
-						foreach ($extract_procedure_array as $key => $val) {
-							$explode = explode('sub_procedure_', $val);
-							$male_number[] = $explode[1];
-						}
-						$male_number = array_unique($male_number);
+            $loop_totalpackage = $_POST['sub_procedures_price_' . $val];
+            $loop_discount_amount = $_POST['sub_procedures_discount_' . $val];
+            $loop_fees = $loop_totalpackage - $loop_discount_amount;
+            $loop_payment_done = $_POST['sub_procedures_paid_price_' . $val];
+            $loop_remaining_amount = $loop_fees - $loop_payment_done;
+            
+            $post_arr['receipt_number'] = $receipt_number;
 
-						// Loop through specific procedures
-						foreach ($male_number as $key => $val) {
-							
-							// A. GET DYNAMIC VALUES FOR THIS ITERATION
-							$receipt_number = $_POST['receipt_number_' . $val];
-							
-							if ($this->receipt_number_exists($receipt_number)) {
-								header("location:" . base_url() . "after-consultation-step-2?t=procedure&m=" . base64_encode('Receipt number already exists!'));
-								die();
-							}
+            // Receipt Image
+            $receipt_image_path = ''; 
+            if (!empty($_FILES['receipt_image_' . $val]['tmp_name'])) {
+                $dest_path = $this->config->item('upload_path');
+                $destination = $dest_path . 'patient_files/';
+                if (!is_dir($destination)) { mkdir($destination, 0755, true); }
+                $NewImageName = rand(4, 10000) . "-" . $post_arr['patient_id'] . "-" . $_FILES['receipt_image_' . $val]['name'];
+                $receipt_image_path = base_url() . 'assets/patient_files/' . $NewImageName;
+                move_uploaded_file($_FILES['receipt_image_' . $val]['tmp_name'], $destination . $NewImageName);
+            }
+            $final_receipt_img = ($receipt_image_path != '') ? $receipt_image_path : $post_arr['transaction_img'];
 
-							// Get individual price details
-							$loop_totalpackage = $_POST['sub_procedures_price_' . $val];
-							$loop_discount_amount = $_POST['sub_procedures_discount_' . $val];
-							$loop_fees = $loop_totalpackage - $loop_discount_amount;
-							$loop_payment_done = $_POST['sub_procedures_paid_price_' . $val];
-							$loop_remaining_amount = $loop_fees - $loop_payment_done;
-							
-							// Handle Individual Receipt Image
-							$receipt_image_path = ''; 
-							if (!empty($_FILES['receipt_image_' . $val]['tmp_name'])) {
-								$dest_path = $this->config->item('upload_path');
-								$destination = $dest_path . 'patient_files/';
-								if (!is_dir($destination)) { mkdir($destination, 0755, true); }
-								$NewImageName = rand(4, 10000) . "-" . $post_arr['patient_id'] . "-" . $_FILES['receipt_image_' . $val]['name'];
-								$receipt_image_path = base_url() . 'assets/patient_files/' . $NewImageName;
-								move_uploaded_file($_FILES['receipt_image_' . $val]['tmp_name'], $destination . $NewImageName);
-							}
-							// If no specific image, use global transaction image, else use specific
-							$final_receipt_img = ($receipt_image_path != '') ? $receipt_image_path : $post_arr['transaction_img'];
+            // Serialize Data
+            $procedure_array = [
+                'patient_procedures' => [
+                    [
+                        'sub_procedure' => $_POST['sub_procedure_' . $val],
+                        'sub_procedures_code' => $_POST['sub_procedures_code_' . $val],
+                        'sub_procedures_price' => $loop_totalpackage,
+                        'sub_procedures_discount' => $loop_discount_amount,
+                        'sub_procedures_paid_price' => $loop_payment_done
+                    ]
+                ]
+            ];
+            $serialized_data = serialize($procedure_array);
+            $date = new DateTime('now', new DateTimeZone('Asia/Kolkata'));
+            $formattedDate = $date->format('Y-m-d H:i:s');
 
-							// Prepare data serialization for DB
-							$procedure_array = [
-								'patient_procedures' => [
-									[
-										'sub_procedure' => $_POST['sub_procedure_' . $val],
-										'sub_procedures_code' => $_POST['sub_procedures_code_' . $val],
-										'sub_procedures_price' => $loop_totalpackage,
-										'sub_procedures_discount' => $loop_discount_amount,
-										'sub_procedures_paid_price' => $loop_payment_done
-									]
-								]
-							];
-							
-							$serialized_data = serialize($procedure_array);
-							$date = new DateTime('now', new DateTimeZone('Asia/Kolkata'));
-							$formattedDate = $date->format('Y-m-d H:i:s');
+            // B. INSERT QUERY
+            $query = "INSERT INTO `hms_patient_procedure` 
+            (appointment_id, consultation_done, patient_id, procedure_parent, on_date, 
+            receipt_number,transaction_img, billing_id, biller_id, transaction_id,
+            hospital_id, payment_in, data,procedure_id,procedure_name,code,category,procedures, broad_procedure, broad_procedure_count, agent, councellor, center_share, fees, totalpackage, discount_amount, 
+            payment_done, wallet_payment, remaining_amount, payment_method, billing_from, 
+            billing_at, package_form, status, origins) 
+            VALUES 
+            (
+            '" . $post_arr['appointment_id'] . "',
+            '" . $post_arr['consultation_done'] . "',
+            '" . $post_arr['patient_id'] . "',
+            '" . $post_arr['procedure_parent'] . "',
+            '" . $formattedDate . "',
+            '" . $receipt_number . "',
+            '" . $final_receipt_img . "',
+            '" . $post_arr['billing_id'] . "',
+            '" . $post_arr['biller_id'] . "',
+            '" . $post_arr['transaction_id'] . "',
+            '" . $post_arr['hospital_id'] . "',
+            '" . $post_arr['payment_in'] . "',
+            '" . $serialized_data . "',
+            '" . $_POST['sub_procedure_' . $val] . "',
+            '" . $_POST['procedure_name_' . $val] . "',
+            '" . $_POST['sub_procedures_code_' . $val] . "',
+            '" . $_POST['sub_procedures_category_' . $val] . "',
+            '" . $_POST['procedures_' . $val] . "',
+            '" . $_POST['broad_procedure_' . $val] . "',
+            '" . $_POST['broad_procedure_count_' . $val] . "',
+            '" . $_POST['agent_' . $val] . "',
+            '" . $_POST['councellor_' . $val] . "',
+            '" . $loop_fees . "',
+            '" . $loop_fees . "',
+            '" . $loop_totalpackage . "',
+            '" . $loop_discount_amount . "',
+            '" . $loop_payment_done . "',
+            '" . $post_arr['wallet_payment'] . "',
+            '" . $loop_remaining_amount . "',
+            '" . $post_arr['payment_method'] . "',
+            '" . $post_arr['billing_from'] . "',
+            '" . $post_arr['billing_at'] . "',
+            '" . $post_arr['package_form'] . "',
+            'pending',
+            '" . $post_arr['origins'] . "')";
+            
+            $result = run_form_query($query);
 
-							// B. INSERT INTO DATABASE
-							$query = "INSERT INTO `hms_patient_procedure` 
-							(appointment_id, consultation_done, patient_id, procedure_parent, on_date, 
-							receipt_number,transaction_img, billing_id, biller_id, transaction_id,
-							hospital_id, payment_in, data,procedure_id,procedure_name,code,category,procedures, broad_procedure, broad_procedure_count, agent, councellor, center_share, fees, totalpackage, discount_amount, 
-							payment_done, wallet_payment, remaining_amount, payment_method, billing_from, 
-							billing_at, package_form, status, origins) 
-							VALUES 
-							(
-							'" . $post_arr['appointment_id'] . "',
-								'" . $post_arr['consultation_done'] . "',
-								'" . $post_arr['patient_id'] . "',
-								'" . $post_arr['procedure_parent'] . "',
-								'" . $formattedDate . "',
-								'" . $receipt_number . "',
-								'" . $final_receipt_img . "',
-								'" . $post_arr['billing_id'] . "',
-								'" . $post_arr['biller_id'] . "',
-								'" . $post_arr['transaction_id'] . "',
-								'" . $post_arr['hospital_id'] . "',
-								'" . $post_arr['payment_in'] . "',
-								'" . $serialized_data . "',
-								'" . $_POST['sub_procedure_' . $val] . "',
-								'" . $_POST['procedure_name_' . $val] . "',
-								'" . $_POST['sub_procedures_code_' . $val] . "',
-								'" . $_POST['sub_procedures_category_' . $val] . "',
-								'" . $_POST['procedures_' . $val] . "',
-								'" . $_POST['broad_procedure_' . $val] . "',
-								'" . $_POST['broad_procedure_count_' . $val] . "',
-								'" . $_POST['agent_' . $val] . "',
-								'" . $_POST['councellor_' . $val] . "',
-								'" . $loop_fees . "',
-								'" . $loop_fees . "',
-								'" . $loop_totalpackage . "',
-								'" . $loop_discount_amount . "',
-								'" . $loop_payment_done . "',
-								'" . $post_arr['wallet_payment'] . "',
-								'" . $loop_remaining_amount . "',
-								'" . $post_arr['payment_method'] . "',
-								'" . $post_arr['billing_from'] . "',
-								'" . $post_arr['billing_at'] . "',
-								'" . $post_arr['package_form'] . "',
-								'pending',
-								'" . $post_arr['origins'] . "')";
-							
-							$result = run_form_query($query);
+            // ** C. LOG RECEIPT (Moved INSIDE loop to log every receipt) **
+            insert_receipt_log($receipt_number);
+            $this->send_billing_receipt($post_arr['biller_id'], $post_arr['patient_id'], $post_arr['on_date'], $post_arr['billing_from'], $receipt_number, 'package');
 
-							// ==================================================================
-							// C. API INTEGRATION (INSIDE LOOP TO SEND ALL RECORDS)
-							// ==================================================================
-							
-							// 1. Fetch Details for CURRENT Procedure ID
-							$current_proc_id = $_POST['sub_procedure_' . $val];
-							$procedure_sql = "SELECT ID, procedure_name, category, code FROM hms_procedures WHERE ID = '$current_proc_id'";
-							$proc_result = run_select_query($procedure_sql);
+            // D. API INTEGRATION
+            $current_proc_id = $_POST['sub_procedure_' . $val];
+            $procedure_sql = "SELECT ID, procedure_name, category, code FROM hms_procedures WHERE ID = '$current_proc_id'";
+            $proc_result = run_select_query($procedure_sql);
 
-							// 2. Prepare API Payload
-							$data = array(
-								"lead_id" => trim($select_result5['crm_id']),
-								"visit_month" => $visit_month,
-								"first_visit_date" => $first_visit_date,
-								"doctor_consulted" => $select_result3['name'],
-								"ch_fc_name" => $select_doctor_consultation['counsellor_signature'],
-								"booking_month" => date('F d', strtotime($post_arr['on_date'])),
-								"booking_date" => $post_arr['on_date'],
-								"patient_id" => $post_arr['patient_id'],
-								"patients_name" => $select_result5['wife_name'],
-								"patients_source" => $select_result5['lead_source'],
-								"centre_booking" => $post_arr['billing_from'],
-								
-								// Use Fetched Procedure Info
-								"procedure_type" => $proc_result['category'],
-								"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($post_arr['on_date']))->format('Y-m-d'),
-								"procedure_code" => $proc_result['code'],
-								
-								// Use Local Loop Values (Important!)
-								"package_amount" => $loop_totalpackage,
-								"discount_amount" => $loop_discount_amount,
-								"package_after_discount" => $loop_fees,
-								"payment_received" => $loop_payment_done
-							);
+            $data = array(
+                "lead_id" => trim($select_result5['crm_id']),
+                "visit_month" => $visit_month,
+                "first_visit_date" => $first_visit_date,
+                "doctor_consulted" => $select_result3['name'],
+                "ch_fc_name" => $select_doctor_consultation['counsellor_signature'],
+                "booking_month" => date('F d', strtotime($post_arr['on_date'])),
+                "booking_date" => $post_arr['on_date'],
+                "patient_id" => $post_arr['patient_id'],
+                "patients_name" => $select_result5['wife_name'],
+                "patients_source" => $select_result5['lead_source'],
+                "centre_booking" => $post_arr['billing_from'],
+                "procedure_type" => $proc_result['category'],
+                "procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($post_arr['on_date']))->format('Y-m-d'),
+                "procedure_code" => $proc_result['code'],
+                "package_amount" => $loop_totalpackage,
+                "discount_amount" => $loop_discount_amount,
+                "package_after_discount" => $loop_fees,
+                "payment_received" => $loop_payment_done
+            );
 
-							$jsonData = json_encode($data);
+            $jsonData = json_encode($data);
 
-							//var_dump($data);
-							//die();
+            $urls = [
+                'lead_1' => 'https://flertility.in/lead/lead-journey/',
+                'lead_2' => 'https://staging.flertility.in/lead/lead-journey/'
+            ];
 
-							// 3. Send to APIs
-							$urls = [
-								'lead_1' => 'https://flertility.in/lead/lead-journey/',
-								'lead_2' => 'https://staging.flertility.in/lead/lead-journey/'
-							];
+            foreach ($urls as $label => $url) {
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 5, 
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_POSTFIELDS => $jsonData,
+                    CURLOPT_HTTPHEADER => array(
+                        'Content-Type: application/json',
+                        'Accept: application/json'
+                    ),
+                ));
+                $response = curl_exec($curl);
+                curl_close($curl);
+            }
+            
+            $procedure_billed = 1; // Mark as billed if at least one runs
+        } // End Foreach
+    } 
 
-							foreach ($urls as $label => $url) {
-								$curl = curl_init();
-								curl_setopt_array($curl, array(
-									CURLOPT_URL => $url,
-									CURLOPT_RETURNTRANSFER => true,
-									CURLOPT_ENCODING => '',
-									CURLOPT_MAXREDIRS => 10,
-									CURLOPT_TIMEOUT => 5, 
-									CURLOPT_FOLLOWLOCATION => true,
-									CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-									CURLOPT_CUSTOMREQUEST => 'POST',
-									CURLOPT_POSTFIELDS => $jsonData,
-									CURLOPT_HTTPHEADER => array(
-										'Content-Type: application/json',
-										'Accept: application/json'
-									),
-								));
-								$response = curl_exec($curl);
-								curl_close($curl);
-							}
-							// ==================================================================
+    // Update Consultation Status (Once per session)
+    if ($medicine_billed == 0) {
+        $medicine_billed = check_suggested($post_arr['consultation_done'], 'medicine_suggestion', 'medicine_billed');
+    }
+    if ($investigation_billed == 0) {
+        $investigation_billed = check_suggested($post_arr['consultation_done'], 'investation_suggestion', 'investigation_billed');
+    }
+    if ($procedure_billed == 0) {
+        $procedure_billed = check_suggested($post_arr['consultation_done'], 'procedure_suggestion', 'procedure_billed');
+    }
 
-						} // End Foreach Loop
-						
-						$procedure_billed = 1;
-					} // End If Procedure Suggestion
-
-					// --- 4. CLEANUP & REDIRECT ---
-					// Logic for flags
-					if ($medicine_billed == 0) {
-						$medicine_billed = check_suggested($post_arr['consultation_done'], 'medicine_suggestion', 'medicine_billed');
-					}
-					if ($investigation_billed == 0) {
-						$investigation_billed = check_suggested($post_arr['consultation_done'], 'investation_suggestion', 'investigation_billed');
-					}
-					if ($procedure_billed == 0) {
-						$procedure_billed = check_suggested($post_arr['consultation_done'], 'procedure_suggestion', 'procedure_billed');
-					}
-
-					// Update Logs and Redirect
-					$insert_receipt = insert_receipt_log($post_arr['receipt_number']); // Note: This might log only the last receipt if variable overwritten, usually acceptable in batch logs
-					$update_doctor_consultation = $this->billingmodel_model->update_doctor_consultation($post_arr['receipt_number'], $post_arr['consultation_done'], $medicine_billed, $investigation_billed, $procedure_billed);
-					$this->send_billing_receipt($post_arr['biller_id'], $post_arr['patient_id'], $post_arr['on_date'], $post_arr['billing_from'], $post_arr['receipt_number'], 'procedure');
-					
-					header("location:" . base_url() . "accounts/details/" . $post_arr['receipt_number'] . "?t=procedure");
-					die();
-				}
+    // Only update consultation status table once using the *last* receipt number (or just to mark the appointment as done)
+    $update_doctor_consultation = $this->billingmodel_model->update_doctor_consultation($post_arr['receipt_number'], $post_arr['consultation_done'], $medicine_billed, $investigation_billed, $procedure_billed);
+    
+    // Redirect
+    header("location:" . base_url() . "accounts/details/" . $post_arr['receipt_number'] . "?t=procedure");
+    die();
+}
 			if(isset($_GET['t']) && !empty($_GET['t']) && isset($_GET['i']) && !empty($_GET['i'])){
 				$consultation_details = $this->billingmodel_model->after_consultation_billing($_GET['i']);
 				if(count($consultation_details) > 0){
