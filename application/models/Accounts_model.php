@@ -2890,7 +2890,7 @@ function patient_consultation_count($center, $status, $start_date, $end_date, $p
     return $this->db->count_all_results();
 }
 
-function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, $category, $procedures, $broad_procedure, $booked_status, $lead_source = '') {
+function patient_consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, $category, $procedures, $broad_procedure, $broad_procedure_count, $lead_source = '') {
     // This array will hold the values for secure query binding
     $bindings = [];
 
@@ -2963,9 +2963,9 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         $conditions .= " AND T3.broad_procedure = ?";
         $bindings[] = $broad_procedure;
     }
-	if (!empty($booked_status)) {
-        $conditions .= " AND T3.booked_status = ?";
-        $bindings[] = $booked_status;
+	if (!empty($broad_procedure_count)) {
+        $conditions .= " AND T3.broad_procedure_count = ?";
+        $bindings[] = $broad_procedure_count;
     }
 
    $consultation_sql = "
@@ -2986,7 +2986,7 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         MAX(T3.category) as category,  
 		MAX(T3.procedures) as procedures,
 		MAX(T3.broad_procedure) as broad_procedure,
-		MAX(T3.booked_status) as booked_status
+		MAX(T3.broad_procedure_count) as broad_procedure_count
     FROM
         hms_consultation AS T1
     INNER JOIN
@@ -3005,6 +3005,36 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
     ORDER BY T1.on_date DESC, T1.id DESC
     LIMIT ?, ?"; 
 
+	/* $consultation_sql = "SELECT 
+    T1.patient_id, 
+    T2.agent, 
+    T2.councellor, 
+    T2.crm_id, 
+    T2.lead_source, 
+    T1.on_date, 
+    T1.reason_of_visit, 
+    T1.totalpackage, 
+    T1.payment_done, 
+    T1.discount_amount, 
+    T1.appointment_id, 
+    T1.doctor_id, 
+    T1.billing_at, 
+    T3.category, 
+    T3.procedures, 
+    T3.broad_procedure, 
+    T3.broad_procedure_count 
+FROM hms_consultation AS T1 
+INNER JOIN hms_appointments AS T2 
+    ON T1.patient_id = T2.paitent_id 
+INNER JOIN hms_patient_procedure AS T3 
+    ON T1.patient_id = T3.patient_id 
+WHERE 
+    T2.billed = '1' 
+    AND T2.lead_source != 'D/S' 
+     {$conditions}
+ORDER BY 
+    T1.on_date DESC, 
+    T1.id DESC LIMIT ?, ?";*/
     // Add offset and limit to the bindings array
     $bindings[] = (int) $offset;
     $bindings[] = (int) $limit;
@@ -3013,15 +3043,18 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
     $consultation_q = $this->db->query($consultation_sql, $bindings);
     return $consultation_q->result_array();
 }
-/*
-public function patient_consultation_report_patination($center, $start_date, $end_date, $patient_id, $reason_of_visit, $category, $procedures, $broad_procedure, $agent, $councellor, $booked_status, $lead_source = '') 
-{
+
+
+function patient_export_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, $category, $procedures, $broad_procedure, $broad_procedure_count, $lead_source = '') {
     // This array will hold the values for secure query binding
     $bindings = [];
+
+    // Calculate offset for pagination
+    $offset = empty($page) || $page <= 1 ? 0 : ($page - 1) * $limit;
+
+    // --- Build Conditions Securely using '?' Placeholders ---
     $conditions = '';
 
-    // --- 1. Build Conditions for T1 (Consultation) ---
-    
     if (!empty($center)) {
         $conditions .= " AND T1.billing_at = ?";
         $bindings[] = $center;
@@ -3030,118 +3063,107 @@ public function patient_consultation_report_patination($center, $start_date, $en
         $conditions .= " AND T1.patient_id = ?";
         $bindings[] = $patient_id;
     }
+    if (!empty($doctor_id)) {
+        $conditions .= " AND T1.doctor_id = ?";
+        $bindings[] = $doctor_id;
+    }
     if (!empty($reason_of_visit)) {
         $conditions .= " AND T1.reason_of_visit = ?";
         $bindings[] = $reason_of_visit;
     }
-    // Note: doctor_id is usually in T1 (consultation) or T2 (appointments). 
-    // Assuming T1 here based on your report function.
-    if (!empty($doctor_id)) { 
-        $conditions .= " AND T1.doctor_id = ?";
-        $bindings[] = $doctor_id;
-    }
-
-    // --- 2. Build Conditions for T2 (Appointments) ---
-    
     if (!empty($agent)) {
         $conditions .= " AND T2.agent = ?";
         $bindings[] = $agent;
     }
     
     if (!empty($councellor)) {
-        $conditions .= " AND T2.councellor = ?";
+        $conditions .= " AND T2.councellor = ?"; 
         $bindings[] = $councellor;
     }
 
+    // Handle optional lead source filtering
     if (!empty($lead_source)) {
         if (strpos($lead_source, "','") !== false) {
-            $conditions .= " AND T2.lead_source IN (?)"; // Consider expanding if array
+            $conditions .= " AND T2.lead_source IN (?)";
         } else {
             $conditions .= " AND T2.lead_source = ?";
         }
         $bindings[] = $lead_source;
     }
 
-    // --- 3. Secure Date Filtering ---
+    // Secure Date Filtering (with typo correction)
     if (!empty($start_date) && !empty($end_date)) {
         $conditions .= " AND T1.on_date BETWEEN ? AND ?";
-        // IMPORTANT: Your report used 'T2.appoitmented_date' (with typo)
-        // I am fixing the typo to 'appointment_date'. Check your DB column name!
-        $conditions .= " AND T2.appointment_date BETWEEN ? AND ?"; 
-        
+        // ** TYPO FIX **
+        $conditions .= " AND T2.appoitmented_date BETWEEN ? AND ?"; 
         array_push($bindings, $start_date, $end_date, $start_date, $end_date);
     } else if (!empty($start_date)) {
         $conditions .= " AND T1.on_date = ?";
-        $conditions .= " AND T2.appointment_date = ?"; 
+        $conditions .= " AND T2.appoitmented_date = ?"; // Typo fixed
         array_push($bindings, $start_date, $start_date);
     } else if (!empty($end_date)) {
         $conditions .= " AND T1.on_date = ?";
-        $conditions .= " AND T2.appointment_date = ?";
+        $conditions .= " AND T2.appoitmented_date = ?"; // Typo fixed
         array_push($bindings, $end_date, $end_date);
     }
-
-    // --- 4. Build Conditions for T3 (Procedures) ---
-    // Note: We define T3 in the join logic below
-    
-    if (!empty($category)) {
+	if (!empty($category)) {
         $conditions .= " AND T3.category = ?";
         $bindings[] = $category;
     }
     if (!empty($procedures)) {
-        // Assuming 'procedures' is the column name in T3
-        $conditions .= " AND T3.procedures = ?"; 
+        $conditions .= " AND T3.procedures = ?";
         $bindings[] = $procedures;
     }
-    if (!empty($broad_procedure)) {
+	if (!empty($broad_procedure)) {
         $conditions .= " AND T3.broad_procedure = ?";
         $bindings[] = $broad_procedure;
     }
-    
-    // --- 5. Determine JOIN Logic based on 'booked_status' ---
-    // Default is LEFT JOIN (include everyone)
-    $join_type_t3 = "LEFT JOIN";
-    $booked_logic = "";
-
-    if ($booked_status == 'Booked') {
-        // If we want ONLY booked patients, use INNER JOIN
-        $join_type_t3 = "INNER JOIN";
-    } elseif ($booked_status == 'Not Booked') {
-        // If we want ONLY non-booked, use LEFT JOIN ... WHERE id IS NULL
-        $join_type_t3 = "LEFT JOIN";
-        $booked_logic = " AND T3.patient_id IS NULL";
-    } elseif (!empty($category) || !empty($procedures) || !empty($broad_procedure)) {
-        // Implicitly, if you filter by a specific procedure, you only want booked patients
-        $join_type_t3 = "INNER JOIN";
+	if (!empty($broad_procedure_count)) {
+        $conditions .= " AND T3.broad_procedure_count = ?";
+        $bindings[] = $broad_procedure_count;
     }
 
+ 	 $consultation_sql = "SELECT 
+    T1.patient_id, 
+    T2.agent, 
+    T2.councellor, 
+    T2.crm_id, 
+    T2.lead_source, 
+    T1.on_date, 
+    T1.reason_of_visit, 
+    T1.totalpackage, 
+    T1.payment_done, 
+    T1.discount_amount, 
+    T1.appointment_id, 
+    T1.doctor_id, 
+    T1.billing_at, 
+    T3.category, 
+    T3.procedures, 
+    T3.broad_procedure, 
+    T3.broad_procedure_count 
+FROM hms_consultation AS T1 
+INNER JOIN hms_appointments AS T2 
+    ON T1.patient_id = T2.paitent_id 
+INNER JOIN hms_patient_procedure AS T3 
+    ON T1.patient_id = T3.patient_id 
+WHERE 
+    T2.billed = '1' 
+    AND T2.lead_source != 'D/S' 
+     {$conditions}
+ORDER BY 
+    T1.on_date DESC, 
+    T1.id DESC LIMIT ?, ?";
+    // Add offset and limit to the bindings array
+    $bindings[] = (int) $offset;
+    $bindings[] = (int) $limit;
 
-    // --- 6. The Final COUNT Query ---
-    // We count DISTINCT patient_ids to get the number of unique patients
-    
-    // *** 'echo' REMOVED ***
-    $sql = "
-        SELECT COUNT(DISTINCT T1.patient_id) AS unique_patient_count
-        FROM hms_consultation AS T1
-        INNER JOIN hms_appointments AS T2 
-            ON T1.patient_id = T2.paitent_id 
-            -- (If your DB column is 'paitent_id', change T2.paitent_id to T2.paitent_id above)
-        
-        $join_type_t3 hms_patient_procedure AS T3 
-            ON T1.patient_id = T3.patient_id
-            
-        WHERE
-            T2.billed = '1'
-            AND T2.lead_source != 'D/S'
-            {$conditions}
-            {$booked_logic}
-    ";
+    // --- Execute the Query Securely ---
+    $consultation_q = $this->db->query($consultation_sql, $bindings);
+    return $consultation_q->result_array();
+}
 
-    // Execute the query securely
-    $q = $this->db->query($sql, $bindings);
-    
-    // Return the result array (e.g., ['unique_patient_count' => 10])
-    return $q->row_array();
-}*/
+
+
 
 function patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source){
     $conditions = '';
@@ -3182,7 +3204,7 @@ function patient_consultation_count_by_reason($center, $start_date, $end_date, $
  *
  * This function is secure (uses query bindings) and fast (uses a JOIN).
  */
-public function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit, $category, $procedures, $broad_procedure, $agent,$councellor,$booked_status)
+public function patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id, $reason_of_visit, $category, $procedures, $broad_procedure, $agent,$councellor,$broad_procedure_count)
 {
     // This array will hold the values for secure query binding
     $bindings = [];
@@ -3223,9 +3245,9 @@ public function patient_procedure_consultation_count($center, $start_date, $end_
         $conditions .= " AND T2.councellor = ?";
         $bindings[] = $councellor;
     }
-	if (!empty($booked_status)) {
-        $conditions .= " AND T2.booked_status = ?";
-        $bindings[] = $booked_status;
+	if (!empty($broad_procedure_count)) {
+        $conditions .= " AND T2.broad_procedure_count = ?";
+        $bindings[] = $broad_procedure_count;
     }
     // Secure Date Filtering
     if (!empty($start_date) && !empty($end_date)) {
@@ -4288,7 +4310,7 @@ public function generate_advance_receipt_number() {
 		$procedure_result = array();
 		$conditions = '';
 		if(isset($_SESSION['logged_doctor']['center']) && !empty($_SESSION['logged_doctor']['center'])){ 
-			$conditions = ' and billing_at="'.$_SESSION['logged_doctor']['center'].'"'; 
+			$conditions = ' and center="'.$_SESSION['logged_doctor']['center'].'"'; 
 		}
 
 		if (!empty($center)){
@@ -4332,7 +4354,7 @@ public function generate_advance_receipt_number() {
 			$offset = ($page - 1) * $limit;
 		}
 		if(isset($_SESSION['logged_doctor']['center']) && !empty($_SESSION['logged_doctor']['center'])){ 
-			$conditions = ' and billing_at="'.$_SESSION['logged_doctor']['center'].'"'; 
+			$conditions = ' and center="'.$_SESSION['logged_doctor']['center'].'"'; 
 		}
 
 		if (!empty($center)){
@@ -5255,6 +5277,51 @@ public function generate_advance_receipt_number() {
 			return 0;
 	}
 	
+	function advance_payment_insert($data){
+		$sql = "INSERT INTO `" . $this->config->item('db_prefix') . "advance_payments` SET ";
+		$sqlArr = array();
+		foreach( $data as $key=> $value )
+		{
+			$sqlArr[] = " $key = '".addslashes($value)."'";
+		}
+		$sql .= implode(',' , $sqlArr);
+       	$res =  $this->db->query($sql);
+		if ($res)
+		{
+			return $this->db->insert_id();
+		}
+		else
+			return 0;
+	}
+
+	function advance_payment_count($ctraining_name){
+		$consultation_cancel_result = array();
+		$conditions = '';
+		if(!empty($training_name)){
+			$conditions .= " and training_name like '%$training_name%'";
+        }
+		$consultation_sql = "Select * from ".$this->config->item('db_prefix')."advance_payments where 1 ".$conditions."";
+		$q = $this->db->query($consultation_sql);
+		return $q->num_rows();
+	}
+
+	function advance_payment_pagination($limit, $page, $training_name){
+		$consultation_cancel_result = array();
+		$conditions = '';
+		if(empty($page)){
+			$offset = 0;
+		}else{
+			$offset = ($page - 1) * $limit;
+		}
+		if(!empty($training_name)){
+			$conditions .= " and training_name like '%$training_name%'";
+        }
+		$consultation_sql = "Select * from ".$this->config->item('db_prefix')."advance_payments where 1".$conditions." order by ID desc limit ". $limit." OFFSET ".$offset."";
+		$consultation_q = $this->db->query($consultation_sql);
+		$consultation_cancel_result = $consultation_q->result_array();
+		return $consultation_cancel_result;
+	}
+
 	function export_fellowship_and_training($name){
 		$consultation_result = $response = array();
         $conditions = '';
@@ -6242,6 +6309,14 @@ function dashboard_investigation_daily_sales($center, $start_date, $end_date) {
     return $q->result_array();
 }
 
+function dashboard_advance_daily_sales($center, $start_date, $end_date) {
+    $data = $this->_get_common_conditions($center, $start_date, $end_date);
+    $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment 
+            FROM hms_advance_payments WHERE 1 " . $data['sql'];
+    $q = $this->db->query($sql, $data['bindings']);
+    return $q->result_array();
+}
+
 function dashboard_consultation_daily_sales($center, $start_date, $end_date) {
     $data = $this->_get_common_conditions($center, $start_date, $end_date);
     $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment 
@@ -6263,6 +6338,15 @@ function dashboard_procedure_daily_sales($center, $start_date, $end_date) {
     // Added 'status' check to base conditions to match your original
     $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(fees) AS total_fees, SUM(payment_done) AS total_payment 
             FROM hms_patient_procedure WHERE 1 " . $data['sql'];
+    $q = $this->db->query($sql, $data['bindings']);
+    return $q->result_array();
+}
+
+function dashboard_partial_daily_sales($center, $start_date, $end_date) {
+    $data = $this->_get_common_conditions($center, $start_date, $end_date);
+    // Added 'status' check to base conditions to match your original
+    $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment 
+            FROM hms_patient_payments WHERE 1 " . $data['sql'];
     $q = $this->db->query($sql, $data['bindings']);
     return $q->result_array();
 }
@@ -6300,6 +6384,13 @@ function dashboard_diagnostic_reports_list_patination($center, $start_date, $end
 function dashboard_consultation_reports_list_patination($center, $start_date, $end_date) {
     $data = $this->_get_common_conditions($center, $start_date, $end_date);
     $sql = "SELECT * FROM " . $this->config->item('db_prefix') . "consultation WHERE 1 " . $data['sql'];
+    $q = $this->db->query($sql, $data['bindings']);
+    return $q->result_array();
+}
+
+function dashboard_advance_reports_list_patination($center, $start_date, $end_date) {
+    $data = $this->_get_common_conditions($center, $start_date, $end_date);
+    $sql = "SELECT * FROM " . $this->config->item('db_prefix') . "advance_payments WHERE 1 " . $data['sql'];
     $q = $this->db->query($sql, $data['bindings']);
     return $q->result_array();
 }
@@ -6500,5 +6591,96 @@ public function save_daily_sales_report($data) {
         );
     }
 
+	function assessment_form_insert_payment($data){
+		$sql = "INSERT INTO `" . $this->config->item('db_prefix') . "opd_assessment` SET ";
+		$sqlArr = array();
+
+		foreach( $data as $key => $value )
+		{
+			// FIX: Check if the value is an array (like checkboxes)
+			if (is_array($value)) {
+				// Convert array to a comma-separated string (e.g., "HSG,USG")
+				$value = implode(',', $value);
+			}
+
+			// Now it is safe to use addslashes
+			$sqlArr[] = " $key = '".addslashes($value)."'";
+		}
+
+		$sql .= implode(',' , $sqlArr);
+		
+		// Debugging (Optional: remove 'echo' in production)
+		// echo $sql; 
+
+		$res =  $this->db->query($sql);
+		
+		if ($res)
+		{
+			return $this->db->insert_id();
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	function get_assessment_form($ID){
+		$result = array();
+		$sql = "Select * from `".$this->config->item('db_prefix')."opd_assessment` WHERE ID='".$ID."'";
+		$q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result[0];
+        }
+        else
+        {
+            return $result;
+        }
+	}
+
+	function get_assessment_appointment_form($patient_id){
+		$result = array();
+		$sql = "Select * from `".$this->config->item('db_prefix')."appointments` WHERE paitent_id='".$patient_id."' and paitent_type='new_patient'";
+		$q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result[0];
+        }
+        else
+        {
+            return $result;
+        }
+	}
+
+	function assessment_form_count($patient_id){
+		$wallet_result = array();
+		$conditions = '';
+		if(!empty($patient_id)){
+			$conditions .= " and patient_id like '%$patient_id%'";
+        }
+		$wallet_sql = "Select * from ".$this->config->item('db_prefix')."opd_assessment where 1 ".$conditions."";
+		$walletq = $this->db->query($wallet_sql);
+		return $walletq->num_rows();
+	}
+
+	function assessment_form_pagination($limit, $page, $patient_id){
+		$wallet_result = array();
+		$conditions = '';
+		if(empty($page)){
+			$offset = 0;
+		}else{
+			$offset = ($page - 1) * $limit;
+		}
+		if(!empty($patient_id)){
+			$conditions .= " and patient_id like '%$patient_id%'";
+        }
+		$wallet_sql = "Select * from ".$this->config->item('db_prefix')."opd_assessment where 1".$conditions." order by ID desc limit ". $limit." OFFSET ".$offset."";
+		$wallet_q = $this->db->query($wallet_sql);
+		$wallet_result = $wallet_q->result_array();
+		return $wallet_result;
+	}
+    
 
 }

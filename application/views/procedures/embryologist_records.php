@@ -60,17 +60,9 @@
 								 $sql1 = "select * from hms_procedures where code='".$v2_data['sub_procedures_code']."'";
 								 $query = $this->db->query($sql1);
 								  $select_result1 = $query->result(); 
-								  foreach ($select_result1 as $res_val){		
-						 if (in_array($v2_data['sub_procedures_code'], ["IP01", "IP05", "IP02", "IP04", "IP11", "IP72","IP163","IP90","IP94","IP97","IP98","IP95","IP01N","IP99","IP121","IP122",
-						 "IP93", "IP73", "IP129", "IP130", "IP161", "IP162","IP164","IP165","IP166","IP112","IP113","IP114","IP115","IP116", "IP117", "IP118", "IP119","IP159","IP160","IP123","IP124",
-						 "IP120", "IP183","IP184","IP185","IP186","IP187","IP188","IP189","IP190","IP191","IP192","IP193","IP194","IP195","IP196","IP197","IP198","IP199","IP200","IP64","IP143","IP144",
-						 "IP153","IP154","IP155","IP156","IP157","IP158","IP179","IP180","IP181","IP182","IP19","IP39","IP14","IP222","IP06",
-						 "INT01","INT02","INT04","INT05","INT38","INT63","INT72","INT75","INT77","INT78","INT79","INT80","INT82","IP230","IP227","IP228","IP229"])) {			                                    
-                        if (isset($_SESSION['logged_embryologist']) && !empty($_SESSION['logged_embryologist'])) {
+								   if (isset($_SESSION['logged_embryologist']) && !empty($_SESSION['logged_embryologist'])) {
 						 echo '<td>','<a href="'.base_url().'procedure_reports/'.$vl['appointment_id'].'" class="btn btn-primary">Procedure Report</a>','</td>';
 						 }
-							}
-						}
 					}
 				}
 						 echo '</tr>';

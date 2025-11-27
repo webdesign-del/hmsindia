@@ -1897,8 +1897,7 @@ public function procedure_reports(){
 			$agent = $this->input->get('agent');
 			$councellor = $this->input->get('councellor');
 			$broad_procedure = $this->input->get('broad_procedure');
-			$booked_status = $this->input->get('booked_status');
-
+			$broad_procedure_count = $this->input->get('broad_procedure_count');
 			$lead_source = $this->input->get('lead_source');
 			$export_billing = $this->input->get('export-billing', true);
 			$paid_amount = 0;
@@ -2006,9 +2005,9 @@ public function procedure_reports(){
         	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
 			
         	$data["links"] = $this->pagination->create_links();
-			$data['consultation_result'] = $this->accounts_model->patient_consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id ,$agent, $councellor, $category,$procedures,$broad_procedure, $booked_status, $lead_source);
+			$data['consultation_result'] = $this->accounts_model->patient_consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id ,$agent, $councellor, $category,$procedures,$broad_procedure, $broad_procedure_count, $lead_source);
 			$data['reason_counts'] = $this->accounts_model->patient_consultation_count_by_reason($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $lead_source);
-			$data['patient_counts'] = $this->accounts_model->patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id,$reason_of_visit,$category,$procedures,$broad_procedure,$agent,$councellor,$booked_status);
+			$data['patient_counts'] = $this->accounts_model->patient_procedure_consultation_count($center, $start_date, $end_date, $patient_id,$reason_of_visit,$category,$procedures,$broad_procedure,$agent,$councellor,$broad_procedure_count);
 			$data['lead_sources'] = $this->accounts_model->get_lead_source_dropdown_data();
 
 			//$data['booked_patient_count'] = $booked_count; 
@@ -2022,9 +2021,9 @@ public function procedure_reports(){
 			$data["category"] = $category;
 			$data["procedures"] = $procedures;
 			$data["broad_procedure"] = $broad_procedure;
+			$data["broad_procedure_count"] = $broad_procedure_count;
 			$data["agent"] = $agent;
 			$data["councellor"] = $councellor;
-			$data["booked_status"] = $booked_status;
 			$data['selectedReason'] = $reason_of_visit;
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
@@ -2054,14 +2053,16 @@ public function export_consultation_csv() {
     $category = $this->input->get('category');
     $procedures = $this->input->get('procedures');
     $broad_procedure = $this->input->get('broad_procedure');
-    $booked_status = $this->input->get('booked_status');
+	$broad_procedure_count = $this->input->get('broad_procedure_count');
+	
+    
 
     // 2. Call Model with High Limit (to get all records)
-    $report_data = $this->accounts_model->patient_consultation_report_patination(
+    $report_data = $this->accounts_model->patient_export_report_patination(
         100000, // Limit
         0,      // Page
         $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, 
-        $category, $procedures, $broad_procedure, $booked_status, $lead_source
+        $category, $procedures, $broad_procedure, $broad_procedure_count, $lead_source
     );
 
     // 3. Create CSV File
@@ -2076,7 +2077,7 @@ public function export_consultation_csv() {
     $header = array(
         "Patient ID", "Agent", "Counsellor", "Lead Source", "Visit Date", 
         "Reason", "Doctor ID", "Total Package", "Payment Done", 
-        "Category", "Procedure", "Booked Status"
+        "Category", "Procedure","Broad Procedure", "Broad Procedure Count"
     );
     fputcsv($file, $header);
 
@@ -2094,7 +2095,8 @@ public function export_consultation_csv() {
             $row['payment_done'],
             $row['category'],
             $row['procedures'],
-            $row['booked_status']
+			$row['broad_procedure'],
+			$row['broad_procedure_count']
         );
         fputcsv($file, $line);
     }
@@ -2102,6 +2104,7 @@ public function export_consultation_csv() {
     fclose($file);
     exit;
 }
+
 	public function approve($request = NULL){
 
 		$logg = checklogin();
@@ -3691,8 +3694,13 @@ public function moulist(){
 		$all_status = $this->accounts_model->get_status();
 		return $all_status;
 	}
+
+	function get_all_broad_procedure_count(){
+		$all_broad_procedure_count = $this->procedures_model->get_broad_procedure_count();
+		return $all_broad_procedure_count;
+	}
 	
-		public function procedure_billings(){
+	public function procedure_billings(){
 		$logg = checklogin();
 		error_reporting(0);
 		if($logg['status'] == true){
@@ -3919,7 +3927,7 @@ public function moulist(){
 			die();
 		}
 	}	
-	
+
 	public function reports(){
 		$logg = checklogin();
 		error_reporting(0);
@@ -7890,15 +7898,19 @@ public function partial_procedure(){
 			$config = array();
         	$data['medicine_daily_result'] = $this->accounts_model->dashboard_medicine_daily_sales($center, $start_date, $end_date);
 			$data['investigations_daily_result'] = $this->accounts_model->dashboard_investigation_daily_sales($center, $start_date, $end_date);
+			$data['advance_daily_result'] = $this->accounts_model->dashboard_advance_daily_sales($center, $start_date, $end_date);
 			$data['consultation_daily_result'] = $this->accounts_model->dashboard_consultation_daily_sales($center, $start_date, $end_date);
 			$data['registration_daily_result'] = $this->accounts_model->dashboard_registration_daily_sales($center, $start_date, $end_date);
 			$data['procedure_daily_result'] = $this->accounts_model->dashboard_procedure_daily_sales($center, $start_date, $end_date);
+			$data['partial_daily_result'] = $this->accounts_model->dashboard_partial_daily_sales($center, $start_date, $end_date);
 			$data['patient_procedure_daily_result'] = $this->accounts_model->dashboard_procedure_reports_list_patination($center, $start_date, $end_date);
 			$data['patient_partial_daily_result'] = $this->accounts_model->dashboard_partial_daily_sales_report($center, $start_date, $end_date);
 			$data['patient_medicine_daily_result'] = $this->accounts_model->dashboard_medicine_reports_list_patination($center, $start_date, $end_date);
 			$data['patient_diagnostic_daily_result'] = $this->accounts_model->dashboard_diagnostic_reports_list_patination($center, $start_date, $end_date);
 			$data['patient_consultation_daily_result'] = $this->accounts_model->dashboard_consultation_reports_list_patination($center, $start_date, $end_date);
+			$data['patient_advance_daily_result'] = $this->accounts_model->dashboard_advance_reports_list_patination($center, $start_date, $end_date);
 			
+
 			$data["billing_at"] = $center;
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;
@@ -8010,62 +8022,6 @@ private function _get_post_report_data() {
     );
 }	
 
-
-// 1. Load the "Add Advance Payment" Page
-public function add_advance_payment_view() {
-    $logg = checklogin();
-    if(!$logg['status']){ redirect(base_url()); exit; }
-    
-    // Load any necessary data (e.g., list of patients if needed)
-    // $data['patients'] = $this->accounts_model->get_active_patients(); 
-
-    $template = get_header_template($logg['role']);
-    $this->load->view($template['header']);
-    $this->load->view('accounts/add_advance_payment'); // We will create this file next
-    $this->load->view($template['footer']);
-}
-
-// 2. Save the Payment (Called via AJAX)
-public function save_advance_payment() {
-    $logg = checklogin();
-    if(!$logg['status']){ echo json_encode(['success'=>false,'message'=>'Login required']); return; }
-
-    // Validation
-    $this->load->library('form_validation');
-    $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
-    $this->form_validation->set_rules('amount', 'Amount', 'required|numeric');
-    $this->form_validation->set_rules('payment_mode', 'Payment Mode', 'required');
-    $this->form_validation->set_rules('payment_date', 'Date', 'required');
-
-    if ($this->form_validation->run() == FALSE) {
-        echo json_encode(['success' => false, 'message' => validation_errors()]);
-        return;
-    }
-
-    // Prepare Data
-    $data = array(
-        'patient_id'     => $this->input->post('patient_id'),
-        'receipt_number' => $this->accounts_model->generate_advance_receipt_number(),
-        'amount'         => $this->input->post('amount'),
-        'payment_mode'   => $this->input->post('payment_mode'),
-        'transaction_id' => $this->input->post('transaction_id'),
-        'payment_date'   => $this->input->post('payment_date'),
-        'remarks'        => $this->input->post('remarks'),
-        'center'         => $_SESSION['logged_billing_manager']['center'] ?? 'Unknown',
-        'created_by'     => $_SESSION['logged_billing_manager']['id'] ?? 0
-    );
-
-    // Save to DB
-    if ($this->accounts_model->add_advance_payment($data)) {
-        echo json_encode([
-            'success' => true, 
-            'message' => 'Advance Payment Added Successfully! Receipt: ' . $data['receipt_number']
-        ]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to save payment.']);
-    }
-}
-
 public function get_doctors_by_center() {
     // Enable CORS if needed
     header('Content-Type: application/json');
@@ -8120,57 +8076,70 @@ public function get_doctors_by_center() {
     exit;
 }
 
-// ... your existing Accounts controller code ...
+public function save_advance_payment()
+	{
+		$logg = checklogin();
+		if($logg['status'] == true){
+			
+			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'save_advance_payment'){
+				unset($_POST['action']);
+				$data = $this->accounts_model->advance_payment_insert($_POST);
+				if($data > 0){
+					header("location:" .base_url(). "accounts/save_advance_payment?m=".base64_encode('Item added successfully !').'&t='.base64_encode('success'));
+					die();
+				}else{
+					header("location:" .base_url(). "accounts/save_advance_payment?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+					die();
+				}				
+			}
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('accounts/save_advance_payment', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
 
-    /**
-     * Send Daily Sales Report via Email
-     *//*
- public function send_daily_report_email() {
-    // Check if this is a POST request
-    if ($this->input->method() !== 'post') {
-        show_404();
-    }
 
-    // Get recipient email from POST data
-    $recipient_email = $this->input->post('recipient_email');
-    $form_data_json = $this->input->post('form_data');
-    
-    // Validate email
-    if (!filter_var($recipient_email, FILTER_VALIDATE_EMAIL)) {
-        $result = array(
-            'success' => false,
-            'message' => 'Invalid recipient email address provided'
-        );
-    } else {
-        // Load the same data that's used in your daily_sales_reporting method
-        $this->load_daily_report_data();
-        
-        // Decode form data if provided
-        $form_data = array();
-        if (!empty($form_data_json)) {
-            $form_data = json_decode($form_data_json, true);
-        }
-        
-        // Generate orderbook summary HTML with actual data AND form data
-        $email_content = $this->generate_daily_report_email_content($form_data);
-        
-        // Send email using your existing send_mail function
-        $subject = $this->input->post('email_subject') ?: "Daily Sales Report - " . date('Y-m-d');
-        $sent = send_mail($recipient_email, $subject, $email_content);
-        
-        $result = array(
-            'success' => $sent,
-            'message' => $sent ? 'Daily sales report email sent successfully' : 'Failed to send daily sales report email',
-            'recipient' => $recipient_email,
-            'timestamp' => date('Y-m-d H:i:s')
-        );
-    }
-    
-    // Return JSON response
-    $this->output
-        ->set_content_type('application/json')
-        ->set_output(json_encode($result));
-}*/
+	public function advance_payment_list(){
+		$logg = checklogin();
+		error_reporting(0);
+		if($logg['status'] == true){
+
+			$per_page = $this->input->get('per_page', true);
+			if(empty($per_page)){
+				$per_page = 0;
+			}
+			$training_name = $this->input->get('training_name', true);
+			
+			$config = array();
+        	$config["base_url"] = base_url() . "accounts/advance_payment_list";
+        	$config["total_rows"] = $this->accounts_model->advance_payment_count($training_name);
+        	$config["per_page"] = 10;
+        	$config["uri_segment"] = 2;
+			$config['use_page_numbers'] = true;
+			$config['num_links'] = 5;
+			$config['page_query_string'] = true;
+			$config['reuse_query_string'] = true;
+        	$this->pagination->initialize($config);
+        	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
+			
+        	$data["links"] = $this->pagination->create_links();
+			$data['consultation_cancel_result'] = $this->accounts_model->advance_payment_pagination($config["per_page"], $per_page, $training_name);
+			$data["training_name"] = $training_name;
+			
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('accounts/advance_payment_list', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}	
 
 
 public function send_daily_report_email() {
@@ -8590,33 +8559,88 @@ private function get_patient_name($patient_id) {
 		echo json_encode(array('status' => true, 'procedures' => $procedures));
 	}
 
-    public function print_purchase_order($po_id)
-    {
-        $login_data = checklogin();
-        if (!$login_data['status']) {
-            redirect('login');
-        }
-        if (empty($po_id) || !is_numeric($po_id)) {
-			header("location:" .base_url(). "accounts/purchase-orders-list");
-            return;
-        }
-        $data['po'] = $this->Purchase_order_model->get_purchase_order_by_print($po_id);
-        if (empty($data['po'])) {
-			header("location:" .base_url(). "accounts/purchase-orders-list");
-            return;
-        }
-        // $data['items'] = $this->Purchase_order_model->get_purchase_order_items($po_id);
-        
-        // 7. (Optional) Fetch Centre/Company details for the PO header
-        // $this->load->model('center_model');
-        // $data['centre_details'] = $this->center_model->get_center_by_number($data['po']['po_centre']);
-        // For this example, we'll assume the centre name is in the $data['po'] array
 
-        // 8. Load the dedicated print view
-        // This view does NOT use the standard header/footer template
-        $this->load->view('accounts/print_purchase_order_view', $data);
-    }
-} 
+function assessment_form($patient_id){
+	$logg = checklogin();
+	if($logg['status'] == true){
+		if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_assessment_form'){
+			unset($_POST['action']);
+			//var_dump($_POST);
+			$data = $this->accounts_model->assessment_form_insert_payment($_POST);
+			//die();
+			if($data > 0){
+				header("location:" .base_url(). "accounts/assessment_form?m=".base64_encode('Item added successfully !').'&t='.base64_encode('success'));
+				die();
+			}else{
+				header("location:" .base_url(). "accounts/assessment_form?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+				die();
+			}				
+		}
+		$data = array();
+		$template = get_header_template($logg['role']);
+		$this->load->view($template['header']);
+		//$data['data'] = $this->accounts_model->get_assessment_form($patient_id);
+		$data['data'] = $this->accounts_model->get_assessment_appointment_form($patient_id);
+		$this->load->view('accounts/assessment_form', $data);
+		$this->load->view($template['footer']);
+	}else{
+		header("Location: " . base_url() . "accounts/assessment_form");
+		die();
+	}
+}
+
+public function assessment_form_list(){
+		$logg = checklogin();
+		error_reporting(0);
+		if($logg['status'] == true){
+
+			$per_page = $this->input->get('per_page', true);
+			if(empty($per_page)){
+				$per_page = 0;
+			}
+			$patient_id = $this->input->get('patient_id', true);
+			
+			$config = array();
+        	$config["base_url"] = base_url() . "accounts/assessment_form_list";
+        	$config["total_rows"] = $this->accounts_model->assessment_form_count($patient_id);
+        	$config["per_page"] = 10;
+        	$config["uri_segment"] = 2;
+			$config['use_page_numbers'] = true;
+			$config['num_links'] = 5;
+			$config['page_query_string'] = true;
+			$config['reuse_query_string'] = true;
+        	$this->pagination->initialize($config);
+        	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
+			
+        	$data["links"] = $this->pagination->create_links();
+			$data['wallet_result'] = $this->accounts_model->assessment_form_pagination($config["per_page"], $per_page, $patient_id);
+			$data["patient_id"] = $patient_id;
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('accounts/assessment_form_list', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+function assessment_print($ID){
+	$logg = checklogin();
+	if($logg['status'] == true){
+		$data = array();
+		$template = get_header_template($logg['role']);
+		$this->load->view($template['header']);
+		$data['data'] = $this->accounts_model->get_assessment_form($ID);
+		//$data['data'] = $this->accounts_model->get_assessment_appointment_form($ID);
+		$this->load->view('accounts/assessment_print', $data);
+		$this->load->view($template['footer']);
+	}else{
+		header("Location: " . base_url() . "accounts/assessment_form");
+		die();
+	}
+}
+
+} // End of class - MAKE SURE THIS IS THE LAST LINE
 
 	
 

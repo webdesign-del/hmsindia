@@ -296,7 +296,47 @@ $(document).ready(function() {
                     <td>A. Package Revenue Total</td>
                     <td><input type="text" id="package_customer_count" name="package_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
                    <td><input type="text" id="package_amount" name="package_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
-                    <td><input type="text" id="package_bill_count" name="package_bill_count" value="<?php echo round($vl['total_fees'],2); ?>"></td>
+                    <td><input type="text" id="package_bill_count" name="package_bill_count" value="<?php echo round($vl['total_payment'],2); ?>"></td>
+                    
+                </tr>
+                <?php } ?>
+
+ <?php 
+        $advance_net = 0;
+        $advance_receive = 0;
+        $advance_total = 0;
+        $advance_discount = 0;
+        foreach($advance_daily_result as $ky => $vl){
+            $advance_net += round($vl['total_patients'],2);
+            $advance_receive += round($vl['payment_done'],2);
+            $advance_total += round($vl['fees'],2);
+            $advance_discount += round($vl['discount_amount'],2);
+        ?>
+                <tr class="sub-header">
+                    <td>Advance Payment</td>
+                    <td><input type="text" id="package_customer_count" name="package_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                   <td><input type="text" id="package_amount" name="package_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                    <td><input type="text" id="package_bill_count" name="package_bill_count" value="<?php echo round($vl['total_payment'],2); ?>"></td>
+                    
+                </tr>
+                <?php } ?>
+
+                 <?php 
+        $partial_net = 0;
+        $partial_receive = 0;
+        $partial_total = 0;
+        $partial_discount = 0;
+        foreach($partial_daily_result as $ky => $vl){
+            $partial_net += round($vl['total_patients'],2);
+            $partial_receive += round($vl['payment_done'],2);
+            $partial_total += round($vl['fees'],2);
+            $partial_discount += round($vl['discount_amount'],2);
+        ?>
+                <tr class="sub-header">
+                    <td>Partial Payment</td>
+                    <td><input type="text" id="package_customer_count" name="package_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                   <td><input type="text" id="package_amount" name="package_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                    <td><input type="text" id="partial_amount" name="partial_amount" value="<?php echo round($vl['total_payment'],2); ?>"></td>
                     
                 </tr>
                 <?php } ?>
@@ -314,8 +354,9 @@ $(document).ready(function() {
                 <tr>
                     <td>Medicine</td>
                     <td><input type="text" id="medicine_customer_count" name="medicine_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
-                    <td><input type="text" id="medicine_bill_count" name="medicine_bill_count" value="<?php echo round($vl['total_payment'],2); ?>"></td>
                  <td><input type="text" id="medicine_amount" name="medicine_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
+                
+                    <td><input type="text" id="medicine_bill_count" name="medicine_bill_count" value="<?php echo round($vl['total_payment'],2); ?>"></td>
                     
                 </tr>
                 <?php } ?>
@@ -524,6 +565,7 @@ $(document).ready(function() {
                      <td><?php echo $vl['transaction_img']; ?></td>
                 </tr>
                 <?php } ?>
+                 
         </tbody>
         </table>
         </div>    
