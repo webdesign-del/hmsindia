@@ -127,15 +127,10 @@
                                         <div class="col-sm-8">
                                             <select class="form-control" id="category" name="category" required>
                                                 <option value="">Select Category</option>
-                                                <option value="Analgesic" <?php echo set_select('category', 'Analgesic', ($medicine->category == 'Analgesic')); ?>>Analgesic</option>
-                                                <option value="Antibiotic" <?php echo set_select('category', 'Antibiotic', ($medicine->category == 'Antibiotic')); ?>>Antibiotic</option>
-                                                <option value="Antihistamine" <?php echo set_select('category', 'Antihistamine', ($medicine->category == 'Antihistamine')); ?>>Antihistamine</option>
-                                                <option value="Antacid" <?php echo set_select('category', 'Antacid', ($medicine->category == 'Antacid')); ?>>Antacid</option>
-                                                <option value="PPI" <?php echo set_select('category', 'PPI', ($medicine->category == 'PPI')); ?>>PPI</option>
-                                                <option value="Steroid" <?php echo set_select('category', 'Steroid', ($medicine->category == 'Steroid')); ?>>Steroid</option>
-                                                <option value="Vitamin" <?php echo set_select('category', 'Vitamin', ($medicine->category == 'Vitamin')); ?>>Vitamin</option>
-                                                <option value="Supplements" <?php echo set_select('category', 'Supplements', ($medicine->category == 'Supplements')); ?>>Supplements</option>
-                                                <option value="Other" <?php echo set_select('category', 'Other', ($medicine->category == 'Other')); ?>>Other</option>
+                                                <option value="Package injections" <?php echo set_select('category', 'Package injections', ($medicine->category == 'Package injections')); ?>>Package injections</option>
+                                                <option value="OT DCI" <?php echo set_select('category', 'OT DCI', ($medicine->category == 'OT DCI')); ?>>OT DCI</option>
+                                                <option value="EMBRYOLOGIST DCI" <?php echo set_select('category', 'EMBRYOLOGIST DCI', ($medicine->category == 'EMBRYOLOGIST DCI')); ?>>EMBRYOLOGIST DCI</option>
+                                                <option value="Cash Medicines" <?php echo set_select('category', 'Cash Medicines', ($medicine->category == 'Cash Medicines')); ?>>Cash Medicines</option>
                                             </select>
                                         </div>
                                     </div>

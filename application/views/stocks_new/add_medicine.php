@@ -77,18 +77,6 @@
                             </div>
                         <?php endif; ?>
                         
-                        <?php if($this->session->flashdata('error_details')): ?>
-                            <div class="alert alert-warning">
-                                <?php echo $this->session->flashdata('error_details'); ?>
-                            </div>
-                        <?php endif; ?>
-                        
-                        <?php if($this->session->flashdata('success')): ?>
-                            <div class="alert alert-success">
-                                <?php echo $this->session->flashdata('success'); ?>
-                            </div>
-                        <?php endif; ?>
-                        
                         <form action="<?php echo base_url('stocks_new/add_medicine'); ?>" method="post" class="form-horizontal">
                             <input type="hidden" name="action" value="add_medicine">
                             
