@@ -1097,6 +1097,777 @@ class Stocks_new extends CI_Controller
             redirect(base_url());
         }
     }
+
+    public function import_batches_excel()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            // Check if file was uploaded
+            if (!isset($_FILES["excel_file"]) || $_FILES["excel_file"]["error"] != 0) {
+                $this->session->set_flashdata(
+                    "error",
+                    "Please select a valid Excel file to upload.",
+                );
+                redirect("stocks_new/add_batch");
+                return;
+            }
+
+            $file = $_FILES["excel_file"];
+            $fileExtension = strtolower(
+                pathinfo($file["name"], PATHINFO_EXTENSION),
+            );
+
+            // Validate file extension
+            if (!in_array($fileExtension, ["xlsx", "xls"])) {
+                $this->session->set_flashdata(
+                    "error",
+                    "Invalid file format. Please upload .xlsx or .xls file.",
+                );
+                redirect("stocks_new/add_batch");
+                return;
+            }
+
+            // Load PhpSpreadsheet
+            $possiblePaths = [
+                FCPATH . "vendor/autoload.php",
+                APPPATH . "../vendor/autoload.php",
+                __DIR__ . "/../../vendor/autoload.php",
+                dirname(FCPATH) . "/vendor/autoload.php",
+            ];
+            
+            $vendorPath = null;
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path)) {
+                    $vendorPath = $path;
+                    break;
+                }
+            }
+            
+            if (!$vendorPath) {
+                $this->session->set_flashdata(
+                    "error",
+                    "PhpSpreadsheet library not found. Please run 'composer install' in the project root directory.",
+                );
+                redirect("stocks_new/add_batch");
+                return;
+            }
+            require_once $vendorPath;
+
+            try {
+                $inputFileType =
+                    $fileExtension == "xlsx"
+                        ? \PhpOffice\PhpSpreadsheet\IOFactory::READER_XLSX
+                        : \PhpOffice\PhpSpreadsheet\IOFactory::READER_XLS;
+
+                $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader(
+                    $inputFileType,
+                );
+                $spreadsheet = $reader->load($file["tmp_name"]);
+                $worksheet = $spreadsheet->getActiveSheet();
+                $highestRow = $worksheet->getHighestRow();
+
+                // Get all medicines for mapping
+                $medicines = $this->Stock_model_new->get_all_medicines();
+                $medicineMap = [];
+                foreach ($medicines as $medicine) {
+                    $medicineId = isset($medicine->id) ? $medicine->id : (isset($medicine->ID) ? $medicine->ID : null);
+                    $medicineCode = isset($medicine->medicine_code) ? strtolower(trim($medicine->medicine_code)) : "";
+                    $medicineName = isset($medicine->medicine_name) ? strtolower(trim($medicine->medicine_name)) : "";
+                    if ($medicineId !== null) {
+                        if (!empty($medicineCode)) {
+                            $medicineMap[$medicineCode] = $medicineId;
+                        }
+                        if (!empty($medicineName)) {
+                            $medicineMap[$medicineName] = $medicineId;
+                        }
+                    }
+                }
+
+                // Get all vendors for mapping
+                $vendors = $this->Stock_model_new->get_all_vendors();
+                $vendorMap = [];
+                foreach ($vendors as $vendor) {
+                    $vendorId = isset($vendor->ID) ? $vendor->ID : (isset($vendor->id) ? $vendor->id : null);
+                    $vendorName = isset($vendor->vendor_name) ? strtolower(trim($vendor->vendor_name)) : (isset($vendor->name) ? strtolower(trim($vendor->name)) : "");
+                    if (!empty($vendorName) && $vendorId !== null) {
+                        $vendorMap[$vendorName] = $vendorId;
+                    }
+                }
+
+                // Read header row (row 1)
+                $headerRow = [];
+                for ($col = 1; $col <= 20; $col++) {
+                    $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+                    $cellValue = $worksheet->getCell($columnLetter . '1')->getValue();
+                    $headerRow[$col] = strtolower(trim($cellValue));
+                }
+
+                // Map column indices
+                $colMap = [];
+                foreach ($headerRow as $colIndex => $header) {
+                    if (strpos($header, "medicine code") !== false || strpos($header, "medicine_code") !== false) {
+                        $colMap["medicine_code"] = $colIndex;
+                    } elseif (strpos($header, "medicine name") !== false || strpos($header, "medicine_name") !== false) {
+                        $colMap["medicine_name"] = $colIndex;
+                    } elseif (strpos($header, "vendor") !== false) {
+                        $colMap["vendor"] = $colIndex;
+                    } elseif (strpos($header, "batch number") !== false || strpos($header, "batch_number") !== false) {
+                        $colMap["batch_number"] = $colIndex;
+                    } elseif (strpos($header, "expiry date") !== false || strpos($header, "expiry_date") !== false) {
+                        $colMap["expiry_date"] = $colIndex;
+                    } elseif (strpos($header, "purchase date") !== false || strpos($header, "purchase_date") !== false) {
+                        $colMap["purchase_date"] = $colIndex;
+                    } elseif (strpos($header, "purchase price") !== false || strpos($header, "purchase_price") !== false) {
+                        $colMap["purchase_price"] = $colIndex;
+                    } elseif (strpos($header, "mrp") !== false) {
+                        $colMap["mrp"] = $colIndex;
+                    } elseif (strpos($header, "selling price") !== false || strpos($header, "selling_price") !== false) {
+                        $colMap["selling_price"] = $colIndex;
+                    } elseif (strpos($header, "quantity") !== false) {
+                        $colMap["quantity_purchased"] = $colIndex;
+                    } elseif (strpos($header, "invoice number") !== false || strpos($header, "invoice_number") !== false) {
+                        $colMap["invoice_number"] = $colIndex;
+                    } elseif (strpos($header, "invoice date") !== false || strpos($header, "invoice_date") !== false) {
+                        $colMap["invoice_date"] = $colIndex;
+                    } elseif (strpos($header, "quality status") !== false || strpos($header, "quality_status") !== false) {
+                        $colMap["quality_status"] = $colIndex;
+                    } elseif (strpos($header, "remarks") !== false) {
+                        $colMap["remarks"] = $colIndex;
+                    }
+                }
+
+                // Validate required columns
+                $requiredColumns = [
+                    "batch_number",
+                    "expiry_date",
+                    "purchase_price",
+                    "selling_price",
+                    "quantity_purchased",
+                ];
+
+                $missingColumns = [];
+                foreach ($requiredColumns as $reqCol) {
+                    if (!isset($colMap[$reqCol])) {
+                        $missingColumns[] = $reqCol;
+                    }
+                }
+
+                // Check if at least one medicine identifier is present
+                if (!isset($colMap["medicine_code"]) && !isset($colMap["medicine_name"])) {
+                    $missingColumns[] = "medicine_code or medicine_name";
+                }
+
+                // Check if vendor is present
+                if (!isset($colMap["vendor"])) {
+                    $missingColumns[] = "vendor";
+                }
+
+                if (!empty($missingColumns)) {
+                    $this->session->set_flashdata(
+                        "error",
+                        "Missing required columns: " .
+                            implode(", ", $missingColumns) .
+                            ". Please check your Excel file format.",
+                    );
+                    redirect("stocks_new/add_batch");
+                    return;
+                }
+
+                // Process data rows (starting from row 2)
+                $successCount = 0;
+                $errorCount = 0;
+                $errors = [];
+
+                for ($row = 2; $row <= $highestRow; $row++) {
+                    // Get cell values using coordinate-based access
+                    $getCellValue = function($colIndex, $rowNum) use ($worksheet) {
+                        $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
+                        return $worksheet->getCell($columnLetter . $rowNum)->getValue();
+                    };
+                    
+                    // Get medicine identifier
+                    $medicine_code = isset($colMap["medicine_code"]) ? trim($getCellValue($colMap["medicine_code"], $row)) : "";
+                    $medicine_name = isset($colMap["medicine_name"]) ? trim($getCellValue($colMap["medicine_name"], $row)) : "";
+                    
+                    $vendor_name = trim($getCellValue($colMap["vendor"], $row));
+                    $batch_number = trim($getCellValue($colMap["batch_number"], $row));
+                    $expiry_date = trim($getCellValue($colMap["expiry_date"], $row));
+                    $purchase_price = trim($getCellValue($colMap["purchase_price"], $row));
+                    $selling_price = trim($getCellValue($colMap["selling_price"], $row));
+                    $quantity_purchased = trim($getCellValue($colMap["quantity_purchased"], $row));
+
+                    // Skip empty rows
+                    if (empty($batch_number) && empty($medicine_code) && empty($medicine_name)) {
+                        continue;
+                    }
+
+                    // Validate required fields
+                    if (empty($batch_number)) {
+                        $errors[] = "Row $row: Batch Number is required";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Find medicine_id
+                    $medicine_id = null;
+                    if (!empty($medicine_code)) {
+                        $medicine_code_lower = strtolower(trim($medicine_code));
+                        if (isset($medicineMap[$medicine_code_lower])) {
+                            $medicine_id = $medicineMap[$medicine_code_lower];
+                        }
+                    }
+                    if ($medicine_id === null && !empty($medicine_name)) {
+                        $medicine_name_lower = strtolower(trim($medicine_name));
+                        if (isset($medicineMap[$medicine_name_lower])) {
+                            $medicine_id = $medicineMap[$medicine_name_lower];
+                        }
+                    }
+
+                    if ($medicine_id === null) {
+                        $errors[] = "Row $row: Medicine not found (Code: '$medicine_code', Name: '$medicine_name')";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Find vendor_id
+                    $vendor_id = null;
+                    $vendor_name_lower = strtolower(trim($vendor_name));
+                    if (isset($vendorMap[$vendor_name_lower])) {
+                        $vendor_id = $vendorMap[$vendor_name_lower];
+                    }
+
+                    if ($vendor_id === null) {
+                        $errors[] = "Row $row: Vendor '$vendor_name' not found in system";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Validate expiry date
+                    if (empty($expiry_date)) {
+                        $errors[] = "Row $row: Expiry Date is required";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Convert date format if needed
+                    $expiry_date_formatted = $this->convertExcelDate($expiry_date);
+                    if (!$expiry_date_formatted) {
+                        $errors[] = "Row $row: Invalid Expiry Date format";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Validate purchase price
+                    if (empty($purchase_price) || !is_numeric($purchase_price)) {
+                        $errors[] = "Row $row: Purchase Price must be a valid number";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Validate selling price
+                    if (empty($selling_price) || !is_numeric($selling_price)) {
+                        $errors[] = "Row $row: Selling Price must be a valid number";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Validate quantity
+                    if (empty($quantity_purchased) || !is_numeric($quantity_purchased) || $quantity_purchased <= 0) {
+                        $errors[] = "Row $row: Quantity Purchased must be a valid positive number";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Get optional fields
+                    $purchase_date = isset($colMap["purchase_date"]) ? trim($getCellValue($colMap["purchase_date"], $row)) : "";
+                    $mrp = isset($colMap["mrp"]) ? trim($getCellValue($colMap["mrp"], $row)) : "";
+                    $invoice_number = isset($colMap["invoice_number"]) ? trim($getCellValue($colMap["invoice_number"], $row)) : "";
+                    $invoice_date = isset($colMap["invoice_date"]) ? trim($getCellValue($colMap["invoice_date"], $row)) : "";
+                    $quality_status = isset($colMap["quality_status"]) ? trim($getCellValue($colMap["quality_status"], $row)) : "PENDING";
+                    $remarks = isset($colMap["remarks"]) ? trim($getCellValue($colMap["remarks"], $row)) : "";
+
+                    // Convert dates
+                    $purchase_date_formatted = !empty($purchase_date) ? $this->convertExcelDate($purchase_date) : date('Y-m-d');
+                    $invoice_date_formatted = !empty($invoice_date) ? $this->convertExcelDate($invoice_date) : null;
+
+                    // Get medicine details for pack_size
+                    $medicine_details = $this->Stock_model_new->get_medicine_details_by_id($medicine_id);
+                    $pack_size = isset($medicine_details->pack_size) ? floatval($medicine_details->pack_size) : 1;
+
+                    // Calculate quantity in units (multiply packs by pack_size)
+                    $quantity_purchased_units = floatval($quantity_purchased) * $pack_size;
+
+                    // Get prices (these are pack prices from Excel)
+                    $purchase_price_unit = floatval($purchase_price) / $pack_size; // Convert to per unit
+                    $selling_price_pack = floatval($selling_price); // Keep as pack price
+                    $mrp_pack = !empty($mrp) ? floatval($mrp) : null;
+
+                    // Check if batch already exists
+                    $this->db->where("medicine_id", $medicine_id);
+                    $this->db->where("batch_number", $batch_number);
+                    $existing = $this->db->get("medicine_batches")->row();
+                    if ($existing) {
+                        $errors[] = "Row $row: Batch '$batch_number' already exists for this medicine";
+                        $errorCount++;
+                        continue;
+                    }
+
+                    // Get created_by
+                    $created_by_id = $this->get_employee_id_from_number(
+                        $_SESSION["logged_central_stock_manager"]["employee_number"]
+                    );
+
+                    // Prepare batch data
+                    $batch_data = [
+                        "medicine_id" => $medicine_id,
+                        "vendor_id" => $vendor_id,
+                        "batch_number" => $batch_number,
+                        "manufacturing_date" => null,
+                        "expiry_date" => $expiry_date_formatted,
+                        "purchase_price" => $purchase_price_unit, // Store per unit price
+                        "selling_price" => $selling_price_pack, // Store pack price
+                        "mrp" => $mrp_pack, // Store pack MRP
+                        "quantity_purchased" => $quantity_purchased_units, // Store quantity in units
+                        "quantity_remaining" => $quantity_purchased_units, // Set remaining to purchased (in units)
+                        "purchase_date" => $purchase_date_formatted,
+                        "invoice_number" => $invoice_number,
+                        "invoice_date" => $invoice_date_formatted,
+                        "quality_status" => strtoupper($quality_status) ?: 'PENDING',
+                        "batch_status" => "ACTIVE",
+                        "remarks" => $remarks,
+                        "created_by" => $created_by_id,
+                        "created_at" => date("Y-m-d H:i:s")
+                    ];
+
+                    // Insert batch
+                    if ($this->Stock_model_new->add_batch($batch_data)) {
+                        $successCount++;
+                    } else {
+                        $db_error = $this->db->error();
+                        if ($db_error['code'] == 1062) {
+                            $errors[] = "Row $row: Batch '$batch_number' already exists for this medicine";
+                        } else {
+                            $errors[] = "Row $row: Failed to insert batch '$batch_number'";
+                        }
+                        $errorCount++;
+                    }
+                }
+
+                // Set flash messages
+                if ($successCount > 0) {
+                    $message = "Successfully imported $successCount batch(es).";
+                    if ($errorCount > 0) {
+                        $message .= " $errorCount row(s) failed. Please check the errors below.";
+                    }
+                    $this->session->set_flashdata("success", $message);
+                } else {
+                    $this->session->set_flashdata(
+                        "error",
+                        "No batches were imported. Please check your Excel file.",
+                    );
+                }
+
+                if ($errorCount > 0 && !empty($errors)) {
+                    $errorMessage = "Errors encountered:<br>" . implode("<br>", array_slice($errors, 0, 10));
+                    if (count($errors) > 10) {
+                        $errorMessage .= "<br>... and " . (count($errors) - 10) . " more errors.";
+                    }
+                    $this->session->set_flashdata("error_details", $errorMessage);
+                }
+
+                redirect("stocks_new/add_batch");
+            } catch (Exception $e) {
+                $this->session->set_flashdata(
+                    "error",
+                    "Error reading Excel file: " . $e->getMessage(),
+                );
+                redirect("stocks_new/add_batch");
+            }
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+    private function convertExcelDate($dateValue)
+    {
+        // If it's already a date string in Y-m-d format
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateValue)) {
+            return $dateValue;
+        }
+
+        // If it's a date string in d/m/Y or d-m-Y format
+        if (preg_match('/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/', $dateValue, $matches)) {
+            return $matches[3] . '-' . str_pad($matches[2], 2, '0', STR_PAD_LEFT) . '-' . str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+        }
+
+        // If it's an Excel serial date number
+        if (is_numeric($dateValue)) {
+            $excelBaseDate = new \DateTime('1899-12-30');
+            $days = intval($dateValue);
+            $excelBaseDate->modify("+$days days");
+            return $excelBaseDate->format('Y-m-d');
+        }
+
+        // Try to parse as date
+        $timestamp = strtotime($dateValue);
+        if ($timestamp !== false) {
+            return date('Y-m-d', $timestamp);
+        }
+
+        return false;
+    }
+
+    public function download_batch_template()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            // Load PhpSpreadsheet
+            $possiblePaths = [
+                FCPATH . "vendor/autoload.php",
+                APPPATH . "../vendor/autoload.php",
+                __DIR__ . "/../../vendor/autoload.php",
+                dirname(FCPATH) . "/vendor/autoload.php",
+            ];
+            
+            $vendorPath = null;
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path)) {
+                    $vendorPath = $path;
+                    break;
+                }
+            }
+            
+            if (!$vendorPath) {
+                $this->session->set_flashdata(
+                    "error",
+                    "PhpSpreadsheet library not found. Please run 'composer install' in the project root directory.",
+                );
+                redirect("stocks_new/add_batch");
+                return;
+            }
+            require_once $vendorPath;
+
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set headers
+            $headers = [
+                "A1" => "Medicine Code",
+                "B1" => "Medicine Name",
+                "C1" => "Vendor Name",
+                "D1" => "Batch Number",
+                "E1" => "Expiry Date",
+                "F1" => "Purchase Date",
+                "G1" => "Purchase Price (Pack)",
+                "H1" => "MRP (Pack)",
+                "I1" => "Selling Price (Pack)",
+                "J1" => "Quantity Purchased (Packs)",
+                "K1" => "Invoice Number",
+                "L1" => "Invoice Date",
+                "M1" => "Quality Status",
+                "N1" => "Remarks",
+            ];
+
+            foreach ($headers as $cell => $value) {
+                $sheet->setCellValue($cell, $value);
+            }
+
+            // Style header row
+            $sheet->getStyle("A1:N1")->getFont()->setBold(true);
+            $sheet->getStyle("A1:N1")
+                ->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()
+                ->setARGB("FFE0E0E0");
+
+            // Set column widths
+            $sheet->getColumnDimension("A")->setWidth(15);
+            $sheet->getColumnDimension("B")->setWidth(25);
+            $sheet->getColumnDimension("C")->setWidth(20);
+            $sheet->getColumnDimension("D")->setWidth(15);
+            $sheet->getColumnDimension("E")->setWidth(15);
+            $sheet->getColumnDimension("F")->setWidth(15);
+            $sheet->getColumnDimension("G")->setWidth(18);
+            $sheet->getColumnDimension("H")->setWidth(15);
+            $sheet->getColumnDimension("I")->setWidth(18);
+            $sheet->getColumnDimension("J")->setWidth(20);
+            $sheet->getColumnDimension("K")->setWidth(15);
+            $sheet->getColumnDimension("L")->setWidth(15);
+            $sheet->getColumnDimension("M")->setWidth(15);
+            $sheet->getColumnDimension("N")->setWidth(30);
+
+            // Add sample data row
+            $sampleData = [
+                "A2" => "MED001",
+                "B2" => "Paracetamol 500mg",
+                "C2" => "Sample Vendor",
+                "D2" => "BATCH001",
+                "E2" => "2025-12-31",
+                "F2" => date('Y-m-d'),
+                "G2" => "100.00",
+                "H2" => "120.00",
+                "I2" => "120.00",
+                "J2" => "10",
+                "K2" => "INV001",
+                "L2" => date('Y-m-d'),
+                "M2" => "PENDING",
+                "N2" => "Sample batch import",
+            ];
+
+            foreach ($sampleData as $cell => $value) {
+                $sheet->setCellValue($cell, $value);
+            }
+
+            // Add instructions
+            $sheet->setCellValue("A4", "Instructions:");
+            $sheet->setCellValue("A5", "1. Medicine Code or Medicine Name (at least one required)");
+            $sheet->setCellValue("A6", "2. Vendor Name must match existing vendor in system");
+            $sheet->setCellValue("A7", "3. Batch Number must be unique for each medicine");
+            $sheet->setCellValue("A8", "4. Dates should be in YYYY-MM-DD format");
+            $sheet->setCellValue("A9", "5. Prices are per pack (not per unit)");
+            $sheet->setCellValue("A10", "6. Quantity is in packs (will be converted to units automatically)");
+            $sheet->setCellValue("A11", "7. Quality Status: PENDING, APPROVED, REJECTED, or QUARANTINE");
+
+            // Get available medicines for reference
+            $medicines = $this->Stock_model_new->get_all_medicines();
+            $medicineCodes = [];
+            foreach ($medicines as $medicine) {
+                $code = isset($medicine->medicine_code) ? $medicine->medicine_code : "";
+                if (!empty($code)) {
+                    $medicineCodes[] = $code;
+                }
+            }
+
+            // Get available vendors for reference
+            $vendors = $this->Stock_model_new->get_all_vendors();
+            $vendorNames = [];
+            foreach ($vendors as $vendor) {
+                $vendorName = isset($vendor->vendor_name) ? $vendor->vendor_name : (isset($vendor->name) ? $vendor->name : "");
+                if (!empty($vendorName)) {
+                    $vendorNames[] = $vendorName;
+                }
+            }
+
+            // Add note about available medicines and vendors
+            if (!empty($medicineCodes)) {
+                $sheet->setCellValue("A13", "Sample Medicine Codes: " . implode(", ", array_slice($medicineCodes, 0, 5)));
+            }
+            if (!empty($vendorNames)) {
+                $sheet->setCellValue("A14", "Sample Vendors: " . implode(", ", array_slice($vendorNames, 0, 5)));
+            }
+
+            // Set headers for download
+            header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            header("Content-Disposition: attachment;filename=batch_import_template.xlsx");
+            header("Cache-Control: max-age=0");
+
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->save("php://output");
+            exit();
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+    public function download_batch_sample()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            // Load PhpSpreadsheet
+            $possiblePaths = [
+                FCPATH . "vendor/autoload.php",
+                APPPATH . "../vendor/autoload.php",
+                __DIR__ . "/../../vendor/autoload.php",
+                dirname(FCPATH) . "/vendor/autoload.php",
+            ];
+            
+            $vendorPath = null;
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path)) {
+                    $vendorPath = $path;
+                    break;
+                }
+            }
+            
+            if (!$vendorPath) {
+                $this->session->set_flashdata(
+                    "error",
+                    "PhpSpreadsheet library not found. Please run 'composer install' in the project root directory.",
+                );
+                redirect("stocks_new/add_batch");
+                return;
+            }
+            require_once $vendorPath;
+
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Set headers
+            $headers = [
+                "A1" => "Medicine Code",
+                "B1" => "Medicine Name",
+                "C1" => "Vendor Name",
+                "D1" => "Batch Number",
+                "E1" => "Expiry Date",
+                "F1" => "Purchase Date",
+                "G1" => "Purchase Price (Pack)",
+                "H1" => "MRP (Pack)",
+                "I1" => "Selling Price (Pack)",
+                "J1" => "Quantity Purchased (Packs)",
+                "K1" => "Invoice Number",
+                "L1" => "Invoice Date",
+                "M1" => "Quality Status",
+                "N1" => "Remarks",
+            ];
+
+            foreach ($headers as $cell => $value) {
+                $sheet->setCellValue($cell, $value);
+            }
+
+            // Style header row
+            $sheet->getStyle("A1:N1")->getFont()->setBold(true);
+            $sheet->getStyle("A1:N1")
+                ->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()
+                ->setARGB("FF4472C4");
+            $sheet->getStyle("A1:N1")->getFont()->getColor()->setARGB("FFFFFFFF");
+
+            // Set column widths
+            $sheet->getColumnDimension("A")->setWidth(15);
+            $sheet->getColumnDimension("B")->setWidth(30);
+            $sheet->getColumnDimension("C")->setWidth(20);
+            $sheet->getColumnDimension("D")->setWidth(15);
+            $sheet->getColumnDimension("E")->setWidth(15);
+            $sheet->getColumnDimension("F")->setWidth(15);
+            $sheet->getColumnDimension("G")->setWidth(20);
+            $sheet->getColumnDimension("H")->setWidth(15);
+            $sheet->getColumnDimension("I")->setWidth(20);
+            $sheet->getColumnDimension("J")->setWidth(22);
+            $sheet->getColumnDimension("K")->setWidth(15);
+            $sheet->getColumnDimension("L")->setWidth(15);
+            $sheet->getColumnDimension("M")->setWidth(15);
+            $sheet->getColumnDimension("N")->setWidth(30);
+
+            // Sample data rows
+            $sampleRows = [
+                [
+                    "A" => "MED001",
+                    "B" => "Paracetamol 500mg Tablet",
+                    "C" => "ABC Pharmaceuticals",
+                    "D" => "BATCH001",
+                    "E" => "2025-12-31",
+                    "F" => date('Y-m-d'),
+                    "G" => "100.00",
+                    "H" => "120.00",
+                    "I" => "120.00",
+                    "J" => "10",
+                    "K" => "INV-2024-001",
+                    "L" => date('Y-m-d'),
+                    "M" => "PENDING",
+                    "N" => "Initial stock purchase",
+                ],
+                [
+                    "A" => "MED002",
+                    "B" => "Amoxicillin 250mg Capsule",
+                    "C" => "XYZ Medical Supplies",
+                    "D" => "BATCH002",
+                    "E" => "2026-06-30",
+                    "F" => date('Y-m-d'),
+                    "G" => "150.00",
+                    "H" => "180.00",
+                    "I" => "180.00",
+                    "J" => "5",
+                    "K" => "INV-2024-002",
+                    "L" => date('Y-m-d'),
+                    "M" => "APPROVED",
+                    "N" => "Quality approved batch",
+                ],
+                [
+                    "A" => "MED003",
+                    "B" => "Ibuprofen 400mg Tablet",
+                    "C" => "ABC Pharmaceuticals",
+                    "D" => "BATCH003",
+                    "E" => "2025-09-15",
+                    "F" => date('Y-m-d', strtotime('-1 day')),
+                    "G" => "80.00",
+                    "H" => "100.00",
+                    "I" => "100.00",
+                    "J" => "20",
+                    "K" => "INV-2024-003",
+                    "L" => date('Y-m-d', strtotime('-1 day')),
+                    "M" => "PENDING",
+                    "N" => "New stock arrival",
+                ],
+                [
+                    "A" => "MED004",
+                    "B" => "Cetirizine 10mg Tablet",
+                    "C" => "XYZ Medical Supplies",
+                    "D" => "BATCH004",
+                    "E" => "2026-03-20",
+                    "F" => date('Y-m-d', strtotime('-2 days')),
+                    "G" => "60.00",
+                    "H" => "75.00",
+                    "I" => "75.00",
+                    "J" => "15",
+                    "K" => "INV-2024-004",
+                    "L" => date('Y-m-d', strtotime('-2 days')),
+                    "M" => "APPROVED",
+                    "N" => "Regular restocking",
+                ],
+                [
+                    "A" => "MED005",
+                    "B" => "Omeprazole 20mg Capsule",
+                    "C" => "ABC Pharmaceuticals",
+                    "D" => "BATCH005",
+                    "E" => "2025-11-30",
+                    "F" => date('Y-m-d', strtotime('-3 days')),
+                    "G" => "120.00",
+                    "H" => "150.00",
+                    "I" => "150.00",
+                    "J" => "8",
+                    "K" => "INV-2024-005",
+                    "L" => date('Y-m-d', strtotime('-3 days')),
+                    "M" => "PENDING",
+                    "N" => "High demand medicine",
+                ],
+            ];
+
+            // Add sample data rows
+            $rowNum = 2;
+            foreach ($sampleRows as $rowData) {
+                foreach ($rowData as $col => $value) {
+                    $sheet->setCellValue($col . $rowNum, $value);
+                }
+                $rowNum++;
+            }
+
+            // Add border to data area
+            $sheet->getStyle("A1:N" . ($rowNum - 1))->applyFromArray([
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                        'color' => ['argb' => 'FF000000'],
+                    ],
+                ],
+            ]);
+
+            // Set headers for download
+            header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            header("Content-Disposition: attachment;filename=batch_import_sample.xlsx");
+            header("Cache-Control: max-age=0");
+
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $writer->save("php://output");
+            exit();
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
     public function edit_batch($id = 0) 
     {
         $logg = checklogin();

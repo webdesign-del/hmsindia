@@ -20,6 +20,54 @@
         </div>
     </div>
     
+    <!-- Excel Import Section -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <i class="fa fa-file-excel-o"></i> Import Batches from Excel
+                </div>
+                <div class="panel-body">
+                    <div class="alert alert-info">
+                        <strong><i class="fa fa-info-circle"></i> Instructions:</strong>
+                            <ul style="margin-bottom: 0;">
+                                <li>Upload an Excel file (.xlsx, .xls) with batch data</li>
+                                <li>First row should contain column headers</li>
+                                <li>Required columns: Medicine Code/Name, Vendor Name, Batch Number, Expiry Date, Purchase Date, Purchase Price, Selling Price, Quantity Purchased</li>
+                                <li>Optional columns: MRP, Invoice Number, Invoice Date, Quality Status, Remarks</li>
+                                <li>Download <a href="<?php echo base_url('stocks_new/download_batch_template'); ?>" target="_blank"><strong>Excel Template</strong></a> for reference</li>
+                                <li>Download <a href="<?php echo base_url('stocks_new/download_batch_sample'); ?>" target="_blank"><strong>Sample Excel File</strong></a> with example data</li>
+                            </ul>
+                    </div>
+                    <form action="<?php echo base_url('stocks_new/import_batches_excel'); ?>" method="post" enctype="multipart/form-data" class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Select Excel File *</label>
+                            <div class="col-sm-6">
+                                <input type="file" name="excel_file" class="form-control" accept=".xlsx,.xls" required>
+                                <small class="help-block">Supported formats: .xlsx, .xls</small>
+                            </div>
+                            <div class="col-sm-3">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa fa-upload"></i> Import Batches
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-3 col-sm-9">
+                                <a href="<?php echo base_url('stocks_new/download_batch_template'); ?>" class="btn btn-info" target="_blank">
+                                    <i class="fa fa-download"></i> Download Template
+                                </a>
+                                <a href="<?php echo base_url('stocks_new/download_batch_sample'); ?>" class="btn btn-primary" target="_blank">
+                                    <i class="fa fa-file-excel-o"></i> Download Sample File
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Add Batch Form -->
     <div class="row">
         <div class="col-md-12">
