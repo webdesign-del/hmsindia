@@ -1480,6 +1480,7 @@ class Stock_model_new extends CI_Model
         );
         $this->db->where("cs.batch_id", $batch_id);
         $this->db->where("cs.status", "ACTIVE");
+        $this->db->where("(ccs.status = 'ACTIVE' OR ccs.status IS NULL)", null, false);
         return $this->db->get()->row();
     }
 
@@ -1797,6 +1798,8 @@ class Stock_model_new extends CI_Model
             $this->db->where("ccs.center_id", $center_id);
             $this->db->where("ccs.quantity >", 0);
             $this->db->where("mb.batch_status", "ACTIVE");
+            $this->db->where("m.status", "active");
+            $this->db->where("ccs.status", "ACTIVE");
 
             if ($department) {
                 $this->db->where("mb.department", $department);
@@ -1822,6 +1825,8 @@ class Stock_model_new extends CI_Model
             $this->db->join("central_stocks cs", "mb.id = cs.batch_id");
             $this->db->where("cs.quantity >", 0);
             $this->db->where("mb.batch_status", "ACTIVE");
+            $this->db->where("m.status", "active");
+            $this->db->where("cs.status", "ACTIVE");
         }
 
         // Order by FEFO (First Expiry First Out)
@@ -2694,6 +2699,20 @@ class Stock_model_new extends CI_Model
         $this->db->where("ccs.center_id", $center_id);
         $this->db->where("ccs.quantity >", 0);
         $this->db->where("mb.batch_status", "ACTIVE");
+        $this->db->where("m.status", "active");
+        $this->db->where("ccs.status", "ACTIVE");
+        $center = null;
+        // if (!empty($_SESSION['logged_billing_manager']) &&
+        //     ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+        //     $center = $_SESSION['logged_billing_manager']['center'];
+        // }
+        // if (!empty($_SESSION['logged_stock_manager']) &&
+        //     ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+        //     $center = $_SESSION['logged_stock_manager']['center'];
+        // }
+        // if ($center !== null) {
+        //     $this->db->where('s.center_id', $this->get_center_id($center));
+        // }
         $this->db->where("mb.expiry_date >", date("Y-m-d"));
         $this->db->order_by("mb.expiry_date", "ASC");
         $this->db->order_by("m.medicine_name", "ASC");
@@ -2802,6 +2821,7 @@ class Stock_model_new extends CI_Model
             $this->db->join("hms_vendors v", "mb.vendor_id = v.ID", "left");
             $this->db->join("sales s", "si.sale_id = s.id", "left");
             $this->db->where("mb.batch_status", "ACTIVE");
+            $this->db->where("m.status", "active");
             $this->db->where(
                 "s.sale_date >=",
                 date("Y-m-d", strtotime("-30 days")),
@@ -2959,6 +2979,8 @@ class Stock_model_new extends CI_Model
                 $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
                 $this->db->where('cst.quantity >', 0);
                 $this->db->where('mb.batch_status', 'ACTIVE');
+                $this->db->where('m.status', 'active');
+                $this->db->where('cst.status', 'ACTIVE');
                 $query = $this->db->get();
 
             } else {
@@ -2981,6 +3003,8 @@ class Stock_model_new extends CI_Model
                  // Filter by the selected center
                 $this->db->where('cs.quantity >', 0);
                 $this->db->where('mb.batch_status', 'ACTIVE');
+                $this->db->where('m.status', 'active');
+                $this->db->where('cs.status', 'ACTIVE');
                 $query = $this->db->get();
             }
             return $query->result();
@@ -3060,7 +3084,9 @@ class Stock_model_new extends CI_Model
             // Only show batches that actually have stock at the center
             $this->db->where('cs.quantity >', 0); 
             // Only show batches that are considered 'ACTIVE' (you might adjust this)
-            $this->db->where('mb.batch_status', 'ACTIVE'); 
+            $this->db->where('mb.batch_status', 'ACTIVE');
+            $this->db->where('m.status', 'active');
+            $this->db->where('cs.status', 'ACTIVE'); 
             // Optional: You could add filters here, e.g., only show expired batches
             // $this->db->where('mb.expiry_date <', date('Y-m-d')); 
             // --- Ordering ---
@@ -3077,6 +3103,8 @@ class Stock_model_new extends CI_Model
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
             $this->db->where('cs.quantity >', 0);
             $this->db->where('mb.batch_status', 'ACTIVE');
+            $this->db->where('m.status', 'active');
+            $this->db->where('cs.status', 'ACTIVE');
             $this->db->order_by('mb.expiry_date', 'ASC');
             $this->db->order_by('m.medicine_name', 'ASC');
             $central_batches = $this->db->get()->result();
@@ -3300,6 +3328,7 @@ class Stock_model_new extends CI_Model
             );
             $this->db->join("hms_centers c", "mb.center_id = c.ID", "left");
             $this->db->where("mb.batch_status", "ACTIVE");
+            $this->db->where("m.status", "active");
             $this->db->where("mb.quantity_remaining >", 0);
             $this->db->order_by("mb.expiry_date", "ASC");
             return $this->db->get()->result();
@@ -3635,6 +3664,8 @@ class Stock_model_new extends CI_Model
                 $this->db->where('cs.center_id', $center_id); // Filter by selected center
                 $this->db->where('mb.vendor_id', $vendor_id); // Filter by selected vendor
                 $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
+                $this->db->where('m.status', 'active'); // Only active medicines
+                $this->db->where('cs.status', 'ACTIVE'); // Only active center stocks
 
                 // --- Ordering ---
                 $this->db->order_by('m.medicine_name', 'ASC');
@@ -3663,6 +3694,8 @@ class Stock_model_new extends CI_Model
                     $this->db->where('cs.quantity >', 0); // Must have stock at central warehouse
                     $this->db->where('mb.vendor_id', $vendor_id); // Filter by selected vendor
                     $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
+                    $this->db->where('m.status', 'active'); // Only active medicines
+                    $this->db->where('cs.status', 'ACTIVE'); // Only active central stocks
                     // --- Ordering ---
                     $this->db->order_by('m.medicine_name', 'ASC');
                     $this->db->order_by('mb.expiry_date', 'ASC');
@@ -3692,6 +3725,8 @@ class Stock_model_new extends CI_Model
                     $this->db->where('cs.center_id', $center_id); // Filter by selected center
                     $this->db->where('mb.vendor_id', $vendor_id); // Filter by selected vendor
                     $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
+                    $this->db->where('m.status', 'active'); // Only active medicines
+                    $this->db->where('cs.status', 'ACTIVE'); // Only active center stocks
                     // --- Ordering ---
                     $this->db->order_by('m.medicine_name', 'ASC');
                     $this->db->order_by('mb.expiry_date', 'ASC');
@@ -6805,6 +6840,7 @@ class Stock_model_new extends CI_Model
                     );
                     // Only show available central stocks
                     $this->db->where("mb.batch_status", "ACTIVE");
+                    $this->db->where("m.status", "active");
                     $this->db->where("cs.quantity >", 0);
                     $this->db->where("cs.status", "ACTIVE");
                     // --- FIX: Do not show expired stock ---
@@ -6856,6 +6892,7 @@ class Stock_model_new extends CI_Model
                     }
                     // Only show available center stocks
                     $this->db->where("mb.batch_status", "ACTIVE");
+                    $this->db->where("m.status", "active");
                     $this->db->where("ccs.quantity >", 0);
                     $this->db->where("ccs.status", "ACTIVE");
                     // --- FIX: Do not show expired stock ---
@@ -6903,6 +6940,7 @@ class Stock_model_new extends CI_Model
                     }
                     // Only show available center stocks
                     $this->db->where("mb.batch_status", "ACTIVE");
+                    $this->db->where("m.status", "active");
                     $this->db->where("ccs.quantity >", 0);
                     $this->db->where("ccs.status", "ACTIVE");
                     // --- FIX: Do not show expired stock ---
