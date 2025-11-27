@@ -2968,7 +2968,7 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         $bindings[] = $broad_procedure_count;
     }
 
- /* echo $consultation_sql = "
+   $consultation_sql = "
     SELECT
         T1.patient_id,
         MAX(T2.agent) AS agent,            
@@ -3003,9 +3003,127 @@ function patient_consultation_report_patination($limit, $page, $center, $start_d
         T1.reason_of_visit, 
         T1.billing_at
     ORDER BY T1.on_date DESC, T1.id DESC
-    LIMIT ?, ?"; */
+    LIMIT ?, ?"; 
 
-	 $consultation_sql = "SELECT 
+	/* $consultation_sql = "SELECT 
+    T1.patient_id, 
+    T2.agent, 
+    T2.councellor, 
+    T2.crm_id, 
+    T2.lead_source, 
+    T1.on_date, 
+    T1.reason_of_visit, 
+    T1.totalpackage, 
+    T1.payment_done, 
+    T1.discount_amount, 
+    T1.appointment_id, 
+    T1.doctor_id, 
+    T1.billing_at, 
+    T3.category, 
+    T3.procedures, 
+    T3.broad_procedure, 
+    T3.broad_procedure_count 
+FROM hms_consultation AS T1 
+INNER JOIN hms_appointments AS T2 
+    ON T1.patient_id = T2.paitent_id 
+INNER JOIN hms_patient_procedure AS T3 
+    ON T1.patient_id = T3.patient_id 
+WHERE 
+    T2.billed = '1' 
+    AND T2.lead_source != 'D/S' 
+     {$conditions}
+ORDER BY 
+    T1.on_date DESC, 
+    T1.id DESC LIMIT ?, ?";*/
+    // Add offset and limit to the bindings array
+    $bindings[] = (int) $offset;
+    $bindings[] = (int) $limit;
+
+    // --- Execute the Query Securely ---
+    $consultation_q = $this->db->query($consultation_sql, $bindings);
+    return $consultation_q->result_array();
+}
+
+
+function patient_export_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, $category, $procedures, $broad_procedure, $broad_procedure_count, $lead_source = '') {
+    // This array will hold the values for secure query binding
+    $bindings = [];
+
+    // Calculate offset for pagination
+    $offset = empty($page) || $page <= 1 ? 0 : ($page - 1) * $limit;
+
+    // --- Build Conditions Securely using '?' Placeholders ---
+    $conditions = '';
+
+    if (!empty($center)) {
+        $conditions .= " AND T1.billing_at = ?";
+        $bindings[] = $center;
+    }
+    if (!empty($patient_id)) {
+        $conditions .= " AND T1.patient_id = ?";
+        $bindings[] = $patient_id;
+    }
+    if (!empty($doctor_id)) {
+        $conditions .= " AND T1.doctor_id = ?";
+        $bindings[] = $doctor_id;
+    }
+    if (!empty($reason_of_visit)) {
+        $conditions .= " AND T1.reason_of_visit = ?";
+        $bindings[] = $reason_of_visit;
+    }
+    if (!empty($agent)) {
+        $conditions .= " AND T2.agent = ?";
+        $bindings[] = $agent;
+    }
+    
+    if (!empty($councellor)) {
+        $conditions .= " AND T2.councellor = ?"; 
+        $bindings[] = $councellor;
+    }
+
+    // Handle optional lead source filtering
+    if (!empty($lead_source)) {
+        if (strpos($lead_source, "','") !== false) {
+            $conditions .= " AND T2.lead_source IN (?)";
+        } else {
+            $conditions .= " AND T2.lead_source = ?";
+        }
+        $bindings[] = $lead_source;
+    }
+
+    // Secure Date Filtering (with typo correction)
+    if (!empty($start_date) && !empty($end_date)) {
+        $conditions .= " AND T1.on_date BETWEEN ? AND ?";
+        // ** TYPO FIX **
+        $conditions .= " AND T2.appoitmented_date BETWEEN ? AND ?"; 
+        array_push($bindings, $start_date, $end_date, $start_date, $end_date);
+    } else if (!empty($start_date)) {
+        $conditions .= " AND T1.on_date = ?";
+        $conditions .= " AND T2.appoitmented_date = ?"; // Typo fixed
+        array_push($bindings, $start_date, $start_date);
+    } else if (!empty($end_date)) {
+        $conditions .= " AND T1.on_date = ?";
+        $conditions .= " AND T2.appoitmented_date = ?"; // Typo fixed
+        array_push($bindings, $end_date, $end_date);
+    }
+	if (!empty($category)) {
+        $conditions .= " AND T3.category = ?";
+        $bindings[] = $category;
+    }
+    if (!empty($procedures)) {
+        $conditions .= " AND T3.procedures = ?";
+        $bindings[] = $procedures;
+    }
+	if (!empty($broad_procedure)) {
+        $conditions .= " AND T3.broad_procedure = ?";
+        $bindings[] = $broad_procedure;
+    }
+	if (!empty($broad_procedure_count)) {
+        $conditions .= " AND T3.broad_procedure_count = ?";
+        $bindings[] = $broad_procedure_count;
+    }
+
+ 	 $consultation_sql = "SELECT 
     T1.patient_id, 
     T2.agent, 
     T2.councellor, 
@@ -3043,9 +3161,6 @@ ORDER BY
     $consultation_q = $this->db->query($consultation_sql, $bindings);
     return $consultation_q->result_array();
 }
-
-
-
 
 
 
