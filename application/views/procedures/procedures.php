@@ -36,6 +36,9 @@
                      <th>Procedure</th>
                      <th>Type</th>
                      <th>Code</th>
+                     <th>Procedures</th>
+                     <th>Broad Procedure</th>
+                     <th>Broad Procedure Count</th>
                      <th>Price (Rupee)</th>
                      <th>Price (USD)</th>
                      <th>Center</th>
@@ -52,6 +55,9 @@
                      <td><?php echo $vl['procedure_name']?></td>
                      <td><?php echo $vl['category']?></td>
                      <td><?php echo $vl['code']?></td>
+                     <td><?php echo $vl['procedures']?></td>
+                     <td><?php echo $vl['broad_procedure']?></td>
+                     <td><?php echo $vl['broad_procedure_count']?></td>
                      <!-- <td><?php if($vl['parent_id'] == 0){echo '';}else{ $procedure_parent = $all_method->get_parent_procedure($vl['parent_id']); echo $procedure_parent['procedure_name'];} ?></td> -->
                      <td><?php echo '<i class="fa fa-inr" aria-hidden="true"></i> '.$vl['price']; ?></td>
                      <td><?php echo '<i class="fa fa-usd" aria-hidden="true"></i> '.$vl['usd_price']?></td>

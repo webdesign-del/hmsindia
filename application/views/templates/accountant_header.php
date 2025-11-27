@@ -185,7 +185,7 @@
                <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Revenue Reports<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
-                     <li> <a href="<?php echo base_url(); ?>accounts/consultation_origin">Consultation</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>accounts/consultation_origin?billing_at=&doctor_id=&reason_of_visit=First+Visit&category=&procedures=&broad_procedure=&lead_source=&start_date=&end_date=&iic_id=&agent=&councellor=&broad_procedure_count=1&btnsearch=">Consultation</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/investigation_origin">Investigation</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/procedure_origin">Procedure</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks/medicine_origin">Medicine</a> </li>

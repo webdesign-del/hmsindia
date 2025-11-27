@@ -53,6 +53,18 @@
                   <label for="item_name">Code (Required)</label>
                   <input value="" placeholder="Code" id="code" name="code" type="text" class="form-control validate" required>
                </div>
+                <div class="form-group col-sm-6 col-xs-12">
+                  <label for="item_name">Procedures (Required)</label>
+                  <input value="" placeholder="Procedures" id="procedures" name="procedures" type="text" class="form-control validate" required>
+               </div>
+                <div class="form-group col-sm-6 col-xs-12">
+                  <label for="item_name">Broad Procedure (Required)</label>
+                  <input value="" placeholder="Broad Procedure" id="broad_procedure" name="broad_procedure" type="text" class="form-control validate" required>
+               </div>
+                <div class="form-group col-sm-6 col-xs-12">
+                  <label for="item_name">Broad Procedure Count (Required)</label>
+                  <input value="" placeholder="Broad Procedure Count" id="broad_procedure_count" name="broad_procedure_count" type="number" class="form-control validate" required>
+               </div>
             </div>
             <div class="row">
               <div class="form-group col-sm-6 col-xs-12">

@@ -99,6 +99,9 @@ class Procedures extends CI_Controller {
 				$post_arr['price'] = $_POST['price'];
 				$post_arr['usd_price'] = round($_POST['price']/get_converstion_rate(), 2);unset($_POST['price']); 
 				$post_arr['code'] = $_POST['code'];unset($_POST['code']);
+				$post_arr['procedures'] = $_POST['procedures'];unset($_POST['procedures']);
+				$post_arr['broad_procedure'] = $_POST['broad_procedure'];unset($_POST['broad_procedure']);
+				$post_arr['broad_procedure_count'] = $_POST['broad_procedure_count'];unset($_POST['broad_procedure_count']);
 				$post_arr['parent_id'] = $_POST['parent_id'];unset($_POST['parent_id']);
 				$post_arr['status'] = $_POST['status'];unset($_POST['status']);
 				
@@ -151,6 +154,9 @@ class Procedures extends CI_Controller {
 					$post_arr['price'] = $_POST['price'];
 				    $post_arr['usd_price'] = round($_POST['price']/get_converstion_rate(), 2);unset($_POST['price']); 
 					$post_arr['code'] = $_POST['code'];unset($_POST['code']);
+					$post_arr['procedures'] = $_POST['procedures'];unset($_POST['procedures']);
+					$post_arr['broad_procedure'] = $_POST['broad_procedure'];unset($_POST['broad_procedure']);
+					$post_arr['broad_procedure_count'] = $_POST['broad_procedure_count'];unset($_POST['broad_procedure_count']);
 					$post_arr['status'] = $_POST['status'];unset($_POST['status']);
 					
 					$data = $this->procedures_model->update_procedure_data($post_arr, $item_id);
