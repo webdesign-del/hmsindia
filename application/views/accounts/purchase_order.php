@@ -73,6 +73,79 @@
     #grand_total_table td {
         padding: 8px;
     }
+    
+    /* Select2 styling for Approved By field */
+    .select2-container {
+        width: 100% !important;
+    }
+    #approved_by_select + .select2-container {
+        margin-top: 0;
+    }
+    .select2-container--default .select2-selection--multiple {
+        min-height: 34px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 0;
+        background-color: #fff;
+        line-height: 1.42857143;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+        padding: 2px 8px;
+        width: 100%;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: #5cb85c;
+        border: 1px solid #4cae4c;
+        color: #fff;
+        padding: 4px 10px;
+        margin: 2px 3px 2px 0;
+        border-radius: 3px;
+        display: inline-block;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+        color: #fff;
+        margin-right: 6px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+        color: #ffcccc;
+    }
+    .select2-container--default .select2-search--inline {
+        width: 100%;
+    }
+    .select2-container--default .select2-search--inline .select2-search__field {
+        margin-top: 2px;
+        height: 30px;
+        padding: 0 5px;
+        border: none;
+        outline: none;
+        width: 100% !important;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--multiple,
+    .select2-container--default.select2-container--open .select2-selection--multiple {
+        border-color: #66afe9;
+        outline: 0;
+        box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(102,175,233,.6);
+    }
+    .select2-dropdown {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .select2-results__option {
+        padding: 8px 12px;
+    }
+    .select2-results__option--highlighted {
+        background-color: #337ab7 !important;
+        color: #fff !important;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__clear {
+        margin-top: 5px;
+        margin-right: 5px;
+    }
 </Style>
 <div class="col-sm-12 col-xs-12">
     <?php if ($this->session->flashdata('success')) : ?>
@@ -290,42 +363,38 @@
                             </div>
                         </div>
                         <hr>
-                        <div class="row">
-                        </div>
 
                         <div class="form-group col-sm-12">
-                            <label class="col-sm-3 control-label"><strong>Approved By</strong> * </label>
-                            <div class="col-sm-9">
-                                <select name="approved_by[]" id="approved_by_select" class="form-control" multiple="multiple" required>
-                                    <?php
-                                    $all_method = &get_instance();
-                                    $all_method->load->model('Employee_model');
-                                    $approvers = $all_method->Employee_model->get_approvers_for_purchase_order();
-                                    $preselected_emails = [''];
-                                    if (!empty($approvers)) {
-                                        $unique_approvers = [];
-                                        $seen_emails = [];
-                                        foreach ($approvers as $approver) {
-                                            $email_lower = strtolower(trim($approver['email']));
-                                            if (!in_array($email_lower, $seen_emails) && !empty($email_lower)) {
-                                                $unique_approvers[] = $approver;
-                                                $seen_emails[] = $email_lower;
-                                            }
+                            <label><strong>Approved By</strong> * </label>
+                            <select name="approved_by[]" id="approved_by_select" class="form-control" multiple="multiple" required>
+                                <?php
+                                $all_method = &get_instance();
+                                $all_method->load->model('Employee_model');
+                                $approvers = $all_method->Employee_model->get_approvers_for_purchase_order();
+                                $preselected_emails = [''];
+                                if (!empty($approvers)) {
+                                    $unique_approvers = [];
+                                    $seen_emails = [];
+                                    foreach ($approvers as $approver) {
+                                        $email_lower = strtolower(trim($approver['email']));
+                                        if (!in_array($email_lower, $seen_emails) && !empty($email_lower)) {
+                                            $unique_approvers[] = $approver;
+                                            $seen_emails[] = $email_lower;
                                         }
-                                        foreach ($unique_approvers as $approver) {
-                                            $approver_name  = strtoupper($approver['name']);
-                                            $approver_email = $approver['email'];
-                                            $selected = in_array(strtolower($approver_email), array_map('strtolower', $preselected_emails)) ? 'selected' : '';
-                                            echo '<option value="' . htmlspecialchars($approver_email) . '" ' . $selected . '>' . htmlspecialchars($approver_name) . '</option>';
-                                        }
-                                    } else {
-                                        $selected = in_array('director@indiaivf.in', $preselected_emails) ? 'selected' : '';
-                                        echo '<option value="director@indiaivf.in" ' . $selected . '>DIRECTOR</option>';
                                     }
-                                    ?>
-                                </select>
-                                <p class="help-block">You can type a name to search and select one or more approvers.</p>
-                            </div>
+                                    foreach ($unique_approvers as $approver) {
+                                        $approver_name  = strtoupper($approver['name']);
+                                        $approver_email = $approver['email'];
+                                        $selected = in_array(strtolower($approver_email), array_map('strtolower', $preselected_emails)) ? 'selected' : '';
+                                        echo '<option value="' . htmlspecialchars($approver_email) . '" ' . $selected . '>' . htmlspecialchars($approver_name) . '</option>';
+                                    }
+                                } else {
+                                    $selected = in_array('director@indiaivf.in', $preselected_emails) ? 'selected' : '';
+                                    echo '<option value="director@indiaivf.in" ' . $selected . '>DIRECTOR</option>';
+                                }
+                                ?>
+                            </select>
+                            <p class="help-block" style="margin-top: 5px;">You can type a name to search and select one or more approvers.</p>
                         </div>
                         <br>
                         <div class="form-group col-sm-12">
@@ -410,15 +479,24 @@
     document.getElementById("po_other_charges_and_taxes").addEventListener("input", calculateTotal);
     // SCRIPT FOR SELECT2
     $(document).ready(function() {
-        // This script will run *after* the footer.php loads the Select2 library
+        // Initialize Select2 for Approved By field
         if ($('#approved_by_select').length) {
             $('#approved_by_select').select2({
-                placeholder: 'Search and select approvers',
+                placeholder: 'Search and select approvers...',
                 allowClear: true,
-                width: '100%' 
+                width: '100%',
+                closeOnSelect: false,
+                tags: false,
+                maximumSelectionLength: null,
+                language: {
+                    noResults: function() {
+                        return "No approvers found";
+                    },
+                    searching: function() {
+                        return "Searching...";
+                    }
+                }
             });
-            // This theme makes it look good with Bootstrap
-            $.fn.select2.defaults.set('theme', 'bootstrap');
         }
     });
     // $("#add_item_row").click(function() {

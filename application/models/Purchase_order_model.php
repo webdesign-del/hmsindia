@@ -4,7 +4,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Purchase_order_model extends CI_Model {
 
     public function insert_purchase_order($data) {
-        return $this->db->insert('hms_purchase_orders', $data);
+        $this->db->insert('hms_purchase_orders', $data);
+        return $this->db->insert_id();
     }
 
     // Count purchase orders with filters
@@ -445,13 +446,33 @@ class Purchase_order_model extends CI_Model {
     //     $query = $this->db->get('hms_purchase_orders');
     //     return $query->row_array(); // Returns a single associative array
     // }
-    // public function get_purchase_order_items($po_id)
-    // {
-    //     $this->db->where('po_id', $po_id);
-    //     $this->db->order_by('id', 'ASC'); 
-    //     $query = $this->db->get('hms_purchase_order_items'); 
-    //     return $query->result_array();
-    // }
+    // Get purchase order items by po_id
+    public function get_purchase_order_items($po_id) {
+        $this->db->flush_cache();
+        $this->db->where('po_id', $po_id);
+        $this->db->order_by('id', 'ASC'); 
+        $query = $this->db->get('hms_purchase_order_items'); 
+        return $query->result_array();
+    }
+    
+    // Get purchase order items by po_number
+    public function get_purchase_order_items_by_number($po_number) {
+        $this->db->flush_cache();
+        $po = $this->db->select('id')
+                       ->where('po_number', $po_number)
+                       ->get('hms_purchase_orders')
+                       ->row_array();
+        
+        if (!$po || !isset($po['id'])) {
+            return [];
+        }
+        
+        $this->db->flush_cache();
+        return $this->db->where('po_id', $po['id'])
+                        ->order_by('id', 'ASC')
+                        ->get('hms_purchase_order_items')
+                        ->result_array();
+    }
 
 
 }

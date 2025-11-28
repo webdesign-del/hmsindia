@@ -295,11 +295,26 @@
                                 }
                             }
                             
+                            // Check if GRN already exists for this PO
+                            $grn_exists = isset($grn_status[$vl['po_number']]) ? $grn_status[$vl['po_number']] : false;
+                            
                             if ($show_add_payment): ?>
-                                <a href="<?php echo base_url('accounts/purchase-order-payment/'.$vl['po_number']); ?>" 
-                                    class="btn btn-primary btn-sm pull-right">
-                                    <i class="glyphicon glyphicon-plus"></i>Add Payment
-                                </a>
+                                <div class="pull-right" style="display: inline-block;">
+                                    <?php if (!$grn_exists): ?>
+                                        <a href="<?php echo base_url('accounts/add_grn/'.$vl['po_number']); ?>" 
+                                            class="btn btn-success btn-sm" style="margin-right: 5px;">
+                                            <i class="glyphicon glyphicon-check"></i> Add GRN
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="btn btn-default btn-sm disabled" style="margin-right: 5px;" title="GRN already created">
+                                            <i class="glyphicon glyphicon-ok"></i> GRN Created
+                                        </span>
+                                    <?php endif; ?>
+                                    <a href="<?php echo base_url('accounts/purchase-order-payment/'.$vl['po_number']); ?>" 
+                                        class="btn btn-primary btn-sm">
+                                        <i class="glyphicon glyphicon-plus"></i> Add Payment
+                                    </a>
+                                </div>
                             <?php else: ?>
                                 <span class="pull-right" style="color: #6c757d; font-size: 12px; line-height: 30px;">
                                     <?php 

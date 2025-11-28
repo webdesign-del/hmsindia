@@ -358,6 +358,12 @@ $route['accounts/purchase-order-payment/(:any)'] = 'accounts/purchase_order_paym
 $route['accounts/save-purchase-order-payment/(:any)'] = 'accounts/save_payment_purchase_order/$1';
 $route['new_purchase_orders/status'] = 'new_purchase_orders/status';
 
+// GRN (Goods Receipt Note) routes
+$route['accounts/grn-list'] = 'accounts/grn_list';
+$route['accounts/add-grn/(:any)'] = 'accounts/add_grn/$1';
+$route['accounts/save-grn'] = 'accounts/save_grn';
+$route['accounts/view-grn/(:any)'] = 'accounts/view_grn/$1';
+
 // hub-spoke
 $route['centers/hub_spoke'] = 'centers/hub_spoke';
 $route['centers/add_hub_spoke'] = 'centers/add_hub_spoke';

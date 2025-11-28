@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-R-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Purchase Order - <?php echo htmlspecialchars($po['po_number']); ?></title>
     <style>
@@ -121,6 +121,36 @@
             padding: 10px;
             font-size: 14px;
             white-space: pre-wrap; /* This respects new lines in your remarks */
+        }
+        .items-section {
+            width: 100%;
+            margin-top: 20px;
+            border: 1px solid #000;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .items-table th,
+        .items-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+        .items-table th {
+            background-color: #eee;
+            font-weight: bold;
+            text-align: center;
+        }
+        .items-table td {
+            text-align: left;
+        }
+        .items-table .text-right {
+            text-align: right;
+        }
+        .items-table .text-center {
+            text-align: center;
         }
 
         .totals-section {
@@ -251,6 +281,82 @@
             </tr>
         </table>
 
+        <!-- Items Table -->
+        <?php 
+        // Initialize calculated totals
+        $calculated_total_basic = 0;
+        $calculated_total_gst = 0;
+        $calculated_total_quantity = 0;
+        
+        if (!empty($po_items)): ?>
+        <div class="items-section">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">S.No.</th>
+                        <th style="width: 35%;">Item Description</th>
+                        <th style="width: 10%;" class="text-center">Quantity</th>
+                        <th style="width: 12%;" class="text-right">Rate (Ex. GST)</th>
+                        <th style="width: 8%;" class="text-center">GST %</th>
+                        <th style="width: 15%;" class="text-right">Basic Total</th>
+                        <th style="width: 15%;" class="text-right">GST Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    $total_quantity = 0;
+                    $total_basic = 0;
+                    $total_gst = 0;
+                    $serial = 1;
+                    foreach ($po_items as $item): 
+                        $quantity = floatval($item['quantity']);
+                        $rate = floatval($item['rate']);
+                        $gst_rate = isset($item['gst_rate']) ? floatval($item['gst_rate']) : 0;
+                        $gst_amount = isset($item['gst_amount']) ? floatval($item['gst_amount']) : 0;
+                        $total_amount = isset($item['total_amount']) ? floatval($item['total_amount']) : 0;
+                        
+                        // Calculate basic total: quantity * rate
+                        $basic_total = $quantity * $rate;
+                        
+                        // If GST amount not stored, calculate it
+                        if ($gst_amount == 0 && $gst_rate > 0) {
+                            $gst_amount = $basic_total * ($gst_rate / 100);
+                        }
+                        
+                        $total_quantity += $quantity;
+                        $total_basic += $basic_total;
+                        $total_gst += $gst_amount;
+                    ?>
+                    <tr>
+                        <td class="text-center"><?php echo $serial++; ?></td>
+                        <td><?php echo htmlspecialchars($item['item_description']); ?></td>
+                        <td class="text-center"><?php echo number_format($quantity, 2); ?></td>
+                        <td class="text-right">₹<?php echo number_format($rate, 2); ?></td>
+                        <td class="text-center"><?php echo number_format($gst_rate, 2); ?>%</td>
+                        <td class="text-right">₹<?php echo number_format($basic_total, 2); ?></td>
+                        <td class="text-right">₹<?php echo number_format($gst_amount, 2); ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr style="font-weight: bold; background-color: #f0f0f0;">
+                        <td colspan="2" class="text-right">TOTAL:</td>
+                        <td class="text-center"><?php echo number_format($total_quantity, 2); ?></td>
+                        <td></td>
+                        <td></td>
+                        <td class="text-right">₹<?php echo number_format($total_basic, 2); ?></td>
+                        <td class="text-right">₹<?php echo number_format($total_gst, 2); ?></td>
+                    </tr>
+                </tfoot>
+                    </table>
+        </div>
+        <?php 
+        // Store calculated totals for use in totals section
+        $calculated_total_basic = $total_basic;
+        $calculated_total_gst = $total_gst;
+        $calculated_total_quantity = $total_quantity;
+        endif; ?>
+
         <div class="details-section">
             <div class="details-section-header">
                 Details / Remarks / Narration
@@ -271,21 +377,41 @@
                     </td>
                 <td style="width: 40%; vertical-align: top;">
                     <table class="totals-table">
+                        <?php
+                        // Get stored values from database
+                        $basic_amount = isset($po['po_basic_amount']) ? floatval($po['po_basic_amount']) : 0;
+                        $gst_amount = isset($po['po_gst_amount']) ? floatval($po['po_gst_amount']) : 0;
+                        $other_charges = isset($po['po_other_charges_and_taxes']) ? floatval($po['po_other_charges_and_taxes']) : 0;
+                        $po_total = isset($po['po_po_total']) ? floatval($po['po_po_total']) : 0;
+                        
+                        // If stored values are 0 or empty, use calculated values from items table
+                        if (($basic_amount == 0 || $gst_amount == 0 || $po_total == 0) && isset($calculated_total_basic) && isset($calculated_total_gst)) {
+                            if ($basic_amount == 0) {
+                                $basic_amount = $calculated_total_basic;
+                            }
+                            if ($gst_amount == 0) {
+                                $gst_amount = $calculated_total_gst;
+                            }
+                            if ($po_total == 0) {
+                                $po_total = $basic_amount + $gst_amount + $other_charges;
+                            }
+                        }
+                        ?>
                         <tr>
-                            <td class="label">Basic Amount</td>
-                            <td class="value"><?php echo number_format($po['po_basic_amount'], 2); ?></td>
+                            <td class="label">Basic Amount (Ex. GST)</td>
+                            <td class="value">₹<?php echo number_format($basic_amount, 2); ?></td>
                         </tr>
                         <tr>
                             <td class="label">GST Amount</td>
-                            <td class="value"><?php echo number_format($po['po_gst_amount'], 2); ?></td>
+                            <td class="value">₹<?php echo number_format($gst_amount, 2); ?></td>
                         </tr>
                         <tr>
-                            <td class="label">Other Charges</td>
-                            <td class="value"><?php echo number_format($po['po_other_charges_and_taxes'], 2); ?></td>
+                            <td class="label">Other Charges & Taxes</td>
+                            <td class="value">₹<?php echo number_format($other_charges, 2); ?></td>
                         </tr>
                         <tr>
-                            <td class="label" style="font-size: 16px;">PO Total</td>
-                            <td class="value" style="font-size: 16px; font-weight: bold;"><?php echo number_format($po['po_po_total'], 2); ?></td>
+                            <td class="label" style="font-size: 16px; font-weight: bold;">PO Total (Inc. All)</td>
+                            <td class="value" style="font-size: 16px; font-weight: bold;">₹<?php echo number_format($po_total, 2); ?></td>
                         </tr>
                     </table>
                 </td>
