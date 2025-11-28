@@ -6574,57 +6574,39 @@ public function save_daily_sales_report($data) {
         );
     }
 
-	function assessment_form_insert_payment($data){
-		$sql = "INSERT INTO `" . $this->config->item('db_prefix') . "opd_assessment` SET ";
-		$sqlArr = array();
+function assessment_form_insert_payment($patient_id, $data) {
+    
+    // 1. Add patient_id to the data array
+    $data['patient_id'] = $patient_id;
 
-		foreach( $data as $key => $value )
-		{
-			// FIX: Check if the value is an array (like checkboxes)
-			if (is_array($value)) {
-				// Convert array to a comma-separated string (e.g., "HSG,USG")
-				$value = implode(',', $value);
-			}
-
-			// Now it is safe to use addslashes
-			$sqlArr[] = " $key = '".addslashes($value)."'";
-		}
-
-		$sql .= implode(',' , $sqlArr);
-		
-		// Debugging (Optional: remove 'echo' in production)
-		// echo $sql; 
-
-		$res =  $this->db->query($sql);
-		
-		if ($res)
-		{
-			return $this->db->insert_id();
-		}
-		else
-		{
-			return 0;
-		}
-	}
-
-	function get_assessment_form($ID){
-		$result = array();
-		$sql = "Select * from `".$this->config->item('db_prefix')."opd_assessment` WHERE ID='".$ID."'";
-		$q = $this->db->query($sql);
-        $result = $q->result_array();
-        if (!empty($result))
-        {
-            return $result[0];
+    // 2. IMPORTANT: Loop through data and convert any Arrays to Strings
+    foreach ($data as $key => $value) {
+        if (is_array($value)) {
+            // Convert ['A', 'B'] to "A, B"
+            $data[$key] = implode(', ', $value);
         }
-        else
-        {
-            return $result;
-        }
-	}
+    }
+    
+    // 3. Remove 'action' if it still exists (safety check)
+    if(isset($data['action'])) {
+        unset($data['action']);
+    }
+
+    // 4. Insert into Database
+    $this->db->insert($this->config->item('db_prefix') . 'opd_assessment', $data);
+    
+    if ($this->db->affected_rows() > 0) {
+        return $this->db->insert_id();
+    } else {
+        // Optional: Log error for debugging
+        // log_message('error', 'Insert Failed: ' . $this->db->last_query());
+        return 0;
+    }
+}
 
 	function get_assessment_appointment_form($patient_id){
 		$result = array();
-		$sql = "Select * from `".$this->config->item('db_prefix')."appointments` WHERE paitent_id='".$patient_id."' and paitent_type='new_patient'";
+		 $sql = "Select * from `".$this->config->item('db_prefix')."appointments` WHERE paitent_id='".$patient_id."' and paitent_type='new_patient'";
 		$q = $this->db->query($sql);
         $result = $q->result_array();
         if (!empty($result))

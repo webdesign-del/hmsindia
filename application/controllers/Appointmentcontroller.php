@@ -123,6 +123,10 @@ class Appointmentcontroller extends CI_Controller {
 				$center = $_SESSION['logged_billing_manager']['center'];
 			} elseif (!empty($_SESSION['logged_counselor']['center'])) {
 				$center = $_SESSION['logged_counselor']['center'];
+			} elseif (!empty($_SESSION['logged_telecaller']['center'])) {
+				$center = $_SESSION['logged_telecaller']['center'];
+			}elseif (!empty($_SESSION['logged_doctor']['center'])) {
+				$center = $_SESSION['logged_doctor']['center'];
 			} else {
 				$center = null; 
 			}
@@ -227,6 +231,8 @@ class Appointmentcontroller extends CI_Controller {
 			die();
 		}
 	}
+
+	
 	
 /*	public function pending_consultation_billing()
 	{

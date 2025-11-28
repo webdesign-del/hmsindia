@@ -8414,33 +8414,39 @@ private function get_patient_name($patient_id) {
 	}
 
 
-function assessment_form($patient_id){
-	$logg = checklogin();
-	if($logg['status'] == true){
-		if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_assessment_form'){
-			unset($_POST['action']);
-			//var_dump($_POST);
-			$data = $this->accounts_model->assessment_form_insert_payment($_POST);
-			//die();
-			if($data > 0){
-				header("location:" .base_url(). "accounts/assessment_form?m=".base64_encode('Item added successfully !').'&t='.base64_encode('success'));
-				die();
-			}else{
-				header("location:" .base_url(). "accounts/assessment_form?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
-				die();
-			}				
-		}
-		$data = array();
-		$template = get_header_template($logg['role']);
-		$this->load->view($template['header']);
-		//$data['data'] = $this->accounts_model->get_assessment_form($patient_id);
-		$data['data'] = $this->accounts_model->get_assessment_appointment_form($patient_id);
-		$this->load->view('accounts/assessment_form', $data);
-		$this->load->view($template['footer']);
-	}else{
-		header("Location: " . base_url() . "accounts/assessment_form");
-		die();
-	}
+function assessment_form($patient_id = 0){ // Keep the = 0 fix from before
+    $logg = checklogin();
+    if($logg['status'] == true){
+        if(isset($_POST['action']) && !empty($_POST['action']) && $_POST['action'] == 'add_assessment_form'){
+            unset($_POST['action']);
+            
+            // FIX: Pass $patient_id as the first argument
+            $data = $this->accounts_model->assessment_form_insert_payment($patient_id, $_POST);
+            
+            if($data > 0){
+                header("location:" .base_url(). "accounts/assessment_form_list/");
+                die();
+            }else{
+                header("location:" .base_url(). "accounts/assessment_form?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+                die();
+            }               
+        }
+        $data = array();
+        $template = get_header_template($logg['role']);
+        $this->load->view($template['header']);
+        
+        if($patient_id > 0){
+            $data['data'] = $this->accounts_model->get_assessment_appointment_form($patient_id);
+        } else {
+            $data['data'] = array();
+        }
+        
+        $this->load->view('accounts/assessment_form', $data);
+        $this->load->view($template['footer']);
+    }else{
+        header("Location: " . base_url() . "accounts/assessment_form");
+        die();
+    }
 }
 
 public function assessment_form_list(){
@@ -8478,21 +8484,7 @@ public function assessment_form_list(){
 			die();
 		}
 	}
-function assessment_print($ID){
-	$logg = checklogin();
-	if($logg['status'] == true){
-		$data = array();
-		$template = get_header_template($logg['role']);
-		$this->load->view($template['header']);
-		$data['data'] = $this->accounts_model->get_assessment_form($ID);
-		//$data['data'] = $this->accounts_model->get_assessment_appointment_form($ID);
-		$this->load->view('accounts/assessment_print', $data);
-		$this->load->view($template['footer']);
-	}else{
-		header("Location: " . base_url() . "accounts/assessment_form");
-		die();
-	}
-}
+
 
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 

@@ -534,7 +534,7 @@ textarea {
                             
                             <div class="form-group">
                                 <label class="label" for="pastSurgicalHistory">Past Surgical History</label>
-                                <textarea id="past_surgical_history" id="past_surgical_history" class="textarea" placeholder="LSCS, laparoscopy, myomectomy, etc."></textarea>
+                                <textarea id="past_surgical_history" name="past_surgical_history" class="textarea" placeholder="LSCS, laparoscopy, myomectomy, etc."></textarea>
                             </div>
                         </section>
                         

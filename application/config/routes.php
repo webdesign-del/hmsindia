@@ -247,6 +247,8 @@ $route['procedure_report_status/(:any)/(:any)/(:any)/(:any)'] = 'doctors/procedu
 
 $route['jd_appointments'] = 'doctors/junior_doctor_appointments';
 
+//$route['accounts/assessment_form/(:num)'] = 'accounts/assessment_form/$1';
+
 
 
 

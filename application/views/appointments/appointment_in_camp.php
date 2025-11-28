@@ -141,6 +141,13 @@
                      <td><?php echo $vl['camp_name']; ?></td>
                      <td><?php echo $vl['reason_of_visit']?></td>
                      <td><?php echo $vl['lead_source']?></td>
+                       <?php if (!empty($_SESSION['logged_billing_manager']['center'])) {
+				$center = $_SESSION['logged_billing_manager']['center'];
+			} elseif (!empty($_SESSION['logged_counselor']['center'])) {
+				$center = $_SESSION['logged_counselor']['center'];
+			} elseif (!empty($_SESSION['logged_telecaller']['center'])) {
+				$center = $_SESSION['logged_telecaller']['center'];
+			  ?><?php if($vl['paitent_type'] == 'new_patient'){ ?>
                      <td class="role appint_td_<?php echo $vl['ID']?>">
                         <?php if($vl['status'] == 'consultation_done'){echo 'Consultation Done';}
                            else{ 
@@ -183,12 +190,18 @@
                            }
                            ?>
                      </td>
-                     <td>
+                   
+                     <td>   
                         <a target="_blank" href="<?php echo base_url(); ?>accounts/patient_update?ID=<?php echo $vl['ID']?>">Edit</a>	
-                        <?php if($vl['paitent_type'] == 'new_patient'){ ?>
                         <a target="_blank" href="<?php echo base_url('registation/'.$vl['ID']); ?>" class="btn btn-primary">Registration</a>
-                        <?php } ?>	
                      </td>
+                       <?php }} ?>	
+
+                     <?php if($vl['status'] == "in_clinic"){ if (!empty($_SESSION['logged_doctor']['center'])) { ?>
+                        <td> 
+                           <a target="_blank" href="<?php echo base_url('accounts/assessment_form/'.$vl['paitent_id']); ?>" class="btn btn-primary">Assessment Sheet</a>                     
+                        </td> <?php }} ?>	
+
                   </tr>
                   <?php $count++; } ?>
                   <tr>

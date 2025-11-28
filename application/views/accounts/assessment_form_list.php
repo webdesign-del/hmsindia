@@ -4,14 +4,14 @@
  <div class="row card-content" style="margin-bottom:20px;">
       <div class="col-md-12"><h3>Assessment Form List</h3></div>
       <div class="clearfix"></div>
-        <form action="<?php echo base_url().'accounts/wallet_list'; ?>" method="get">
+        <form action="<?php echo base_url().'accounts/assessment_form_list'; ?>" method="get">
 		        <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Patient Id</label>
                 <input type="text" class="form-control" id="patient_id" name="patient_id" value="<?php echo $patient_id;?>" />
             </div>
             <div class="col-sm-2" style="margin-top: 30px;">
             	<button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>
-              <a href="<?php echo base_url().'accounts/wallet_list'; ?>" style="text-decoration: none;">
+              <a href="<?php echo base_url().'accounts/assessment_form_list'; ?>" style="text-decoration: none;">
 				<button name="btnreset" id="btnreset" type="button"  class="btn btn-secondary">RESET</button>
 				</a>
             </div>
@@ -37,17 +37,23 @@
 
                   <th>S.No.</th>
 
-                  <th>Date</th>
+                  <th>Patient Id</th>
 
-                  <th>Centre</th>
+                  <th>Name</th>
 
-                  <th>Patient Name</th>
+                  <th>Spouse Name</th>
 
-                  <th>Age</th>
+                  <th>Patient Age</th>
 
-                  <th>Type of Infertility</th>
+                  <th>Spouse Age</th>
 
-				           <th>Doctor / Counsellor Name</th>
+				          <th>Past Medical History</th>
+
+                  <th>Past Surgical History</th>
+
+                  <th>Diagnosis</th>
+
+                  <th>Investigation</th>
 				</tr>
 
               </thead>
@@ -61,23 +67,21 @@
 
                    <td><?php echo $vl['patient_id']; ?></td>
 
-                  <td><?php echo $vl['date']; ?></td>
-                  
-                  <td><?php echo $vl['centre']; ?></td>
-
                   <td><?php echo $vl['name']; ?></td>
+                  
+                  <td><?php echo $vl['spouse_name']; ?></td>
 
-                  <td><?php echo $vl['age']; ?></td>
+                  <td><?php echo $vl['patient_age']; ?></td>
 
-                  <td><?php echo $vl['infertilityType']; ?></td>
+                  <td><?php echo $vl['spouse_age']; ?></td>
 
-                  <td><?php echo $vl['counsellor_name']; ?></td>
+                  <td><?php echo $vl['past_medical_history']; ?></td>
 
-                  <td>
-                    <a href="<?php echo base_url('accounts/assessment_print/' . $vl['ID']); ?>" target="_blank" class="button button-secondary">
-                        📄 Print PDF
-                    </a>
-                  </td>
+                  <td><?php echo $vl['past_surgical_history']; ?></td>
+
+                  <td><?php echo $vl['diagnosis']; ?></td>
+
+                  <td><?php echo $vl['investigation']; ?></td>
 				</tr>
 
               <?php $count++;} ?>

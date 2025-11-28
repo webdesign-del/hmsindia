@@ -70,6 +70,7 @@
 	        <li><a href="<?php echo base_url(); ?>appointment">Book appointment</a></li>
 	        <li><a href="<?php echo base_url(); ?>follow-up-appointment">Book Follow Up</a></li>
             <li><a href="<?php echo base_url(); ?>my_appointments">My appointments</a></li>
+             <li><a href="<?php echo base_url(); ?>my_appointments_camp">My appointments in camp</a></li>
          </ul>
       </li>
 			</ul>
