@@ -2053,19 +2053,29 @@ public function export_consultation_csv() {
     $category = $this->input->get('category');
     $procedures = $this->input->get('procedures');
     $broad_procedure = $this->input->get('broad_procedure');
-	$broad_procedure_count = $this->input->get('broad_procedure_count');
-	
+    $broad_procedure_count = $this->input->get('broad_procedure_count');
     
+    // Get page parameter or default to 1
+    $page = $this->input->get('page') ?: 1;
 
     // 2. Call Model with High Limit (to get all records)
     $report_data = $this->accounts_model->patient_export_report_patination(
         100000, // Limit
-        0,      // Page
+        $page,  // Page
         $center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id, $agent, $councellor, 
         $category, $procedures, $broad_procedure, $broad_procedure_count, $lead_source
     );
 
-    // 3. Create CSV File
+    // 3. Debug: Check if data is returned
+    if (empty($report_data)) {
+        // Add debug headers
+        header("Content-Type: text/plain");
+        echo "No data found. Check your filters and database.\n";
+        echo "SQL Conditions: " . $this->db->last_query() . "\n";
+        exit;
+    }
+
+    // 4. Create CSV File
     $filename = 'consultation_report_' . date('Ymd') . '.csv';
     header("Content-Description: File Transfer");
     header("Content-Disposition: attachment; filename=$filename");
@@ -2073,30 +2083,31 @@ public function export_consultation_csv() {
     
     $file = fopen('php://output', 'w');
 
-    // 4. Write Headers
+    // 5. Write Headers
     $header = array(
-        "Patient ID", "Agent", "Counsellor", "Lead Source", "Visit Date", 
+        "Patient ID", "Agent", "Counsellor", "CRM ID", "Lead Source", "Visit Date", 
         "Reason", "Doctor ID", "Total Package", "Payment Done", 
-        "Category", "Procedure","Broad Procedure", "Broad Procedure Count"
+        "Category", "Procedure", "Broad Procedure", "Broad Procedure Count"
     );
     fputcsv($file, $header);
 
-    // 5. Write Data Rows
+    // 6. Write Data Rows
     foreach ($report_data as $row) {
         $line = array(
-            $row['patient_id'],
-            $row['agent'],
-            $row['councellor'],
-            $row['lead_source'],
-            $row['on_date'],
-            $row['reason_of_visit'],
-            $row['doctor_id'],
-            $row['totalpackage'],
-            $row['payment_done'],
-            $row['category'],
-            $row['procedures'],
-			$row['broad_procedure'],
-			$row['broad_procedure_count']
+            $row['patient_id'] ?? '',
+            $row['agent'] ?? '',
+            $row['councellor'] ?? '',
+            $row['crm_id'] ?? '',
+            $row['lead_source'] ?? '',
+            $row['on_date'] ?? '',
+            $row['reason_of_visit'] ?? '',
+            $row['doctor_id'] ?? '',
+            $row['totalpackage'] ?? '0',
+            $row['payment_done'] ?? '0',
+            $row['category'] ?? '',
+            $row['procedures'] ?? '',
+            $row['broad_procedure'] ?? '',
+            $row['broad_procedure_count'] ?? ''
         );
         fputcsv($file, $line);
     }
