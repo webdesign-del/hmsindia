@@ -1120,6 +1120,8 @@ class Stocks_new extends CI_Controller
             $this->load->model('Stock_model_new'); // Load model at the top
             // --- Handle Form Submission ---
             if ($this->input->post("action") == "add_batch") {
+                var_dump($_POST);
+                die;
                 $this->form_validation->set_rules("medicine_id", "Medicine", "required");
                 $this->form_validation->set_rules("vendor_id", "Vendor", "required");
                 // $this->form_validation->set_rules("batch_number", "Batch Number", "required");
@@ -1462,7 +1464,7 @@ class Stocks_new extends CI_Controller
                     // Convert date format if needed
                     $expiry_date_formatted = $this->convertExcelDate($expiry_date);
                     if (!$expiry_date_formatted) {
-                        $errors[] = "Row $row: Invalid Expiry Date format";
+                        $errors[] = "Row $row: Invalid Expiry Date format (Value: '$expiry_date'). Expected format: YYYY-MM-DD, DD/MM/YYYY, or DD-MM-YYYY";
                         $errorCount++;
                         continue;
                     }
@@ -1498,7 +1500,18 @@ class Stocks_new extends CI_Controller
 
                     // Convert dates
                     $purchase_date_formatted = !empty($purchase_date) ? $this->convertExcelDate($purchase_date) : date('Y-m-d');
+                    if (!empty($purchase_date) && !$purchase_date_formatted) {
+                        $errors[] = "Row $row: Invalid Purchase Date format (Value: '$purchase_date'). Expected format: YYYY-MM-DD, DD/MM/YYYY, or DD-MM-YYYY";
+                        $errorCount++;
+                        continue;
+                    }
+                    
                     $invoice_date_formatted = !empty($invoice_date) ? $this->convertExcelDate($invoice_date) : null;
+                    if (!empty($invoice_date) && !$invoice_date_formatted) {
+                        $errors[] = "Row $row: Invalid Invoice Date format (Value: '$invoice_date'). Expected format: YYYY-MM-DD, DD/MM/YYYY, or DD-MM-YYYY";
+                        $errorCount++;
+                        continue;
+                    }
 
                     // Get medicine details for pack_size
                     $medicine_details = $this->Stock_model_new->get_medicine_details_by_id($medicine_id);
@@ -1554,11 +1567,23 @@ class Stocks_new extends CI_Controller
                         $successCount++;
                     } else {
                         $db_error = $this->db->error();
-                        if ($db_error['code'] == 1062) {
-                            $errors[] = "Row $row: Batch '$batch_number' already exists for this medicine";
-                        } else {
-                            $errors[] = "Row $row: Failed to insert batch '$batch_number'";
+                        $error_msg = "Row $row: Failed to insert batch '$batch_number'";
+                        
+                        if (!empty($db_error['code'])) {
+                            if ($db_error['code'] == 1062) {
+                                $error_msg = "Row $row: Batch '$batch_number' already exists for this medicine (Duplicate entry)";
+                            } elseif ($db_error['code'] == 1452) {
+                                $error_msg = "Row $row: Invalid foreign key reference (Medicine ID: $medicine_id or Vendor ID: $vendor_id not found)";
+                            } elseif ($db_error['code'] == 1048) {
+                                $error_msg = "Row $row: Required field is NULL (Batch: '$batch_number')";
+                            } else {
+                                $error_msg = "Row $row: Database error (Code: {$db_error['code']}) - " . ($db_error['message'] ?? 'Unknown error');
+                            }
+                        } elseif (!empty($db_error['message'])) {
+                            $error_msg .= " - " . $db_error['message'];
                         }
+                        
+                        $errors[] = $error_msg;
                         $errorCount++;
                     }
                 }
@@ -1578,18 +1603,40 @@ class Stocks_new extends CI_Controller
                 }
 
                 if ($errorCount > 0 && !empty($errors)) {
-                    $errorMessage = "Errors encountered:<br>" . implode("<br>", array_slice($errors, 0, 10));
-                    if (count($errors) > 10) {
-                        $errorMessage .= "<br>... and " . (count($errors) - 10) . " more errors.";
+                    $errorMessage = "<strong>Total Errors: $errorCount</strong><br><br>";
+                    $errorMessage .= "<ol style='margin-left: 20px;'>";
+                    $displayCount = min(count($errors), 50); // Show up to 50 errors
+                    for ($i = 0; $i < $displayCount; $i++) {
+                        $errorMessage .= "<li>" . htmlspecialchars($errors[$i]) . "</li>";
+                    }
+                    $errorMessage .= "</ol>";
+                    if (count($errors) > 50) {
+                        $errorMessage .= "<br><strong>... and " . (count($errors) - 50) . " more errors. Please fix the above errors and try again.</strong>";
                     }
                     $this->session->set_flashdata("error_details", $errorMessage);
                 }
 
                 redirect("stocks_new/add_batch");
-            } catch (Exception $e) {
+            } catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
                 $this->session->set_flashdata(
                     "error",
-                    "Error reading Excel file: " . $e->getMessage(),
+                    "Error reading Excel file: " . $e->getMessage() . " (File may be corrupted or in wrong format)",
+                );
+                redirect("stocks_new/add_batch");
+            } catch (Exception $e) {
+                $errorDetails = "Error: " . $e->getMessage();
+                if ($e->getFile()) {
+                    $errorDetails .= " in file: " . basename($e->getFile()) . " at line " . $e->getLine();
+                }
+                $this->session->set_flashdata(
+                    "error",
+                    $errorDetails,
+                );
+                $this->session->set_flashdata(
+                    "error_details",
+                    "<strong>Exception Details:</strong><br>" . htmlspecialchars($e->getMessage()) . 
+                    "<br><br><strong>File:</strong> " . htmlspecialchars($e->getFile()) . 
+                    "<br><strong>Line:</strong> " . $e->getLine()
                 );
                 redirect("stocks_new/add_batch");
             }

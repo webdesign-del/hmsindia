@@ -28,6 +28,29 @@
                     <i class="fa fa-file-excel-o"></i> Import Batches from Excel
                 </div>
                 <div class="panel-body">
+                    <?php if($this->session->flashdata('error')): ?>
+                        <div class="alert alert-danger">
+                            <strong><i class="fa fa-exclamation-triangle"></i> Error:</strong>
+                            <?php echo $this->session->flashdata('error'); ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if($this->session->flashdata('error_details')): ?>
+                        <div class="alert alert-danger">
+                            <strong><i class="fa fa-exclamation-triangle"></i> Import Errors:</strong>
+                            <div style="max-height: 400px; overflow-y: auto; margin-top: 10px; padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;">
+                                <?php echo $this->session->flashdata('error_details'); ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if($this->session->flashdata('success')): ?>
+                        <div class="alert alert-success">
+                            <strong><i class="fa fa-check-circle"></i> Success:</strong>
+                            <?php echo $this->session->flashdata('success'); ?>
+                        </div>
+                    <?php endif; ?>
+                    
                     <div class="alert alert-info">
                         <strong><i class="fa fa-info-circle"></i> Instructions:</strong>
                             <ul style="margin-bottom: 0;">
@@ -84,7 +107,24 @@
                     
                     <?php if($this->session->flashdata('error')): ?>
                         <div class="alert alert-danger">
+                            <strong><i class="fa fa-exclamation-triangle"></i> Error:</strong>
                             <?php echo $this->session->flashdata('error'); ?>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if($this->session->flashdata('error_details')): ?>
+                        <div class="alert alert-danger">
+                            <strong><i class="fa fa-exclamation-triangle"></i> Import Errors:</strong>
+                            <div style="max-height: 400px; overflow-y: auto; margin-top: 10px;">
+                                <?php echo $this->session->flashdata('error_details'); ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <?php if($this->session->flashdata('success')): ?>
+                        <div class="alert alert-success">
+                            <strong><i class="fa fa-check-circle"></i> Success:</strong>
+                            <?php echo $this->session->flashdata('success'); ?>
                         </div>
                     <?php endif; ?>
                     
