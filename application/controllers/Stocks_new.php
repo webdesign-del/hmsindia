@@ -109,6 +109,116 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    /**
+     * Export medicines list to Excel or PDF
+     */
+    public function export_medicines_list()
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+
+        $format = $this->input->get('format'); // 'excel' or 'pdf'
+
+        // Get filter parameters
+        $medicine_name = $this->input->get("medicine_name");
+        $generic_name = $this->input->get("generic_name");
+        $brand_id = $this->input->get("brand_id");
+        $category = $this->input->get("category");
+
+        // Get medicines data with same filters as medicines() method
+        $medicines = $this->Stock_model_new->get_all_medicines(
+            $medicine_name,
+            $generic_name,
+            $brand_id,
+            $category
+        );
+
+        if (empty($medicines)) {
+            $this->session->set_flashdata('error', 'No medicines found to export.');
+            redirect('stocks_new/medicines');
+            return;
+        }
+
+        if ($format == 'excel') {
+            $this->export_medicines_excel($medicines);
+        } elseif ($format == 'pdf') {
+            $this->export_medicines_pdf($medicines);
+        } else {
+            // Default to Excel
+            $this->export_medicines_excel($medicines);
+        }
+    }
+
+    /**
+     * Export medicines to Excel
+     */
+    private function export_medicines_excel($medicines)
+    {
+        // Set headers for Excel download
+        $filename = 'Medicines_List_' . date('Y-m-d_H-i-s') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+
+        // Create file pointer
+        $output = fopen('php://output', 'w');
+
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Add headers
+        $headers = [
+            'Medicine Code',
+            'Medicine Name',
+            'Generic Name',
+            'Brand',
+            'Strength',
+            'Unit',
+            'Category',
+            'Min Stock Level',
+            'Max Stock Level',
+            'Status'
+        ];
+        fputcsv($output, $headers);
+
+        // Add data rows
+        foreach ($medicines as $medicine) {
+            $row = [
+                $medicine->medicine_code ?? 'N/A',
+                $medicine->medicine_name ?? 'N/A',
+                $medicine->generic_name ?? 'N/A',
+                $medicine->brand_name ?? 'N/A',
+                $medicine->strength ?? 'N/A',
+                $medicine->unit ?? 'N/A',
+                $medicine->category ?? 'N/A',
+                $medicine->min_stock_level ?? 0,
+                $medicine->max_stock_level ?? 0,
+                isset($medicine->status) ? ucfirst($medicine->status) : 'N/A'
+            ];
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit();
+    }
+
+    /**
+     * Export medicines to PDF (HTML print version)
+     */
+    private function export_medicines_pdf($medicines)
+    {
+        // Create a print-friendly HTML page that can be printed as PDF
+        $data = [
+            'medicines' => $medicines,
+            'generated_date' => date('M d, Y H:i A')
+        ];
+        
+        // Load the print view
+        $this->load->view('stocks_new/print_medicines_list', $data);
+    }
+
     public function add_medicine()
     {
         $logg = checklogin();

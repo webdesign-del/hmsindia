@@ -26,6 +26,9 @@
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-info">
                             <i class="fa fa-building-o"></i> View Stock Levels
                         </a>
+                        <a href="<?php echo base_url('stocks_new/export_medicines_list?format=excel'); ?>" class="btn btn-success">
+                            <i class="fa fa-file-excel-o"></i> Export to Excel
+                        </a>
                     </div>
                 </div>
             </div>
