@@ -78,8 +78,8 @@
                 <tr>
                     <td>Medicine</td>
                     <td><?php echo $report_data['medicine_customer_count']; ?></td>
-                    <td><?php echo $report_data['medicine_bill_count']; ?></td>
                     <td class="numeric"><?php echo $report_data['medicine_amount']; ?></td>
+                    <td><?php echo $report_data['medicine_bill_count']; ?></td>
                 </tr>
                 <tr>
                     <td>Diagnosis</td>
@@ -90,8 +90,8 @@
                 <tr>
                     <td>Consultation / Registration - Paid</td>
                     <td><?php echo $report_data['consultation_customer_count']; ?></td>
-                    <td><?php echo $report_data['consultation_bill_count']; ?></td>
                     <td class="numeric"><?php echo $report_data['consultation_amount']; ?></td>
+                    <td><?php echo $report_data['consultation_bill_count']; ?></td>
                 </tr>
             </tbody>
         </table>
