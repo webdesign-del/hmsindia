@@ -1555,7 +1555,7 @@ class Stocks_new extends CI_Controller
                     }
 
                     // Calculate quantity in units (multiply packs by pack_size)
-                    $quantity_purchased_units = floatval($quantity_purchased) * $pack_size;
+                    $quantity_purchased_units = floatval($quantity_purchased);
 
                     // Get prices (these are pack prices from Excel)
                     // If pack_size is 1, prices are already per unit, otherwise convert
