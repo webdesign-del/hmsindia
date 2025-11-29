@@ -1394,19 +1394,47 @@ class Stocks_new extends CI_Controller
                     // Get cell values using coordinate-based access
                     $getCellValue = function($colIndex, $rowNum) use ($worksheet) {
                         $columnLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
-                        return $worksheet->getCell($columnLetter . $rowNum)->getValue();
+                        $cell = $worksheet->getCell($columnLetter . $rowNum);
+                        // Try to get calculated value first (handles formulas), then fall back to value
+                        try {
+                            $value = $cell->getCalculatedValue();
+                            // If calculated value is null or empty, try getValue
+                            if ($value === null || $value === '') {
+                                $value = $cell->getValue();
+                            }
+                        } catch (\Exception $e) {
+                            $value = $cell->getValue();
+                        }
+                        return $value;
+                    };
+                    
+                    // Helper function to clean numeric values (remove currency symbols, commas, etc.)
+                    $cleanNumericValue = function($value) {
+                        if ($value === null || $value === '') {
+                            return '';
+                        }
+                        // Convert to string first
+                        $value = (string)$value;
+                        // Remove currency symbols, commas, spaces, and other formatting
+                        $value = str_replace(['₹', '$', '€', '£', ',', ' ', 'Rs.', 'Rs', 'INR'], '', $value);
+                        // Remove any non-numeric characters except decimal point and minus sign
+                        $value = preg_replace('/[^0-9.\-]/', '', $value);
+                        return trim($value);
                     };
                     
                     // Get medicine identifier
-                    $medicine_code = isset($colMap["medicine_code"]) ? trim($getCellValue($colMap["medicine_code"], $row)) : "";
-                    $medicine_name = isset($colMap["medicine_name"]) ? trim($getCellValue($colMap["medicine_name"], $row)) : "";
+                    $medicine_code = isset($colMap["medicine_code"]) ? trim((string)$getCellValue($colMap["medicine_code"], $row)) : "";
+                    $medicine_name = isset($colMap["medicine_name"]) ? trim((string)$getCellValue($colMap["medicine_name"], $row)) : "";
                     
-                    $vendor_name = trim($getCellValue($colMap["vendor"], $row));
-                    $batch_number = trim($getCellValue($colMap["batch_number"], $row));
-                    $expiry_date = trim($getCellValue($colMap["expiry_date"], $row));
-                    $purchase_price = trim($getCellValue($colMap["purchase_price"], $row));
-                    $selling_price = trim($getCellValue($colMap["selling_price"], $row));
-                    $quantity_purchased = trim($getCellValue($colMap["quantity_purchased"], $row));
+                    $vendor_name = trim((string)$getCellValue($colMap["vendor"], $row));
+                    $batch_number = trim((string)$getCellValue($colMap["batch_number"], $row));
+                    $expiry_date = trim((string)$getCellValue($colMap["expiry_date"], $row));
+                    $purchase_price_raw = $getCellValue($colMap["purchase_price"], $row);
+                    $purchase_price = $cleanNumericValue($purchase_price_raw);
+                    $selling_price_raw = $getCellValue($colMap["selling_price"], $row);
+                    $selling_price = $cleanNumericValue($selling_price_raw);
+                    $quantity_purchased_raw = $getCellValue($colMap["quantity_purchased"], $row);
+                    $quantity_purchased = $cleanNumericValue($quantity_purchased_raw);
 
                     // Skip empty rows
                     if (empty($batch_number) && empty($medicine_code) && empty($medicine_name)) {
@@ -1471,32 +1499,36 @@ class Stocks_new extends CI_Controller
 
                     // Validate purchase price
                     if (empty($purchase_price) || !is_numeric($purchase_price)) {
-                        $errors[] = "Row $row: Purchase Price must be a valid number";
+                        $raw_display = is_null($purchase_price_raw) ? 'empty' : "'" . (string)$purchase_price_raw . "'";
+                        $errors[] = "Row $row: Purchase Price must be a valid number (Found: $raw_display)";
                         $errorCount++;
                         continue;
                     }
 
                     // Validate selling price
                     if (empty($selling_price) || !is_numeric($selling_price)) {
-                        $errors[] = "Row $row: Selling Price must be a valid number";
+                        $raw_display = is_null($selling_price_raw) ? 'empty' : "'" . (string)$selling_price_raw . "'";
+                        $errors[] = "Row $row: Selling Price must be a valid number (Found: $raw_display)";
                         $errorCount++;
                         continue;
                     }
 
                     // Validate quantity
                     if (empty($quantity_purchased) || !is_numeric($quantity_purchased) || $quantity_purchased <= 0) {
-                        $errors[] = "Row $row: Quantity Purchased must be a valid positive number";
+                        $raw_display = is_null($quantity_purchased_raw) ? 'empty' : "'" . (string)$quantity_purchased_raw . "'";
+                        $errors[] = "Row $row: Quantity Purchased must be a valid positive number (Found: $raw_display)";
                         $errorCount++;
                         continue;
                     }
 
                     // Get optional fields
-                    $purchase_date = isset($colMap["purchase_date"]) ? trim($getCellValue($colMap["purchase_date"], $row)) : "";
-                    $mrp = isset($colMap["mrp"]) ? trim($getCellValue($colMap["mrp"], $row)) : "";
-                    $invoice_number = isset($colMap["invoice_number"]) ? trim($getCellValue($colMap["invoice_number"], $row)) : "";
-                    $invoice_date = isset($colMap["invoice_date"]) ? trim($getCellValue($colMap["invoice_date"], $row)) : "";
-                    $quality_status = isset($colMap["quality_status"]) ? trim($getCellValue($colMap["quality_status"], $row)) : "PENDING";
-                    $remarks = isset($colMap["remarks"]) ? trim($getCellValue($colMap["remarks"], $row)) : "";
+                    $purchase_date = isset($colMap["purchase_date"]) ? trim((string)$getCellValue($colMap["purchase_date"], $row)) : "";
+                    $mrp_raw = isset($colMap["mrp"]) ? $getCellValue($colMap["mrp"], $row) : "";
+                    $mrp = !empty($mrp_raw) ? $cleanNumericValue($mrp_raw) : "";
+                    $invoice_number = isset($colMap["invoice_number"]) ? trim((string)$getCellValue($colMap["invoice_number"], $row)) : "";
+                    $invoice_date = isset($colMap["invoice_date"]) ? trim((string)$getCellValue($colMap["invoice_date"], $row)) : "";
+                    $quality_status = isset($colMap["quality_status"]) ? trim((string)$getCellValue($colMap["quality_status"], $row)) : "PENDING";
+                    $remarks = isset($colMap["remarks"]) ? trim((string)$getCellValue($colMap["remarks"], $row)) : "";
 
                     // Convert dates
                     $purchase_date_formatted = !empty($purchase_date) ? $this->convertExcelDate($purchase_date) : date('Y-m-d');
@@ -1516,14 +1548,24 @@ class Stocks_new extends CI_Controller
                     // Get medicine details for pack_size
                     $medicine_details = $this->Stock_model_new->get_medicine_details_by_id($medicine_id);
                     $pack_size = isset($medicine_details->pack_size) ? floatval($medicine_details->pack_size) : 1;
+                    
+                    // Ensure pack_size is not zero to avoid division by zero error
+                    if ($pack_size <= 0) {
+                        $pack_size = 1;
+                    }
 
                     // Calculate quantity in units (multiply packs by pack_size)
                     $quantity_purchased_units = floatval($quantity_purchased) * $pack_size;
 
                     // Get prices (these are pack prices from Excel)
-                    $purchase_price_unit = floatval($purchase_price) / $pack_size; // Convert to per unit
-                    $selling_price_pack = floatval($selling_price); // Keep as pack price
-                    $mrp_pack = !empty($mrp) ? floatval($mrp) : null;
+                    // If pack_size is 1, prices are already per unit, otherwise convert
+                    if ($pack_size > 1) {
+                        $purchase_price_unit = floatval($purchase_price) / $pack_size; // Convert to per unit
+                    } else {
+                        $purchase_price_unit = floatval($purchase_price); // Already per unit
+                    }
+                    $selling_price_pack = floatval($selling_price); // Keep as pack price (MRP and selling price are same)
+                    $mrp_pack = !empty($mrp) ? floatval($mrp) : floatval($selling_price); // If MRP not provided, use selling price
 
                     // Check if batch already exists
                     $this->db->where("medicine_id", $medicine_id);
