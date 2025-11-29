@@ -67,7 +67,7 @@
                     <td>Advance Payment</td>
                     <td><?php echo $report_data['package_customer_count']; ?></td>
                     <td><?php echo $report_data['package_amount']; ?></td>
-                    <td class="numeric"><?php echo $report_data['package_bill_count']; ?></td>
+                    <td class="numeric"><?php echo $report_data['advance_bill_count']; ?></td>
                 </tr>
                  <tr style="font-weight: bold; background-color: #f9f9f9;">
                     <td>Partial Payment</td>

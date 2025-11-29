@@ -82,7 +82,57 @@
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);	
+
+	$procedure_sql = "SELECT ID, procedure_name, category FROM hms_procedures WHERE ID = '$procedure_id'";
+	$proc_result = run_select_query($procedure_sql);
+	
+	$procedure_billing_sql = "SELECT * FROM hms_patient_procedure WHERE receipt_number = '$receipt_number'";
+	$proc_bill_result = run_select_query($procedure_billing_sql);
+	
+	// find progesterone dates automatically
+$progesterone_dates = [];
+
+for ($i = 11; $i <= 27; $i++) {
+    $p_key = "progesterone".$i;
+    $d_key = "date".$i;
+
+    if (!empty($select_result[$p_key])) {
+        $progesterone_dates[] = $select_result[$d_key];
+    }
+}
+
+$final_progesterone_date = "";
+if (!empty($progesterone_dates)) {
+    $final_progesterone_date = $progesterone_dates[0];
+}
+
+// API data
+$data = [
+    "lead_id" => trim($select_result4['crm_id']),
+    "patient_id" => $patient_id,
+    "procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($proc_bill_result['on_date']))->format('Y-m-d'),
+    "progesterone_date" => $final_progesterone_date
+];
+
+// send API
+$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL => 'https://flertility.in/lead/lead-journey/',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_CUSTOMREQUEST => 'POST',
+    CURLOPT_POSTFIELDS => json_encode($data),
+    CURLOPT_HTTPHEADER => [
+        'Content-Type: application/json'
+    ],
+]);
+$response = curl_exec($curl);
+curl_close($curl);
+
+
+	//echo $response;
+	  
 ?>
+
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
 

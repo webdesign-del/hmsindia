@@ -3115,7 +3115,7 @@ function patient_export_report_patination($limit, $page, $center, $start_date, $
     $offset = ($page - 1) * $limit; // Calculate offset based on page
 
     // --- Final SQL (Fixed columns and JOIN) ---
-    $consultation_sql = "SELECT 
+  /*  $consultation_sql = "SELECT 
         T2.paitent_id as patient_id,
         T2.agent, 
         T2.councellor, 
@@ -3139,6 +3139,31 @@ function patient_export_report_patination($limit, $page, $center, $start_date, $
     ORDER BY 
         T2.appoitmented_date DESC, 
         T2.ID DESC 
+    LIMIT $offset, $limit";*/
+
+	  $consultation_sql = "SELECT 
+        T3.patient_id,
+        T2.agent, 
+        T2.councellor, 
+        T2.crm_id, 
+        T2.lead_source,
+        T2.appoitmented_date AS on_date,
+        T2.reason_of_visit,
+        T3.category, 
+        T3.procedures, 
+        T3.broad_procedure, 
+        T3.broad_procedure_count 
+    FROM hms_patient_procedure AS T3 
+    INNER JOIN hms_appointments AS T2 
+        ON T3.appointment_id = T2.id 
+    WHERE 
+        T2.billed = '1' 
+        AND T2.lead_source != 'D/S' 
+        AND T3.status IN ('pending', 'approved')
+        {$conditions}
+    ORDER BY 
+        T2.appoitmented_date DESC, 
+        T3.id DESC
     LIMIT $offset, $limit";
 
     // Execute

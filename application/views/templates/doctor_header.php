@@ -193,8 +193,13 @@ ul.nav.nav-second-level.collapse.in li {
       <li> <a href="<?php echo base_url(); ?>doctors/patient_general_instructions" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>General Instructions</a></li>
       <li> <a href="<?php echo base_url(); ?>billings/forma_invoice_list" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Debtors List</a></li>
       <li> <a href="<?php echo base_url(); ?>accounts/patient_center_wise_report" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Patient Journey</a></li>
-      <li><a href="<?php echo base_url(); ?>my_appointments_camp" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>My appointments in camp</a></li>
-	</ul>
+      <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Camp Appointments<span class="fa arrow"></span></a>
+        <ul class="nav nav-second-level">
+          <li> <a href="<?php echo base_url(); ?>my_appointments_camp">My appointments in camp</a> </li>
+          <li> <a href="<?php echo base_url(); ?>accounts/assessment_form_list">Assessment List</a> </li>
+        </ul>
+      </li>
+  </ul>
   </div>
 </nav>
 <!-- /. NAV SIDE  -->
