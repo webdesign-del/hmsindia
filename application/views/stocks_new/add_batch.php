@@ -58,11 +58,25 @@
                                 <li>First row should contain column headers</li>
                                 <li>Required columns: Medicine Code/Name, Vendor Name, Batch Number, Expiry Date, Purchase Date, Purchase Price, Selling Price, Quantity Purchased</li>
                                 <li>Optional columns: MRP, Invoice Number, Invoice Date, Quality Status, Remarks</li>
+                                <li>For Center Stock: Add Center Name/Number and Department columns (optional, defaults to GENERAL)</li>
                                 <!-- <li>Download <a href="<?php echo base_url('stocks_new/download_batch_template'); ?>" target="_blank"><strong>Excel Template</strong></a> for reference</li> -->
                                 <li>Download <a href="<?php echo base_url('stocks_new/download_batch_sample'); ?>" target="_blank"><strong>Sample Excel File</strong></a> with example data</li>
                             </ul>
                     </div>
                     <form action="<?php echo base_url('stocks_new/import_batches_excel'); ?>" method="post" enctype="multipart/form-data" class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Stock Location *</label>
+                            <div class="col-sm-9">
+                                <label class="radio-inline">
+                                    <input type="radio" name="excel_stock_location" value="central" checked>
+                                    Central Stock
+                                </label>
+                                <label class="radio-inline" style="margin-left: 20px;">
+                                    <input type="radio" name="excel_stock_location" value="center">
+                                    Center Stock (Use Center/Department columns in Excel)
+                                </label>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label class="col-sm-3 control-label">Select Excel File *</label>
                             <div class="col-sm-6">
@@ -239,6 +253,56 @@
                                     <label class="col-sm-4 control-label">Invoice Date</label>
                                     <div class="col-sm-8">
                                         <input type="date" name="invoice_date" class="form-control" value="<?php echo set_value('invoice_date'); ?>">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stock Location Selection -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">Stock Location *</label>
+                                    <div class="col-sm-10">
+                                        <label class="radio-inline">
+                                            <input type="radio" name="stock_location" id="stock_location_central" value="central" checked onchange="toggleCenterFields()">
+                                            Central Stock
+                                        </label>
+                                        <label class="radio-inline" style="margin-left: 20px;">
+                                            <input type="radio" name="stock_location" id="stock_location_center" value="center" onchange="toggleCenterFields()">
+                                            Center Stock
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Center and Department Fields (Hidden by default) -->
+                        <div class="row" id="center_fields" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label">Center *</label>
+                                    <div class="col-sm-8">
+                                        <select name="center_id" id="center_id" class="form-control">
+                                            <option value="">Select Center</option>
+                                            <?php if(isset($centers) && !empty($centers)): ?>
+                                                <?php foreach($centers as $center): ?>
+                                                    <option value="<?php echo isset($center->ID) ? $center->ID : $center->id; ?>" <?php echo set_select('center_id', isset($center->ID) ? $center->ID : $center->id); ?>>
+                                                        <?php echo isset($center->center_name) ? $center->center_name : (isset($center->name) ? $center->name : 'N/A'); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label">Department</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" name="department" id="department" class="form-control" placeholder="Enter department (default: GENERAL)" value="<?php echo set_value('department', 'GENERAL'); ?>">
+                                        <small class="help-block">Leave empty for GENERAL department</small>
                                     </div>
                                 </div>
                             </div>
@@ -438,7 +502,25 @@ $(document).ready(function() {
         // Run calculation in case purchase price is also pre-filled
         calculateSellingPrice();
     }
-
+    
+    // Toggle center fields based on stock location selection
+    function toggleCenterFields() {
+        var stockLocation = document.querySelector('input[name="stock_location"]:checked').value;
+        var centerFields = document.getElementById('center_fields');
+        var centerSelect = document.getElementById('center_id');
+        
+        if (stockLocation === 'center') {
+            centerFields.style.display = 'block';
+            centerSelect.setAttribute('required', 'required');
+        } else {
+            centerFields.style.display = 'none';
+            centerSelect.removeAttribute('required');
+            centerSelect.value = '';
+        }
+    }
+    
+    // Initialize on page load
+    toggleCenterFields();
 });
 </script>
 <script>

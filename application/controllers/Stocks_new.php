@@ -1120,8 +1120,6 @@ class Stocks_new extends CI_Controller
             $this->load->model('Stock_model_new'); // Load model at the top
             // --- Handle Form Submission ---
             if ($this->input->post("action") == "add_batch") {
-                var_dump($_POST);
-                die;
                 $this->form_validation->set_rules("medicine_id", "Medicine", "required");
                 $this->form_validation->set_rules("vendor_id", "Vendor", "required");
                 // $this->form_validation->set_rules("batch_number", "Batch Number", "required");
@@ -1134,6 +1132,13 @@ class Stocks_new extends CI_Controller
                 $this->form_validation->set_rules("purchase_price", "Purchase Price", "required|numeric");
                 $this->form_validation->set_rules("selling_price", "Selling Price", "required|numeric");
                 $this->form_validation->set_rules("quantity_purchased", "Quantity Purchased", "required|numeric|greater_than_equal_to[0]");
+                
+                // Validate center_id if center stock is selected
+                $stock_location = $this->input->post("stock_location");
+                if ($stock_location == "center") {
+                    $this->form_validation->set_rules("center_id", "Center", "required");
+                }
+                
                 if ($this->form_validation->run() == true) {
                     $created_by_id = $this->get_employee_id_from_number(
                         $_SESSION["logged_central_stock_manager"]["employee_number"]
@@ -1176,6 +1181,14 @@ class Stocks_new extends CI_Controller
                         "created_by" => $created_by_id,
                         "created_at" => date("Y-m-d H:i:s")
                     ];
+                    
+                    // Add center stock information if center stock is selected
+                    $stock_location = $this->input->post("stock_location");
+                    if ($stock_location == "center") {
+                        $batch_data["center_id"] = $this->input->post("center_id");
+                        $batch_data["department"] = $this->input->post("department") ?: 'GENERAL';
+                    }
+                    
                     $result = $this->Stock_model_new->add_batch($batch_data); 
                     if ($result) {
                         $this->session->set_flashdata("success", "Batch added successfully!");
@@ -1200,6 +1213,7 @@ class Stocks_new extends CI_Controller
                  $data["selected_medicine_details"] = $this->Stock_model_new->get_medicine_details_by_id($selected_id);
             }
             $data["vendors"] = $this->Stock_model_new->get_all_vendors(); // Use your function for this
+            $data["centers"] = $this->Stock_model_new->get_all_centers(); // Get centers for center stock selection
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $this->load->view("stocks_new/add_batch", $data);
@@ -1305,6 +1319,24 @@ class Stocks_new extends CI_Controller
                         $vendorMap[$vendorName] = $vendorId;
                     }
                 }
+                
+                // Get all centers for mapping (if center stock is selected)
+                $excel_stock_location = $this->input->post("excel_stock_location") ?: "central";
+                $centers = $this->Stock_model_new->get_all_centers();
+                $centerMap = [];
+                foreach ($centers as $center) {
+                    $centerId = isset($center->ID) ? $center->ID : (isset($center->id) ? $center->id : null);
+                    $centerName = isset($center->center_name) ? strtolower(trim($center->center_name)) : (isset($center->name) ? strtolower(trim($center->name)) : "");
+                    $centerNumber = isset($center->center_number) ? strtolower(trim($center->center_number)) : "";
+                    if ($centerId !== null) {
+                        if (!empty($centerName)) {
+                            $centerMap[$centerName] = $centerId;
+                        }
+                        if (!empty($centerNumber)) {
+                            $centerMap[$centerNumber] = $centerId;
+                        }
+                    }
+                }
 
                 // Read header row (row 1)
                 $headerRow = [];
@@ -1345,6 +1377,14 @@ class Stocks_new extends CI_Controller
                         $colMap["quality_status"] = $colIndex;
                     } elseif (strpos($header, "remarks") !== false) {
                         $colMap["remarks"] = $colIndex;
+                    } elseif (strpos($header, "center") !== false && strpos($header, "name") === false && strpos($header, "number") === false) {
+                        $colMap["center"] = $colIndex;
+                    } elseif (strpos($header, "center name") !== false || strpos($header, "center_name") !== false) {
+                        $colMap["center_name"] = $colIndex;
+                    } elseif (strpos($header, "center number") !== false || strpos($header, "center_number") !== false) {
+                        $colMap["center_number"] = $colIndex;
+                    } elseif (strpos($header, "department") !== false) {
+                        $colMap["department"] = $colIndex;
                     }
                 }
 
@@ -1567,21 +1607,82 @@ class Stocks_new extends CI_Controller
                     $selling_price_pack = floatval($selling_price); // Keep as pack price (MRP and selling price are same)
                     $mrp_pack = !empty($mrp) ? floatval($mrp) : floatval($selling_price); // If MRP not provided, use selling price
 
-                    // Check if batch already exists
-                    $this->db->where("medicine_id", $medicine_id);
-                    $this->db->where("batch_number", $batch_number);
-                    $existing = $this->db->get("medicine_batches")->row();
-                    if ($existing) {
-                        $errors[] = "Row $row: Batch '$batch_number' already exists for this medicine";
-                        $errorCount++;
-                        continue;
-                    }
-
                     // Get created_by
                     $created_by_id = $this->get_employee_id_from_number(
                         $_SESSION["logged_central_stock_manager"]["employee_number"]
                     );
 
+                    // Get center and department information
+                    $center_id = null;
+                    $department = 'GENERAL';
+                    
+                    if ($excel_stock_location == "center") {
+                        // Try to get center from Excel columns
+                        $center_name = isset($colMap["center_name"]) ? trim((string)$getCellValue($colMap["center_name"], $row)) : "";
+                        $center_number = isset($colMap["center_number"]) ? trim((string)$getCellValue($colMap["center_number"], $row)) : "";
+                        $center_col = isset($colMap["center"]) ? trim((string)$getCellValue($colMap["center"], $row)) : "";
+                        
+                        // Try to find center by name or number
+                        if (!empty($center_name)) {
+                            $center_name_lower = strtolower(trim($center_name));
+                            if (isset($centerMap[$center_name_lower])) {
+                                $center_id = $centerMap[$center_name_lower];
+                            }
+                        }
+                        if ($center_id === null && !empty($center_number)) {
+                            $center_number_lower = strtolower(trim($center_number));
+                            if (isset($centerMap[$center_number_lower])) {
+                                $center_id = $centerMap[$center_number_lower];
+                            }
+                        }
+                        if ($center_id === null && !empty($center_col)) {
+                            $center_col_lower = strtolower(trim($center_col));
+                            if (isset($centerMap[$center_col_lower])) {
+                                $center_id = $centerMap[$center_col_lower];
+                            }
+                        }
+                        
+                        if ($center_id === null) {
+                            $errors[] = "Row $row: Center not found (Name: '$center_name', Number: '$center_number')";
+                            $errorCount++;
+                            continue;
+                        }
+                        
+                        // Get department
+                        $department = isset($colMap["department"]) ? trim((string)$getCellValue($colMap["department"], $row)) : 'GENERAL';
+                        if (empty($department)) {
+                            $department = 'GENERAL';
+                        }
+                    }
+                    
+                    // Check if batch already exists (after all variables are defined)
+                    $this->db->where("medicine_id", $medicine_id);
+                    $this->db->where("batch_number", $batch_number);
+                    $existing = $this->db->get("medicine_batches")->row();
+                    if ($existing) {
+                        // Update existing batch quantity instead of creating new entry
+                        $update_data = [
+                            "vendor_id" => $vendor_id,
+                            "selling_price" => $selling_price_pack,
+                            "invoice_number" => $invoice_number,
+                            "created_by" => $created_by_id,
+                        ];
+                        
+                        if ($this->Stock_model_new->update_batch_quantity(
+                            $existing->id,
+                            $quantity_purchased_units,
+                            $center_id,
+                            $department,
+                            $update_data
+                        )) {
+                            $successCount++;
+                        } else {
+                            $errors[] = "Row $row: Failed to update batch '$batch_number' quantity";
+                            $errorCount++;
+                        }
+                        continue;
+                    }
+                    
                     // Prepare batch data
                     $batch_data = [
                         "medicine_id" => $medicine_id,
@@ -1603,6 +1704,12 @@ class Stocks_new extends CI_Controller
                         "created_by" => $created_by_id,
                         "created_at" => date("Y-m-d H:i:s")
                     ];
+                    
+                    // Add center stock information if center stock is selected
+                    if ($excel_stock_location == "center" && $center_id !== null) {
+                        $batch_data["center_id"] = $center_id;
+                        $batch_data["department"] = $department;
+                    }
 
                     // Insert batch
                     if ($this->Stock_model_new->add_batch($batch_data)) {
@@ -1766,6 +1873,8 @@ class Stocks_new extends CI_Controller
                 "L1" => "Invoice Date",
                 "M1" => "Quality Status",
                 "N1" => "Remarks",
+                "O1" => "Center Name",
+                "P1" => "Department",
             ];
 
             foreach ($headers as $cell => $value) {
@@ -1773,8 +1882,8 @@ class Stocks_new extends CI_Controller
             }
 
             // Style header row
-            $sheet->getStyle("A1:N1")->getFont()->setBold(true);
-            $sheet->getStyle("A1:N1")
+            $sheet->getStyle("A1:P1")->getFont()->setBold(true);
+            $sheet->getStyle("A1:P1")
                 ->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()
@@ -1795,6 +1904,8 @@ class Stocks_new extends CI_Controller
             $sheet->getColumnDimension("L")->setWidth(15);
             $sheet->getColumnDimension("M")->setWidth(15);
             $sheet->getColumnDimension("N")->setWidth(30);
+            $sheet->getColumnDimension("O")->setWidth(20);
+            $sheet->getColumnDimension("P")->setWidth(15);
 
             // Add sample data row
             $sampleData = [
@@ -1812,6 +1923,8 @@ class Stocks_new extends CI_Controller
                 "L2" => date('Y-m-d'),
                 "M2" => "PENDING",
                 "N2" => "Sample batch import",
+                "O2" => "",
+                "P2" => "GENERAL",
             ];
 
             foreach ($sampleData as $cell => $value) {
@@ -1919,6 +2032,8 @@ class Stocks_new extends CI_Controller
                 "L1" => "Invoice Date",
                 "M1" => "Quality Status",
                 "N1" => "Remarks",
+                "O1" => "Center Name",
+                "P1" => "Department",
             ];
 
             foreach ($headers as $cell => $value) {
@@ -1926,13 +2041,13 @@ class Stocks_new extends CI_Controller
             }
 
             // Style header row
-            $sheet->getStyle("A1:N1")->getFont()->setBold(true);
-            $sheet->getStyle("A1:N1")
+            $sheet->getStyle("A1:P1")->getFont()->setBold(true);
+            $sheet->getStyle("A1:P1")
                 ->getFill()
                 ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
                 ->getStartColor()
                 ->setARGB("FF4472C4");
-            $sheet->getStyle("A1:N1")->getFont()->getColor()->setARGB("FFFFFFFF");
+            $sheet->getStyle("A1:P1")->getFont()->getColor()->setARGB("FFFFFFFF");
 
             // Set column widths
             $sheet->getColumnDimension("A")->setWidth(15);
@@ -1949,6 +2064,8 @@ class Stocks_new extends CI_Controller
             $sheet->getColumnDimension("L")->setWidth(15);
             $sheet->getColumnDimension("M")->setWidth(15);
             $sheet->getColumnDimension("N")->setWidth(30);
+            $sheet->getColumnDimension("O")->setWidth(20);
+            $sheet->getColumnDimension("P")->setWidth(15);
 
             // Sample data rows
             $sampleRows = [
@@ -1967,6 +2084,8 @@ class Stocks_new extends CI_Controller
                     "L" => date('Y-m-d'),
                     "M" => "PENDING",
                     "N" => "Initial stock purchase",
+                    "O" => "",
+                    "P" => "GENERAL",
                 ],
                 [
                     "A" => "MED002",
@@ -1982,6 +2101,8 @@ class Stocks_new extends CI_Controller
                     "K" => "INV-2024-002",
                     "L" => date('Y-m-d'),
                     "M" => "APPROVED",
+                    "O" => "Sample Center",
+                    "P" => "PHARMACY",
                     "N" => "Quality approved batch",
                 ],
                 [

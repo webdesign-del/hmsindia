@@ -137,7 +137,7 @@
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <strong><?php echo $stock->pack_size; ?></strong>
+                                            <strong><?php echo isset($stock->pack_size) && $stock->pack_size !== null ? $stock->pack_size : '1'; ?></strong>
                                         </td>
                                         <td>
                                             <strong><?php echo $stock->quantity; ?></strong>

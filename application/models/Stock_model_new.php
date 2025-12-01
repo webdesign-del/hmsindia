@@ -1041,33 +1041,188 @@ class Stock_model_new extends CI_Model
                 $data["expiry_date"],
             );
         }
+        
+        // Extract center_id and department if present (don't insert into medicine_batches)
+        $center_id = isset($data["center_id"]) ? $data["center_id"] : null;
+        $department = isset($data["department"]) ? $data["department"] : 'GENERAL';
+        unset($data["center_id"]);
+        unset($data["department"]);
+        
         // Insert batch
         $this->db->insert("medicine_batches", $data);
         $batch_id = $this->db->insert_id();
-        // Add to central stock
-        $central_stock_data = [
-            "batch_id" => $batch_id,
-            "quantity" => $data["quantity_purchased"],
-            "last_movement_date" => date("Y-m-d H:i:s"),
-        ];
-        $this->db->insert("central_stocks", $central_stock_data);
-        // Log stock movement
-        $movement_data = [
-            "batch_id" => $batch_id,
-            "movement_type" => "PURCHASE",
-            "from_location_type" => "VENDOR",
-            "from_location_id" => $data["vendor_id"],
-            "to_location_type" => "CENTRAL",
-            "quantity_change" => $data["quantity_purchased"],
-            "quantity_after" => $data["quantity_purchased"],
-            "unit_price" => $data["selling_price"],
-            "total_value" =>
-                $data["quantity_purchased"] * $data["selling_price"],
-            "reference_type" => "PURCHASE_RECEIPT",
-            "reference_id" => $batch_id,
-            "reference_number" => $data["invoice_number"],
-            "created_by" => $data["created_by"],
-        ];
+        
+        // Determine if adding to central or center stock
+        if (!empty($center_id)) {
+            // Add to center stock
+            $center_stock_data = [
+                "batch_id" => $batch_id,
+                "center_id" => $center_id,
+                "department" => $department,
+                "quantity" => $data["quantity_purchased"],
+                "last_movement_date" => date("Y-m-d H:i:s"),
+                "status" => "ACTIVE"
+            ];
+            $this->db->insert("center_stocks", $center_stock_data);
+            
+            // Log stock movement for center
+            $movement_data = [
+                "batch_id" => $batch_id,
+                "movement_type" => "PURCHASE",
+                "from_location_type" => "VENDOR",
+                "from_location_id" => $data["vendor_id"],
+                "to_location_type" => "CENTER",
+                "to_location_id" => $center_id,
+                "quantity_change" => $data["quantity_purchased"],
+                "quantity_after" => $data["quantity_purchased"],
+                "unit_price" => $data["selling_price"],
+                "total_value" =>
+                    $data["quantity_purchased"] * $data["selling_price"],
+                "reference_type" => "PURCHASE_RECEIPT",
+                "reference_id" => $batch_id,
+                "reference_number" => $data["invoice_number"],
+                "created_by" => $data["created_by"],
+            ];
+        } else {
+            // Add to central stock
+            $central_stock_data = [
+                "batch_id" => $batch_id,
+                "quantity" => $data["quantity_purchased"],
+                "last_movement_date" => date("Y-m-d H:i:s"),
+            ];
+            $this->db->insert("central_stocks", $central_stock_data);
+            
+            // Log stock movement for central
+            $movement_data = [
+                "batch_id" => $batch_id,
+                "movement_type" => "PURCHASE",
+                "from_location_type" => "VENDOR",
+                "from_location_id" => $data["vendor_id"],
+                "to_location_type" => "CENTRAL",
+                "quantity_change" => $data["quantity_purchased"],
+                "quantity_after" => $data["quantity_purchased"],
+                "unit_price" => $data["selling_price"],
+                "total_value" =>
+                    $data["quantity_purchased"] * $data["selling_price"],
+                "reference_type" => "PURCHASE_RECEIPT",
+                "reference_id" => $batch_id,
+                "reference_number" => $data["invoice_number"],
+                "created_by" => $data["created_by"],
+            ];
+        }
+        
+        $this->db->insert("stock_movements", $movement_data);
+        $this->db->trans_complete();
+        return $this->db->trans_status();
+    }
+    
+    /**
+     * Update batch quantity when duplicate batch is found during import
+     * @param int $batch_id The existing batch ID
+     * @param float $additional_quantity The quantity to add
+     * @param int|null $center_id Center ID if updating center stock, null for central stock
+     * @param string $department Department name (for center stock)
+     * @param array $batch_data Additional batch data (vendor_id, selling_price, etc.)
+     * @return bool Success status
+     */
+    public function update_batch_quantity($batch_id, $additional_quantity, $center_id = null, $department = 'GENERAL', $batch_data = []) {
+        $this->db->trans_start();
+        
+        // Update medicine_batches quantity
+        $this->db->set("quantity_purchased", "quantity_purchased + " . floatval($additional_quantity), false);
+        $this->db->set("quantity_remaining", "quantity_remaining + " . floatval($additional_quantity), false);
+        $this->db->where("id", $batch_id);
+        $this->db->update("medicine_batches");
+        
+        // Get updated batch for logging
+        $batch = $this->db->get_where("medicine_batches", ["id" => $batch_id])->row();
+        
+        if (!empty($center_id)) {
+            // Update or insert center stock
+            $this->db->where("batch_id", $batch_id);
+            $this->db->where("center_id", $center_id);
+            $this->db->where("department", $department);
+            $existing_center_stock = $this->db->get("center_stocks")->row();
+            
+            if ($existing_center_stock) {
+                // Update existing center stock
+                $this->db->set("quantity", "quantity + " . floatval($additional_quantity), false);
+                $this->db->set("last_movement_date", date("Y-m-d H:i:s"));
+                $this->db->where("id", $existing_center_stock->id);
+                $this->db->update("center_stocks");
+                $new_quantity = $existing_center_stock->quantity + $additional_quantity;
+            } else {
+                // Insert new center stock entry
+                $center_stock_data = [
+                    "batch_id" => $batch_id,
+                    "center_id" => $center_id,
+                    "department" => $department,
+                    "quantity" => $additional_quantity,
+                    "last_movement_date" => date("Y-m-d H:i:s"),
+                    "status" => "ACTIVE"
+                ];
+                $this->db->insert("center_stocks", $center_stock_data);
+                $new_quantity = $additional_quantity;
+            }
+            
+            // Log stock movement for center
+            $movement_data = [
+                "batch_id" => $batch_id,
+                "movement_type" => "PURCHASE",
+                "from_location_type" => "VENDOR",
+                "from_location_id" => isset($batch_data["vendor_id"]) ? $batch_data["vendor_id"] : $batch->vendor_id,
+                "to_location_type" => "CENTER",
+                "to_location_id" => $center_id,
+                "quantity_change" => $additional_quantity,
+                "quantity_after" => $new_quantity,
+                "unit_price" => isset($batch_data["selling_price"]) ? $batch_data["selling_price"] : $batch->selling_price,
+                "total_value" => $additional_quantity * (isset($batch_data["selling_price"]) ? $batch_data["selling_price"] : $batch->selling_price),
+                "reference_type" => "PURCHASE_RECEIPT",
+                "reference_id" => $batch_id,
+                "reference_number" => isset($batch_data["invoice_number"]) ? $batch_data["invoice_number"] : $batch->invoice_number,
+                "created_by" => isset($batch_data["created_by"]) ? $batch_data["created_by"] : $batch->created_by,
+            ];
+        } else {
+            // Update or insert central stock
+            $this->db->where("batch_id", $batch_id);
+            $existing_central_stock = $this->db->get("central_stocks")->row();
+            
+            if ($existing_central_stock) {
+                // Update existing central stock
+                $this->db->set("quantity", "quantity + " . floatval($additional_quantity), false);
+                $this->db->set("last_movement_date", date("Y-m-d H:i:s"));
+                $this->db->where("id", $existing_central_stock->id);
+                $this->db->update("central_stocks");
+                $new_quantity = $existing_central_stock->quantity + $additional_quantity;
+            } else {
+                // Insert new central stock entry
+                $central_stock_data = [
+                    "batch_id" => $batch_id,
+                    "quantity" => $additional_quantity,
+                    "last_movement_date" => date("Y-m-d H:i:s"),
+                ];
+                $this->db->insert("central_stocks", $central_stock_data);
+                $new_quantity = $additional_quantity;
+            }
+            
+            // Log stock movement for central
+            $movement_data = [
+                "batch_id" => $batch_id,
+                "movement_type" => "PURCHASE",
+                "from_location_type" => "VENDOR",
+                "from_location_id" => isset($batch_data["vendor_id"]) ? $batch_data["vendor_id"] : $batch->vendor_id,
+                "to_location_type" => "CENTRAL",
+                "quantity_change" => $additional_quantity,
+                "quantity_after" => $new_quantity,
+                "unit_price" => isset($batch_data["selling_price"]) ? $batch_data["selling_price"] : $batch->selling_price,
+                "total_value" => $additional_quantity * (isset($batch_data["selling_price"]) ? $batch_data["selling_price"] : $batch->selling_price),
+                "reference_type" => "PURCHASE_RECEIPT",
+                "reference_id" => $batch_id,
+                "reference_number" => isset($batch_data["invoice_number"]) ? $batch_data["invoice_number"] : $batch->invoice_number,
+                "created_by" => isset($batch_data["created_by"]) ? $batch_data["created_by"] : $batch->created_by,
+            ];
+        }
+        
         $this->db->insert("stock_movements", $movement_data);
         $this->db->trans_complete();
         return $this->db->trans_status();
@@ -1179,8 +1334,11 @@ class Stock_model_new extends CI_Model
 
     public function get_center_stocks($center_id = null,$medicine_id = null,$batch_number = null,$status = null) {
         // try {
+            // Select columns - ensure pack_size is explicitly included from medicines table
+            // Using IFNULL (MySQL) to handle NULL pack_size values (defaults to 1)
+            // This ensures pack_size is always returned, even if medicine doesn't have it set
             $this->db->select(
-                "ccs.*, mb.batch_number,m.pack_size, mb.expiry_date, mb.purchase_price, mb.selling_price, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, c.center_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
+                "ccs.*, mb.batch_number, mb.medicine_id, IFNULL(m.pack_size, 1) as pack_size, mb.expiry_date, mb.purchase_price, mb.selling_price, mb.mrp, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, c.center_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
             );
             $this->db->from("center_stocks ccs");
             $this->db->join("medicine_batches mb", "ccs.batch_id = mb.id");
@@ -1226,7 +1384,23 @@ class Stock_model_new extends CI_Model
                 $this->db->where('ccs.center_id', $this->get_center_id($center));
             }
             $this->db->order_by("mb.expiry_date", "ASC");
-            return $this->db->get()->result();
+            $results = $this->db->get()->result();
+            
+            // Post-process results to ensure pack_size is always set (fallback safety)
+            foreach ($results as $result) {
+                // Ensure pack_size is always set and valid
+                if (!isset($result->pack_size) || $result->pack_size === null || $result->pack_size === '' || $result->pack_size == 0) {
+                    $result->pack_size = 1;
+                } else {
+                    // Ensure pack_size is numeric
+                    $result->pack_size = floatval($result->pack_size);
+                    if ($result->pack_size <= 0) {
+                        $result->pack_size = 1;
+                    }
+                }
+            }
+            
+            return $results;
         // } catch (Exception $e) {
         //     return [];
         // }
