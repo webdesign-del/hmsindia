@@ -8449,7 +8449,7 @@ function assessment_form($patient_id = 0){ // Keep the = 0 fix from before
     }
 }
 
-public function assessment_form_list(){
+	public function assessment_form_list(){
 		$logg = checklogin();
 		error_reporting(0);
 		if($logg['status'] == true){
@@ -8478,6 +8478,20 @@ public function assessment_form_list(){
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
 			$this->load->view('accounts/assessment_form_list', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
+	public function assessment_form_details(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('accounts/assessment_form_details', $data);
 			$this->load->view($template['footer']);
 		}else{
 			header("location:" .base_url(). "");

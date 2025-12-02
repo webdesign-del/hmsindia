@@ -1,8 +1,8 @@
 <?php
 $segments = explode("/", $_SERVER['REQUEST_URI']);
-$appointment_id = end($segments); // Get last part of 
+$patient_id = end($segments); // Get last part of 
 
-$select_query8 = "SELECT patient_id FROM `hms_doctor_consultation` WHERE appointment_id='$appointment_id' LIMIT 1";
+$select_query8 = "SELECT patient_id FROM `hms_doctor_consultation` WHERE patient_id='$patient_id' LIMIT 1";
 $select_result8 = run_select_query($select_query8);
 
 $patient_id = $select_result8['patient_id'];
@@ -38,7 +38,7 @@ $patient_id = $select_result8['patient_id'];
 	  unset($_POST['IVF_Consultant']);
 	  unset($_POST['center']);
 
-        $select_query = "SELECT * FROM `hms_outcome` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+        $select_query = "SELECT * FROM `hms_outcome` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($select_query); 
 
         if(empty($select_result)){
@@ -65,7 +65,7 @@ $patient_id = $select_result8['patient_id'];
               $sqlArr[] = " $key = '".$value."'"	;
             }
             $query .= implode(',' , $sqlArr);
-            $query .= " WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+            $query .= " WHERE patient_id='$patient_id'";
         }
         
         $result = run_form_query($query);        
@@ -78,7 +78,7 @@ $patient_id = $select_result8['patient_id'];
         }
     }
 
-    $select_query = "SELECT * FROM `hms_outcome` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+    $select_query = "SELECT * FROM `hms_outcome` WHERE patient_id='$patient_id'";
 	$select_result = run_select_query($select_query); 
 	
     $sql2 = "SELECT * FROM `hms_patient_medical_info` WHERE patient_id='$patient_id'";
@@ -87,35 +87,32 @@ $patient_id = $select_result8['patient_id'];
     $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
     $select_result3 = run_select_query($sql3); 	
 	
-	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
+	echo $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
 	$select_result1 = run_select_query($sql1);
 	
-	$sql4 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
-	$select_result4 = run_select_query($sql4);
-	
-	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
+	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result1['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);
 ?>
 
 
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
-	<input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
-	<input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
-	<input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
-	<input type="hidden" value="<?php echo $procedure_id; ?>" class="form" name="procedure_id">
+	<input type="hidden" value="<?php //echo $updated_by; ?>" class="form" name="updated_by">
+	<input type="hidden" value="<?php //echo $updated_type; ?>" class="form" name="updated_type">
+	<input type="hidden" value="<?php //echo $updated_at; ?>" class="form" name="updated_at">
+	<input type="hidden" value="<?php //echo $procedure_id; ?>" class="form" name="procedure_id">
 	<input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
-	<input type="hidden" value="<?php echo $receipt_number; ?>" class="form" name="receipt_number">
-	<input type="hidden" value="<?php echo $select_result2['female_name']; ?>" class="form" name="wife_name">
-	<input type="hidden" value="<?php echo $select_result2['male_name']; ?>" class="form" name="husband_name">
-	<input type="hidden" value="<?php echo $select_result2['wife_phone']; ?>" class="form" name="wife_phone">
-	<input type="hidden" value="<?php echo $select_result2['female_age']; ?>" class="form" name="wife_age">
-	<input type="hidden" value="<?php echo $select_result2['female_pregnancy_other_p']; ?>" class="form" name="female_pregnancy_other_p">
-    <input type="hidden" value="<?php echo $select_result2['female_pregnancy_other_l']; ?>" class="form" name="female_pregnancy_other_l">
-    <input type="hidden" value="<?php echo $select_result2['female_pregnancy_other_a']; ?>" class="form" name="female_pregnancy_other_a">
-    <input type="hidden" value="<?php echo $select_result2['details_management_advised']; ?>" class="form" name="details_management_advised">
-	<input type="hidden" value="<?php echo $select_result2['center']; ?>" class="form" name="center">
-	<input type="hidden" value="<?php echo $select_result3['wife_address']; ?>" class="form" name="wife_address">
+	<input type="hidden" value="<?php //echo $receipt_number; ?>" class="form" name="receipt_number">
+	<input type="hidden" value="<?php //echo $select_result2['female_name']; ?>" class="form" name="wife_name">
+	<input type="hidden" value="<?php //echo $select_result2['male_name']; ?>" class="form" name="husband_name">
+	<input type="hidden" value="<?php //echo $select_result2['wife_phone']; ?>" class="form" name="wife_phone">
+	<input type="hidden" value="<?php //echo $select_result2['female_age']; ?>" class="form" name="wife_age">
+	<input type="hidden" value="<?php //echo $select_result2['female_pregnancy_other_p']; ?>" class="form" name="female_pregnancy_other_p">
+    <input type="hidden" value="<?php //echo $select_result2['female_pregnancy_other_l']; ?>" class="form" name="female_pregnancy_other_l">
+    <input type="hidden" value="<?php //echo $select_result2['female_pregnancy_other_a']; ?>" class="form" name="female_pregnancy_other_a">
+    <input type="hidden" value="<?php //echo $select_result2['details_management_advised']; ?>" class="form" name="details_management_advised">
+	<input type="hidden" value="<?php //echo $select_result2['center']; ?>" class="form" name="center">
+	<input type="hidden" value="<?php //echo $select_result3['wife_address']; ?>" class="form" name="wife_address">
 	<input type="hidden" value="pending" name="status">
 	<input type="hidden" value="First Cycle" name="type">	
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
@@ -131,7 +128,7 @@ $patient_id = $select_result8['patient_id'];
 <strong>UHID : <?php echo $select_result5['center_code']."/".$select_result4['uhid']; ?></strong>
 </td>
 <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
-<strong>Patient Name : <?php echo $select_result3['wife_name']; ?> </strong>
+<strong>Patient Name : <?php //echo $select_result3['wife_name']; ?> </strong>
 </td>
 <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
 <strong>IIC ID: <?php echo $patient_id; ?></strong>

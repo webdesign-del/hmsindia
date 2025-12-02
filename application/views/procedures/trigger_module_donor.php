@@ -1,8 +1,8 @@
 <?php
 $segments = explode("/", $_SERVER['REQUEST_URI']);
-$appointment_id = end($segments); // Get last part of 
+$patient_id = end($segments); // Get last part of 
 
-$select_query8 = "SELECT patient_id FROM `hms_doctor_consultation` WHERE appointment_id='$appointment_id' LIMIT 1";
+$select_query8 = "SELECT patient_id FROM `hms_doctor_consultation` WHERE patient_id='$patient_id' LIMIT 1";
 $select_result8 = run_select_query($select_query8);
 
 $patient_id = $select_result8['patient_id'];
@@ -20,7 +20,7 @@ $patient_id = $select_result8['patient_id'];
 			$_POST['upload'] = $transaction_img;
 		}
         
-       $select_query = "SELECT * FROM `trigger_module` WHERE patient_id='$patient_id' and receipt_number='$receipt_number' and ipid='$ipid'";
+       $select_query = "SELECT * FROM `trigger_module` WHERE patient_id='$patient_id' and ipid='$ipid'";
         $select_result = run_select_query($select_query); 
         if(empty($select_result)){
             // mysql query to insert data
@@ -39,7 +39,7 @@ $patient_id = $select_result8['patient_id'];
               $sqlArr[] = " $key = '".$value."'"	;
             }
             $query .= implode(',' , $sqlArr);
-            $query .= " WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+            $query .= " WHERE patient_id='$patient_id'";
         }
         $result = run_form_query($query);        
 
@@ -51,7 +51,7 @@ $patient_id = $select_result8['patient_id'];
 					die();
         }
     }
-	$select_query = "SELECT * FROM `trigger_module` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+	$select_query = "SELECT * FROM `trigger_module` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($select_query);
 	
 	$sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
@@ -69,19 +69,19 @@ $patient_id = $select_result8['patient_id'];
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
     
-<input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
-<input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
-<input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
+<input type="hidden" value="<?php //echo $updated_by; ?>" class="form" name="updated_by">
+<input type="hidden" value="<?php //echo $updated_type; ?>" class="form" name="updated_type">
+<input type="hidden" value="<?php //echo $updated_at; ?>" class="form" name="updated_at">
 
-    <input type="hidden" value="<?php echo $procedure_id; ?>" class="form" name="procedure_id">
+    <input type="hidden" value="<?php //echo $procedure_id; ?>" class="form" name="procedure_id">
 	<input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
-	<input type="hidden" value="<?php echo $receipt_number; ?>" class="form" name="receipt_number">
+	<input type="hidden" value="<?php //echo $receipt_number; ?>" class="form" name="receipt_number">
 	<input type="hidden" value="<?php echo $_SESSION['logged_doctor']['doctor_id'] ?>" class="form" name="doctor_id">
 	<input type="hidden" value="pending" name="status"> 
 	<table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
    <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
-   <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">TRIGGER</h3></td>
+   <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">TRIGGER DONOR</h3></td>
    </tr>
 </table>
  <table width="100%" class="vb45rt">

@@ -1,9 +1,9 @@
 <?php
 
 $segments = explode("/", $_SERVER['REQUEST_URI']);
-$appointment_id = end($segments); // Get last part of 
+$patient_id = end($segments); // Get last part of 
 
-$select_query8 = "SELECT patient_id FROM `hms_doctor_consultation` WHERE appointment_id='$appointment_id' LIMIT 1";
+$select_query8 = "SELECT patient_id FROM `hms_doctor_consultation` WHERE patient_id='$patient_id' LIMIT 1";
 $select_result8 = run_select_query($select_query8);
 
 $patient_id = $select_result8['patient_id'];
@@ -12,7 +12,7 @@ $patient_id = $select_result8['patient_id'];
 
         unset($_POST['submit']);
 		
-	    $select_query = "SELECT * FROM `hms_serum_bete_hcg_on` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+	    $select_query = "SELECT * FROM `hms_serum_bete_hcg_on` WHERE patient_id='$patient_id'";
 
         $select_result = run_select_query($select_query); 
 
@@ -49,7 +49,7 @@ $patient_id = $select_result8['patient_id'];
 
             $query .= implode(',' , $sqlArr);
 
-            $query .= " WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+            $query .= " WHERE patient_id='$patient_id'";
 
         }
 
@@ -75,7 +75,7 @@ $patient_id = $select_result8['patient_id'];
 
     }
 
-    $select_query = "SELECT * FROM `hms_serum_bete_hcg_on` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+    $select_query = "SELECT * FROM `hms_serum_bete_hcg_on` WHERE patient_id='$patient_id'";
 	$select_result = run_select_query($select_query); 
 	
     $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
@@ -92,12 +92,12 @@ $patient_id = $select_result8['patient_id'];
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
-	<input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
-	<input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
-	<input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
-	<input type="hidden" value="<?php echo $procedure_id; ?>" class="form" name="procedure_id">
+	<input type="hidden" value="<?php //echo $updated_by; ?>" class="form" name="updated_by">
+	<input type="hidden" value="<?php //echo $updated_type; ?>" class="form" name="updated_type">
+	<input type="hidden" value="<?php //echo $updated_at; ?>" class="form" name="updated_at">
+	<input type="hidden" value="<?php //echo $procedure_id; ?>" class="form" name="procedure_id">
 	<input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
-	<input type="hidden" value="<?php echo $receipt_number; ?>" class="form" name="receipt_number">
+	<input type="hidden" value="<?php //echo $receipt_number; ?>" class="form" name="receipt_number">
 	<input type="hidden" value="pending" name="status">
 	<input type="hidden" value="First Cycle" name="type">
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">

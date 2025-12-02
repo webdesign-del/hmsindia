@@ -622,4 +622,88 @@ class Procedures extends CI_Controller {
 			die();
 		}
 	}
+
+	public function opu_donor(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('procedures/opu_donor', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
+	public function outcome_donor(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('procedures/outcome_donor', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
+	public function serum_bete_hcg_on_donor(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('procedures/serum_bete_hcg_on_donor', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
+	public function trigger_module_donor(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('procedures/trigger_module_donor', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
+	public function ovulation_induction_protocol_donor(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('procedures/ovulation_induction_protocol_donor', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
+	public function embryo_transfer_donor(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('procedures/embryo_transfer_donor', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
 } 

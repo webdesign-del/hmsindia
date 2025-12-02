@@ -65,7 +65,7 @@
 
                   <td><?php echo $count; ?></td>
 
-                   <td><?php echo $vl['patient_id']; ?></td>
+                   <td><a href="<?php echo base_url().'accounts/assessment_form_details'; ?>/<?php echo $vl['patient_id']; ?>"><?php echo $vl['patient_id']; ?></a></td>
 
                   <td><?php echo $vl['name']; ?></td>
                   
