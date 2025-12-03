@@ -1609,7 +1609,7 @@ function partial_billing($appointment_id){
 					$post_arr['package_form'] = $package_form;
 
 					// Common Payment Details
-					$post_arr['payment_method'] = $_POST['payment_method']; unset($_POST['payment_method']);
+					//$post_arr['payment_method'] = $_POST['payment_method']; unset($_POST['payment_method']);
 					$post_arr['cash_payment'] = $_POST['cash_payment']; unset($_POST['cash_payment']);
 					$post_arr['card_payment'] = $_POST['card_payment']; unset($_POST['card_payment']);
 					$post_arr['upi_payment'] = $_POST['upi_payment']; unset($_POST['upi_payment']);
@@ -1778,7 +1778,7 @@ function partial_billing($appointment_id){
 								'" . $loop_payment_done . "',
 								'" . $post_arr['wallet_payment'] . "',
 								'" . $loop_remaining_amount . "',
-								'" . $post_arr['payment_method'] . "',
+								'" . $_POST['payment_method_' . $val] . "',
 								'" . $post_arr['billing_from'] . "',
 								'" . $post_arr['billing_at'] . "',
 								'" . $post_arr['package_form'] . "',
@@ -1921,7 +1921,7 @@ function partial_billing($appointment_id){
     $post_arr['package_form'] = $package_form;
 
     // Payments
-    $post_arr['payment_method'] = $_POST['payment_method']; unset($_POST['payment_method']);
+   // $post_arr['payment_method'] = $_POST['payment_method']; unset($_POST['payment_method']);
     $post_arr['cash_payment'] = $_POST['cash_payment']; unset($_POST['cash_payment']);
     $post_arr['card_payment'] = $_POST['card_payment']; unset($_POST['card_payment']);
     $post_arr['upi_payment'] = $_POST['upi_payment']; unset($_POST['upi_payment']);
@@ -2079,7 +2079,7 @@ function partial_billing($appointment_id){
             '" . $loop_payment_done . "',
             '" . $post_arr['wallet_payment'] . "',
             '" . $loop_remaining_amount . "',
-            '" . $post_arr['payment_method'] . "',
+            '" . $_POST['payment_method_' . $val] . "',
             '" . $post_arr['billing_from'] . "',
             '" . $post_arr['billing_at'] . "',
             '" . $post_arr['package_form'] . "',

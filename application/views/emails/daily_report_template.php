@@ -98,6 +98,8 @@
         
         <hr>
         
+
+        
         <h3>Detailed Patient Lists</h3>
         <?php echo $details_html; ?>
         
