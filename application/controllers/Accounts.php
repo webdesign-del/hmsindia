@@ -1543,6 +1543,52 @@ public function procedure_reports(){
 			die();
 		}
 	}
+
+
+	public function patient_financial_clearance(){
+		$logg = checklogin();
+		error_reporting(0);
+		if($logg['status'] == true){
+
+			$per_page = $this->input->get('per_page', true);
+			if(empty($per_page)){
+				$per_page = 0;
+			}
+			$center = $this->input->get('billing_at', true);
+			$start_date = $this->input->get('start_date', true);
+			$end_date = $this->input->get('end_date', true);
+			$patient_id = $this->input->get('iic_id', true);
+			$biller_id = $this->input->get('biller_id', true);
+			
+			$config = array();
+        	$config["base_url"] = base_url() . "accounts/patient_financial_clearance";
+        	$config["total_rows"] = $this->accounts_model->patient_procedure_reports_count($center, $start_date, $end_date, $patient_id, $biller_id);
+        	$config["per_page"] = 20;
+        	$config["uri_segment"] = 2;
+			$config['use_page_numbers'] = true;
+			$config['num_links'] = 5;
+			$config['page_query_string'] = true;
+			$config['reuse_query_string'] = true;
+        	$this->pagination->initialize($config);
+        	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
+			
+        	$data["links"] = $this->pagination->create_links();
+			$data['procedure_result'] = $this->accounts_model->patient_procedure_reports_list_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $biller_id);
+			$data["billing_at"] = $center;
+			$data["start_date"] = $start_date;
+			$data["end_date"] = $end_date;
+			$data["patient_id"] = $patient_id;
+			$data["payment_method"] = $payment_method;
+			$data["biller_id"] = $biller_id;
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('accounts/patient_financial_clearance', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
 /******** Freezing *******/	
 	
 	public function freezing_reports(){

@@ -431,6 +431,142 @@ $(document).ready(function() {
     </div>
     
    <div class="dashboard-2">
+
+  <div class="card-content">
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <?php
+            // Initialize totals for each payment method
+            $paymentTotals = [
+                'Card' => 0,
+                'UPI' => 0,
+                'Cash' => 0,
+                'Check' => 0,
+                'IIC-Wallet' => 0,
+                'Advance' => 0,
+                'NEFT' => 0,
+                'Loan' => 0,
+                'Other' => 0
+            ];
+            
+            // Collect all data in one array
+            $allData = [];
+            
+            // Process procedure payments
+            foreach($patient_procedure_daily_result as $vl) {
+                $method = ucfirst(strtolower($vl['payment_method']));
+                $paymentTotals[$method] += floatval($vl['payment_done']);
+                $allData[] = [
+                    'type' => 'Package',
+                    'data' => $vl
+                ];
+            }
+            
+            // Process partial payments
+            foreach($patient_partial_daily_result as $vl) {
+                $method = ucfirst(strtolower($vl['payment_method']));
+                $paymentTotals[$method] += floatval($vl['payment_done']);
+                $allData[] = [
+                    'type' => 'Partial',
+                    'data' => $vl
+                ];
+            }
+            
+            // Process medicine payments
+            foreach($patient_medicine_daily_result as $vl) {
+                $method = ucfirst(strtolower($vl['payment_method']));
+                $paymentTotals[$method] += floatval($vl['payment_done']);
+                $allData[] = [
+                    'type' => 'OPD Medicines',
+                    'data' => $vl
+                ];
+            }
+            
+            // Process diagnostic payments
+            foreach($patient_diagnostic_daily_result as $vl) {
+                $method = ucfirst(strtolower($vl['payment_method']));
+                $paymentTotals[$method] += floatval($vl['payment_done']);
+                $allData[] = [
+                    'type' => 'DIAGNOSTIC',
+                    'data' => $vl
+                ];
+            }
+            
+            // Process consultation payments
+            foreach($patient_consultation_daily_result as $vl) {
+                $method = ucfirst(strtolower($vl['payment_method']));
+                $paymentTotals[$method] += floatval($vl['payment_done']);
+                $allData[] = [
+                    'type' => 'OPD consultation',
+                    'data' => $vl
+                ];
+            }
+            
+            // Calculate grand total
+            $grandTotal = array_sum($paymentTotals);
+            ?>
+            
+            <!-- Payment Summary Table -->
+            <table class="payment-summary">
+                <thead>
+                <tr>
+                    <th>FTD</th>
+                    <th>Reporting Center</th>
+                </tr>
+                <tr>
+                    <th><?php echo date('d/m/Y'); ?></th>
+                    <th><?php echo $all_method->get_center_name($_SESSION['logged_billing_manager']['center']); ?></th>
+                </tr>
+                 <tr>
+                    <th>Summary of Collection for <?php echo date('d/m/Y'); ?></th>
+                    <th></th>
+                </tr>
+            </thead>
+                <tbody>
+                    <tr>
+                        <td>Card Receipts</td>
+                        <td><?php echo number_format($paymentTotals['Card'], 2); ?></td>
+                    </tr>
+                    <tr>
+                        <td>UPI Receipts</td>
+                        <td><?php echo number_format($paymentTotals['UPI'], 2); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Cash Receipts</td>
+                        <td><?php echo number_format($paymentTotals['Cash'], 2); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Check Receipts</td>
+                        <td><?php echo number_format($paymentTotals['Check'], 2); ?></td>
+                    </tr>
+                    <tr>
+                        <td>IIC-Wallet Receipts</td>
+                        <td><?php echo number_format($paymentTotals['IIC-Wallet'], 2); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Advance Receipts</td>
+                        <td><?php echo number_format($paymentTotals['Advance'], 2); ?></td>
+                    </tr>
+                    <tr>
+                        <td>NEFT Receipts</td>
+                        <td><?php echo number_format($paymentTotals['NEFT'], 2); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Loan Receipts</td>
+                        <td><?php echo number_format($paymentTotals['Loan'], 2); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Other Receipts</td>
+                        <td><?php echo number_format($paymentTotals['Other'], 2); ?></td>
+                    </tr>
+                    <tr class="total-row">
+                        <td><strong>Total Receipts</strong></td>
+                        <td><strong><?php echo number_format($grandTotal, 2); ?></strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
 <div class="card">
 <div class="card-content">
              <table>
@@ -762,3 +898,107 @@ $(document).ready(function() {
             }
         }
     </style>
+    <style>
+.report-title {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #3498db;
+}
+
+.summary-section {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.report-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.report-info .label {
+    font-weight: bold;
+    color: #7f8c8d;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.report-info .value {
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+.summary-title {
+    color: #27ae60;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.payment-summary {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.payment-summary td {
+    padding: 8px 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.payment-summary td:first-child {
+    width: 60%;
+    font-weight: 500;
+}
+
+.payment-summary td:last-child {
+    text-align: right;
+    font-family: monospace;
+}
+
+.payment-summary .total-row {
+    border-top: 2px solid #2c3e50;
+    background: #ecf0f1;
+}
+
+.payment-summary .total-row td {
+    font-weight: bold;
+    font-size: 16px;
+    color: #2c3e50;
+}
+
+.detailed-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+
+.detailed-table th {
+    background: #3498db;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.detailed-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.detailed-table tr:hover {
+    background: #f5f5f5;
+}
+</style>

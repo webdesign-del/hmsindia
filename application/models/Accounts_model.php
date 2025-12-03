@@ -6671,6 +6671,76 @@ function assessment_form_insert_payment($patient_id, $data) {
 		$wallet_result = $wallet_q->result_array();
 		return $wallet_result;
 	}
+
+	function patient_procedure_reports_count($center, $start_date, $end_date, $patient_id, $biller_id){
+		$procedure_result = array();
+		$conditions = '';
+		/*if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
+			$conditions = ' and billing_at="'.$_SESSION['logged_accountant']['center'].'"'; 
+		}*/
+
+		if (!empty($center)){
+			$conditions .= " and billing_at='$center'";
+		}
+		if (!empty($biller_id)){
+			$conditions .= " and biller_id='$biller_id'";
+		}
+		if (!empty($patient_id)){
+			$conditions .= " and patient_id='$patient_id'";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " and on_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date='$end_date'";
+		}
+
+		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where 1 ".$conditions."";
+		$q = $this->db->query($procedure_sql);
+		return $q->num_rows();
+		
+	}
+
+	function patient_procedure_reports_list_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $biller_id){
+		$procedure_result = array();
+		$conditions = '';
+		if(empty($page)){
+			$offset = 0;
+		}else{
+			$offset = ($page - 1) * $limit;
+		}
+		/*if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
+			$conditions = ' and billing_at="'.$_SESSION['logged_accountant']['center'].'"'; 
+		}*/
+
+		if (!empty($biller_id)){
+			$conditions .= " and biller_id='$biller_id'";
+		}
+		if (!empty($center)){
+			$conditions .= " and billing_at='$center'";
+		}
+		if (!empty($patient_id)){
+			$conditions .= " and patient_id='$patient_id'";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			//$conditions .= " and on_date >='$start_date' and  on_date <= '$end_date'";
+			$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " and on_date='$start_date'";
+			
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date='$end_date'";
+		}
+		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where 1".$conditions." order by on_date desc limit ". $limit." OFFSET ".$offset."";
+		$procedure_q = $this->db->query($procedure_sql);
+		$procedure_result = $procedure_q->result_array();
+		return $procedure_result;
+	}
     
 
 }
