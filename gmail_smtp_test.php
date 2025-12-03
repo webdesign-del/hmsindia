@@ -10,15 +10,15 @@ ini_set('display_errors', 1);
 echo "<h2>Gmail SMTP Test</h2>";
 echo "<hr>";
 
-// Gmail SMTP Configuration
+// Production Mail SMTP Configuration (from application/config/production/email.php)
 $gmail_config = [
     'host' => 'smtp.gmail.com',
-    'username' => 'ranjeet.kumar@indiaivf.in',
-    'password' => 'mslzfkpcdefvytld',
+    'username' => 'digital@indiaivf.in',
+    'password' => 'dmnjvdgzdqdsfsmv',
     'port' => 587,
     'encryption' => 'tls',
-    'from_email' => 'ranjeet.kumar@indiaivf.in',
-    'from_name' => 'IndiaIVF Test'
+    'from_email' => 'digital@indiaivf.in',
+    'from_name' => 'IndiaIVF (DEV)'
 ];
 
 echo "<h3>Configuration</h3>";
