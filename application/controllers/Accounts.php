@@ -8165,53 +8165,91 @@ public function save_advance_payment()
 	}	
 
 
-public function send_daily_report_email() {
+	public function send_daily_report_email()
+	{
+		// 1. Get recipient and subject
+		$recipient_email = $this->input->post('recipient_email');
+		$email_subject   = $this->input->post('email_subject');
+
+		// 2. Report data
+		$data['report_data'] = $_POST;
+		
+		// 3. Details HTML
+		$data['details_html'] = urldecode($this->input->post('details_html'));
+
+		// 4. Load email template
+		$email_body = $this->load->view('emails/daily_report_template', $data, TRUE);
+
+		// 5. Send email using PHPMailer function
+		$is_sent = send_mail($recipient_email, $email_subject, $email_body);
+
+		// 6. JSON Response
+		if ($is_sent) {
+			$response = [
+				'success'   => true,
+				'message'   => 'Report sent successfully!',
+				'recipient' => $recipient_email,
+				'timestamp' => date('Y-m-d H:i:s')
+			];
+		} else {
+			$response = [
+				'success' => false,
+				'message' => 'Failed to send the email! Check Email Log.'
+			];
+		}
+
+		header('Content-Type: application/json');
+		echo json_encode($response);
+	}
+
+	// public function send_daily_report_email() {
         
-        // 1. Get the recipient and subject
-        $recipient_email = $this->input->post('recipient_email');
-        $email_subject   = $this->input->post('email_subject');
+    //     // 1. Get the recipient and subject
+    //     $recipient_email = $this->input->post('recipient_email');
+    //     $email_subject   = $this->input->post('email_subject');
 
-        // 2. Get all the report data from the forms
-        $data['report_data'] = $_POST;
+    //     // 2. Get all the report data from the forms
+    //     $data['report_data'] = $_POST;
         
-        // 3. Get the raw HTML of the detailed patient lists
-        $data['details_html'] = urldecode($this->input->post('details_html'));
+    //     // 3. Get the raw HTML of the detailed patient lists
+    //     $data['details_html'] = urldecode($this->input->post('details_html'));
 
-        // 4. Load the email template file (created in Step 2)
-        $email_body = $this->load->view('emails/daily_report_template', $data, TRUE);
+    //     // 4. Load the email template file (created in Step 2)
+    //     $email_body = $this->load->view('emails/daily_report_template', $data, TRUE);
+	// 	send_mail($recipient_email, $email_subject, $email_body);
 
-        // 5. Load CodeIgniter's email library
-        $this->load->library('email'); 
-        // This will auto-load your config from 'application/config/email.php'
+    //     // 5. Load CodeIgniter's email library
+    //     // $this->load->library('email'); 
+    //     // This will auto-load your config from 'application/config/email.php'
 
-        $this->email->from('no-reply@yourhospital.com', 'Daily Reports');
-        $this->email->to($recipient_email);
-        $this->email->subject($email_subject);
-        $this->email->message($email_body);
+    //     // $this->email->from('no-reply@yourhospital.com', 'Daily Reports');
+    //     // $this->email->to($recipient_email);
+    //     // $this->email->subject($email_subject);
+    //     // $this->email->message($email_body);
         
-        // ** CRITICAL: This tells CodeIgniter to send HTML **
-        $this->email->set_mailtype("html"); 
+    //     // ** CRITICAL: This tells CodeIgniter to send HTML **
+    //     // $this->email->set_mailtype("html"); 
 
-        // 6. Send the email and return a JSON response
-        if ($this->email->send()) {
-            $response = [
-                'success'   => true,
-                'message'   => 'Report sent successfully!',
-                'recipient' => $recipient_email,
-                'timestamp' => date('Y-m-d H:i:s')
-            ];
-        } else {
-            // ** CRITICAL: This sends the real error message back to the user **
-            $response = [
-                'success' => false,
-                'message' => 'Failed to send email. Debug: ' . $this->email->print_debugger(['headers'])
-            ];
-        }
+    //     // 6. Send the email and return a JSON response
+    //     if ($this->email->send()) {
+    //         $response = [
+    //             'success'   => true,
+    //             'message'   => 'Report sent successfully!',
+    //             'recipient' => $recipient_email,
+    //             'timestamp' => date('Y-m-d H:i:s')
+    //         ];
+    //     } else {
+    //         // ** CRITICAL: This sends the real error message back to the user **
+    //         $response = [
+    //             'success' => false,
+    //             'message' => 'Failed to send email. Debug: ' . $this->email->print_debugger(['headers'])
+    //         ];
+    //     }
 
-        // Return the JSON response to your JavaScript
-        header('Content-Type: application/json');
-        echo json_encode($response);
-    }
+    //     // Return the JSON response to your JavaScript
+    //     header('Content-Type: application/json');
+    //     echo json_encode($response);
+    // }
 
 /*
 // Add this helper method to get patient names
