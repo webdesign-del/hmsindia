@@ -439,7 +439,7 @@ $(document).ready(function() {
             // Initialize totals for each payment method
             $paymentTotals = [
                 'Card' => 0,
-                'UPI' => 0,
+                'upi' => 0,
                 'Cash' => 0,
                 'Check' => 0,
                 'IIC-Wallet' => 0,
@@ -529,7 +529,7 @@ $(document).ready(function() {
                     </tr>
                     <tr>
                         <td>UPI Receipts</td>
-                        <td><?php echo number_format($paymentTotals['UPI'], 2); ?></td>
+                        <td><?php echo number_format($paymentTotals['Upi'], 2); ?></td>
                     </tr>
                     <tr>
                         <td>Cash Receipts</td>
