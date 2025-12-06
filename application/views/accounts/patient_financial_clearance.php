@@ -40,11 +40,6 @@
                 <button name="btnreset" id="btnreset" type="button"  class="btn btn-secondary">RESET</button>
                </a>
             </div>
-            <div class="col-sm-2" style="margin-top: 10px;">
-            	<a href="<?php echo base_url('accounts/procedure-reports'); ?>" style="text-decoration: none;">
-                <button name="export-billing" type="submit"  class="btn btn-secondary" id="export-billing">Export Report</button>
-               </a>
-            </div>
             </form>  
         <div class="clearfix"></div>
         <div class="card-content">
@@ -53,7 +48,6 @@
               <thead>
                 <tr>
 				          <th>S.No.</th>
-                  <th>CRM ID</th>
                   <th>IIC ID</th>
                   <th>Patient name</th>
                   <th>Receipt number</th>
@@ -66,8 +60,7 @@
 				          <th>Origins</th>
 				          <th>Employee Name</th>
 				          <th>Procedure</th>
-				          <th>FC / CH</th>
-                  <th>User</th>
+				          <th>FC / CH Clearance</th>
                   <th>User / Doctor /  Embryologist</th>
                   <th>Account</th>
                 </tr>
@@ -80,48 +73,116 @@
 			  $count=1; foreach($procedure_result as $ky => $vl){
                 $patient_data = get_patient_detail($vl['patient_id']);
 						    $currency = '';
-                $current_balance = $all_method->get_current_balance($vl['patient_id']); ?>
+                $current_balance = $all_method->get_current_balance($vl['patient_id']);
+               $current_receipt = $vl['receipt_number']; 
+
+    // 2. Run the Sum Query
+    $sum_sql = "SELECT SUM(payment_done) as total_paid FROM hms_patient_payments WHERE billing_id = '$current_receipt'";
+    $sum_query = $this->db->query($sum_sql);
+    $sum_result = $sum_query->row();
+
+    // 3. Display the result (formatted with 2 decimal places)
+    
+                
+                ?>
                 <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
-                  <td><?php 
-                  $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where ID='".$vl['appointment_id']."'";
-	                $select_appoint = run_select_query($sql1);
-                  
-                  echo $select_appoint['crm_id']; ?></td>
                   <td><a href="<?php echo base_url().'accounts/procedure_advice'; ?>/<?php echo $vl['patient_id']; ?>"><?php echo $vl['patient_id']; ?></a></td>
                   <td><?php 
                     $patient_name = $all_method->get_patient_name($vl['patient_id']);
                     echo strtoupper($patient_name); ?>
                   </td>
-                  <td><a href="<?php echo base_url().'accounts/details';?>/<?php echo $vl['receipt_number']?>?t=procedure"><?php echo $vl['receipt_number']; ?></a></td>
+                  <td><a href="<?php echo base_url().'accounts/financial_clearance_details';?>/<?php echo $vl['receipt_number']?>"><?php echo $vl['receipt_number']; ?></a></td>
                   <td><?php echo $vl['on_date']?></td>
                   <td><?php echo $vl['totalpackage']?></td>
                   <td><?php echo $vl['discount_amount']?></td>
 				          <td><?php echo $vl['fees']?></td>
-				          <td><?php echo $vl['payment_done']?></td>
+				          <td><?php echo number_format($sum_result->total_paid + $vl['payment_done'], 2);   ?></td>
                   <td><?php echo $all_method->get_center_name($vl['billing_at']); ?></td>
+				          <td><?php echo $all_method->get_center_name($vl['origins']); ?></td>
 				          <td><?php 
-				      $sql2 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$vl['origins']."'"; 
-			            $query = $this->db->query($sql2);
-                            $select_result2 = $query->result(); 
-							foreach ($select_result2 as $res_val2){
-								echo '<br/>';
-								echo $res_val2->center_name;
-							}
-						?></td>
-				  <td><?php 
-				      $sql2 = "Select * from ".$this->config->item('db_prefix')."employees where employee_number='".$vl['biller_id']."'"; 
-			            $query = $this->db->query($sql2);
+				              $sql2 = "Select * from ".$this->config->item('db_prefix')."employees where employee_number='".$vl['biller_id']."'"; 
+			                $query = $this->db->query($sql2);
                             $select_result3 = $query->result(); 
-							foreach ($select_result3 as $res_val3){
-								echo '<br/>';
-								echo $res_val3->name;
-							}
-						?></td>
-				    <td><?php echo $vl['procedure_name']; ?></td>
-            <td><?php echo $vl['councellor']; ?></td>
-            <td></td>
-            <td></td>
+							        foreach ($select_result3 as $res_val3){
+								      echo '<br/>';
+							      	echo $res_val3->name;
+						      	}
+					      	?></td>
+				          <td><?php echo $vl['procedure_name']; ?></td>
+                  <td><?php 
+// 1. Check if Counselor is logged in AND Status is pending (empty)
+if(!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') { 
+?> 
+    <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="ClearanceProcedure('<?php echo $vl['ID']; ?>')">
+        Clearance
+    </a>
+    <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="NonClearanceProcedure('<?php echo $vl['ID']; ?>')">
+        Non Clearance
+    </a>
+
+<?php 
+} else { 
+    // 2. SHOW TEXT (If not counselor OR status is already decided)
+    
+    if($vl['clearance'] == '') {
+        // Optional: Show 'Pending' text if it's empty and user isn't a counselor
+        echo '<span style="color:orange;">Pending</span>'; 
+    } else {
+        // Show the actual status
+        echo ucwords($vl['clearance']);
+    }
+} 
+?>
+                </td>
+                  <td><?php 
+// 1. Check if (Embryologist OR Doctor) is logged in AND Status is empty
+$is_authorized = !empty($_SESSION['logged_embryologist']['name']) || !empty($_SESSION['logged_doctor']['name']);
+
+if($is_authorized && $vl['consultant'] == '') { 
+?> 
+    <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="consultantProcedure('<?php echo $vl['ID']; ?>')">
+        <i class="fas fa-check"></i> Done
+    </a>
+
+<?php 
+} else { 
+    // 2. SHOW TEXT (If user is unauthorized OR status is already updated)
+    
+    if($vl['consultant'] == '') {
+        echo '<span class="text-warning">Pending</span>'; 
+    } else {
+        // Color code: Done = Green, anything else = Red
+        $color_class = ($vl['consultant'] == 'Done') ? 'text-success' : 'text-danger';
+        echo '<span class="'.$color_class.'">'.ucwords($vl['consultant']).'</span>';
+    }
+} 
+?></td>
+                   <td><?php 
+// 1. If Accountant is logged in AND Status is empty -> Show Buttons
+if(!empty($_SESSION['logged_accountant']['name']) && $vl['accclearance'] == '') { 
+?> 
+    <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="accClearanceProcedure('<?php echo $vl['ID']; ?>')">
+        <i class="fas fa-check"></i> Clearance
+    </a>
+    <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="accNonClearanceProcedure('<?php echo $vl['ID']; ?>')">
+        <i class="fas fa-times"></i> Non Clearance
+    </a>
+
+<?php 
+} 
+// 2. Otherwise (User is not accountant OR Status is already updated) -> Show Text
+else { 
+    if($vl['accclearance'] == '') {
+        echo '<span class="text-warning">Pending</span>'; // Optional: Show 'Pending' if empty
+    } else {
+        // Color code the result for better UI
+        $color_class = ($vl['accclearance'] == 'Clearance') ? 'text-success' : 'text-danger';
+        echo '<span class="'.$color_class.'">'.ucwords($vl['accclearance']).'</span>';
+    }
+} 
+?>
+                </td>
                 </tr>
               <?php $count++;} ?>
                <tr>
@@ -135,6 +196,103 @@
         </div>
       </div>
      </div>
+     	<script type="text/javascript">
+    function ClearanceProcedure(ID) {
+        if (confirm('Are you sure you want to approve this order?')) {
+            $.ajax({
+                url: '<?php echo base_url('accounts/clearance_procedure/'); ?>' + ID,
+                type: 'POST', // Use 'POST' if necessary
+                success: function(response) {
+                    // Success handling, for example, show an alert and update the UI
+                    alert('Procedure Clearance successfully!');
+                    // Optionally, update the UI (like changing button text or removing the row)
+                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
+                },
+                error: function(xhr, status, error) {
+                    // Handle the error, display an error message
+                    alert('Something went wrong. Please try again.');
+                    console.log(xhr.responseText); // For debugging
+                }
+            });
+        }
+		}
+     function NonClearanceProcedure(ID) {
+        if (confirm('Are you sure you want to approve this order?')) {
+            $.ajax({
+                url: '<?php echo base_url('accounts/nonclearance_procedure/'); ?>' + ID,
+                type: 'POST', // Use 'POST' if necessary
+                success: function(response) {
+                    // Success handling, for example, show an alert and update the UI
+                    alert('Procedure Clearance Reject!');
+                    // Optionally, update the UI (like changing button text or removing the row)
+                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
+                },
+                error: function(xhr, status, error) {
+                    // Handle the error, display an error message
+                    alert('Something went wrong. Please try again.');
+                    console.log(xhr.responseText); // For debugging
+                }
+            });
+        }
+		}
+    function consultantProcedure(ID) {
+        if (confirm('Are you sure you want to approve this order?')) {
+            $.ajax({
+                url: '<?php echo base_url('accounts/consultant_procedure/'); ?>' + ID,
+                type: 'POST', // Use 'POST' if necessary
+                success: function(response) {
+                    // Success handling, for example, show an alert and update the UI
+                    alert('Procedure Clearance successfully!');
+                    // Optionally, update the UI (like changing button text or removing the row)
+                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
+                },
+                error: function(xhr, status, error) {
+                    // Handle the error, display an error message
+                    alert('Something went wrong. Please try again.');
+                    console.log(xhr.responseText); // For debugging
+                }
+            });
+        }
+		}
+    function accClearanceProcedure(ID) {
+        if (confirm('Are you sure you want to approve this order?')) {
+            $.ajax({
+                url: '<?php echo base_url('accounts/accclearance_procedure/'); ?>' + ID,
+                type: 'POST', // Use 'POST' if necessary
+                success: function(response) {
+                    // Success handling, for example, show an alert and update the UI
+                    alert('Procedure Clearance successfully!');
+                    // Optionally, update the UI (like changing button text or removing the row)
+                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
+                },
+                error: function(xhr, status, error) {
+                    // Handle the error, display an error message
+                    alert('Something went wrong. Please try again.');
+                    console.log(xhr.responseText); // For debugging
+                }
+            });
+        }
+		}
+     function accNonClearanceProcedure(ID) {
+        if (confirm('Are you sure you want to approve this order?')) {
+            $.ajax({
+                url: '<?php echo base_url('accounts/accnonclearance_procedure/'); ?>' + ID,
+                type: 'POST', // Use 'POST' if necessary
+                success: function(response) {
+                    // Success handling, for example, show an alert and update the UI
+                    alert('Procedure Clearance Reject!');
+                    // Optionally, update the UI (like changing button text or removing the row)
+                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
+                },
+                error: function(xhr, status, error) {
+                    // Handle the error, display an error message
+                    alert('Something went wrong. Please try again.');
+                    console.log(xhr.responseText); // For debugging
+                }
+            });
+        }
+		}
+</script>
 <style >
 .custom-pagination{
   padding:8px;
