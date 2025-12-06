@@ -1589,6 +1589,8 @@ public function procedure_reports(){
 			die();
 		}
 	}
+
+
 /******** Freezing *******/	
 	
 	public function freezing_reports(){
@@ -2312,6 +2314,61 @@ public function export_consultation_csv() {
 			die();
 		}else{
 			header("location:" .base_url(). "accounts/procedure_patients?m=".base64_encode('Procedure went wrong !').'&t='.base64_encode('error'));
+			die();
+		}
+	}
+
+	function clearance_procedure($ID){
+		$approved = $this->accounts_model->clearance_procedure($ID);
+		if($approved > 0){
+			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure Clearance!').'&t='.base64_encode('success'));
+			die();
+		}else{
+			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure went wrong !').'&t='.base64_encode('error'));
+			die();
+		}
+	}
+
+	function consultant_procedure($ID){
+		$approved = $this->accounts_model->consultant_procedure($ID);
+		if($approved > 0){
+			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure Clearance!').'&t='.base64_encode('success'));
+			die();
+		}else{
+			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure went wrong !').'&t='.base64_encode('error'));
+			die();
+		}
+	}
+
+	function nonclearance_procedure($ID){
+		$approved = $this->accounts_model->nonclearance_procedure($ID);
+		if($approved > 0){
+			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure Clearance!').'&t='.base64_encode('success'));
+			die();
+		}else{
+			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure went wrong !').'&t='.base64_encode('error'));
+			die();
+		}
+	}
+
+	function accclearance_procedure($ID){
+		$approved = $this->accounts_model->accclearance_procedure($ID);
+		if($approved > 0){
+			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure Clearance!').'&t='.base64_encode('success'));
+			die();
+		}else{
+			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure went wrong !').'&t='.base64_encode('error'));
+			die();
+		}
+	}
+
+	function accnonclearance_procedure($ID){
+		$approved = $this->accounts_model->accnonclearance_procedure($ID);
+		if($approved > 0){
+			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure Clearance!').'&t='.base64_encode('success'));
+			die();
+		}else{
+			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure went wrong !').'&t='.base64_encode('error'));
 			die();
 		}
 	}
@@ -3320,6 +3377,57 @@ public function moulist(){
 		}
 
 	}
+
+
+
+public function financial_clearance_details($receipt = null) {
+    // 1. Check Login
+    $logg = checklogin();
+    if ($logg['status'] !== true) {
+        header("location:" . base_url());
+        die();
+    }
+
+    // 2. Validate Receipt Parameter
+    if (empty($receipt)) {
+		$msg = base64_encode('Receipt number is required!');
+		
+		// Corrected Line:
+		header("Location: " . base_url() . "dashboard?m=" . $msg . "&t=" . base64_encode('error'));
+		
+		die();
+	}
+
+    // 3. Get Input (Use CodeIgniter input helper for security)
+    $type = $this->input->get('t'); 
+
+    // 4. Fetch Data
+    $data_result = $this->accounts_model->get_financial_clearance_details($receipt);
+	$partial_data_result = $this->accounts_model->get_financial_partial_clearance_details($receipt);
+
+    // 5. Validate Data (Check this BEFORE loading any views)
+    if (empty($data_result)) {
+        $msg = base64_encode('Details not found!');
+        $type = base64_encode('error');
+        header("location:" . base_url() . "dashboard?m=" . $msg . "&t=" . $type);
+        die();
+    }
+
+    // 6. Prepare Data for View
+   $view_data['data_result'] = $data_result;
+	$view_data['partial_data_result'] = $partial_data_result;
+
+    // 7. Load Views (Only now do we output HTML)
+    $template = get_header_template($logg['role']);
+    
+    $this->load->view($template['header']);
+    
+    // ** MISSING PART ADDED **: You need to load the actual page content here
+    // Change 'accounts/financial_clearance_view' to your actual view file name
+    $this->load->view('accounts/financial_clearance_details', $view_data); 
+    
+    $this->load->view($template['footer']);
+}
 
 	
 
@@ -8165,91 +8273,53 @@ public function save_advance_payment()
 	}	
 
 
-	public function send_daily_report_email()
-	{
-		// 1. Get recipient and subject
-		$recipient_email = $this->input->post('recipient_email');
-		$email_subject   = $this->input->post('email_subject');
-
-		// 2. Report data
-		$data['report_data'] = $_POST;
-		
-		// 3. Details HTML
-		$data['details_html'] = urldecode($this->input->post('details_html'));
-
-		// 4. Load email template
-		$email_body = $this->load->view('emails/daily_report_template', $data, TRUE);
-
-		// 5. Send email using PHPMailer function
-		$is_sent = send_mail($recipient_email, $email_subject, $email_body);
-
-		// 6. JSON Response
-		if ($is_sent) {
-			$response = [
-				'success'   => true,
-				'message'   => 'Report sent successfully!',
-				'recipient' => $recipient_email,
-				'timestamp' => date('Y-m-d H:i:s')
-			];
-		} else {
-			$response = [
-				'success' => false,
-				'message' => 'Failed to send the email! Check Email Log.'
-			];
-		}
-
-		header('Content-Type: application/json');
-		echo json_encode($response);
-	}
-
-	// public function send_daily_report_email() {
+public function send_daily_report_email() {
         
-    //     // 1. Get the recipient and subject
-    //     $recipient_email = $this->input->post('recipient_email');
-    //     $email_subject   = $this->input->post('email_subject');
+        // 1. Get the recipient and subject
+        $recipient_email = $this->input->post('recipient_email');
+        $email_subject   = $this->input->post('email_subject');
 
-    //     // 2. Get all the report data from the forms
-    //     $data['report_data'] = $_POST;
+        // 2. Get all the report data from the forms
+        $data['report_data'] = $_POST;
         
-    //     // 3. Get the raw HTML of the detailed patient lists
-    //     $data['details_html'] = urldecode($this->input->post('details_html'));
+        // 3. Get the raw HTML of the detailed patient lists
+        $data['details_html'] = urldecode($this->input->post('details_html'));
 
-    //     // 4. Load the email template file (created in Step 2)
-    //     $email_body = $this->load->view('emails/daily_report_template', $data, TRUE);
-	// 	send_mail($recipient_email, $email_subject, $email_body);
+        // 4. Load the email template file (created in Step 2)
+        $email_body = $this->load->view('emails/daily_report_template', $data, TRUE);
 
-    //     // 5. Load CodeIgniter's email library
-    //     // $this->load->library('email'); 
-    //     // This will auto-load your config from 'application/config/email.php'
+        // 5. Load CodeIgniter's email library
+        $this->load->library('email'); 
+        // This will auto-load your config from 'application/config/email.php'
 
-    //     // $this->email->from('no-reply@yourhospital.com', 'Daily Reports');
-    //     // $this->email->to($recipient_email);
-    //     // $this->email->subject($email_subject);
-    //     // $this->email->message($email_body);
+        $this->email->from('no-reply@yourhospital.com', 'Daily Reports');
+        $this->email->to($recipient_email);
+        $this->email->subject($email_subject);
+        $this->email->message($email_body);
         
-    //     // ** CRITICAL: This tells CodeIgniter to send HTML **
-    //     // $this->email->set_mailtype("html"); 
+        // ** CRITICAL: This tells CodeIgniter to send HTML **
+        $this->email->set_mailtype("html"); 
 
-    //     // 6. Send the email and return a JSON response
-    //     if ($this->email->send()) {
-    //         $response = [
-    //             'success'   => true,
-    //             'message'   => 'Report sent successfully!',
-    //             'recipient' => $recipient_email,
-    //             'timestamp' => date('Y-m-d H:i:s')
-    //         ];
-    //     } else {
-    //         // ** CRITICAL: This sends the real error message back to the user **
-    //         $response = [
-    //             'success' => false,
-    //             'message' => 'Failed to send email. Debug: ' . $this->email->print_debugger(['headers'])
-    //         ];
-    //     }
+        // 6. Send the email and return a JSON response
+        if ($this->email->send()) {
+            $response = [
+                'success'   => true,
+                'message'   => 'Report sent successfully!',
+                'recipient' => $recipient_email,
+                'timestamp' => date('Y-m-d H:i:s')
+            ];
+        } else {
+            // ** CRITICAL: This sends the real error message back to the user **
+            $response = [
+                'success' => false,
+                'message' => 'Failed to send email. Debug: ' . $this->email->print_debugger(['headers'])
+            ];
+        }
 
-    //     // Return the JSON response to your JavaScript
-    //     header('Content-Type: application/json');
-    //     echo json_encode($response);
-    // }
+        // Return the JSON response to your JavaScript
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
 
 /*
 // Add this helper method to get patient names

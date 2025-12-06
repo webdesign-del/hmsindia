@@ -663,6 +663,7 @@
                         <th>Paid Price</th>
                         <th>Mode</th>
                         <th>Receipt</th>
+                        <th>Upload Receipt</th>
                         <th>Delete</th>
                      </tr>
                   </thead>
@@ -762,6 +763,13 @@
                            </select>
                         </td>
                         <td><input value="<?php echo getReceiptGUID(); ?>" placeholder="Receipt number" readonly="readonly" id="receipt_number_<?php echo $sub_procedure_counter;?>" name="receipt_number_<?php echo $sub_procedure_counter;?>" type="text" class="form-control " required></td>
+                         <td>
+                           <input type="file" 
+                                 name="receipt_image_<?php echo $sub_procedure_counter;?>" 
+                                 id="receipt_image_<?php echo $sub_procedure_counter;?>" 
+                                 class="form-control"
+                                 >
+                        </td>
                         <td><input type="checkbox" class="statuss" name="record"></td>
                      </tr>
                      <?php  

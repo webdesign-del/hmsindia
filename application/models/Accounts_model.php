@@ -1015,6 +1015,36 @@ class Accounts_model extends CI_Model
         $this->db->query($sql);
         return $this->db->affected_rows();
 	}
+
+	function clearance_procedure($ID){
+		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `clearance`='Yes', `clearance_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
+        $this->db->query($sql);
+        return $this->db->affected_rows();
+	}
+
+	function nonclearance_procedure($ID){
+		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `clearance`='No', `clearance_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
+        $this->db->query($sql);
+        return $this->db->affected_rows();
+	}
+
+	function consultant_procedure($ID){
+		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `consultant`='Done', `consultant_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
+        $this->db->query($sql);
+        return $this->db->affected_rows();
+	}
+	
+	function accclearance_procedure($ID){
+		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `accclearance`='Yes', `accclearance_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
+        $this->db->query($sql);
+        return $this->db->affected_rows();
+	}
+
+	function accnonclearance_procedure($ID){
+		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `accclearance`='No', `accclearance_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
+        $this->db->query($sql);
+        return $this->db->affected_rows();
+	}
 	
 	function approve_procedure($ID){
 	 $sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `status`='approved',`modified_on`='".date('Y-m-d H:i:s')."' WHERE ID='".$ID."'";
@@ -6675,9 +6705,9 @@ function assessment_form_insert_payment($patient_id, $data) {
 	function patient_procedure_reports_count($center, $start_date, $end_date, $patient_id, $biller_id){
 		$procedure_result = array();
 		$conditions = '';
-		/*if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
+		if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
 			$conditions = ' and billing_at="'.$_SESSION['logged_accountant']['center'].'"'; 
-		}*/
+		}
 
 		if (!empty($center)){
 			$conditions .= " and billing_at='$center'";
@@ -6698,7 +6728,7 @@ function assessment_form_insert_payment($patient_id, $data) {
 			$conditions .= " and on_date='$end_date'";
 		}
 
-		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where 1 ".$conditions."";
+		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where fees > 0 and 1 ".$conditions."";
 		$q = $this->db->query($procedure_sql);
 		return $q->num_rows();
 		
@@ -6712,9 +6742,9 @@ function assessment_form_insert_payment($patient_id, $data) {
 		}else{
 			$offset = ($page - 1) * $limit;
 		}
-		/*if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
+		if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
 			$conditions = ' and billing_at="'.$_SESSION['logged_accountant']['center'].'"'; 
-		}*/
+		}
 
 		if (!empty($biller_id)){
 			$conditions .= " and biller_id='$biller_id'";
@@ -6736,10 +6766,37 @@ function assessment_form_insert_payment($patient_id, $data) {
 		else if (empty($start_date) && !empty($end_date)){
 			$conditions .= " and on_date='$end_date'";
 		}
-		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where 1".$conditions." order by on_date desc limit ". $limit." OFFSET ".$offset."";
+		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where fees > 0 and 1".$conditions." order by on_date desc limit ". $limit." OFFSET ".$offset."";
 		$procedure_q = $this->db->query($procedure_sql);
 		$procedure_result = $procedure_q->result_array();
 		return $procedure_result;
+	}
+
+
+	function get_financial_clearance_details($receipt){
+		$result = array();
+		$sql = "Select * from `".$this->config->item('db_prefix')."patient_procedure` WHERE receipt_number='".$receipt."'";
+		$q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result[0];
+        }
+        else
+        {
+            return $result;
+        }
+	}
+
+	function get_financial_partial_clearance_details($receipt){
+		// 1. Removed 'echo' (This prevents garbage text from appearing on your screen)
+		$sql = "Select * from `".$this->config->item('db_prefix')."patient_payments` WHERE billing_id='".$receipt."'";
+		
+		$q = $this->db->query($sql);
+		
+		// 2. Return result_array() directly.
+		// This ensures the data is ALWAYS a list (Array of Arrays), even if there is only 1 row.
+		return $q->result_array(); 
 	}
     
 
