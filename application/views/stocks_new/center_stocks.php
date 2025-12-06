@@ -166,6 +166,9 @@
                                                 <!-- <button type="button" class="btn btn-xs btn-danger" onclick="updateCenterStockStatus(<?php echo $stock->id; ?>, 'QUARANTINE')">
                                                     <i class="fa fa-ban"></i> Quarantine
                                                 </button> -->
+                                                <button type="button" class="btn btn-xs btn-danger" onclick="deleteCenterStock(<?php echo $stock->id; ?>)">
+                                                    <i class="fa fa-trash"></i> Delete
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -221,6 +224,29 @@ function updateCenterStockStatus(stockId, status) {
             },
             error: function() {
                 alert('An error occurred while updating stock status.');
+            }
+        });
+    }
+}
+function deleteCenterStock(stockId) {
+    if(confirm('Are you sure you want to delete this center stock? This action cannot be undone.')) {
+        $.ajax({
+            url: '<?php echo base_url("stocks_new/delete_center_stock"); ?>',
+            type: 'POST',
+            data: {
+                stock_id: stockId
+            },
+            dataType: 'json',
+            success: function(response) {
+                if(response.success) {
+                    alert('Center stock deleted successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('An error occurred while deleting center stock.');
             }
         });
     }

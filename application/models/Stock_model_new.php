@@ -1412,6 +1412,102 @@ class Stock_model_new extends CI_Model
         return $this->db->update("center_stocks", ["status" => $status]);
     }
 
+    public function delete_center_stock($stock_id)
+    {
+        try {
+            $this->db->trans_start();
+            
+            // Get stock details with batch and center information
+            $this->db->select("ccs.*, mb.batch_number, mb.medicine_id, mb.selling_price, mb.purchase_price, c.center_name");
+            $this->db->from("center_stocks ccs");
+            $this->db->join("medicine_batches mb", "ccs.batch_id = mb.id");
+            $this->db->join("hms_centers c", "ccs.center_id = c.ID");
+            $this->db->where("ccs.id", $stock_id);
+            $stock = $this->db->get()->row();
+            
+            if (!$stock) {
+                $this->db->trans_rollback();
+                return false;
+            }
+
+            // Get employee ID from session for audit trail
+            $created_by = $this->get_employee_id_from_session();
+
+            // Log stock movement before deletion (for audit trail)
+            $movement_data = [
+                "batch_id" => $stock->batch_id,
+                "movement_type" => "DISPOSAL",
+                "from_location_type" => "CENTER",
+                "from_location_id" => $stock->center_id,
+                "to_location_type" => "DISPOSAL",
+                "to_location_id" => null,
+                "quantity_change" => -$stock->quantity,
+                "quantity_after" => 0,
+                "unit_price" => $stock->selling_price ?? $stock->purchase_price ?? 0,
+                "total_value" => ($stock->selling_price ?? $stock->purchase_price ?? 0) * $stock->quantity,
+                "reference_type" => "STOCK_DELETION",
+                "reference_id" => $stock_id,
+                "reference_number" => "DEL-" . $stock_id,
+                "created_by" => $created_by,
+                "created_at" => date("Y-m-d H:i:s")
+            ];
+            $this->db->insert("stock_movements", $movement_data);
+
+            // Delete the center stock record
+            $this->db->where("id", $stock_id);
+            $result = $this->db->delete("center_stocks");
+            
+            $this->db->trans_complete();
+            
+            if ($this->db->trans_status() === false) {
+                return false;
+            }
+            
+            return $result;
+        } catch (Exception $e) {
+            $this->db->trans_rollback();
+            error_log("Error deleting center stock: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get employee ID from session
+     * Helper method to get employee ID from various session types
+     */
+    private function get_employee_id_from_session()
+    {
+        $employee_number = null;
+        
+        // Check different session types
+        if (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
+            $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
+        } elseif (!empty($_SESSION['logged_billing_manager']['employee_number'])) {
+            $employee_number = $_SESSION['logged_billing_manager']['employee_number'];
+        } elseif (!empty($_SESSION['logged_central_stock_manager']['employee_number'])) {
+            $employee_number = $_SESSION['logged_central_stock_manager']['employee_number'];
+        } elseif (!empty($_SESSION['logged_administrator']['employee_number'])) {
+            $employee_number = $_SESSION['logged_administrator']['employee_number'];
+        }
+        
+        if (empty($employee_number)) {
+            return null;
+        }
+        
+        // Get employee ID from employee number
+        $this->db->select("ID");
+        $this->db->from($this->config->item("db_prefix") . "employees");
+        $this->db->where("employee_number", $employee_number);
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $result = $query->row();
+            return $result->ID;
+        }
+        
+        return null;
+    }
+
     // ===============================================
     // BATCH STATUS MANAGEMENT FUNCTIONS
     // ===============================================

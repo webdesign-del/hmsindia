@@ -2655,6 +2655,39 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    public function delete_center_stock()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $stock_id = $this->input->post("stock_id");
+
+            if (empty($stock_id)) {
+                echo json_encode([
+                    "success" => false,
+                    "message" => "Stock ID is required",
+                ]);
+                return;
+            }
+
+            if ($this->Stock_model_new->delete_center_stock($stock_id)) {
+                echo json_encode([
+                    "success" => true,
+                    "message" => "Center stock deleted successfully",
+                ]);
+            } else {
+                echo json_encode([
+                    "success" => false,
+                    "message" => "Failed to delete center stock",
+                ]);
+            }
+        } else {
+            echo json_encode([
+                "success" => false,
+                "message" => "Not authenticated",
+            ]);
+        }
+    }
+
     // ===============================================
     // BATCH STATUS MANAGEMENT
     // ===============================================
