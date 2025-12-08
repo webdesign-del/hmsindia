@@ -4579,6 +4579,41 @@ class Stocks_new extends CI_Controller
                         }
                     }
 
+                    // Calculate total amounts from per-item discounts
+                    $total_return_amount = $this->input->post("total_return_amount");
+                    $total_discount_amount = $this->input->post("total_discount_amount");
+                    $final_return_amount = $this->input->post("final_return_amount_hidden") ? (float)$this->input->post("final_return_amount_hidden") : 0;
+                    
+                    // Calculate amounts
+                    $total_amount = 0;
+                    if ($total_return_amount) {
+                        $total_amount = (float)str_replace('₹', '', $total_return_amount);
+                    }
+                    
+                    $total_discount = 0;
+                    if ($total_discount_amount) {
+                        $total_discount = (float)str_replace('₹', '', $total_discount_amount);
+                    }
+                    
+                    // If final_return_amount_hidden is not set, calculate it from total and discount
+                    if ($final_return_amount == 0 && $total_amount > 0) {
+                        $final_return_amount = $total_amount - $total_discount;
+                    }
+
+                    // COMMENTED OUT: Old total discount calculation (now using per-item discount)
+                    /*
+                    $discount_percentage = $this->input->post("discount_percentage") ? (float)$this->input->post("discount_percentage") : 0;
+                    
+                    // If final_return_amount_hidden is not set, calculate it
+                    if ($final_return_amount == 0 && $total_amount > 0) {
+                        $discount_amount = ($total_amount * $discount_percentage) / 100;
+                        $final_return_amount = $total_amount - $discount_amount;
+                    } else {
+                        // Calculate discount amount from total and final
+                        $discount_amount = $total_amount - $final_return_amount;
+                    }
+                    */
+
                     $return_data = [
                         "patient_id" => $this->input->post("patient_id"),
                         "patient_name" => $this->input->post("patient_name"),
@@ -4589,16 +4624,41 @@ class Stocks_new extends CI_Controller
                         "department" => $this->input->post("department"),
                         "return_date" => $this->input->post("return_date"),
                         "return_reason" => $this->input->post("return_reason"),
-                        "total_return_amount" => $this->input->post(
-                            "total_return_amount",
-                        ),
+                        "total_return_amount" => $total_amount,
+                        "discount_amount" => $total_discount,
+                        "final_return_amount" => $final_return_amount,
+                        // COMMENTED OUT: Old total discount percentage (now using per-item discount)
+                        // "discount_percentage" => $discount_percentage,
                         "remarks" => $this->input->post("remarks"),
                         "created_by" => $created_by_id,
                         "created_at" => date("Y-m-d H:i:s"),
                     ];
+               
 
                     $return_items = $this->input->post("return_items");
-
+                    // Process per-item discounts
+                    if (!empty($return_items)) {
+                        foreach ($return_items as $key => $item) {
+                            // Get discount percentage for each item
+                            $item_discount_percentage = isset($item['discount_percentage']) ? (float)$item['discount_percentage'] : 0;
+                            if (isset($item['discount_percentage_hidden'])) {
+                                $item_discount_percentage = (float)$item['discount_percentage_hidden'];
+                            }
+                            
+                            // Calculate item amounts
+                            $item_quantity = isset($item['return_quantity']) ? (int)$item['return_quantity'] : 0;
+                            $item_price = isset($item['price']) ? (float)$item['price'] : 0;
+                            $item_return_amount = $item_quantity * $item_price;
+                            $item_discount_amount = ($item_return_amount * $item_discount_percentage) / 100;
+                            $item_final_amount = $item_return_amount - $item_discount_amount;
+                            
+                            // Add discount fields to return item
+                            $return_items[$key]['discount_percentage'] = $item_discount_percentage;
+                            $return_items[$key]['discount_amount'] = $item_discount_amount;
+                            $return_items[$key]['final_amount'] = $item_final_amount;
+                        }
+                    }
+              
                     if (
                         $this->Stock_model_new->process_medicine_return(
                             $return_data,

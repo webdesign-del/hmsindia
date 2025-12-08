@@ -4893,6 +4893,7 @@ class Stock_model_new extends CI_Model
         // }
         public function process_medicine_return($return_data, $return_items)
         {
+
             if (empty($return_items)) {
                 return false;
             }
@@ -4924,12 +4925,28 @@ class Stock_model_new extends CI_Model
                 if ($batch_id <= 0 || $quantity <= 0) {
                     continue; 
                 }
+                
+                // Get discount information for this item
+                $item_discount_percentage = isset($item["discount_percentage"]) ? (float)$item["discount_percentage"] : 0;
+                $item_discount_amount = isset($item["discount_amount"]) ? (float)$item["discount_amount"] : 0;
+                $item_final_amount = isset($item["final_amount"]) ? (float)$item["final_amount"] : ($quantity * $price);
+                
+                // If discount not calculated, calculate it
+                if ($item_discount_amount == 0 && $item_discount_percentage > 0) {
+                    $item_total = $quantity * $price;
+                    $item_discount_amount = ($item_total * $item_discount_percentage) / 100;
+                    $item_final_amount = $item_total - $item_discount_amount;
+                }
+                
                 $item_data = [
                     "return_id" => $return_id,
                     "batch_id" => $batch_id,
                     "quantity_returned" => $quantity,
                     "return_price" => $price,
                     "total_amount" => $quantity * $price,
+                    "discount_percentage" => $item_discount_percentage,
+                    "discount_amount" => $item_discount_amount,
+                    "final_amount" => $item_final_amount,
                     "created_at" => date("Y-m-d H:i:s")
                 ];
                 $this->db->insert("medicine_return_items", $item_data);

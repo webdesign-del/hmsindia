@@ -150,8 +150,11 @@
                                                     <th>Batch</th>
                                                     <th>Quantity Sold</th>
                                                     <th>Return Quantity</th>
-                                                    <th>Unit Price</th>
+                                                    <th>Quentity Price</th>
                                                     <th>Return Amount</th>
+                                                    <th>Discount (%)</th>
+                                                    <th>Discount Amount</th>
+                                                    <th>Final Amount</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
@@ -187,6 +190,12 @@
                                                     </td>
                                                     <td><span class="return_amount">-</span></td>
                                                     <td>
+                                                        <input type="number" name="return_items[0][discount_percentage]" class="form-control item_discount_percentage" min="0" max="100" step="0.01" value="0" placeholder="0">
+                                                        <input type="hidden" name="return_items[0][discount_percentage_hidden]" class="item_discount_percentage_hidden" value="0">
+                                                    </td>
+                                                    <td><span class="item_discount_amount">₹0.00</span></td>
+                                                    <td><span class="item_final_amount">-</span></td>
+                                                    <td>
                                                         <button type="button" class="btn btn-danger btn-sm remove_row">
                                                             <i class="fa fa-trash-o"></i>
                                                         </button>
@@ -210,6 +219,33 @@
                                             <input type="text" name="total_return_amount" class="form-control" id="total_return_amount" readonly>
                                         </div>
                                     </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Total Discount Amount</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" name="total_discount_amount" class="form-control" id="total_discount_amount" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label"><strong>Final Return Amount</strong></label>
+                                        <div class="col-sm-8">
+                                            <input type="text" name="final_return_amount" class="form-control" id="final_return_amount" readonly style="font-weight: bold; font-size: 16px;">
+                                            <input type="hidden" name="final_return_amount_hidden" id="final_return_amount_hidden" value="0">
+                                        </div>
+                                    </div>
+                                    <!-- COMMENTED OUT: Total discount percentage (now using per-item discount)
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Discount (%)</label>
+                                        <div class="col-sm-8">
+                                            <input type="number" name="discount_percentage" class="form-control" id="discount_percentage" min="0" max="100" step="0.01" value="<?php echo set_value('discount_percentage', '0'); ?>" placeholder="Enter discount percentage">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Discount Amount</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" name="discount_amount" class="form-control" id="discount_amount" readonly>
+                                        </div>
+                                    </div>
+                                    -->
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -284,6 +320,9 @@ $(document).ready(function() {
             '<td><input type="number" name="return_items[' + rowCount + '][return_quantity]" class="form-control return_quantity" min="1" required></td>' +
             '<td><span class="unit_price">-</span><input type="hidden" name="return_items[' + rowCount + '][price]" class="hidden_price" value="0"></td>' +
             '<td><span class="return_amount">-</span></td>' +
+            '<td><input type="number" name="return_items[' + rowCount + '][discount_percentage]" class="form-control item_discount_percentage" min="0" max="100" step="0.01" value="0" placeholder="0"><input type="hidden" name="return_items[' + rowCount + '][discount_percentage_hidden]" class="item_discount_percentage_hidden" value="0"></td>' +
+            '<td><span class="item_discount_amount">₹0.00</span></td>' +
+            '<td><span class="item_final_amount">-</span></td>' +
             '<td><button type="button" class="btn btn-danger btn-sm remove_row"><i class="fa fa-trash-o"></i></button></td>' +
             '</tr>';
 
@@ -322,6 +361,8 @@ $(document).ready(function() {
             
             // Trigger input event to recalculate return amount
             row.find('.return_quantity').trigger('input');
+            // Calculate item discount when batch is selected
+            calculateItemDiscount(row);
         } else {
             row.find('.batch_number, .sold_quantity, .unit_price').text('-');
             row.find('.hidden_price').val(0);
@@ -346,6 +387,7 @@ $(document).ready(function() {
         var returnAmount = quantity * unitPrice;
 
         row.find('.return_amount').text('₹' + returnAmount.toFixed(2));
+        calculateItemDiscount(row);
         calculateTotal();
     });
 
@@ -364,15 +406,119 @@ $(document).ready(function() {
         }
     });
 
+    // Calculate per-item discount and final amount
+    function calculateItemDiscount(row) {
+        var returnAmount = parseFloat(row.find('.return_amount').text().replace('₹', '')) || 0;
+        var discountPercentage = parseFloat(row.find('.item_discount_percentage').val()) || 0;
+        
+        // Validate discount percentage
+        if (discountPercentage < 0) {
+            discountPercentage = 0;
+            row.find('.item_discount_percentage').val(0);
+        }
+        if (discountPercentage > 100) {
+            discountPercentage = 100;
+            row.find('.item_discount_percentage').val(100);
+        }
+        
+        var discountAmount = (returnAmount * discountPercentage) / 100;
+        var finalAmount = returnAmount - discountAmount;
+        
+        row.find('.item_discount_amount').text('₹' + discountAmount.toFixed(2));
+        row.find('.item_final_amount').text('₹' + finalAmount.toFixed(2));
+        row.find('.item_discount_percentage_hidden').val(discountPercentage);
+    }
+
+    // Calculate discount when item discount percentage changes
+    $(document).on('input', '.item_discount_percentage', function() {
+        var row = $(this).closest('tr');
+        calculateItemDiscount(row);
+        calculateTotal();
+    });
+
+    // Validate and calculate discount when item discount percentage loses focus
+    $(document).on('blur', '.item_discount_percentage', function() {
+        var row = $(this).closest('tr');
+        var discountPercentage = parseFloat($(this).val()) || 0;
+        if (discountPercentage < 0) {
+            $(this).val(0);
+        }
+        if (discountPercentage > 100) {
+            $(this).val(100);
+        }
+        calculateItemDiscount(row);
+        calculateTotal();
+    });
+
     // Calculate total return amount
     function calculateTotal() {
         var total = 0;
+        var totalDiscount = 0;
+        var totalFinal = 0;
+        
         $('.return_amount').each(function() {
             var amount = parseFloat($(this).text().replace('₹', '')) || 0;
             total += amount;
         });
+        
+        $('.item_discount_amount').each(function() {
+            var discount = parseFloat($(this).text().replace('₹', '')) || 0;
+            totalDiscount += discount;
+        });
+        
+        $('.item_final_amount').each(function() {
+            var final = parseFloat($(this).text().replace('₹', '')) || 0;
+            totalFinal += final;
+        });
+        
         $('#total_return_amount').val('₹' + total.toFixed(2));
+        $('#total_discount_amount').val('₹' + totalDiscount.toFixed(2));
+        $('#final_return_amount').val('₹' + totalFinal.toFixed(2));
+        $('#final_return_amount_hidden').val(totalFinal.toFixed(2));
     }
+
+    // COMMENTED OUT: Old total discount calculation (now using per-item discount)
+    /*
+    // Calculate discount and final return amount
+    function calculateDiscount() {
+        var totalAmount = parseFloat($('#total_return_amount').val().replace('₹', '')) || 0;
+        var discountPercentage = parseFloat($('#discount_percentage').val()) || 0;
+        
+        // Validate discount percentage
+        if (discountPercentage < 0) {
+            discountPercentage = 0;
+            $('#discount_percentage').val(0);
+        }
+        if (discountPercentage > 100) {
+            discountPercentage = 100;
+            $('#discount_percentage').val(100);
+        }
+        
+        var discountAmount = (totalAmount * discountPercentage) / 100;
+        var finalAmount = totalAmount - discountAmount;
+        
+        $('#discount_amount').val('₹' + discountAmount.toFixed(2));
+        $('#final_return_amount').val('₹' + finalAmount.toFixed(2));
+        $('#final_return_amount_hidden').val(finalAmount.toFixed(2));
+    }
+
+    // Calculate discount when discount percentage changes
+    $(document).on('input', '#discount_percentage', function() {
+        calculateDiscount();
+    });
+
+    // Calculate discount when discount percentage loses focus
+    $(document).on('blur', '#discount_percentage', function() {
+        var discountPercentage = parseFloat($(this).val()) || 0;
+        if (discountPercentage < 0) {
+            $(this).val(0);
+        }
+        if (discountPercentage > 100) {
+            $(this).val(100);
+        }
+        calculateDiscount();
+    });
+    */
 });
 </script>
 <!-- medicine_returns`      | Stores the main information about the return event (who returned it, when, why, etc.). This is the "header" record.                        | A **new row is inserted** for every return transaction.                                                                                                     |
