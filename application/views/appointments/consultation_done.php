@@ -6348,6 +6348,80 @@ $countdownDuration = 7200;
 		$('html, body').animate({
 			scrollTop: $('.form-steps-nav').offset().top - 20
 		}, 300);
+		
+		// Restore saved follow-up appointment selections when step 12 is shown
+		if(step == 12){
+			restoreFollowUpSelections();
+		}
+	}
+	
+	// Function to restore saved follow-up appointment selections
+	function restoreFollowUpSelections() {
+		// Only restore if follow_up checkbox is checked
+		if($('#follow_up').is(':checked')){
+			var savedCentre = localStorage.getItem('followup_centre');
+			var savedDoctor = localStorage.getItem('followup_doctor');
+			var savedDate = localStorage.getItem('followup_date');
+			var savedSlot = localStorage.getItem('followup_slot');
+			
+			if(savedCentre && savedCentre != ''){
+				// Restore centre selection
+				$('#appoitment_for').val(savedCentre);
+				
+				// Load doctors for the selected centre
+				$('#loader_div').show();
+				$.ajax({
+					url: '<?php echo base_url('billingcontroller/search_doctor')?>',
+					data: {centre_id:savedCentre},
+					dataType: 'json',
+					method:'post',
+					success: function(data) {
+						$('#appoitmented_doctor').empty().append(data);
+						$("#appoitmented_doctor").prop('required',true);
+						$("#appoitmented_doctor").prop('disabled',false);
+						$('div.appoitmented_doctor').show();
+						
+						// Restore doctor selection
+						if(savedDoctor && savedDoctor != ''){
+							$('#appoitmented_doctor').val(savedDoctor);
+							
+							// Enable and show date field
+							$("#appoitmented_date").prop('required',true);
+							$("#appoitmented_date").prop('disabled',false);
+							$('div.appoitmented_date').show();
+							
+							// Restore date selection
+							if(savedDate && savedDate != ''){
+								$('#appoitmented_date').val(savedDate);
+								
+								// Load slots for the selected date and doctor
+								$.ajax({
+									url: '<?php echo base_url('billingcontroller/doctor_slots')?>',
+									type: 'POST',
+									data: {selected:savedDate, appoitmented_doctor:savedDoctor},
+									success: function(data) {
+										$('#appoitmented_slot').empty().append(data);
+										$("#appoitmented_slot").prop('required',true);
+										$("#appoitmented_slot").prop('disabled',false);
+										$('div.appoitmented_slot').show();
+										
+										// Restore slot selection
+										if(savedSlot && savedSlot != ''){
+											$('#appoitmented_slot').val(savedSlot);
+										}
+										$('#loader_div').hide();
+									}
+								});
+							} else {
+								$('#loader_div').hide();
+							}
+						} else {
+							$('#loader_div').hide();
+						}
+					}
+				});
+			}
+		}
 	}
 	
 	// Function to save and continue to next step
@@ -6840,6 +6914,16 @@ $('#appoitment_for').on("change", function() {
 
 	var centre_id = $(this).val();
 
+	// Save to localStorage
+	if(centre_id != ''){
+		localStorage.setItem('followup_centre', centre_id);
+	} else {
+		localStorage.removeItem('followup_centre');
+		localStorage.removeItem('followup_doctor');
+		localStorage.removeItem('followup_date');
+		localStorage.removeItem('followup_slot');
+	}
+
 	if(centre_id != ''){
 
 		$.ajax({
@@ -6860,13 +6944,19 @@ $('#appoitment_for').on("change", function() {
 
 
 
-			$("#appoitmented_doctor").prop(' ',true);
+			$("#appoitmented_doctor").prop('required',true);
 
 			$("#appoitmented_doctor").prop('disabled',false);
 
 			
 
 			$('div.appoitmented_doctor').show();
+
+			// Restore saved doctor selection if available
+			var savedDoctor = localStorage.getItem('followup_doctor');
+			if(savedDoctor && savedDoctor != ''){
+				$('#appoitmented_doctor').val(savedDoctor).trigger('change');
+			}
 
 			$('#loader_div').hide();			
 
@@ -6894,15 +6984,33 @@ $('#appoitmented_doctor').on("change", function() {
 
 	var doctor_id = $(this).val();
 
-	$('input#appoitmented_date').val('');
+	// Save to localStorage
+	if(doctor_id != ''){
+		localStorage.setItem('followup_doctor', doctor_id);
+	} else {
+		localStorage.removeItem('followup_doctor');
+		localStorage.removeItem('followup_date');
+		localStorage.removeItem('followup_slot');
+		$('input#appoitmented_date').val('');
+	}
 
 	if(doctor_id != ''){
 
-		$("#appoitmented_date").prop(' ',true);
+		$("#appoitmented_date").prop('required',true);
 
 		$("#appoitmented_date").prop('disabled',false);
 
 		$('div.appoitmented_date').show();
+
+		// Restore saved date if available
+		var savedDate = localStorage.getItem('followup_date');
+		if(savedDate && savedDate != ''){
+			$('input#appoitmented_date').val(savedDate);
+			// Trigger datepicker to load slots
+			$("#appoitmented_date").datepicker('setDate', savedDate);
+		} else {
+			$('input#appoitmented_date').val('');
+		}
 
 	}else{
 
@@ -6936,6 +7044,9 @@ $( function() {
 
 				var appoitmented_doctor = $('#appoitmented_doctor').val();
 
+				// Save to localStorage
+				localStorage.setItem('followup_date', startDate);
+
 				$.ajax({
 
 					url: '<?php echo base_url('billingcontroller/doctor_slots')?>',
@@ -6948,11 +7059,17 @@ $( function() {
 
 						$('#appoitmented_slot').empty().append(data);
 
-						$("#appoitmented_slot").prop(' ',true);
+						$("#appoitmented_slot").prop('required',true);
 
 						$("#appoitmented_slot").prop('disabled',false);
 
 						$('div.appoitmented_slot').show();
+
+						// Restore saved slot selection if available
+						var savedSlot = localStorage.getItem('followup_slot');
+						if(savedSlot && savedSlot != ''){
+							$('#appoitmented_slot').val(savedSlot);
+						}
 
 						$('#loader_div').hide();
 
@@ -6966,7 +7083,25 @@ $( function() {
 
 } );
 
+// Save slot selection to localStorage
+$('#appoitmented_slot').on("change", function() {
+	var slot_id = $(this).val();
+	if(slot_id != ''){
+		localStorage.setItem('followup_slot', slot_id);
+	} else {
+		localStorage.removeItem('followup_slot');
+	}
+});
 
+// Restore saved follow-up appointment selections on page load
+$(document).ready(function() {
+	// Restore if we're on step 12 and follow_up is checked
+	if($('#step12').hasClass('active') || $('#step12').is(':visible')){
+		setTimeout(function() {
+			restoreFollowUpSelections();
+		}, 500); // Small delay to ensure form is fully loaded
+	}
+});
 
 $("#follow_up").change(function() {
 
@@ -7010,11 +7145,25 @@ $("#follow_up").change(function() {
 
 
 
+	// Clear localStorage when follow-up is unchecked
+	if(!this.checked) {
+		localStorage.removeItem('followup_centre');
+		localStorage.removeItem('followup_doctor');
+		localStorage.removeItem('followup_date');
+		localStorage.removeItem('followup_slot');
+	}
+
 	if(this.checked) {
 
-		$("#appoitment_for").prop(' ',true);
+		$("#appoitment_for").prop('required',true);
 
 		$("#appoitment_for").prop('disabled',false);
+		
+		// Restore saved values if available
+		var savedCentre = localStorage.getItem('followup_centre');
+		if(savedCentre && savedCentre != ''){
+			$('#appoitment_for').val(savedCentre).trigger('change');
+		}
 
 	}
 
