@@ -6211,7 +6211,7 @@ $countdownDuration = 7200;
 								<div class="row appoitmented_doctor" style="display:none;">            
 									<div class="form-group col-sm-6 col-xs-12 role">
 										<label for="statuss">Doctor (Required)</label>
-										<select name="appoitmented_doctor" disabled class="empty-field" id="appoitmented_doctor">
+										<select name="appoitmented_doctor" disabled class="empty-field" id="appoitmented_doctor" required>
 											<option value="">Select</option>
 										</select>
 									</div>
@@ -6219,7 +6219,7 @@ $countdownDuration = 7200;
 								<div class="row appoitmented_date" style="display:none;">            
 									<div class="form-group col-sm-6 col-xs-12 role">
 										<label for="statuss">Appointment date (Required)</label>
-										<input value="" id="appoitmented_date" disabled autocomplete="off" name="follow_up_date" type="text" class="form-control empty-field validate" >
+										<input value="" id="appoitmented_date" disabled autocomplete="off" name="follow_up_date" type="text" class="form-control empty-field validate" required>
 									</div>
 								</div>
 								
@@ -6230,7 +6230,7 @@ $countdownDuration = 7200;
 
 										<label for="statuss">Appoitmented_slot (Required)</label>
 
-										<select name="appoitmented_slot" disabled class="empty-field" id="appoitmented_slot">
+										<select name="appoitmented_slot" disabled class="empty-field" id="appoitmented_slot" required>
 
 											<option value="">Select</option>
 
@@ -6711,7 +6711,32 @@ $countdownDuration = 7200;
 
 <script>
 function submitForm() {
-  return confirm('Do you really want to submit the form?');
+	// Validate follow-up appointment fields if follow_up is checked
+	if($('#follow_up').is(':checked')){
+		var doctor = $('#appoitmented_doctor').val();
+		var date = $('#appoitmented_date').val();
+		var slot = $('#appoitmented_slot').val();
+		
+		if(!doctor || doctor == ''){
+			alert('Doctor is required for follow-up appointment.');
+			$('#appoitmented_doctor').focus();
+			return false;
+		}
+		
+		if(!date || date == ''){
+			alert('Appointment date is required for follow-up appointment.');
+			$('#appoitmented_date').focus();
+			return false;
+		}
+		
+		if(!slot || slot == ''){
+			alert('Appointment slot is required for follow-up appointment.');
+			$('#appoitmented_slot').focus();
+			return false;
+		}
+	}
+	
+	return confirm('Do you really want to submit the form?');
 }
 
 
@@ -6729,9 +6754,38 @@ $("#save_exit-button").click(function(){
 
 	var name;
 
-	$( 'form#consultation_done_form' ).find( 'select, textarea, input' ).each(function(){
+	// Validate follow-up appointment fields if follow_up is checked
+	if($('#follow_up').is(':checked')){
+		var doctor = $('#appoitmented_doctor').val();
+		var date = $('#appoitmented_date').val();
+		var slot = $('#appoitmented_slot').val();
+		
+		if(!doctor || doctor == ''){
+			fail = true;
+			fail_log += "Doctor is required for follow-up appointment.\n";
+		}
+		
+		if(!date || date == ''){
+			fail = true;
+			fail_log += "Appointment date is required for follow-up appointment.\n";
+		}
+		
+		if(!slot || slot == ''){
+			fail = true;
+			fail_log += "Appointment slot is required for follow-up appointment.\n";
+		}
+	}
 
-        if( ! $( this ).prop( ' ' )){
+	$( 'form#consultation_done_form' ).find( 'select, textarea, input' ).each(function(){
+		// Skip follow-up appointment fields if follow_up is checked (already validated above)
+		if($('#follow_up').is(':checked')){
+			var fieldName = $(this).attr('name');
+			if(fieldName == 'appoitmented_doctor' || fieldName == 'follow_up_date' || fieldName == 'appoitmented_slot'){
+				return true; // Skip this field, already validated
+			}
+		}
+
+        if( ! $( this ).prop( 'required' )){
 
 
 
@@ -6743,7 +6797,7 @@ $("#save_exit-button").click(function(){
 
                 name = $( this ).attr( 'name' );
 
-                fail_log += name + " is   \n";
+                fail_log += name + " is required\n";
 
             }
 
@@ -6777,8 +6831,38 @@ $("#exit-button").click(function(){
 	var fail = false;
 	var fail_log = '';
 	var name;
+	// Validate follow-up appointment fields if follow_up is checked
+	if($('#follow_up').is(':checked')){
+		var doctor = $('#appoitmented_doctor').val();
+		var date = $('#appoitmented_date').val();
+		var slot = $('#appoitmented_slot').val();
+		
+		if(!doctor || doctor == ''){
+			fail = true;
+			fail_log += "Doctor is required for follow-up appointment.\n";
+		}
+		
+		if(!date || date == ''){
+			fail = true;
+			fail_log += "Appointment date is required for follow-up appointment.\n";
+		}
+		
+		if(!slot || slot == ''){
+			fail = true;
+			fail_log += "Appointment slot is required for follow-up appointment.\n";
+		}
+	}
+
 	$( 'form#consultation_done_form' ).find( 'select, textarea, input' ).each(function(){
-        if( ! $( this ).prop( ' ' )){
+		// Skip follow-up appointment fields if follow_up is checked (already validated above)
+		if($('#follow_up').is(':checked')){
+			var fieldName = $(this).attr('name');
+			if(fieldName == 'appoitmented_doctor' || fieldName == 'follow_up_date' || fieldName == 'appoitmented_slot'){
+				return true; // Skip this field, already validated
+			}
+		}
+
+        if( ! $( this ).prop( 'required' )){
         } else {
             if ( ! $( this ).val() ) {
 
@@ -6786,7 +6870,7 @@ $("#exit-button").click(function(){
 
                 name = $( this ).attr( 'name' );
 
-                fail_log += name + " is   \n";
+                fail_log += name + " is required\n";
 
             }
 
