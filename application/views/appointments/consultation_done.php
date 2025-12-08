@@ -6297,6 +6297,10 @@ $countdownDuration = 7200;
 
 <script>
 	// Multi-Step Form Navigation
+	// Get appointment ID to make localStorage keys unique per appointment
+	var appointmentId = $('input[name="appointment_id"]').val() || 'default';
+	var followupStoragePrefix = 'followup_' + appointmentId + '_';
+	
 	var currentStep = 1;
 	var totalSteps = 12;
 	
@@ -6359,10 +6363,10 @@ $countdownDuration = 7200;
 	function restoreFollowUpSelections() {
 		// Only restore if follow_up checkbox is checked
 		if($('#follow_up').is(':checked')){
-			var savedCentre = localStorage.getItem('followup_centre');
-			var savedDoctor = localStorage.getItem('followup_doctor');
-			var savedDate = localStorage.getItem('followup_date');
-			var savedSlot = localStorage.getItem('followup_slot');
+			var savedCentre = localStorage.getItem(followupStoragePrefix + 'centre');
+			var savedDoctor = localStorage.getItem(followupStoragePrefix + 'doctor');
+			var savedDate = localStorage.getItem(followupStoragePrefix + 'date');
+			var savedSlot = localStorage.getItem(followupStoragePrefix + 'slot');
 			
 			if(savedCentre && savedCentre != ''){
 				// Restore centre selection
@@ -6916,12 +6920,12 @@ $('#appoitment_for').on("change", function() {
 
 	// Save to localStorage
 	if(centre_id != ''){
-		localStorage.setItem('followup_centre', centre_id);
+		localStorage.setItem(followupStoragePrefix + 'centre', centre_id);
 	} else {
-		localStorage.removeItem('followup_centre');
-		localStorage.removeItem('followup_doctor');
-		localStorage.removeItem('followup_date');
-		localStorage.removeItem('followup_slot');
+		localStorage.removeItem(followupStoragePrefix + 'centre');
+		localStorage.removeItem(followupStoragePrefix + 'doctor');
+		localStorage.removeItem(followupStoragePrefix + 'date');
+		localStorage.removeItem(followupStoragePrefix + 'slot');
 	}
 
 	if(centre_id != ''){
@@ -6953,7 +6957,7 @@ $('#appoitment_for').on("change", function() {
 			$('div.appoitmented_doctor').show();
 
 			// Restore saved doctor selection if available
-			var savedDoctor = localStorage.getItem('followup_doctor');
+			var savedDoctor = localStorage.getItem(followupStoragePrefix + 'doctor');
 			if(savedDoctor && savedDoctor != ''){
 				$('#appoitmented_doctor').val(savedDoctor).trigger('change');
 			}
@@ -6986,11 +6990,11 @@ $('#appoitmented_doctor').on("change", function() {
 
 	// Save to localStorage
 	if(doctor_id != ''){
-		localStorage.setItem('followup_doctor', doctor_id);
+		localStorage.setItem(followupStoragePrefix + 'doctor', doctor_id);
 	} else {
-		localStorage.removeItem('followup_doctor');
-		localStorage.removeItem('followup_date');
-		localStorage.removeItem('followup_slot');
+		localStorage.removeItem(followupStoragePrefix + 'doctor');
+		localStorage.removeItem(followupStoragePrefix + 'date');
+		localStorage.removeItem(followupStoragePrefix + 'slot');
 		$('input#appoitmented_date').val('');
 	}
 
@@ -7003,7 +7007,7 @@ $('#appoitmented_doctor').on("change", function() {
 		$('div.appoitmented_date').show();
 
 		// Restore saved date if available
-		var savedDate = localStorage.getItem('followup_date');
+		var savedDate = localStorage.getItem(followupStoragePrefix + 'date');
 		if(savedDate && savedDate != ''){
 			$('input#appoitmented_date').val(savedDate);
 			// Trigger datepicker to load slots
@@ -7045,7 +7049,7 @@ $( function() {
 				var appoitmented_doctor = $('#appoitmented_doctor').val();
 
 				// Save to localStorage
-				localStorage.setItem('followup_date', startDate);
+				localStorage.setItem(followupStoragePrefix + 'date', startDate);
 
 				$.ajax({
 
@@ -7066,7 +7070,7 @@ $( function() {
 						$('div.appoitmented_slot').show();
 
 						// Restore saved slot selection if available
-						var savedSlot = localStorage.getItem('followup_slot');
+						var savedSlot = localStorage.getItem(followupStoragePrefix + 'slot');
 						if(savedSlot && savedSlot != ''){
 							$('#appoitmented_slot').val(savedSlot);
 						}
@@ -7087,9 +7091,9 @@ $( function() {
 $('#appoitmented_slot').on("change", function() {
 	var slot_id = $(this).val();
 	if(slot_id != ''){
-		localStorage.setItem('followup_slot', slot_id);
+		localStorage.setItem(followupStoragePrefix + 'slot', slot_id);
 	} else {
-		localStorage.removeItem('followup_slot');
+		localStorage.removeItem(followupStoragePrefix + 'slot');
 	}
 });
 
@@ -7147,10 +7151,10 @@ $("#follow_up").change(function() {
 
 	// Clear localStorage when follow-up is unchecked
 	if(!this.checked) {
-		localStorage.removeItem('followup_centre');
-		localStorage.removeItem('followup_doctor');
-		localStorage.removeItem('followup_date');
-		localStorage.removeItem('followup_slot');
+		localStorage.removeItem(followupStoragePrefix + 'centre');
+		localStorage.removeItem(followupStoragePrefix + 'doctor');
+		localStorage.removeItem(followupStoragePrefix + 'date');
+		localStorage.removeItem(followupStoragePrefix + 'slot');
 	}
 
 	if(this.checked) {
@@ -7160,7 +7164,7 @@ $("#follow_up").change(function() {
 		$("#appoitment_for").prop('disabled',false);
 		
 		// Restore saved values if available
-		var savedCentre = localStorage.getItem('followup_centre');
+		var savedCentre = localStorage.getItem(followupStoragePrefix + 'centre');
 		if(savedCentre && savedCentre != ''){
 			$('#appoitment_for').val(savedCentre).trigger('change');
 		}
