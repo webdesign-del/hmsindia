@@ -224,6 +224,17 @@ $countdownDuration = 7200;
 		background: #218838;
 		border-color: #218838;
 	}
+	.step-nav-item.disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		background: rgba(200,200,200,0.5);
+		color: #999;
+		pointer-events: none;
+	}
+	.step-nav-item.disabled:hover {
+		transform: none;
+		box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+	}
 	.form-step {
 		display: none;
 		padding: 30px;
@@ -370,51 +381,51 @@ $countdownDuration = 7200;
 					
 					<!-- Step Navigation -->
 					<div class="form-steps-nav" id="formStepsNav">
-						<div class="step-nav-item active" >
+						<div class="step-nav-item active" data-step="1">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">1</div>
 							<div>Basic Info</div>
 						</div>
-						<div class="step-nav-item" >
+						<div class="step-nav-item" data-step="2">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">2</div>
 							<div>Pregnancy</div>
 						</div>
-						<div class="step-nav-item">
+						<div class="step-nav-item" data-step="3">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">3</div>
 							<div>Menstrual</div>
 						</div>
-						<div class="step-nav-item">
+						<div class="step-nav-item" data-step="4">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">4</div>
 							<div>Medical</div>
 						</div>
-						<div class="step-nav-item">
+						<div class="step-nav-item" data-step="5">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">5</div>
 							<div>Surgical</div>
 						</div>
-						<div class="step-nav-item">
+						<div class="step-nav-item" data-step="6">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">6</div>
 							<div>Drug History</div>
 						</div>
-						<div class="step-nav-item">
+						<div class="step-nav-item" data-step="7">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">7</div>
 							<div>Family</div>
 						</div>
-						<div class="step-nav-item"> 
+						<div class="step-nav-item" data-step="8">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">8</div>
 							<div>Investigations</div>
 						</div>
-						<div class="step-nav-item">
+						<div class="step-nav-item" data-step="9">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">9</div>
 							<div>Treatment</div>
 						</div>
-						<div class="step-nav-item" >
+						<div class="step-nav-item" data-step="10">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">10</div>
 							<div>Management</div>
 						</div>
-						<div class="step-nav-item" >
+						<div class="step-nav-item" data-step="11">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">11</div>
 							<div>Medicines</div>
 						</div>
-						<div class="step-nav-item" >
+						<div class="step-nav-item" data-step="12">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">12</div>
 							<div>Final</div>
 						</div>
@@ -1574,7 +1585,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="epilepsy"  <?php if(!isset($patient_medical_info['epilepsy']) || (isset($patient_medical_info['epilepsy']) && $patient_medical_info['epilepsy'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="epilepsy"  <?php if(isset($patient_medical_info['epilepsy']) && $patient_medical_info['epilepsy'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2701,15 +2712,25 @@ $countdownDuration = 7200;
 							<table>
 
 								<tr>
+
 									<td>Dentures</td>
-									<td width="30%">
-										<input type="radio" id="text1" name="dentures"  <?php if(isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-										<label>Yes</label>
-										<input type="radio" id="text1" name="dentures"  <?php if(!isset($patient_medical_info['dentures']) || (isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "No")){echo 'checked="checked"';}?> value="No"  >
-										<label>No</label>
-										<input value="<?php echo !empty($patient_medical_info['dentures_text'])?$patient_medical_info['dentures_text']:""; ?>" type="text" maxlength="25" name="dentures_text">
-									</td>
+
+												<td width="30%">
+
+													<input type="radio" id="text1" name="dentures"  <?php if(isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
+
+													<label>Yes</label>
+
+													<input type="radio" id="text1" name="dentures"  <?php if(isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "No"){echo 'checked="checked"';}?> value="No"  >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['dentures_text'])?$patient_medical_info['dentures_text']:""; ?>" type="text" maxlength="25" name="dentures_text">
+
+												</td>
+
 								</tr>
+
 								<tr>
 
 									<td>Loose teeth</td>
@@ -2720,7 +2741,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="loose_teeth"  <?php if(!isset($patient_medical_info['loose_teeth']) || (isset($patient_medical_info['loose_teeth']) && $patient_medical_info['loose_teeth'] == "No")){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="loose_teeth"  <?php if(isset($patient_medical_info['loose_teeth']) && $patient_medical_info['loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2740,7 +2761,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="hearing_aid"  <?php if(!isset($patient_medical_info['hearing_aid']) || (isset($patient_medical_info['hearing_aid']) && $patient_medical_info['hearing_aid'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="hearing_aid"  <?php if(isset($patient_medical_info['hearing_aid']) && $patient_medical_info['hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2760,7 +2781,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="caps_on_front_teeth"  <?php if(!isset($patient_medical_info['caps_on_front_teeth']) || (isset($patient_medical_info['caps_on_front_teeth']) && $patient_medical_info['caps_on_front_teeth'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="caps_on_front_teeth"  <?php if(isset($patient_medical_info['caps_on_front_teeth']) && $patient_medical_info['caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2780,7 +2801,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="contact_lenses"  <?php if(!isset($patient_medical_info['contact_lenses']) || (isset($patient_medical_info['contact_lenses']) && $patient_medical_info['contact_lenses'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="contact_lenses"  <?php if(isset($patient_medical_info['contact_lenses']) && $patient_medical_info['contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2800,7 +2821,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="body_piercing"  <?php if(!isset($patient_medical_info['body_piercing']) || (isset($patient_medical_info['body_piercing']) && $patient_medical_info['body_piercing'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="body_piercing"  <?php if(isset($patient_medical_info['body_piercing']) && $patient_medical_info['body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2820,7 +2841,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="blood_transfusion"  <?php if(!isset($patient_medical_info['blood_transfusion']) || (isset($patient_medical_info['blood_transfusion']) && $patient_medical_info['blood_transfusion'] == "No")){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="blood_transfusion"  <?php if(isset($patient_medical_info['blood_transfusion']) && $patient_medical_info['blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2840,7 +2861,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="traffic_accident"  <?php if(!isset($patient_medical_info['traffic_accident']) || (isset($patient_medical_info['traffic_accident']) && $patient_medical_info['traffic_accident'] == "No")){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="traffic_accident"  <?php if(isset($patient_medical_info['traffic_accident']) && $patient_medical_info['traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2855,7 +2876,6 @@ $countdownDuration = 7200;
 						</td>
 
 						<td>
-							
 
 							<table>
 
@@ -3256,6 +3276,167 @@ $countdownDuration = 7200;
 						<td>
 
 							<table>
+
+								<tr>
+
+									<td>Dentures</td>
+
+												<td width="30%">
+
+													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
+
+													<label>Yes</label>
+
+													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "No"){echo 'checked="checked"';}?> value="No" >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['male_dentures_text'])?$patient_medical_info['male_dentures_text']:""; ?>" type="text" maxlength="25" name="male_dentures_text">
+
+												</td>
+
+								</tr>
+
+								<tr>
+
+									<td>Loose teeth</td>
+
+												<td>
+
+													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
+
+													<label>Yes</label>
+
+													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No" >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['male_loose_teeth_text'])?$patient_medical_info['male_loose_teeth_text']:""; ?>" type="text" maxlength="25" name="male_loose_teeth_text">
+
+												</td>
+
+								</tr>
+
+								<tr>
+
+									<td>Hearing aid</td>
+
+												<td>
+
+													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
+
+													<label>Yes</label>
+
+													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No"  >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['male_hearing_aid_text'])?$patient_medical_info['male_hearing_aid_text']:""; ?>" type="text" maxlength="25" name="male_hearing_aid_text">
+
+												</td>
+
+								</tr>
+
+								<tr>
+
+									<td>Caps on front teeth</td>
+
+												<td>
+
+													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
+
+													<label>Yes</label>
+
+													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No"  >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['male_caps_on_front_teeth_text'])?$patient_medical_info['male_caps_on_front_teeth_text']:""; ?>" type="text" maxlength="25" name="male_caps_on_front_teeth_text">
+
+												</td>
+
+								</tr>
+
+								<tr>
+
+									<td>Contact lenses</td>
+
+												<td>
+
+													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
+
+													<label>Yes</label>
+
+													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['male_contact_lenses_text'])?$patient_medical_info['male_contact_lenses_text']:""; ?>" type="text" maxlength="25" name="male_contact_lenses_text">
+
+												</td>
+
+								</tr>
+
+								<tr>
+
+									<td>Body piercing</td>
+
+												<td>
+
+													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
+
+													<label>Yes</label>
+
+													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['male_body_piercing_text'])?$patient_medical_info['male_body_piercing_text']:""; ?>" type="text" maxlength="25" name="male_body_piercing_text">
+
+												</td>
+
+								</tr>
+
+								<tr>
+
+									<td>H/o blood transfusion</td>
+
+												<td>
+
+													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
+
+													<label>Yes</label>
+
+													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No" >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['male_blood_transfusion_text'])?$patient_medical_info['male_blood_transfusion_text']:""; ?>" type="text" maxlength="25" name="male_blood_transfusion_text">
+
+												</td>
+
+								</tr>
+
+								<tr>
+
+									<td>H/o road traffic accident/any injury</td>
+
+												<td>
+
+													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
+
+													<label>Yes</label>
+
+													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No" >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['male_traffic_accident_text'])?$patient_medical_info['male_traffic_accident_text']:""; ?>" type="text" maxlength="25" name="male_traffic_accident_text">
+
+												</td>
+
+								</tr>
+
 								<tr>
 
 									<td>Smoke(past)daily</td>
@@ -6139,34 +6320,65 @@ $countdownDuration = 7200;
 		// Step navigation click handlers
 		$('.step-nav-item').click(function() {
 			var step = $(this).data('step');
-			goToStep(step);
+			// Check if navigation to this step is allowed
+			if (canNavigateToStep(step)) {
+				goToStep(step);
+			} else {
+				// Show alert if trying to navigate to unsaved step
+				alert('Please save the current step before navigating to another step.');
+			}
 		});
-		
-		// Preselect "No" for all radio buttons in Steps 4, 5, 6, and 7 that don't have a value
-		// Step 4: Medical History, Step 5: Surgical History, Step 6: Drug History, Step 7: Family History
-		function preselectNoForRadioButtons() {
-			$('#step4, #step5, #step6, #step7').find('input[type="radio"]').each(function() {
-				var radioName = $(this).attr('name');
-				var radioValue = $(this).val();
-				
-				// Check if no radio button with this name is checked
-				if($('input[type="radio"][name="' + radioName + '"]:checked').length == 0) {
-					// If no value is selected, preselect "No"
-					if(radioValue == "No") {
-						$(this).prop('checked', true);
-					}
-				}
-			});
-		}
-		
-		// Run immediately and also after delays to ensure all elements are loaded
-		preselectNoForRadioButtons();
-		setTimeout(preselectNoForRadioButtons, 300);
-		setTimeout(preselectNoForRadioButtons, 800);
 		
 		// Show first step by default
 		showStep(1);
+		
+		// Initialize step navigation states on page load
+		updateStepNavigationStates(1);
 	});
+	
+	// Function to check if user can navigate to a specific step
+	function canNavigateToStep(targetStep) {
+		// Always allow navigation to step 1
+		if (targetStep === 1) {
+			return true;
+		}
+		
+		// Get current step
+		var currentStep = parseInt($('.step-nav-item.active').data('step')) || 1;
+		
+		// Allow navigation to current step (no change)
+		if (targetStep === currentStep) {
+			return true;
+		}
+		
+		// Allow navigation backward to any previous step (user can go back to edit)
+		if (targetStep < currentStep) {
+			return true;
+		}
+		
+		// For forward navigation, check if current step is completed
+		if (targetStep > currentStep) {
+			var currentStepElement = $('.step-nav-item[data-step="' + currentStep + '"]');
+			if (currentStepElement.hasClass('completed')) {
+				// Current step is saved, allow navigation to next step
+				// But also check if all intermediate steps are completed
+				for (var i = currentStep + 1; i < targetStep; i++) {
+					var intermediateStepElement = $('.step-nav-item[data-step="' + i + '"]');
+					if (!intermediateStepElement.hasClass('completed')) {
+						alert('Please complete step ' + i + ' before proceeding to step ' + targetStep + '.');
+						return false;
+					}
+				}
+				return true;
+			} else {
+				// Current step is not saved
+				alert('Please save step ' + currentStep + ' before proceeding to step ' + targetStep + '.');
+				return false;
+			}
+		}
+		
+		return false;
+	}
 	
 	// Function to navigate to a specific step
 	function goToStep(step) {
@@ -6188,10 +6400,8 @@ $countdownDuration = 7200;
 		$('.step-nav-item').removeClass('active');
 		$('.step-nav-item[data-step="' + step + '"]').addClass('active');
 		
-		// Mark previous steps as completed
-		for (var i = 1; i < step; i++) {
-			$('.step-nav-item[data-step="' + i + '"]').addClass('completed');
-		}
+		// Update disabled state for step navigation items
+		updateStepNavigationStates(step);
 		
 		// Reset all save buttons to enabled state
 		$('.btn-step-save-continue').prop('disabled', false).text('Save & Continue');
@@ -6209,18 +6419,53 @@ $countdownDuration = 7200;
 		if(step == 12){
 			restoreFollowUpSelections();
 		}
+	}
+	
+	// Function to update disabled states of step navigation items
+	function updateStepNavigationStates(currentStep) {
+		// Remove disabled class from all items first
+		$('.step-nav-item').removeClass('disabled');
 		
-		// Preselect "No" for radio buttons in Steps 4, 5, 6, and 7 when they are shown
-		if(step == 4 || step == 5 || step == 6 || step == 7){
-			setTimeout(function() {
-				$('#step' + step).find('input[type="radio"][value="No"]').each(function() {
-					var radioName = $(this).attr('name');
-					// Check if no radio button with this name is checked
-					if($('input[type="radio"][name="' + radioName + '"]:checked').length == 0) {
-						$(this).prop('checked', true);
+		// Loop through all steps
+		for (var i = 1; i <= totalSteps; i++) {
+			var stepElement = $('.step-nav-item[data-step="' + i + '"]');
+			
+			// Step 1 is always accessible
+			if (i === 1) {
+				continue;
+			}
+			
+			// Current step is always accessible
+			if (i === currentStep) {
+				continue;
+			}
+			
+			// All previous steps (going back) are always accessible for editing
+			if (i < currentStep) {
+				continue;
+			}
+			
+			// For steps after current step, check if current step is completed
+			if (i > currentStep) {
+				var currentStepElement = $('.step-nav-item[data-step="' + currentStep + '"]');
+				if (!currentStepElement.hasClass('completed')) {
+					// Current step is not saved, disable future steps
+					stepElement.addClass('disabled');
+				} else {
+					// Current step is saved, check if all intermediate steps are completed
+					var allIntermediateCompleted = true;
+					for (var j = currentStep + 1; j < i; j++) {
+						var intermediateStep = $('.step-nav-item[data-step="' + j + '"]');
+						if (!intermediateStep.hasClass('completed')) {
+							allIntermediateCompleted = false;
+							break;
+						}
 					}
-				});
-			}, 100);
+					if (!allIntermediateCompleted) {
+						stepElement.addClass('disabled');
+					}
+				}
+			}
 		}
 	}
 	
@@ -6359,6 +6604,9 @@ $countdownDuration = 7200;
 			if (success) {
 				// Mark current step as completed
 				$('.step-nav-item[data-step="' + step + '"]').addClass('completed');
+				
+				// Update step navigation states to enable next step
+				updateStepNavigationStates(step);
 				
 				// Save form data to localStorage (optional - for auto-save)
 				saveFormData();
