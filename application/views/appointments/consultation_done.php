@@ -370,51 +370,51 @@ $countdownDuration = 7200;
 					
 					<!-- Step Navigation -->
 					<div class="form-steps-nav" id="formStepsNav">
-						<div class="step-nav-item active" data-step="1">
+						<div class="step-nav-item active" >
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">1</div>
 							<div>Basic Info</div>
 						</div>
-						<div class="step-nav-item" data-step="2">
+						<div class="step-nav-item" >
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">2</div>
 							<div>Pregnancy</div>
 						</div>
-						<div class="step-nav-item" data-step="3">
+						<div class="step-nav-item">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">3</div>
 							<div>Menstrual</div>
 						</div>
-						<div class="step-nav-item" data-step="4">
+						<div class="step-nav-item">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">4</div>
 							<div>Medical</div>
 						</div>
-						<div class="step-nav-item" data-step="5">
+						<div class="step-nav-item">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">5</div>
 							<div>Surgical</div>
 						</div>
-						<div class="step-nav-item" data-step="6">
+						<div class="step-nav-item">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">6</div>
 							<div>Drug History</div>
 						</div>
-						<div class="step-nav-item" data-step="7">
+						<div class="step-nav-item">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">7</div>
 							<div>Family</div>
 						</div>
-						<div class="step-nav-item" data-step="8">
+						<div class="step-nav-item"> 
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">8</div>
 							<div>Investigations</div>
 						</div>
-						<div class="step-nav-item" data-step="9">
+						<div class="step-nav-item">
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">9</div>
 							<div>Treatment</div>
 						</div>
-						<div class="step-nav-item" data-step="10">
+						<div class="step-nav-item" >
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">10</div>
 							<div>Management</div>
 						</div>
-						<div class="step-nav-item" data-step="11">
+						<div class="step-nav-item" >
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">11</div>
 							<div>Medicines</div>
 						</div>
-						<div class="step-nav-item" data-step="12">
+						<div class="step-nav-item" >
 							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">12</div>
 							<div>Final</div>
 						</div>
