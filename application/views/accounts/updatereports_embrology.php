@@ -66,7 +66,7 @@ if (isset($_POST['submit'])) {
                 $total_etapr = $res_val->fresh_cycle_etapr + $res_val->thawed_cycle_fetapr;
 				$total_etmay = $res_val->fresh_cycle_etmay + $res_val->thawed_cycle_fetmay; 
 				$total_etjun = $res_val->fresh_cycle_etjun + $res_val->thawed_cycle_fetjun;
-                $total_etjul = $res_val->fresh_cycle_etjul + $res_val->thawed_cycle_jul; 
+                $total_etjul = $res_val->fresh_cycle_etjul + $res_val->thawed_cycle_fetjul; 
 				$total_etaug = $res_val->fresh_cycle_etaug + $res_val->thawed_cycle_fetaug;
 				$total_etsep = $res_val->fresh_cycle_etsep + $res_val->thawed_cycle_fetsep;
                 $total_etoct = $res_val->fresh_cycle_etoct + $res_val->thawed_cycle_fetapr; 
@@ -116,11 +116,52 @@ if (isset($_POST['submit'])) {
 				$total_male = $res_val->male + $res_val->malefeb + $res_val->malemar + $res_val->maleapr + $res_val->malemay + $res_val->malejun + $res_val->malejul + $res_val->maleaug + $res_val->malesep + $res_val->maleoct + $res_val->malenov + $res_val->maledec;
 				$total_female = $res_val->female + $res_val->femalefeb + $res_val->femalemar + $res_val->femaleapr + $res_val->femalemay + $res_val->femalejun + $res_val->femalejul + $res_val->femaleaug + $res_val->femalesep + $res_val->femaleoct + $res_val->femalenov + $res_val->femaledec;
 				$total_ongoing = $res_val->ongoing + $res_val->ongoingfeb + $res_val->ongoingmar + $res_val->ongoingapr + $res_val->ongoingmay + $res_val->ongoingjun + $res_val->ongoingjul + $res_val->ongoingaug + $res_val->ongoingsep + $res_val->ongoingoct + $res_val->ongoingnov + $res_val->ongoingdec;
-				$total_ivm = $res_val->ivm + $res_val->ivmfeb + $res_val->ivmmar + $res_val->ivmapr + $res_val->ivmmay + $res_val->ivmjun + $res_val->ivmjul + $res_val->ivmaug + $res_val->ivmsep + $res_val->ivmoct + $res_val->ivmsenov + $res_val->ivmdec;
-                $total_egg_freezing = $res_val->egg_freezing + $res_val->egg_freezingfeb + $res_val->egg_freezingmar + $res_val->egg_freezingapr + $res_val->egg_freezingmay + $res_val->egg_freezingjun + $res_val->egg_freezingjul + $res_val->egg_freezingaug + $res_val->egg_freezingsep + $res_val->egg_freezingoct + $res_val->egg_freezingnov + $res_val->egg_freezingdec;
-				$total_semen_freezing = $res_val->semen_freezing + $res_val->semen_freezingfeb + $res_val->semen_freezingmar + $res_val->semen_freezingapr + $res_val->semen_freezingmay + $res_val->semen_freezingjun + $res_val->semen_freezingjul + $res_val->semen_freezingaug + $res_val->semen_freezingsep + $res_val->semen_freezingoct + $res_val->semen_freezingnov + $res_val->semen_freezingdec;
-				$total_embryo_freezing = $res_val->embryo_freezing + $res_val->embryo_freezingfeb + $res_val->embryo_freezingmar + $res_val->embryo_freezingapr + $res_val->embryo_freezingmay + $res_val->embryo_freezingjun + $res_val->embryo_freezingjul + $res_val->embryo_freezingaug + $res_val->embryo_freezingsep + $res_val->embryo_freezingoct + $res_val->embryo_freezingnov + $res_val->embryo_freezingdec;								
-?>
+				$total_ivm = $res_val->ivm + $res_val->ivmfeb + $res_val->ivmmar + $res_val->ivmapr + $res_val->ivmmay + $res_val->ivmjun + $res_val->ivmjul + $res_val->ivmaug + $res_val->ivmsep + $res_val->ivmoct + $res_val->ivmnov + $res_val->ivmdec;
+               // $total_egg_freezing = $res_val->egg_freezing + $res_val->egg_freezingfeb + $res_val->egg_freezingmar + $res_val->egg_freezingapr + $res_val->egg_freezingmay + $res_val->egg_freezingjun + $res_val->egg_freezingjul + $res_val->egg_freezingaug + $res_val->egg_freezingsep + $res_val->egg_freezingoct + $res_val->egg_freezingnov + $res_val->egg_freezingdec;
+				
+				$total_egg_freezing = 
+    (int)$res_val->egg_freezing + 
+    (int)$res_val->egg_freezingfeb + 
+    (int)$res_val->egg_freezingmar + 
+    (int)$res_val->egg_freezingapr + 
+    (int)$res_val->egg_freezingmay + 
+    (int)$res_val->egg_freezingjun + 
+    (int)$res_val->egg_freezingjul + 
+    (int)$res_val->egg_freezingaug + 
+    (int)$res_val->egg_freezingsep + 
+    (int)$res_val->egg_freezingoct + 
+    (int)$res_val->egg_freezingnov + 
+    (int)$res_val->egg_freezingdec;
+				
+				$total_semen_freezing = 
+    (int)$res_val->semen_freezing + 
+    (int)$res_val->semen_freezingfeb + 
+    (int)$res_val->semen_freezingmar + 
+    (int)$res_val->semen_freezingapr + 
+    (int)$res_val->semen_freezingmay + 
+    (int)$res_val->semen_freezingjun + 
+    (int)$res_val->semen_freezingjul + 
+    (int)$res_val->semen_freezingaug + 
+    (int)$res_val->semen_freezingsep + 
+    (int)$res_val->semen_freezingoct + 
+    (int)$res_val->semen_freezingnov + 
+    (int)$res_val->semen_freezingdec;
+	
+$total_embryo_freezing = 
+    (int)$res_val->embryo_freezing + 
+    (int)$res_val->embryo_freezingfeb + 
+    (int)$res_val->embryo_freezingmar + 
+    (int)$res_val->embryo_freezingapr + 
+    (int)$res_val->embryo_freezingmay + 
+    (int)$res_val->embryo_freezingjun + 
+    (int)$res_val->embryo_freezingjul + 
+    (int)$res_val->embryo_freezingaug + 
+    (int)$res_val->embryo_freezingsep + 
+    (int)$res_val->embryo_freezingoct + 
+    (int)$res_val->embryo_freezingnov + 
+    (int)$res_val->embryo_freezingdec;
+	
+	?>
 <div class="page-wrapper">
 <form class="col-sm-12 col-xs-12" action="" enctype='multipart/form-data' method="post">
 <div class="row">
