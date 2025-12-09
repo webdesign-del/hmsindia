@@ -1574,7 +1574,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="epilepsy"  <?php if(isset($patient_medical_info['epilepsy']) && $patient_medical_info['epilepsy'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="epilepsy"  <?php if(!isset($patient_medical_info['epilepsy']) || (isset($patient_medical_info['epilepsy']) && $patient_medical_info['epilepsy'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2701,25 +2701,15 @@ $countdownDuration = 7200;
 							<table>
 
 								<tr>
-
 									<td>Dentures</td>
-
-												<td width="30%">
-
-													<input type="radio" id="text1" name="dentures"  <?php if(isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="dentures"  <?php if(isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "No"){echo 'checked="checked"';}?> value="No"  >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['dentures_text'])?$patient_medical_info['dentures_text']:""; ?>" type="text" maxlength="25" name="dentures_text">
-
-												</td>
-
+									<td width="30%">
+										<input type="radio" id="text1" name="dentures"  <?php if(isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
+										<label>Yes</label>
+										<input type="radio" id="text1" name="dentures"  <?php if(!isset($patient_medical_info['dentures']) || (isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "No")){echo 'checked="checked"';}?> value="No"  >
+										<label>No</label>
+										<input value="<?php echo !empty($patient_medical_info['dentures_text'])?$patient_medical_info['dentures_text']:""; ?>" type="text" maxlength="25" name="dentures_text">
+									</td>
 								</tr>
-
 								<tr>
 
 									<td>Loose teeth</td>
@@ -2730,7 +2720,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="loose_teeth"  <?php if(isset($patient_medical_info['loose_teeth']) && $patient_medical_info['loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="loose_teeth"  <?php if(!isset($patient_medical_info['loose_teeth']) || (isset($patient_medical_info['loose_teeth']) && $patient_medical_info['loose_teeth'] == "No")){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2750,7 +2740,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="hearing_aid"  <?php if(isset($patient_medical_info['hearing_aid']) && $patient_medical_info['hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="hearing_aid"  <?php if(!isset($patient_medical_info['hearing_aid']) || (isset($patient_medical_info['hearing_aid']) && $patient_medical_info['hearing_aid'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2770,7 +2760,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="caps_on_front_teeth"  <?php if(isset($patient_medical_info['caps_on_front_teeth']) && $patient_medical_info['caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="caps_on_front_teeth"  <?php if(!isset($patient_medical_info['caps_on_front_teeth']) || (isset($patient_medical_info['caps_on_front_teeth']) && $patient_medical_info['caps_on_front_teeth'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2790,7 +2780,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="contact_lenses"  <?php if(isset($patient_medical_info['contact_lenses']) && $patient_medical_info['contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="contact_lenses"  <?php if(!isset($patient_medical_info['contact_lenses']) || (isset($patient_medical_info['contact_lenses']) && $patient_medical_info['contact_lenses'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2810,7 +2800,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="body_piercing"  <?php if(isset($patient_medical_info['body_piercing']) && $patient_medical_info['body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="body_piercing"  <?php if(!isset($patient_medical_info['body_piercing']) || (isset($patient_medical_info['body_piercing']) && $patient_medical_info['body_piercing'] == "No")){echo 'checked="checked"';}?> value="No" >
 
 													<label>No</label>
 
@@ -2830,7 +2820,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="blood_transfusion"  <?php if(isset($patient_medical_info['blood_transfusion']) && $patient_medical_info['blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="blood_transfusion"  <?php if(!isset($patient_medical_info['blood_transfusion']) || (isset($patient_medical_info['blood_transfusion']) && $patient_medical_info['blood_transfusion'] == "No")){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2850,7 +2840,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="traffic_accident"  <?php if(isset($patient_medical_info['traffic_accident']) && $patient_medical_info['traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="traffic_accident"  <?php if(!isset($patient_medical_info['traffic_accident']) || (isset($patient_medical_info['traffic_accident']) && $patient_medical_info['traffic_accident'] == "No")){echo 'checked="checked"';}?> value="No"  >
 
 													<label>No</label>
 
@@ -2865,6 +2855,7 @@ $countdownDuration = 7200;
 						</td>
 
 						<td>
+							
 
 							<table>
 
@@ -6312,6 +6303,28 @@ $countdownDuration = 7200;
 			goToStep(step);
 		});
 		
+		// Preselect "No" for all radio buttons in Steps 4, 5, 6, and 7 that don't have a value
+		// Step 4: Medical History, Step 5: Surgical History, Step 6: Drug History, Step 7: Family History
+		function preselectNoForRadioButtons() {
+			$('#step4, #step5, #step6, #step7').find('input[type="radio"]').each(function() {
+				var radioName = $(this).attr('name');
+				var radioValue = $(this).val();
+				
+				// Check if no radio button with this name is checked
+				if($('input[type="radio"][name="' + radioName + '"]:checked').length == 0) {
+					// If no value is selected, preselect "No"
+					if(radioValue == "No") {
+						$(this).prop('checked', true);
+					}
+				}
+			});
+		}
+		
+		// Run immediately and also after delays to ensure all elements are loaded
+		preselectNoForRadioButtons();
+		setTimeout(preselectNoForRadioButtons, 300);
+		setTimeout(preselectNoForRadioButtons, 800);
+		
 		// Show first step by default
 		showStep(1);
 	});
@@ -6356,6 +6369,19 @@ $countdownDuration = 7200;
 		// Restore saved follow-up appointment selections when step 12 is shown
 		if(step == 12){
 			restoreFollowUpSelections();
+		}
+		
+		// Preselect "No" for radio buttons in Steps 4, 5, 6, and 7 when they are shown
+		if(step == 4 || step == 5 || step == 6 || step == 7){
+			setTimeout(function() {
+				$('#step' + step).find('input[type="radio"][value="No"]').each(function() {
+					var radioName = $(this).attr('name');
+					// Check if no radio button with this name is checked
+					if($('input[type="radio"][name="' + radioName + '"]:checked').length == 0) {
+						$(this).prop('checked', true);
+					}
+				});
+			}, 100);
 		}
 	}
 	
