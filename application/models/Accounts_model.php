@@ -1244,7 +1244,7 @@ class Accounts_model extends CI_Model
 	
 	function approve_payment($id) {
 		// 1. First update payment status
-		 $sql = "UPDATE `".$this->config->item('db_prefix')."patient_payments` SET `status`='1' WHERE ID='".$id."'";
+		 $sql = "UPDATE `".$this->config->item('db_prefix')."patient_payments` SET `status`='1', `modified_on`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$id."'";
 		$this->db->query($sql);
 		
 		// Get payment details - FIXED: changed to use $receipt_number consistently

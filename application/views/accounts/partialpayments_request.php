@@ -55,10 +55,16 @@
              <div class="clearfix"></div>
             <div class="card-content">
               <div class="table-responsive">
+				  <div class="action-buttons">
+            <button id="selectAllBtn" class="btn btn-default">Select All</button>
+            <button id="deselectAllBtn" class="btn btn-default">Deselect All</button>
+            <button id="sendToTallyBtn" class="btn btn-primary">Send Selected to Tally</button>
+        </div>
                 <table class="table table-striped table-bordered table-hover" id="procedure_billing_list">
                   <thead>
                     <tr>
     				  <th>S.No.</th>
+					  <th></th>
                       <th>Receipt Number</th>
                       <th>Payment ID</th>
                       <th>Patient ID</th>
@@ -76,6 +82,7 @@
                   $current_balance = $all_method->get_current_balance($vl['patient_id']); ?>
                     <tr class="odd gradeX">
                       <td><?php echo $count; ?></td>
+					<td>  <?php if($vl['status'] == 1 || $vl['status'] == 3) { ?><input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>"><?php } ?></td>
                       <td><a href="<?php echo base_url(); ?>accounts/details/<?php echo $vl['billing_id']?>?t=<?php echo $vl['type']?>"><?php echo $vl['billing_id']?></a></td>
                       <td><a href="<?php echo base_url()?>partial-payment-receipt/<?php echo $vl['refrence_number'];?>"><?php echo $vl['refrence_number']; ?></a></td>
                       <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
@@ -212,6 +219,11 @@
 		a.now_cancle.btn.btn-large {
 			margin: 10px 0px;
 		}
+		[type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+    position: static;
+    left: -9999px;
+    opacity: 1;
+}
 	</style>
  <script>
 	$(document).on('click','a.xyx',function(){
@@ -283,7 +295,7 @@
     </script>
   </div>
  </div>
-<script>
+<script type="text/javascript">
       $( function() {
         $( ".particular_date_filter" ).datepicker({
           dateFormat: 'yy-mm-dd',
@@ -296,6 +308,72 @@
           }
         });
     });
+</script>
+<script type="text/javascript">
+$(document).ready(function() {
+
+    // 1. Logic for "Select All"
+    $('#selectAllBtn').click(function() {
+        $('.rowCheckbox').prop('checked', true);
+    });
+
+    // 2. Logic for "Deselect All"
+    $('#deselectAllBtn').click(function() {
+        $('.rowCheckbox').prop('checked', false);
+    });
+
+    // 3. Logic for "Send to Tally"
+    $('#sendToTallyBtn').click(function() {
+        var btn = $(this);
+        var selectedIds = [];
+
+        // Gather all checked checkboxes
+        $('.rowCheckbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        // Validation: Check if anything is selected
+        if(selectedIds.length === 0) {
+            alert('Please select at least one record to send to Tally.');
+            return;
+        }
+
+        if(!confirm('Are you sure you want to send ' + selectedIds.length + ' records to Tally?')) {
+            return;
+        }
+
+        // Change button state to indicate loading
+        var originalText = btn.html();
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Sending...');
+
+        // 4. AJAX Request to your specific URL
+        $.ajax({
+            url: '<?php echo base_url("accounts/partial_tally"); ?>', // Maps to your URL
+            type: 'POST',
+            data: {
+                payment_ids: selectedIds // Sending the array of IDs
+            },
+            dataType: 'json', // Expecting JSON response from controller
+            success: function(response) {
+                if(response.success) {
+                    alert('Success: ' + response.message);
+                    // Optional: Reload page to update status
+                    // location.reload(); 
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Server Error: Failed to connect to Tally endpoint.');
+                console.error(xhr.responseText);
+            },
+            complete: function() {
+                // Reset button
+                btn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+});
 </script>
 <style >
 .custom-pagination{

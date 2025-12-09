@@ -2465,7 +2465,7 @@ public function tally()
     // ---- Parent sale fields ----
     $formatted = [
         "patient_id"      => $sale["patient_id"],
-        "patient_name"    => $patients_result['wife_name'] . ' W/O ' . $patients_result['husband_name'],
+     "patient_name" => ($patients_result['wife_name'] ?? '') . ' W/O ' . ($patients_result['husband_name'] ?? ''),
         "billing_center"  => $billing_centers_result['center_name'],
         "booking_center"  => $booking_centers_result['center_name'],
         "origin_center"   => $centers_result['center_name'],
@@ -2474,7 +2474,8 @@ public function tally()
         "biller_name"     => $employees_result['name'] ?? 'N/A',
         "procedure_type"  => $type . ($date_of_admission ? " (Admission: " . $date_of_admission . ")" : ""),
         "patient_procedures" => [],
-        "payment_method" => $sale["payment_method"] ?? ""
+        "payment_method" => $sale["payment_method"] ?? "",
+		"status" => $sale["status"] ?? ""
     ];
 
     // ---- Unserialize patient_procedures ----
@@ -2519,7 +2520,122 @@ public function tally()
         ->set_output(json_encode($response, JSON_PRETTY_PRINT));
 }
 
-	
+public function partial_tally() {
+
+	$payment_ids = $this->input->post('payment_ids');
+
+	if (empty($payment_ids)) {
+
+		echo json_encode(['success' => false, 'message' => 'No IDs received.']);
+
+		return;
+
+	}
+
+
+	$success_count = 0;
+
+	$error_count = 0;
+
+	foreach ($payment_ids as $id) {
+
+
+		$q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') and tally_status='1'");
+
+		$payment_data = $q->row_array();
+
+		$result = true;
+
+		if ($result) {
+
+		$success_count++;
+
+			$this->db->where('ID', $id)->update('hms_patient_payments', ['tally_status' => 1]);
+
+		} else {
+
+			$error_count++;
+
+		}
+
+	}
+
+		if ($success_count > 0) {
+
+			$msg = "$success_count records sent to Tally successfully.";
+
+		if($error_count > 0) {
+
+			$msg .= " ($error_count failed)";
+
+		}
+
+			echo json_encode(['success' => true, 'message' => $msg]);
+
+		} else {
+
+			echo json_encode(['success' => false, 'message' => 'Failed to send records to Tally.']);
+
+		}
+
+} 
+
+
+public function partialpayment_tally() {
+    
+    $q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 20");
+	$payment_rows = $q->result_array();
+
+	$sales_data = []; 
+
+    // 2. Loop through the database results
+    foreach ($payment_rows as $payment_row) {
+        
+       $id = $payment_row['ID'];
+
+        // A. Fetch PROCEDURE details linked to this receipt
+        $receipt_no = $payment_row['billing_id'];
+        
+        // REMOVED 'echo' here because it breaks JSON
+        $proc_q = $this->db->query("SELECT * FROM hms_patient_procedure WHERE receipt_number = '$receipt_no'");
+        $procedures = $proc_q->result_array();
+
+        // Format Procedures Array
+        $proc_list = [];
+        foreach($procedures as $proc) {
+            $proc_list[] = [
+                "procedure_name"              => $proc['procedure_name'],
+                "category"                    => $proc['category'], 
+                "sub_procedure"               => $proc['procedure_id'],
+                "sub_procedures_code"         => $proc['code'], 
+                "sub_procedures_price"        => $proc['totalpackage'],
+                "sub_procedures_discount"     => $proc['discount_amount'],
+                "sub_procedures_after_discount" => (float)$proc['totalpackage'] - (float)$proc['discount_amount'],
+                "sub_procedures_paid_price"   => $proc['payment_done']
+            ];
+        }
+
+        // C. Build the Record
+        $sales_data[] = [
+            "patient_id"      => $payment_row['patient_id'],
+			"billing_id" => $payment_row['billing_id'],
+			"receipt_number"  => $payment_row['refrence_number'],
+			"payment_done"  => $payment_row['payment_done'],
+            "on_date"         => date('d-m-Y', strtotime($payment_row['on_date'])),
+            "biller_name"     => "N/A", 
+            "procedure_type"  => "New",
+            "patient_procedures" => $proc_list,
+            "payment_method"  => $payment_row['payment_method'],
+           "status" => ($payment_row['status'] == 1) ? 'Approved' : (($payment_row['status'] == 3) ? 'Cancel' : 'Pending')
+        ];
+
+    }
+
+    // 3. Return JSON Response
+    header('Content-Type: application/json');
+    echo json_encode(["Sales_Details" => $sales_data], JSON_PRETTY_PRINT);
+}
+
 	public function front_approve($request = NULL){
 			$data = array();
 			$type = $_GET['t'];
