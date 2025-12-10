@@ -4,7 +4,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Purchase_order_model extends CI_Model {
 
     public function insert_purchase_order($data) {
-        return $this->db->insert('hms_purchase_orders', $data);
+        $this->db->insert('hms_purchase_orders', $data);
+        return $this->db->insert_id();
     }
 
     // Count purchase orders with filters
@@ -136,6 +137,12 @@ class Purchase_order_model extends CI_Model {
                         ->get('hms_purchase_orders') 
                         ->row_array();
     }
+    public function get_purchase_order_by_print($po_id)
+    {
+        return $this->db->where('id', $po_id)
+                        ->get('hms_purchase_orders') 
+                        ->row_array();
+    }
     public function save_purchase_order_payment($data)
     {
         return $this->db->insert('hms_purchase_order_payments', $data);
@@ -218,6 +225,14 @@ class Purchase_order_model extends CI_Model {
             log_message('error', 'Failed to get approver token details: ' . $e->getMessage());
             return null;
         }
+    }
+
+    public function add_po_items($items_batch_data)
+    {
+        if (empty($items_batch_data)) {
+            return true; 
+        }
+        return $this->db->insert_batch('hms_purchase_order_items', $items_batch_data);
     }
 
     /**
@@ -326,7 +341,7 @@ class Purchase_order_model extends CI_Model {
      */
     public function get_user_approval_stats($user_email, $filters = [])
     {
-        try {
+        // try {
             $stats = [
                 'user_email' => $user_email,
                 'total_approved' => 0,
@@ -338,33 +353,24 @@ class Purchase_order_model extends CI_Model {
                 'po_pending' => 0,
                 'approval_details' => []
             ];
-            
-            // Get all purchase orders where this user is involved as an approver
             $this->db->select('*');
             $this->db->from('hms_purchase_orders');
             $this->db->like('approver_tokens', $user_email);
-            
-            // Apply PO number filter if provided
             if (!empty($filters['po_number'])) {
                 $this->db->like('po_number', $filters['po_number']);
             }
-            
             $query = $this->db->get();
             $all_pos = $query->result_array();
-            
             foreach ($all_pos as $po) {
                 if (!empty($po['approver_tokens'])) {
                     $approver_tokens = json_decode($po['approver_tokens'], true);
                     if ($approver_tokens) {
                         foreach ($approver_tokens as $token_data) {
                             if ($token_data['email'] === $user_email) {
-                                // Apply status filter if provided
                                 if (!empty($filters['status_filter']) && $token_data['status'] !== $filters['status_filter']) {
                                     continue;
                                 }
-                                
                                 $stats['total_involved']++;
-                                
                                 $po_info = [
                                     'po_number' => $po['po_number'],
                                     'po_centre' => $po['po_centre'],
@@ -372,12 +378,11 @@ class Purchase_order_model extends CI_Model {
                                     'po_name_of_vendor' => $po['po_name_of_vendor'],
                                     'po_po_total' => $po['po_po_total'],
                                     'created_at' => $po['created_at'],
-                                    'status' => $token_data['status'], // User's approval status
-                                    'po_status' => $po['status'], // Overall PO status
+                                    'status' => $token_data['status'], 
+                                    'po_status' => $po['status'], 
                                     'approved_at' => isset($token_data['approved_at']) ? $token_data['approved_at'] : null,
                                     'remarks' => isset($token_data['remarks']) ? $token_data['remarks'] : ''
                                 ];
-                                
                                 switch ($token_data['status']) {
                                     case 'approved':
                                         $stats['total_approved']++;
@@ -389,8 +394,6 @@ class Purchase_order_model extends CI_Model {
                                         $stats['total_pending']++;
                                         break;
                                 }
-                                
-                                // Count PO overall status
                                 switch ($po['status']) {
                                     case '1':
                                         $stats['po_approved']++;
@@ -403,35 +406,73 @@ class Purchase_order_model extends CI_Model {
                                         $stats['po_pending']++;
                                         break;
                                 }
-                                
                                 $stats['approval_details'][] = $po_info;
-                                break; // User can only appear once per PO
+                                break; 
                             }
                         }
                     }
                 }
             }
-            
-            // Sort approval details by created date (newest first)
             usort($stats['approval_details'], function($a, $b) {
                 return strtotime($b['created_at']) - strtotime($a['created_at']);
             });
-            
             return $stats;
-        } catch (Exception $e) {
-            log_message('error', 'Failed to get user approval stats: ' . $e->getMessage());
-            return [
-                'user_email' => $user_email,
-                'total_approved' => 0,
-                'total_disapproved' => 0,
-                'total_pending' => 0,
-                'total_involved' => 0,
-                'po_approved' => 0,
-                'po_disapproved' => 0,
-                'po_pending' => 0,
-                'approval_details' => []
-            ];
-        }
+        // } catch (Exception $e) {
+        //     log_message('error', 'Failed to get user approval stats: ' . $e->getMessage());
+        //     return [
+        //         'user_email' => $user_email,
+        //         'total_approved' => 0,
+        //         'total_disapproved' => 0,
+        //         'total_pending' => 0,
+        //         'total_involved' => 0,
+        //         'po_approved' => 0,
+        //         'po_disapproved' => 0,
+        //         'po_pending' => 0,
+        //         'approval_details' => []
+        //     ];
+        // }
     }
+
+    public function get_all_purchase_orders($filters = [])
+    {
+        $this->apply_filters($filters); 
+        $this->db->order_by('id', 'DESC');
+        $query = $this->db->get('hms_purchase_orders');
+        return $query->result_array();
+    }
+    // public function get_purchase_order_by_id($po_id)
+    // {
+    //     $this->db->where('id', $po_id);
+    //     $query = $this->db->get('hms_purchase_orders');
+    //     return $query->row_array(); // Returns a single associative array
+    // }
+    // Get purchase order items by po_id
+    public function get_purchase_order_items($po_id) {
+        $this->db->flush_cache();
+        $this->db->where('po_id', $po_id);
+        $this->db->order_by('id', 'ASC'); 
+        $query = $this->db->get('hms_purchase_order_items'); 
+        return $query->result_array();
+    }
+    
+    // Get purchase order items by po_number
+    public function get_purchase_order_items_by_number($po_number) {
+        $this->db->flush_cache();
+        $po = $this->db->select('id')
+                       ->where('po_number', $po_number)
+                       ->get('hms_purchase_orders')
+                       ->row_array();
+        
+        if (!$po || !isset($po['id'])) {
+            return [];
+        }
+        
+        $this->db->flush_cache();
+        return $this->db->where('po_id', $po['id'])
+                        ->order_by('id', 'ASC')
+                        ->get('hms_purchase_order_items')
+                        ->result_array();
+    }
+
 
 }

@@ -1,92 +1,92 @@
 <?php $all_method =&get_instance(); ?>
 <style>
-.approver-status-list {
-    max-width: 100%;
-}
+    .approver-status-list {
+        max-width: 100%;
+    }
 
-.approver-item {
-    transition: all 0.2s ease;
-    border: 1px solid #e9ecef;
-}
-
-.approver-item:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transform: translateY(-1px);
-}
-
-.approver-item .status-icon {
-    font-size: 16px;
-    margin-right: 8px;
-}
-
-.approver-item .status-text {
-    font-weight: 600;
-    font-size: 12px;
-}
-
-.approver-item .approver-email {
-    font-size: 11px;
-    color: #6c757d;
-    word-break: break-all;
-    margin-top: 4px;
-}
-
-.approver-item .approval-time {
-    font-size: 10px;
-    margin-top: 2px;
-}
-
-.approver-item .rejection-remarks {
-    font-size: 10px;
-    margin-top: 2px;
-    font-style: italic;
-}
-
-.approval-summary {
-    margin-top: 8px;
-    padding: 6px;
-    background-color: #e9ecef;
-    border-radius: 4px;
-    text-align: center;
-    font-size: 11px;
-    color: #495057;
-    border: 1px solid #dee2e6;
-}
-
-.legacy-approvers {
-    color: #6c757d;
-    font-size: 12px;
-    padding: 8px;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    border: 1px solid #e9ecef;
-}
-
-.no-approvers {
-    color: #6c757d;
-    font-style: italic;
-    text-align: center;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-    border: 1px solid #e9ecef;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
     .approver-item {
-        margin-bottom: 6px;
-        padding: 4px;
+        transition: all 0.2s ease;
+        border: 1px solid #e9ecef;
     }
-    
+
+    .approver-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transform: translateY(-1px);
+    }
+
+    .approver-item .status-icon {
+        font-size: 16px;
+        margin-right: 8px;
+    }
+
     .approver-item .status-text {
-        font-size: 11px;
+        font-weight: 600;
+        font-size: 12px;
     }
-    
+
     .approver-item .approver-email {
-        font-size: 10px;
+        font-size: 11px;
+        color: #6c757d;
+        word-break: break-all;
+        margin-top: 4px;
     }
-}
+
+    .approver-item .approval-time {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+
+    .approver-item .rejection-remarks {
+        font-size: 10px;
+        margin-top: 2px;
+        font-style: italic;
+    }
+
+    .approval-summary {
+        margin-top: 8px;
+        padding: 6px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        text-align: center;
+        font-size: 11px;
+        color: #495057;
+        border: 1px solid #dee2e6;
+    }
+
+    .legacy-approvers {
+        color: #6c757d;
+        font-size: 12px;
+        padding: 8px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        border: 1px solid #e9ecef;
+    }
+
+    .no-approvers {
+        color: #6c757d;
+        font-style: italic;
+        text-align: center;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        border: 1px solid #e9ecef;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .approver-item {
+            margin-bottom: 6px;
+            padding: 4px;
+        }
+        
+        .approver-item .status-text {
+            font-size: 11px;
+        }
+        
+        .approver-item .approver-email {
+            font-size: 10px;
+        }
+    }
 </style>
 <div class="col-md-12">
     <div class="card" style="margin-bottom:20px;">
@@ -182,7 +182,7 @@
                         <option value="partial" <?php echo (isset($filters['approval_status']) && $filters['approval_status']=='partial') ? 'selected' : ''; ?>>Partially Approved</option>
                     </select>
                 </div>
- -->
+                -->
 
                 <!-- Status -->
                 <div class="col-sm-3 col-xs-12 mt-3">
@@ -210,6 +210,10 @@
                 <div class="col-sm-12 mt-4 text-right">
                     <button type="submit" class="btn btn-primary btn-sm">Search</button>
                     <a href="<?php echo base_url('accounts/purchase_order_list'); ?>" class="btn btn-secondary btn-sm">Reset</a>
+                    <?php
+                    $export_query_string = http_build_query($filters);
+                    ?>
+                    <a href="<?php echo base_url('accounts/export_purchase_orders?' . $export_query_string); ?>" class="btn btn-info btn-sm">Export</a>
                 </div>
             </div>
         </form>
@@ -228,6 +232,7 @@
                     <th>Budget Item</th>
                     <th>Approved By</th>
                     <th>Vendor</th>
+                    <th>Document</th>
                     <th>Basic Amount (Ex GST)</th>
                     <th>GST Amount</th>
                     <th>Other Charges & Taxes</th>
@@ -290,11 +295,26 @@
                                 }
                             }
                             
+                            // Check if GRN already exists for this PO
+                            $grn_exists = isset($grn_status[$vl['po_number']]) ? $grn_status[$vl['po_number']] : false;
+                            
                             if ($show_add_payment): ?>
-                                <a href="<?php echo base_url('accounts/purchase-order-payment/'.$vl['po_number']); ?>" 
-                                    class="btn btn-primary btn-sm pull-right">
-                                    <i class="glyphicon glyphicon-plus"></i>Add Payment
-                                </a>
+                                <div class="pull-right" style="display: inline-block;">
+                                    <?php if (!$grn_exists): ?>
+                                        <a href="<?php echo base_url('accounts/add_grn/'.$vl['po_number']); ?>" 
+                                            class="btn btn-success btn-sm" style="margin-right: 5px;">
+                                            <i class="glyphicon glyphicon-check"></i> Add GRN
+                                        </a>
+                                    <?php else: ?>
+                                        <span class="btn btn-default btn-sm disabled" style="margin-right: 5px;" title="GRN already created">
+                                            <i class="glyphicon glyphicon-ok"></i> GRN Created
+                                        </span>
+                                    <?php endif; ?>
+                                    <a href="<?php echo base_url('accounts/purchase-order-payment/'.$vl['po_number']); ?>" 
+                                        class="btn btn-primary btn-sm">
+                                        <i class="glyphicon glyphicon-plus"></i> Add Payment
+                                    </a>
+                                </div>
                             <?php else: ?>
                                 <span class="pull-right" style="color: #6c757d; font-size: 12px; line-height: 30px;">
                                     <?php 
@@ -327,7 +347,7 @@
                             <?php endif; ?>
                         </div>
                     </td>
-                    <td><?php echo $vl['po_centre']; ?></td>
+                    <td><?php echo $all_method->get_center_name_by_number($vl['po_centre']); ?></td>
                     <td><?php echo $vl['po_department']; ?></td>
                     <td><?php echo $vl['po_nature_of_expenditure']; ?></td>
                     <td><?php echo $vl['po_budget_head']; ?></td>
@@ -469,6 +489,42 @@
                         ?>
                     </td>
                     <td><?php echo $vl['po_name_of_vendor']; ?></td>
+                    <td>
+                    <td>
+                        <?php 
+                        $documents_json = $vl['po_supporting_documents']; 
+                        $document_array = json_decode($documents_json, true);
+                        if (is_array($document_array) && !empty($document_array)) {
+                            foreach ($document_array as $document_filename) {
+                                if (empty($document_filename)) continue; // Skip empty entries
+                                $file_url = base_url('assets/purchase_orders/' . $document_filename); 
+                        ?>
+                        <div style="margin-bottom: 8px; padding: 6px; border: 1px solid #eee; border-radius: 4px; background: #f9f9f9;">
+                            <span style="font-size: 12px; color: #333; display: block; margin-bottom: 5px; word-wrap: break-word;" title="<?php echo htmlspecialchars($document_filename); ?>">
+                                <i class="glyphicon glyphicon-file"></i>
+                                <?php 
+                                    if (strlen($document_filename) > 25) {
+                                        echo substr($document_filename, 0, 12) . '...' . substr($document_filename, -5);
+                                    } else {
+                                        echo htmlspecialchars($document_filename);
+                                    }
+                                ?>
+                            </span>
+                            <a href="<?php echo $file_url; ?>" target="_blank" class="btn btn-info btn-xs">
+                                <i class="glyphicon glyphicon-eye-open"></i> View
+                            </a>
+                            <a href="<?php echo $file_url; ?>" download="<?php echo $document_filename; ?>" class="btn btn-success btn-xs" style="margin-left: 5px;">
+                                <i class="glyphicon glyphicon-download-alt"></i> Download
+                            </a>
+                        </div>
+                        <?php 
+                            }
+                        ?>
+                            <span style="color: #6c757d; font-size: 12px;">No Document</span>
+                        <?php 
+                        }
+                        ?>
+                    </td>
                     <!-- <td><?php echo $vl['po_remarks_or_comment_or_narration']; ?></td> -->
                     <td><?php echo $vl['po_basic_amount']; ?></td>
                     <td><?php echo $vl['po_gst_amount']; ?></td>
@@ -720,178 +776,178 @@
     }
 </script>
 <style >
-.custom-pagination{
-  padding:8px;
-}
-.custom-pagination a{
-  padding:10px;
-  text-decoration: none;
-}
-.form-control{
-  height: 30px!important;
-  border: 1px solid #9e9e9e!important;
-}
-.form-control#billing_at{
-  height: 40px!important;
-  border: 1px solid #9e9e9e!important;
-}
-select {
-    display: block !important;
-}
+    .custom-pagination{
+    padding:8px;
+    }
+    .custom-pagination a{
+    padding:10px;
+    text-decoration: none;
+    }
+    .form-control{
+    height: 30px!important;
+    border: 1px solid #9e9e9e!important;
+    }
+    .form-control#billing_at{
+    height: 40px!important;
+    border: 1px solid #9e9e9e!important;
+    }
+    select {
+        display: block !important;
+    }
 
-/* Approval Status Styling */
-.approval-status {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-block;
-    margin: 2px 0;
-}
+    /* Approval Status Styling */
+    .approval-status {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        margin: 2px 0;
+    }
 
-.approval-status.pending {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeaa7;
-}
+    .approval-status.pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
 
-.approval-status.approved {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
+    .approval-status.approved {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
 
-.approval-status.rejected {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
+    .approval-status.rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
 
-.approval-status.no-approvers {
-    background-color: #e2e3e5;
-    color: #383d41;
-    border: 1px solid #d6d8db;
-}
+    .approval-status.no-approvers {
+        background-color: #e2e3e5;
+        color: #383d41;
+        border: 1px solid #d6d8db;
+    }
 
-.approval-count {
-    font-size: 11px;
-    color: #6c757d;
-    margin-top: 2px;
-    display: block;
-}
+    .approval-count {
+        font-size: 11px;
+        color: #6c757d;
+        margin-top: 2px;
+        display: block;
+    }
 
-.po-number-cell {
-    min-width: 200px;
-}
+    .po-number-cell {
+        min-width: 200px;
+    }
 
-.status-cell {
-    min-width: 180px;
-}
+    .status-cell {
+        min-width: 180px;
+    }
 
-.manual-override-section {
-    background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    padding: 8px;
-    margin-top: 8px;
-}
+    .manual-override-section {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 8px;
+        margin-top: 8px;
+    }
 
-.manual-override-label {
-    font-size: 11px;
-    color: #6c757d;
-    margin-bottom: 4px;
-    display: block;
-    font-weight: 600;
-}
+    .manual-override-label {
+        font-size: 11px;
+        color: #6c757d;
+        margin-bottom: 4px;
+        display: block;
+        font-weight: 600;
+    }
 
-.manual-override-select {
-    width: 100%;
-    height: 28px !important;
-    font-size: 11px;
-    border: 1px solid #ced4da;
-    border-radius: 3px;
-    padding: 2px 6px;
-}
+    .manual-override-select {
+        width: 100%;
+        height: 28px !important;
+        font-size: 11px;
+        border: 1px solid #ced4da;
+        border-radius: 3px;
+        padding: 2px 6px;
+    }
 
-.status-divider {
-    margin: 8px 0;
-    border-color: #dee2e6;
-    border-width: 1px;
-}
+    .status-divider {
+        margin: 8px 0;
+        border-color: #dee2e6;
+        border-width: 1px;
+    }
 
-/* Success Alert Styling */
-.alert-success {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
-    padding: 15px;
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
+    /* Success Alert Styling */
+    .alert-success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+        padding: 15px;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
 
-.alert-success .close {
-    background: none;
-    border: none;
-    font-size: 18px;
-    font-weight: bold;
-    line-height: 1;
-    color: #000;
-    text-shadow: 0 1px 0 #fff;
-    opacity: .5;
-    cursor: pointer;
-}
+    .alert-success .close {
+        background: none;
+        border: none;
+        font-size: 18px;
+        font-weight: bold;
+        line-height: 1;
+        color: #000;
+        text-shadow: 0 1px 0 #fff;
+        opacity: .5;
+        cursor: pointer;
+    }
 
-.alert-success .close:hover {
-    opacity: .75;
-}
+    .alert-success .close:hover {
+        opacity: .75;
+    }
 
-/* Dashboard Approval Buttons Styling */
-.dashboard-approval-buttons {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #e3f2fd;
-    border-radius: 4px;
-    border: 1px solid #2196f3;
-    animation: pulse 2s infinite;
-}
+    /* Dashboard Approval Buttons Styling */
+    .dashboard-approval-buttons {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #e3f2fd;
+        border-radius: 4px;
+        border: 1px solid #2196f3;
+        animation: pulse 2s infinite;
+    }
 
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(33, 150, 243, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0); }
-}
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(33, 150, 243, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(33, 150, 243, 0); }
+    }
 
-.dashboard-approval-buttons .btn {
-    margin: 0 5px;
-    padding: 8px 16px;
-    font-weight: 600;
-    border-radius: 4px;
-    transition: all 0.3s ease;
-}
+    .dashboard-approval-buttons .btn {
+        margin: 0 5px;
+        padding: 8px 16px;
+        font-weight: 600;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
 
-.dashboard-approval-buttons .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
+    .dashboard-approval-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
 
-.dashboard-approval-buttons .btn-success {
-    background-color: #28a745;
-    border-color: #28a745;
-}
+    .dashboard-approval-buttons .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
 
-.dashboard-approval-buttons .btn-success:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
-}
+    .dashboard-approval-buttons .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }
 
-.dashboard-approval-buttons .btn-danger {
-    background-color: #dc3545;
-    border-color: #dc3545;
-}
+    .dashboard-approval-buttons .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
 
-.dashboard-approval-buttons .btn-danger:hover {
-    background-color: #c82333;
-    border-color: #bd2130;
-}
+    .dashboard-approval-buttons .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
 </style>
 	

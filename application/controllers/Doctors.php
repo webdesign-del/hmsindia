@@ -1513,45 +1513,49 @@ class Doctors extends CI_Controller {
 					
 					foreach($male_med_number as $key => $val){
 						$male_medicine_suggestion_list['male_medicine_suggestion_list'][] = array(
-							 'male_medicine_name' => $_POST['male_medicine_name_'.$val],
-							 'male_medicine_dosage' => $_POST['male_medicine_dosage_'.$val],
-							 'male_medicine_when_start' => $_POST['male_medicine_when_start_'.$val],
-							 'male_medicine_days' => $_POST['male_medicine_days_'.$val],
-							 'male_medicine_route' => $_POST['male_medicine_route_'.$val],
-							 'male_medicine_frequency' => $_POST['male_medicine_frequency_'.$val],
-							 'male_medicine_timing' => $_POST['male_medicine_timing_'.$val],
-							 'male_medicine_take' => $_POST['male_medicine_take_'.$val]
+							 'male_medicine_name' => isset($_POST['male_medicine_name_'.$val]) ? $_POST['male_medicine_name_'.$val] : '',
+							 'male_medicine_dosage' => isset($_POST['male_medicine_dosage_'.$val]) ? $_POST['male_medicine_dosage_'.$val] : '',
+							 'male_medicine_when_start' => isset($_POST['male_medicine_when_start_'.$val]) ? $_POST['male_medicine_when_start_'.$val] : '',
+							 'male_medicine_days' => isset($_POST['male_medicine_days_'.$val]) ? $_POST['male_medicine_days_'.$val] : '',
+							 'male_medicine_route' => isset($_POST['male_medicine_route_'.$val]) ? $_POST['male_medicine_route_'.$val] : '',
+							 'male_medicine_frequency' => isset($_POST['male_medicine_frequency_'.$val]) ? $_POST['male_medicine_frequency_'.$val] : '',
+							 'male_medicine_timing' => isset($_POST['male_medicine_timing_'.$val]) ? $_POST['male_medicine_timing_'.$val] : '',
+							 'male_medicine_take' => isset($_POST['male_medicine_take_'.$val]) ? $_POST['male_medicine_take_'.$val] : '',
+							 'male_medicine_remarks' => isset($_POST['male_medicine_remarks_'.$val]) ? $_POST['male_medicine_remarks_'.$val] : ''
 							);
-						unset($_POST['male_medicine_name_'.$val]);
-						unset($_POST['male_medicine_dosage_'.$val]);
-						unset($_POST['male_medicine_when_start_'.$val]);
-						unset($_POST['male_medicine_days_'.$val]);
-						unset($_POST['male_medicine_route_'.$val]);
-						unset($_POST['male_medicine_frequency_'.$val]);
-						unset($_POST['male_medicine_timing_'.$val]);
-						unset($_POST['male_medicine_take_'.$val]);
+						if(isset($_POST['male_medicine_name_'.$val])) unset($_POST['male_medicine_name_'.$val]);
+						if(isset($_POST['male_medicine_dosage_'.$val])) unset($_POST['male_medicine_dosage_'.$val]);
+						if(isset($_POST['male_medicine_when_start_'.$val])) unset($_POST['male_medicine_when_start_'.$val]);
+						if(isset($_POST['male_medicine_days_'.$val])) unset($_POST['male_medicine_days_'.$val]);
+						if(isset($_POST['male_medicine_route_'.$val])) unset($_POST['male_medicine_route_'.$val]);
+						if(isset($_POST['male_medicine_frequency_'.$val])) unset($_POST['male_medicine_frequency_'.$val]);
+						if(isset($_POST['male_medicine_timing_'.$val])) unset($_POST['male_medicine_timing_'.$val]);
+						if(isset($_POST['male_medicine_take_'.$val])) unset($_POST['male_medicine_take_'.$val]);
+						if(isset($_POST['male_medicine_remarks_'.$val])) unset($_POST['male_medicine_remarks_'.$val]);
 					}
 					$male_medicine_suggestion_list = serialize($male_medicine_suggestion_list);
 					$_POST['male_medicine_suggestion_list'] = $male_medicine_suggestion_list;
 					foreach($female_med_number as $key => $val){
 						$female_medicine_suggestion_list['female_medicine_suggestion_list'][] = array(
-							 'female_medicine_name' => $_POST['female_medicine_name_'.$val],
-							 'female_medicine_dosage' => $_POST['female_medicine_dosage_'.$val],
-							 'female_medicine_when_start' => $_POST['female_medicine_when_start_'.$val],
-							 'female_medicine_days' => $_POST['female_medicine_days_'.$val],
-							 'female_medicine_route' => $_POST['female_medicine_route_'.$val],
-							 'female_medicine_frequency' => $_POST['female_medicine_frequency_'.$val],
-							 'female_medicine_timing' => $_POST['female_medicine_timing_'.$val],
-							 'female_medicine_take' => $_POST['female_medicine_take_'.$val]
+							 'female_medicine_name' => isset($_POST['female_medicine_name_'.$val]) ? $_POST['female_medicine_name_'.$val] : '',
+							 'female_medicine_dosage' => isset($_POST['female_medicine_dosage_'.$val]) ? $_POST['female_medicine_dosage_'.$val] : '',
+							 'female_medicine_when_start' => isset($_POST['female_medicine_when_start_'.$val]) ? $_POST['female_medicine_when_start_'.$val] : '',
+							 'female_medicine_days' => isset($_POST['female_medicine_days_'.$val]) ? $_POST['female_medicine_days_'.$val] : '',
+							 'female_medicine_route' => isset($_POST['female_medicine_route_'.$val]) ? $_POST['female_medicine_route_'.$val] : '',
+							 'female_medicine_frequency' => isset($_POST['female_medicine_frequency_'.$val]) ? $_POST['female_medicine_frequency_'.$val] : '',
+							 'female_medicine_timing' => isset($_POST['female_medicine_timing_'.$val]) ? $_POST['female_medicine_timing_'.$val] : '',
+							 'female_medicine_take' => isset($_POST['female_medicine_take_'.$val]) ? $_POST['female_medicine_take_'.$val] : '',
+							 'female_medicine_remarks' => isset($_POST['female_medicine_remarks_'.$val]) ? $_POST['female_medicine_remarks_'.$val] : ''
 						);
-						unset($_POST['female_medicine_name_'.$val]);
-						unset($_POST['female_medicine_dosage_'.$val]);
-						unset($_POST['female_medicine_when_start_'.$val]);
-						unset($_POST['female_medicine_days_'.$val]);
-						unset($_POST['female_medicine_route_'.$val]);
-						unset($_POST['female_medicine_frequency_'.$val]);
-						unset($_POST['female_medicine_timing_'.$val]);
-						unset($_POST['female_medicine_take_'.$val]);
+						if(isset($_POST['female_medicine_name_'.$val])) unset($_POST['female_medicine_name_'.$val]);
+						if(isset($_POST['female_medicine_dosage_'.$val])) unset($_POST['female_medicine_dosage_'.$val]);
+						if(isset($_POST['female_medicine_when_start_'.$val])) unset($_POST['female_medicine_when_start_'.$val]);
+						if(isset($_POST['female_medicine_days_'.$val])) unset($_POST['female_medicine_days_'.$val]);
+						if(isset($_POST['female_medicine_route_'.$val])) unset($_POST['female_medicine_route_'.$val]);
+						if(isset($_POST['female_medicine_frequency_'.$val])) unset($_POST['female_medicine_frequency_'.$val]);
+						if(isset($_POST['female_medicine_timing_'.$val])) unset($_POST['female_medicine_timing_'.$val]);
+						if(isset($_POST['female_medicine_take_'.$val])) unset($_POST['female_medicine_take_'.$val]);
+						if(isset($_POST['female_medicine_remarks_'.$val])) unset($_POST['female_medicine_remarks_'.$val]);
 					}
 					$female_medicine_suggestion_list = serialize($female_medicine_suggestion_list);
 					$_POST['female_medicine_suggestion_list'] = $female_medicine_suggestion_list;
@@ -1582,45 +1586,49 @@ class Doctors extends CI_Controller {
 					
 					foreach($male_med_number_ipd as $key => $val){
 						$male_medicine_suggestion_list_ipd[] = array(
-							 'male_medicine_name' => $_POST['male_medicine_name_ipd_'.$val],
-							 'male_medicine_dosage' => $_POST['male_medicine_dosage_ipd_'.$val],
-							 'male_medicine_when_start' => $_POST['male_medicine_when_start_ipd_'.$val],
-							 'male_medicine_days' => $_POST['male_medicine_days_ipd_'.$val],
-							 'male_medicine_route' => $_POST['male_medicine_route_ipd_'.$val],
-							 'male_medicine_frequency' => $_POST['male_medicine_frequency_ipd_'.$val],
-							 'male_medicine_timing' => $_POST['male_medicine_timing_ipd_'.$val],
-							 'male_medicine_take' => $_POST['male_medicine_take_ipd_'.$val]
+							 'male_medicine_name' => isset($_POST['male_medicine_name_ipd_'.$val]) ? $_POST['male_medicine_name_ipd_'.$val] : '',
+							 'male_medicine_dosage' => isset($_POST['male_medicine_dosage_ipd_'.$val]) ? $_POST['male_medicine_dosage_ipd_'.$val] : '',
+							 'male_medicine_when_start' => isset($_POST['male_medicine_when_start_ipd_'.$val]) ? $_POST['male_medicine_when_start_ipd_'.$val] : '',
+							 'male_medicine_days' => isset($_POST['male_medicine_days_ipd_'.$val]) ? $_POST['male_medicine_days_ipd_'.$val] : '',
+							 'male_medicine_route' => isset($_POST['male_medicine_route_ipd_'.$val]) ? $_POST['male_medicine_route_ipd_'.$val] : '',
+							 'male_medicine_frequency' => isset($_POST['male_medicine_frequency_ipd_'.$val]) ? $_POST['male_medicine_frequency_ipd_'.$val] : '',
+							 'male_medicine_timing' => isset($_POST['male_medicine_timing_ipd_'.$val]) ? $_POST['male_medicine_timing_ipd_'.$val] : '',
+							 'male_medicine_take' => isset($_POST['male_medicine_take_ipd_'.$val]) ? $_POST['male_medicine_take_ipd_'.$val] : '',
+							 'male_medicine_remarks' => isset($_POST['male_medicine_remarks_ipd_'.$val]) ? $_POST['male_medicine_remarks_ipd_'.$val] : ''
 							);
-						unset($_POST['male_medicine_name_ipd_'.$val]);
-						unset($_POST['male_medicine_dosage_ipd_'.$val]);
-						unset($_POST['male_medicine_when_start_ipd_'.$val]);
-						unset($_POST['male_medicine_days_ipd_'.$val]);
-						unset($_POST['male_medicine_route_ipd_'.$val]);
-						unset($_POST['male_medicine_frequency_ipd_'.$val]);
-						unset($_POST['male_medicine_timing_ipd_'.$val]);
-						unset($_POST['male_medicine_take_ipd_'.$val]);
+						if(isset($_POST['male_medicine_name_ipd_'.$val])) unset($_POST['male_medicine_name_ipd_'.$val]);
+						if(isset($_POST['male_medicine_dosage_ipd_'.$val])) unset($_POST['male_medicine_dosage_ipd_'.$val]);
+						if(isset($_POST['male_medicine_when_start_ipd_'.$val])) unset($_POST['male_medicine_when_start_ipd_'.$val]);
+						if(isset($_POST['male_medicine_days_ipd_'.$val])) unset($_POST['male_medicine_days_ipd_'.$val]);
+						if(isset($_POST['male_medicine_route_ipd_'.$val])) unset($_POST['male_medicine_route_ipd_'.$val]);
+						if(isset($_POST['male_medicine_frequency_ipd_'.$val])) unset($_POST['male_medicine_frequency_ipd_'.$val]);
+						if(isset($_POST['male_medicine_timing_ipd_'.$val])) unset($_POST['male_medicine_timing_ipd_'.$val]);
+						if(isset($_POST['male_medicine_take_ipd_'.$val])) unset($_POST['male_medicine_take_ipd_'.$val]);
+						if(isset($_POST['male_medicine_remarks_ipd_'.$val])) unset($_POST['male_medicine_remarks_ipd_'.$val]);
 					}
 					$male_medicine_suggestion_list_ipd = serialize($male_medicine_suggestion_list_ipd);
 					$_POST['male_medicine_suggestion_list_ipd'] = $male_medicine_suggestion_list_ipd;
 					foreach($female_med_number_ipd as $key => $val){
 						$female_medicine_suggestion_list_ipd[] = array(
-							 'female_medicine_name' => $_POST['female_medicine_name_ipd_'.$val],
-							 'female_medicine_dosage' => $_POST['female_medicine_dosage_ipd_'.$val],
-							 'female_medicine_when_start' => $_POST['female_medicine_when_start_ipd_'.$val],
-							 'female_medicine_days' => $_POST['female_medicine_days_ipd_'.$val],
-							 'female_medicine_route' => $_POST['female_medicine_route_ipd_'.$val],
-							 'female_medicine_frequency' => $_POST['female_medicine_frequency_ipd_'.$val],
-							 'female_medicine_timing' => $_POST['female_medicine_timing_ipd_'.$val],
-							 'female_medicine_take' => $_POST['female_medicine_take_ipd_'.$val]
+							 'female_medicine_name' => isset($_POST['female_medicine_name_ipd_'.$val]) ? $_POST['female_medicine_name_ipd_'.$val] : '',
+							 'female_medicine_dosage' => isset($_POST['female_medicine_dosage_ipd_'.$val]) ? $_POST['female_medicine_dosage_ipd_'.$val] : '',
+							 'female_medicine_when_start' => isset($_POST['female_medicine_when_start_ipd_'.$val]) ? $_POST['female_medicine_when_start_ipd_'.$val] : '',
+							 'female_medicine_days' => isset($_POST['female_medicine_days_ipd_'.$val]) ? $_POST['female_medicine_days_ipd_'.$val] : '',
+							 'female_medicine_route' => isset($_POST['female_medicine_route_ipd_'.$val]) ? $_POST['female_medicine_route_ipd_'.$val] : '',
+							 'female_medicine_frequency' => isset($_POST['female_medicine_frequency_ipd_'.$val]) ? $_POST['female_medicine_frequency_ipd_'.$val] : '',
+							 'female_medicine_timing' => isset($_POST['female_medicine_timing_ipd_'.$val]) ? $_POST['female_medicine_timing_ipd_'.$val] : '',
+							 'female_medicine_take' => isset($_POST['female_medicine_take_ipd_'.$val]) ? $_POST['female_medicine_take_ipd_'.$val] : '',
+							 'female_medicine_remarks' => isset($_POST['female_medicine_remarks_ipd_'.$val]) ? $_POST['female_medicine_remarks_ipd_'.$val] : ''
 						);
-						unset($_POST['female_medicine_name_ipd_'.$val]);
-						unset($_POST['female_medicine_dosage_ipd_'.$val]);
-						unset($_POST['female_medicine_when_start_ipd_'.$val]);
-						unset($_POST['female_medicine_days_ipd_'.$val]);
-						unset($_POST['female_medicine_route_ipd_'.$val]);
-						unset($_POST['female_medicine_frequency_ipd_'.$val]);
-						unset($_POST['female_medicine_timing_ipd_'.$val]);
-						unset($_POST['female_medicine_take_ipd_'.$val]);
+						if(isset($_POST['female_medicine_name_ipd_'.$val])) unset($_POST['female_medicine_name_ipd_'.$val]);
+						if(isset($_POST['female_medicine_dosage_ipd_'.$val])) unset($_POST['female_medicine_dosage_ipd_'.$val]);
+						if(isset($_POST['female_medicine_when_start_ipd_'.$val])) unset($_POST['female_medicine_when_start_ipd_'.$val]);
+						if(isset($_POST['female_medicine_days_ipd_'.$val])) unset($_POST['female_medicine_days_ipd_'.$val]);
+						if(isset($_POST['female_medicine_route_ipd_'.$val])) unset($_POST['female_medicine_route_ipd_'.$val]);
+						if(isset($_POST['female_medicine_frequency_ipd_'.$val])) unset($_POST['female_medicine_frequency_ipd_'.$val]);
+						if(isset($_POST['female_medicine_timing_ipd_'.$val])) unset($_POST['female_medicine_timing_ipd_'.$val]);
+						if(isset($_POST['female_medicine_take_ipd_'.$val])) unset($_POST['female_medicine_take_ipd_'.$val]);
+						if(isset($_POST['female_medicine_remarks_ipd_'.$val])) unset($_POST['female_medicine_remarks_ipd_'.$val]);
 					}
 					$female_medicine_suggestion_list_ipd = serialize($female_medicine_suggestion_list_ipd);
 					$_POST['female_medicine_suggestion_list_ipd'] = $female_medicine_suggestion_list_ipd;
@@ -1761,9 +1769,11 @@ class Doctors extends CI_Controller {
 					$appointment_arr['wife_email'] = $patient_details['wife_email'];;
 					$appointment_arr['nationality'] = $patient_details['nationality'];;
 					$appointment_arr['reason_of_visit'] = $consultation_post['follow_up_purpose'];
-					$appointment_arr['appoitment_for'] = $_POST['appoitment_for'];unset($_POST['appoitment_for']);
+					$appointment_arr['appoitment_for'] = isset($_POST['appoitment_for']) ? $_POST['appoitment_for'] : '';
+					if(isset($_POST['appoitment_for'])) unset($_POST['appoitment_for']);
 					$appointment_arr['appoitmented_date'] = $consultation_post['follow_up_date'];
-					$appointment_arr['appoitmented_doctor'] = $_POST['appoitmented_doctor'];unset($_POST['appoitmented_doctor']);
+					$appointment_arr['appoitmented_doctor'] = isset($_POST['appoitmented_doctor']) ? $_POST['appoitmented_doctor'] : '';
+					if(isset($_POST['appoitmented_doctor'])) unset($_POST['appoitmented_doctor']);
 					$appointment_arr['appoitmented_slot'] = $consultation_post['follow_slot'];
 					$appointment_arr['follow_up_appointment'] = 1;
 					$appointment_arr['previous_appointment'] = $consultation_post['appointment_id'];
@@ -1773,100 +1783,117 @@ class Doctors extends CI_Controller {
 						$doctor_details = doctor_details($appointment_arr['appoitmented_doctor']);
 						$patient_to = $patient_subject = $patient_message = $doctor_to = $doctor_subject = $doctor_message = "";
 						//Patient emails
-						$patient_to = $patient_details['wife_email'];
+						$patient_to = isset($patient_details['wife_email']) ? $patient_details['wife_email'] : '';
 						$patient_subject = "Followup appointment booked";
-						$patient_message = "Hi ".$patient_details['wife_name'].",<br/> Your followup appointment is booked with Dr.".$doctor_details['name']." on ".date("d-m-Y", strtotime($consultation_post['follow_up_date']))." at ".$consultation_post['follow_slot'].".";
+						$doctor_name = isset($doctor_details['name']) ? $doctor_details['name'] : '';
+						$patient_message = "Hi ".(isset($patient_details['wife_name']) ? $patient_details['wife_name'] : '').",<br/> Your followup appointment is booked with Dr.".$doctor_name." on ".date("d-m-Y", strtotime($consultation_post['follow_up_date']))." at ".$consultation_post['follow_slot'].".";
 						// send_mail($patient_to, $patient_subject, $patient_message);
 						
-						$patient_phone = $patient_details['wife_phone'];
-						$sms_message = "Hi ".$patient_details['wife_name'].", Your followup appointment is booked with Dr.".$doctor_details['name']." on ".date("d-m-Y", strtotime($consultation_post['follow_up_date']))." at ".$consultation_post['follow_slot'].".";
-						send_sms($patient_phone, $sms_message);
+						$patient_phone = isset($patient_details['wife_phone']) ? $patient_details['wife_phone'] : '';
+						$sms_message = "Hi ".(isset($patient_details['wife_name']) ? $patient_details['wife_name'] : '').", Your followup appointment is booked with Dr.".$doctor_name." on ".date("d-m-Y", strtotime($consultation_post['follow_up_date']))." at ".$consultation_post['follow_slot'].".";
+						if(!empty($patient_phone)) {
+							send_sms($patient_phone, $sms_message);
+						}
 						
 						//Doctor emails
-						$doctor_to = $doctor_details['email'];
+						$doctor_to = isset($doctor_details['email']) ? $doctor_details['email'] : '';
 						$doctor_subject = "Followup appointment";
-						$doctor_message = "Hi Dr.".$doctor_details['name'].",<br/> Followup Appointment is booked on ".date("d-m-Y", strtotime($consultation_post['follow_up_date']))." at ".$consultation_post['follow_slot'].".";
+						$doctor_message = "Hi Dr.".$doctor_name.",<br/> Followup Appointment is booked on ".date("d-m-Y", strtotime($consultation_post['follow_up_date']))." at ".$consultation_post['follow_slot'].".";
 						// send_mail($doctor_to, $doctor_subject, $doctor_message);
 					}
 
 				}
 				$consultation_done = $this->doctors_model->consultation_done($consultation_post);
-				$female_ids_serialized = $consultation_post['female_minvestigation_suggestion_list'];
-				$unserializedArray = unserialize($female_ids_serialized);
 				$investigation_names = [];
-				if (is_array($unserializedArray)) {
-					foreach ($unserializedArray as $key => $value) {
-						$value = (int)$value; // ensure it's safe
-						$sql2 = "SELECT * FROM `hms_master_investigations` WHERE ID = $value";
-						$select_result9 = run_select_query($sql2);
-						if (!empty($select_result9) && isset($select_result9['investigation_name'])) {
-							$investigation_names[] = $select_result9['investigation_name'];
+				if(isset($consultation_post['female_minvestigation_suggestion_list']) && !empty($consultation_post['female_minvestigation_suggestion_list'])){
+					$female_ids_serialized = $consultation_post['female_minvestigation_suggestion_list'];
+					$unserializedArray = unserialize($female_ids_serialized);
+					if (is_array($unserializedArray)) {
+						foreach ($unserializedArray as $key => $value) {
+							$value = (int)$value; // ensure it's safe
+							$sql2 = "SELECT * FROM `hms_master_investigations` WHERE ID = $value";
+							$select_result9 = run_select_query($sql2);
+							if (!empty($select_result9) && isset($select_result9['investigation_name'])) {
+								$investigation_names[] = $select_result9['investigation_name'];
+							}
 						}
 					}
 				}
-				$male_ids_serialized = $consultation_post['male_minvestigation_suggestion_list'];
-				$unserializedArray = unserialize($male_ids_serialized);
 				$investigation_male_names = [];
-				if (is_array($unserializedArray)) {
-					foreach ($unserializedArray as $key => $value) {
-						$value = (int)$value; // ensure it's safe
-						$sql_male = "SELECT * FROM `hms_master_investigations` WHERE ID = $value";
-						$select_male_result = run_select_query($sql_male);
-						if (!empty($select_male_result) && isset($select_male_result['investigation_name'])) {
-							$investigation_male_names[] = $select_male_result['investigation_name'];
+				if(isset($consultation_post['male_minvestigation_suggestion_list']) && !empty($consultation_post['male_minvestigation_suggestion_list'])){
+					$male_ids_serialized = $consultation_post['male_minvestigation_suggestion_list'];
+					$unserializedArray = unserialize($male_ids_serialized);
+					if (is_array($unserializedArray)) {
+						foreach ($unserializedArray as $key => $value) {
+							$value = (int)$value; // ensure it's safe
+							$sql_male = "SELECT * FROM `hms_master_investigations` WHERE ID = $value";
+							$select_male_result = run_select_query($sql_male);
+							if (!empty($select_male_result) && isset($select_male_result['investigation_name'])) {
+								$investigation_male_names[] = $select_male_result['investigation_name'];
+							}
 						}
 					}
 				}
-				$procedure_ids_serialized = $consultation_post['sub_procedure_suggestion_list'];
-				$unserializedArray = unserialize($procedure_ids_serialized);
 				$procedure_name = [];
-				if (is_array($unserializedArray)) {
-					foreach ($unserializedArray as $key => $value) {
-						$value = (int)$value; // ensure it's safe
-						$sql_procedure = "SELECT * FROM `hms_procedures` WHERE ID = $value";
-						$select_procedure_result = run_select_query($sql_procedure);
+				if(isset($consultation_post['sub_procedure_suggestion_list']) && !empty($consultation_post['sub_procedure_suggestion_list'])){
+					$procedure_ids_serialized = $consultation_post['sub_procedure_suggestion_list'];
+					$unserializedArray = unserialize($procedure_ids_serialized);
+					if (is_array($unserializedArray)) {
+						foreach ($unserializedArray as $key => $value) {
+							$value = (int)$value; // ensure it's safe
+							$sql_procedure = "SELECT * FROM `hms_procedures` WHERE ID = $value";
+							$select_procedure_result = run_select_query($sql_procedure);
 
-						if (!empty($select_procedure_result) && isset($select_procedure_result['procedure_name'])) {
-							$procedure_name[] = $select_procedure_result['procedure_name'];
-						}
-					}
-				}
-				
-				$male_medicine_ids_serialized = $consultation_post['male_medicine_suggestion_list'];
-				$unserializedArray = unserialize($male_medicine_ids_serialized);
-				
-				$item_name = [];
-
-				foreach ($unserializedArray as $valueGroup) {
-					foreach ($valueGroup as $value) {
-						if (!empty($value['male_medicine_name']) && is_numeric($value['male_medicine_name'])) {
-							$item_number = (int)$value['male_medicine_name'];
-
-							$sql_medicine = "SELECT * FROM hms_stocks WHERE item_number = $item_number";
-							$select_medicine_result = run_select_query($sql_medicine);
-
-							if (!empty($select_medicine_result) && isset($select_medicine_result['item_name'])) {
-								$item_name[] = $select_medicine_result['item_name'];
+							if (!empty($select_procedure_result) && isset($select_procedure_result['procedure_name'])) {
+								$procedure_name[] = $select_procedure_result['procedure_name'];
 							}
 						}
 					}
 				}
 				
-				$female_medicine_ids_serialized = $consultation_post['female_medicine_suggestion_list'];
-				$unserializedArray = unserialize($female_medicine_ids_serialized);
+				$item_name = [];
+				if(isset($consultation_post['male_medicine_suggestion_list']) && !empty($consultation_post['male_medicine_suggestion_list'])){
+					$male_medicine_ids_serialized = $consultation_post['male_medicine_suggestion_list'];
+					$unserializedArray = unserialize($male_medicine_ids_serialized);
+					if (is_array($unserializedArray)) {
+						foreach ($unserializedArray as $valueGroup) {
+							if(is_array($valueGroup)){
+								foreach ($valueGroup as $value) {
+									if (!empty($value['male_medicine_name']) && is_numeric($value['male_medicine_name'])) {
+										$item_number = (int)$value['male_medicine_name'];
+
+										$sql_medicine = "SELECT * FROM hms_stocks WHERE item_number = $item_number";
+										$select_medicine_result = run_select_query($sql_medicine);
+
+										if (!empty($select_medicine_result) && isset($select_medicine_result['item_name'])) {
+											$item_name[] = $select_medicine_result['item_name'];
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 				
 				$item_name_female = [];
+				if(isset($consultation_post['female_medicine_suggestion_list']) && !empty($consultation_post['female_medicine_suggestion_list'])){
+					$female_medicine_ids_serialized = $consultation_post['female_medicine_suggestion_list'];
+					$unserializedArray = unserialize($female_medicine_ids_serialized);
+					if (is_array($unserializedArray)) {
+						foreach ($unserializedArray as $valueGroup) {
+							if(is_array($valueGroup)){
+								foreach ($valueGroup as $value) {
+									if (!empty($value['female_medicine_name']) && is_numeric($value['female_medicine_name'])) {
+										$item_number = (int)$value['female_medicine_name'];
 
-				foreach ($unserializedArray as $valueGroup) {
-					foreach ($valueGroup as $value) {
-						if (!empty($value['female_medicine_name']) && is_numeric($value['female_medicine_name'])) {
-							$item_number = (int)$value['female_medicine_name'];
+										$sql_medicine = "SELECT * FROM hms_stocks WHERE item_number = $item_number";
+										$select_femedicine_result = run_select_query($sql_medicine);
 
-							$sql_medicine = "SELECT * FROM hms_stocks WHERE item_number = $item_number";
-							$select_femedicine_result = run_select_query($sql_medicine);
-
-							if (!empty($select_femedicine_result) && isset($select_femedicine_result['item_name'])) {
-								$item_name_female[] = $select_femedicine_result['item_name'];
+										if (!empty($select_femedicine_result) && isset($select_femedicine_result['item_name'])) {
+											$item_name_female[] = $select_femedicine_result['item_name'];
+										}
+									}
+								}
 							}
 						}
 					}
@@ -1944,7 +1971,7 @@ class Doctors extends CI_Controller {
 
 					curl_close($curl);
 				
-				$patient_medical_info['doctor_id'] = $_POST['doctor_id'];
+				$patient_medical_info['doctor_id'] = isset($_POST['doctor_id']) ? $_POST['doctor_id'] : (isset($logg['doctor_id']) ? $logg['doctor_id'] : '');
 				if($consultation_done > 0){
 					if(isset($_POST['management_intervention'])){
 						$_POST['management_intervention'] = serialize($_POST['management_intervention']);
@@ -2032,9 +2059,6 @@ class Doctors extends CI_Controller {
 			}
 					
 					$patient_medical_info = $this->doctors_model->patient_medical_info($_POST, $doctor_id);
-					
-					
-					
 					$appointment_status = $this->appointment_model->appointment_status('consultation_done', $consultation_post['appointment_id']);
 					
 					header("location:" .base_url().$redirect_url."?m=".base64_encode('Consultation done!').'&t='.base64_encode('success'));
@@ -2061,6 +2085,320 @@ class Doctors extends CI_Controller {
 		}else{
 			header("location:" .base_url(). "");
 			die();
+		}
+	}
+	
+	// AJAX endpoint for live saving patient medical info and doctor consultation
+	public function save_patient_medical_info_live() {
+		$logg = checklogin();
+		if($logg['status'] == true){
+			header('Content-Type: application/json');
+			
+			if(isset($_POST['appointment_id']) && isset($_POST['patient_id'])){
+				// Fields that belong to doctor_consultation table (using EXACT column names from table)
+				$consultation_fields = array(
+					'appointment_id',
+					'patient_id',
+					'wife_phone',
+					'doctor_id',              // Column name in doctor_consultation table
+					'center_number',          // Column name in doctor_consultation table
+					'urosurgeon_findings',
+					'female_findings',        // Column name in doctor_consultation table
+					'male_findings',          // Column name in doctor_consultation table
+					'follow_up',
+					'follow_up_date',
+					'follow_slot',
+					'follow_up_purpose',
+					'medicine_suggestion',
+					'medicine_suggestion_ipd',
+					'investigation_suggestion',  // Form field name (will be mapped to investation_suggestion)
+					'investation_suggestion',    // Database column name in doctor_consultation
+					'procedure_suggestion',
+					'package_suggestion',
+					'prescription',
+					'consultation_date',
+					'edit_mode',
+					'final_mode',
+					'disapproval_reason',
+					'male_medicine_suggestion_list',
+					'female_medicine_suggestion_list',
+					'male_medicine_suggestion_list_ipd',
+					'female_medicine_suggestion_list_ipd',
+					'male_investigation_suggestion_list',
+					'female_investigation_suggestion_list',
+					'male_minvestigation_suggestion_list',
+					'female_minvestigation_suggestion_list',
+					'sub_procedure_suggestion_list',
+					'package_suggestion_list'
+				);
+				
+				// Fields to exclude completely (form-only fields)
+				$exclude_fields = array(
+					'action', 
+					'submit_type',
+					'save_live',
+					'appoitment_for',
+					'appoitmented_doctor',
+					'appoitmented_slot'
+				);
+				
+				// Process medicine fields if medicine_suggestion is set
+				// Only process if the fields are not already serialized
+				if(isset($_POST['medicine_suggestion']) && !isset($_POST['male_medicine_suggestion_list']) && !isset($_POST['female_medicine_suggestion_list'])){
+					$male_med_array = $female_med_array = array();
+					foreach($_POST as $key => $val){
+						if (substr( $key, 0, 19 ) === "male_medicine_name_") {
+							$male_med_array[] = $key;
+						}
+						if (substr( $key, 0, 21 ) === "female_medicine_name_") {
+							$female_med_array[] = $key;
+						}
+					}
+					$male_med_number = $female_med_number = array();
+					foreach($male_med_array as $key => $val){
+						$explode = explode('male_medicine_name_', $val);
+						$male_med_number[] = $explode[1];
+					}
+					foreach($female_med_array as $key => $val){
+						$explode = explode('female_medicine_name_', $val);
+						$female_med_number[] = $explode[1];
+					}
+					$male_med_number = array_unique($male_med_number);
+					$female_med_number = array_unique($female_med_number);
+					
+					$male_medicine_suggestion_list = $female_medicine_suggestion_list = array();
+					
+					foreach($male_med_number as $key => $val){
+						$male_medicine_suggestion_list['male_medicine_suggestion_list'][] = array(
+							 'male_medicine_name' => isset($_POST['male_medicine_name_'.$val]) ? $_POST['male_medicine_name_'.$val] : '',
+							 'male_medicine_dosage' => isset($_POST['male_medicine_dosage_'.$val]) ? $_POST['male_medicine_dosage_'.$val] : '',
+							 'male_medicine_when_start' => isset($_POST['male_medicine_when_start_'.$val]) ? $_POST['male_medicine_when_start_'.$val] : '',
+							 'male_medicine_days' => isset($_POST['male_medicine_days_'.$val]) ? $_POST['male_medicine_days_'.$val] : '',
+							 'male_medicine_route' => isset($_POST['male_medicine_route_'.$val]) ? $_POST['male_medicine_route_'.$val] : '',
+							 'male_medicine_frequency' => isset($_POST['male_medicine_frequency_'.$val]) ? $_POST['male_medicine_frequency_'.$val] : '',
+							 'male_medicine_timing' => isset($_POST['male_medicine_timing_'.$val]) ? $_POST['male_medicine_timing_'.$val] : '',
+							 'male_medicine_take' => isset($_POST['male_medicine_take_'.$val]) ? $_POST['male_medicine_take_'.$val] : '',
+							 'male_medicine_remarks' => isset($_POST['male_medicine_remarks_'.$val]) ? $_POST['male_medicine_remarks_'.$val] : ''
+						);
+					}
+					if(!empty($male_medicine_suggestion_list)){
+						$male_medicine_suggestion_list = serialize($male_medicine_suggestion_list);
+						$_POST['male_medicine_suggestion_list'] = $male_medicine_suggestion_list;
+					}
+					
+					foreach($female_med_number as $key => $val){
+						$female_medicine_suggestion_list['female_medicine_suggestion_list'][] = array(
+							 'female_medicine_name' => isset($_POST['female_medicine_name_'.$val]) ? $_POST['female_medicine_name_'.$val] : '',
+							 'female_medicine_dosage' => isset($_POST['female_medicine_dosage_'.$val]) ? $_POST['female_medicine_dosage_'.$val] : '',
+							 'female_medicine_when_start' => isset($_POST['female_medicine_when_start_'.$val]) ? $_POST['female_medicine_when_start_'.$val] : '',
+							 'female_medicine_days' => isset($_POST['female_medicine_days_'.$val]) ? $_POST['female_medicine_days_'.$val] : '',
+							 'female_medicine_route' => isset($_POST['female_medicine_route_'.$val]) ? $_POST['female_medicine_route_'.$val] : '',
+							 'female_medicine_frequency' => isset($_POST['female_medicine_frequency_'.$val]) ? $_POST['female_medicine_frequency_'.$val] : '',
+							 'female_medicine_timing' => isset($_POST['female_medicine_timing_'.$val]) ? $_POST['female_medicine_timing_'.$val] : '',
+							 'female_medicine_take' => isset($_POST['female_medicine_take_'.$val]) ? $_POST['female_medicine_take_'.$val] : '',
+							 'female_medicine_remarks' => isset($_POST['female_medicine_remarks_'.$val]) ? $_POST['female_medicine_remarks_'.$val] : ''
+						);
+					}
+					if(!empty($female_medicine_suggestion_list)){
+						$female_medicine_suggestion_list = serialize($female_medicine_suggestion_list);
+						$_POST['female_medicine_suggestion_list'] = $female_medicine_suggestion_list;
+					}
+				}
+				
+				// Process IPD medicine fields if medicine_suggestion_ipd is set
+				// Only process if the fields are not already serialized
+				if(isset($_POST['medicine_suggestion_ipd']) && !isset($_POST['male_medicine_suggestion_list_ipd']) && !isset($_POST['female_medicine_suggestion_list_ipd'])){
+					$male_med_array_ipd = $female_med_array_ipd = array();
+					foreach($_POST as $key => $val){
+						if (substr( $key, 0, 23 ) === "male_medicine_name_ipd_") {
+							$male_med_array_ipd[] = $key;
+						}
+						if (substr( $key, 0, 25 ) === "female_medicine_name_ipd_") {
+							$female_med_array_ipd[] = $key;
+						}
+					}
+					$male_med_number_ipd = $female_med_number_ipd = array();
+					foreach($male_med_array_ipd as $key => $val){
+						$explode = explode('male_medicine_name_ipd_', $val);
+						$male_med_number_ipd[] = $explode[1];
+					}
+					foreach($female_med_array_ipd as $key => $val){
+						$explode = explode('female_medicine_name_ipd_', $val);
+						$female_med_number_ipd[] = $explode[1];
+					}
+					$male_med_number_ipd = array_unique($male_med_number_ipd);
+					$female_med_number_ipd = array_unique($female_med_number_ipd);
+					
+					$male_medicine_suggestion_list_ipd = $female_medicine_suggestion_list_ipd = array();
+					
+					foreach($male_med_number_ipd as $key => $val){
+						$male_medicine_suggestion_list_ipd[] = array(
+							 'male_medicine_name' => isset($_POST['male_medicine_name_ipd_'.$val]) ? $_POST['male_medicine_name_ipd_'.$val] : '',
+							 'male_medicine_dosage' => isset($_POST['male_medicine_dosage_ipd_'.$val]) ? $_POST['male_medicine_dosage_ipd_'.$val] : '',
+							 'male_medicine_when_start' => isset($_POST['male_medicine_when_start_ipd_'.$val]) ? $_POST['male_medicine_when_start_ipd_'.$val] : '',
+							 'male_medicine_days' => isset($_POST['male_medicine_days_ipd_'.$val]) ? $_POST['male_medicine_days_ipd_'.$val] : '',
+							 'male_medicine_route' => isset($_POST['male_medicine_route_ipd_'.$val]) ? $_POST['male_medicine_route_ipd_'.$val] : '',
+							 'male_medicine_frequency' => isset($_POST['male_medicine_frequency_ipd_'.$val]) ? $_POST['male_medicine_frequency_ipd_'.$val] : '',
+							 'male_medicine_timing' => isset($_POST['male_medicine_timing_ipd_'.$val]) ? $_POST['male_medicine_timing_ipd_'.$val] : '',
+							 'male_medicine_take' => isset($_POST['male_medicine_take_ipd_'.$val]) ? $_POST['male_medicine_take_ipd_'.$val] : '',
+							 'male_medicine_remarks' => isset($_POST['male_medicine_remarks_ipd_'.$val]) ? $_POST['male_medicine_remarks_ipd_'.$val] : ''
+						);
+					}
+					if(!empty($male_medicine_suggestion_list_ipd)){
+						$male_medicine_suggestion_list_ipd = serialize($male_medicine_suggestion_list_ipd);
+						$_POST['male_medicine_suggestion_list_ipd'] = $male_medicine_suggestion_list_ipd;
+					}
+					
+					foreach($female_med_number_ipd as $key => $val){
+						$female_medicine_suggestion_list_ipd[] = array(
+							 'female_medicine_name' => isset($_POST['female_medicine_name_ipd_'.$val]) ? $_POST['female_medicine_name_ipd_'.$val] : '',
+							 'female_medicine_dosage' => isset($_POST['female_medicine_dosage_ipd_'.$val]) ? $_POST['female_medicine_dosage_ipd_'.$val] : '',
+							 'female_medicine_when_start' => isset($_POST['female_medicine_when_start_ipd_'.$val]) ? $_POST['female_medicine_when_start_ipd_'.$val] : '',
+							 'female_medicine_days' => isset($_POST['female_medicine_days_ipd_'.$val]) ? $_POST['female_medicine_days_ipd_'.$val] : '',
+							 'female_medicine_route' => isset($_POST['female_medicine_route_ipd_'.$val]) ? $_POST['female_medicine_route_ipd_'.$val] : '',
+							 'female_medicine_frequency' => isset($_POST['female_medicine_frequency_ipd_'.$val]) ? $_POST['female_medicine_frequency_ipd_'.$val] : '',
+							 'female_medicine_timing' => isset($_POST['female_medicine_timing_ipd_'.$val]) ? $_POST['female_medicine_timing_ipd_'.$val] : '',
+							 'female_medicine_take' => isset($_POST['female_medicine_take_ipd_'.$val]) ? $_POST['female_medicine_take_ipd_'.$val] : '',
+							 'female_medicine_remarks' => isset($_POST['female_medicine_remarks_ipd_'.$val]) ? $_POST['female_medicine_remarks_ipd_'.$val] : ''
+						);
+					}
+					if(!empty($female_medicine_suggestion_list_ipd)){
+						$female_medicine_suggestion_list_ipd = serialize($female_medicine_suggestion_list_ipd);
+						$_POST['female_medicine_suggestion_list_ipd'] = $female_medicine_suggestion_list_ipd;
+					}
+				}
+				
+				// Prepare data for doctor_consultation table
+				$consultation_data = array();
+				foreach($consultation_fields as $field) {
+					// Skip investigation_suggestion as we'll map it separately
+					if($field == 'investigation_suggestion') {
+						continue;
+					}
+					// Check if field exists in POST (use array_key_exists to catch empty strings and '0' values)
+					// Radio buttons send values when checked, so we need to capture them even if empty string
+					if(array_key_exists($field, $_POST) && !in_array($field, $exclude_fields)) {
+						$consultation_data[$field] = $_POST[$field];
+					}
+				}
+				
+				// Map investigation_suggestion to investation_suggestion (database column name)
+				if(isset($_POST['investigation_suggestion'])) {
+					$consultation_data['investation_suggestion'] = $_POST['investigation_suggestion'];
+				}
+				
+				// Add required fields for consultation (using EXACT column names)
+				if(!isset($consultation_data['doctor_id'])) {
+					$consultation_data['doctor_id'] = isset($_POST['doctor_id']) ? $_POST['doctor_id'] : (isset($logg['doctor_id']) ? $logg['doctor_id'] : '');
+				}
+				$consultation_data['appointment_id'] = $_POST['appointment_id'];
+				$consultation_data['patient_id'] = $_POST['patient_id'];
+				if(isset($_POST['wife_phone'])) {
+					$consultation_data['wife_phone'] = $_POST['wife_phone'];
+				}
+				
+				// Add center_number if present (column exists in doctor_consultation table)
+				if(isset($_POST['center_number']) && !isset($consultation_data['center_number'])) {
+					$consultation_data['center_number'] = $_POST['center_number'];
+				}
+				
+				// Add female_findings and male_findings if present (columns exist in doctor_consultation table)
+				if(isset($_POST['female_findings']) && !isset($consultation_data['female_findings'])) {
+					$consultation_data['female_findings'] = $_POST['female_findings'];
+				}
+				if(isset($_POST['male_findings']) && !isset($consultation_data['male_findings'])) {
+					$consultation_data['male_findings'] = $_POST['male_findings'];
+				}
+				
+				// Map appoitmented_slot to follow_slot if needed
+				if(isset($_POST['appoitmented_slot']) && !isset($consultation_data['follow_slot'])) {
+					$consultation_data['follow_slot'] = $_POST['appoitmented_slot'];
+				}
+				
+				// Set consultation_date if not set
+				if(!isset($consultation_data['consultation_date'])) {
+					$consultation_data['consultation_date'] = date("Y-m-d H:i:s");
+				}
+				
+				// Prepare data for patient_medical_info table (all other fields)
+				// Exclude fields that belong to doctor_consultation table
+				$medical_exclude_fields = array_merge($consultation_fields, $exclude_fields, array('investigation_suggestion', 'doctor_id'));
+				$medical_data = array();
+				foreach($_POST as $key => $value) {
+					// Exclude dynamic medicine fields (these are form-only fields that get processed into serialized lists)
+					// These fields should not be saved directly to patient_medical_info table
+					$is_medicine_field = false;
+					// Check if field name starts with any medicine field pattern (using strpos for better matching)
+					// This catches all variations including numbered fields like female_medicine_frequency_1, female_medicine_frequency_ipd_1, etc.
+					if (strpos($key, "male_medicine_name_") === 0 || 
+						strpos($key, "female_medicine_name_") === 0 ||
+						strpos($key, "male_medicine_name_ipd_") === 0 ||
+						strpos($key, "female_medicine_name_ipd_") === 0 ||
+						strpos($key, "male_medicine_dosage") === 0 ||
+						strpos($key, "female_medicine_dosage") === 0 ||
+						strpos($key, "male_medicine_dosage_ipd") === 0 ||
+						strpos($key, "female_medicine_dosage_ipd") === 0 ||
+						strpos($key, "male_medicine_when_start") === 0 ||
+						strpos($key, "female_medicine_when_start") === 0 ||
+						strpos($key, "male_medicine_when_start_ipd") === 0 ||
+						strpos($key, "female_medicine_when_start_ipd") === 0 ||
+						strpos($key, "male_medicine_days") === 0 ||
+						strpos($key, "female_medicine_days") === 0 ||
+						strpos($key, "male_medicine_days_ipd") === 0 ||
+						strpos($key, "female_medicine_days_ipd") === 0 ||
+						strpos($key, "male_medicine_route") === 0 ||
+						strpos($key, "female_medicine_route") === 0 ||
+						strpos($key, "male_medicine_route_ipd") === 0 ||
+						strpos($key, "female_medicine_route_ipd") === 0 ||
+						strpos($key, "male_medicine_frequency") === 0 ||
+						strpos($key, "female_medicine_frequency") === 0 ||
+						strpos($key, "male_medicine_timing") === 0 ||
+						strpos($key, "female_medicine_timing") === 0 ||
+						strpos($key, "male_medicine_timing_ipd") === 0 ||
+						strpos($key, "female_medicine_timing_ipd") === 0 ||
+						strpos($key, "male_medicine_take") === 0 ||
+						strpos($key, "female_medicine_take") === 0 ||
+						strpos($key, "male_medicine_take_ipd") === 0 ||
+						strpos($key, "female_medicine_take_ipd") === 0 ||
+						strpos($key, "male_medicine_remarks") === 0 ||
+						strpos($key, "female_medicine_remarks") === 0 ||
+						strpos($key, "male_medicine_remarks_ipd") === 0 ||
+						strpos($key, "female_medicine_remarks_ipd") === 0) {
+						$is_medicine_field = true;
+					}
+					if(!in_array($key, $medical_exclude_fields) && !$is_medicine_field) {
+						$medical_data[$key] = is_string($value) ? trim($value) : $value;
+					}
+				}
+				$medical_data['appointment_id'] = $_POST['appointment_id'];
+				$medical_data['patient_id'] = $_POST['patient_id'];
+				$medical_data['center'] = $_POST['center'];
+				if(!isset($medical_data['doctor'])) {
+					$medical_data['doctor'] = isset($_POST['doctor_id']) ? $_POST['doctor_id'] : (isset($logg['doctor_id']) ? $logg['doctor_id'] : '');
+				}
+				unset($medical_data['doctor_id']);
+				if(isset($_POST['center_number']) && !isset($medical_data['center_number'])) {
+					$medical_data['center_number'] = $_POST['center_number'];
+				}
+				$consultation_result = 0;
+				$medical_result = 0;
+				if(!empty($consultation_data)) {
+					$consultation_result = $this->doctors_model->consultation_done($consultation_data);
+				}
+				if(!empty($medical_data)) {
+					$medical_result = $this->doctors_model->patient_medical_info($medical_data);
+				}
+				
+				if($consultation_result > 0 || $medical_result > 0){
+					echo json_encode(array('status' => 'success', 'message' => 'Data saved successfully', 'consultation' => $consultation_result, 'medical' => $medical_result));
+				} else {
+					echo json_encode(array('status' => 'error', 'message' => 'Failed to save data'));
+				}
+			} else {
+				echo json_encode(array('status' => 'error', 'message' => 'Missing required fields'));
+			}
+		} else {
+			echo json_encode(array('status' => 'error', 'message' => 'Unauthorized'));
 		}
 	}
 
@@ -2142,49 +2480,49 @@ class Doctors extends CI_Controller {
 					
 					foreach($male_med_number as $key => $val){
 						$male_medicine_suggestion_list['male_medicine_suggestion_list'][] = array(
-							 'male_medicine_name' => $_POST['male_medicine_name_'.$val],
-							 'male_medicine_dosage' => $_POST['male_medicine_dosage_'.$val],
-							 'male_medicine_remarks' => $_POST['male_medicine_remarks_'.$val],
-							 'male_medicine_when_start' => $_POST['male_medicine_when_start_'.$val],
-							 'male_medicine_days' => $_POST['male_medicine_days_'.$val],
-							 'male_medicine_route' => $_POST['male_medicine_route_'.$val],
-							 'male_medicine_frequency' => $_POST['male_medicine_frequency_'.$val],
-							 'male_medicine_timing' => $_POST['male_medicine_timing_'.$val],
-							 'male_medicine_take' => $_POST['male_medicine_take_'.$val]
+							 'male_medicine_name' => isset($_POST['male_medicine_name_'.$val]) ? $_POST['male_medicine_name_'.$val] : '',
+							 'male_medicine_dosage' => isset($_POST['male_medicine_dosage_'.$val]) ? $_POST['male_medicine_dosage_'.$val] : '',
+							 'male_medicine_remarks' => isset($_POST['male_medicine_remarks_'.$val]) ? $_POST['male_medicine_remarks_'.$val] : '',
+							 'male_medicine_when_start' => isset($_POST['male_medicine_when_start_'.$val]) ? $_POST['male_medicine_when_start_'.$val] : '',
+							 'male_medicine_days' => isset($_POST['male_medicine_days_'.$val]) ? $_POST['male_medicine_days_'.$val] : '',
+							 'male_medicine_route' => isset($_POST['male_medicine_route_'.$val]) ? $_POST['male_medicine_route_'.$val] : '',
+							 'male_medicine_frequency' => isset($_POST['male_medicine_frequency_'.$val]) ? $_POST['male_medicine_frequency_'.$val] : '',
+							 'male_medicine_timing' => isset($_POST['male_medicine_timing_'.$val]) ? $_POST['male_medicine_timing_'.$val] : '',
+							 'male_medicine_take' => isset($_POST['male_medicine_take_'.$val]) ? $_POST['male_medicine_take_'.$val] : ''
 							);
-						unset($_POST['male_medicine_name_'.$val]);
-						unset($_POST['male_medicine_dosage_'.$val]);
-						unset($_POST['male_medicine_remarks_'.$val]);
-						unset($_POST['male_medicine_when_start_'.$val]);
-						unset($_POST['male_medicine_days_'.$val]);
-						unset($_POST['male_medicine_route_'.$val]);
-						unset($_POST['male_medicine_frequency_'.$val]);
-						unset($_POST['male_medicine_timing_'.$val]);
-						unset($_POST['male_medicine_take_'.$val]);
+						if(isset($_POST['male_medicine_name_'.$val])) unset($_POST['male_medicine_name_'.$val]);
+						if(isset($_POST['male_medicine_dosage_'.$val])) unset($_POST['male_medicine_dosage_'.$val]);
+						if(isset($_POST['male_medicine_remarks_'.$val])) unset($_POST['male_medicine_remarks_'.$val]);
+						if(isset($_POST['male_medicine_when_start_'.$val])) unset($_POST['male_medicine_when_start_'.$val]);
+						if(isset($_POST['male_medicine_days_'.$val])) unset($_POST['male_medicine_days_'.$val]);
+						if(isset($_POST['male_medicine_route_'.$val])) unset($_POST['male_medicine_route_'.$val]);
+						if(isset($_POST['male_medicine_frequency_'.$val])) unset($_POST['male_medicine_frequency_'.$val]);
+						if(isset($_POST['male_medicine_timing_'.$val])) unset($_POST['male_medicine_timing_'.$val]);
+						if(isset($_POST['male_medicine_take_'.$val])) unset($_POST['male_medicine_take_'.$val]);
 					}
 					$male_medicine_suggestion_list = serialize($male_medicine_suggestion_list);
 					$_POST['male_medicine_suggestion_list'] = $male_medicine_suggestion_list;
 					foreach($female_med_number as $key => $val){
 						$female_medicine_suggestion_list['female_medicine_suggestion_list'][] = array(
-							 'female_medicine_name' => $_POST['female_medicine_name_'.$val],
-							 'female_medicine_dosage' => $_POST['female_medicine_dosage_'.$val],
-							 'female_medicine_remarks' => $_POST['female_medicine_remarks_'.$val],
-							 'female_medicine_when_start' => $_POST['female_medicine_when_start_'.$val],
-							 'female_medicine_days' => $_POST['female_medicine_days_'.$val],
-							 'female_medicine_route' => $_POST['female_medicine_route_'.$val],
-							 'female_medicine_frequency' => $_POST['female_medicine_frequency_'.$val],
-							 'female_medicine_timing' => $_POST['female_medicine_timing_'.$val],
-							 'female_medicine_take' => $_POST['female_medicine_take_'.$val]
+							 'female_medicine_name' => isset($_POST['female_medicine_name_'.$val]) ? $_POST['female_medicine_name_'.$val] : '',
+							 'female_medicine_dosage' => isset($_POST['female_medicine_dosage_'.$val]) ? $_POST['female_medicine_dosage_'.$val] : '',
+							 'female_medicine_remarks' => isset($_POST['female_medicine_remarks_'.$val]) ? $_POST['female_medicine_remarks_'.$val] : '',
+							 'female_medicine_when_start' => isset($_POST['female_medicine_when_start_'.$val]) ? $_POST['female_medicine_when_start_'.$val] : '',
+							 'female_medicine_days' => isset($_POST['female_medicine_days_'.$val]) ? $_POST['female_medicine_days_'.$val] : '',
+							 'female_medicine_route' => isset($_POST['female_medicine_route_'.$val]) ? $_POST['female_medicine_route_'.$val] : '',
+							 'female_medicine_frequency' => isset($_POST['female_medicine_frequency_'.$val]) ? $_POST['female_medicine_frequency_'.$val] : '',
+							 'female_medicine_timing' => isset($_POST['female_medicine_timing_'.$val]) ? $_POST['female_medicine_timing_'.$val] : '',
+							 'female_medicine_take' => isset($_POST['female_medicine_take_'.$val]) ? $_POST['female_medicine_take_'.$val] : ''
 						);
-						unset($_POST['female_medicine_name_'.$val]);
-						unset($_POST['female_medicine_dosage_'.$val]);
-						unset($_POST['female_medicine_remarks_'.$val]);
-						unset($_POST['female_medicine_when_start_'.$val]);
-						unset($_POST['female_medicine_days_'.$val]);
-						unset($_POST['female_medicine_route_'.$val]);
-						unset($_POST['female_medicine_frequency_'.$val]);
-						unset($_POST['female_medicine_timing_'.$val]);
-						unset($_POST['female_medicine_take_'.$val]);
+						if(isset($_POST['female_medicine_name_'.$val])) unset($_POST['female_medicine_name_'.$val]);
+						if(isset($_POST['female_medicine_dosage_'.$val])) unset($_POST['female_medicine_dosage_'.$val]);
+						if(isset($_POST['female_medicine_remarks_'.$val])) unset($_POST['female_medicine_remarks_'.$val]);
+						if(isset($_POST['female_medicine_when_start_'.$val])) unset($_POST['female_medicine_when_start_'.$val]);
+						if(isset($_POST['female_medicine_days_'.$val])) unset($_POST['female_medicine_days_'.$val]);
+						if(isset($_POST['female_medicine_route_'.$val])) unset($_POST['female_medicine_route_'.$val]);
+						if(isset($_POST['female_medicine_frequency_'.$val])) unset($_POST['female_medicine_frequency_'.$val]);
+						if(isset($_POST['female_medicine_timing_'.$val])) unset($_POST['female_medicine_timing_'.$val]);
+						if(isset($_POST['female_medicine_take_'.$val])) unset($_POST['female_medicine_take_'.$val]);
 					}
 					$female_medicine_suggestion_list = serialize($female_medicine_suggestion_list);
 					$_POST['female_medicine_suggestion_list'] = $female_medicine_suggestion_list;

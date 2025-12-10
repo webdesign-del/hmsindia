@@ -203,9 +203,39 @@ class Doctors_model extends CI_Model
 	
 
 	function consultation_done($data){
+		// Serialize arrays and objects before saving
+		$clean_data = array();
+		foreach ($data as $key => $value) {
+			if (is_array($value) || is_object($value)) {
+				$clean_data[$key] = serialize($value);
+			} else {
+				// Preserve empty strings and '0' values (important for radio buttons)
+				$clean_data[$key] = $value;
+			}
+		}
+		
+		// Check if record exists (by appointment_id and patient_id)
+		if (isset($clean_data['appointment_id']) && isset($clean_data['patient_id'])) {
+			$this->db->where('appointment_id', $clean_data['appointment_id']);
+			$this->db->where('patient_id', $clean_data['patient_id']);
+			$query = $this->db->get($this->config->item('db_prefix') . 'doctor_consultation');
+			
+			if ($query->num_rows() > 0) {
+				// Update existing record - use clean_data with serialized arrays
+				// This ensures all fields including radio button values are updated
+				$this->db->where('appointment_id', $clean_data['appointment_id']);
+				$this->db->where('patient_id', $clean_data['patient_id']);
+				$this->db->update($this->config->item('db_prefix') . 'doctor_consultation', $clean_data);
+				// Return affected rows (should be > 0 if update was successful)
+				// Even if no rows changed, return 1 to indicate success (data was already correct)
+				return $this->db->affected_rows() >= 0 ? ($this->db->affected_rows() > 0 ? $this->db->affected_rows() : 1) : 0;
+			}
+		}
+		
+		// Insert new record - use clean_data with serialized arrays
 		$sql = "INSERT INTO `" . $this->config->item('db_prefix') . "doctor_consultation` SET ";
 		$sqlArr = array();
-		foreach( $data as $key=> $value )
+		foreach( $clean_data as $key=> $value )
 		{
 			$sqlArr[] = " $key = '".addslashes($value)."'";
 		}		
@@ -274,14 +304,29 @@ class Doctors_model extends CI_Model
 	}
 */
 
-function patient_medical_info($data) {
+function patient_medical_info($data, $doctor_id = null) {
+    $clean_data = array();
     foreach ($data as $key => $value) {
         if (is_array($value) || is_object($value)) {
-            $data[$key] = json_encode($value);
+            $clean_data[$key] = serialize($value);
+        } else {
+            $clean_data[$key] = $value;
         }
     }
 
-    $this->db->insert($this->config->item('db_prefix') . 'patient_medical_info', $data);
+    // Check if record exists (by appointment_id and patient_id)
+    if (isset($clean_data['appointment_id']) && isset($clean_data['patient_id'])) {
+        $this->db->where('appointment_id', $clean_data['appointment_id']);
+        $this->db->where('patient_id', $clean_data['patient_id']);
+        $query = $this->db->get($this->config->item('db_prefix') . 'patient_medical_info');
+        if ($query->num_rows() > 0) {
+            $this->db->where('appointment_id', $clean_data['appointment_id']);
+            $this->db->where('patient_id', $clean_data['patient_id']);
+            $update_result = $this->db->update($this->config->item('db_prefix') . 'patient_medical_info', $clean_data);
+            return $this->db->affected_rows() >= 0 ? ($this->db->affected_rows() > 0 ? $this->db->affected_rows() : 1) : 0;
+        }
+    }
+    $this->db->insert($this->config->item('db_prefix') . 'patient_medical_info', $clean_data);
     return $this->db->insert_id();
 }
 

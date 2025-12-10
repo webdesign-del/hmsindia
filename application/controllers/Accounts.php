@@ -6271,6 +6271,17 @@ public function partial_procedure(){
 		}
 	}
 
+
+	public function get_center_name_by_number($center_number)
+	{
+		$this->db->select('center_name');
+		$this->db->from('hms_centers');
+		$this->db->where('center_number', $center_number);
+		$query = $this->db->get();
+		$result = $query->row_array();
+		return $result['center_name'];
+	}
+
 	public function save_purchase_order()
 	{
 		$logg = checklogin();
@@ -6278,49 +6289,48 @@ public function partial_procedure(){
 			$approved_by = $this->input->post('approved_by');
 			$approved_by_str = !empty($approved_by) ? implode(", ", $approved_by) : null;
 			$uploaded_file = null;
-			if (!empty($_FILES['po_supporting_documents']['name'])) {
-				// Use the configured upload path from config
-				$dest_path = $this->config->item('upload_path');
-				$config['upload_path']   = $dest_path . 'purchase_orders/';
-				$config['allowed_types'] = 'pdf|jpg|jpeg|png|webp|gif|bmp';
-				$config['max_size']      = 10240; // 10 MB
-				$config['file_ext_tolower'] = TRUE;
-				$config['remove_spaces'] = TRUE;
-				$config['overwrite']     = FALSE;
-				
-				// Log upload path for debugging
-				log_message('info', 'Upload path: ' . $config['upload_path']);
-				log_message('info', 'File info: ' . print_r($_FILES['po_supporting_documents'], true));
-				
-				// Create directory if it doesn't exist
-				if (!is_dir($config['upload_path'])) {
-					mkdir($config['upload_path'], 0777, true);
-					log_message('info', 'Created directory: ' . $config['upload_path']);
-				}
-				
-				$this->load->library('upload', $config);
-				
-				if (!$this->upload->do_upload('po_supporting_documents')) {
-					$error = $this->upload->display_errors('', '');
-					// Log the error for debugging
-					log_message('error', 'PO Supporting Documents upload failed: ' . $error . ' for file: ' . $_FILES['po_supporting_documents']['name']);
-					log_message('error', 'Upload path: ' . $config['upload_path']);
-					log_message('error', 'Directory exists: ' . (is_dir($config['upload_path']) ? 'Yes' : 'No'));
-					log_message('error', 'Directory writable: ' . (is_writable($config['upload_path']) ? 'Yes' : 'No'));
-					$this->session->set_flashdata('error', 'File upload failed: ' . $error);
-					redirect('accounts/purchase_order');
-					return;
-				}
-				
-				$upload_data  = $this->upload->data();
-				$uploaded_file = $upload_data['file_name'];
-				log_message('info', 'File uploaded successfully: ' . $uploaded_file);
+			$uploaded_files = $this->_handle_multiple_uploads('po_supporting_documents');
+			if ($uploaded_files['status'] == 'error') {
+				$this->session->set_flashdata('error', $uploaded_files['message']);
+				redirect('accounts/purchase_order'); 
+				return;
 			}
+			// if (!empty($_FILES['po_supporting_documents']['name'])) {
+			// 	// Use the configured upload path from config
+			// 	$dest_path = $this->config->item('upload_path');
+			// 	$config['upload_path']   = $dest_path . 'purchase_orders/';
+			// 	$config['allowed_types'] = 'pdf|jpg|jpeg|png|webp|gif|bmp';
+			// 	$config['max_size']      = 10240; // 10 MB
+			// 	$config['file_ext_tolower'] = TRUE;
+			// 	$config['remove_spaces'] = TRUE;
+			// 	$config['overwrite']     = FALSE;
+			// 	if (!is_dir($config['upload_path'])) {
+			// 		mkdir($config['upload_path'], 0777, true);
+			// 	}
+			// 	$this->load->library('upload', $config);
+			// 	if (!$this->upload->do_upload('po_supporting_documents')) {
+			// 		$error = $this->upload->display_errors('', '');
+			// 		$this->session->set_flashdata('error', 'File upload failed: ' . $error);
+			// 		redirect('accounts/purchase_order');
+			// 		return;
+			// 	}
+				
+			// 	$upload_data  = $this->upload->data();
+			// 	$uploaded_file = $upload_data['file_name'];
+			// }
 			$approval_token = bin2hex(random_bytes(16));
+			$created_by = null;
+			if (isset($_SESSION['logged_administrator'])) {
+				$created_by = $_SESSION['logged_administrator']['employee_number'];
+			} elseif (isset($_SESSION['logged_accountant'])) {
+				$created_by = $_SESSION['logged_accountant']['employee_number'];
+			} elseif (isset($_SESSION['logged_user'])) {
+				$created_by = $_SESSION['logged_user']['employee_number'];
+			}
 			$po_number = $this->Purchase_order_model->generate_po_number();
 			$data = [
 				'po_number'                          => $po_number,
-				'po_centre'                          => $this->input->post('po_centre'),
+				'po_centre'                          =>  $this->input->post('po_centre') ?? null,
 				'po_department'                      => $this->input->post('po_department'),
 				'po_nature_of_expenditure'           => $this->input->post('po_nature_of_expenditure'),
 				'po_budget_head'                     => $this->input->post('po_budget_head'),
@@ -6333,16 +6343,60 @@ public function partial_procedure(){
 				'po_other_charges_and_taxes'         => $this->input->post('po_other_charges_and_taxes'),
 				'po_po_total'                        => $this->input->post('po_po_total'),
 				'po_others_name'                     => $this->input->post('po_others_name'),
-				'po_supporting_documents'            => $uploaded_file, // save uploaded filename
-				'approval_token'                     => $approval_token, // Store the approval token
-				'created_by'                         => $this->session->userdata['logged_administrator']['employee_number'],
+				// 'po_supporting_documents'            => $uploaded_file,
+				'po_supporting_documents'            => json_encode($uploaded_files['filenames']),
+				'approval_token'                     => $approval_token,
+				'created_by'                         => $created_by,
 				'created_at'                         => date('Y-m-d H:i:s'),
-				'status'                             => '0'
+				'status'                             => '2',
 			];
 			$this->load->model('Purchase_order_model');
-			$inserted = $this->Purchase_order_model->insert_purchase_order($data);
-			
-			if ($inserted) {
+			$po_id = $this->Purchase_order_model->insert_purchase_order($data);
+			// --- 4. Save Line Items to 'hms_purchase_order_items' ---
+			$item_descriptions = $this->input->post('item_description');
+			$item_quantities   = $this->input->post('quantity');
+			$item_rates        = $this->input->post('rate');
+			$item_gst_rates    = $this->input->post('item_gst_rate');
+			$item_basic_totals = $this->input->post('item_basic_total');
+			$item_gst_amounts  = $this->input->post('item_gst_amount');
+
+			$items_batch_data = [];
+			if (!empty($item_descriptions) && !empty($item_quantities) && !empty($item_rates)) {
+				$item_count = count($item_descriptions);
+				for ($i = 0; $i < $item_count; $i++) {
+					// Check if required array elements exist before accessing them
+					if (isset($item_descriptions[$i]) && !empty($item_descriptions[$i]) && 
+						isset($item_quantities[$i]) && isset($item_rates[$i])) {
+						
+						// Get values with defaults
+						$quantity = isset($item_quantities[$i]) ? floatval($item_quantities[$i]) : 0;
+						$rate = isset($item_rates[$i]) ? floatval($item_rates[$i]) : 0;
+						$gst_rate = isset($item_gst_rates[$i]) ? floatval($item_gst_rates[$i]) : 0;
+						$basic_total = isset($item_basic_totals[$i]) ? floatval($item_basic_totals[$i]) : ($quantity * $rate);
+						$gst_amount = isset($item_gst_amounts[$i]) ? floatval($item_gst_amounts[$i]) : ($basic_total * ($gst_rate / 100));
+						
+						// Calculate total amount (basic + GST)
+						$total_amount = $basic_total + $gst_amount;
+						
+						$items_batch_data[] = [
+							'po_id'             => $po_id,
+							'item_description'  => $item_descriptions[$i],
+							'quantity'          => $quantity,
+							'rate'              => $rate,
+							'gst_rate'          => $gst_rate,
+							'gst_amount'        => $gst_amount,
+							'total_amount'      => $total_amount
+						];
+					}
+				}
+			}
+			if (!empty($items_batch_data) && $po_id) {
+				$insert_result = $this->Purchase_order_model->add_po_items($items_batch_data);
+				if (!$insert_result) {
+					log_message('error', 'Failed to insert PO items for PO ID: ' . $po_id);
+				}
+			}
+			if ($po_id) {
 				$email_sent_count = 0;
 				$total_approvers = count($approved_by);
 				$approver_tokens = [];
@@ -6359,10 +6413,8 @@ public function partial_procedure(){
 						$email_sent_count++;
 					}
 				}
-				
 				// Store all approver tokens as JSON in the purchase order
 				$this->Purchase_order_model->store_approver_tokens($po_number, $approver_tokens);
-				
 				if ($email_sent_count > 0) {
 					if ($email_sent_count == $total_approvers) {
 						$this->session->set_flashdata('success', "Purchase Order added successfully! Approval emails sent to all {$total_approvers} approver(s).");
@@ -6378,9 +6430,41 @@ public function partial_procedure(){
 			redirect('accounts/purchase-orders-list');
 		}
 	}
+	private function _handle_multiple_uploads($field_name)
+    {
+        $this->load->library('upload');
+        $uploaded_filenames = [];
+        if (empty($_FILES[$field_name]['name'][0])) {
+            return ['status' => 'success', 'filenames' => [], 'message' => 'No files uploaded.'];
+        }
+        $file_count = count($_FILES[$field_name]['name']);
+        for ($i = 0; $i < $file_count; $i++) {
+            $_FILES['userfile']['name']     = $_FILES[$field_name]['name'][$i];
+            $_FILES['userfile']['type']     = $_FILES[$field_name]['type'][$i];
+            $_FILES['userfile']['tmp_name'] = $_FILES[$field_name]['tmp_name'][$i];
+            $_FILES['userfile']['error']    = $_FILES[$field_name]['error'][$i];
+            $_FILES['userfile']['size']     = $_FILES[$field_name]['size'][$i];
+			$dest_path = $this->config->item('upload_path');
+			$config['upload_path']   = $dest_path . 'purchase_orders/';
+            // $config['upload_path']   = './uploads/po_documents/'; 
+            $config['allowed_types'] = 'pdf|jpg|jpeg|png|webp|gif|bmp';
+            $config['max_size']      = 10240;
+            $config['encrypt_name']  = TRUE; 
+            $this->upload->initialize($config);
+            if ($this->upload->do_upload('userfile')) {
+                $upload_data = $this->upload->data();
+                $uploaded_filenames[] = $upload_data['file_name'];
+            } else {
+                $error_message = 'Failed to upload file: ' . $_FILES['userfile']['name'] . '. Error: ' . $this->upload->display_errors('', '');
+                return ['status' => 'error', 'filenames' => $uploaded_filenames, 'message' => $error_message];
+            }
+        }
+        return ['status' => 'success', 'filenames' => $uploaded_filenames, 'message' => 'All files uploaded.'];
+    }
+
 	private function _send_po_email($approver_email, $po_number, $token, $data)
 	{
-		try {
+		// try {
 			$review_url = base_url("accounts/review_po/{$token}");
 			$message = "
 			<!DOCTYPE html>
@@ -6530,7 +6614,7 @@ public function partial_procedure(){
 								</div>
 								<div class='po-item'>
 									<div class='po-label'>Centre/Cluster/Region</div>
-									<div class='po-value'>{$data['po_centre']}</div>
+									<div class='po-value'>{$this->get_center_name_by_number($data['po_centre'])}</div>
 								</div>
 								<div class='po-item'>
 									<div class='po-label'>Department</div>
@@ -6576,7 +6660,7 @@ public function partial_procedure(){
 						<div class='action-section'>
 							<h3>Action Required</h3>
 							<p style='margin: 0 0 20px 0; color: #856404;'>Please review all details and make your approval decision</p>
-							<a href='{$review_url}' class='btn-review'>
+							<a href='{$review_url}' class='btn-review' style='color: white; text-decoration: none;' >
 							   Review Purchase Order Details
 							</a>
 						</div>
@@ -6603,10 +6687,10 @@ public function partial_procedure(){
 				return false;
 			}
 			return true;
-		} catch (Exception $e) {
-			log_message('error', 'PO Email Exception: ' . $e->getMessage());
-			return false;
-		}
+		// } catch (Exception $e) {
+		// 	log_message('error', 'PO Email Exception: ' . $e->getMessage());
+		// 	return false;
+		// }
 	}
 	/**
 	 * Send status update email to PO creator
@@ -6800,7 +6884,7 @@ public function partial_procedure(){
 								</div>
 								<div class='po-item'>
 									<div class='po-label'>Centre/Cluster/Region</div>
-									<div class='po-value'>{$po_data['po_centre']}</div>
+									<div class='po-value'>{$this->get_center_name_by_number($po_data['po_centre'])}</div>
 								</div>
 								<div class='po-item'>
 									<div class='po-label'>Department</div>
@@ -7118,7 +7202,7 @@ public function partial_procedure(){
                             </tr>
                             <tr>
                                 <td style='padding: 8px; border: 1px solid #dee2e6; font-weight: bold;'>Centre/Cluster/Region:</td>
-                                <td style='padding: 8px; border: 1px solid #dee2e6;'>{$po['po_centre']}</td>
+                                <td style='padding: 8px; border: 1px solid #dee2e6;'>{$this->get_center_name_by_number($po['po_centre'])}</td>
                             </tr>
                             <tr style='background-color: #f8f9fa;'>
                                 <td style='padding: 8px; border: 1px solid #dee2e6; font-weight: bold;'>Department:</td>
@@ -7393,7 +7477,7 @@ public function partial_procedure(){
                             </tr>
                             <tr>
                                 <td style='font-weight: bold;'>Centre/Cluster/Region:</td>
-                                <td>{$po['po_centre']}</td>
+                                <td>{$this->get_center_name_by_number($po['po_centre'])}</td>
                             </tr>
                             <tr style='background-color: #f8f9fa;'>
                                 <td style='font-weight: bold;'>Department:</td>
@@ -7534,6 +7618,15 @@ public function partial_procedure(){
 		$data["links"] = $this->pagination->create_links();
 		$data['purchase_order_result'] = $this->Purchase_order_model->purchase_order_pagination($config["per_page"], $per_page, $filters);
 		$data['filters'] = $filters; // send back to view
+		
+		// Check GRN status for each PO
+		$this->load->model('Grn_model');
+		$grn_status = [];
+		foreach ($data['purchase_order_result'] as $po) {
+			$grn_status[$po['po_number']] = $this->Grn_model->grn_exists_for_po($po['po_number']);
+		}
+		$data['grn_status'] = $grn_status;
+		
 		$template = get_header_template(checklogin()['role']);
 		$data['user_role'] =checklogin()['role'];
 		$this->load->view($template['header']);
@@ -7638,7 +7731,6 @@ public function partial_procedure(){
 		}
 		$uploaded_file = null;
 		if (!empty($_FILES['payment_proof']['name'])) {
-			// Use the configured upload path from config
 			$dest_path = $this->config->item('upload_path');
 			$config['upload_path']   = $dest_path . 'purchase_orders/';
 			$config['allowed_types'] = 'pdf|jpg|jpeg|png|webp|gif|bmp';
@@ -7646,30 +7738,21 @@ public function partial_procedure(){
 			$config['file_ext_tolower'] = TRUE;
 			$config['remove_spaces'] = TRUE;
 			$config['overwrite']     = FALSE;
-			
-			// Create directory if it doesn't exist
 			if (!is_dir($config['upload_path'])) {
 				mkdir($config['upload_path'], 0777, true);
 			}
-			
 			$this->load->library('upload', $config);
-			
 			if (!$this->upload->do_upload('payment_proof')) {
 				$error = $this->upload->display_errors('', '');
-				// Log the error for debugging
-				log_message('error', 'File upload failed: ' . $error . ' for file: ' . $_FILES['payment_proof']['name']);
 				$this->session->set_flashdata('error', 'File upload failed: ' . $error);
 				redirect('accounts/purchase-orders-list');
 				return;
 			}
-			
 			$upload_data   = $this->upload->data();
 			$uploaded_file = 'purchase_orders/' . $upload_data['file_name'];
 		}
-		// Calculate balance and payment status
 		$balance = $purchase_order['po_po_total'] - $amount_paid;
 		$payment_status = '';
-		
 		if ($balance < 0) {
 			$payment_status = 'overpaid';
 		} elseif ($balance == 0) {
@@ -7677,7 +7760,6 @@ public function partial_procedure(){
 		} else {
 			$payment_status = 'partial';
 		}
-		
 		$payment_data = [
 			'po_number'       => $po_number,
 			'user_id'         => $user_id,
@@ -7688,7 +7770,6 @@ public function partial_procedure(){
 		];
 		$this->Purchase_order_model->save_purchase_order_payment($payment_data);
 		$this->Purchase_order_model->update_purchase_order($po_number, $amount_paid);
-		// Create appropriate success message based on payment status
 		if ($balance < 0) {
 			$message = 'Payment saved successfully! Overpayment of &#8377;' . number_format(abs($balance), 2) . ' recorded as credit.';
 		} elseif ($balance == 0) {
@@ -7957,38 +8038,23 @@ public function partial_procedure(){
 		$data = array();
 		$data['user_stats'] = null;
 		$data['searched_user'] = '';
-		
-		// Get current user's email
 		$current_user_email = $this->_get_current_user_email();
-		
-		// Get filters from request
 		$filters = [
 			'status_filter' => $this->input->get('status_filter'),
 			'po_number' => $this->input->get('po_number')
 		];
 		$data['filters'] = $filters;
-		
-		// Get user email from search, or use current user if no search
 		$search_user = $this->input->get('user_email');
 		if (empty($search_user) && !empty($current_user_email)) {
 			$search_user = $current_user_email;
 		}
-		
 		if (!empty($search_user)) {
 			$this->load->model('Purchase_order_model');
 			$data['user_stats'] = $this->Purchase_order_model->get_user_approval_stats($search_user, $filters);
 			$data['searched_user'] = $search_user;
 		}
-		
-		// Get all users for dropdown
 		$data['all_users'] = $this->get_all_users();
-		
-		// Pass current user email to view
 		$data['current_user_email'] = $current_user_email;
-		
-		// Debug: Log the number of users found
-		log_message('info', 'Found ' . count($data['all_users']) . ' users for dropdown');
-		
 		$template = get_header_template($logg['role']);
 		$data['user_role'] = $logg['role'];
 		$this->load->view($template['header']);
@@ -8453,6 +8519,424 @@ private function get_patient_name($patient_id) {
     // Example: return $this->Your_model->get_patient_name_by_id($patient_id);
     return "Patient Name"; // Replace with actual implementation
 }*/
+    /**
+     * Handles the export of purchase orders to a CSV file.
+     * It uses the same filters as the purchase_order_list page.
+     */
+    public function export_purchase_orders()
+    {
+        // Check for login, permissions, etc. if necessary
+        // if (!checklogin()['status']) {
+        //     redirect('login');
+        // }
+
+        $this->load->model('Purchase_order_model');
+        $filters = [
+            'status'                   => $this->input->get('status'),
+            'start_date'               => $this->input->get('start_date'),
+            'end_date'                 => $this->input->get('end_date'),
+            'po_centre'                => $this->input->get('po_centre'),
+            'po_department'            => $this->input->get('po_department'),
+            'po_nature_of_expenditure' => $this->input->get('po_nature_of_expenditure'),
+            'approval_status'          => $this->input->get('approval_status'), // Kept for completeness
+        ];
+        $purchase_orders = $this->Purchase_order_model->get_all_purchase_orders($filters);
+        $filename = "purchase_orders_export_" . date('Y-m-d') . ".csv";
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $output = fopen('php://output', 'w');
+        $headers = [
+            'PO Number',
+            'Centre',
+            'Department',
+            'Nature Of Expenditure',
+            'Budget Head',
+            'Budget Item',
+            'Vendor',
+            'Basic Amount (Ex GST)',
+            'GST Amount',
+            'Other Charges & Taxes',
+            'PO Total (Inc GST)',
+            'Approval Status',
+            'Approvers',
+            'Final Status (Manual)'
+        ];
+        fputcsv($output, $headers);
+        if (!empty($purchase_orders)) {
+            foreach ($purchase_orders as $po) {
+                $approval_status_info = $this->_get_approval_status_summary($po['approver_tokens']);
+                $approvers_list = $this->_get_approvers_list($po['approver_tokens']);
+                $manual_status = $this->_get_manual_status_text($po['status']);
+
+                $row = [
+                    $po['po_number'],
+                    $po['po_centre'],
+                    $po['po_department'],
+                    $po['po_nature_of_expenditure'],
+                    $po['po_budget_head'],
+                    $po['po_budget_item'],
+                    $po['po_name_of_vendor'],
+                    $po['po_basic_amount'],
+                    $po['po_gst_amount'],
+                    $po['po_other_charges_and_taxes'],
+                    number_format($po['po_po_total'], 2),
+                    $approval_status_info, // e.g., "Approved (3/3)"
+                    $approvers_list,       // e.g., "user1@example.com (Approved), user2@example.com (Pending)"
+                    $manual_status         // e.g., "Approved"
+                ];
+                fputcsv($output, $row);
+            }
+        }
+        fclose($output);
+        exit;
+    }
+    private function _get_approval_status_summary($approver_tokens_json)
+    {
+        if (empty($approver_tokens_json)) {
+            return 'No Approvers';
+        }
+        $approvers = json_decode($approver_tokens_json, true);
+        if (empty($approvers)) {
+            return 'No Approvers';
+        }
+        $pending_count = 0;
+        $approved_count = 0;
+        $rejected_count = 0;
+        $total_approvers = count($approvers);
+        foreach ($approvers as $token_data) {
+            if ($token_data['status'] === 'pending') $pending_count++;
+            elseif ($token_data['status'] === 'approved') $approved_count++;
+            elseif ($token_data['status'] === 'rejected') $rejected_count++;
+        }
+
+        if ($rejected_count > 0) {
+            return 'Rejected (' . $rejected_count . ' of ' . $total_approvers . ')';
+        } elseif ($pending_count > 0) {
+            return 'Pending (' . $approved_count . '/' . $total_approvers . ' Approved)';
+        } else {
+            return 'All Approved (' . $total_approvers . '/' . $total_approvers . ')';
+        }
+    }
+    private function _get_approvers_list($approver_tokens_json)
+    {
+        if (empty($approver_tokens_json)) {
+            return 'N/A';
+        }
+        $approvers = json_decode($approver_tokens_json, true);
+        if (empty($approvers)) {
+            return 'N/A';
+        }
+        
+        $list = [];
+        foreach ($approvers as $token_data) {
+            $list[] = $token_data['email'] . ' (' . ucfirst($token_data['status']) . ')';
+        }
+        return implode('; ', $list);
+    }
+    private function _get_manual_status_text($status_code)
+    {
+        switch ($status_code) {
+            case '1': return 'Approved';
+            case '0': return 'Disapproved';
+            case '2': return 'Pending';
+            default: return 'Unknown';
+        }
+    }
+
+    // ==================== GRN (Goods Receipt Note) Methods ====================
+
+    /**
+     * Display GRN list page
+     */
+    public function grn_list()
+    {
+        $logg = checklogin();
+        if ($logg['status'] != true) {
+            header("location:" . base_url() . "");
+            die;
+        }
+
+        $this->load->model('Grn_model');
+        $filters = [
+            'grn_number' => $this->input->get('grn_number'),
+            'po_number' => $this->input->get('po_number'),
+            'vendor_name' => $this->input->get('vendor_name'),
+            'start_date' => $this->input->get('start_date'),
+            'end_date' => $this->input->get('end_date'),
+            'status' => $this->input->get('status'),
+        ];
+
+        $per_page = $this->input->get('per_page', true) ?: 0;
+        $config["base_url"] = base_url("accounts/grn-list");
+        $config["total_rows"] = $this->Grn_model->grn_count($filters);
+        $config["per_page"] = 20;
+        $config["page_query_string"] = true;
+        $this->pagination->initialize($config);
+        $data["links"] = $this->pagination->create_links();
+        $data['grn_result'] = $this->Grn_model->grn_pagination($config["per_page"], $per_page, $filters);
+        $data['filters'] = $filters;
+        $template = get_header_template(checklogin()['role']);
+        $data['user_role'] = checklogin()['role'];
+        $this->load->view($template['header']);
+        $this->load->view('accounts/grn_list', $data);
+        $this->load->view($template['footer']);
+    }
+
+    /**
+     * Display form to create GRN from Purchase Order
+     */
+    public function add_grn($po_number)
+    {
+        $logg = checklogin();
+        if ($logg['status'] != true) {
+            header("location:" . base_url() . "");
+            die;
+        }
+
+        $this->load->model('Purchase_order_model');
+        $this->load->model('Grn_model');
+
+        // Get purchase order details
+        $purchase_order = $this->Purchase_order_model->get_purchase_order_by_id($po_number);
+        if (!$purchase_order) {
+            $this->session->set_flashdata('error', 'Purchase Order not found!');
+            redirect('accounts/purchase-orders-list');
+            return;
+        }
+
+        // Check if PO is approved
+        $is_approved = false;
+        if (!empty($purchase_order['approver_tokens'])) {
+            $approver_tokens = json_decode($purchase_order['approver_tokens'], true);
+            if ($approver_tokens) {
+                $all_approved = true;
+                $any_rejected = false;
+                foreach ($approver_tokens as $token_data) {
+                    if ($token_data['status'] === 'pending') {
+                        $all_approved = false;
+                    } elseif ($token_data['status'] === 'rejected') {
+                        $any_rejected = true;
+                    }
+                }
+                $is_approved = $all_approved && !$any_rejected;
+            }
+        } else {
+            // Fallback: check status field
+            $is_approved = ($purchase_order['status'] == '1');
+        }
+
+        if (!$is_approved) {
+            $this->session->set_flashdata('error', 'GRN can only be created for approved Purchase Orders!');
+            redirect('accounts/purchase-orders-list');
+            return;
+        }
+
+        // Check if GRN already exists for this PO
+        if ($this->Grn_model->grn_exists_for_po($po_number)) {
+            $this->session->set_flashdata('warning', 'GRN already exists for this Purchase Order!');
+            redirect('accounts/grn-list');
+            return;
+        }
+
+        // Get PO items
+        $po_items = $this->Grn_model->get_po_items($po_number);
+
+        $data['purchase_order'] = $purchase_order;
+        $data['po_items'] = $po_items;
+        $data['grn_number'] = $this->Grn_model->generate_grn_number();
+
+        $template = get_header_template(checklogin()['role']);
+        $this->load->view($template['header']);
+        $this->load->view('accounts/add_grn', $data);
+        $this->load->view($template['footer']);
+    }
+
+    /**
+     * Save GRN
+     */
+    public function save_grn()
+    {
+        $logg = checklogin();
+        if ($logg['status'] != true) {
+            header("location:" . base_url() . "");
+            die;
+        }
+
+        $this->load->model('Grn_model');
+        $this->load->model('Purchase_order_model');
+
+        $po_number = $this->input->post('po_number');
+        $purchase_order = $this->Purchase_order_model->get_purchase_order_by_id($po_number);
+
+        if (!$purchase_order) {
+            $this->session->set_flashdata('error', 'Purchase Order not found!');
+            redirect('accounts/purchase-orders-list');
+            return;
+        }
+
+        // Get current user
+        $created_by = '';
+        $logg = checklogin();
+        if ($logg['status']) {
+            $role = $logg['role'];
+            $session_key = 'logged_' . $role;
+            if (isset($_SESSION[$session_key]['employee_number'])) {
+                $created_by = $_SESSION[$session_key]['employee_number'];
+            }
+        }
+
+        // Prepare GRN data
+        $grn_data = [
+            'grn_number' => $this->input->post('grn_number'),
+            'po_number' => $po_number,
+            'po_id' => $purchase_order['id'],
+            'grn_date' => $this->input->post('grn_date'),
+            'vendor_name' => $purchase_order['po_name_of_vendor'],
+            'centre' => $purchase_order['po_centre'],
+            'department' => $purchase_order['po_department'],
+            'received_by' => $this->input->post('received_by'),
+            'inspected_by' => $this->input->post('inspected_by'),
+            'remarks' => $this->input->post('remarks'),
+            'total_items' => $this->input->post('total_items'),
+            'total_quantity' => $this->input->post('total_quantity'),
+            'status' => '1', // Active
+            'created_by' => $created_by,
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+
+        // Insert GRN
+        $grn_inserted = $this->Grn_model->insert_grn($grn_data);
+        if (!$grn_inserted) {
+            $this->session->set_flashdata('error', 'Failed to save GRN. Please try again.');
+            redirect('accounts/purchase-orders-list');
+            return;
+        }
+
+        // Get the inserted GRN ID
+        $grn_id = $this->db->insert_id();
+
+        // Save GRN items
+        $item_descriptions = $this->input->post('item_description');
+        $item_quantities = $this->input->post('quantity');
+        $item_received_quantities = $this->input->post('received_quantity');
+        $item_rates = $this->input->post('rate');
+        $item_gst_rates = $this->input->post('gst_rate');
+        $item_basic_totals = $this->input->post('basic_total');
+        $item_gst_amounts = $this->input->post('gst_amount');
+        $item_conditions = $this->input->post('item_condition');
+
+        $items_batch_data = [];
+        if (!empty($item_descriptions)) {
+            for ($i = 0; $i < count($item_descriptions); $i++) {
+                if (!empty($item_descriptions[$i])) {
+                    $items_batch_data[] = [
+                        'grn_id' => $grn_id,
+                        'po_number' => $po_number,
+                        'item_description' => $item_descriptions[$i],
+                        'quantity' => $item_quantities[$i] ?? 0,
+                        'received_quantity' => $item_received_quantities[$i] ?? 0,
+                        'rate' => $item_rates[$i] ?? 0,
+                        'gst_rate' => $item_gst_rates[$i] ?? 0,
+                        'basic_total' => $item_basic_totals[$i] ?? 0,
+                        'gst_amount' => $item_gst_amounts[$i] ?? 0,
+                        'item_condition' => $item_conditions[$i] ?? 'Good',
+                    ];
+                }
+            }
+        }
+
+        if (!empty($items_batch_data)) {
+            $this->Grn_model->insert_grn_items($items_batch_data);
+        }
+
+        $this->session->set_flashdata('success', 'GRN created successfully!');
+        redirect('accounts/grn-list');
+    }
+
+    /**
+     * View GRN details
+     */
+    public function view_grn($grn_id)
+    {
+        $logg = checklogin();
+        if ($logg['status'] != true) {
+            header("location:" . base_url() . "");
+            die;
+        }
+
+        $this->load->model('Grn_model');
+        $grn = $this->Grn_model->get_grn_by_id($grn_id);
+        
+        if (!$grn) {
+            $this->session->set_flashdata('error', 'GRN not found!');
+            redirect('accounts/grn-list');
+            return;
+        }
+
+        $grn_items = $this->Grn_model->get_grn_items($grn_id);
+        $data['grn'] = $grn;
+        $data['grn_items'] = $grn_items;
+
+        $template = get_header_template(checklogin()['role']);
+        $this->load->view($template['header']);
+        $this->load->view('accounts/view_grn', $data);
+        $this->load->view($template['footer']);
+    }
+
+    /**
+     * Print Purchase Order
+     */
+    public function print_purchase_order($po_id)
+    {
+        $logg = checklogin();
+        if ($logg['status'] != true) {
+            header("location:" . base_url() . "");
+            die;
+        }
+
+        $this->load->model('Purchase_order_model');
+        $po = $this->Purchase_order_model->get_purchase_order_by_print($po_id);
+        
+        if (!$po) {
+            $this->session->set_flashdata('error', 'Purchase Order not found!');
+            redirect('accounts/purchase-orders-list');
+            return;
+        }
+
+        // Check if PO is approved (for printing)
+        $can_print = false;
+        if (!empty($po['approver_tokens'])) {
+            $approver_tokens = json_decode($po['approver_tokens'], true);
+            if ($approver_tokens) {
+                $all_approved = true;
+                $any_rejected = false;
+                foreach ($approver_tokens as $token_data) {
+                    if ($token_data['status'] === 'pending') {
+                        $all_approved = false;
+                    } elseif ($token_data['status'] === 'rejected') {
+                        $any_rejected = true;
+                    }
+                }
+                $can_print = $all_approved && !$any_rejected;
+            }
+        } else {
+            // Fallback: check status field
+            $can_print = ($po['status'] == '1');
+        }
+
+        if (!$can_print) {
+            $this->session->set_flashdata('error', 'Only approved Purchase Orders can be printed!');
+            redirect('accounts/purchase-orders-list');
+            return;
+        }
+
+        // Get purchase order items
+        $po_items = $this->Purchase_order_model->get_purchase_order_items_by_number($po['po_number']);
+        
+        $data['po'] = $po;
+        $data['po_items'] = $po_items;
+        $this->load->view('accounts/print_purchase_order_view', $data);
+    }
 
 	public function patient_final_billing() 
 	{

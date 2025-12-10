@@ -4,15 +4,20 @@ if (isset($select_result2) && is_array($select_result2) && isset($select_result2
 } else {
     $center_number = '';
 }
+
 $all_method =&get_instance();
 $consultation_data = $all_method->get_consultation($appointments['ID']);
 $patient_data = get_patient_detail($consultation_data['patient_id']);
+//var_dump($patient_data);die;
 $consultation_data['patient_id'] = get_patient_by_number($patient_data['wife_phone']);
 $patient_medical_info = patient_medical_info_data($appointments['ID'], $consultation_data['patient_id']);
 $patient_doctor_consultation = patient_doctor_consultation_data($appointments['ID'], $consultation_data['patient_id']);
+//var_dump($consultation_data); echo '<br/><br/><br/>'; 
+//var_dump($patient_medical_info);die;
 ?>
 <?php
-$countdownDuration = 7200;
+// Set the countdown duration in seconds (e.g., 5 minutes)
+$countdownDuration = 7200; // 5 minutes
 ?>
 
 
@@ -157,215 +162,31 @@ $countdownDuration = 7200;
 		opacity: 1!important;
     }
 	#example1{background:#fff;}
-	
-	/* Multi-Step Form Styles - Enhanced Design */
-	.form-steps-container {
-		margin-bottom: 30px;
-	}
-	.form-steps-nav {
-		display: flex;
-		justify-content: space-between;
-		/* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
-		padding: 20px 15px;
-		border-radius: 10px;
-		margin-bottom: 30px;
-		flex-wrap: wrap;
-		box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-	}
-	.step-nav-item {
-		flex: 1;
-		min-width: 100px;
-		text-align: center;
-		padding: 12px 8px;
-		margin: 3px;
-		background: rgba(255,255,255,0.95);
-		border: 2px solid rgba(255,255,255,0.3);
-		border-radius: 8px;
-		cursor: pointer;
-		transition: all 0.3s ease;
-		font-size: 12px;
-		font-weight: 500;
-		color: #555;
-		position: relative;
-		box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-	}
-	.step-nav-item:hover {
-		background: rgba(255,255,255,1);
-		border-color: #fff;
-		transform: translateY(-2px);
-		box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-	}
-	.step-nav-item.active {
-		background: #fff;
-		color: #667eea;
-		border-color: #fff;
-		font-weight: bold;
-		box-shadow: 0 4px 15px rgba(102,126,234,0.4);
-		transform: translateY(-2px);
-	}
-	.step-nav-item.active:before {
-		content: '';
-		position: absolute;
-		top: -2px;
-		left: 50%;
-		transform: translateX(-50%);
-		width: 0;
-		height: 0;
-		border-left: 8px solid transparent;
-		border-right: 8px solid transparent;
-		border-top: 8px solid #fff;
-	}
-	.step-nav-item.completed {
-		background: #28a745;
-		color: #fff;
-		border-color: #28a745;
-	}
-	.step-nav-item.completed:hover {
-		background: #218838;
-		border-color: #218838;
-	}
-	.step-nav-item.disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-		background: rgba(200,200,200,0.5);
-		color: #999;
-		pointer-events: none;
-	}
-	.step-nav-item.disabled:hover {
-		transform: none;
-		box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-	}
-	.form-step {
-		display: none;
-		padding: 30px;
-		background: #fff;
-		border: none;
-		border-radius: 10px;
-		margin-bottom: 20px;
-		box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-	}
-	.form-step.active {
-		display: block;
-		animation: fadeIn 0.5s ease-in;
-	}
-	@keyframes fadeIn {
-		from { opacity: 0; transform: translateY(10px); }
-		to { opacity: 1; transform: translateY(0); }
-	}
-	.form-step h4 {
-		color: #667eea;
-		margin-bottom: 25px;
-		border-bottom: 3px solid #667eea;
-		padding-bottom: 12px;
-		font-size: 22px;
-		font-weight: 600;
-	}
-	.step-navigation-buttons {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 25px 30px;
-		background: linear-gradient(to right, #f8f9fa, #e9ecef);
-		border-top: 2px solid #dee2e6;
-		margin-top: 30px;
-		border-radius: 0 0 10px 10px;
-		gap: 15px;
-		flex-wrap: wrap;
-	}
-	.step-navigation-buttons button {
-		padding: 12px 35px;
-		font-size: 15px;
-		border-radius: 6px;
-		cursor: pointer;
-		font-weight: 600;
-		transition: all 0.3s ease;
-		border: none;
-		box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-	}
-	.step-navigation-buttons button:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-	}
-	.step-navigation-buttons button:active {
-		transform: translateY(0);
-	}
-	.btn-step-prev {
-		background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-		color: #fff;
-	}
-	.btn-step-prev:hover {
-		background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
-	}
-	.btn-step-next, .btn-step-save {
-		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-		color: #fff;
-	}
-	.btn-step-next:hover, .btn-step-save:hover {
-		background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-	}
-	.btn-step-save-continue {
-		background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-		color: #fff;
-	}
-	.btn-step-save-continue:hover {
-		background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
-	}
-	/* Improve table styling within steps */
-	.form-step .table {
-		margin-bottom: 0;
-	}
-	.form-step .table thead th {
-		/* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
-		color: #fff;
-		border: none;
-		padding: 15px;
-		font-weight: 600;
-	}
-	.form-step .table tbody td {
-		padding: 12px 15px;
-		vertical-align: middle;
-	}
-	.form-step .form-control {
-		border-radius: 6px;
-		border: 1px solid #ced4da;
-		padding: 8px 12px;
-		transition: all 0.3s ease;
-	}
-	.form-step .form-control:focus {
-		border-color: #667eea;
-		box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
-	}
-	/* Progress indicator */
-	.step-progress {
-		width: 100%;
-		height: 4px;
-		background: #e9ecef;
-		border-radius: 2px;
-		margin-bottom: 20px;
-		overflow: hidden;
-	}
-	.step-progress-bar {
-		height: 100%;
-		background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-		transition: width 0.3s ease;
-		border-radius: 2px;
-	}
-	.form-horizontal .form-group {
-		margin-right: 20px !important;
-	}
 </style>
+
+
+
 <form class="form-horizontal" method="post" id="consultation_done_form" onsubmit="return submitForm(this);" action="" enctype="multipart/form-data" >
+
 <input type="hidden" name="action" value="add_consultation_done" />
+
 <input type="hidden" id="submit_type" name="submit_type" value="" />
+
 <input type="hidden" name="appointment_id" value="<?php echo $appointments['ID']; ?>" />
+
 <input type="hidden" name="disapproval_reason" value="<?php echo isset($patient_doctor_consultation['disapproval_reason'])?$patient_doctor_consultation['disapproval_reason']:""; ?>" />
+
 <input type="hidden" name="patient_id" value="<?php echo $patient_data['patient_id']; ?>" />
+
 <input type="hidden" name="wife_phone" value="<?php echo $patient_data['wife_phone']; ?>" />
+
 <input type="hidden" name="doctor_id" id="doctor_id" value="<?php echo $_SESSION['logged_doctor']['doctor_id']?>" />
+
 <input type="hidden" name="doctor" id="doctor" value="<?php echo $_SESSION['logged_doctor']['doctor_id']?>" />
+
 <input type="hidden" name="center_number" id="center_number" value="<?php echo htmlspecialchars($center_number); ?>" />
 
-<div class="container-fluid">
+	<div class="container-fluid">
 		<div class="row">
 			<div class="col-md-12">
 			<!-- Patient Information Panel -->
@@ -374,66 +195,6 @@ $countdownDuration = 7200;
 					<h3 class="panel-title"><i class="fa fa-user"></i> Patient Consultation Form</h3>
 				</div>
 				<div class="panel-body">
-					<!-- Progress Bar -->
-					<div class="step-progress">
-						<div class="step-progress-bar" id="stepProgressBar" style="width: 8.33%;"></div>
-					</div>
-					
-					<!-- Step Navigation -->
-					<div class="form-steps-nav" id="formStepsNav">
-						<div class="step-nav-item active" data-step="1">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">1</div>
-							<div>Basic Info</div>
-						</div>
-						<div class="step-nav-item" data-step="2">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">2</div>
-							<div>Pregnancy</div>
-						</div>
-						<div class="step-nav-item" data-step="3">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">3</div>
-							<div>Menstrual</div>
-						</div>
-						<div class="step-nav-item" data-step="4">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">4</div>
-							<div>Medical</div>
-						</div>
-						<div class="step-nav-item" data-step="5">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">5</div>
-							<div>Surgical</div>
-						</div>
-						<div class="step-nav-item" data-step="6">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">6</div>
-							<div>Drug History</div>
-						</div>
-						<div class="step-nav-item" data-step="7">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">7</div>
-							<div>Family</div>
-						</div>
-						<div class="step-nav-item" data-step="8">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">8</div>
-							<div>Investigations</div>
-						</div>
-						<div class="step-nav-item" data-step="9">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">9</div>
-							<div>Treatment</div>
-						</div>
-						<div class="step-nav-item" data-step="10">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">10</div>
-							<div>Management</div>
-						</div>
-						<div class="step-nav-item" data-step="11">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">11</div>
-							<div>Medicines</div>
-						</div>
-						<div class="step-nav-item" data-step="12">
-							<div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">12</div>
-							<div>Final</div>
-						</div>
-					</div>
-					
-					<!-- Step 1: Basic Information -->
-					<div class="form-step active" id="step1" data-step="1">
-						<h4>Step 1: Basic Patient Information</h4>
 						<table id="example1" class="table table-bordered table-striped">
 							<thead>
 							<tr>
@@ -604,43 +365,28 @@ $countdownDuration = 7200;
 				   <tr>
 
                     <th style="color: red;">Center</th>
-                       <td>
-				         <select name="center" required class="empty-field" id="center">
-							<option value="">Select</option>
-							<?php
-								$centers = $all_method->get_center_list();
-								foreach ($centers as $c) {
-							?>
-								<option value="<?php echo $c['center_name']; ?>"
-									<?php echo (!empty($patient_medical_info['center']) && $patient_medical_info['center'] == $c['center_name']) ? 'selected' : ''; ?>>
-									<?php echo $c['center_name']; ?>
-								</option>
-							<?php } ?>
-						</select>
-						</td>
+
+                   <td>
+				  
+				  <select name="center" required class="empty-field" id="center">
+
+										<option value="">Select</option>
+
+										<?php $center = $all_method->get_center_list(); foreach($center as $key => $center){?>
+
+										<option value="<?php echo $center['center_name']; ?>"><?php echo $center['center_name']; ?></option>
+
+										<?php } ?>
+
+									</select>
+				  
+				   </td>
+
                     <td>
 					</td>
+
                   </tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(1)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 1 -->
-					
-					<!-- Step 2: Previous Pregnancies -->
-					<div class="form-step" id="step2" data-step="2">
-						<h4>Step 2: Previous Pregnancies History</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
                   <tr>
 
                     <th style="color: red;">
@@ -991,27 +737,7 @@ $countdownDuration = 7200;
 					</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(1)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(2)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 2 -->
-					
-					<!-- Step 3: Menstrual & Gynecological History -->
-					<div class="form-step" id="step3" data-step="3">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 3: Menstrual & Gynecological History</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">TYPE OF INFERTILITY</th>
@@ -1326,27 +1052,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(2)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(3)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 3 -->
-					
-					<!-- Step 4: Past/Present Medical History -->
-					<div class="form-step" id="step4" data-step="4">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 4: Past/Present Medical History</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">PAST /PRESENT MEDICAL HISTORY</th>
@@ -1365,7 +1071,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="heart_attack"  <?php if(!isset($patient_medical_info['heart_attack']) || (isset($patient_medical_info['heart_attack']) && $patient_medical_info['heart_attack'] == "No")){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="heart_attack"  <?php if(isset($patient_medical_info['heart_attack']) && $patient_medical_info['heart_attack'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -1385,7 +1091,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="pacemaker"  <?php if(!isset($patient_medical_info['pacemaker']) || (isset($patient_medical_info['pacemaker']) && $patient_medical_info['pacemaker'] == "No")){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="pacemaker"  <?php if(isset($patient_medical_info['pacemaker']) && $patient_medical_info['pacemaker'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -1405,7 +1111,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="other_heart_disease"  <?php if(!isset($patient_medical_info['other_heart_disease']) || (isset($patient_medical_info['other_heart_disease']) && $patient_medical_info['other_heart_disease'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="other_heart_disease"  <?php if(isset($patient_medical_info['other_heart_disease']) && $patient_medical_info['other_heart_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1425,7 +1131,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="high_blood_pressure"  <?php if(!isset($patient_medical_info['high_blood_pressure']) || (isset($patient_medical_info['high_blood_pressure']) && $patient_medical_info['high_blood_pressure'] == "No")){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="high_blood_pressure"  <?php if(isset($patient_medical_info['high_blood_pressure']) && $patient_medical_info['high_blood_pressure'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -1445,7 +1151,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="blood_clots"  <?php if(!isset($patient_medical_info['blood_clots']) || (isset($patient_medical_info['blood_clots']) && $patient_medical_info['blood_clots'] == "No")){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="blood_clots"  <?php if(isset($patient_medical_info['blood_clots']) && $patient_medical_info['blood_clots'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -1465,7 +1171,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="chest_pain"  <?php if(!isset($patient_medical_info['chest_pain']) || (isset($patient_medical_info['chest_pain']) && $patient_medical_info['chest_pain'] == "No")){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="chest_pain"  <?php if(isset($patient_medical_info['chest_pain']) && $patient_medical_info['chest_pain'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -1485,7 +1191,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="stroke"  <?php if(!isset($patient_medical_info['stroke']) || (isset($patient_medical_info['stroke']) && $patient_medical_info['stroke'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="stroke"  <?php if(isset($patient_medical_info['stroke']) && $patient_medical_info['stroke'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1505,7 +1211,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="asthma"  <?php if(!isset($patient_medical_info['asthma']) || (isset($patient_medical_info['asthma']) && $patient_medical_info['asthma'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="asthma"  <?php if(isset($patient_medical_info['asthma']) && $patient_medical_info['asthma'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1525,7 +1231,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="lung_disease"  <?php if(!isset($patient_medical_info['lung_disease']) || (isset($patient_medical_info['lung_disease']) && $patient_medical_info['lung_disease'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="lung_disease"  <?php if(isset($patient_medical_info['lung_disease']) && $patient_medical_info['lung_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1545,7 +1251,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="difficulty_breathing"  <?php if(!isset($patient_medical_info['difficulty_breathing']) || (isset($patient_medical_info['difficulty_breathing']) && $patient_medical_info['difficulty_breathing'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="difficulty_breathing"  <?php if(isset($patient_medical_info['difficulty_breathing']) && $patient_medical_info['difficulty_breathing'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1565,7 +1271,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="snoring"  <?php if(!isset($patient_medical_info['snoring']) || (isset($patient_medical_info['snoring']) && $patient_medical_info['snoring'] == "No")){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="snoring"  <?php if(isset($patient_medical_info['snoring']) && $patient_medical_info['snoring'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1585,7 +1291,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="epilepsy"  <?php if(isset($patient_medical_info['epilepsy']) && $patient_medical_info['epilepsy'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="epilepsy"  <?php if(isset($patient_medical_info['epilepsy']) && $patient_medical_info['epilepsy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1605,7 +1311,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="fainting_spells"  <?php if(isset($patient_medical_info['fainting_spells']) && $patient_medical_info['fainting_spells'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="fainting_spells"  <?php if(isset($patient_medical_info['fainting_spells']) && $patient_medical_info['fainting_spells'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1625,7 +1331,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="diabetes"  <?php if(isset($patient_medical_info['diabetes']) && $patient_medical_info['diabetes'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="diabetes"  <?php if(isset($patient_medical_info['diabetes']) && $patient_medical_info['diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1645,7 +1351,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="muscle_disorders"  <?php if(isset($patient_medical_info['muscle_disorders']) && $patient_medical_info['muscle_disorders'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="muscle_disorders"  <?php if(isset($patient_medical_info['muscle_disorders']) && $patient_medical_info['muscle_disorders'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1665,7 +1371,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="kidney_disease"  <?php if(isset($patient_medical_info['kidney_disease']) && $patient_medical_info['kidney_disease'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="kidney_disease"  <?php if(isset($patient_medical_info['kidney_disease']) && $patient_medical_info['kidney_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1685,7 +1391,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="hepatitis"  <?php if(isset($patient_medical_info['hepatitis']) && $patient_medical_info['hepatitis'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="hepatitis"  <?php if(isset($patient_medical_info['hepatitis']) && $patient_medical_info['hepatitis'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1705,7 +1411,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="tuberculosis"  <?php if(isset($patient_medical_info['tuberculosis']) && $patient_medical_info['tuberculosis'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="tuberculosis"  <?php if(isset($patient_medical_info['tuberculosis']) && $patient_medical_info['tuberculosis'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1725,7 +1431,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="hiv"  <?php if(isset($patient_medical_info['hiv']) && $patient_medical_info['hiv'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="hiv"  <?php if(isset($patient_medical_info['hiv']) && $patient_medical_info['hiv'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1745,7 +1451,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="heart_burn"  <?php if(isset($patient_medical_info['heart_burn']) && $patient_medical_info['heart_burn'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="heart_burn"  <?php if(isset($patient_medical_info['heart_burn']) && $patient_medical_info['heart_burn'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1765,7 +1471,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="cancer"  <?php if(isset($patient_medical_info['cancer']) && $patient_medical_info['cancer'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="cancer"  <?php if(isset($patient_medical_info['cancer']) && $patient_medical_info['cancer'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1785,7 +1491,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="blood_disorders"  <?php if(isset($patient_medical_info['blood_disorders']) && $patient_medical_info['blood_disorders'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="blood_disorders"  <?php if(isset($patient_medical_info['blood_disorders']) && $patient_medical_info['blood_disorders'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1805,7 +1511,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="rheumatic_disease"  <?php if(isset($patient_medical_info['rheumatic_disease']) && $patient_medical_info['rheumatic_disease'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="rheumatic_disease"  <?php if(isset($patient_medical_info['rheumatic_disease']) && $patient_medical_info['rheumatic_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1825,7 +1531,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="psychiatric_disorder"  <?php if(isset($patient_medical_info['psychiatric_disorder']) && $patient_medical_info['psychiatric_disorder'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="psychiatric_disorder"  <?php if(isset($patient_medical_info['psychiatric_disorder']) && $patient_medical_info['psychiatric_disorder'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1845,7 +1551,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="thyroid_disorder"  <?php if(isset($patient_medical_info['thyroid_disorder']) && $patient_medical_info['thyroid_disorder'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="thyroid_disorder"  <?php if(isset($patient_medical_info['thyroid_disorder']) && $patient_medical_info['thyroid_disorder'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1865,7 +1571,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="urinary_infection"  <?php if(isset($patient_medical_info['urinary_infection']) && $patient_medical_info['urinary_infection'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="urinary_infection"  <?php if(isset($patient_medical_info['urinary_infection']) && $patient_medical_info['urinary_infection'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1885,7 +1591,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="sexually_transmitted"  <?php if(isset($patient_medical_info['sexually_transmitted']) && $patient_medical_info['sexually_transmitted'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="sexually_transmitted"  <?php if(isset($patient_medical_info['sexually_transmitted']) && $patient_medical_info['sexually_transmitted'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1925,7 +1631,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_heart_attack"  <?php if(isset($patient_medical_info['male_heart_attack']) && $patient_medical_info['male_heart_attack'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_heart_attack"  <?php if(isset($patient_medical_info['male_heart_attack']) && $patient_medical_info['male_heart_attack'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1945,7 +1651,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_pacemaker"  <?php if(isset($patient_medical_info['male_pacemaker']) && $patient_medical_info['male_pacemaker'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_pacemaker"  <?php if(isset($patient_medical_info['male_pacemaker']) && $patient_medical_info['male_pacemaker'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1965,7 +1671,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_other_heart_disease"  <?php if(isset($patient_medical_info['male_other_heart_disease']) && $patient_medical_info['male_other_heart_disease'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_other_heart_disease"  <?php if(isset($patient_medical_info['male_other_heart_disease']) && $patient_medical_info['male_other_heart_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -1985,7 +1691,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_high_blood_pressure"  <?php if(isset($patient_medical_info['male_high_blood_pressure']) && $patient_medical_info['male_high_blood_pressure'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_high_blood_pressure"  <?php if(isset($patient_medical_info['male_high_blood_pressure']) && $patient_medical_info['male_high_blood_pressure'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2005,7 +1711,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_blood_clots"  <?php if(isset($patient_medical_info['male_blood_clots']) && $patient_medical_info['male_blood_clots'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="male_blood_clots"  <?php if(isset($patient_medical_info['male_blood_clots']) && $patient_medical_info['male_blood_clots'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -2025,7 +1731,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_chest_pain"  <?php if(isset($patient_medical_info['male_chest_pain']) && $patient_medical_info['male_chest_pain'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_chest_pain"  <?php if(isset($patient_medical_info['male_chest_pain']) && $patient_medical_info['male_chest_pain'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2045,7 +1751,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_stroke"  <?php if(isset($patient_medical_info['male_stroke']) && $patient_medical_info['male_stroke'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_stroke"  <?php if(isset($patient_medical_info['male_stroke']) && $patient_medical_info['male_stroke'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2065,7 +1771,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_asthma"  <?php if(isset($patient_medical_info['male_asthma']) && $patient_medical_info['male_asthma'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_asthma"  <?php if(isset($patient_medical_info['male_asthma']) && $patient_medical_info['male_asthma'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2085,7 +1791,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_lung_disease"  <?php if(isset($patient_medical_info['male_lung_disease']) && $patient_medical_info['male_lung_disease'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="male_lung_disease"  <?php if(isset($patient_medical_info['male_lung_disease']) && $patient_medical_info['male_lung_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -2105,7 +1811,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_difficulty_breathing"  <?php if(isset($patient_medical_info['male_difficulty_breathing']) && $patient_medical_info['male_difficulty_breathing'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_difficulty_breathing"  <?php if(isset($patient_medical_info['male_difficulty_breathing']) && $patient_medical_info['male_difficulty_breathing'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2125,7 +1831,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_snoring"  <?php if(isset($patient_medical_info['male_snoring']) && $patient_medical_info['male_snoring'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_snoring"  <?php if(isset($patient_medical_info['male_snoring']) && $patient_medical_info['male_snoring'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2145,7 +1851,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_epilepsy"  <?php if(isset($patient_medical_info['male_epilepsy']) && $patient_medical_info['male_epilepsy'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_epilepsy"  <?php if(isset($patient_medical_info['male_epilepsy']) && $patient_medical_info['male_epilepsy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2165,7 +1871,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_fainting_spells"  <?php if(isset($patient_medical_info['male_fainting_spells']) && $patient_medical_info['male_fainting_spells'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="male_fainting_spells"  <?php if(isset($patient_medical_info['male_fainting_spells']) && $patient_medical_info['male_fainting_spells'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -2185,7 +1891,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_diabetes"  <?php if(isset($patient_medical_info['male_diabetes']) && $patient_medical_info['male_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_diabetes"  <?php if(isset($patient_medical_info['male_diabetes']) && $patient_medical_info['male_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2205,7 +1911,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_muscle_disorders"  <?php if(isset($patient_medical_info['male_muscle_disorders']) && $patient_medical_info['male_muscle_disorders'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_muscle_disorders"  <?php if(isset($patient_medical_info['male_muscle_disorders']) && $patient_medical_info['male_muscle_disorders'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2225,7 +1931,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_kidney_disease"  <?php if(isset($patient_medical_info['male_kidney_disease']) && $patient_medical_info['male_kidney_disease'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_kidney_disease"  <?php if(isset($patient_medical_info['male_kidney_disease']) && $patient_medical_info['male_kidney_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2245,7 +1951,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_hepatitis"  <?php if(isset($patient_medical_info['male_hepatitis']) && $patient_medical_info['male_hepatitis'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_hepatitis"  <?php if(isset($patient_medical_info['male_hepatitis']) && $patient_medical_info['male_hepatitis'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2265,7 +1971,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_tuberculosis"  <?php if(isset($patient_medical_info['male_tuberculosis']) && $patient_medical_info['male_tuberculosis'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" id="text1" name="male_tuberculosis"  <?php if(isset($patient_medical_info['male_tuberculosis']) && $patient_medical_info['male_tuberculosis'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label>No</label>
 
@@ -2285,7 +1991,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_hiv"  <?php if(isset($patient_medical_info['male_hiv']) && $patient_medical_info['male_hiv'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" id="text1" name="male_hiv"  <?php if(isset($patient_medical_info['male_hiv']) && $patient_medical_info['male_hiv'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label>No</label>
 
@@ -2305,7 +2011,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_heart_burn"  <?php if(isset($patient_medical_info['male_heart_burn']) && $patient_medical_info['male_heart_burn'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="male_heart_burn"  <?php if(isset($patient_medical_info['male_heart_burn']) && $patient_medical_info['male_heart_burn'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label for="type2">No</label>
 
@@ -2325,7 +2031,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_cancer"  <?php if(isset($patient_medical_info['male_cancer']) && $patient_medical_info['male_cancer'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="male_cancer"  <?php if(isset($patient_medical_info['male_cancer']) && $patient_medical_info['male_cancer'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label for="type2">No</label>
 
@@ -2345,7 +2051,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_blood_disorders"  <?php if(isset($patient_medical_info['male_blood_disorders']) && $patient_medical_info['male_blood_disorders'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="male_blood_disorders"  <?php if(isset($patient_medical_info['male_blood_disorders']) && $patient_medical_info['male_blood_disorders'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label for="type2">No</label>
 
@@ -2365,7 +2071,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_rheumatic_disease"  <?php if(isset($patient_medical_info['male_rheumatic_disease']) && $patient_medical_info['male_rheumatic_disease'] == "No"){echo 'checked="checked"';}?> value="No"  >
+										<input type="radio" name="male_rheumatic_disease"  <?php if(isset($patient_medical_info['male_rheumatic_disease']) && $patient_medical_info['male_rheumatic_disease'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 										<label for="type2">No</label>
 
@@ -2385,7 +2091,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_psychiatric_disorder"  <?php if(isset($patient_medical_info['male_psychiatric_disorder']) && $patient_medical_info['male_psychiatric_disorder'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="male_psychiatric_disorder"  <?php if(isset($patient_medical_info['male_psychiatric_disorder']) && $patient_medical_info['male_psychiatric_disorder'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label for="type2">No</label>
 
@@ -2405,7 +2111,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_thyroid_disorder"  <?php if(isset($patient_medical_info['male_thyroid_disorder']) && $patient_medical_info['male_thyroid_disorder'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="male_thyroid_disorder"  <?php if(isset($patient_medical_info['male_thyroid_disorder']) && $patient_medical_info['male_thyroid_disorder'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label for="type2">No</label>
 
@@ -2425,7 +2131,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_urinary_infection"  <?php if(isset($patient_medical_info['male_urinary_infection']) && $patient_medical_info['male_urinary_infection'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="male_urinary_infection"  <?php if(isset($patient_medical_info['male_urinary_infection']) && $patient_medical_info['male_urinary_infection'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label for="type2">No</label>
 
@@ -2445,7 +2151,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="male_sexually_transmitted"  <?php if(isset($patient_medical_info['male_sexually_transmitted']) && $patient_medical_info['male_sexually_transmitted'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="male_sexually_transmitted"  <?php if(isset($patient_medical_info['male_sexually_transmitted']) && $patient_medical_info['male_sexually_transmitted'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label for="type2">No</label>
 
@@ -2472,27 +2178,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(3)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(4)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 4 -->
-					
-					<!-- Step 5: Past Anesthesia and Surgical Procedures -->
-					<div class="form-step" id="step5" data-step="5">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 5: Past Anesthesia and Surgical Procedures</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">PAST ANESTHESIA AND SURGICAL PROCEDURES</th>
@@ -2513,7 +2199,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="abdominal_operations"  <?php if(isset($patient_medical_info['abdominal_operations']) && $patient_medical_info['abdominal_operations'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" id="text1" name="abdominal_operations"  <?php if(isset($patient_medical_info['abdominal_operations']) && $patient_medical_info['abdominal_operations'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label>No</label></p>
 
@@ -2537,7 +2223,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="other_operations"  <?php if(isset($patient_medical_info['other_operations']) && $patient_medical_info['other_operations'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" id="text1" name="other_operations"  <?php if(isset($patient_medical_info['other_operations']) && $patient_medical_info['other_operations'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label>No</label>
 
@@ -2565,7 +2251,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_abdominal_operations"  <?php if(isset($patient_medical_info['male_abdominal_operations']) && $patient_medical_info['male_abdominal_operations'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" id="text1" name="male_abdominal_operations"  <?php if(isset($patient_medical_info['male_abdominal_operations']) && $patient_medical_info['male_abdominal_operations'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label>No</label>
 
@@ -2585,7 +2271,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_other_operations"  <?php if(isset($patient_medical_info['male_other_operations']) && $patient_medical_info['male_other_operations'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" id="text1" name="male_other_operations"  <?php if(isset($patient_medical_info['male_other_operations']) && $patient_medical_info['male_other_operations'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label>No</label>
 
@@ -2619,7 +2305,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="medications"  <?php if(isset($patient_medical_info['medications']) && $patient_medical_info['medications'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" id="text1" name="medications"  <?php if(isset($patient_medical_info['medications']) && $patient_medical_info['medications'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label>No</label>
 
@@ -2639,7 +2325,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="environmental_factors"  <?php if(isset($patient_medical_info['environmental_factors']) && $patient_medical_info['environmental_factors'] == "No"){echo 'checked="checked"';}?> value="No"  >
+										<input type="radio" id="text1" name="environmental_factors"  <?php if(isset($patient_medical_info['environmental_factors']) && $patient_medical_info['environmental_factors'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 										<label>No</label>
 
@@ -2667,7 +2353,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_medications"  <?php if(isset($patient_medical_info['male_medications']) && $patient_medical_info['male_medications'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" id="text1" name="male_medications"  <?php if(isset($patient_medical_info['male_medications']) && $patient_medical_info['male_medications'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label>No</label>
 
@@ -2687,7 +2373,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" id="text1" name="male_environmental_factors"  <?php if(isset($patient_medical_info['male_environmental_factors']) && $patient_medical_info['male_environmental_factors'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" id="text1" name="male_environmental_factors"  <?php if(isset($patient_medical_info['male_environmental_factors']) && $patient_medical_info['male_environmental_factors'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label>No</label>
 
@@ -2721,7 +2407,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="dentures"  <?php if(isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="dentures"  <?php if(isset($patient_medical_info['dentures']) && $patient_medical_info['dentures'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -2741,7 +2427,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="loose_teeth"  <?php if(isset($patient_medical_info['loose_teeth']) && $patient_medical_info['loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="loose_teeth"  <?php if(isset($patient_medical_info['loose_teeth']) && $patient_medical_info['loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -2761,7 +2447,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="hearing_aid"  <?php if(isset($patient_medical_info['hearing_aid']) && $patient_medical_info['hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="hearing_aid"  <?php if(isset($patient_medical_info['hearing_aid']) && $patient_medical_info['hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2781,7 +2467,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="caps_on_front_teeth"  <?php if(isset($patient_medical_info['caps_on_front_teeth']) && $patient_medical_info['caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="caps_on_front_teeth"  <?php if(isset($patient_medical_info['caps_on_front_teeth']) && $patient_medical_info['caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2801,7 +2487,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="contact_lenses"  <?php if(isset($patient_medical_info['contact_lenses']) && $patient_medical_info['contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="contact_lenses"  <?php if(isset($patient_medical_info['contact_lenses']) && $patient_medical_info['contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2821,7 +2507,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="body_piercing"  <?php if(isset($patient_medical_info['body_piercing']) && $patient_medical_info['body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="body_piercing"  <?php if(isset($patient_medical_info['body_piercing']) && $patient_medical_info['body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -2841,7 +2527,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="blood_transfusion"  <?php if(isset($patient_medical_info['blood_transfusion']) && $patient_medical_info['blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="blood_transfusion"  <?php if(isset($patient_medical_info['blood_transfusion']) && $patient_medical_info['blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -2861,7 +2547,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="traffic_accident"  <?php if(isset($patient_medical_info['traffic_accident']) && $patient_medical_info['traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="traffic_accident"  <?php if(isset($patient_medical_info['traffic_accident']) && $patient_medical_info['traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -2871,204 +2557,6 @@ $countdownDuration = 7200;
 
 								</tr>
 
-							</table>
-
-						</td>
-
-						<td>
-
-							<table>
-
-								<tr>
-
-									<td>Dentures</td>
-
-												<td width="30%">
-
-													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "No"){echo 'checked="checked"';}?> value="No"  >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_dentures_text'])?$patient_medical_info['male_dentures_text']:""; ?>" type="text" maxlength="25" name="male_dentures_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>Loose teeth</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No"  >
-
-													<label>No</label>
-
-													<input  value="<?php echo !empty($patient_medical_info['male_loose_teeth_text'])?$patient_medical_info['male_loose_teeth_text']:""; ?>" type="text" maxlength="25" name="male_loose_teeth_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>Hearing aid</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_hearing_aid_text'])?$patient_medical_info['male_hearing_aid_text']:""; ?>" type="text" maxlength="25" name="male_hearing_aid_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>Caps on front teeth</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_caps_on_front_teeth_text'])?$patient_medical_info['male_caps_on_front_teeth_text']:""; ?>" type="text" maxlength="25" name="male_caps_on_front_teeth_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>Contact lenses</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_contact_lenses_text'])?$patient_medical_info['male_contact_lenses_text']:""; ?>" type="text" maxlength="25" name="male_contact_lenses_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>Body piercing</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_body_piercing_text'])?$patient_medical_info['male_body_piercing_text']:""; ?>" type="text" maxlength="25" name="male_body_piercing_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>H/o blood transfusion</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No"  >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_blood_transfusion_text'])?$patient_medical_info['male_blood_transfusion_text']:""; ?>" type="text" maxlength="25" name="male_blood_transfusion_text">
-
-												</td>
-
-								</tr>
-
-								<tr>
-
-									<td>H/o road traffic accident/any injury</td>
-
-												<td>
-
-													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-
-													<label>Yes</label>
-
-													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No"  >
-
-													<label>No</label>
-
-													<input value="<?php echo !empty($patient_medical_info['male_traffic_accident_text'])?$patient_medical_info['male_traffic_accident_text']:""; ?>" type="text" maxlength="25" name="male_traffic_accident_text">
-
-												</td>
-
-								</tr>
-
-							</table>
-
-						</td>
-
-					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(4)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(5)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 5 -->
-					
-					<!-- Step 6: Social Drug Intake History -->
-					<div class="form-step" id="step6" data-step="6">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 6: Social Drug Intake History</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
-					<tr>
-						<th style="color: red;">SOCIAL DRUG INTAKE HISTORY</th>
-						<td>
-							<table width="100%">
 								<tr>
 
 									<td>Smoke(past)daily</td>
@@ -3079,7 +2567,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="smoke_past"  <?php if(isset($patient_medical_info['smoke_past']) && $patient_medical_info['smoke_past'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="smoke_past"  <?php if(isset($patient_medical_info['smoke_past']) && $patient_medical_info['smoke_past'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3099,7 +2587,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="smoke_present"  <?php if(isset($patient_medical_info['smoke_present']) && $patient_medical_info['smoke_present'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="smoke_present"  <?php if(isset($patient_medical_info['smoke_present']) && $patient_medical_info['smoke_present'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3119,7 +2607,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="drink_past"  <?php if(isset($patient_medical_info['drink_past']) && $patient_medical_info['drink_past'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="drink_past"  <?php if(isset($patient_medical_info['drink_past']) && $patient_medical_info['drink_past'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3139,7 +2627,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="drink_present"  <?php if(isset($patient_medical_info['drink_present']) && $patient_medical_info['drink_present'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="drink_present"  <?php if(isset($patient_medical_info['drink_present']) && $patient_medical_info['drink_present'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3159,7 +2647,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="abusive_drugs"  <?php if(isset($patient_medical_info['abusive_drugs']) && $patient_medical_info['abusive_drugs'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="abusive_drugs"  <?php if(isset($patient_medical_info['abusive_drugs']) && $patient_medical_info['abusive_drugs'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3179,7 +2667,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="steroid"  <?php if(isset($patient_medical_info['steroid']) && $patient_medical_info['steroid'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="steroid"  <?php if(isset($patient_medical_info['steroid']) && $patient_medical_info['steroid'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3199,7 +2687,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="medication"  <?php if(isset($patient_medical_info['medication']) && $patient_medical_info['medication'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="medication"  <?php if(isset($patient_medical_info['medication']) && $patient_medical_info['medication'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3219,7 +2707,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="herbal_products"  <?php if(isset($patient_medical_info['herbal_products']) && $patient_medical_info['herbal_products'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="herbal_products"  <?php if(isset($patient_medical_info['herbal_products']) && $patient_medical_info['herbal_products'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3239,7 +2727,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="eye_drops"  <?php if(isset($patient_medical_info['eye_drops']) && $patient_medical_info['eye_drops'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="eye_drops"  <?php if(isset($patient_medical_info['eye_drops']) && $patient_medical_info['eye_drops'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3259,7 +2747,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="non_prescription_drugs"  <?php if(isset($patient_medical_info['non_prescription_drugs']) && $patient_medical_info['non_prescription_drugs'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="non_prescription_drugs"  <?php if(isset($patient_medical_info['non_prescription_drugs']) && $patient_medical_info['non_prescription_drugs'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3287,7 +2775,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_dentures"  <?php if(isset($patient_medical_info['male_dentures']) && $patient_medical_info['male_dentures'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3307,7 +2795,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_loose_teeth"  <?php if(isset($patient_medical_info['male_loose_teeth']) && $patient_medical_info['male_loose_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3327,7 +2815,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="male_hearing_aid"  <?php if(isset($patient_medical_info['male_hearing_aid']) && $patient_medical_info['male_hearing_aid'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3347,7 +2835,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="male_caps_on_front_teeth"  <?php if(isset($patient_medical_info['male_caps_on_front_teeth']) && $patient_medical_info['male_caps_on_front_teeth'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3367,7 +2855,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_contact_lenses"  <?php if(isset($patient_medical_info['male_contact_lenses']) && $patient_medical_info['male_contact_lenses'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3387,7 +2875,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_body_piercing"  <?php if(isset($patient_medical_info['male_body_piercing']) && $patient_medical_info['male_body_piercing'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3407,7 +2895,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_blood_transfusion"  <?php if(isset($patient_medical_info['male_blood_transfusion']) && $patient_medical_info['male_blood_transfusion'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3427,7 +2915,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_traffic_accident"  <?php if(isset($patient_medical_info['male_traffic_accident']) && $patient_medical_info['male_traffic_accident'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3447,7 +2935,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_smoke_past"  <?php if(isset($patient_medical_info['male_smoke_past']) && $patient_medical_info['male_smoke_past'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_smoke_past"  <?php if(isset($patient_medical_info['male_smoke_past']) && $patient_medical_info['male_smoke_past'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3461,16 +2949,19 @@ $countdownDuration = 7200;
 
 									<td>Smoke(present)daily</td>
 
-											<td>
-												<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
-												<label>Yes</label>
-												<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "No"){echo 'checked="checked"';}?> value="No" >
+												<td>
 
-												<label>No</label>	
+													<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "Yes"){echo 'checked="checked"';}?> value="Yes"  >
 
-												<input value="<?php echo !empty($patient_medical_info['male_smoke_present_text'])?$patient_medical_info['male_smoke_present_text']:""; ?>" type="text" maxlength="25" name="male_smoke_present_text">
+													<label>Yes</label>
 
-											</td>
+													<input type="radio" id="text1" name="male_smoke_present"  <?php if(isset($patient_medical_info['male_smoke_present']) && $patient_medical_info['male_smoke_present'] == "No"){echo 'checked="checked"';}?> value="No" checked >
+
+													<label>No</label>
+
+													<input value="<?php echo !empty($patient_medical_info['male_smoke_present_text'])?$patient_medical_info['male_smoke_present_text']:""; ?>" type="text" maxlength="25" name="male_smoke_present_text">
+
+												</td>
 
 								</tr>
 
@@ -3484,7 +2975,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_drink_past"  <?php if(isset($patient_medical_info['male_drink_past']) && $patient_medical_info['male_drink_past'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_drink_past"  <?php if(isset($patient_medical_info['male_drink_past']) && $patient_medical_info['male_drink_past'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3504,7 +2995,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_drink_present"  <?php if(isset($patient_medical_info['male_drink_present']) && $patient_medical_info['male_drink_present'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_drink_present"  <?php if(isset($patient_medical_info['male_drink_present']) && $patient_medical_info['male_drink_present'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3524,7 +3015,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_abusive_drugs"  <?php if(isset($patient_medical_info['male_abusive_drugs']) && $patient_medical_info['male_abusive_drugs'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_abusive_drugs"  <?php if(isset($patient_medical_info['male_abusive_drugs']) && $patient_medical_info['male_abusive_drugs'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3544,7 +3035,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_steroid"  <?php if(isset($patient_medical_info['male_steroid']) && $patient_medical_info['male_steroid'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="male_steroid"  <?php if(isset($patient_medical_info['male_steroid']) && $patient_medical_info['male_steroid'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3564,7 +3055,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_medication"  <?php if(isset($patient_medical_info['male_medication']) && $patient_medical_info['male_medication'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_medication"  <?php if(isset($patient_medical_info['male_medication']) && $patient_medical_info['male_medication'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3584,7 +3075,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_herbal_products"  <?php if(isset($patient_medical_info['male_herbal_products']) && $patient_medical_info['male_herbal_products'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" id="text1" name="male_herbal_products"  <?php if(isset($patient_medical_info['male_herbal_products']) && $patient_medical_info['male_herbal_products'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3604,7 +3095,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_eye_drops"  <?php if(isset($patient_medical_info['male_eye_drops']) && $patient_medical_info['male_eye_drops'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_eye_drops"  <?php if(isset($patient_medical_info['male_eye_drops']) && $patient_medical_info['male_eye_drops'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3624,7 +3115,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" id="text1" name="male_non_prescription_drugs"  <?php if(isset($patient_medical_info['male_non_prescription_drugs']) && $patient_medical_info['male_non_prescription_drugs'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" id="text1" name="male_non_prescription_drugs"  <?php if(isset($patient_medical_info['male_non_prescription_drugs']) && $patient_medical_info['male_non_prescription_drugs'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3639,27 +3130,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(5)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(6)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 6 -->
-					
-					<!-- Step 7: Family History -->
-					<div class="form-step" id="step7" data-step="7">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 7: Family History</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">FAMILY HISTORY</th>
@@ -3678,7 +3149,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" name="member_with_anesthesia"  <?php if(isset($patient_medical_info['member_with_anesthesia']) && $patient_medical_info['member_with_anesthesia'] == "No"){echo 'checked="checked"';}?> value="No"  >
+										<input type="radio" name="member_with_anesthesia"  <?php if(isset($patient_medical_info['member_with_anesthesia']) && $patient_medical_info['member_with_anesthesia'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 										<label>No</label>
 
@@ -3712,7 +3183,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_diabetes"  <?php if(isset($patient_medical_info['maternal_diabetes']) && $patient_medical_info['maternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="maternal_diabetes"  <?php if(isset($patient_medical_info['maternal_diabetes']) && $patient_medical_info['maternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3726,7 +3197,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_diabetes"  <?php if(isset($patient_medical_info['paternal_diabetes']) && $patient_medical_info['paternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="paternal_diabetes"  <?php if(isset($patient_medical_info['paternal_diabetes']) && $patient_medical_info['paternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3746,7 +3217,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_thrombo_embolism"  <?php if(isset($patient_medical_info['maternal_thrombo_embolism']) && $patient_medical_info['maternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="maternal_thrombo_embolism"  <?php if(isset($patient_medical_info['maternal_thrombo_embolism']) && $patient_medical_info['maternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3760,7 +3231,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_thrombo_embolism"  <?php if(isset($patient_medical_info['paternal_thrombo_embolism']) && $patient_medical_info['paternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="paternal_thrombo_embolism"  <?php if(isset($patient_medical_info['paternal_thrombo_embolism']) && $patient_medical_info['paternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3780,7 +3251,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_metabolic"  <?php if(isset($patient_medical_info['maternal_metabolic']) && $patient_medical_info['maternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" name="maternal_metabolic"  <?php if(isset($patient_medical_info['maternal_metabolic']) && $patient_medical_info['maternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3794,7 +3265,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_metabolic"  <?php if(isset($patient_medical_info['paternal_metabolic']) && $patient_medical_info['paternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="paternal_metabolic"  <?php if(isset($patient_medical_info['paternal_metabolic']) && $patient_medical_info['paternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3814,7 +3285,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_urinary_tract"  <?php if(isset($patient_medical_info['maternal_urinary_tract']) && $patient_medical_info['maternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="maternal_urinary_tract"  <?php if(isset($patient_medical_info['maternal_urinary_tract']) && $patient_medical_info['maternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3828,7 +3299,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_urinary_tract"  <?php if(isset($patient_medical_info['paternal_urinary_tract']) && $patient_medical_info['paternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="paternal_urinary_tract"  <?php if(isset($patient_medical_info['paternal_urinary_tract']) && $patient_medical_info['paternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3848,7 +3319,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_neurological"  <?php if(isset($patient_medical_info['maternal_neurological']) && $patient_medical_info['maternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="maternal_neurological"  <?php if(isset($patient_medical_info['maternal_neurological']) && $patient_medical_info['maternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3862,7 +3333,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_neurological"  <?php if(isset($patient_medical_info['paternal_neurological']) && $patient_medical_info['paternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="paternal_neurological"  <?php if(isset($patient_medical_info['paternal_neurological']) && $patient_medical_info['paternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3882,7 +3353,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="maternal_malignancy"  <?php if(isset($patient_medical_info['maternal_malignancy']) && $patient_medical_info['maternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="maternal_malignancy"  <?php if(isset($patient_medical_info['maternal_malignancy']) && $patient_medical_info['maternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3896,7 +3367,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="paternal_malignancy"  <?php if(isset($patient_medical_info['paternal_malignancy']) && $patient_medical_info['paternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="paternal_malignancy"  <?php if(isset($patient_medical_info['paternal_malignancy']) && $patient_medical_info['paternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3924,7 +3395,7 @@ $countdownDuration = 7200;
 
 										<label>Yes</label>
 
-										<input type="radio" name="male_member_with_anesthesia"  <?php if(isset($patient_medical_info['male_member_with_anesthesia']) && $patient_medical_info['male_member_with_anesthesia'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="male_member_with_anesthesia"  <?php if(isset($patient_medical_info['male_member_with_anesthesia']) && $patient_medical_info['male_member_with_anesthesia'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label>No</label>
 
@@ -3958,7 +3429,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_diabetes"  <?php if(isset($patient_medical_info['male_maternal_diabetes']) && $patient_medical_info['male_maternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_maternal_diabetes"  <?php if(isset($patient_medical_info['male_maternal_diabetes']) && $patient_medical_info['male_maternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -3972,7 +3443,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_diabetes"  <?php if(isset($patient_medical_info['male_paternal_diabetes']) && $patient_medical_info['male_paternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No"  >
+													<input type="radio" name="male_paternal_diabetes"  <?php if(isset($patient_medical_info['male_paternal_diabetes']) && $patient_medical_info['male_paternal_diabetes'] == "No"){echo 'checked="checked"';}?> value="No" checked  >
 
 													<label>No</label>
 
@@ -3992,7 +3463,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_thrombo_embolism"  <?php if(isset($patient_medical_info['male_maternal_thrombo_embolism']) && $patient_medical_info['male_maternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_maternal_thrombo_embolism"  <?php if(isset($patient_medical_info['male_maternal_thrombo_embolism']) && $patient_medical_info['male_maternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -4006,7 +3477,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_thrombo_embolism"  <?php if(isset($patient_medical_info['male_paternal_thrombo_embolism']) && $patient_medical_info['male_paternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_paternal_thrombo_embolism"  <?php if(isset($patient_medical_info['male_paternal_thrombo_embolism']) && $patient_medical_info['male_paternal_thrombo_embolism'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -4026,7 +3497,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_metabolic"  <?php if(isset($patient_medical_info['male_maternal_metabolic']) && $patient_medical_info['male_maternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_maternal_metabolic"  <?php if(isset($patient_medical_info['male_maternal_metabolic']) && $patient_medical_info['male_maternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -4040,7 +3511,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_metabolic"  <?php if(isset($patient_medical_info['male_paternal_metabolic']) && $patient_medical_info['male_paternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_paternal_metabolic"  <?php if(isset($patient_medical_info['male_paternal_metabolic']) && $patient_medical_info['male_paternal_metabolic'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -4060,7 +3531,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_urinary_tract"  <?php if(isset($patient_medical_info['male_maternal_urinary_tract']) && $patient_medical_info['male_maternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_maternal_urinary_tract"  <?php if(isset($patient_medical_info['male_maternal_urinary_tract']) && $patient_medical_info['male_maternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -4074,7 +3545,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_urinary_tract"  <?php if(isset($patient_medical_info['male_paternal_urinary_tract']) && $patient_medical_info['male_paternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_paternal_urinary_tract"  <?php if(isset($patient_medical_info['male_paternal_urinary_tract']) && $patient_medical_info['male_paternal_urinary_tract'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -4094,7 +3565,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_neurological"  <?php if(isset($patient_medical_info['male_maternal_neurological']) && $patient_medical_info['male_maternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_maternal_neurological"  <?php if(isset($patient_medical_info['male_maternal_neurological']) && $patient_medical_info['male_maternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -4108,7 +3579,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_neurological"  <?php if(isset($patient_medical_info['male_paternal_neurological']) && $patient_medical_info['male_paternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_paternal_neurological"  <?php if(isset($patient_medical_info['male_paternal_neurological']) && $patient_medical_info['male_paternal_neurological'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -4128,7 +3599,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_maternal_malignancy"  <?php if(isset($patient_medical_info['male_maternal_malignancy']) && $patient_medical_info['male_maternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_maternal_malignancy"  <?php if(isset($patient_medical_info['male_maternal_malignancy']) && $patient_medical_info['male_maternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -4142,7 +3613,7 @@ $countdownDuration = 7200;
 
 													<label>Yes</label>
 
-													<input type="radio" name="male_paternal_malignancy"  <?php if(isset($patient_medical_info['male_paternal_malignancy']) && $patient_medical_info['male_paternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" >
+													<input type="radio" name="male_paternal_malignancy"  <?php if(isset($patient_medical_info['male_paternal_malignancy']) && $patient_medical_info['male_paternal_malignancy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 													<label>No</label>
 
@@ -4157,27 +3628,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(6)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(7)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 7 -->
-					
-					<!-- Step 8: Past Investigations -->
-					<div class="form-step" id="step8" data-step="8">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 8: Past Investigations</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">PAST INVESTIGATIONS</th>
@@ -4593,27 +4044,7 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(7)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(8)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 8 -->
-					
-					<!-- Step 9: Previous Infertility Treatment Details -->
-					<div class="form-step" id="step9" data-step="9">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 9: Previous Infertility Treatment Details</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">PREVIOUS INFERTILITY TREATMENT DETAILS </th>
@@ -5036,7 +4467,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="female_local_exam_pap"  <?php if(isset($patient_medical_info['female_local_exam_pap']) && $patient_medical_info['female_local_exam_pap'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="female_local_exam_pap"  <?php if(isset($patient_medical_info['female_local_exam_pap']) && $patient_medical_info['female_local_exam_pap'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label for="type2">No</label>
 										
@@ -5056,7 +4487,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="female_hvs_taken"  <?php if(isset($patient_medical_info['female_hvs_taken']) && $patient_medical_info['female_hvs_taken'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="female_hvs_taken"  <?php if(isset($patient_medical_info['female_hvs_taken']) && $patient_medical_info['female_hvs_taken'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label for="type2">No</label>
 										
@@ -5076,7 +4507,7 @@ $countdownDuration = 7200;
 
 										<label for="type2">Yes</label>
 
-										<input type="radio" name="female_endometrial_biopsy"  <?php if(isset($patient_medical_info['female_endometrial_biopsy']) && $patient_medical_info['female_endometrial_biopsy'] == "No"){echo 'checked="checked"';}?> value="No" >
+										<input type="radio" name="female_endometrial_biopsy"  <?php if(isset($patient_medical_info['female_endometrial_biopsy']) && $patient_medical_info['female_endometrial_biopsy'] == "No"){echo 'checked="checked"';}?> value="No" checked >
 
 										<label for="type2">No</label>
 
@@ -5100,46 +4531,37 @@ $countdownDuration = 7200;
 						</td>
 
 					</tr>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(8)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(9)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 9 -->
-					<!-- Step 10: Intervention & Management -->
-					<div class="form-step" id="step10" data-step="10">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 10: Intervention & Management</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
+
 					<tr>
 
 						<th style="color: red;">Intervention</th>
 
 						<td colspan="2">
-							<?php 
+
+							<?php //var_dump($patient_medical_info);die; 
+
 								$management_intervention = array();
-								if(isset($patient_medical_info['management_intervention']) && $patient_medical_info['management_intervention'] !== '' && $patient_medical_info['management_intervention'] !== null){
-									$unserialized = @unserialize($patient_medical_info['management_intervention']);
-									if($unserialized !== false && is_array($unserialized)){
-										$management_intervention = $unserialized;
-									}
+
+								if(!empty($patient_medical_info['management_intervention']) && isset($patient_medical_info['management_intervention'])){
+
+									$management_intervention = unserialize($patient_medical_info['management_intervention']);
+
 								}
+
 							?>
-							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('Natural', $management_intervention)){echo 'checked="checked"';}?> value="Natural"> NATURAL <br>
-							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('Medical', $management_intervention)){echo 'checked="checked"';}?> value="Medical"> Medical <br>
-							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('Surgical', $management_intervention)){echo 'checked="checked"';}?> value="Surgical"> Surgical <br>
-							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('IUI', $management_intervention)){echo 'checked="checked"';}?> value="IUI"> IUI <br>
-							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('ART', $management_intervention)){echo 'checked="checked"';}?> value="ART"> ART<br>
-							<input type="checkbox" name="management_intervention[]" <?php if(is_array($management_intervention) && in_array('Rejuvenation_techniques', $management_intervention)){echo 'checked="checked"';}?> value="Rejuvenation_techniques"> Rejuvenation techniques
+
+							<input type="checkbox" name="management_intervention[]" <?php if(in_array('Natural', $management_intervention)){echo 'checked="checked"';}?> value="Natural"> NATURAL <br>
+
+							<input type="checkbox" name="management_intervention[]" <?php if(in_array('Medical', $management_intervention)){echo 'checked="checked"';}?> value="Medical"> Medical <br>
+
+							<input type="checkbox" name="management_intervention[]" <?php if(in_array('Surgical', $management_intervention)){echo 'checked="checked"';}?> value="Surgical"> Surgical <br>
+
+							<input type="checkbox" name="management_intervention[]" <?php if(in_array('IUI', $management_intervention)){echo 'checked="checked"';}?> value="IUI"> IUI <br>
+
+							<input type="checkbox" name="management_intervention[]" <?php if(in_array('ART', $management_intervention)){echo 'checked="checked"';}?> value="ART"> ART<br>
+
+							<input type="checkbox" name="management_intervention[]" <?php if(in_array('Rejuvenation_techniques', $management_intervention)){echo 'checked="checked"';}?> value="Rejuvenation_techniques"> Rejuvenation techniques
+
 						</td>
 
 						<td></td>
@@ -5204,24 +4626,24 @@ $countdownDuration = 7200;
 								}?>
 								<select class="form-control multidselect_dropdown_2"  multiple="multiple" id="package_suggestion_list" name="package_suggestion_list[]" <?php echo $disabled; ?> required>
 									<?php
-							if (!isset($package_suggestion_list) || !is_array($package_suggestion_list)) {
-								$package_suggestion_list = [];
-							}
+if (!isset($package_suggestion_list) || !is_array($package_suggestion_list)) {
+    $package_suggestion_list = [];
+}
 
-							if (!empty($package)) {
-								foreach ($package as $key => $val) {
-									$selected = "";
-									if (in_array($val['ID'], $package_suggestion_list)) {
-										$selected = 'checked="checked"';
-									}
-							?>
-									<option value="<?php echo $val['procedure_ids']; ?>" <?php echo $selected; ?>>
-										<?php echo $val['package_name']; ?>
-									</option>
-							<?php
-								}
-							}
-							?>
+if (!empty($package)) {
+    foreach ($package as $key => $val) {
+        $selected = "";
+        if (in_array($val['ID'], $package_suggestion_list)) {
+            $selected = 'checked="checked"';
+        }
+?>
+        <option value="<?php echo $val['procedure_ids']; ?>" <?php echo $selected; ?>>
+            <?php echo $val['package_name']; ?>
+        </option>
+<?php
+    }
+}
+?>
 
 								</select>
 							</td>
@@ -5347,69 +4769,45 @@ $countdownDuration = 7200;
 					</tr>
 					
 					<tr>
-						<th style="color: red;">Provisional Diagnosis (ICD 10 CODES)  <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="provisional_diagnosis_suggestion" <?php if(isset($patient_medical_info['provisional_diagnosis_suggestion']) && $patient_medical_info['provisional_diagnosis_suggestion'] == "1"){echo 'checked="checked"';}?> value="1" name="provisional_diagnosis_suggestion" required /></th>
+						<th style="color: red;">Provisional Diagnosis (ICD 10 CODES)  <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="provisional_diagnosis_suggestion" <?php if(isset($patient_doctor_consultation['provisional_diagnosis']) && $patient_doctor_consultation['provisional_diagnosis'] == "1"){echo 'checked="checked"';}?> value="1" name="provisional_diagnosis_suggestion" required /></th>
 						<td>
 						<div class="col-sm-12 col-xs-12 role">
-							<?php $disabled = "disabled";  if(isset($patient_medical_info['provisional_diagnosis_suggestion']) && $patient_medical_info['provisional_diagnosis_suggestion'] == "1"){
-									$female_provisional_diagnosis_list = array();
-									if(isset($patient_medical_info['female_provisional_diagnosis_list']) && !empty($patient_medical_info['female_provisional_diagnosis_list'])){
-										$unserialized = @unserialize($patient_medical_info['female_provisional_diagnosis_list']);
-										if($unserialized !== false && is_array($unserialized)){
-											$female_provisional_diagnosis_list = $unserialized;
-										}
-									}
+							<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['provisional_diagnosis']) && $patient_doctor_consultation['provisional_diagnosis'] == "1"){
+									$female_provisional_diagnosis_list = unserialize($patient_doctor_consultation['female_provisional_diagnosis_list']); 
 									$disabled = "";
 									//var_dump($sub_procedure_suggestion_list);die;
 							}?>
 							<select class="multidselect_dropdown_1" multiple id="female_provisional_diagnosis_list" <?php echo $disabled; ?> name="female_provisional_diagnosis_list[]"  >
-								<?php if(!empty($consultation_provisional_diagnosis)) { 
-									foreach($consultation_provisional_diagnosis as $key => $val) { 
-										$selected = "";
-										if(isset($female_provisional_diagnosis_list) && is_array($female_provisional_diagnosis_list) && in_array($val['ID'], $female_provisional_diagnosis_list)){
-											$selected = 'selected="selected"';
-										}
-								?>
-										<option value="<?php echo $val['ID']; ?>" <?php echo $selected; ?>><?php echo $val['code']; ?> - <?php echo $val['name']; ?></option>
+								<?php if(!empty($consultation_provisional_diagnosis)) { foreach($consultation_provisional_diagnosis as $key => $val) { ?>
+										<option value="<?php echo $val['code']; ?> - <?php echo $val['name']; ?>"><?php echo $val['code']; ?> - <?php echo $val['name']; ?></option>
 								<?php  } } ?>
 							</select>
-							<?php if(isset($female_provisional_diagnosis_list) && !empty($female_provisional_diagnosis_list)): ?>
 							<script type='text/javascript'>
-								window.female_provisional_diagnosis_list_values = <?php echo json_encode($female_provisional_diagnosis_list); ?>;
+								$('#female_provisional_diagnosis_list').val(
+									<?php echo isset($female_provisional_diagnosis_list) ? json_encode($female_provisional_diagnosis_list) : '""'; ?> 
+								);
 							</script>
-							<?php endif; ?>
 
 						</div>
 						
 						</td>
 						<td>
 							<div class="col-sm-12 col-xs-12 role">
-								<?php $disabled = "disabled";  if(isset($patient_medical_info['provisional_diagnosis_suggestion']) && $patient_medical_info['provisional_diagnosis_suggestion'] == "1"){
-										$male_provisional_diagnosis_list = array();
-										if(isset($patient_medical_info['male_provisional_diagnosis_list']) && !empty($patient_medical_info['male_provisional_diagnosis_list'])){
-											$unserialized = @unserialize($patient_medical_info['male_provisional_diagnosis_list']);
-											if($unserialized !== false && is_array($unserialized)){
-												$male_provisional_diagnosis_list = $unserialized;
-											}
-										}
+								<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['provisional_diagnosis']) && $patient_doctor_consultation['provisional_diagnosis'] == "1"){
+										$male_provisional_diagnosis_list = unserialize($patient_doctor_consultation['male_provisional_diagnosis_list']); 
 										$disabled = "";
 										//var_dump($sub_procedure_suggestion_list);die;
 								}?>
 								<select class="multidselect_dropdown_1" multiple id="male_provisional_diagnosis_list" <?php echo $disabled; ?> name="male_provisional_diagnosis_list[]">
-									<?php if(!empty($consultation_provisional_diagnosis)) { 
-										foreach($consultation_provisional_diagnosis as $key => $val) { 
-											$selected = "";
-											if(isset($male_provisional_diagnosis_list) && is_array($male_provisional_diagnosis_list) && in_array($val['ID'], $male_provisional_diagnosis_list)){
-												$selected = 'selected="selected"';
-											}
-									?>
-											<option value="<?php echo $val['ID']; ?>" <?php echo $selected; ?>><?php echo $val['code']; ?> - <?php echo $val['name']; ?></option>
+									<?php if(!empty($consultation_provisional_diagnosis)) { foreach($consultation_provisional_diagnosis as $key => $val) { ?>
+											<option value="<?php echo $val['ID']; ?>"><?php echo $val['code']; ?> - <?php echo $val['name']; ?></option>
 									<?php  } } ?>
 								</select>
-								<?php if(isset($male_provisional_diagnosis_list) && !empty($male_provisional_diagnosis_list)): ?>
 								<script type='text/javascript'>
-									window.male_provisional_diagnosis_list_values = <?php echo json_encode($male_provisional_diagnosis_list); ?>;
+									$('#male_provisional_diagnosis_list').val(
+										<?php echo isset($male_provisional_diagnosis_list) ? json_encode($male_provisional_diagnosis_list) : '""'; ?>
+									);
 								</script>
-								<?php endif; ?>
 							</div>
 						</td>
 					</tr>
@@ -5504,21 +4902,15 @@ $countdownDuration = 7200;
 									$disabled = "";
 							}?>
 							<select class="multidselect_dropdown_1" multiple id="female_minvestigation_suggestion_list" <?php echo $disabled; ?> name="female_minvestigation_suggestion_list[]"  >
-								<?php if(!empty($master_investigations)) { 
-									foreach($master_investigations as $key => $val) { 
-										$selected = "";
-										if(isset($female_minvestigation_suggestion_list) && is_array($female_minvestigation_suggestion_list) && in_array($val['master_id'], $female_minvestigation_suggestion_list)){
-											$selected = 'selected="selected"';
-										}
-								?>
-										<option value="<?php echo $val['master_id']; ?>" <?php echo $selected; ?>><?php echo $val['investigation_name']; ?></option>
+								<?php if(!empty($master_investigations)) { foreach($master_investigations as $key => $val) { ?>
+										<option value="<?php echo $val['master_id']; ?>"><?php echo $val['investigation_name']; ?></option>
 								<?php  } } ?>
 							</select>
-							<?php if(isset($female_minvestigation_suggestion_list) && !empty($female_minvestigation_suggestion_list)): ?>
 							<script type='text/javascript'>
-								window.female_minvestigation_suggestion_list_values = <?php echo json_encode($female_minvestigation_suggestion_list); ?>;
+								$('#female_minvestigation_suggestion_list').val(
+									<?php echo isset($female_minvestigation_suggestion_list) ? json_encode($female_minvestigation_suggestion_list) : '""'; ?>
+								);
 							</script>
-							<?php endif; ?>
 						</div>
 						</td>
 						<td>
@@ -5528,21 +4920,15 @@ $countdownDuration = 7200;
 										$disabled = "";
 								}?>
 								<select class="multidselect_dropdown_1" multiple id="male_minvestigation_suggestion_list" <?php echo $disabled; ?> name="male_minvestigation_suggestion_list[]">
-									<?php if(!empty($master_investigations)) { 
-										foreach($master_investigations as $key => $val) { 
-											$selected = "";
-											if(isset($male_minvestigation_suggestion_list) && is_array($male_minvestigation_suggestion_list) && in_array($val['master_id'], $male_minvestigation_suggestion_list)){
-												$selected = 'selected="selected"';
-											}
-									?>
-											<option value="<?php echo $val['master_id']; ?>" <?php echo $selected; ?>><?php echo $val['investigation_name']; ?></option>
+									<?php if(!empty($master_investigations)) { foreach($master_investigations as $key => $val) { ?>
+											<option value="<?php echo $val['master_id']; ?>"><?php echo $val['investigation_name']; ?></option>
 									<?php  } } ?>
 								</select>
-								<?php if(isset($male_minvestigation_suggestion_list) && !empty($male_minvestigation_suggestion_list)): ?>
 								<script type='text/javascript'>
-									window.male_minvestigation_suggestion_list_values = <?php echo json_encode($male_minvestigation_suggestion_list); ?>;
+									$('#male_minvestigation_suggestion_list').val(
+										<?php echo isset($male_minvestigation_suggestion_list) ? json_encode($male_minvestigation_suggestion_list) : '""'; ?>
+									);
 								</script>
-								<?php endif; ?>
 							</div>
 						</td>
 					</tr>
@@ -5582,27 +4968,6 @@ $countdownDuration = 7200;
 						</td>
 					</tr>
 					<?php } ?>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(9)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(10)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 10 -->
-					
-					<!-- Step 11: Medicines Advised -->
-					<div class="form-step" id="step11" data-step="11">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 11: Medicines Advised</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
 					<?php if($appointments['partial_billing'] == 0){ ?>
 						<tr>
 							<th>MEDICINES ADVISED Opd <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="medicine_suggestion" value="1" <?php if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){echo 'checked="checked"';}?> name="medicine_suggestion"   /></th>
@@ -5610,13 +4975,7 @@ $countdownDuration = 7200;
 								<div class="col-sm-12 col-xs-12">
 									<?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
 										if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){
-											$female_medicine_suggestion_list = array();
-											if(isset($patient_doctor_consultation['female_medicine_suggestion_list']) && !empty($patient_doctor_consultation['female_medicine_suggestion_list'])){
-												$unserialized = @unserialize($patient_doctor_consultation['female_medicine_suggestion_list']);
-												if($unserialized !== false && is_array($unserialized)){
-													$female_medicine_suggestion_list = $unserialized;
-												}
-											}
+											$female_medicine_suggestion_list = unserialize($patient_doctor_consultation['female_medicine_suggestion_list']); 
 											$disabled = "";
 											$display="block";
 											if(!empty($female_medicine_suggestion_list['female_medicine_suggestion_list']) && isset($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
@@ -5644,16 +5003,9 @@ $countdownDuration = 7200;
 													<th style="border:1px solid #000; padding:10px;">Take</th>
 												</tr>
 												<tbody id="female_medicine_suggestion_table">
-													<?php if(!empty($female_medicine_suggestion_arr ) && !empty($female_medicine_suggestion_list)){
+													<?php if(!empty($female_medicine_suggestion_arr )){
 														$fmd_count = 1;
-														// Handle both nested and flat array structures
-														$medicine_list_to_loop = array();
-														if(isset($female_medicine_suggestion_list['female_medicine_suggestion_list']) && is_array($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
-															$medicine_list_to_loop = $female_medicine_suggestion_list['female_medicine_suggestion_list'];
-														} elseif(is_array($female_medicine_suggestion_list)){
-															$medicine_list_to_loop = $female_medicine_suggestion_list;
-														}
-														foreach($medicine_list_to_loop as $key => $val){
+														foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
 														?>
 														<tr style='border:1px solid #000;' count="<?php echo $fmd_count; ?>">
 															<td style='border:1px solid #000;'><?php echo get_medicine_name($val['female_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['female_medicine_name']?>' style='margin:0;padding:0;' name='female_medicine_name_<?php echo $fmd_count; ?>' id='female_medicine_name_<?php echo $fmd_count; ?>'></td>
@@ -5711,13 +5063,7 @@ $countdownDuration = 7200;
 								<div class="col-sm-12 col-xs-12">
 									<?php $disabled = "disabled"; $display="none"; $male_medicine_suggestion_arr = array(); 
 									if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){
-											$male_medicine_suggestion_list = array();
-											if(isset($patient_doctor_consultation['male_medicine_suggestion_list']) && !empty($patient_doctor_consultation['male_medicine_suggestion_list'])){
-												$unserialized = @unserialize($patient_doctor_consultation['male_medicine_suggestion_list']);
-												if($unserialized !== false && is_array($unserialized)){
-													$male_medicine_suggestion_list = $unserialized;
-												}
-											}
+											$male_medicine_suggestion_list = unserialize($patient_doctor_consultation['male_medicine_suggestion_list']); 
 											$disabled = "";
 											$display="block";
 											if(!empty($male_medicine_suggestion_list['male_medicine_suggestion_list']) && isset($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
@@ -5745,16 +5091,9 @@ $countdownDuration = 7200;
 													<th style="border:1px solid #000; padding:10px;">Take</th>
 												</tr>
 												<tbody id="male_medicine_suggestion_table">
-													<?php if(!empty($male_medicine_suggestion_arr ) && !empty($male_medicine_suggestion_list)){
+													<?php if(!empty($male_medicine_suggestion_arr )){
 														$mmd_count = 1;
-														// Handle both nested and flat array structures
-														$medicine_list_to_loop = array();
-														if(isset($male_medicine_suggestion_list['male_medicine_suggestion_list']) && is_array($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
-															$medicine_list_to_loop = $male_medicine_suggestion_list['male_medicine_suggestion_list'];
-														} elseif(is_array($male_medicine_suggestion_list)){
-															$medicine_list_to_loop = $male_medicine_suggestion_list;
-														}
-														foreach($medicine_list_to_loop as $key => $val){
+														foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
 														?>
 														<tr style='border:1px solid #000;' count="<?php echo $mmd_count; ?>">
 															<td style='border:1px solid #000;'><?php echo get_medicine_name($val['male_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['male_medicine_name']?>' style='margin:0;padding:0;' name='male_medicine_name_<?php echo $mmd_count; ?>' id='male_medicine_name_<?php echo $mmd_count; ?>'></td>
@@ -5816,28 +5155,12 @@ $countdownDuration = 7200;
 									<div class="col-sm-12 col-xs-12">
 										<?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
 											if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == "1"){
-												$female_medicine_suggestion_list = array();
-												if(isset($patient_doctor_consultation['female_medicine_suggestion_list_ipd']) && !empty($patient_doctor_consultation['female_medicine_suggestion_list_ipd'])){
-													$unserialized = @unserialize($patient_doctor_consultation['female_medicine_suggestion_list_ipd']);
-													if($unserialized !== false && is_array($unserialized)){
-														$female_medicine_suggestion_list = $unserialized;
-													}
-												}
+												$female_medicine_suggestion_list = unserialize($patient_doctor_consultation['female_medicine_suggestion_list_ipd']); 
 												$disabled = "";
 												$display="block";
-												// Handle both nested and flat array structures
-												if(isset($female_medicine_suggestion_list['female_medicine_suggestion_list']) && is_array($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
+												if(!empty($female_medicine_suggestion_list['female_medicine_suggestion_list']) && isset($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
 													foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
-														if(isset($val['female_medicine_name'])){
-															$female_medicine_suggestion_arr[] = $val['female_medicine_name'];
-														}
-													}
-												} elseif(is_array($female_medicine_suggestion_list)){
-													// Handle flat array structure (IPD format)
-													foreach($female_medicine_suggestion_list as $key => $val){
-														if(isset($val['female_medicine_name'])){
-															$female_medicine_suggestion_arr[] = $val['female_medicine_name'];
-														}
+														$female_medicine_suggestion_arr[] = $val['female_medicine_name'];
 													}
 												}
 										}?>
@@ -5860,16 +5183,9 @@ $countdownDuration = 7200;
 														<th style="border:1px solid #000; padding:10px;">Take</th>
 													</tr>
 													<tbody id="female_medicine_suggestion_table_ipd">
-														<?php if(!empty($female_medicine_suggestion_arr ) && !empty($female_medicine_suggestion_list)){
+														<?php if(!empty($female_medicine_suggestion_arr )){
 															$fmd_count = 1;
-															// Handle both nested and flat array structures
-															$medicine_list_to_loop = array();
-															if(isset($female_medicine_suggestion_list['female_medicine_suggestion_list']) && is_array($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
-																$medicine_list_to_loop = $female_medicine_suggestion_list['female_medicine_suggestion_list'];
-															} elseif(is_array($female_medicine_suggestion_list)){
-																$medicine_list_to_loop = $female_medicine_suggestion_list;
-															}
-															foreach($medicine_list_to_loop as $key => $val){
+															foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
 															?>
 															<tr style='border:1px solid #000;' count="<?php echo $fmd_count; ?>">
 																<td style='border:1px solid #000;'><?php echo get_medicine_name($val['female_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['female_medicine_name']?>' style='margin:0;padding:0;' name='female_medicine_name_ipd_<?php echo $fmd_count; ?>' id='female_medicine_name_ipd_<?php echo $fmd_count; ?>'></td>
@@ -5927,28 +5243,12 @@ $countdownDuration = 7200;
 									<div class="col-sm-12 col-xs-12">
 										<?php $disabled = "disabled"; $display="none"; $male_medicine_suggestion_arr = array(); 
 										if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == "1"){
-												$male_medicine_suggestion_list = array();
-												if(isset($patient_doctor_consultation['male_medicine_suggestion_list_ipd']) && !empty($patient_doctor_consultation['male_medicine_suggestion_list_ipd'])){
-													$unserialized = @unserialize($patient_doctor_consultation['male_medicine_suggestion_list_ipd']);
-													if($unserialized !== false && is_array($unserialized)){
-														$male_medicine_suggestion_list = $unserialized;
-													}
-												}
+												$male_medicine_suggestion_list = unserialize($patient_doctor_consultation['male_medicine_suggestion_list_ipd']); 
 												$disabled = "";
 												$display="block";
-												// Handle both nested and flat array structures
-												if(isset($male_medicine_suggestion_list['male_medicine_suggestion_list']) && is_array($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
+												if(!empty($male_medicine_suggestion_list['male_medicine_suggestion_list']) && isset($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
 													foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
-														if(isset($val['male_medicine_name'])){
-															$male_medicine_suggestion_arr[] = $val['male_medicine_name'];
-														}
-													}
-												} elseif(is_array($male_medicine_suggestion_list)){
-													// Handle flat array structure (IPD format)
-													foreach($male_medicine_suggestion_list as $key => $val){
-														if(isset($val['male_medicine_name'])){
-															$male_medicine_suggestion_arr[] = $val['male_medicine_name'];
-														}
+														$male_medicine_suggestion_arr[] = $val['male_medicine_name'];
 													}
 												}
 										}?>
@@ -5971,16 +5271,9 @@ $countdownDuration = 7200;
 														<th style="border:1px solid #000; padding:10px;">Take</th>
 													</tr>
 													<tbody id="male_medicine_suggestion_table_ipd">
-														<?php if(!empty($male_medicine_suggestion_arr ) && !empty($male_medicine_suggestion_list)){
+														<?php if(!empty($male_medicine_suggestion_arr )){
 															$mmd_count = 1;
-															// Handle both nested and flat array structures
-															$medicine_list_to_loop = array();
-															if(isset($male_medicine_suggestion_list['male_medicine_suggestion_list']) && is_array($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
-																$medicine_list_to_loop = $male_medicine_suggestion_list['male_medicine_suggestion_list'];
-															} elseif(is_array($male_medicine_suggestion_list)){
-																$medicine_list_to_loop = $male_medicine_suggestion_list;
-															}
-															foreach($medicine_list_to_loop as $key => $val){
+															foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
 															?>
 															<tr style='border:1px solid #000;' count="<?php echo $mmd_count; ?>">
 																<td style='border:1px solid #000;'><?php echo get_medicine_name($val['male_medicine_name']);?><input type='hidden'   readonly value='<?php echo $val['male_medicine_name']?>' style='margin:0;padding:0;' name='male_medicine_name_ipd_<?php echo $mmd_count; ?>' id='male_medicine_name_ipd_<?php echo $mmd_count; ?>'></td>
@@ -6044,27 +5337,12 @@ $countdownDuration = 7200;
                                 <div class="col-sm-12 col-xs-12">
                                     <?php $disabled = "disabled"; $display="none";$female_medicine_suggestion_arr = array(); 
                                             if(isset($patient_doctor_consultation['medicine_suggestion']) && $patient_doctor_consultation['medicine_suggestion'] == "1"){
-                                            $female_medicine_suggestion_list = array();
-                                            if(isset($patient_doctor_consultation['female_medicine_suggestion_list']) && !empty($patient_doctor_consultation['female_medicine_suggestion_list'])){
-                                                $unserialized = @unserialize($patient_doctor_consultation['female_medicine_suggestion_list']);
-                                                if($unserialized !== false && is_array($unserialized)){
-                                                    $female_medicine_suggestion_list = $unserialized;
-                                                }
-                                            }
+                                            $female_medicine_suggestion_list = unserialize($patient_doctor_consultation['female_medicine_suggestion_list']); 
                                             $disabled = "";
                                             $display="block";
-                                            if(isset($female_medicine_suggestion_list['female_medicine_suggestion_list']) && is_array($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
+                                            if(!empty($female_medicine_suggestion_list['female_medicine_suggestion_list']) && isset($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
                                                 foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
-                                                    if(isset($val['female_medicine_name'])){
-                                                        $female_medicine_suggestion_arr[] = $val['female_medicine_name'];
-                                                    }
-                                                }
-                                            } elseif(is_array($female_medicine_suggestion_list)){
-                                                // Handle flat array structure
-                                                foreach($female_medicine_suggestion_list as $key => $val){
-                                                    if(isset($val['female_medicine_name'])){
-                                                        $female_medicine_suggestion_arr[] = $val['female_medicine_name'];
-                                                    }
+                                                    $female_medicine_suggestion_arr[] = $val['female_medicine_name'];
                                                 }
                                             }
                                     }?>
@@ -6081,16 +5359,9 @@ $countdownDuration = 7200;
                                                     <th style="border:1px solid #000; padding:10px;">Take</th>
                                                 </tr>
                                                 <tbody id="female_medicine_suggestion_table">
-                                                    <?php if(!empty($female_medicine_suggestion_arr ) && !empty($female_medicine_suggestion_list)){
+                                                    <?php if(!empty($female_medicine_suggestion_arr )){
                                                         $fmd_count = 1;
-                                                        // Handle both nested and flat array structures
-                                                        $medicine_list_to_loop = array();
-                                                        if(isset($female_medicine_suggestion_list['female_medicine_suggestion_list']) && is_array($female_medicine_suggestion_list['female_medicine_suggestion_list'])){
-                                                            $medicine_list_to_loop = $female_medicine_suggestion_list['female_medicine_suggestion_list'];
-                                                        } elseif(is_array($female_medicine_suggestion_list)){
-                                                            $medicine_list_to_loop = $female_medicine_suggestion_list;
-                                                        }
-                                                        foreach($medicine_list_to_loop as $key => $val){
+                                                        foreach($female_medicine_suggestion_list['female_medicine_suggestion_list'] as $key => $val){
                                                             ?>
                                                         <tr style='border:1px solid #000;' count="<?php echo $fmd_count; ?>">
                                                             <td style='border:1px solid #000;'><?php echo get_medicine_name($val['female_medicine_name']);?></td>
@@ -6142,16 +5413,9 @@ $countdownDuration = 7200;
                                                     <th style="border:1px solid #000; padding:10px;">Take</th>
                                                 </tr>
                                                 <tbody id="male_medicine_suggestion_table">
-                                                    <?php if(!empty($male_medicine_suggestion_arr ) && !empty($male_medicine_suggestion_list)){
+                                                    <?php if(!empty($male_medicine_suggestion_arr )){
                                                         $mmd_count = 1;
-                                                        // Handle both nested and flat array structures
-                                                        $medicine_list_to_loop = array();
-                                                        if(isset($male_medicine_suggestion_list['male_medicine_suggestion_list']) && is_array($male_medicine_suggestion_list['male_medicine_suggestion_list'])){
-                                                            $medicine_list_to_loop = $male_medicine_suggestion_list['male_medicine_suggestion_list'];
-                                                        } elseif(is_array($male_medicine_suggestion_list)){
-                                                            $medicine_list_to_loop = $male_medicine_suggestion_list;
-                                                        }
-                                                        foreach($medicine_list_to_loop as $key => $val){
+                                                        foreach($male_medicine_suggestion_list['male_medicine_suggestion_list'] as $key => $val){
                                                             //var_dump($val);die;?>
                                                             <tr style='border:1px solid #000;' count="<?php echo $mmd_count; ?>">
                                                                 <td style='border:1px solid #000;'><?php echo get_medicine_name($val['male_medicine_name']);?></td>
@@ -6179,42 +5443,16 @@ $countdownDuration = 7200;
                             </td>
                         </tr>
 					<?php } ?>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(10)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(11)">Save & Continue</button>
-					</div>
-					</div>
-					<!-- End Step 11 -->
-					
-					<!-- Step 12: Procedures & Final -->
-					<div class="form-step" id="step12" data-step="12">
-						<h4 style="color: #337ab7; margin-bottom: 20px; border-bottom: 2px solid #337ab7; padding-bottom: 10px;">Step 12: Follow Up & Final</h4>
-						<table id="example1" class="table table-bordered table-striped">
-							<thead>
-							<tr>
-								<th></th>
-								<th style="color: #d9534f; font-weight: bold;">Patient</th>
-								<th style="color: #d9534f; font-weight: bold;">Spouse</th>
-							</tr>
-							</thead>
-							<tbody>
 					<tr>
-						<th>NEXT FOLLOW UP <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="follow_up" value="1" <?php if(isset($patient_doctor_consultation['follow_up']) && $patient_doctor_consultation['follow_up'] == "1"){echo 'checked="checked"';}?> name="follow_up" /></th>
+						<th>NEXT FOLLOW UP <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="hidden" id="follow_up" checked value="1" name="follow_up" /></th>
 						<td colspan="2">
 							<div class="row">            
 								<div class="form-group col-sm-6 col-xs-12 role">
 									<label for="statuss">Centre (Required)</label>
 									<select name="appoitment_for"   class="empty-field" id="appoitment_for">
-										<option value="">Select Centre</option>
-										<?php 
-										$centers = $all_method->get_center_list(); 
-										$selected_center = isset($appointments['appoitment_for']) ? $appointments['appoitment_for'] : (isset($center_number) ? $center_number : '');
-										foreach($centers as $key => $center_item){
-											$selected = ($selected_center == $center_item['center_number']) ? 'selected="selected"' : '';
-										?>
-										<option value="<?php echo $center_item['center_number']; ?>" <?php echo $selected; ?>><?php echo $center_item['center_name']; ?></option>
+										<option value="<?php echo $center['center_number']; ?>"><?php echo $center['center_name']; ?></option>
+										<?php $center = $all_method->get_center_list(); foreach($center as $key => $center){?>
+										<option value="<?php echo $center['center_number']; ?>"><?php echo $center['center_name']; ?></option>
 										<?php } ?>
 									</select>
 								</div>
@@ -6222,7 +5460,7 @@ $countdownDuration = 7200;
 								<div class="row appoitmented_doctor" style="display:none;">            
 									<div class="form-group col-sm-6 col-xs-12 role">
 										<label for="statuss">Doctor (Required)</label>
-										<select name="appoitmented_doctor" disabled class="empty-field" id="appoitmented_doctor" required>
+										<select name="appoitmented_doctor" disabled class="empty-field" id="appoitmented_doctor">
 											<option value="">Select</option>
 										</select>
 									</div>
@@ -6230,7 +5468,7 @@ $countdownDuration = 7200;
 								<div class="row appoitmented_date" style="display:none;">            
 									<div class="form-group col-sm-6 col-xs-12 role">
 										<label for="statuss">Appointment date (Required)</label>
-										<input value="" id="appoitmented_date" disabled autocomplete="off" name="follow_up_date" type="text" class="form-control empty-field validate" required>
+										<input value="" id="appoitmented_date" disabled autocomplete="off" name="follow_up_date" type="text" class="form-control empty-field validate" >
 									</div>
 								</div>
 								
@@ -6241,7 +5479,7 @@ $countdownDuration = 7200;
 
 										<label for="statuss">Appoitmented_slot (Required)</label>
 
-										<select name="appoitmented_slot" disabled class="empty-field" id="appoitmented_slot" required>
+										<select name="appoitmented_slot" disabled class="empty-field" id="appoitmented_slot">
 
 											<option value="">Select</option>
 
@@ -6270,25 +5508,13 @@ $countdownDuration = 7200;
 					</tr>
             </thead>
               </table>
-						</tbody>
-					</table>
-					<div class="step-navigation-buttons">
-						<button type="button" class="btn-step-prev" onclick="goToStep(11)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(12)">Save & Continue</button>
-						<button type="button" id="save_exit-button" class="btn btn-primary">Save & Exit</button>
-						<?php if($_SESSION['logged_doctor']['junior_doctor'] == 0){ ?>
-							<button type="button" id="exit-button" class="btn btn-primary pull-right">Submit</button>
-						<?php } ?>
-					</div>
-					</div>
-					<!-- End Step 12 -->
-			<div class="card-footer" style="display:none;">
+			<div class="card-footer">
 
-				<button type="button" id="save_exit-button-old" class="btn btn-primary">Save & Exit</button>
+				<button type="button" id="save_exit-button" class="btn btn-primary">Save & Exit</button>
 
 				<?php if($_SESSION['logged_doctor']['junior_doctor'] == 0){ ?>
 
-					<button type="button" id="exit-button-old" class="btn btn-primary pull-right">Submit</button>
+					<button type="button" id="exit-button" class="btn btn-primary pull-right">Submit</button>
 
 				<?php } ?>
 
@@ -6307,484 +5533,6 @@ $countdownDuration = 7200;
 </form>
 
 <script>
-	// Multi-Step Form Navigation
-	// Get appointment ID to make localStorage keys unique per appointment
-	var appointmentId = $('input[name="appointment_id"]').val() || 'default';
-	var followupStoragePrefix = 'followup_' + appointmentId + '_';
-	
-	var currentStep = 1;
-	var totalSteps = 12;
-	
-	// Initialize step navigation
-	$(document).ready(function() {
-		// Step navigation click handlers
-		$('.step-nav-item').click(function() {
-			var step = $(this).data('step');
-			// Check if navigation to this step is allowed
-			if (canNavigateToStep(step)) {
-				goToStep(step);
-			} else {
-				// Show alert if trying to navigate to unsaved step
-				alert('Please save the current step before navigating to another step.');
-			}
-		});
-		
-		// Show first step by default
-		showStep(1);
-		
-		// Initialize step navigation states on page load
-		updateStepNavigationStates(1);
-	});
-	
-	// Function to check if user can navigate to a specific step
-	function canNavigateToStep(targetStep) {
-		// Always allow navigation to step 1
-		if (targetStep === 1) {
-			return true;
-		}
-		
-		// Get current step
-		var currentStep = parseInt($('.step-nav-item.active').data('step')) || 1;
-		
-		// Allow navigation to current step (no change)
-		if (targetStep === currentStep) {
-			return true;
-		}
-		
-		// Allow navigation backward to any previous step (user can go back to edit)
-		if (targetStep < currentStep) {
-			return true;
-		}
-		
-		// For forward navigation, check if current step is completed
-		if (targetStep > currentStep) {
-			var currentStepElement = $('.step-nav-item[data-step="' + currentStep + '"]');
-			if (currentStepElement.hasClass('completed')) {
-				// Current step is saved, allow navigation to next step
-				// But also check if all intermediate steps are completed
-				for (var i = currentStep + 1; i < targetStep; i++) {
-					var intermediateStepElement = $('.step-nav-item[data-step="' + i + '"]');
-					if (!intermediateStepElement.hasClass('completed')) {
-						alert('Please complete step ' + i + ' before proceeding to step ' + targetStep + '.');
-						return false;
-					}
-				}
-				return true;
-			} else {
-				// Current step is not saved
-				alert('Please save step ' + currentStep + ' before proceeding to step ' + targetStep + '.');
-				return false;
-			}
-		}
-		
-		return false;
-	}
-	
-	// Function to navigate to a specific step
-	function goToStep(step) {
-		if (step >= 1 && step <= totalSteps) {
-			showStep(step);
-			currentStep = step;
-		}
-	}
-	
-	// Function to show a specific step
-	function showStep(step) {
-		// Hide all steps
-		$('.form-step').removeClass('active');
-		
-		// Show selected step
-		$('#step' + step).addClass('active');
-		
-		// Update navigation highlighting
-		$('.step-nav-item').removeClass('active');
-		$('.step-nav-item[data-step="' + step + '"]').addClass('active');
-		
-		// Update disabled state for step navigation items
-		updateStepNavigationStates(step);
-		
-		// Reset all save buttons to enabled state
-		$('.btn-step-save-continue').prop('disabled', false).text('Save & Continue');
-		
-		// Update progress bar
-		var progress = (step / totalSteps) * 100;
-		$('#stepProgressBar').css('width', progress + '%');
-		
-		// Scroll to top of form
-		$('html, body').animate({
-			scrollTop: $('.form-steps-nav').offset().top - 20
-		}, 300);
-		
-		// Restore saved follow-up appointment selections when step 12 is shown
-		if(step == 12){
-			restoreFollowUpSelections();
-		}
-	}
-	
-	// Function to update disabled states of step navigation items
-	function updateStepNavigationStates(currentStep) {
-		// Remove disabled class from all items first
-		$('.step-nav-item').removeClass('disabled');
-		
-		// Loop through all steps
-		for (var i = 1; i <= totalSteps; i++) {
-			var stepElement = $('.step-nav-item[data-step="' + i + '"]');
-			
-			// Step 1 is always accessible
-			if (i === 1) {
-				continue;
-			}
-			
-			// Current step is always accessible
-			if (i === currentStep) {
-				continue;
-			}
-			
-			// All previous steps (going back) are always accessible for editing
-			if (i < currentStep) {
-				continue;
-			}
-			
-			// For steps after current step, check if current step is completed
-			if (i > currentStep) {
-				var currentStepElement = $('.step-nav-item[data-step="' + currentStep + '"]');
-				if (!currentStepElement.hasClass('completed')) {
-					// Current step is not saved, disable future steps
-					stepElement.addClass('disabled');
-				} else {
-					// Current step is saved, check if all intermediate steps are completed
-					var allIntermediateCompleted = true;
-					for (var j = currentStep + 1; j < i; j++) {
-						var intermediateStep = $('.step-nav-item[data-step="' + j + '"]');
-						if (!intermediateStep.hasClass('completed')) {
-							allIntermediateCompleted = false;
-							break;
-						}
-					}
-					if (!allIntermediateCompleted) {
-						stepElement.addClass('disabled');
-					}
-				}
-			}
-		}
-	}
-	
-	// Function to restore saved follow-up appointment selections
-	function restoreFollowUpSelections() {
-		// Only restore if follow_up checkbox is checked
-		if($('#follow_up').is(':checked')){
-			var savedCentre = localStorage.getItem(followupStoragePrefix + 'centre');
-			var savedDoctor = localStorage.getItem(followupStoragePrefix + 'doctor');
-			var savedDate = localStorage.getItem(followupStoragePrefix + 'date');
-			var savedSlot = localStorage.getItem(followupStoragePrefix + 'slot');
-			
-			if(savedCentre && savedCentre != ''){
-				// Restore centre selection
-				$('#appoitment_for').val(savedCentre);
-				
-				// Load doctors for the selected centre
-				$('#loader_div').show();
-				$.ajax({
-					url: '<?php echo base_url('billingcontroller/search_doctor')?>',
-					data: {centre_id:savedCentre},
-					dataType: 'json',
-					method:'post',
-					success: function(data) {
-						$('#appoitmented_doctor').empty().append(data);
-						$("#appoitmented_doctor").prop('required',true);
-						$("#appoitmented_doctor").prop('disabled',false);
-						$('div.appoitmented_doctor').show();
-						
-						// Restore doctor selection
-						if(savedDoctor && savedDoctor != ''){
-							$('#appoitmented_doctor').val(savedDoctor);
-							
-							// Enable and show date field
-							$("#appoitmented_date").prop('required',true);
-							$("#appoitmented_date").prop('disabled',false);
-							$('div.appoitmented_date').show();
-							
-							// Restore date selection
-							if(savedDate && savedDate != ''){
-								$('#appoitmented_date').val(savedDate);
-								
-								// Load slots for the selected date and doctor
-								$.ajax({
-									url: '<?php echo base_url('billingcontroller/doctor_slots')?>',
-									type: 'POST',
-									data: {selected:savedDate, appoitmented_doctor:savedDoctor},
-									success: function(data) {
-										$('#appoitmented_slot').empty().append(data);
-										$("#appoitmented_slot").prop('required',true);
-										$("#appoitmented_slot").prop('disabled',false);
-										$('div.appoitmented_slot').show();
-										
-										// Restore slot selection
-										if(savedSlot && savedSlot != ''){
-											$('#appoitmented_slot').val(savedSlot);
-										}
-										$('#loader_div').hide();
-									}
-								});
-							} else {
-								$('#loader_div').hide();
-							}
-						} else {
-							$('#loader_div').hide();
-						}
-					}
-				});
-			}
-		}
-	}
-	
-	// Function to save and continue to next step
-	var isProcessing = false; // Flag to prevent double-clicks
-	function saveAndContinue(step) {
-		// Prevent double-clicks
-		if (isProcessing) {
-			return false;
-		}
-		
-		// Set processing flag
-		isProcessing = true;
-		
-		// Disable the button to prevent multiple clicks
-		var saveButton = $('#step' + step).find('.btn-step-save-continue');
-		saveButton.prop('disabled', true).text('Saving...');
-		
-		// Validate current step - STRICT validation for Step 1
-		var isValid = true;
-		var missingFields = [];
-		
-		// Get all required fields in current step
-		var currentStepElement = $('#step' + step);
-		var requiredFields = currentStepElement.find('input[required], select[required], textarea[required]');
-		
-		// Strict validation - check all required fields
-		requiredFields.each(function() {
-			var $field = $(this);
-			var fieldValue = $field.val();
-			var fieldName = $field.attr('name') || $field.attr('id');
-			
-			// Convert fieldValue to string and trim (handle null, undefined, numbers, etc.)
-			var fieldValueStr = (fieldValue != null) ? String(fieldValue).trim() : '';
-			
-			// Check if field is visible and empty
-			if ($field.is(':visible') && (!fieldValue || fieldValueStr === '')) {
-				isValid = false;
-				$field.css('border-color', 'red');
-				missingFields.push(fieldName);
-			} else {
-				$field.css('border-color', '');
-			}
-			
-			// Special validation for select fields
-			if ($field.is('select') && fieldValue === '') {
-				isValid = false;
-				$field.css('border-color', 'red');
-				missingFields.push(fieldName);
-			}
-		});
-		
-		if (!isValid) {
-			var errorMsg = 'Please fill in all required fields before continuing.';
-			if (step === 1) {
-				errorMsg = 'Please complete all required fields in Step 1 before proceeding. Missing: ' + missingFields.join(', ');
-			}
-			alert(errorMsg);
-			// Re-enable button on validation failure
-			isProcessing = false;
-			saveButton.prop('disabled', false).text('Save & Continue');
-			return;
-		}
-		
-		// Save data to database before moving to next step
-		saveDataToDatabase(function(success) {
-			if (success) {
-				// Mark current step as completed
-				$('.step-nav-item[data-step="' + step + '"]').addClass('completed');
-				
-				// Update step navigation states to enable next step
-				updateStepNavigationStates(step);
-				
-				// Save form data to localStorage (optional - for auto-save)
-				saveFormData();
-				
-				// Move to next step
-				if (step < totalSteps) {
-					// Reset processing flag before navigating
-					isProcessing = false;
-					goToStep(step + 1);
-				} else {
-					// Last step - show final buttons
-					alert('You have completed all steps! You can now submit the form.');
-					// Reset processing flag
-					isProcessing = false;
-					saveButton.prop('disabled', false).text('Save & Continue');
-				}
-			} else {
-				alert('Failed to save data. Please try again.');
-				isProcessing = false;
-				saveButton.prop('disabled', false).text('Save & Continue');
-			}
-		});
-	}
-	
-	// Function to save data to database via AJAX
-	function saveDataToDatabase(callback) {
-		// Get form data but exclude action and submit_type fields
-		var formData = new FormData();
-		var form = $('#consultation_done_form')[0];
-		
-		// Track processed radio button names to avoid duplicates
-		var processedRadios = {};
-		
-		// Add all form fields except excluded ones
-		$(form).find('input, select, textarea').each(function() {
-			var $field = $(this);
-			var name = $field.attr('name');
-			var type = $field.attr('type');
-			
-			// Skip excluded fields
-			if (name && name !== 'action' && name !== 'submit_type') {
-				if (type === 'checkbox') {
-					// Handle checkboxes - only send if checked
-					if ($field.is(':checked')) {
-						// For checkboxes with same name (arrays), append multiple values
-						if (formData.has(name)) {
-							// If already exists, it's an array - append to existing
-							var existing = formData.getAll(name);
-							formData.delete(name);
-							existing.forEach(function(val) {
-								formData.append(name, val);
-							});
-							formData.append(name, $field.val());
-						} else {
-							formData.append(name, $field.val());
-						}
-					}
-				} else if (type === 'radio') {
-					// Handle radio buttons - only send checked one per name
-					if ($field.is(':checked') && !processedRadios[name]) {
-						formData.append(name, $field.val());
-						processedRadios[name] = true;
-					}
-				} else if (type === 'file') {
-					// Handle file inputs if needed
-					if ($field[0].files.length > 0) {
-						formData.append(name, $field[0].files[0]);
-					}
-				} else {
-					// Regular input, select, textarea
-					formData.append(name, $field.val() || '');
-				}
-			}
-		});
-		
-		$.ajax({
-			url: '<?php echo base_url("doctors/save_patient_medical_info_live"); ?>',
-			type: 'POST',
-			data: formData,
-			processData: false,
-			contentType: false,
-			success: function(response) {
-				try {
-					var result = typeof response === 'string' ? JSON.parse(response) : response;
-					if (result.status === 'success') {
-						if (callback) callback(true);
-					} else {
-						console.error('Save error:', result.message);
-						if (callback) callback(false);
-					}
-				} catch (e) {
-					console.error('Parse error:', e);
-					if (callback) callback(false);
-				}
-			},
-			error: function(xhr, status, error) {
-				console.error('AJAX error:', error);
-				if (callback) callback(false);
-			}
-		});
-	}
-	
-	// Auto-save functionality with debouncing - INSTANT SAVE
-	var autoSaveTimer = null;
-	var autoSaveDelay = 500; // 500ms delay for instant save
-	
-	function autoSaveData() {
-		// Clear existing timer
-		if (autoSaveTimer) {
-			clearTimeout(autoSaveTimer);
-		}
-		
-		// Set new timer
-		autoSaveTimer = setTimeout(function() {
-			saveDataToDatabase(function(success) {
-				if (success) {
-					// Show subtle save indicator
-					var saveIndicator = $('#auto-save-indicator');
-					if (saveIndicator.length === 0) {
-						$('body').append('<div id="auto-save-indicator" style="position:fixed;bottom:20px;right:20px;background:#28a745;color:white;padding:10px 20px;border-radius:5px;z-index:9999;display:none;">Saved</div>');
-						saveIndicator = $('#auto-save-indicator');
-					}
-					saveIndicator.fadeIn().delay(2000).fadeOut();
-				}
-			});
-		}, autoSaveDelay);
-	}
-	
-	// Attach auto-save to all form fields
-	$(document).ready(function() {
-		// Auto-save on input change
-		$('#consultation_done_form').on('input change', 'input, select, textarea', function() {
-			autoSaveData();
-		});
-		
-		// Auto-save on radio/checkbox change
-		$('#consultation_done_form').on('change', 'input[type="radio"], input[type="checkbox"]', function() {
-			autoSaveData();
-		});
-	});
-	
-	// Function to save form data to localStorage
-	function saveFormData() {
-		var formData = {};
-		$('#consultation_done_form').find('input, select, textarea').each(function() {
-			var name = $(this).attr('name');
-			if (name) {
-				if ($(this).is(':checkbox') || $(this).is(':radio')) {
-					if ($(this).is(':checked')) {
-						if (!formData[name]) {
-							formData[name] = [];
-						}
-						formData[name].push($(this).val());
-					}
-				} else {
-					formData[name] = $(this).val();
-				}
-			}
-		});
-		localStorage.setItem('consultation_form_data', JSON.stringify(formData));
-	}
-	
-	// Function to load saved form data (optional - for page reload)
-	function loadFormData() {
-		var savedData = localStorage.getItem('consultation_form_data');
-		if (savedData) {
-			var formData = JSON.parse(savedData);
-			$.each(formData, function(name, value) {
-				var field = $('[name="' + name + '"]');
-				if (field.is(':checkbox') || field.is(':radio')) {
-					field.filter('[value="' + value + '"]').prop('checked', true);
-				} else {
-					field.val(value);
-				}
-			});
-		}
-	}
-	
         // Set the countdown duration from PHP
         var countdownDuration = <?php echo $countdownDuration; ?>;
         var countdownForm = document.getElementById('countdownForm');
@@ -6824,32 +5572,7 @@ $countdownDuration = 7200;
 
 <script>
 function submitForm() {
-	// Validate follow-up appointment fields if follow_up is checked
-	if($('#follow_up').is(':checked')){
-		var doctor = $('#appoitmented_doctor').val();
-		var date = $('#appoitmented_date').val();
-		var slot = $('#appoitmented_slot').val();
-		
-		if(!doctor || doctor == ''){
-			alert('Doctor is required for follow-up appointment.');
-			$('#appoitmented_doctor').focus();
-			return false;
-		}
-		
-		if(!date || date == ''){
-			alert('Appointment date is required for follow-up appointment.');
-			$('#appoitmented_date').focus();
-			return false;
-		}
-		
-		if(!slot || slot == ''){
-			alert('Appointment slot is required for follow-up appointment.');
-			$('#appoitmented_slot').focus();
-			return false;
-		}
-	}
-	
-	return confirm('Do you really want to submit the form?');
+  return confirm('Do you really want to submit the form?');
 }
 
 
@@ -6867,38 +5590,9 @@ $("#save_exit-button").click(function(){
 
 	var name;
 
-	// Validate follow-up appointment fields if follow_up is checked
-	if($('#follow_up').is(':checked')){
-		var doctor = $('#appoitmented_doctor').val();
-		var date = $('#appoitmented_date').val();
-		var slot = $('#appoitmented_slot').val();
-		
-		if(!doctor || doctor == ''){
-			fail = true;
-			fail_log += "Doctor is required for follow-up appointment.\n";
-		}
-		
-		if(!date || date == ''){
-			fail = true;
-			fail_log += "Appointment date is required for follow-up appointment.\n";
-		}
-		
-		if(!slot || slot == ''){
-			fail = true;
-			fail_log += "Appointment slot is required for follow-up appointment.\n";
-		}
-	}
-
 	$( 'form#consultation_done_form' ).find( 'select, textarea, input' ).each(function(){
-		// Skip follow-up appointment fields if follow_up is checked (already validated above)
-		if($('#follow_up').is(':checked')){
-			var fieldName = $(this).attr('name');
-			if(fieldName == 'appoitmented_doctor' || fieldName == 'follow_up_date' || fieldName == 'appoitmented_slot'){
-				return true; // Skip this field, already validated
-			}
-		}
 
-        if( ! $( this ).prop( 'required' )){
+        if( ! $( this ).prop( ' ' )){
 
 
 
@@ -6910,7 +5604,7 @@ $("#save_exit-button").click(function(){
 
                 name = $( this ).attr( 'name' );
 
-                fail_log += name + " is required\n";
+                fail_log += name + " is   \n";
 
             }
 
@@ -6944,38 +5638,8 @@ $("#exit-button").click(function(){
 	var fail = false;
 	var fail_log = '';
 	var name;
-	// Validate follow-up appointment fields if follow_up is checked
-	if($('#follow_up').is(':checked')){
-		var doctor = $('#appoitmented_doctor').val();
-		var date = $('#appoitmented_date').val();
-		var slot = $('#appoitmented_slot').val();
-		
-		if(!doctor || doctor == ''){
-			fail = true;
-			fail_log += "Doctor is required for follow-up appointment.\n";
-		}
-		
-		if(!date || date == ''){
-			fail = true;
-			fail_log += "Appointment date is required for follow-up appointment.\n";
-		}
-		
-		if(!slot || slot == ''){
-			fail = true;
-			fail_log += "Appointment slot is required for follow-up appointment.\n";
-		}
-	}
-
 	$( 'form#consultation_done_form' ).find( 'select, textarea, input' ).each(function(){
-		// Skip follow-up appointment fields if follow_up is checked (already validated above)
-		if($('#follow_up').is(':checked')){
-			var fieldName = $(this).attr('name');
-			if(fieldName == 'appoitmented_doctor' || fieldName == 'follow_up_date' || fieldName == 'appoitmented_slot'){
-				return true; // Skip this field, already validated
-			}
-		}
-
-        if( ! $( this ).prop( 'required' )){
+        if( ! $( this ).prop( ' ' )){
         } else {
             if ( ! $( this ).val() ) {
 
@@ -6983,7 +5647,7 @@ $("#exit-button").click(function(){
 
                 name = $( this ).attr( 'name' );
 
-                fail_log += name + " is required\n";
+                fail_log += name + " is   \n";
 
             }
 
@@ -7115,16 +5779,6 @@ $('#appoitment_for').on("change", function() {
 
 	var centre_id = $(this).val();
 
-	// Save to localStorage
-	if(centre_id != ''){
-		localStorage.setItem(followupStoragePrefix + 'centre', centre_id);
-	} else {
-		localStorage.removeItem(followupStoragePrefix + 'centre');
-		localStorage.removeItem(followupStoragePrefix + 'doctor');
-		localStorage.removeItem(followupStoragePrefix + 'date');
-		localStorage.removeItem(followupStoragePrefix + 'slot');
-	}
-
 	if(centre_id != ''){
 
 		$.ajax({
@@ -7145,19 +5799,13 @@ $('#appoitment_for').on("change", function() {
 
 
 
-			$("#appoitmented_doctor").prop('required',true);
+			$("#appoitmented_doctor").prop(' ',true);
 
 			$("#appoitmented_doctor").prop('disabled',false);
 
 			
 
 			$('div.appoitmented_doctor').show();
-
-			// Restore saved doctor selection if available
-			var savedDoctor = localStorage.getItem(followupStoragePrefix + 'doctor');
-			if(savedDoctor && savedDoctor != ''){
-				$('#appoitmented_doctor').val(savedDoctor).trigger('change');
-			}
 
 			$('#loader_div').hide();			
 
@@ -7185,33 +5833,15 @@ $('#appoitmented_doctor').on("change", function() {
 
 	var doctor_id = $(this).val();
 
-	// Save to localStorage
-	if(doctor_id != ''){
-		localStorage.setItem(followupStoragePrefix + 'doctor', doctor_id);
-	} else {
-		localStorage.removeItem(followupStoragePrefix + 'doctor');
-		localStorage.removeItem(followupStoragePrefix + 'date');
-		localStorage.removeItem(followupStoragePrefix + 'slot');
-		$('input#appoitmented_date').val('');
-	}
+	$('input#appoitmented_date').val('');
 
 	if(doctor_id != ''){
 
-		$("#appoitmented_date").prop('required',true);
+		$("#appoitmented_date").prop(' ',true);
 
 		$("#appoitmented_date").prop('disabled',false);
 
 		$('div.appoitmented_date').show();
-
-		// Restore saved date if available
-		var savedDate = localStorage.getItem(followupStoragePrefix + 'date');
-		if(savedDate && savedDate != ''){
-			$('input#appoitmented_date').val(savedDate);
-			// Trigger datepicker to load slots
-			$("#appoitmented_date").datepicker('setDate', savedDate);
-		} else {
-			$('input#appoitmented_date').val('');
-		}
 
 	}else{
 
@@ -7245,9 +5875,6 @@ $( function() {
 
 				var appoitmented_doctor = $('#appoitmented_doctor').val();
 
-				// Save to localStorage
-				localStorage.setItem(followupStoragePrefix + 'date', startDate);
-
 				$.ajax({
 
 					url: '<?php echo base_url('billingcontroller/doctor_slots')?>',
@@ -7260,17 +5887,11 @@ $( function() {
 
 						$('#appoitmented_slot').empty().append(data);
 
-						$("#appoitmented_slot").prop('required',true);
+						$("#appoitmented_slot").prop(' ',true);
 
 						$("#appoitmented_slot").prop('disabled',false);
 
 						$('div.appoitmented_slot').show();
-
-						// Restore saved slot selection if available
-						var savedSlot = localStorage.getItem(followupStoragePrefix + 'slot');
-						if(savedSlot && savedSlot != ''){
-							$('#appoitmented_slot').val(savedSlot);
-						}
 
 						$('#loader_div').hide();
 
@@ -7284,25 +5905,7 @@ $( function() {
 
 } );
 
-// Save slot selection to localStorage
-$('#appoitmented_slot').on("change", function() {
-	var slot_id = $(this).val();
-	if(slot_id != ''){
-		localStorage.setItem(followupStoragePrefix + 'slot', slot_id);
-	} else {
-		localStorage.removeItem(followupStoragePrefix + 'slot');
-	}
-});
 
-// Restore saved follow-up appointment selections on page load
-$(document).ready(function() {
-	// Restore if we're on step 12 and follow_up is checked
-	if($('#step12').hasClass('active') || $('#step12').is(':visible')){
-		setTimeout(function() {
-			restoreFollowUpSelections();
-		}, 500); // Small delay to ensure form is fully loaded
-	}
-});
 
 $("#follow_up").change(function() {
 
@@ -7346,25 +5949,11 @@ $("#follow_up").change(function() {
 
 
 
-	// Clear localStorage when follow-up is unchecked
-	if(!this.checked) {
-		localStorage.removeItem(followupStoragePrefix + 'centre');
-		localStorage.removeItem(followupStoragePrefix + 'doctor');
-		localStorage.removeItem(followupStoragePrefix + 'date');
-		localStorage.removeItem(followupStoragePrefix + 'slot');
-	}
-
 	if(this.checked) {
 
-		$("#appoitment_for").prop('required',true);
+		$("#appoitment_for").prop(' ',true);
 
 		$("#appoitment_for").prop('disabled',false);
-		
-		// Restore saved values if available
-		var savedCentre = localStorage.getItem(followupStoragePrefix + 'centre');
-		if(savedCentre && savedCentre != ''){
-			$('#appoitment_for').val(savedCentre).trigger('change');
-		}
 
 	}
 
@@ -7439,134 +6028,134 @@ $( function() {
 
 
 $("#medicine_suggestion").change(function() {
-	// If unchecked, disable and clear selections
-	if(!this.checked) {
-		// Male Medicine
-		$('option', $('#male_medicine_suggestion_list')).each(function() {
-			$(this).removeAttr('selected').prop('selected', false);
-		});
-		$("select#male_medicine_suggestion_list").prop('disabled', true);
-		$("select#male_medicine_suggestion_list").parent().find('button').prop('disabled', true);
-		$("select#male_medicine_suggestion_list").parent().find('button').addClass('disabled');
-		if($("#male_medicine_suggestion_list").data('multiselect')) {
-			$("#male_medicine_suggestion_list").multiselect('refresh');
-		}
-		
-		// Female Medicine
-		$('option', $('#female_medicine_suggestion_list')).each(function() {
-			$(this).removeAttr('selected').prop('selected', false);
-		});
-		$("select#female_medicine_suggestion_list").prop('disabled', true);
-		$("select#female_medicine_suggestion_list").parent().find('button').prop('disabled', true);
-		$("select#female_medicine_suggestion_list").parent().find('button').addClass('disabled');
-		if($("#female_medicine_suggestion_list").data('multiselect')) {
-			$("#female_medicine_suggestion_list").multiselect('refresh');
-		}
-	}
+
+//Male Investigation
+
+$("select#male_medicine_suggestion_list").prop('disabled',true);
+
+$("select#male_medicine_suggestion_list").parent().find('button').prop('disabled',true);
+
+$("select#male_medicine_suggestion_list").parent().find('button').addClass('disabled');
+
+$('option', $('#male_medicine_suggestion_list')).each(function(element) {
+
+	$(this).removeAttr('selected').prop('selected', false);
+
+});
+
+$("#male_medicine_suggestion_list").multiselect('refresh');	
+
+$("select#male_medicine_suggestion_list").prop('disabled',false);
+
+//Female Investigation
+
+$("select#female_medicine_suggestion_list").prop('disabled',true);
+
+$("select#female_medicine_suggestion_list").parent().find('button').prop('disabled',true);
+
+$("select#female_medicine_suggestion_list").parent().find('button').addClass('disabled');
+
+$('option', $('#female_medicine_suggestion_list')).each(function(element) {
+
+	$(this).removeAttr('selected').prop('selected', false);
+
+});
+
+$("#female_medicine_suggestion_list").multiselect('refresh');	
+
+$("select#female_medicine_suggestion_list").prop('disabled',false);
 
 
 
 if(this.checked) {
-	// Male Medicine - Enable and rebuild multiselect
-	$("select#male_medicine_suggestion_list").prop('disabled', false);
-	$("select#male_medicine_suggestion_list").parent().find('button').prop('disabled', false);
+
+	//Male Investigation
+
+	$("select#male_medicine_suggestion_list").prop('disabled',false);
+
+	$("select#male_medicine_suggestion_list").prop('disabled',false);
+
+	$("select#male_medicine_suggestion_list").parent().find('button').prop('disabled',false);
+
 	$("select#male_medicine_suggestion_list").parent().find('button').removeClass('disabled');
-	// Rebuild multiselect to show options properly
-	setTimeout(function() {
-		if($("#male_medicine_suggestion_list").data('multiselect')) {
-			$("#male_medicine_suggestion_list").multiselect('rebuild');
-		} else {
-			$("#male_medicine_suggestion_list").multiselect({
-				includeSelectAllOption: true,
-				enableFiltering: true,
-				enableCaseInsensitiveFiltering: true
-			});
-		}
-	}, 100);
-	
-	// Female Medicine - Enable and rebuild multiselect
-	$("select#female_medicine_suggestion_list").prop('disabled', false);
-	$("select#female_medicine_suggestion_list").parent().find('button').prop('disabled', false);
+
+	//Female Investigation
+
+	$("select#female_medicine_suggestion_list").prop('disabled',true);
+
+	$("select#female_medicine_suggestion_list").prop('disabled',false);
+
+	$("select#female_medicine_suggestion_list").parent().find('button').prop('disabled',false);
+
 	$("select#female_medicine_suggestion_list").parent().find('button').removeClass('disabled');
-	// Rebuild multiselect to show options properly
-	setTimeout(function() {
-		if($("#female_medicine_suggestion_list").data('multiselect')) {
-			$("#female_medicine_suggestion_list").multiselect('rebuild');
-		} else {
-			$("#female_medicine_suggestion_list").multiselect({
-				includeSelectAllOption: true,
-				enableFiltering: true,
-				enableCaseInsensitiveFiltering: true
-			});
-		}
-	}, 100);
+
 }
 
 });
 
 // IPD Medicine Suggestion Handler
 $("#medicine_suggestion_ipd").change(function() {
-	// If unchecked, disable and clear selections
-	if(!this.checked) {
-		// Male Medicine IPD
-		$('option', $('#male_medicine_suggestion_list_ipd')).each(function() {
-			$(this).removeAttr('selected').prop('selected', false);
-		});
-		$("select#male_medicine_suggestion_list_ipd").prop('disabled', true);
-		$("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled', true);
-		$("select#male_medicine_suggestion_list_ipd").parent().find('button').addClass('disabled');
-		if($("#male_medicine_suggestion_list_ipd").data('multiselect')) {
-			$("#male_medicine_suggestion_list_ipd").multiselect('refresh');
-		}
-		
-		// Female Medicine IPD
-		$('option', $('#female_medicine_suggestion_list_ipd')).each(function() {
-			$(this).removeAttr('selected').prop('selected', false);
-		});
-		$("select#female_medicine_suggestion_list_ipd").prop('disabled', true);
-		$("select#female_medicine_suggestion_list_ipd").parent().find('button').prop('disabled', true);
-		$("select#female_medicine_suggestion_list_ipd").parent().find('button').addClass('disabled');
-		if($("#female_medicine_suggestion_list_ipd").data('multiselect')) {
-			$("#female_medicine_suggestion_list_ipd").multiselect('refresh');
-		}
-	}
+
+//Male Investigation
+
+$("select#male_medicine_suggestion_list_ipd").prop('disabled',true);
+
+$("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',true);
+
+$("select#male_medicine_suggestion_list_ipd").parent().find('button').addClass('disabled');
+
+$('option', $('#male_medicine_suggestion_list_ipd')).each(function(element) {
+
+	$(this).removeAttr('selected').prop('selected', false);
+
+});
+
+$("#male_medicine_suggestion_list_ipd").multiselect('refresh');	
+
+$("select#male_medicine_suggestion_list_ipd").prop('disabled',false);
+
+//Female Investigation
+
+$("select#female_medicine_suggestion_list_ipd").prop('disabled',true);
+
+$("select#female_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',true);
+
+$("select#female_medicine_suggestion_list_ipd").parent().find('button').addClass('disabled');
+
+$('option', $('#female_medicine_suggestion_list_ipd')).each(function(element) {
+
+	$(this).removeAttr('selected').prop('selected', false);
+
+});
+
+$("#female_medicine_suggestion_list_ipd").multiselect('refresh');	
+
+$("select#female_medicine_suggestion_list_ipd").prop('disabled',false);
 
 
 
 if(this.checked) {
-	// Male Medicine IPD - Enable and rebuild multiselect
-	$("select#male_medicine_suggestion_list_ipd").prop('disabled', false);
-	$("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled', false);
+
+	//Male Investigation
+
+	$("select#male_medicine_suggestion_list_ipd").prop('disabled',false);
+
+	$("select#male_medicine_suggestion_list_ipd").prop('disabled',false);
+
+	$("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',false);
+
 	$("select#male_medicine_suggestion_list_ipd").parent().find('button').removeClass('disabled');
-	// Rebuild multiselect to show options properly
-	setTimeout(function() {
-		if($("#male_medicine_suggestion_list_ipd").data('multiselect')) {
-			$("#male_medicine_suggestion_list_ipd").multiselect('rebuild');
-		} else {
-			$("#male_medicine_suggestion_list_ipd").multiselect({
-				includeSelectAllOption: true,
-				enableFiltering: true,
-				enableCaseInsensitiveFiltering: true
-			});
-		}
-	}, 100);
-	
-	// Female Medicine IPD - Enable and rebuild multiselect
-	$("select#female_medicine_suggestion_list_ipd").prop('disabled', false);
-	$("select#female_medicine_suggestion_list_ipd").parent().find('button').prop('disabled', false);
+
+	//Female Investigation
+
+	$("select#female_medicine_suggestion_list_ipd").prop('disabled',false);
+
+	$("select#female_medicine_suggestion_list_ipd").prop('disabled',false);
+
+	$("select#female_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',false);
+
 	$("select#female_medicine_suggestion_list_ipd").parent().find('button').removeClass('disabled');
-	// Rebuild multiselect to show options properly
-	setTimeout(function() {
-		if($("#female_medicine_suggestion_list_ipd").data('multiselect')) {
-			$("#female_medicine_suggestion_list_ipd").multiselect('rebuild');
-		} else {
-			$("#female_medicine_suggestion_list_ipd").multiselect({
-				includeSelectAllOption: true,
-				enableFiltering: true,
-				enableCaseInsensitiveFiltering: true
-			});
-		}
-	}, 100);
+
 }
 
 });
@@ -7963,27 +6552,6 @@ $(function() {
 		filterPlaceholder: 'Search for something...'
 
 	});
-
-	// Set saved values for multiselect dropdowns AFTER initialization
-	if(typeof window.female_provisional_diagnosis_list_values !== 'undefined' && window.female_provisional_diagnosis_list_values && window.female_provisional_diagnosis_list_values.length > 0) {
-		$('#female_provisional_diagnosis_list').val(window.female_provisional_diagnosis_list_values);
-		$('#female_provisional_diagnosis_list').multiselect('refresh');
-	}
-	
-	if(typeof window.male_provisional_diagnosis_list_values !== 'undefined' && window.male_provisional_diagnosis_list_values && window.male_provisional_diagnosis_list_values.length > 0) {
-		$('#male_provisional_diagnosis_list').val(window.male_provisional_diagnosis_list_values);
-		$('#male_provisional_diagnosis_list').multiselect('refresh');
-	}
-	
-	if(typeof window.female_minvestigation_suggestion_list_values !== 'undefined' && window.female_minvestigation_suggestion_list_values && window.female_minvestigation_suggestion_list_values.length > 0) {
-		$('#female_minvestigation_suggestion_list').val(window.female_minvestigation_suggestion_list_values);
-		$('#female_minvestigation_suggestion_list').multiselect('refresh');
-	}
-	
-	if(typeof window.male_minvestigation_suggestion_list_values !== 'undefined' && window.male_minvestigation_suggestion_list_values && window.male_minvestigation_suggestion_list_values.length > 0) {
-		$('#male_minvestigation_suggestion_list').val(window.male_minvestigation_suggestion_list_values);
-		$('#male_minvestigation_suggestion_list').multiselect('refresh');
-	}
 
 });
 

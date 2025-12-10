@@ -109,9 +109,9 @@ class Accounts extends CI_Controller {
 				'status'                             => '0'
 			];
 			$this->load->model('Purchase_order_model');
-			$inserted = $this->Purchase_order_model->insert_purchase_order($data);
+			$po_id = $this->Purchase_order_model->insert_purchase_order($data);
 			
-			if ($inserted) {
+			if ($po_id) {
 				$email_sent_count = 0;
 				$total_approvers = count($approved_by);
 				$approver_tokens = [];
