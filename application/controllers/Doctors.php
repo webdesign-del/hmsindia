@@ -2476,7 +2476,7 @@ class Doctors extends CI_Controller {
 
 				// Step 5: Final data array
 				
-				$curl = curl_init();
+				/*$curl = curl_init();
 				$data = [
 					"doctor" => $do_result['name'],
 					"wife_phone" => $consultation_post['wife_phone'],
@@ -2523,7 +2523,133 @@ class Doctors extends CI_Controller {
 						}
 
 						curl_close($curl);
-					}
+					}*/
+
+
+				
+
+// =================================================================
+// STEP 1: FETCH & UPDATE CRM ID (Run this FIRST)
+// =================================================================
+
+// Ensure we have a valid phone number from the input array
+$phone_number = isset($consultation_post['wife_phone']) ? trim($consultation_post['wife_phone']) : '';
+$crm_lead_id = isset($lead_id) ? $lead_id : null; // Default to existing ID if available
+
+if (!empty($phone_number)) {
+
+    $curl = curl_init();
+    
+    // API to check mobile number
+    $url = "https://flertility.in/lead/lead-mobile-no/?mobile_no=" . urlencode($phone_number);
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'GET',
+    ));
+
+    $response = curl_exec($curl);
+    $http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    $err = curl_error($curl);
+
+    curl_close($curl);
+
+    if ($err) {
+        log_message('error', "CRM Fetch cURL Error: $err"); 
+    } elseif ($http_code !== 200) {
+        log_message('error', "CRM Fetch API returned HTTP Code: $http_code");
+    } else {
+        $leadData = json_decode($response, true);
+
+        // Validate JSON
+        if (json_last_error() === JSON_ERROR_NONE && !empty($leadData) && isset($leadData[0])) {
+            $lead = $leadData[0];
+
+            if (isset($lead['id'])) {
+                // 1. Update the variable so Step 2 sends the CORRECT ID
+                $crm_lead_id = $lead['id'];
+
+                // 2. Update Local Database
+                // Ensure we have a mobile to match against in DB
+                $match_mobile = isset($lead['mobile']) ? $lead['mobile'] : $phone_number;
+                
+                $this->db->where('wife_phone', $match_mobile); 
+                $this->db->update('hms_appointments', ['crm_id' => $crm_lead_id]);
+                
+                log_message('info', "CRM ID updated to $crm_lead_id for phone $phone_number");
+            }
+        }
+    }
+}
+
+// =================================================================
+// STEP 2: PREPARE DATA (Using the fresh CRM ID)
+// =================================================================
+
+// Note: We use $crm_lead_id here, which was updated in Step 1
+$data = [
+    "doctor" => $do_result['name'],
+    "wife_phone" => $consultation_post['wife_phone'],
+    "patient_id" => $patient_id,
+    "appointment_id" => $consultation_post['appointment_id'],
+    "female_investigation_suggestion_list" => $female_investigation,
+    "male_minvestigation_suggestion_list" => $male_investigation, // Typo fixed in key name if necessary?
+    "package_suggestion_list" => implode(', ', $package_names),
+    "sub_procedure_suggestion_list" => implode(', ', $procedure_name),
+    "female_medicine_suggestion_list" => implode(', ', $item_name_female),
+    "male_medicine_suggestion_list" => implode(', ', $item_name),
+    "lead_id" => $crm_lead_id // <--- CRITICAL: Using the updated ID
+];
+
+// =================================================================
+// STEP 3: SEND CONSULTATION DATA (POST)
+// =================================================================
+
+$urls = [
+    'lead_1' => 'https://flertility.in/lead/consultations/',
+    'lead_2' => 'https://staging.flertility.in/lead/consultations/'
+];
+
+foreach ($urls as $key => $url) {
+    $curl = curl_init();
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => json_encode($data),
+        CURLOPT_HTTPHEADER => array(
+            'Content-Type: application/json'
+        ),
+    ));
+
+    $response = curl_exec($curl);
+    $post_err = curl_error($curl);
+
+    if ($post_err) {
+        // Changed echo to log_message for production safety
+        log_message('error', "Consultation POST [$key] Error: " . $post_err);
+    } else {
+        log_message('info', "Consultation POST [$key] Response: " . $response);
+    }
+
+    curl_close($curl);
+}
+
+
+
+					
 					
 					//echo ($response);die();
 				
