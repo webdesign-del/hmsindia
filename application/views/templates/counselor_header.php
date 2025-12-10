@@ -114,6 +114,14 @@
               <li> <a href="<?php echo base_url(); ?>accounts/accounts">Account Ledger</a> </li>
         </ul>
       </li>
+        <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Advance Payment<span class="fa arrow"></span></a>
+        <ul class="nav nav-second-level">
+               <li> <a href="<?php echo base_url(); ?>accounts/advance_payment_list">Advance Payment</a> </li>
+        </ul>
+      </li>
+      <li> <a href="<?php echo base_url(); ?>accounts/daily_sales_reporting" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Daily Sales Report</a></li>
+      <li> <a href="<?php echo base_url(); ?>accounts/patient_financial_clearance" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Financial Clearance</a></li>
+     
       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Patients<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
             <li> <a href="<?php echo base_url(); ?>patients/patients">Patients</a></li>
