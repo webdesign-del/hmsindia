@@ -199,6 +199,8 @@ ul.nav.nav-second-level.collapse.in li {
           <li> <a href="<?php echo base_url(); ?>accounts/assessment_form_list">Assessment List</a> </li>
         </ul>
       </li>
+       <li> <a href="<?php echo base_url(); ?>accounts/patient_financial_clearance" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Financial Clearance</a></li>
+     
   </ul>
   </div>
 </nav>

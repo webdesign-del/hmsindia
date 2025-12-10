@@ -47,22 +47,21 @@
             <table class="table table-striped table-bordered table-hover" id="procedure_billing_list">
               <thead>
                 <tr>
-				          <th>S.No.</th>
-                  <th>IIC ID</th>
-                  <th>Patient name</th>
-                  <th>Receipt number</th>
-                  <th>On Date</th>
-                  <th>Total</th>
-                  <th>Discount Amount</th>
-				          <th>Discount Package</th>
-				          <th>Receive Amount</th>
-                  <th>Center</th>
-				          <th>Origins</th>
-				          <th>Employee Name</th>
-				          <th>Procedure</th>
-				          <th>FC / CH Clearance</th>
-                  <th>User / Doctor /  Embryologist</th>
-                  <th>Account</th>
+				    <th>S.No.</th>
+                    <th>IIC ID</th>
+                    <th>Patient name</th>
+                    <th>Receipt number</th>
+                    <th>On Date</th>
+                    <th>Total</th>
+                    <th>Discount Amount</th>
+				    <th>Discount Package</th>
+				    <th>Receive Amount</th>
+                    <th>Center</th>
+				    <th>Origins</th>
+				    <th>Procedure</th>
+				    <th>FC / CH Clearance</th>
+                    <th>User / Doctor /  Embryologist</th>
+                    <th>Account</th>
                 </tr>
               </thead>
               <tbody id="procedure_result">
@@ -100,15 +99,6 @@
 				          <td><?php echo number_format($sum_result->total_paid + $vl['payment_done'], 2);   ?></td>
                   <td><?php echo $all_method->get_center_name($vl['billing_at']); ?></td>
 				          <td><?php echo $all_method->get_center_name($vl['origins']); ?></td>
-				          <td><?php 
-				              $sql2 = "Select * from ".$this->config->item('db_prefix')."employees where employee_number='".$vl['biller_id']."'"; 
-			                $query = $this->db->query($sql2);
-                            $select_result3 = $query->result(); 
-							        foreach ($select_result3 as $res_val3){
-								      echo '<br/>';
-							      	echo $res_val3->name;
-						      	}
-					      	?></td>
 				          <td><?php echo $vl['procedure_name']; ?></td>
                   <td><?php 
 // 1. Check if Counselor is logged in AND Status is pending (empty)

@@ -104,6 +104,8 @@
                <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>procedures"><i class="fa fa-sitemap"></i>Procedures List</a> </li>
                <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>stocks/all_center_stocks"><i class="fa fa-sitemap"></i> All Center Stocks</a> </li>
                <li> <a href="<?php echo base_url(); ?>accounts/patient_center_wise_report" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Patient Journey</a></li>
+             <li> <a href="<?php echo base_url(); ?>accounts/patient_financial_clearance" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Financial Clearance</a></li>
+     
             </ul>
             <?php }else{ ?>
             <ul class="nav" id="main-menu">
@@ -200,7 +202,9 @@
                <li> <a href="<?php echo base_url(); ?>accounts/revenue_potential" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Revenue Potential</a></li>
                 <li><a href="<?php echo base_url(); ?>my_appointments" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>My appointments</a></li>
                 <li><a href="<?php echo base_url(); ?>patients/timeline_view" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Patient Agent</a></li>
-            </ul>
+             <li> <a href="<?php echo base_url(); ?>accounts/patient_financial_clearance" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Financial Clearance</a></li>
+     
+               </ul>
             <?php } ?>
          </div>
       </nav>
