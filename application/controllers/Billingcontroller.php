@@ -362,6 +362,7 @@ function partial_billing($appointment_id){
 					$patient_arr['wife_phone'] = $appointments['wife_phone'];
 					$patient_arr['wife_email'] = $appointments['wife_email'];
 					$patient_arr['nationality'] = $appointments['nationality'];
+					$patient_arr['origins'] = $appointments['appoitment_for'];
 					$paitent_insert = $this->billings_model->paitent_insert($patient_arr);
 				}
 				$_POST['patient_id'] = $paitent_id;
