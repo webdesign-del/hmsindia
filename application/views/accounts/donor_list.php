@@ -27,14 +27,14 @@
             <table class="table table-striped table-bordered table-hover" id="procedure_billing_list">
               <thead>
                 <tr>
-				  <th>S.No.</th>
-				  <th>UHID</th>
+				          <th>S.No.</th>
+				          <th>UHID</th>
                   <th>Patients Id</th>
                   <th>Patients Name</th>
                   <th>Donor UHID</th>
                   <th>Donor Patients Id</th>
                   <th>Donor Patients Name</th>
-				  <th>Type</th>
+				          <th>Type</th>
                   <th>Date</th>
 				</tr>
               </thead>
@@ -56,12 +56,12 @@
           <td><?php
 switch($vl['type']) {
     case "Donor":
-        echo '<a href="' . base_url() . 'procedures/opu_donor/'.$vl['patient_id'].'" target="_blank">Opu Donor,</a>&nbsp';
-        echo '<a href="' . base_url() . 'procedures/outcome_donor/'.$vl['patient_id'].'" target="_blank">Outcome Donor, </a>&nbsp';
-        echo '<a href="' . base_url() . 'procedures/serum_bete_hcg_on_donor/'.$vl['patient_id'].'" target="_blank">Serum Bete Hcg On Donor, </a>&nbsp';
-        echo '<a href="' . base_url() . 'procedures/trigger_module_donor/'.$vl['patient_id'].'" target="_blank">Trigger Module Donor, </a>&nbsp';
-        echo '<a href="' . base_url() . 'procedures/ovulation_induction_protocol_donor/'.$vl['patient_id'].'" target="_blank">Ovulation Induction Protocol Donor, </a>&nbsp';
-        echo '<a href="' . base_url() . 'procedures/embryo_transfer_donor/'.$vl['patient_id'].'" target="_blank">Embryo Transfer Donor, </a>&nbsp';
+        echo '<a href="' . base_url() . 'procedures/opu_donor/'.$vl['donor_patient_id'].'" target="_blank">Opu Donor,</a>&nbsp';
+        echo '<a href="' . base_url() . 'procedures/outcome_donor/'.$vl['donor_patient_id'].'" target="_blank">Outcome Donor, </a>&nbsp';
+        echo '<a href="' . base_url() . 'procedures/serum_bete_hcg_on_donor/'.$vl['donor_patient_id'].'" target="_blank">Serum Bete Hcg On Donor, </a>&nbsp';
+        echo '<a href="' . base_url() . 'procedures/trigger_module_donor/'.$vl['donor_patient_id'].'" target="_blank">Trigger Module Donor, </a>&nbsp';
+        echo '<a href="' . base_url() . 'procedures/ovulation_induction_protocol_donor/'.$vl['donor_patient_id'].'" target="_blank">Ovulation Induction Protocol Donor, </a>&nbsp';
+        echo '<a href="' . base_url() . 'procedures/embryo_transfer_donor/'.$vl['donor_patient_id'].'" target="_blank">Embryo Transfer Donor, </a>&nbsp';
         break;
     case "Surrogate":
         echo '<a href="surrogate_mother_personal_details">Surrogate</a>';
