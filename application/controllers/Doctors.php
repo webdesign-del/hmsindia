@@ -2533,7 +2533,7 @@ class Doctors extends CI_Controller {
 // =================================================================
 
 // Ensure we have a valid phone number from the input array
-$phone_number = isset($consultation_post['wife_phone']) ? trim($consultation_post['wife_phone']) : '';
+$phone_number = $consultation_post['wife_phone'];
 $crm_lead_id = isset($lead_id) ? $lead_id : null; // Default to existing ID if available
 
 if (!empty($phone_number)) {
