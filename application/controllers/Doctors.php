@@ -2090,12 +2090,14 @@ class Doctors extends CI_Controller {
 	
 	// AJAX endpoint for live saving patient medical info and doctor consultation
 	public function save_patient_medical_info_live() {
+		// Clear any output buffer to prevent JSON corruption
+		if (ob_get_level()) {
+			ob_clean();
+		}
 		$logg = checklogin();
 		if($logg['status'] == true){
 			header('Content-Type: application/json');
-			
 			if(isset($_POST['appointment_id']) && isset($_POST['patient_id'])){
-				// Fields that belong to doctor_consultation table (using EXACT column names from table)
 				$consultation_fields = array(
 					'appointment_id',
 					'patient_id',
@@ -2131,8 +2133,6 @@ class Doctors extends CI_Controller {
 					'sub_procedure_suggestion_list',
 					'package_suggestion_list'
 				);
-				
-				// Fields to exclude completely (form-only fields)
 				$exclude_fields = array(
 					'action', 
 					'submit_type',
@@ -2141,9 +2141,6 @@ class Doctors extends CI_Controller {
 					'appoitmented_doctor',
 					'appoitmented_slot'
 				);
-				
-				// Process medicine fields if medicine_suggestion is set
-				// Only process if the fields are not already serialized
 				if(isset($_POST['medicine_suggestion']) && !isset($_POST['male_medicine_suggestion_list']) && !isset($_POST['female_medicine_suggestion_list'])){
 					$male_med_array = $female_med_array = array();
 					foreach($_POST as $key => $val){
@@ -2391,14 +2388,18 @@ class Doctors extends CI_Controller {
 				
 				if($consultation_result > 0 || $medical_result > 0){
 					echo json_encode(array('status' => 'success', 'message' => 'Data saved successfully', 'consultation' => $consultation_result, 'medical' => $medical_result));
+					exit;
 				} else {
 					echo json_encode(array('status' => 'error', 'message' => 'Failed to save data'));
+					exit;
 				}
 			} else {
 				echo json_encode(array('status' => 'error', 'message' => 'Missing required fields'));
+				exit;
 			}
 		} else {
 			echo json_encode(array('status' => 'error', 'message' => 'Unauthorized'));
+			exit;
 		}
 	}
 

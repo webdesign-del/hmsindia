@@ -6688,9 +6688,18 @@ $countdownDuration = 7200;
 			data: formData,
 			processData: false,
 			contentType: false,
+			dataType: 'text', // Get raw response first
 			success: function(response) {
 				try {
-					var result = typeof response === 'string' ? JSON.parse(response) : response;
+					// Clean the response - remove any trailing whitespace or non-printable characters
+					var cleanedResponse = response.trim();
+					// Remove any characters after the closing brace of JSON
+					var jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+					if (jsonMatch) {
+						cleanedResponse = jsonMatch[0];
+					}
+					
+					var result = JSON.parse(cleanedResponse);
 					if (result.status === 'success') {
 						if (callback) callback(true);
 					} else {
@@ -6698,12 +6707,25 @@ $countdownDuration = 7200;
 						if (callback) callback(false);
 					}
 				} catch (e) {
-					console.error('Parse error:', e);
+					console.error('Parse error:', e, 'Response:', response);
 					if (callback) callback(false);
 				}
 			},
 			error: function(xhr, status, error) {
 				console.error('AJAX error:', error);
+				// Try to parse response even on error, as server might return JSON error
+				if (xhr.responseText) {
+					try {
+						var cleanedResponse = xhr.responseText.trim();
+						var jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+						if (jsonMatch) {
+							var result = JSON.parse(jsonMatch[0]);
+							console.error('Server error:', result.message || result);
+						}
+					} catch (e) {
+						console.error('Could not parse error response');
+					}
+				}
 				if (callback) callback(false);
 			}
 		});
