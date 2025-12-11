@@ -3310,7 +3310,7 @@ class Stock_model_new extends CI_Model
         return $batch ? (float)$batch->purchase_price : 0;
     }
 
-    private function get_stock_quantity_for_batch($batch_id, $location_type, $center_id)
+    private function get_stock_quantity_for_batch($batch_id, $location_type, $center_id, $department = null)
     {
         $this->db->select('quantity');
         if ($location_type == 'CENTRAL') {
@@ -3320,6 +3320,10 @@ class Stock_model_new extends CI_Model
             $this->db->from('center_stocks');
             $this->db->where('batch_id', $batch_id);
             $this->db->where('center_id', $center_id);
+            // Filter by department if specified
+            if (!empty($department)) {
+                $this->db->where('department', $department);
+            }
         }
         $result = $this->db->get()->row();
         return $result ? (int)$result->quantity : 0;
@@ -5777,7 +5781,7 @@ class Stock_model_new extends CI_Model
             // }
         }
         
-        public function process_stock_audit($audit_header, $audit_items)
+        public function process_stock_audit($audit_header, $audit_items, $selected_department = null)
         {
             $this->db->trans_start(); // Start transaction
 
@@ -5815,8 +5819,25 @@ class Stock_model_new extends CI_Model
 
                 if ($batch_id <= 0) continue; // Skip empty/invalid rows
 
+                // Determine department for this item
+                // If a department filter was applied, use it; otherwise, get it from the batch
+                $item_department = $selected_department;
+                if (empty($item_department) && !$is_central_audit) {
+                    // Look up department from center_stocks for this batch
+                    $stock_record = $this->db->select('department')
+                        ->from('center_stocks')
+                        ->where('batch_id', $batch_id)
+                        ->where('center_id', $location_id)
+                        ->where('quantity >', 0)
+                        ->get()
+                        ->row();
+                    if ($stock_record && !empty($stock_record->department)) {
+                        $item_department = $stock_record->department;
+                    }
+                }
+
                 // 3. Get system quantity at the time of audit
-                $system_quantity = $this->get_stock_quantity_for_batch($batch_id, $location_type, $location_id);
+                $system_quantity = $this->get_stock_quantity_for_batch($batch_id, $location_type, $location_id, $item_department);
                 
                 $variance = $physical_quantity - $system_quantity;
                 $total_items_audited++;
@@ -5838,6 +5859,10 @@ class Stock_model_new extends CI_Model
                         $this->db->update('central_stocks');
                     } else {
                         $this->db->where('center_id', $location_id);
+                        // Filter by department - use item_department which may be from filter or lookup
+                        if (!empty($item_department)) {
+                            $this->db->where('department', $item_department);
+                        }
                         $this->db->update('center_stocks');
                     }
                     

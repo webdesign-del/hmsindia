@@ -5011,8 +5011,9 @@ class Stocks_new extends CI_Controller
                     // Add other mappings as needed
                 }
                 $audit_items = $this->input->post('audit_items');
+                $selected_department = $this->input->post('department');
                 // Call the model function to process the audit
-                $result = $this->Stock_model_new->process_stock_audit($audit_header, $audit_items);
+                $result = $this->Stock_model_new->process_stock_audit($audit_header, $audit_items, $selected_department);
                 if ($result['status'] == 'success') {
                     $this->session->set_flashdata('success', 'Stock audit processed successfully. ' . $result['discrepancies'] . ' discrepancies found and adjusted.');
                     redirect('stocks_new/audit_reports'); // Redirect to a list of reports
