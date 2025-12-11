@@ -22,6 +22,9 @@
                                 <label>Center:</label>
                                 <select name="center_id" class="form-control">
                                     <option value="">All Centers</option>
+                                    <option value="central" <?php echo $this->input->get('center_id') == 'central' ? 'selected' : ''; ?>>
+                                        Central Warehouse
+                                    </option>
                                     <?php if(isset($centers) && !empty($centers)): ?>
                                         <?php foreach($centers as $center): ?>
                                             <option value="<?php echo $center->ID; ?>" <?php echo $this->input->get('center_id') == $center->ID ? 'selected' : ''; ?>>
@@ -35,10 +38,10 @@
                                 <label>Audit Type:</label>
                                 <select name="audit_type" class="form-control">
                                     <option value="">All Types</option>
-                                    <option value="FULL_AUDIT" <?php echo $this->input->get('audit_type') == 'FULL_AUDIT' ? 'selected' : ''; ?>>Full Audit</option>
-                                    <option value="PARTIAL_AUDIT" <?php echo $this->input->get('audit_type') == 'PARTIAL_AUDIT' ? 'selected' : ''; ?>>Partial Audit</option>
-                                    <option value="SPOT_CHECK" <?php echo $this->input->get('audit_type') == 'SPOT_CHECK' ? 'selected' : ''; ?>>Spot Check</option>
-                                    <option value="EXPIRY_AUDIT" <?php echo $this->input->get('audit_type') == 'EXPIRY_AUDIT' ? 'selected' : ''; ?>>Expiry Audit</option>
+                                    <option value="FULL" <?php echo $this->input->get('audit_type') == 'FULL' ? 'selected' : ''; ?>>Full Audit</option>
+                                    <option value="CYCLIC" <?php echo $this->input->get('audit_type') == 'CYCLIC' ? 'selected' : ''; ?>>Cyclic Count</option>
+                                    <option value="RANDOM" <?php echo $this->input->get('audit_type') == 'RANDOM' ? 'selected' : ''; ?>>Random Spot Check</option>
+                                    <option value="PHYSICAL" <?php echo $this->input->get('audit_type') == 'PHYSICAL' ? 'selected' : ''; ?>>Physical Audit</option>
                                 </select>
                             </div>
                             <div class="form-group">

@@ -3477,7 +3477,7 @@ class Stock_model_new extends CI_Model
     //     // }
     // }
 
-    public function get_audit_reports()
+    public function get_audit_reports($filters = [])
     {
         // try {
             $this->db->select("ar.*, c.center_name");
@@ -3493,6 +3493,34 @@ class Stock_model_new extends CI_Model
             if ($center !== null) {
                 $this->db->where('ar.center_id', $this->get_center_id($center));
             }
+            
+            // Apply filters
+            if (!empty($filters['center_id'])) {
+                // Handle filtering for central warehouse
+                if ($filters['center_id'] === 'central' || $filters['center_id'] === '0') {
+                    $this->db->where('ar.center_id IS NULL');
+                } else {
+                    $this->db->where('ar.center_id', $filters['center_id']);
+                }
+            }
+            
+            if (!empty($filters['audit_type'])) {
+                // Use the audit_type directly as it now matches database values
+                $this->db->where('ar.audit_type', $filters['audit_type']);
+            }
+            
+            if (!empty($filters['status'])) {
+                $this->db->where('ar.status', $filters['status']);
+            }
+            
+            if (!empty($filters['from_date'])) {
+                $this->db->where('DATE(ar.audit_date) >=', $filters['from_date']);
+            }
+            
+            if (!empty($filters['to_date'])) {
+                $this->db->where('DATE(ar.audit_date) <=', $filters['to_date']);
+            }
+            
             $this->db->from("audit_reports ar");
             $this->db->join("hms_centers c", "ar.center_id = c.ID", "left"); // Use LEFT JOIN to include central warehouse (NULL center_id)
             $this->db->order_by("ar.created_at", "DESC");

@@ -5036,9 +5036,16 @@ class Stocks_new extends CI_Controller
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
-            $data[
-                "audit_reports"
-            ] = $this->Stock_model_new->get_audit_reports();
+            // Get filter parameters from GET request
+            $filters = [
+                'center_id' => $this->input->get('center_id'),
+                'audit_type' => $this->input->get('audit_type'),
+                'status' => $this->input->get('status'),
+                'from_date' => $this->input->get('from_date'),
+                'to_date' => $this->input->get('to_date')
+            ];
+            
+            $data["audit_reports"] = $this->Stock_model_new->get_audit_reports($filters);
             $data["centers"] = $this->Stock_model_new->get_all_centers();
 
             $template = get_header_template($logg["role"]);
