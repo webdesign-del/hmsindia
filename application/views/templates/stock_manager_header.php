@@ -154,23 +154,23 @@
       <li> <a href="<?php echo base_url(); ?>doctors/consent_for_pgt">Consent For Pgt</a> </li>
       <li> <a href="<?php echo base_url(); ?>doctors/consent_for_sperm_mobil">Consent For Sperm Mobil</a> </li>
       <li> <a href="<?php echo base_url(); ?>doctors/consent_for_thawing_of_gametes">Consent For Thawing Of Gametes</a> </li>
-			    </ul>
-        </li>  
+         </ul>
+   </li>  
 
     <li style="height:200px"> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Art Consent<span class="fa arrow"></span></a>
           <ul class="nav nav-second-level">
             <li> <a href="<?php echo base_url(); ?>doctors/consent_form">couple/women</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/intrauterine_insemination">IUI husbands semen</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/form8">IUI donors  semen</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/form8_single_woman">IUI donors  semen single woman</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/form9">Embryo Freezing</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/form10">Sperms /oocytes Freezing</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/form11">Parental Freezing consent minor</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/form12">Oocyte retrieval</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/consent_for_embryo_transfer">Embryo transfer</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/form13">Consent donor of eggs</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/form15">Consent donor of sperm</a> </li>
-			<li> <a href="<?php echo base_url(); ?>doctors/cfpros">Posthumous Retrieval of Sperm</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/intrauterine_insemination">IUI husbands semen</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/form8">IUI donors  semen</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/form8_single_woman">IUI donors  semen single woman</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/form9">Embryo Freezing</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/form10">Sperms /oocytes Freezing</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/form11">Parental Freezing consent minor</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/form12">Oocyte retrieval</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/consent_for_embryo_transfer">Embryo transfer</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/form13">Consent donor of eggs</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/form15">Consent donor of sperm</a> </li>
+            <li> <a href="<?php echo base_url(); ?>doctors/cfpros">Posthumous Retrieval of Sperm</a> </li>
             <li> <a href="<?php echo base_url(); ?>doctors/form18">Consent form for withdrawal</a> </li>
             <li> <a href="<?php echo base_url(); ?>doctors/risk_consent">Process ,risk and consent ART</a> </li>
             <li> <a href="<?php echo base_url(); ?>doctors/couple_donor_egg">Recipient couple Donor egg</a> </li>

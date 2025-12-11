@@ -2740,7 +2740,7 @@ class Stock_model_new extends CI_Model
 
             // Filter by Date To (using the 'sale_date' column)
             if (!empty($filters['date_to'])) {
-                $this.db->where('s.sale_date <=', $filters['date_to']);
+                $this->db->where('s.sale_date <=', $filters['date_to']);
             }
             $this->db->order_by("s.created_at", "DESC");
             return $this->db->get()->result();
