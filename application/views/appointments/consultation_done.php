@@ -234,7 +234,8 @@ $countdownDuration = 7200;
 	.step-nav-item.disabled:hover {
 		transform: none;
 		box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-	}
+	} 
+		
 	.form-step {
 		display: none;
 		padding: 30px;
@@ -3277,7 +3278,7 @@ $countdownDuration = 7200;
 
 							<table>
 
-								<tr>
+								<!-- <tr>
 
 									<td>Dentures</td>
 
@@ -3395,9 +3396,9 @@ $countdownDuration = 7200;
 
 												</td>
 
-								</tr>
+								</tr> -->
 
-								<tr>
+								<!-- <tr>
 
 									<td>H/o blood transfusion</td>
 
@@ -3435,7 +3436,7 @@ $countdownDuration = 7200;
 
 												</td>
 
-								</tr>
+								</tr> -->
 
 								<tr>
 
@@ -5148,7 +5149,7 @@ $countdownDuration = 7200;
 
 					<?php $sub_procedure_suggestion_list = array(); if($appointments['partial_billing'] == 0){ ?>
 						<tr>
-							<th style="color: red;">MANAGEMENT ADVISED <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="procedure_suggestion" value="1" <?php if(isset($patient_doctor_consultation['procedure_suggestion']) && $patient_doctor_consultation['procedure_suggestion'] == "1"){echo 'checked="checked"';}?> name="procedure_suggestion" required /></th>
+							<th style="color: red;">MANAGEMENT ADVISED <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="procedure_suggestion" value="1" <?php if(isset($patient_doctor_consultation['procedure_suggestion']) && $patient_doctor_consultation['procedure_suggestion'] == "1"){echo 'checked="checked"';}?> name="procedure_suggestion" /></th>
 							<td colspan="2">
 								<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['procedure_suggestion']) && $patient_doctor_consultation['procedure_suggestion'] == "1"){
 										if(!empty($patient_doctor_consultation['sub_procedure_suggestion_list'])){
@@ -5157,7 +5158,7 @@ $countdownDuration = 7200;
 										$disabled = "";
 										//var_dump($sub_procedure_suggestion_list);die;
 								}?>
-								<select class="form-control multidselect_dropdown_2"  multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" <?php echo $disabled; ?> required>
+								<select class="form-control multidselect_dropdown_2"  multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" <?php echo $disabled; ?>>
 									<?php if(!empty($procedures)) { foreach($procedures as $key => $val) { $selected=""; if(in_array($val['ID'], $sub_procedure_suggestion_list)){$selected= 'checked="checked"';} ?>
 											<option value="<?php echo $val['ID']; ?>" <?php echo $selected; ?>><?php echo $val['procedure_name']." (".$val['code'].")"; ?></option>
 									<?php  } } ?>
@@ -5193,7 +5194,7 @@ $countdownDuration = 7200;
 					
                     <?php $package_suggestion_list = array(); if($appointments['partial_billing'] == 0){ ?>
 						<tr>
-							<th style="color: red;">PACKAGE ADVISED <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="package_suggestion" value="1" <?php if(isset($patient_doctor_consultation['package_suggestion']) && $patient_doctor_consultation['package_suggestion'] == "1"){echo 'checked="checked"';}?> name="package_suggestion" required /></th>
+							<th style="color: red;">PACKAGE ADVISED <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="package_suggestion" value="1" <?php if(isset($patient_doctor_consultation['package_suggestion']) && $patient_doctor_consultation['package_suggestion'] == "1"){echo 'checked="checked"';}?> name="package_suggestion" /></th>
 							<td colspan="2">
 								<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['package_suggestion']) && $patient_doctor_consultation['package_suggestion'] == "1"){
 										if(!empty($patient_doctor_consultation['package_suggestion_list'])){
@@ -5202,7 +5203,7 @@ $countdownDuration = 7200;
 										$disabled = "";
 										//var_dump($sub_procedure_suggestion_list);die;
 								}?>
-								<select class="form-control multidselect_dropdown_2"  multiple="multiple" id="package_suggestion_list" name="package_suggestion_list[]" <?php echo $disabled; ?> required>
+								<select class="form-control multidselect_dropdown_2"  multiple="multiple" id="package_suggestion_list" name="package_suggestion_list[]" <?php echo $disabled; ?>>
 									<?php
 							if (!isset($package_suggestion_list) || !is_array($package_suggestion_list)) {
 								$package_suggestion_list = [];
@@ -5347,7 +5348,7 @@ $countdownDuration = 7200;
 					</tr>
 					
 					<tr>
-						<th style="color: red;">Provisional Diagnosis (ICD 10 CODES)  <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="provisional_diagnosis_suggestion" <?php if(isset($patient_medical_info['provisional_diagnosis_suggestion']) && $patient_medical_info['provisional_diagnosis_suggestion'] == "1"){echo 'checked="checked"';}?> value="1" name="provisional_diagnosis_suggestion" required /></th>
+						<th style="color: red;">Provisional Diagnosis (ICD 10 CODES)  <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="provisional_diagnosis_suggestion" <?php if(isset($patient_medical_info['provisional_diagnosis_suggestion']) && $patient_medical_info['provisional_diagnosis_suggestion'] == "1"){echo 'checked="checked"';}?> value="1" name="provisional_diagnosis_suggestion" /></th>
 						<td>
 						<div class="col-sm-12 col-xs-12 role">
 							<?php $disabled = "disabled";  if(isset($patient_medical_info['provisional_diagnosis_suggestion']) && $patient_medical_info['provisional_diagnosis_suggestion'] == "1"){
