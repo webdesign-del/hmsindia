@@ -58,6 +58,7 @@
                     <th>Discount Amount</th>
 				    <th>Discounted Package</th>
 				    <th>Received Amount</th>
+                    <th>Pending Amount</th>
                     <?php } ?>
                     <th>Billing Center</th>
 				    <th>Origins Center</th>
@@ -104,6 +105,11 @@
                     <td><?php echo $vl['discount_amount']?></td>
 				    <td><?php echo $vl['fees']?></td>
 				    <td><?php echo number_format($sum_result->total_paid + $vl['payment_done'], 2);   ?></td>
+                    <td><?php 
+$balance = $vl['fees'] - ($sum_result->total_paid + $vl['payment_done']);
+echo number_format($balance, 2);
+?>
+</td>
                     <?php }else{ ?>
                     <td><?php echo $vl['receipt_number']?></td>
                     <?php } ?>
@@ -210,103 +216,114 @@ if ($vl['clearance'] == 'Yes') {
         </div>
       </div>
      </div>
-     	<script type="text/javascript">
+  <script>
+    // 1. Function for CLEARANCE
     function ClearanceProcedure(ID) {
-        if (confirm('Are you sure you want to approve this order?')) {
+        if (confirm('Are you sure you want to approve this Clearance?')) {
             $.ajax({
-                url: '<?php echo base_url('accounts/clearance_procedure/'); ?>' + ID,
-                type: 'POST', // Use 'POST' if necessary
+                url: '<?php echo base_url("accounts/clearance_procedure/"); ?>' + ID,
+                type: 'POST',
                 success: function(response) {
-                    // Success handling, for example, show an alert and update the UI
-                    alert('Procedure Clearance successfully!');
-                    // Optionally, update the UI (like changing button text or removing the row)
-                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
+                    // You can keep the alert if you want, or remove it for a faster feel
+                    alert('Procedure Clearance successful!'); 
+                    
+                    // --- THIS COMMAND RELOADS THE PAGE ---
+                    location.reload(); 
                 },
                 error: function(xhr, status, error) {
-                    // Handle the error, display an error message
                     alert('Something went wrong. Please try again.');
-                    console.log(xhr.responseText); // For debugging
+                    console.log(xhr.responseText);
                 }
             });
         }
-		}
-     function NonClearanceProcedure(ID) {
-        if (confirm('Are you sure you want to approve this order?')) {
+    }
+
+    // 2. Function for NON-CLEARANCE
+    function NonClearanceProcedure(ID) {
+        if (confirm('Are you sure you want to mark this as Non-Clearance?')) {
             $.ajax({
-                url: '<?php echo base_url('accounts/nonclearance_procedure/'); ?>' + ID,
-                type: 'POST', // Use 'POST' if necessary
+                // Assuming you have a similar controller function for Non-Clearance
+                url: '<?php echo base_url("accounts/nonclearance_procedure/"); ?>' + ID, 
+                type: 'POST',
                 success: function(response) {
-                    // Success handling, for example, show an alert and update the UI
-                    alert('Procedure Clearance Reject!');
-                    // Optionally, update the UI (like changing button text or removing the row)
-                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
+                    alert('Marked as Non-Clearance successfully!');
+                    
+                    // --- THIS COMMAND RELOADS THE PAGE ---
+                    location.reload(); 
                 },
                 error: function(xhr, status, error) {
-                    // Handle the error, display an error message
                     alert('Something went wrong. Please try again.');
-                    console.log(xhr.responseText); // For debugging
+                    console.log(xhr.responseText);
                 }
             });
         }
-		}
+    }
+</script>  
+
+ <script>
+    // 1. Function for CLEARANCE
     function consultantProcedure(ID) {
-        if (confirm('Are you sure you want to approve this order?')) {
+        if (confirm('Are you sure you want to approve this Clearance?')) {
             $.ajax({
-                url: '<?php echo base_url('accounts/consultant_procedure/'); ?>' + ID,
-                type: 'POST', // Use 'POST' if necessary
+                url: '<?php echo base_url("accounts/consultant_procedure/"); ?>' + ID,
+                type: 'POST',
                 success: function(response) {
-                    // Success handling, for example, show an alert and update the UI
-                    alert('Procedure Clearance successfully!');
-                    // Optionally, update the UI (like changing button text or removing the row)
-                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
+                    // You can keep the alert if you want, or remove it for a faster feel
+                    alert('Procedure consultant successful!'); 
+                    
+                    // --- THIS COMMAND RELOADS THE PAGE ---
+                    location.reload(); 
                 },
                 error: function(xhr, status, error) {
-                    // Handle the error, display an error message
                     alert('Something went wrong. Please try again.');
-                    console.log(xhr.responseText); // For debugging
+                    console.log(xhr.responseText);
                 }
             });
         }
-		}
+    }
+
+    // 2. Function for NON-CLEARANCE
     function accClearanceProcedure(ID) {
-        if (confirm('Are you sure you want to approve this order?')) {
+        if (confirm('Are you sure you want to mark this as Non-Clearance?')) {
             $.ajax({
-                url: '<?php echo base_url('accounts/accclearance_procedure/'); ?>' + ID,
-                type: 'POST', // Use 'POST' if necessary
+                // Assuming you have a similar controller function for Non-Clearance
+                url: '<?php echo base_url("accounts/accclearance_procedure/"); ?>' + ID, 
+                type: 'POST',
                 success: function(response) {
-                    // Success handling, for example, show an alert and update the UI
-                    alert('Procedure Clearance successfully!');
-                    // Optionally, update the UI (like changing button text or removing the row)
-                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
+                    alert('Marked as Clearance successfully!');
+                    
+                    // --- THIS COMMAND RELOADS THE PAGE ---
+                    location.reload(); 
                 },
                 error: function(xhr, status, error) {
-                    // Handle the error, display an error message
                     alert('Something went wrong. Please try again.');
-                    console.log(xhr.responseText); // For debugging
+                    console.log(xhr.responseText);
                 }
             });
         }
-		}
-     function accNonClearanceProcedure(ID) {
-        if (confirm('Are you sure you want to approve this order?')) {
+    }
+
+     // 2. Function for NON-CLEARANCE
+    function accNonClearanceProcedure(ID) {
+        if (confirm('Are you sure you want to mark this as Non-Clearance?')) {
             $.ajax({
-                url: '<?php echo base_url('accounts/accnonclearance_procedure/'); ?>' + ID,
-                type: 'POST', // Use 'POST' if necessary
+                // Assuming you have a similar controller function for Non-Clearance
+                url: '<?php echo base_url("accounts/accnonclearance_procedure/"); ?>' + ID, 
+                type: 'POST',
                 success: function(response) {
-                    // Success handling, for example, show an alert and update the UI
                     alert('Procedure Clearance Reject!');
-                    // Optionally, update the UI (like changing button text or removing the row)
-                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
+                    
+                    // --- THIS COMMAND RELOADS THE PAGE ---
+                    location.reload(); 
                 },
                 error: function(xhr, status, error) {
-                    // Handle the error, display an error message
                     alert('Something went wrong. Please try again.');
-                    console.log(xhr.responseText); // For debugging
+                    console.log(xhr.responseText);
                 }
             });
         }
-		}
-</script>
+    }
+</script>  
 <style >
 .custom-pagination{
   padding:8px;
