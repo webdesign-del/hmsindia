@@ -51,14 +51,18 @@
                     <th>IIC ID</th>
                     <th>Patient name</th>
                     <th>Receipt number</th>
-                    <th>On Date</th>
-                    <th>Total</th>
+                    <?php   if (!empty($_SESSION['logged_counselor']['name']) 
+    || !empty($_SESSION['logged_accountant']['name'])) { ?>
+                    <th>Billing Date & Time</th>
+                    <th>Package Amount</th>
                     <th>Discount Amount</th>
-				    <th>Discount Package</th>
-				    <th>Receive Amount</th>
-                    <th>Center</th>
-				    <th>Origins</th>
+				    <th>Discounted Package</th>
+				    <th>Received Amount</th>
+                    <?php } ?>
+                    <th>Billing Center</th>
+				    <th>Origins Center</th>
 				    <th>Procedure</th>
+                    <th>Code</th>
 				    <th>FC / CH Clearance</th>
                     <th>User / Doctor /  Embryologist</th>
                     <th>Account</th>
@@ -85,93 +89,113 @@
                 
                 ?>
                 <tr class="odd gradeX">
-                  <td><?php echo $count; ?></td>
-                  <td><a href="<?php echo base_url().'accounts/procedure_advice'; ?>/<?php echo $vl['patient_id']; ?>"><?php echo $vl['patient_id']; ?></a></td>
-                  <td><?php 
+                    <td><?php echo $count; ?></td>
+                    <td><a href="<?php echo base_url().'patient_details'; ?>/<?php echo $vl['patient_id']; ?>"><?php echo $vl['patient_id']; ?></a></td>
+                    <td><?php 
                     $patient_name = $all_method->get_patient_name($vl['patient_id']);
                     echo strtoupper($patient_name); ?>
-                  </td>
-                  <td><a href="<?php echo base_url().'accounts/financial_clearance_details';?>/<?php echo $vl['receipt_number']?>"><?php echo $vl['receipt_number']; ?></a></td>
-                  <td><?php echo $vl['on_date']?></td>
-                  <td><?php echo $vl['totalpackage']?></td>
-                  <td><?php echo $vl['discount_amount']?></td>
-				          <td><?php echo $vl['fees']?></td>
-				          <td><?php echo number_format($sum_result->total_paid + $vl['payment_done'], 2);   ?></td>
-                  <td><?php echo $all_method->get_center_name($vl['billing_at']); ?></td>
-				          <td><?php echo $all_method->get_center_name($vl['origins']); ?></td>
-				          <td><?php echo $vl['procedure_name']; ?></td>
+                    </td>
+                    <?php   if (!empty($_SESSION['logged_counselor']['name']) 
+    || !empty($_SESSION['logged_accountant']['name'])) { ?>
+                    <td><a href="<?php echo base_url().'accounts/financial_clearance_details';?>/<?php echo $vl['receipt_number']?>"><?php echo $vl['receipt_number']; ?></a></td>
+                    
+                    <td><?php echo $vl['on_date']?></td>
+                    <td><?php echo $vl['totalpackage']?></td>
+                    <td><?php echo $vl['discount_amount']?></td>
+				    <td><?php echo $vl['fees']?></td>
+				    <td><?php echo number_format($sum_result->total_paid + $vl['payment_done'], 2);   ?></td>
+                    <?php }else{ ?>
+                    <td><?php echo $vl['receipt_number']?></td>
+                    <?php } ?>
+                    <td><?php echo $all_method->get_center_name($vl['billing_at']); ?></td>
+				    <td><?php echo $all_method->get_center_name($vl['origins']); ?></td>
+				    <td><?php echo $vl['procedure_name']; ?></td>
+                    <td><?php echo $vl['code']; ?></td>
+                    <td><?php 
+                        // 1. Check if Counselor is logged in AND Status is pending (empty)
+                        if(!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') { 
+                        ?> 
+                            <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="ClearanceProcedure('<?php echo $vl['ID']; ?>')">
+                                Clearance
+                            </a>
+                            <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="NonClearanceProcedure('<?php echo $vl['ID']; ?>')">
+                                Non Clearance
+                            </a>
+                        <?php 
+                        } else { 
+                            // 2. SHOW TEXT (If not counselor OR status is already decided)
+                            
+                            if($vl['clearance'] == '') {
+                                // Optional: Show 'Pending' text if it's empty and user isn't a counselor
+                                echo '<span style="color:orange;">Pending</span>'; 
+                            } else {
+                                // Show the actual status
+                                echo ucwords($vl['clearance']);
+                            }
+                        } 
+                        ?>
+                    </td>
                   <td><?php 
-// 1. Check if Counselor is logged in AND Status is pending (empty)
-if(!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') { 
-?> 
-    <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="ClearanceProcedure('<?php echo $vl['ID']; ?>')">
-        Clearance
-    </a>
-    <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="NonClearanceProcedure('<?php echo $vl['ID']; ?>')">
-        Non Clearance
-    </a>
+// 1. Check if (Embryologist OR Doctor) is logged in AND clearance is 'yed'
+if ($vl['clearance'] == 'Yes') {
 
-<?php 
-} else { 
-    // 2. SHOW TEXT (If not counselor OR status is already decided)
-    
-    if($vl['clearance'] == '') {
-        // Optional: Show 'Pending' text if it's empty and user isn't a counselor
-        echo '<span style="color:orange;">Pending</span>'; 
+    $is_authorized = !empty($_SESSION['logged_embryologist']['name']) 
+                    || !empty($_SESSION['logged_doctor']['name']);
+
+    // Authorized AND consultant field is empty → show "Done" button
+    if ($is_authorized && $vl['consultant'] == '') { 
+        ?> 
+        <a href="javascript:void(0);" class="btn btn-success btn-sm" 
+           onclick="consultantProcedure('<?php echo $vl['ID']; ?>')">
+            <i class="fas fa-check"></i> Done
+        </a>
+        <?php
     } else {
-        // Show the actual status
-        echo ucwords($vl['clearance']);
+        // User unauthorized OR consultant already updated → show status
+        if ($vl['consultant'] == '') {
+            echo '<span class="text-warning">Pending</span>'; 
+        } else {
+            $color_class = ($vl['consultant'] == 'Done') ? 'text-success' : 'text-danger';
+            echo '<span class="'.$color_class.'">'.ucwords($vl['consultant']).'</span>';
+        }
     }
-} 
-?>
-                </td>
-                  <td><?php 
-// 1. Check if (Embryologist OR Doctor) is logged in AND Status is empty
-$is_authorized = !empty($_SESSION['logged_embryologist']['name']) || !empty($_SESSION['logged_doctor']['name']);
 
-if($is_authorized && $vl['consultant'] == '') { 
-?> 
-    <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="consultantProcedure('<?php echo $vl['ID']; ?>')">
-        <i class="fas fa-check"></i> Done
-    </a>
+} else {
 
-<?php 
-} else { 
-    // 2. SHOW TEXT (If user is unauthorized OR status is already updated)
-    
-    if($vl['consultant'] == '') {
+    // 2. clearance != 'yed' → show status only
+    if ($vl['consultant'] == '') {
         echo '<span class="text-warning">Pending</span>'; 
     } else {
-        // Color code: Done = Green, anything else = Red
         $color_class = ($vl['consultant'] == 'Done') ? 'text-success' : 'text-danger';
         echo '<span class="'.$color_class.'">'.ucwords($vl['consultant']).'</span>';
     }
-} 
-?></td>
-                   <td><?php 
-// 1. If Accountant is logged in AND Status is empty -> Show Buttons
-if(!empty($_SESSION['logged_accountant']['name']) && $vl['accclearance'] == '') { 
-?> 
-    <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="accClearanceProcedure('<?php echo $vl['ID']; ?>')">
-        <i class="fas fa-check"></i> Clearance
-    </a>
-    <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="accNonClearanceProcedure('<?php echo $vl['ID']; ?>')">
-        <i class="fas fa-times"></i> Non Clearance
-    </a>
-
-<?php 
-} 
-// 2. Otherwise (User is not accountant OR Status is already updated) -> Show Text
-else { 
-    if($vl['accclearance'] == '') {
-        echo '<span class="text-warning">Pending</span>'; // Optional: Show 'Pending' if empty
-    } else {
-        // Color code the result for better UI
-        $color_class = ($vl['accclearance'] == 'Clearance') ? 'text-success' : 'text-danger';
-        echo '<span class="'.$color_class.'">'.ucwords($vl['accclearance']).'</span>';
-    }
-} 
+}
 ?>
+</td>
+                   <td><?php 
+                    // 1. If Accountant is logged in AND Status is empty -> Show Buttons
+                    if(!empty($_SESSION['logged_accountant']['name']) && $vl['accclearance'] == '') { 
+                    ?> 
+                        <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="accClearanceProcedure('<?php echo $vl['ID']; ?>')">
+                            <i class="fas fa-check"></i> Clearance
+                        </a>
+                        <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="accNonClearanceProcedure('<?php echo $vl['ID']; ?>')">
+                            <i class="fas fa-times"></i> Non Clearance
+                        </a>
+
+                    <?php 
+                    } 
+                    // 2. Otherwise (User is not accountant OR Status is already updated) -> Show Text
+                    else { 
+                        if($vl['accclearance'] == '') {
+                            echo '<span class="text-warning">Pending</span>'; // Optional: Show 'Pending' if empty
+                        } else {
+                            // Color code the result for better UI
+                            $color_class = ($vl['accclearance'] == 'Clearance') ? 'text-success' : 'text-danger';
+                            echo '<span class="'.$color_class.'">'.ucwords($vl['accclearance']).'</span>';
+                        }
+                    } 
+                    ?>
                 </td>
                 </tr>
               <?php $count++;} ?>

@@ -2522,63 +2522,67 @@ public function tally()
 
 public function partial_tally() {
 
-	$payment_ids = $this->input->post('payment_ids');
+    $payment_ids = $this->input->post('payment_ids');
 
-	if (empty($payment_ids)) {
+    if (empty($payment_ids)) {
+        echo json_encode(['success' => false, 'message' => 'No IDs received.']);
+        return;
+    }
 
-		echo json_encode(['success' => false, 'message' => 'No IDs received.']);
+    $success_count = 0;
+    $error_count = 0;
+    $already_sent_count = 0; // New counter for duplicates
 
-		return;
+    foreach ($payment_ids as $id) {
 
-	}
+        // 1. Get the current status for THIS SPECIFIC ID
+        $this->db->select('tally_status');
+        $this->db->where('ID', $id);
+        $q = $this->db->get('hms_patient_payments');
+        
+        $row = $q->row_array();
 
+        // 2. CHECK: Does the row exist? Is it already sent?
+        if (!empty($row) && $row['tally_status'] == '1') {
+            $already_sent_count++;
+            continue; // Skip to the next ID
+        }
 
-	$success_count = 0;
+        // --- Actual Tally Logic would go here ---
+        $result = true; 
 
-	$error_count = 0;
+        if ($result) {
+            $success_count++;
+            // Update status to 1
+            $this->db->where('ID', $id)->update('hms_patient_payments', ['tally_status' => 1]);
+        } else {
+            $error_count++;
+        }
+    }
 
-	foreach ($payment_ids as $id) {
+    // 3. Build the response message
+    if ($success_count > 0 || $already_sent_count > 0) {
+        
+        $msg = "";
+        
+        if ($success_count > 0) {
+            $msg .= "$success_count records sent successfully. ";
+        }
+        
+        if ($already_sent_count > 0) {
+            $msg .= "($already_sent_count records were already sent). ";
+        }
 
+        if ($error_count > 0) {
+            $msg .= "($error_count failed).";
+        }
 
-		$q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') and tally_status='1'");
+        echo json_encode(['success' => true, 'message' => trim($msg)]);
 
-		$payment_data = $q->row_array();
-
-		$result = true;
-
-		if ($result) {
-
-		$success_count++;
-
-			$this->db->where('ID', $id)->update('hms_patient_payments', ['tally_status' => 1]);
-
-		} else {
-
-			$error_count++;
-
-		}
-
-	}
-
-		if ($success_count > 0) {
-
-			$msg = "$success_count records sent to Tally successfully.";
-
-		if($error_count > 0) {
-
-			$msg .= " ($error_count failed)";
-
-		}
-
-			echo json_encode(['success' => true, 'message' => $msg]);
-
-		} else {
-
-			echo json_encode(['success' => false, 'message' => 'Failed to send records to Tally.']);
-
-		}
-
-} 
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to send records to Tally.']);
+    }
+}
 
 
 public function partialpayment_tally() {
@@ -2634,6 +2638,221 @@ public function partialpayment_tally() {
     // 3. Return JSON Response
     header('Content-Type: application/json');
     echo json_encode(["Sales_Details" => $sales_data], JSON_PRETTY_PRINT);
+}
+
+
+public function investigations_send_tally() {
+
+    $payment_ids = $this->input->post('payment_ids');
+
+    if (empty($payment_ids)) {
+        echo json_encode(['success' => false, 'message' => 'No IDs received.']);
+        return;
+    }
+
+    $success_count = 0;
+    $error_count = 0;
+    $already_sent_count = 0; // Track how many were skipped
+
+    foreach ($payment_ids as $id) {
+
+        // 1. Get the current status of THIS specific ID
+        // We select only tally_status to be efficient
+        $this->db->select('tally_status');
+        $this->db->where('ID', $id);
+        $q = $this->db->get('hms_patient_investigations');
+        
+        $row = $q->row_array();
+
+        // 2. CHECK: If row exists AND tally_status is already 1, skip it
+        if (!empty($row) && $row['tally_status'] == '1') {
+            $already_sent_count++;
+            continue; // specific keyword to skip to the next ID in the loop
+        }
+
+        // --- Tally Logic Here ---
+        // Put your actual code to send data to Tally API here.
+        // For now, we assume it is successful.
+        $result = true; 
+
+        if ($result) {
+            $success_count++;
+            // Update the status to 1 so it isn't sent again next time
+            $this->db->where('ID', $id)->update('hms_patient_investigations', ['tally_status' => 1]);
+        } else {
+            $error_count++;
+        }
+    }
+
+    // 3. Build the response message
+    if ($success_count > 0 || $already_sent_count > 0) {
+        
+        $msg = "";
+        
+        if ($success_count > 0) {
+            $msg .= "$success_count records sent successfully. ";
+        }
+        
+        if ($already_sent_count > 0) {
+            $msg .= "($already_sent_count records were already sent). ";
+        }
+
+        if ($error_count > 0) {
+            $msg .= "($error_count failed).";
+        }
+
+        echo json_encode(['success' => true, 'message' => trim($msg)]);
+
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to send records to Tally.']);
+    }
+}
+
+public function investigation_tally()
+{
+    $logg = checklogin();
+    
+    // Accept ids from POST or GET
+    $ids = $this->input->post('ids');
+    if (empty($ids)) {
+        $ids = $this->input->get('ids');
+    }
+
+    $all_sales = [];
+
+    if (!empty($ids)) {
+        // fetch only selected
+        foreach ($ids as $ID) {
+            $sale = $this->accounts_model->send_procedure_tally($ID);
+
+            if ($sale) {
+
+                // -------------------------
+                // Convert serialized data →
+                // JSON patient_procedures[]
+                // -------------------------
+
+                if (!empty($sale['data'])) {
+                    $unserialized = @unserialize($sale['data']);
+
+                    if (isset($unserialized['patient_procedures'])) {
+                        $sale['patient_procedures'] = $unserialized['patient_procedures'];
+                    } else {
+                        $sale['patient_procedures'] = [];
+                    }
+                } else {
+                    $sale['patient_procedures'] = [];
+                }
+
+                // remove original `data` field from output
+                unset($sale['data']);
+
+                $all_sales[] = $sale;
+            }
+        }
+    } else {
+
+        $sales = $this->accounts_model->get_all_sales_for_tally();
+
+        foreach ($sales as $sale) {
+
+		$sql_patients = "SELECT * FROM hms_patients WHERE patient_id ='".$sale["patient_id"]."'";
+        $patients_result = run_select_query($sql_patients);
+
+		$sql_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["origins"]."'";
+        $centers_result = run_select_query($sql_centers);
+
+		$sql_billing_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["billing_at"]."'";
+        $billing_centers_result = run_select_query($sql_billing_centers);
+
+		$sql_booking_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["billing_at"]."'";
+        $booking_centers_result = run_select_query($sql_booking_centers);
+
+		$sql_employees = "SELECT * FROM hms_employees WHERE employee_number ='".$sale["biller_id"]."'";
+        $employees_result = run_select_query($sql_employees);
+
+		 // FIXED: Properly handle the embryo transfer data
+        $date_of_admission = null;
+        $formatted_admission_date = null;
+        $type = 'New';  // Default
+        
+        if (!empty($select_embryo_transfer)) {
+            // Check if it's a single row or multiple rows
+            if (isset($select_embryo_transfer['date_of_addmission'])) {
+                // Single row result
+                $date_of_admission = $select_embryo_transfer['date_of_addmission'];
+            } elseif (is_array($select_embryo_transfer) && count($select_embryo_transfer) > 0) {
+                // Multiple rows result - get the first one
+                $first_embryo = $select_embryo_transfer[0];
+                $date_of_admission = isset($first_embryo['date_of_addmission']) ? $first_embryo['date_of_addmission'] : null;
+            }
+            
+            if (!empty($date_of_admission)) {
+                $formatted_admission_date = date('Y-m-d', strtotime($date_of_admission));
+                
+                // Determine type based on admission date
+                if (strtotime($date_of_admission) < strtotime($row['on_date'])) {
+                    $type = 'recycle';
+                }
+            }
+        }
+
+    // ---- Parent sale fields ----
+    $formatted = [
+        "patient_id"      => $sale["patient_id"],
+     "patient_name" => ($patients_result['wife_name'] ?? '') . ' W/O ' . ($patients_result['husband_name'] ?? ''),
+        "billing_center"  => $billing_centers_result['center_name'],
+        "booking_center"  => $booking_centers_result['center_name'],
+        "origin_center"   => $centers_result['center_name'],
+        "on_date"         => date("d-m-Y", strtotime($sale["on_date"])),
+        "receipt_number"  => $sale["receipt_number"],
+        "biller_name"     => $employees_result['name'] ?? 'N/A',
+        "procedure_type"  => $type . ($date_of_admission ? " (Admission: " . $date_of_admission . ")" : ""),
+        "patient_procedures" => [],
+        "payment_method" => $sale["payment_method"] ?? "",
+		"status" => $sale["status"] ?? ""
+    ];
+
+    // ---- Unserialize patient_procedures ----
+    if (!empty($sale['data'])) {
+
+        $unserialized = @unserialize($sale['data']);
+
+        if (isset($unserialized['patient_procedures'][0])) {
+
+            $p = $unserialized['patient_procedures'][0];
+
+            $formatted["patient_procedures"][] = [
+                "procedure_name"              => $sale["procedure_name"],
+                "category"                    => $sale["category"],
+                "sub_procedure"               => $p["sub_procedure"],
+                "sub_procedures_code"         => $p["sub_procedures_code"],
+                "sub_procedures_price"        => $p["sub_procedures_price"],
+                "sub_procedures_discount"     => $p["sub_procedures_discount"],
+                "sub_procedures_after_discount" =>
+                    (float)$p["sub_procedures_price"] - (float)$p["sub_procedures_discount"],
+                "sub_procedures_paid_price"   => $p["sub_procedures_paid_price"]
+            ];
+        }
+    }
+
+    unset($sale['data']);
+
+    $all_sales[] = $formatted;
+}
+
+    }
+
+    $response = [
+        'export_date'   => date('Y-m-d H:i:s'),
+        'selected_ids'  => !empty($ids) ? $ids : [],
+        'record_count'  => count($all_sales),
+        'Sales_Details' => $all_sales
+    ];
+
+    return $this->output
+        ->set_content_type('application/json')
+        ->set_output(json_encode($response, JSON_PRETTY_PRINT));
 }
 
 	public function front_approve($request = NULL){
