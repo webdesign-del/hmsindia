@@ -3261,7 +3261,8 @@ class Stock_model_new extends CI_Model
                     'mb.batch_number', 
                     'm.medicine_name',
                     "'CENTER' as location_type",
-                    'cs.center_id as location_id'
+                    'cs.center_id as location_id',
+                    'cs.department'
                 ]);
                 $this->db->from('center_stocks cs');
                 $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
