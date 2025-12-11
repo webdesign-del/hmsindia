@@ -63,14 +63,20 @@
         <div class="card-content">
 
           <div class="table-responsive">
-
+<div class="action-buttons">
+            <button id="selectAllBtn" class="btn btn-default">Select All</button>
+            <button id="deselectAllBtn" class="btn btn-default">Deselect All</button>
+            <button id="sendToTallyBtn" class="btn btn-primary">Send Selected to Tally</button>
+        </div>
             <table class="table table-striped table-bordered table-hover" id="investigation_billing_list">
 
               <thead>
 
                 <tr>
 
-				  <th>S.No.</th>
+				          <th>S.No.</th>
+
+                  <th></th>
 
                   <th>IIC ID</th>
 
@@ -123,6 +129,9 @@
                 <tr class="odd gradeX">
 
                   <td><?php echo $count; ?></td>
+
+                  <td>  <?php if($vl['status'] == 'approved') { ?><input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>"><?php } ?></td>
+                    
 
                   <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
 
@@ -370,6 +379,11 @@
 
 		}
 
+    [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+      position: static;
+      left: -9999px;
+      opacity: 1;
+    }
 	</style>
 
    <script>
@@ -431,42 +445,6 @@
     </script>
 
 <script>
-      //   $(document).on('change',"#billing_at_filter",function(e) {
-      //   $('#billing_from_filter').prop('selectedIndex',0);
-      //       $('#loader_div').show();
-      //       var billing_at = $(this).val();
-      //       if(billing_at != ''){
-      //         var data = {billing_at:billing_at, type:'billing_at'};
-      //         billing_filter(data);
-      //       }else{
-      //         $('#loader_div').hide();
-      //       }
-      //   });
-      //   $(document).on('change',"#billing_from_filter",function(e) {
-      //   $('#billing_at_filter').prop('selectedIndex',0);
-      //       $('#loader_div').show();
-      //       var billing_from = $(this).val();
-      //       if(billing_from != ''){
-      //         var data = {billing_from:billing_from, type:'billing_from'};
-      //         billing_filter(data);
-      //       }else{
-      //         $('#loader_div').hide();
-      //       }
-      //   });
-      // $(function() {
-      //     $('input[name="daterange"]').daterangepicker({
-      //     opens: 'left'
-      //     }, function(start, end, label) {
-      //         $('#billing_from_filter').prop('selectedIndex',0);
-      //         $('#billing_at_filter').prop('selectedIndex',0);
-      //       var end = end.add(1, 'days');
-      //       console.log("A new date selection was made: " + start.format('YYYY-MM-DD 00:00:00') + ' to ' + end.format('YYYY-MM-DD 00:00:00'));
-      //       var data = {start:start.format('YYYY-MM-DD 00:00:00'),end:end.format('YYYY-MM-DD 00:00:00'), type:'date_wise'};
-      //       billing_filter(data, start.format('YYYY-MM-DD 00:00:00'), end.format('YYYY-MM-DD 00:00:00'));
-      //       $(this).datepicker('setDate', null);
-      //     });
-      // });
-
       $( function() {
         $( ".particular_date_filter" ).datepicker({
           dateFormat: 'yy-mm-dd',
@@ -480,45 +458,73 @@
         });
     });
 
-      
-      /*$('input[name="daterange"]').on('apply.daterangepicker', function(ev, picker) {
-        $(this).val('');
-        $(this).data('daterangepicker').setStartDate(moment());
-        $(this).data('daterangepicker').setEndDate(moment());
-      });*/
+</script>
 
-      // function billing_filter(data, start, end){ //console.log('23432');
-      //     $('#loader_div').show();
-      //     $('tbody#consultation_result').empty();
-      //     $('tbody#investigate_result').empty();
-      //     $('tbody#procedure_result').empty();
-      //     $.ajax({
-      //         url: '<?php // echo base_url('billings/ajax_accounts_billing_filter')?>',
-      //         data: data,
-      //         dataType: 'json',
-      //         method:'post',
-      //         success: function(datax)
-      //         {
-      //             $("#consultation_billing_list").append(datax.consultant_html);
-      //             $('tbody#investigate_result').empty().append(datax.investigation_html);
-      //             $('tbody#procedure_result').empty().append(datax.procedure_html);
-      //             $('tbody#partial_payment_result').empty().append(datax.payment_html);
+<script type="text/javascript">
+$(document).ready(function() {
 
-      //             var export_billing = $('#export-billing').attr('href');
-      //             if(data.type == "date_wise"){
-      //               $('#export-billing').attr('href', export_billing+"?type="+data.type+"&start="+start+"&end="+end);
-      //             }
-      //             if(data.type == "billing_from"){
-      //               $('#export-billing').attr('href', export_billing+"?type="+data.type+"&billing_from="+data.billing_from);  
-      //             }
-      //             if(data.type == "billing_at"){
-      //                 $('#export-billing').attr('href', export_billing+"?type="+data.type+"&billing_at="+data.billing_at);  
-      //             }
-      //           $("ul.pagination").hide();
-      //             $('#loader_div').hide();
-      //         } 
-      //     });
-      // }
+    // 1. Logic for "Select All"
+    $('#selectAllBtn').click(function() {
+        $('.rowCheckbox').prop('checked', true);
+    });
+
+    // 2. Logic for "Deselect All"
+    $('#deselectAllBtn').click(function() {
+        $('.rowCheckbox').prop('checked', false);
+    });
+
+    // 3. Logic for "Send to Tally"
+    $('#sendToTallyBtn').click(function() {
+        var btn = $(this);
+        var selectedIds = [];
+
+        // Gather all checked checkboxes
+        $('.rowCheckbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        // Validation: Check if anything is selected
+        if(selectedIds.length === 0) {
+            alert('Please select at least one record to send to Tally.');
+            return;
+        }
+
+        if(!confirm('Are you sure you want to send ' + selectedIds.length + ' records to Tally?')) {
+            return;
+        }
+
+        // Change button state to indicate loading
+        var originalText = btn.html();
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Sending...');
+
+        // 4. AJAX Request to your specific URL
+        $.ajax({
+            url: '<?php echo base_url("accounts/investigations_send_tally"); ?>', // Maps to your URL
+            type: 'POST',
+            data: {
+                payment_ids: selectedIds // Sending the array of IDs
+            },
+            dataType: 'json', // Expecting JSON response from controller
+            success: function(response) {
+                if(response.success) {
+                    alert('Success: ' + response.message);
+                    // Optional: Reload page to update status
+                    // location.reload(); 
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Server Error: Failed to connect to Tally endpoint.');
+                console.error(xhr.responseText);
+            },
+            complete: function() {
+                // Reset button
+                btn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+});
 </script>
 <style >
 .custom-pagination{
