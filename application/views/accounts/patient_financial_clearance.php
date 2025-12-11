@@ -84,7 +84,7 @@
     $sum_sql = "SELECT SUM(payment_done) as total_paid FROM hms_patient_payments WHERE billing_id = '$current_receipt'";
     $sum_query = $this->db->query($sum_sql);
     $sum_result = $sum_query->row();
-
+    $balance = $vl['fees'] - ($sum_result->total_paid + $vl['payment_done']);
     // 3. Display the result (formatted with 2 decimal places)
     
                 
@@ -105,10 +105,7 @@
                     <td><?php echo $vl['discount_amount']?></td>
 				    <td><?php echo $vl['fees']?></td>
 				    <td><?php echo number_format($sum_result->total_paid + $vl['payment_done'], 2);   ?></td>
-                    <td><?php 
-$balance = $vl['fees'] - ($sum_result->total_paid + $vl['payment_done']);
-echo number_format($balance, 2);
-?>
+                    <td><?php echo number_format($balance, 2); ?>
 </td>
                     <?php }else{ ?>
                     <td><?php echo $vl['receipt_number']?></td>
@@ -118,28 +115,41 @@ echo number_format($balance, 2);
 				    <td><?php echo $vl['procedure_name']; ?></td>
                     <td><?php echo $vl['code']; ?></td>
                     <td><?php 
-                        // 1. Check if Counselor is logged in AND Status is pending (empty)
-                        if(!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') { 
-                        ?> 
-                            <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="ClearanceProcedure('<?php echo $vl['ID']; ?>')">
-                                Clearance
-                            </a>
-                            <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="NonClearanceProcedure('<?php echo $vl['ID']; ?>')">
-                                Non Clearance
-                            </a>
-                        <?php 
-                        } else { 
-                            // 2. SHOW TEXT (If not counselor OR status is already decided)
-                            
-                            if($vl['clearance'] == '') {
-                                // Optional: Show 'Pending' text if it's empty and user isn't a counselor
-                                echo '<span style="color:orange;">Pending</span>'; 
-                            } else {
-                                // Show the actual status
-                                echo ucwords($vl['clearance']);
-                            }
-                        } 
-                        ?>
+// 1. Check if Counselor is logged in AND Status is pending (empty)
+if(!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') { 
+    
+    // --- LOGIC START: Check Balance ---
+    // We use <= 0 to account for 0.00 or negative numbers (overpaid)
+    if($balance <= 0) { 
+        ?> 
+        <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="ClearanceProcedure('<?php echo $vl['ID']; ?>')">
+            Clearance
+        </a>
+        <?php 
+    } else {
+        ?>
+        <button class="btn btn-secondary btn-sm" disabled title="Balance must be 0">
+            Due: <?php echo number_format($balance, 2); ?>
+        </button>
+        <?php
+    }
+    // --- LOGIC END ---
+    ?>
+
+    <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="NonClearanceProcedure('<?php echo $vl['ID']; ?>')">
+        Non Clearance
+    </a>
+
+<?php 
+} else { 
+    // 2. SHOW TEXT (If not counselor OR status is already decided)
+    if($vl['clearance'] == '') {
+        echo '<span class="text-warning">Pending</span>'; 
+    } else {
+        echo ucwords($vl['clearance']);
+    }
+} 
+?>
                     </td>
                   <td><?php 
 // 1. Check if (Embryologist OR Doctor) is logged in AND clearance is 'yed'
