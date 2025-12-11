@@ -84,7 +84,7 @@
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Stocks<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
                      <li> <a href="<?php echo base_url(); ?>stocks_new/center_stocks">All Stocks</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/audit_reports" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Audit Report</a></li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/audit_reports" class="waves-effect waves-dark">Audit Report</a></li>
 
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/center_stocks">All Stocks</a> </li> -->
                        <!-- <li> <a href="<?php echo base_url(); ?>stocks/center_audit_report">Audit Report</a> </li> -->
