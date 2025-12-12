@@ -6,7 +6,7 @@ class Brands_model extends CI_Model
 	function get_brands(){
 		$result = array();
 		$sql_condition = '';
-		$sql = "Select * from ".$this->config->item('db_prefix')."brands ORDER by ID DESC";
+		$sql = "Select * from medicine_brands ORDER by id DESC";
         $q = $this->db->query($sql);
         $result = $q->result_array();
         if (!empty($result))
@@ -22,7 +22,7 @@ class Brands_model extends CI_Model
 	function get_brands_list(){
 		$result = array();
 		$sql_condition = '';
-		$sql = "Select * from ".$this->config->item('db_prefix')."brands where status='1' ORDER by ID DESC";
+		$sql = "Select * from medicine_brands where status='1' ORDER by id DESC";
         $q = $this->db->query($sql);
         $result = $q->result_array();
         if (!empty($result))
@@ -36,7 +36,7 @@ class Brands_model extends CI_Model
 	}
 	
 	function add_brand($data){
-		$sql = "INSERT INTO `" . $this->config->item('db_prefix') . "brands` SET ";
+		$sql = "INSERT INTO `medicine_brands` SET ";
 		$sqlArr = array();
 		foreach( $data as $key=> $value )
 		{
@@ -56,7 +56,7 @@ class Brands_model extends CI_Model
 	function get_brand_data($item){
 		$result = array();
 		$sql_condition = '';
-		$sql = "Select * from ".$this->config->item('db_prefix')."brands where ID='".$item."'";
+		$sql = "Select * from medicine_brands where id='".$item."'";
         $q = $this->db->query($sql);
         $result = $q->result_array();
         if (!empty($result))
@@ -71,19 +71,19 @@ class Brands_model extends CI_Model
 	
 	public function update_brand_data($data, $item)
     {	
-        $sql = "UPDATE " . config_item('db_prefix') . "brands SET ";
+        $sql = "UPDATE medicine_brands SET ";
 		foreach( $data as $key=> $value )
 		{
 			$sqlArr[] = " $key = '".$value."'"	;
 		}
 		$sql .= implode(',' , $sqlArr);
-		$sql .= " WHERE ID = '".$item."'";
+		$sql .= " WHERE id = '".$item."'";
         $this->db->query($sql);
         return 1;
     }
 	
 	public function delete_brand_data($item){
-		$sql = "DELETE FROM " . $this->config->item('db_prefix') . "brands WHERE ID = '".$item."'";
+		$sql = "DELETE FROM medicine_brands WHERE id = '".$item."'";
        	$res =  $this->db->query($sql);
 		if ($res)
 		{

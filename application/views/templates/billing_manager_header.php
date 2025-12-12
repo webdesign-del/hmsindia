@@ -136,15 +136,20 @@
 	  <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Billing Medicine<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <!--<li> <a href="<?php echo base_url(); ?>stocks/add_billing_medicine">Medicine</a> </li>-->
-		  <li> <a href="<?php echo base_url(); ?>stocks/return_billing_medicine">Return Medicine</a> </li>
-		   <li> <a href="<?php echo base_url(); ?>stocks/medicine_return_report">Medicine Return Report</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>accounts/medicine_patients">Sale Report Patient Wise</a> </li>
-          <li> <a href="<?php echo base_url(); ?>stocks/center_medicine_report">Sale Report</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks_new/returns"> Medicine Return List</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks_new/medicine_returns"> Medicine Returns</a> </li>
+
+		      <!-- <li> <a href="<?php echo base_url(); ?>stocks/return_billing_medicine">Return Medicine</a> </li> -->
+		      <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_return_report">Medicine Return Report</a> </li> -->
+		      <li> <a href="<?php echo base_url(); ?>stocks_new/sales_report">Sale Report Patient Wise</a> </li>
+          <!-- <li> <a href="<?php echo base_url(); ?>stocks/center_medicine_report">Sale Report</a> </li> -->
         </ul>
       </li>
-	  <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Stocks<span class="fa arrow"></span></a>
+  	  <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Stocks<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
-          <li> <a href="<?php echo base_url(); ?>stocks/center_stocks">All Stocks</a> </li>
+          <!-- <li> <a href="<?php echo base_url(); ?>stocks/center_stocks">All Stocks</a> </li> -->
+          <li> <a href="<?php echo base_url(); ?>stocks_new/center_stocks">All Available Medicine</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks_new/sales">Sales</a> </li>
         </ul>
       </li>
       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Orders<span class="fa arrow"></span></a>
@@ -170,16 +175,16 @@
 		  <li> <a href="<?php echo base_url(); ?>doctors/discard">Discard</a> </li>
         </ul>
       </li>
-		<li> <a href="<?php echo base_url(); ?>accounts/admission_form_list"><i class="fa fa-sitemap"></i>Admission Form</a> </li>
-		<li> <a href="<?php echo base_url(); ?>investigation/patient_investigation_list" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Investigation Reports</a></li>
-	    <li> <a href="<?php echo base_url(); ?>doctors/doctor_patient" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>OPD Register</a></li>
-      <li> <a href="<?php echo base_url(); ?>stocks/center_audit_report" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Audit Report</a></li>
+        <li> <a href="<?php echo base_url(); ?>accounts/admission_form_list"><i class="fa fa-sitemap"></i>Admission Form</a> </li>
+        <li> <a href="<?php echo base_url(); ?>investigation/patient_investigation_list" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Investigation Reports</a></li>
+        <li> <a href="<?php echo base_url(); ?>doctors/doctor_patient" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>OPD Register</a></li>
+        <li> <a href="<?php echo base_url(); ?>stocks_new/audit_reports" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Audit Report</a></li>
          <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Revenue Reports<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>accounts/consultation_origin">Consultation</a> </li>
           <li> <a href="<?php echo base_url(); ?>accounts/investigation_origin">Investigation</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>accounts/procedure_origin">Procedure</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>stocks/medicine_origin">Medicine</a> </li>
+          <li> <a href="<?php echo base_url(); ?>accounts/procedure_origin">Procedure</a> </li>
+          <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_origin">Medicine</a> </li> -->
 		</ul>
       </li>
 	  <li> <a href="<?php echo base_url(); ?>doctors/patient_general_instructions" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>General Instructions</a></li>

@@ -584,7 +584,7 @@
 <script>
 var stockItemCounter = 0;
 
-function switchTab(tabName) {
+function switchTab(tabName) {    
     // Hide all tab panes
     $('.tab-pane').hide();
     $('.tab-link').removeClass('active');
@@ -646,7 +646,7 @@ function addStockItem() {
             </td>
             <td class="text-center">
                 <input type="checkbox" name="select_item_${stockItemCounter}" 
-                    id="select_item_${stockItemCounter}" style="width:100% !important;padding: 0 !important;">
+                    id="select_item_${stockItemCounter}" style="width:100% !important;padding: 0 !important;left: 0px !important;opacity: 1 !important;position: unset !important;">
             </td>
         </tr>
     `;

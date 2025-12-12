@@ -3766,49 +3766,46 @@ function get_prodecure_form($form_id){
 
 
 
-function get_medicine_name($item_number)
+    function get_medicine_name($item_number)
+    {
+        $ci = &get_instance();
+        $ci->load->database();
+        $db_prefix = $ci->config->config['db_prefix'];
+        $sql = "SELECT item_name FROM {$db_prefix}stocks WHERE item_number = ?";
+        $query = $ci->db->query($sql, [$item_number]);
+        $result = $query->row_array();
+        if (!empty($result['item_name'])) {
+            return $result['item_name']; 
+        }
+        $sql2 = "SELECT medicine_name FROM medicines WHERE medicine_code = ?";
+        $query2 = $ci->db->query($sql2, [$item_number]);
+        $result2 = $query2->row_array();
+        if (!empty($result2['medicine_name'])) {
+            return $result2['medicine_name']; // found in medicines
+        }
+        return '-';
+    }
 
-{
-
-	$ci= &get_instance();
-
-    $ci->load->database();
-
-    $db_prefix = $ci->config->config['db_prefix'];
-
-
-
-	$sql = "SELECT * FROM ".$db_prefix."stocks WHERE item_number = '".$item_number."'";
-
-	$q = $ci->db->query($sql);
-
-	$result = $q->result_array();
-
-
-
-	if(count($result) > 0)
-
-	{
-
-		foreach($result as $key => $value)
-
-		{
-
-			$item_name = $value['item_name'];
-
-		}
-
-	}
-
-	if(!empty($item_name))
-
-	return $item_name;
-
-	else
-
-	return '-';
-
-}
+// function get_medicine_name($item_number)
+// {
+// 	$ci= &get_instance();
+//     $ci->load->database();
+//     $db_prefix = $ci->config->config['db_prefix'];
+// 	$sql = "SELECT * FROM ".$db_prefix."stocks WHERE item_number = '".$item_number."'";
+// 	$q = $ci->db->query($sql);
+// 	$result = $q->result_array();
+// 	if(count($result) > 0)
+// 	{
+// 		foreach($result as $key => $value)
+// 		{
+// 			$item_name = $value['item_name'];
+// 		}
+// 	}
+// 	if(!empty($item_name))
+// 	return $item_name;
+// 	else
+// 	return '-';
+// }
 
 
 

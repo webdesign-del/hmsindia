@@ -48,8 +48,16 @@
          <div class="col-sm-2 col-xs-12">
             <div class="form-group">
                <label for="vendor_number">Vendor</label>
-               <input type="text" class="form-control" id="vendor_number" name="vendor_number" 
-                  value="<?php echo $filters['vendor_number']; ?>" placeholder="Vendor">
+               <select class="form-control" id="vendor_number" name="vendor_number">
+                  <option value="">All Vendors</option>
+                  <?php if (!empty($vendors)): ?>
+                     <?php foreach ($vendors as $vendor): ?>
+                        <option value="<?php echo $vendor['ID']; ?>" <?php echo ($filters['vendor_number'] == $vendor['ID']) ? 'selected' : ''; ?>>
+                           <?php echo htmlspecialchars($vendor['name']); ?>
+                        </option>
+                     <?php endforeach; ?>
+                  <?php endif; ?>
+               </select>
             </div>
          </div>
          <!-- Buttons -->
@@ -64,12 +72,15 @@
                <a href="<?php echo base_url('new_purchase_orders/add'); ?>" class="btn btn-success">
                   <i class="fa fa-plus"></i> Add New PO
                </a>
-               <a href="<?php echo base_url('new_purchase_orders/purchase_order_receipt'); ?>" class="btn btn-info">
-                  <i class="fa fa-file-text -o"></i> Purchase Order Receipt
-               </a>
-               <a href="<?php echo base_url('new_purchase_orders/stock_transfer'); ?>" class="btn btn-warning">
+               <a href="<?php echo base_url('new_purchase_orders/export_csv?' . http_build_query($filters)); ?>" class="btn btn-info">
+                    <i class="fa fa-file-excel-o"></i> Export CSV
+                </a>
+                  <!-- <a href="<?php echo base_url('new_purchase_orders/purchase_order_receipt'); ?>" class="btn btn-info">
+                     <i class="fa fa-file-text -o"></i> Purchase Order Receipt
+                  </a> -->
+               <!-- <a href="<?php echo base_url('new_purchase_orders/stock_transfer'); ?>" class="btn btn-warning">
                   <i class="fa fa-exchange"></i> Stock Transfer
-               </a>
+               </a> -->
             </div>
          </div>
       </form>
@@ -93,7 +104,6 @@
             <i class="fa fa-exclamation-circle"></i> <?php echo $this->session->flashdata('error'); ?>
          </div>
       <?php endif; ?>
-      
       <div class="card-content">
          <div class="table-responsive">
             <table class="table table-striped table-bordered table-hover" id="new_purchase_orders_list">
@@ -106,6 +116,7 @@
                      <th>Department</th>
                      <th>Total Amount</th>
                      <th>Status</th>
+                     <th>Add stock</th>
                      <th>Created Date</th>
                      <th>Actions</th>
                   </tr>
@@ -120,10 +131,10 @@
                            </td>
                            <?php
                            $all_method->load->model('Vendors_model');
-                           $vendor_data = $all_method->Vendors_model->get_vendor_data_by_vendor_number($po['vendor_number']);
-                           $vendor_name = (!empty($vendor_data) && isset($vendor_data[0]['name'])) ? $vendor_data[0]['name'] : 'N/A';
+                           $vendor_data = $all_method->Vendors_model->get_vendor_name_by_vendor_id($po['vendor_number']);
+                           // $vendor_name = (!empty($vendor_data) && isset($vendor_data[0]['name'])) ? $vendor_data[0]['name'] : 'N/A';
                            ?>
-                           <td><?php echo $vendor_name; ?></td>
+                           <td><?php echo $vendor_data->name; ?></td>
                            <?php
                             $ship_to = $all_method->get_center_name($po['ship_to']);
                             $bill_to = $all_method->get_center_name($po['bill_to']);
@@ -170,6 +181,38 @@
                                  <?php echo $status_text; ?>
                               </span>
                            </td>
+                           <td>
+                                 <?php
+                                    $is_fully_received = false;
+                                    if ($status == 'approved' || $status == 'completed') {
+                                          $is_fully_received = $all_method->New_purchase_order_model->is_po_fully_received($po['id']);
+                                    }
+                                    if (($status == 'approved' || $status == 'completed') && $user_role == 'central_stock_manager' && !$is_fully_received):
+                                    ?>
+                                    <a href="<?php echo base_url('new_purchase_orders/new_add_stock/' . (!empty($po['id']) ? $po['id'] : '0')); ?>" class="btn btn-info">
+                                       <i class="fa fa-file-text-o"></i>Add stocks
+                                    </a>
+                                 <?php elseif ($is_fully_received): ?>
+                                       <button class="btn btn-success" disabled title="All items for this PO have been received">
+                                          <i class="fa fa-check-circle"></i> Fully Received
+                                       </button>
+                                 <?php else: ?>
+                                       <button class="btn btn-info" disabled title="Add Stock - Only available for approved/completed orders">
+                                          <i class="fa fa-file-text-o"></i>Add stocks
+                                       </button>
+                                 <?php endif; ?>
+                           </td>   
+                           <!-- <td>
+                              <?php if ($status == 'completed' && $user_role == 'central_stock_manager'): ?>
+                                 <a href="<?php echo base_url('new_purchase_orders/new_add_stock/' . (!empty($po['id']) ? $po['id'] : '0')); ?>" class="btn btn-info">
+                                    <i class="fa fa-file-text-o"></i>Add stocks
+                                 </a>
+                              <?php else: ?>
+                                 <button class="btn btn-info" disabled title="Add Stock - Only available for completed orders">
+                                    <i class="fa fa-file-text-o"></i>Add stocks
+                                 </button>
+                              <?php endif; ?>
+                           </td> -->
                            <td><?php echo !empty($po['created_at']) ? date('d/m/Y H:i', strtotime($po['created_at'])) : 'N/A'; ?></td>
                            <td>
                               <div class="btn-group" role="group">
@@ -179,7 +222,7 @@
                                  </a>
                                  
                                  <!-- Edit button - disabled if approved or completed -->
-                                 <?php if ($status == 'pending' || $status == 'rejected'): ?>
+                                 <?php if ($status == 'pending' || $status != 'rejected'): ?>
                                     <a href="<?php echo base_url('new_purchase_orders/edit/' . (!empty($po['id']) ? $po['id'] : '0')); ?>" 
                                        class="btn btn-xs btn-warning" title="Edit">
                                        <i class="fa fa-edit"></i>

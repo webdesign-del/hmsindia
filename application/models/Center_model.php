@@ -94,38 +94,25 @@ class Center_model extends CI_Model
 		try {
 			$result = array();
 			$table_name = $this->config->item('db_prefix') . 'centers';
-			
-			// Check if table exists
 			if (!$this->db->table_exists($table_name)) {
-				log_message('error', 'Table ' . $table_name . ' does not exist');
 				return array();
 			}
-			
 			$sql = "SELECT * FROM " . $table_name . " WHERE center_number = ?";
 			$q = $this->db->query($sql, array($item));
 			$result = $q->result_array();
-			
 			if (!empty($result)) {
 				$data = $result[0];
-				
-				// Handle field mapping for backward compatibility
 				if (!isset($data['center_address']) && isset($data['center_location'])) {
 					$data['center_address'] = $data['center_location'];
 				}
-				
-				// Ensure center_classification has a default value if not set
 				if (!isset($data['center_classification']) || empty($data['center_classification'])) {
 					$data['center_classification'] = 'hub'; // Default to hub
 				}
-				
-				log_message('debug', 'Retrieved center data: ' . print_r($data, true));
 				return $data;
 			} else {
-				log_message('warning', 'No center found with center_number: ' . $item);
 				return array();
 			}
 		} catch (Exception $e) {
-			log_message('error', 'Exception in get_item_data: ' . $e->getMessage());
 			return array();
 		}
 	}

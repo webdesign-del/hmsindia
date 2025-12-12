@@ -102,7 +102,7 @@ backups/*
 # ===========================================
 # Dependencies
 # ===========================================
-vendor/
+# vendor/
 node_modules/
 composer.lock
 
@@ -203,3 +203,5 @@ assets/**/.ftpquota
 # Ignore mpdf and similar vendor libraries stored in assets
 assets/mpdf/*
 !assets/mpdf/.gitkeep
+
+uploads/

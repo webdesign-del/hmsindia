@@ -1,0 +1,5 @@
+Medicine Code,Medicine Name,Vendor Name,Batch Number,Expiry Date,Purchase Date,Purchase Price (Pack),MRP (Pack),Selling Price (Pack),Quantity Purchased (Packs),Invoice Number,Invoice Date,Quality Status,Remarks
+MED001,Paracetamol 500mg,Sample Vendor,BATCH001,2025-12-31,2024-01-15,100.00,120.00,120.00,10,INV001,2024-01-15,PENDING,Sample batch import
+MED002,Amoxicillin 250mg,Sample Vendor,BATCH002,2026-06-30,2024-01-15,150.00,180.00,180.00,5,INV002,2024-01-15,APPROVED,Quality approved batch
+MED003,Ibuprofen 400mg,Sample Vendor,BATCH003,2025-09-15,2024-01-16,80.00,100.00,100.00,20,INV003,2024-01-16,PENDING,New stock arrival
+

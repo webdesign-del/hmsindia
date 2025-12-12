@@ -354,7 +354,6 @@ $centers_result = run_select_query($centers_sql);
 					<input type="hidden" value="<?php echo $_SESSION['logged_billing_manager']['employee_number']?>" id="employee_number" name="employee_number">
 					<input type="hidden" value="<?php echo $centers_result['center_code']; ?>/O/<?php $year = date("y"); echo $year, $year+1; ?>/" id="series_number" name="series_number" class="form-control validate">
 					<input type="hidden" value="<?php echo $_SESSION['logged_billing_manager']['center']?>" id="billing_at" name="billing_at">
-               
                 </div>
 
 				
@@ -398,7 +397,7 @@ $(document).on('blur',"#patient_id",function(e) {
 
     
 
-	 $(document).on('change',".consumables_select",function(e) {
+	 $(document).on('change',".	",function(e) {
         $('#msg_area').empty();
 		var serial = $(this).val();
 		var count = $(this).attr('count');

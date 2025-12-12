@@ -4391,7 +4391,6 @@ foreach ($urls as $key => $url) {
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;
 			$data["patient_id"] = $patient_id;
-			//$data["center_number"] = $center_number;
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
 			$this->load->view('doctors/doctor_patient', $data);
@@ -5592,4 +5591,25 @@ foreach ($urls as $key => $url) {
 		
 		return $print_data;
 	}
+
+
+	// sell medicine new stocks module
+
+
+	public function sell_medicine_new_stocks(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$data['logg'] = $logg; // Pass login data to view
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('doctors/sell_medicine_new_stocks', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+    
+
 }

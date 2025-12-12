@@ -68,6 +68,7 @@ class New_purchase_order_model extends CI_Model {
     // Get purchase order by ID
     public function get_purchase_order_by_id($id) {
         $this->db->where('id', $id);
+       
         $query = $this->db->get('hms_new_purchase_orders');
         return $query->row_array();
     }
@@ -473,4 +474,330 @@ class New_purchase_order_model extends CI_Model {
             $this->db->where('doc_date <=', $filters['end_date']);
         }
     }
+
+    // Insert vendor billing record (similar to Order_model method)
+    public function insert_vendor_billing($data) {
+        $sql = "INSERT INTO `" . $this->config->item('db_prefix') . "vendor_billing` SET ";
+        $sqlArr = array();
+        foreach($data as $key => $value) {
+            $sqlArr[] = " $key = '" . addslashes($value) . "'";
+        }
+        $sql .= implode(',', $sqlArr);
+        $res = $this->db->query($sql);
+        if ($res) {
+            return $this->db->insert_id();
+        } else {
+            return 0;
+        }
+    }
+
+    // Check if stock item exists (by batch number and vendor)
+    public function check_existing_stock_item($item_name, $batch_number, $vendor_number) {
+        $this->db->select('*');
+        $this->db->from($this->config->item('db_prefix') . 'stocks');
+        $this->db->where('item_name', $item_name);
+        $this->db->where('batch_number', $batch_number);
+        $this->db->where('vendor_number', $vendor_number);
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            return $query->row_array();
+        }
+        return false;
+    }
+
+    // Update existing stock quantity
+    public function update_stock_quantity($stock_id, $quantity, $stock_data = []) {
+        $sql = "UPDATE `" . $this->config->item('db_prefix') . "stocks` SET `quantity` = `quantity` + {$quantity}";
+        foreach ($stock_data as $key => $value) {
+            if ($key != 'quantity' && $key != 'add_date' && $key != 'status') {
+                $sql .= ", `{$key}` = '" . addslashes($value) . "'";
+            }
+        }
+        $sql .= " WHERE `ID` = '{$stock_id}'";
+        $this->db->query($sql);
+        return $this->db->affected_rows() > 0;
+    }
+
+    // Insert new stock item
+    public function insert_stock_item($stock_data) {
+        $sql = "INSERT INTO `" . $this->config->item('db_prefix') . "stocks` SET ";
+        $sqlArr = array();
+        
+        foreach ($stock_data as $key => $value) {
+            $sqlArr[] = " $key = '" . addslashes($value) . "'";
+        }
+        
+        $date = date("Y-m-d H:i:s");
+        $sqlArr[] = " add_date = '" . addslashes($date) . "'";
+        $sqlArr[] = " item_number = '" . addslashes(getGUID()) . "'";
+        
+        $sql .= implode(',', $sqlArr);
+        $res = $this->db->query($sql);
+        
+        if ($res) {
+            return $this->db->insert_id();
+        } else {
+            return 0;
+        }
+    }
+    /**
+     * Gets distinct active medicines that have been purchased from a specific vendor.
+     * Maps new schema columns to the structure expected by the old 'items_by_vendor' AJAX call.
+     */
+    public function get_vendor_id_by_number($vendor_number)
+    {
+        $query = $this->db->select('ID')
+                          ->where('vendor_number', $vendor_number)
+                          ->limit(1)
+                          ->get('hms_vendors');
+        if ($query->num_rows() > 0) {
+            return $query->row()->ID;
+        }
+        return false; // Vendor not found
+    }
+    public function get_items_by_id($id) 
+    {
+        $query = $this->db->select('ID,name')
+                          ->where('ID', $id)
+                          ->limit(1)
+                          ->get('hms_vendors');
+        if ($query->num_rows() > 0) {
+            return $query->row()->ID;
+        }
+        return false; // Vendor not found
+    }
+    public function is_po_fully_received($po_id)
+    {
+        // try {
+            // We select the sum of all remaining quantities
+            $this->db->select('SUM(quantity - quantity_received) as total_remaining');
+            $this->db->from('hms_new_purchase_order_items');
+            $this->db->where('po_id', $po_id);
+            $query = $this->db->get();
+            $result = $query->row();
+            if ($result && $result->total_remaining <= 0) {
+                return true;
+            } else {
+                return false;
+            }
+        // } catch (Exception $e) {
+        //     log_message('error', 'Error in is_po_fully_received: ' . $e->getMessage());
+        //     return false; // Fail safe: assume it's not received if error occurs
+        // }
+    }
+    public function get_received_stock_report($filters = []) {
+        // try {
+            $this->db->select('
+                sm.receive_date as received_date,
+                sm.quantity_change,
+                sm.unit_price,
+                sm.total_value,
+                sm.receive_by,
+                sm.uploaded_files,
+                sm.reference_number as po_number,
+                sm.receipt_number,
+                po.vendor_number,
+                v.name as vendor_name,
+                c.center_name,
+                m.medicine_name,
+                m.medicine_code as item_number,
+                mb.batch_number,
+                mb.purchase_price as vendor_price_with_tax
+            ');
+            $this->db->from('stock_movements sm');
+            // This is the main logic for your report
+            $this->db->where('sm.movement_type', 'PURCHASE');
+            // Joins to get the details
+            $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
+            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+            $this->db->join('hms_new_purchase_orders po', 'sm.reference_id = po.id AND sm.reference_type = "PURCHASE_ORDER"', 'left');
+            $this->db->join('hms_vendors v', 'po.vendor_number = v.ID', 'left');
+            $this->db->join('hms_centers c', 'sm.to_location_id = c.ID AND sm.to_location_type = "CENTER"', 'left');
+            if (!empty($filters['po_number'])) {
+                $this->db->like('sm.reference_number', $filters['po_number'], 'both');
+            }
+            if (!empty($filters['invoice_number'])) {
+                $this->db->like('sm.receipt_number', $filters['invoice_number'], 'both');
+            }
+            if (!empty($filters['vendor_id'])) {
+                $this->db->where('po.vendor_number', $filters['vendor_id']);
+            }
+            // File filter: has_file = 1 means with files, has_file = 0 means without files
+            if (isset($filters['has_file']) && $filters['has_file'] !== '') {
+                if ($filters['has_file'] == '1') {
+                    // With files: uploaded_files is not null and not empty
+                    $this->db->where('sm.uploaded_files IS NOT NULL');
+                    $this->db->where('sm.uploaded_files !=', '');
+                    $this->db->where('sm.uploaded_files !=', '[]');
+                } elseif ($filters['has_file'] == '0') {
+                    // Without files: uploaded_files is null or empty
+                    $this->db->group_start();
+                    $this->db->where('sm.uploaded_files IS NULL');
+                    $this->db->or_where('sm.uploaded_files', '');
+                    $this->db->or_where('sm.uploaded_files', '[]');
+                    $this->db->group_end();
+                }
+            }
+            if (!empty($filters['start_date'])) {
+                $this->db->where('DATE(sm.created_at) >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $this->db->where('DATE(sm.created_at) <=', $filters['end_date']);
+            }
+
+            $this->db->order_by('sm.created_at', 'DESC');
+            return $this->db->get()->result();
+
+        // } catch (Exception $e) {
+        //     log_message('error', 'Error in get_received_stock_report: ' . $e->getMessage());
+        //     return [];
+        // }
+    }
+    // public function get_items_by_vendor($vendor_id) {
+    //     if (empty($vendor_id)) {
+    //         return [];
+    //     }
+    //     try {
+    //         $this->db->distinct(); 
+    //         $this->db->select([
+    //             'm.id as item_number',          // medicines.id
+    //             'm.medicine_name as item_name', // medicines.medicine_name
+    //             'm.pack_size',                  // medicines.pack_size
+    //             'm.gst_rate as gstrate',        // medicines.gst_rate
+    //             'm.hsn_code as hsn',            // medicines.hsn_code
+    //             'b.brand_name',                 // medicine_brands.brand_name
+    //             'b.manufacturer as company',    // medicine_brands.manufacturer
+    //             'v.vendor_number',              // hms_vendors.vendor_number
+    //             // --- Fields NOT directly available on master medicine record ---
+    //             // Set defaults or NULLs if your JS absolutely needs them
+    //             'NULL as batch_number',         // No single batch number applies
+    //             '0 as quantity',                // Master record has no quantity
+    //             'm.selling_price as price',     // Use selling price from medicine as default 'price'
+    //             'm.selling_price as mrp',       // Use selling price from medicine as default 'mrp'
+    //              // Use last purchase price as vendor_price? Requires complex subquery/join. NULL is safer.
+    //             'NULL as vendor_price',
+    //              // Set to 0 or null if gstdivision isn't in your new schema
+    //             '0 as gstdivision'
+    //         ]);
+    //         $this->db->from('medicines m');
+    //         // Join batches to filter by vendor
+    //         $this->db->join('medicine_batches mb', 'm.id = mb.medicine_id', 'inner');
+    //         // Join vendors to confirm vendor_number and filter by vendor_id
+    //         $this->db->join('hms_vendors v', 'mb.vendor_id = v.ID', 'inner');
+    //         // Join brands to get brand name and company (manufacturer)
+    //         $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+    //         // --- Filters ---
+    //         $this->db->where('m.status', 'active');      // Only active medicines
+    //         $this->db->where('mb.vendor_id', $vendor_id); // Filter by the specific vendor ID
+    //         $this->db->order_by('m.medicine_name', 'ASC');
+    //         $query = $this->db->get();
+    //         return $query->result_array();
+    //     } catch (Exception $e) {
+    //         log_message('error', 'Error in get_medicines_by_vendor: ' . $e->getMessage());
+    //         return []; // Return empty array on error
+    //     }
+    // }
+    /**
+     * Gets distinct active medicines that have been purchased from a specific vendor.
+     * Maps new schema columns to the structure expected by the old 'items_by_vendor' AJAX call.
+     */
+   /**
+     * Gets distinct active medicines that have been purchased from a specific vendor.
+     * Maps new schema columns to the structure expected by the 'items_by_vendor' AJAX call.
+     */
+//    public function get_medicines_by_vendor($vendor_id) 
+//    {
+//         if (empty($vendor_id) || !is_numeric($vendor_id)) {
+//             log_message('error', 'Invalid vendor_id provided to get_medicines_by_vendor.');
+//             return [];
+//         }
+//         $this->db->select([
+//             'm.id as item_number',
+//             'm.medicine_name as item_name',
+//             'm.pack_size',
+//             'm.gst_rate as gstrate',
+//             'm.hsn_code as hsn',
+//             'b.brand_name',
+//             'b.manufacturer as company',
+//             'v.vendor_number',
+//             '0 as quantity', // Use 0 instead of NULL if quantity is expected to be numeric
+//             'MAX(mb.purchase_price) as vendor_price', // Get representative price
+//             'MAX(mb.purchase_price) as price',
+//             'MAX(mb.purchase_price) as mrp',
+//             '0 as gstdivision'
+//         ]);
+//         $this->db->select('NULL as batch_number', FALSE); // Add FALSE here
+//         // --- 3. FROM and JOINs ---
+//         $this->db->from('medicines m');
+//         $this->db->join('medicine_batches mb', 'm.id = mb.medicine_id', 'inner');
+//         $this->db->join('hms_vendors v', 'mb.vendor_id = v.ID', 'inner');
+//         $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+//         // --- 4. Filters ---
+//         $this->db->where('m.status', 'active');
+//         $this->db->where('mb.vendor_id', $vendor_id);
+//         // --- 5. Grouping ---
+//         $this->db->group_by([
+//             'm.id', 'm.medicine_name', 'm.pack_size', 'm.gst_rate', 'm.hsn_code',
+//             'b.brand_name', 'b.manufacturer', 'v.vendor_number'
+//         ]);
+//         // --- 6. Ordering ---
+//         $this->db->order_by('m.medicine_name', 'ASC');
+//         // --- 7. Execute and Return ---
+//         $query = $this->db->get();
+//         return $query->result_array();
+       
+//     }
+public function get_medicines_by_vendor($vendor_id)
+{
+    if (empty($vendor_id) || !is_numeric($vendor_id)) {
+        log_message('error', 'Invalid vendor_id provided to get_medicines_by_vendor.');
+        return [];
+    }
+
+    $vendor_id = (int) $vendor_id;
+
+    // Subquery to get the latest batch ID per medicine for this vendor
+    $subquery = "
+        SELECT medicine_id, MAX(id) AS latest_batch_id
+        FROM medicine_batches
+        WHERE vendor_id = {$vendor_id}
+        GROUP BY medicine_id
+    ";
+
+    $this->db->select([
+        'm.id AS item_number',
+        'm.medicine_name AS item_name',
+        'm.pack_size',
+        'm.gst_rate AS gstrate',
+        'm.hsn_code AS hsn',
+        'b.brand_name',
+        'b.manufacturer AS company',
+        'v.vendor_number',
+        'mb.batch_number',
+        'mb.purchase_price AS vendor_price',
+        'mb.purchase_price AS price',
+        'mb.mrp AS mrp',
+        '0 AS quantity',
+        '0 AS gstdivision'
+    ]);
+
+    $this->db->from('medicines m');
+
+    // Join only medicines that have batches by this vendor (INNER JOIN)
+    $this->db->join("({$subquery}) latest_batch", 'm.id = latest_batch.medicine_id', 'inner');
+    $this->db->join('medicine_batches mb', 'mb.id = latest_batch.latest_batch_id', 'inner');
+    $this->db->join('hms_vendors v', 'mb.vendor_id = v.ID', 'inner');
+    $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+
+    // Only active medicines
+    $this->db->where('m.status', 'active');
+
+    // Optional ordering
+    $this->db->order_by('m.medicine_name', 'ASC');
+
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
 }

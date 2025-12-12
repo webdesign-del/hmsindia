@@ -839,7 +839,6 @@ class Stocks extends CI_Controller {
 		$logg = checklogin();
 		error_reporting(0);
 		if($logg['status'] == true){
-
 			$per_page = $this->input->get('per_page', true);
 			if(empty($per_page)){
 				$per_page = 0;
@@ -886,7 +885,6 @@ class Stocks extends CI_Controller {
 			
         	$data["links"] = $this->pagination->create_links();
 			$data['investigate_result'] = $this->stock_model->get_center_stocks_patination($config["per_page"], $per_page, $start_date, $end_date, $generic_name, $item_name);
-			//var_dump($data);die;
 			$data["billing_at"] = $center;
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;
@@ -1592,7 +1590,6 @@ public function medicine_update()
 							unset($_POST['consumables_mrp_'.$ccounte]);
 							
 						}else{
-							// insert query
 							$invoice_no = $_POST['consumables_invoice_no_'.$ccounte];
 							$item_number = $_POST['consumables_serial_'.$ccounte];
 							$company = $_POST['consumables_company_'.$ccounte];
@@ -1607,7 +1604,6 @@ public function medicine_update()
 								$day = $d->format('d');
 								$month = $d->format('m');
 								$year = $d->format('Y');
-								
 								// Adjust for edge cases like the JavaScript function
 								if ($day == 30 || $day == 31 || $day == 29) { 
 									$day = 28; 
@@ -1636,17 +1632,14 @@ public function medicine_update()
 							} else {
 								$total_vendor_price_gst_excluded = 0; // or handle it another way if needed
 							}
-
-								$total_vendor_price_gst_included = $closingstock * floatval($_POST['consumables_vendor_price_'.$ccounte]);
-								$total_mrp_price = $closingstock * floatval($_POST['consumables_mrp_'.$ccounte]);
-							
+							$total_vendor_price_gst_included = $closingstock * floatval($_POST['consumables_vendor_price_'.$ccounte]);
+							$total_mrp_price = $closingstock * floatval($_POST['consumables_mrp_'.$ccounte]);
 						    $query = "INSERT INTO `hms_central_stock_report` (invoice_no, item_number, company, item_name, batch_number, openstock, expiry, expiry_day, add_date, employee_number, vendor_price, mrp, hsn, gstrate, gstdivision,enddate, quantity_out, closingstock,type, total_vendor_price_gst_excluded, total_vendor_price_gst_included, total_mrp_price, patient_id, date_of_purchase, center_number) values ('$invoice_no','$item_number','$company','$item_name','$batch_number','$open_stock','$expiry','$expiry_day','".date("Y-m-d H:i:s")."','".$post_arr['employee_number']."','$vendor_price','$mrp','$hsn','$gstrate','$gstdivision','".date("Y-m-d")."','$quantity_out','$closingstock','Cash','$total_vendor_price_gst_excluded','$total_vendor_price_gst_included','$total_mrp_price','$patient_id','$date_of_purchase','".$post_arr['billing_at']."')";
                             $result = run_form_query($query); 
 							$c_counte[] = array('consumables_ID'=> $_POST['consumables_ID_'.$ccounte],'consumables_serial'=> $_POST['consumables_serial_'.$ccounte],'consumables_name'=> $_POST['consumables_name_'.$ccounte],'consumables_company'=> $_POST['consumables_company_'.$ccounte],'consumables_item_name'=> $_POST['consumables_item_name_'.$ccounte],'consumables_stock'=> $_POST['consumables_stock_'.$ccounte],'consumables_batch_number'=> $_POST['consumables_batch_number_'.$ccounte],'consumables_quantity'=> $_POST['consumables_quantity_'.$ccounte],'consumables_price'=> $_POST['consumables_price_'.$ccounte],'consumables_discount_'=> $_POST['consumables_discount_'.$ccounte],'consumables_total_'=> $_POST['consumables_total_'.$ccounte],'consumables_vendor_price'=> $_POST['consumables_vendor_price_'.$ccounte],'consumables_expiry'=> $_POST['consumables_expiry_'.$ccounte],'consumables_hsn'=> $_POST['consumables_hsn_'.$ccounte],'consumables_gstrate'=> $_POST['consumables_gstrate_'.$ccounte],'consumables_gstdivision'=> $_POST['consumables_gstdivision_'.$ccounte],'consumables_pack_size'=> $_POST['consumables_pack_size_'.$ccounte],'consumables_mrp'=> $_POST['consumables_mrp_'.$ccounte]);
 						}
 					}
 				}
-								
 				$details = array();
 				$details['data']['consumables'] = $c_counte;
 				$post_arr['data'] = serialize($details);
@@ -3907,7 +3900,7 @@ public function medicine_stock(){
 		$logg = checklogin();
 		if ($logg['status'] == true) {
 			$data = array();
-			
+			$employee_number = 0;
 			// Check if $ID is passed in URL or POST
 			if (is_null($ID)) {
 				if (isset($_GET['ID'])) {
@@ -3953,11 +3946,9 @@ public function medicine_stock(){
 				$r_employee_number = $_POST['r_employee_number'];
 	            $r_department = $_POST['r_department'];  
 				$remarks = $_POST['remarks'];  
-				// Call model to handle the transfer
 				$data = $this->stock_model->transfer_stock_report($_POST, $item_number, $product_id, $item_name, $company, $batch_number, $openstock, $expiry, $expiry_day, $add_date, $employee_number, $vendor_price, $mrp, $hsn, $gstrate, $gstdivision, $pack_size, $brand_name, $vendor_number,$generic_name,$category, $quantity_out, $center_number, $department, $invoice_no, $date_of_purchase, $r_center_number, $r_employee_number, $r_department, $remarks);
-				
 				if ($data > 0) {
-					// Update stock and redirect
+					// Update stock and 
 					$update_stock = $this->stock_model->deduct_transfer_stock($item_number, $invoice_no, $batch_number, $status, $employee_number, $quantity_out, $center_number, $department);
 					header("location:" . base_url() . "stocks/transfer_stocks/" . $ID . "?m=" . base64_encode('Transfer Stock added successfully!') . '&t=' . base64_encode('success'));
 					die();

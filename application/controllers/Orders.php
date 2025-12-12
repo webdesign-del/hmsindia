@@ -70,6 +70,7 @@ class Orders extends CI_Controller{
 			$config = array();
         	$config["base_url"] = base_url() . "orders/my_orders";
         	$config["total_rows"] = $this->order_model->get_my_orders_data($purchase_order, $po_number, $vendor_number, $start_date, $end_date, $item_name, $ship_to);
+			
         	$config["per_page"] = 20;
         	$config["uri_segment"] = 2;
 			$config['use_page_numbers'] = true;
@@ -92,6 +93,7 @@ class Orders extends CI_Controller{
 			$template = get_header_template($logg['role']);
 			$data['vendors'] = $this->vendors_model->get_vendors();
 			$this->load->view($template['header']);
+			
 			$this->load->view('orders/my_orders', $data);
 			$this->load->view($template['footer']);
 		}else{
@@ -197,13 +199,9 @@ class Orders extends CI_Controller{
 					$_POST['quantity'] = ($_POST['lots']*$_POST['units']);
 					$delivery_date = $_POST['delivery_date'];unset($_POST['delivery_date']);
 					$center_order = $this->order_model->get_center_order_number($item_id);
-					//var_dump($center_order);die;
 					$new_item_number = $_POST['item_number'];
-					
-				
 					//$data = $this->order_model->insert_admin_order_item_data($_POST);
 					if($data > 0){
-						
 						// center replaced				
 						$order = array();
 						$order['item_number'] = $new_item_number;
@@ -214,10 +212,8 @@ class Orders extends CI_Controller{
 						$order['create_date'] = date("Y-m-d H:i:s");
 						$order['update_date'] = date("Y-m-d H:i:s");
 						$order['delivery_date'] = $delivery_date;
-						
 						$order['center_number'] = $center_order['center_number'];
 						$order['employee_number'] = $center_order['employee_number'];
-						
 						$order['status'] = 0;
 						$order['d_status'] = 1;
 						$order['cancelled'] = 0;
@@ -242,16 +238,13 @@ class Orders extends CI_Controller{
 						$centeral_order['purchase_order'] = 1;
 						$centeral_order['cancelled'] = 0;
 						$centeral_order['replaced'] = 0;
-
 						$data = $this->order_model->insert_replaced_order_item($centeral_order, $order, $item_id, $center_order);
 					}else{
 						header("location:" .base_url(). "orders/my_orders?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
 						die();
 					}
 				}else{
-					//var_dump($_POST);die;
 					$check_center_new_item = $this->order_model->check_centeral_item($product_id, $brand_name, $vendor_number, $batch_number, $vendor_price);
-				    //var_dump($check_center_new_item);die;
 				    if($check_center_new_item > 0){
 					    $data = $this->order_model->update_admin_order_item_data($_POST);
 					}else{
@@ -363,11 +356,8 @@ class Orders extends CI_Controller{
 					$center_order = $this->order_model->get_center_order_number($item_id);
 					//var_dump($center_order);die;
 					$new_item_number = $_POST['item_number'];
-					
-				
 					//$data = $this->order_model->insert_admin_order_item_data($_POST);
 					if($data > 0){
-						
 						// center replaced				
 						$order = array();
 						$order['item_number'] = $new_item_number;

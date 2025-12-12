@@ -55,35 +55,35 @@
 								</tr>
 							</thead>
 							<tbody id="">
-								<tr class="medicine_row_1">
-									<td><input type="checkbox" class="active-statuss" rel="medicine" index="1"></td>
-									<td class="role medic_cls_1">
-									<select name="procedure_name" class="item_select  medic-cls-1" id="procedure_name" required>
-									 <option value="">Select</option>
-									<?php 
-									$sql1 = "Select * from ".$this->config->item('db_prefix')."procedures where status='1'"; 
-									$query = $this->db->query($sql1);
-									$select_result1 = $query->result(); 
-									foreach ($select_result1 as $res_val){
-								?>
-								<option value="<?php echo $res_val->procedure_name; ?> - <?php echo $res_val->code; ?>"><?php echo $res_val->procedure_name; ?> - <?php echo $res_val->code; ?></option>
-								<?php } ?>
-								<option value="Embryo Transfer">Embryo Transfer </option>
-								<option value="Embryo Transfer Under GA">Embryo Transfer Under GA</option>
-								<option value="IUI">IUI</option>
-								<option value="tesa">Tesa</option>
-								<option value="OPU">Opu</option>
-								<option value="Ivf">Ivf</option>
-								<option value="FROZEN THAW OOCYTE ICSI">FROZEN THAW OOCYTE ICSI (FTOI)</option>
-								<option value="Embryo Biopsy">Embryo Biopsy </option>
-								<option value="Egg Freezing">Egg Thawing </option>
-								<option value="Blastocyst Culture">Blastocyst Culture </option>
-								<option value="DFI">DFI</option>
-								<option value="Embryo Transfer Under GA">Candore </option>
-								<option value="Sperm Mobile">Sperm Mobile </option>
-								<option value="Oocyte Activation AOA">Oocyte Activation AOA</option>
-								<option value="MICRO TESA">MICRO TESA </option>
-								<option value="DEPARTMENTAL">DEPARTMENTAL </option>
+									<tr class="medicine_row_1">
+										<td><input type="checkbox" class="active-statuss" rel="medicine" index="1"></td>
+										<td class="role medic_cls_1">
+										<select name="procedure_name" class="item_select  medic-cls-1" id="procedure_name" required>
+										<option value="">Select</option>
+										<?php 
+										$sql1 = "Select * from ".$this->config->item('db_prefix')."procedures where status='1'"; 
+										$query = $this->db->query($sql1);
+										$select_result1 = $query->result(); 
+										foreach ($select_result1 as $res_val){
+									?>
+									<option value="<?php echo $res_val->procedure_name; ?> - <?php echo $res_val->code; ?>"><?php echo $res_val->procedure_name; ?> - <?php echo $res_val->code; ?></option>
+									<?php } ?>
+									<option value="Embryo Transfer">Embryo Transfer </option>
+									<option value="Embryo Transfer Under GA">Embryo Transfer Under GA</option>
+									<option value="IUI">IUI</option>
+									<option value="tesa">Tesa</option>
+									<option value="OPU">Opu</option>
+									<option value="Ivf">Ivf</option>
+									<option value="FROZEN THAW OOCYTE ICSI">FROZEN THAW OOCYTE ICSI (FTOI)</option>
+									<option value="Embryo Biopsy">Embryo Biopsy </option>
+									<option value="Egg Freezing">Egg Thawing </option>
+									<option value="Blastocyst Culture">Blastocyst Culture </option>
+									<option value="DFI">DFI</option>
+									<option value="Embryo Transfer Under GA">Candore </option>
+									<option value="Sperm Mobile">Sperm Mobile </option>
+									<option value="Oocyte Activation AOA">Oocyte Activation AOA</option>
+									<option value="MICRO TESA">MICRO TESA </option>
+									<option value="DEPARTMENTAL">DEPARTMENTAL </option>
 									</select>
 									</td>
 								</tr>
@@ -823,16 +823,16 @@ $(document).on('blur',"#patient_id",function(e) {
 <!--****** Billing SCRIPT *******-->
 
 <script>
-$(function(){
-	  // turn the element to select2 select style
-	  $('.selectitem').selectitem({
-		placeholder: "Select stock item."
-	  }).on('change', function(e) {
-		var data = $(".selectitem option:selected").val();
+// $(function(){
+// 	  // turn the element to select2 select style
+// 	$('.selectitem').selectitem({
+// 		placeholder: "Select stock item."
+// 	  }).on('change', function(e) {
+// 		var data = $(".selectitem option:selected").val();
 			
-	  });
+// 	  });
 	
-});
+// });
 
    $('#create_billing').click(function(e){
 	e.preventDefault();

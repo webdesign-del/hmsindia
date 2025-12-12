@@ -295,7 +295,7 @@
     <?php endif; ?>
     
     <!-- IPD Medicines -->
-    <?php if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == 1): ?>
+    <!-- <?php if(isset($patient_doctor_consultation['medicine_suggestion_ipd']) && $patient_doctor_consultation['medicine_suggestion_ipd'] == 1): ?>
     <div class="section">
         <div class="section-title">IPD Medicines</div>
         
@@ -361,7 +361,7 @@
         </div>
         <?php endif; ?>
     </div>
-    <?php endif; ?>
+    <?php endif; ?> -->
     
     <!-- Procedures -->
     <?php if(isset($patient_doctor_consultation['procedure_suggestion']) && $patient_doctor_consultation['procedure_suggestion'] == 1): ?>

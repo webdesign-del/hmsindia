@@ -55,12 +55,12 @@
                               <?php
                               $all_method =&get_instance();
                               $all_method->load->model('Vendors_model');
-                              $vendor_name = $all_method->Vendors_model->get_vendor_data_by_vendor_number($purchase_order['vendor_number']);
-                              $vendor_name = $vendor_name[0]['name'];
+                              $vendor_name = $all_method->Vendors_model->get_vendor_name_by_vendor_id($purchase_order['vendor_number']);
+                              // $vendor_name = $vendor_name[0]['name'];
                               ?>
                               <tr>
                                  <td><strong>Vendor:</strong></td>
-                                 <td><?php echo $vendor_name; ?></td>
+                                 <td><?php echo $vendor_name->name; ?></td>
                               </tr>
                               <tr>
                                  <td><strong>Department:</strong></td>
@@ -128,10 +128,20 @@
                   </a>
                <?php endif; ?>
                
-               <a href="<?php echo base_url('new_purchase_orders/edit/' . $purchase_order['id']); ?>" 
-                  class="btn btn-warning btn-lg">
-                  <i class="fa fa-edit"></i> Edit
-               </a>
+               
+               <!-- <?php if ($purchase_order['status'] == 'completed'): ?>
+                  <a href="<?php echo base_url('new_purchase_orders/new_add_stock/' . $purchase_order['id']); ?>" 
+                     class="btn btn-success btn-lg">
+                     <i class="fa fa-plus"></i> Add Stock
+                  </a>
+               <?php endif; ?> -->
+               
+               <?php if ($purchase_order['status'] == 'pending' || $purchase_order['status'] == 'rejected'): ?>
+                  <a href="<?php echo base_url('new_purchase_orders/edit/' . $purchase_order['id']); ?>" 
+                     class="btn btn-warning btn-lg">
+                     <i class="fa fa-edit"></i> Edit
+                  </a>
+               <?php endif; ?>
                <a href="<?php echo base_url('new_purchase_orders'); ?>" class="btn btn-default btn-lg">
                   <i class="fa fa-arrow-left"></i> Back to List
                </a>
@@ -156,7 +166,8 @@
                                     <th>Sr.</th>
                                     <th>Item Name</th>
                                     <th>Item Number</th>
-                                    <th>Quantity</th>
+                                    <th>Quantity Order</th>
+                                    <th>Quantity Received</th>
                                     <th>Batch</th>
                                     <th>Price</th>
                                     <th>Vendor Price</th>
@@ -176,6 +187,7 @@
                                        <td><?php echo $item['item_name']; ?></td>
                                        <td><?php echo $item['item_number']; ?></td>
                                        <td><?php echo $item['quantity']; ?></td>
+                                       <td><?php echo $item['quantity_received']; ?></td>
                                        <td><?php echo $item['batch_number']; ?></td>
                                        <td>₹<?php echo number_format($item['price'], 2); ?></td>
                                        <td>₹<?php echo number_format($item['vendor_price'], 2); ?></td>
@@ -236,7 +248,7 @@
                               <table class="table table-borderless">
                                  <tr>
                                     <td><strong>Created By:</strong></td>
-                                    <td><?php echo $purchase_order['created_by']; ?></td>
+                                    <td><?php echo isset($employee_detail_number['name']) ? $employee_detail_number['name'] : '-'; ?></td>
                                  </tr>
                                  <tr>
                                     <td><strong>Created At:</strong></td>
