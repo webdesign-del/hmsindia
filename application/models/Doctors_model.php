@@ -73,7 +73,7 @@ class Doctors_model extends CI_Model
             $this->db->where('mb.batch_status', 'ACTIVE');
             // $this->db->where('mb.expiry_date >', date('Y-m-d')); // Only show non-expired
             $this->db->where('ccs.available_quantity >', 0); // Only show if stock exists
-            $this->db->where('ccs.center_id',$center_id); // Replaces center_number
+            // $this->db->where('ccs.center_id',$center_id); // Replaces center_number
 	        if ($department) {
                 $this->db->where('ccs.department', $department);
             }
