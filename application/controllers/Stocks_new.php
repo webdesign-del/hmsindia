@@ -4923,14 +4923,11 @@ class Stocks_new extends CI_Controller
         }
         $this->load->model('Stock_model_new');
         $data = [];
-        // Get the selected center from the URL (from the filter form)
         $selected_department = 0;
         $selected_center_id = $this->input->get('center_id');
         $data['selected_center_id'] = $selected_center_id;
         $data['selected_department'] = $this->input->get('department');
-        // Get all centers for the filter dropdown
         $data["centers"] = $this->Stock_model_new->get_all_centers();
-        // Get available batches ONLY if a center has been selected
         $data["available_batches"] = [];
         if (!empty($selected_center_id) || !empty($selected_department)) {
             $data["available_batches"] = $this->Stock_model_new->get_available_batches_for_audit($selected_center_id,$data['selected_department']);

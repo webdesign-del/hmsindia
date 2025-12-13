@@ -3271,7 +3271,18 @@ class Stock_model_new extends CI_Model
                 if ($selected_department != null) {
                     $this->db->where('cs.department', $selected_department);
                 }
-                 // Filter by the selected center
+                $center = null;
+                if (!empty($_SESSION['logged_billing_manager']) &&
+                    ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+                    $center = $_SESSION['logged_billing_manager']['center'];
+                }
+                if (!empty($_SESSION['logged_stock_manager']) &&
+                    ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+                    $center = $_SESSION['logged_stock_manager']['center'];
+                }
+                if ($center !== null) {
+                    $this->db->where('cs.center_id', $this->get_center_id($center));
+                }
                 $this->db->where('cs.quantity >', 0);
                 $this->db->where('mb.batch_status', 'ACTIVE');
                 $this->db->where('m.status', 'active');
