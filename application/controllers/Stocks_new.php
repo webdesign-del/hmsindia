@@ -4977,6 +4977,9 @@ class Stocks_new extends CI_Controller
                 } elseif ($_SESSION["logged_central_stock_manager"]["employee_number"]) {
                     $employee = $this->db->where("employee_number", $_SESSION["logged_central_stock_manager"]["employee_number"])->get("hms_employees")->row();
                     if ($employee) $created_by_id = $employee->ID;
+                } elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
+                    $employee = $this->db->where("employee_number", $_SESSION["logged_stock_manager"]["employee_number"])->get("hms_employees")->row();
+                    if ($employee) $created_by_id = $employee->ID;
                 }
                 if (!$created_by_id) {
                     $this->session->set_flashdata('error', 'Could not identify logged-in user ID.');
