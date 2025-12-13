@@ -423,6 +423,13 @@
     }
 
     $(document).ready(function() {
+        // Initialize Select2 for batch dropdown with search functionality
+        $('#batch_id_select').select2({
+            placeholder: 'Select Batch (FEFO Order)',
+            allowClear: true,
+            width: '100%'
+        });
+        
         // --- Event Listeners ---
         
         // Recalculate total when ANY of these 3 fields change
