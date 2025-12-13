@@ -8791,6 +8791,11 @@ class Stocks_new extends CI_Controller
      */
     public function update_payment_status() 
     {
+        // Clean any output buffers to prevent extra characters
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
         // 1. Get the data from the AJAX POST request
         $sale_id = $this->input->post('sale_id');
         $new_status = $this->input->post('new_status'); 
@@ -8804,6 +8809,9 @@ class Stocks_new extends CI_Controller
                 'success' => false, 
                 'message' => 'Sale ID and New Status are required.'
             ];
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($response, JSON_UNESCAPED_SLASHES);
+            exit;
         } else {
             // 3. Handle image upload if provided
             $payment_image_path = null;
@@ -8835,9 +8843,9 @@ class Stocks_new extends CI_Controller
                         'success' => false, 
                         'message' => 'Image upload failed: ' . $error
                     ];
-                    header('Content-Type: application/json');
-                    echo json_encode($response);
-                    return;
+                    header('Content-Type: application/json; charset=utf-8');
+                    echo json_encode($response, JSON_UNESCAPED_SLASHES);
+                    exit;
                 }
                 
                 $upload_data = $this->upload->data();
@@ -8862,28 +8870,31 @@ class Stocks_new extends CI_Controller
         }
         
         // 6. Send the JSON response back to the JavaScript
-        header('Content-Type: application/json');
-        echo json_encode($response);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response, JSON_UNESCAPED_SLASHES);
+        exit;
     }
 
     public function get_payment_details()
     {
-        if (ob_get_level()) {
-			ob_clean();
-		}
+        // Clean any output buffers to prevent extra characters
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
         $logg = checklogin();
         if ($logg["status"] == false) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
-            return;
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'message' => 'Unauthorized access'], JSON_UNESCAPED_SLASHES);
+            exit;
         }
 
         $sale_id = $this->input->get('sale_id');
         
         if (!$sale_id) {
-            header('Content-Type: application/json');
-            echo json_encode(['success' => false, 'message' => 'Sale ID is required']);
-            return;
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => false, 'message' => 'Sale ID is required'], JSON_UNESCAPED_SLASHES);
+            exit;
         }
 
         // Get payment details from database
@@ -8911,8 +8922,9 @@ class Stocks_new extends CI_Controller
             ];
         }
 
-        header('Content-Type: application/json');
-        echo json_encode($response);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response, JSON_UNESCAPED_SLASHES);
+        exit;
     }
 
     public function central_stocks_export()

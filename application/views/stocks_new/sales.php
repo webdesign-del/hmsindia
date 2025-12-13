@@ -699,31 +699,19 @@ $(document).ready(function() {
                     // Close the modal
                     closePaymentModal();
                     
-                    // Show success message in the alert container
+                    // Show success message briefly, then refresh the page
                     $('#alert-container').html(
                         '<div class="alert alert-success alert-dismissible" style="margin-top: 15px;">' +
                         '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
                         '<h4><i class="icon fa fa-check"></i> Success!</h4>' +
-                        response.message +
+                        response.message + '<br><small>Page will refresh in 1 second...</small>' +
                         '</div>'
                     );
 
-                    // Update the payment badge in the table
-                    var newStatus = $('#modal_payment_status').val();
-                    var badgeClass = 'badge-danger'; // Default for PENDING
-                    if (newStatus === 'PAID') {
-                        badgeClass = 'badge-success';
-                    } else if (newStatus === 'PARTIAL') {
-                        badgeClass = 'badge-warning';
-                    } else if (newStatus === 'CANCELLED') {
-                        badgeClass = 'badge-secondary';
-                    }
-                    
-                    var saleId = $('#modal_sale_id').val();
-                    var newBadge = '<span class="badge ' + badgeClass + '">' + newStatus + '</span>';
-                    
-                    // Update the cell content
-                    $('#payment-cell-' + saleId).html(newBadge);
+                    // Refresh the page after 1 second
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
 
                 } else {
                     // Show error message from the controller
