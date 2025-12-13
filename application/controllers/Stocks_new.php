@@ -4998,7 +4998,7 @@ class Stocks_new extends CI_Controller
                     'audit_type' => 'FULL', // Defaulting to 'FULL'. Fix your form's <option> values.
                     'remarks' => $this->input->post('remarks') . " (Auditor: " . $this->input->post('auditor_name') . ")",
                     'created_by' => $created_by_id,
-                    'status' => 'IN_PROGRESS', // Model will set to COMPLETED
+                    'status' => 'IN_PROGRESS', 
                 ];
                 // Fix for audit_type mismatch
                 $form_audit_type = $this->input->post('audit_type');
@@ -8868,6 +8868,9 @@ class Stocks_new extends CI_Controller
 
     public function get_payment_details()
     {
+        if (ob_get_level()) {
+			ob_clean();
+		}
         $logg = checklogin();
         if ($logg["status"] == false) {
             header('Content-Type: application/json');
