@@ -2689,144 +2689,149 @@ public function investigations_send_tally() {
     }
 }
 
-public function investigation_tally()
+     public function investigation_tally()
 {
-    $logg = checklogin();
-    
-    // Accept ids from POST or GET
+    // 1. Security Check
+    $logg = checklogin(); 
+
+    // 2. Get IDs
     $ids = $this->input->post('ids');
     if (empty($ids)) {
         $ids = $this->input->get('ids');
     }
 
     $all_sales = [];
+    $sales = [];
 
+    // 3. FETCH DATA
     if (!empty($ids)) {
-        // fetch only selected
-        foreach ($ids as $ID) {
-            $sale = $this->accounts_model->send_procedure_tally($ID);
-
-            if ($sale) {
-
-                // -------------------------
-                // Convert serialized data →
-                // JSON patient_procedures[]
-                // -------------------------
-
-                if (!empty($sale['data'])) {
-                    $unserialized = @unserialize($sale['data']);
-
-                    if (isset($unserialized['patient_procedures'])) {
-                        $sale['patient_procedures'] = $unserialized['patient_procedures'];
-                    } else {
-                        $sale['patient_procedures'] = [];
-                    }
-                } else {
-                    $sale['patient_procedures'] = [];
-                }
-
-                // remove original `data` field from output
-                unset($sale['data']);
-
-                $all_sales[] = $sale;
-            }
+        // Case A: Specific IDs
+        $id_array = explode(',', $ids);
+        $clean_ids = array_map('intval', $id_array);
+        $id_list = implode(",", $clean_ids);
+        
+        if(!empty($id_list)){
+            $sql = "SELECT * FROM hms_patient_investigations WHERE ID IN ($id_list)";
+            $query = $this->db->query($sql);
+            $sales = $query->result_array();
         }
-    } else {
 
-        $sales = $this->accounts_model->get_all_sales_for_tally();
+    } else {
+        // Case B: Direct DB Fetch (Last 50)
+        $sql = "SELECT * FROM hms_patient_investigations 
+                WHERE status='approved' AND tally_status='1'
+                ORDER BY ID DESC LIMIT 50";
+        $query = $this->db->query($sql);
+        $sales = $query->result_array();
+    }
+
+    // 4. Process Data
+    if (!empty($sales)) {
 
         foreach ($sales as $sale) {
 
-		$sql_patients = "SELECT * FROM hms_patients WHERE patient_id ='".$sale["patient_id"]."'";
-        $patients_result = run_select_query($sql_patients);
+            // --- A. Fetch Related Data ---
+            $pt_q = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]]);
+            $patient = $pt_q->row_array() ?? [];
 
-		$sql_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["origins"]."'";
-        $centers_result = run_select_query($sql_centers);
+            $org_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["origins"]]);
+            $origin = $org_q->row_array() ?? [];
 
-		$sql_billing_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["billing_at"]."'";
-        $billing_centers_result = run_select_query($sql_billing_centers);
+            $bill_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]]);
+            $bill_center = $bill_q->row_array() ?? [];
 
-		$sql_booking_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["billing_at"]."'";
-        $booking_centers_result = run_select_query($sql_booking_centers);
+            $book_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]]); 
+            $book_center = $book_q->row_array() ?? [];
 
-		$sql_employees = "SELECT * FROM hms_employees WHERE employee_number ='".$sale["biller_id"]."'";
-        $employees_result = run_select_query($sql_employees);
+            $emp_q = $this->db->query("SELECT * FROM hms_employees WHERE employee_number = ?", [$sale["biller_id"]]);
+            $employee = $emp_q->row_array() ?? [];
 
-		 // FIXED: Properly handle the embryo transfer data
-        $date_of_admission = null;
-        $formatted_admission_date = null;
-        $type = 'New';  // Default
-        
-        if (!empty($select_embryo_transfer)) {
-            // Check if it's a single row or multiple rows
-            if (isset($select_embryo_transfer['date_of_addmission'])) {
-                // Single row result
-                $date_of_admission = $select_embryo_transfer['date_of_addmission'];
-            } elseif (is_array($select_embryo_transfer) && count($select_embryo_transfer) > 0) {
-                // Multiple rows result - get the first one
-                $first_embryo = $select_embryo_transfer[0];
-                $date_of_admission = isset($first_embryo['date_of_addmission']) ? $first_embryo['date_of_addmission'] : null;
-            }
-            
-            if (!empty($date_of_admission)) {
-                $formatted_admission_date = date('Y-m-d', strtotime($date_of_admission));
+
+            // --- B. Parent Data ---
+            $formatted = [
+                "patient_id"      => $sale["patient_id"],
+                "patient_name"    => ($patient['wife_name'] ?? '') . ' W/O ' . ($patient['husband_name'] ?? ''),
+                "billing_center"  => $bill_center['center_name'] ?? 'N/A',
+                "booking_center"  => $book_center['center_name'] ?? 'N/A',
+                "origin_center"   => $origin['center_name'] ?? 'N/A',
+                "on_date"         => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
+                "receipt_number"  => $sale["receipt_number"] ?? '',
+                "biller_name"     => $employee['name'] ?? 'N/A',
+                "patient_investigations" => [], 
+                "payment_method"  => $sale["payment_method"] ?? "",
+                "status"          => $sale["status"] ?? ""
+            ];
+
+
+            // --- C. Process Items (Percentage is from DB) ---
+            if (!empty($sale['investigations'])) {
                 
-                // Determine type based on admission date
-                if (strtotime($date_of_admission) < strtotime($row['on_date'])) {
-                    $type = 'recycle';
+                $unserialized = @unserialize($sale['investigations']);
+
+                if ($unserialized && is_array($unserialized)) {
+
+                    $groups = [
+                        'female_investigation' => [
+                            'name' => 'female_investigation_name',
+                            'code' => 'female_investigation_code',
+                            'price'=> 'female_investigation_price',
+                            'disc' => 'female_investigation_discount' // This is the % (e.g. 20)
+                        ],
+                        'male_investigation' => [
+                            'name' => 'male_investigation_name',
+                            'code' => 'male_investigation_code',
+                            'price'=> 'male_investigation_price',
+                            'disc' => 'male_investigation_discount'
+                        ]
+                    ];
+
+                    foreach ($groups as $group_key => $keys) {
+                        if (!empty($unserialized[$group_key]) && is_array($unserialized[$group_key])) {
+                            
+                            foreach ($unserialized[$group_key] as $item) {
+                                if (!is_array($item)) continue;
+
+                                $price   = isset($item[$keys['price']]) ? (float)$item[$keys['price']] : 0;
+                                $percent = isset($item[$keys['disc']])  ? (float)$item[$keys['disc']]  : 0;
+
+                                $investigation_q = $this->db->query("SELECT * FROM hms_investigation WHERE ID = " . $item[$keys['name']]);
+                                $investigation = $investigation_q->row_array() ?? [];
+
+                                $m_investigation_q = $this->db->query("SELECT * FROM hms_master_investigations WHERE ID = " . $investigation['master_id']);
+                                $m_investigation = $m_investigation_q->row_array() ?? [];
+
+
+                                // CALCULATION: Convert % to Amount
+                                $discount_amount = ($price * $percent) / 100; 
+
+                                $formatted["patient_investigations"][] = [
+                                    "investigation_name"             => $m_investigation['investigation_name'],
+                                    "investigation_category"             => "",
+                                    "investigation_code"             => $m_investigation['code'],
+                                    "investigation_price"            => $price,
+                                    
+                                    // The Percentage (from DB)
+                                    "investigation_discount_percent" => $percent . '%', 
+                                    
+                                    // The Calculated Amount (Price * %)
+                                    "investigation_discount_amount"  => $discount_amount,
+                                    
+                                    "investigation_after_discount"   => $price - $discount_amount,
+                                    "investigation_paid_price"       => $price - $discount_amount
+                                ];
+                            }
+                        }
+                    }
                 }
             }
-        }
-
-    // ---- Parent sale fields ----
-    $formatted = [
-        "patient_id"      => $sale["patient_id"],
-     "patient_name" => ($patients_result['wife_name'] ?? '') . ' W/O ' . ($patients_result['husband_name'] ?? ''),
-        "billing_center"  => $billing_centers_result['center_name'],
-        "booking_center"  => $booking_centers_result['center_name'],
-        "origin_center"   => $centers_result['center_name'],
-        "on_date"         => date("d-m-Y", strtotime($sale["on_date"])),
-        "receipt_number"  => $sale["receipt_number"],
-        "biller_name"     => $employees_result['name'] ?? 'N/A',
-        "procedure_type"  => $type . ($date_of_admission ? " (Admission: " . $date_of_admission . ")" : ""),
-        "patient_procedures" => [],
-        "payment_method" => $sale["payment_method"] ?? "",
-		"status" => $sale["status"] ?? ""
-    ];
-
-    // ---- Unserialize patient_procedures ----
-    if (!empty($sale['data'])) {
-
-        $unserialized = @unserialize($sale['data']);
-
-        if (isset($unserialized['patient_procedures'][0])) {
-
-            $p = $unserialized['patient_procedures'][0];
-
-            $formatted["patient_procedures"][] = [
-                "procedure_name"              => $sale["procedure_name"],
-                "category"                    => $sale["category"],
-                "sub_procedure"               => $p["sub_procedure"],
-                "sub_procedures_code"         => $p["sub_procedures_code"],
-                "sub_procedures_price"        => $p["sub_procedures_price"],
-                "sub_procedures_discount"     => $p["sub_procedures_discount"],
-                "sub_procedures_after_discount" =>
-                    (float)$p["sub_procedures_price"] - (float)$p["sub_procedures_discount"],
-                "sub_procedures_paid_price"   => $p["sub_procedures_paid_price"]
-            ];
+            
+            $all_sales[] = $formatted;
         }
     }
 
-    unset($sale['data']);
-
-    $all_sales[] = $formatted;
-}
-
-    }
-
+    // 5. Output
     $response = [
         'export_date'   => date('Y-m-d H:i:s'),
-        'selected_ids'  => !empty($ids) ? $ids : [],
         'record_count'  => count($all_sales),
         'Sales_Details' => $all_sales
     ];
@@ -9006,7 +9011,7 @@ private function get_patient_name($patient_id) {
 
         // Insert GRN
         $grn_inserted = $this->Grn_model->insert_grn($grn_data);
-        if (!$grn_inserted) {
+         if (!$grn_inserted) {
             $this->session->set_flashdata('error', 'Failed to save GRN. Please try again.');
             redirect('accounts/purchase-orders-list');
             return;

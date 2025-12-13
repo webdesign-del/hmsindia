@@ -64,6 +64,7 @@
 				    <th>Origins Center</th>
 				    <th>Procedure</th>
                     <th>Code</th>
+                    <th>Category</th>
 				    <th>FC / CH Clearance</th>
                     <th>User / Doctor /  Embryologist</th>
                     <th>Account</th>
@@ -114,6 +115,7 @@
 				    <td><?php echo $all_method->get_center_name($vl['origins']); ?></td>
 				    <td><?php echo $vl['procedure_name']; ?></td>
                     <td><?php echo $vl['code']; ?></td>
+                     <td><?php echo $vl['category']; ?></td>
                     <td><?php 
 // 1. Check if Counselor is logged in AND Status is pending (empty)
 if(!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') { 
@@ -152,14 +154,32 @@ if(!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') {
 ?>
                     </td>
                   <td><?php 
-// 1. Check if (Embryologist OR Doctor) is logged in AND clearance is 'yed'
+// 1. First, check if Clearance is 'Yes'
 if ($vl['clearance'] == 'Yes') {
 
-    $is_authorized = !empty($_SESSION['logged_embryologist']['name']) 
-                    || !empty($_SESSION['logged_doctor']['name']);
+    $show_button = false;
 
-    // Authorized AND consultant field is empty → show "Done" button
-    if ($is_authorized && $vl['consultant'] == '') { 
+    // --- LOGIC FOR DOCTOR ---
+    // Doctor can only access: 'IVF with Bed' OR 'Non IVF with Bed'
+    if (!empty($_SESSION['logged_doctor']['name'])) {
+        $doctor_allowed_categories = ['IVF with Bed', 'Non IVF with Bed'];
+        
+        if (in_array($vl['category'], $doctor_allowed_categories)) {
+            $show_button = true;
+        }
+    }
+
+    // --- LOGIC FOR EMBRYOLOGIST ---
+    // Embryologist can only access: 'Non IVF without Bed'
+    if (!empty($_SESSION['logged_embryologist']['name'])) {
+        if ($vl['category'] == 'Non IVF without Bed') {
+            $show_button = true;
+        }
+    }
+
+    // 2. DISPLAY LOGIC
+    // If Authorized ($show_button is true) AND Status is empty -> Show Button
+    if ($show_button && $vl['consultant'] == '') { 
         ?> 
         <a href="javascript:void(0);" class="btn btn-success btn-sm" 
            onclick="consultantProcedure('<?php echo $vl['ID']; ?>')">
@@ -167,7 +187,7 @@ if ($vl['clearance'] == 'Yes') {
         </a>
         <?php
     } else {
-        // User unauthorized OR consultant already updated → show status
+        // Otherwise -> Show Status Text (Pending / Done)
         if ($vl['consultant'] == '') {
             echo '<span class="text-warning">Pending</span>'; 
         } else {
@@ -178,7 +198,7 @@ if ($vl['clearance'] == 'Yes') {
 
 } else {
 
-    // 2. clearance != 'yed' → show status only
+    // 3. If Clearance is NOT 'Yes' -> Always show status text only
     if ($vl['consultant'] == '') {
         echo '<span class="text-warning">Pending</span>'; 
     } else {
