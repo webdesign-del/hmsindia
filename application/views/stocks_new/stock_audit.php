@@ -345,7 +345,7 @@ $(document).ready(function() {
                             foreach($all_batches_list as $batch): ?>
                             <option value="<?php echo $batch->batch_id; ?>" 
                                     data-batch-no="<?php echo htmlspecialchars($batch->batch_number); ?>"
-                                    data-system-qty="<?php echo $batch->system_quantity; ?>"
+                                    data-system-qty="<?php echo $batch->system_quantity ?? ''; ?>"
                                     data-department="<?php echo htmlspecialchars($batch->department ?? 'N/A'); ?>">
                                 <?php echo htmlspecialchars($batch->medicine_name . ' - ' . $batch->batch_number . ' (' . ($batch->department ?? 'N/A') . ')'); ?>
                             </option>
