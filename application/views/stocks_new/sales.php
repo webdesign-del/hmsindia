@@ -164,15 +164,6 @@
                                                 <!-- *** MODIFIED: Added ID to this TD for easy JS update *** -->
                                                 <td id="payment-cell-<?php echo $sale->id; ?>">
                                                     <?php if(isset($sale->payment_status) && !empty($sale->payment_status)): ?>
-                                                    <!-- <span class="badge <?php 
-                                                        echo $sale->payment_status == 'PAID' ? 'badge-success' : 
-                                                            ($sale->payment_status == 'PARTIAL' ? 'badge-warning' : 'badge-danger'); 
-                                                    ?>">
-                                                        <?php echo htmlspecialchars($sale->payment_status); ?>
-                                                    </span>
-                                                    <?php else: ?>
-                                                    <span class="badge badge-default">N/A</span>
-                                                    <?php endif; ?> -->
                                                     <span id="payment_status_badge" 
                                                         class="badge 
                                                         <?php 
@@ -182,7 +173,12 @@
                                                         ?>">
                                                         <?php echo htmlspecialchars($sale->payment_status); ?>
                                                     </span>
-
+                                                    <?php if((isset($sale->utr_transaction_id) && !empty($sale->utr_transaction_id)) || (isset($sale->payment_image) && !empty($sale->payment_image))): ?>
+                                                        <br><a href="#" class="view-payment-details" data-sale-id="<?php echo $sale->id; ?>" style="font-size: 11px; color: #007bff;">
+                                                            <i class="fa fa-eye"></i> View Details
+                                                        </a>
+                                                    <?php endif; ?>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td>
                                                     <?php if(isset($sale->status) && !empty($sale->status)): ?>
@@ -223,6 +219,13 @@
                                                                     <i class="fa fa-money"></i> Change Payment Status
                                                                 </a>
                                                             </li>
+                                                            <?php if((isset($sale->utr_transaction_id) && !empty($sale->utr_transaction_id)) || (isset($sale->payment_image) && !empty($sale->payment_image))): ?>
+                                                            <li>
+                                                                <a href="#" class="view-payment-details" data-sale-id="<?php echo $sale->id; ?>">
+                                                                    <i class="fa fa-eye"></i> View Payment Details
+                                                                </a>
+                                                            </li>
+                                                            <?php endif; ?>
 
                                                         </ul>
                                                     </div>
@@ -257,40 +260,50 @@
 
 
 <!-- *** NEW: Payment Status Modal *** -->
-<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" style="box-shadow:none !important;background-color:transparent !important;">
+<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close modal-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4 class="modal-title" id="paymentModalLabel">Change Payment Status</h4>
             </div>
             <div class="modal-body">
-                <!-- Hidden field to store the sale ID -->
-                <input type="hidden" id="modal_sale_id" value="">
-                
-                <div class="form-group">
-                    <label for="modal_payment_status">New Payment Status:</label>
-                    <!-- <select id="modal_payment_status" class="form-control">
-                        <option value="PENDING">PENDING</option>
-                        <option value="PARTIAL">PARTIAL</option>
-                        <option value="PAID">PAID</option>
-                        <option value="CANCELLED">CANCELLED</option>
-                    </select> -->
-                    <select id="modal_payment_status" class="form-control">
-                        <option value="PENDING" <?= $sale->payment_status == 'PENDING' ? 'selected' : '' ?>>PENDING</option>
-                        <option value="PARTIAL" <?= $sale->payment_status == 'PARTIAL' ? 'selected' : '' ?>>PARTIAL</option>
-                        <option value="PAID" <?= $sale->payment_status == 'PAID' ? 'selected' : '' ?>>PAID</option>
-                        <option value="CANCELLED" <?= $sale->payment_status == 'CANCELLED' ? 'selected' : '' ?>>CANCELLED</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="modal_payment_remark">Remark:</label>
-                    <textarea id="modal_payment_remark" class="form-control" rows="3" placeholder="Enter remark for payment status change (optional)"></textarea>
-                </div>
+                <form id="paymentStatusForm" enctype="multipart/form-data">
+                    <!-- Hidden field to store the sale ID -->
+                    <input type="hidden" id="modal_sale_id" name="sale_id" value="">
+                    
+                    <div class="form-group">
+                        <label for="modal_payment_status">New Payment Status:</label>
+                        <select id="modal_payment_status" name="new_status" class="form-control" required>
+                            <option value="PENDING">PENDING</option>
+                            <option value="PARTIAL">PARTIAL</option>
+                            <option value="PAID">PAID</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modal_utr_transaction_id">UTR / Transaction ID:</label>
+                        <input type="text" id="modal_utr_transaction_id" name="utr_transaction_id" class="form-control" placeholder="Enter UTR or Transaction ID (optional)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modal_payment_image">Payment Proof (Image/PDF):</label>
+                        <input type="file" id="modal_payment_image" name="payment_image" class="form-control" accept="image/*,.pdf">
+                        <small class="help-block">Upload payment receipt or screenshot (optional - Max 5MB)</small>
+                        <div id="imagePreview" style="margin-top: 10px; display: none;">
+                            <img id="previewImg" src="" alt="Preview" style="max-width: 100%; max-height: 200px; border: 1px solid #ddd; padding: 5px;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modal_payment_remark">Remark:</label>
+                        <textarea id="modal_payment_remark" name="remarks" class="form-control" rows="3" placeholder="Enter remark for payment status change (optional)"></textarea>
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-default modal-close">Close</button>
                 <button type="button" class="btn btn-primary" id="savePaymentStatus">Save Changes</button>
             </div>
         </div>
@@ -298,6 +311,70 @@
 </div>
 <!-- *** END of Modal *** -->
 
+<!-- Payment Details View Modal -->
+<style>
+#paymentDetailsModal .modal-header {
+    position: relative !important;
+    padding: 15px !important;
+    padding-right: 50px !important;
+    border-bottom: 1px solid #e5e5e5 !important;
+    min-height: 50px !important;
+}
+#paymentDetailsModal .modal-header .close-btn {
+    position: absolute !important;
+    right: 10px !important;
+    top: 10px !important;
+    z-index: 9999 !important;
+    opacity: 1 !important;
+    color: #333 !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    line-height: 1 !important;
+    padding: 8px 12px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid #ddd !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    display: inline-block !important;
+    width: auto !important;
+    height: auto !important;
+    text-decoration: none !important;
+    visibility: visible !important;
+}
+#paymentDetailsModal .modal-header .close-btn:hover {
+    opacity: 1 !important;
+    color: #000 !important;
+    background: rgba(240, 240, 240, 0.95) !important;
+    border-color: #999 !important;
+}
+#paymentDetailsModal .modal-header .close-btn i {
+    font-size: 20px !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+}
+</style>
+<div class="modal fade" id="paymentDetailsModal" tabindex="-1" role="dialog" aria-labelledby="paymentDetailsModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="position: relative;">
+                <h4 class="modal-title" id="paymentDetailsModalLabel">Payment Details</h4>
+                <button type="button" class="close-btn modal-close" aria-label="Close" title="Close">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="paymentDetailsContent">
+                <div class="text-center">
+                    <i class="fa fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading payment details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default modal-close">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 $(document).ready(function() {
@@ -342,17 +419,232 @@ $(document).ready(function() {
 
     // --- *** NEW SCRIPT FOR PAYMENT STATUS *** ---
 
-    // *** MODIFICATION: Initialize the modal using Materialize CSS ***
-    // This is necessary because materialize.js is loaded
-    try {
-        $('#paymentModal').modal();
-    } catch(e) {
-        console.error("Could not initialize modal. Is materialize.js loaded correctly?", e);
-    }
-
-
     // Get the base URL for the controller
     var updateUrl = "<?php echo base_url('stocks_new/update_payment_status'); ?>";
+
+    // Image preview functionality (only for images, not PDFs)
+    $('#modal_payment_image').on('change', function(e) {
+        var file = e.target.files[0];
+        if (file) {
+            // Check if file is an image
+            if (file.type.match('image.*')) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#previewImg').attr('src', e.target.result);
+                    $('#imagePreview').show();
+                };
+                reader.readAsDataURL(file);
+            } else if (file.type === 'application/pdf') {
+                // For PDFs, show a message instead of preview
+                $('#previewImg').attr('src', '');
+                $('#imagePreview').html('<p class="text-info"><i class="fa fa-file-pdf-o"></i> PDF file selected: ' + file.name + '</p>').show();
+            } else {
+                $('#imagePreview').hide();
+            }
+        } else {
+            $('#imagePreview').hide();
+        }
+    });
+
+    // Function to open modal (works with both Bootstrap and Materialize)
+    function openPaymentModal() {
+        // Try Materialize first
+        if (typeof M !== 'undefined' && M.Modal) {
+            var modalElement = document.getElementById('paymentModal');
+            var modalInstance = M.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = M.Modal.init(modalElement, {
+                    dismissible: true,
+                    opacity: 0.5,
+                    inDuration: 300,
+                    outDuration: 200
+                });
+            }
+            modalInstance.open();
+        } else {
+            // Fallback to Bootstrap or manual show
+            $('#paymentModal').addClass('in').css('display', 'block');
+            $('body').addClass('modal-open');
+            $('<div class="modal-backdrop fade in"></div>').appendTo('body');
+        }
+    }
+
+    // Function to close modal (works with both Bootstrap and Materialize)
+    function closePaymentModal() {
+        // Try Materialize first
+        if (typeof M !== 'undefined' && M.Modal) {
+            var modalElement = document.getElementById('paymentModal');
+            var modalInstance = M.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.close();
+            }
+        }
+        // Fallback to Bootstrap or manual hide
+        $('#paymentModal').removeClass('in').css('display', 'none');
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+        
+        // Clear form when modal is closed
+        $('#paymentStatusForm')[0].reset();
+        $('#imagePreview').hide();
+        $('#previewImg').attr('src', '');
+        $('#savePaymentStatus').html('Save Changes').prop('disabled', false);
+    }
+
+    // Function to open payment details modal
+    function openPaymentDetailsModal() {
+        // Try Materialize first
+        if (typeof M !== 'undefined' && M.Modal) {
+            var modalElement = document.getElementById('paymentDetailsModal');
+            var modalInstance = M.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = M.Modal.init(modalElement, {
+                    dismissible: true,
+                    opacity: 0.5,
+                    inDuration: 300,
+                    outDuration: 200
+                });
+            }
+            modalInstance.open();
+        } else {
+            // Fallback to Bootstrap or manual show
+            $('#paymentDetailsModal').addClass('in').css('display', 'block');
+            $('body').addClass('modal-open');
+            $('<div class="modal-backdrop fade in"></div>').appendTo('body');
+        }
+    }
+
+    // Function to close payment details modal
+    function closePaymentDetailsModal() {
+        // Try Materialize first
+        if (typeof M !== 'undefined' && M.Modal) {
+            var modalElement = document.getElementById('paymentDetailsModal');
+            var modalInstance = M.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.close();
+            }
+        }
+        // Fallback to Bootstrap or manual hide
+        $('#paymentDetailsModal').removeClass('in').css('display', 'none');
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+    }
+
+    // Handle close buttons for both modals
+    $(document).on('click', '.modal-close, .modal-backdrop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Check which modal is open
+        var $paymentModal = $('#paymentModal');
+        var $paymentDetailsModal = $('#paymentDetailsModal');
+        
+        if ($paymentModal.hasClass('in') || $paymentModal.css('display') == 'block') {
+            closePaymentModal();
+        }
+        if ($paymentDetailsModal.hasClass('in') || $paymentDetailsModal.css('display') == 'block') {
+            closePaymentDetailsModal();
+        }
+    });
+    
+    // Specific handler for payment details modal close button
+    $(document).on('click', '#paymentDetailsModal .close-btn, #paymentDetailsModal .close, #paymentDetailsModal .modal-close', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closePaymentDetailsModal();
+    });
+
+    // Handle escape key
+    $(document).on('keydown', function(e) {
+        if (e.keyCode === 27) {
+            if ($('#paymentModal').hasClass('in') || $('#paymentModal').css('display') == 'block') {
+                closePaymentModal();
+            }
+            if ($('#paymentDetailsModal').hasClass('in') || $('#paymentDetailsModal').css('display') == 'block') {
+                closePaymentDetailsModal();
+            }
+        }
+    });
+
+    // View Payment Details handler
+    $(document).on('click', '.view-payment-details', function(e) {
+        e.preventDefault();
+        var saleId = $(this).data('sale-id');
+        
+        // Show loading
+        $('#paymentDetailsContent').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i><p>Loading payment details...</p></div>');
+        
+        // Open modal
+        openPaymentDetailsModal();
+        
+        // Fetch payment details
+        $.ajax({
+            url: "<?php echo base_url('stocks_new/get_payment_details'); ?>",
+            type: 'GET',
+            data: { sale_id: saleId },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    var html = '<div class="row">';
+                    html += '<div class="col-md-12">';
+                    html += '<h5><i class="fa fa-info-circle"></i> Payment Information</h5>';
+                    html += '<hr>';
+                    
+                    // Payment Status
+                    html += '<div class="form-group">';
+                    html += '<label><strong>Payment Status:</strong></label>';
+                    html += '<p><span class="badge ' + (response.data.payment_status == 'PAID' ? 'badge-success' : (response.data.payment_status == 'PARTIAL' ? 'badge-warning' : 'badge-danger')) + '">' + response.data.payment_status + '</span></p>';
+                    html += '</div>';
+                    
+                    // UTR/Transaction ID
+                    if (response.data.utr_transaction_id) {
+                        html += '<div class="form-group">';
+                        html += '<label><strong>UTR / Transaction ID:</strong></label>';
+                        html += '<p class="form-control-static">' + response.data.utr_transaction_id + '</p>';
+                        html += '</div>';
+                    }
+                    
+                    // Payment Image
+                    if (response.data.payment_image) {
+                        html += '<div class="form-group">';
+                        html += '<label><strong>Payment Proof:</strong></label><br>';
+                        var imageUrl = "<?php echo base_url('assets/'); ?>" + response.data.payment_image;
+                        if (response.data.payment_image.toLowerCase().endsWith('.pdf')) {
+                            html += '<a href="' + imageUrl + '" target="_blank" class="btn btn-info"><i class="fa fa-file-pdf-o"></i> View PDF</a>';
+                        } else {
+                            html += '<a href="' + imageUrl + '" target="_blank"><img src="' + imageUrl + '" class="img-responsive img-thumbnail" style="max-width: 100%; max-height: 400px; cursor: pointer;" alt="Payment Proof"></a>';
+                            html += '<br><small class="text-muted">Click image to view full size</small>';
+                        }
+                        html += '</div>';
+                    }
+                    
+                    // Remarks
+                    if (response.data.remarks) {
+                        html += '<div class="form-group">';
+                        html += '<label><strong>Remarks:</strong></label>';
+                        html += '<p class="form-control-static">' + response.data.remarks + '</p>';
+                        html += '</div>';
+                    }
+                    
+                    // Updated date
+                    if (response.data.updated_at) {
+                        html += '<div class="form-group">';
+                        html += '<label><strong>Last Updated:</strong></label>';
+                        html += '<p class="form-control-static text-muted"><small>' + response.data.updated_at + '</small></p>';
+                        html += '</div>';
+                    }
+                    
+                    html += '</div></div>';
+                    $('#paymentDetailsContent').html(html);
+                } else {
+                    $('#paymentDetailsContent').html('<div class="alert alert-warning"><i class="fa fa-exclamation-triangle"></i> ' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $('#paymentDetailsContent').html('<div class="alert alert-danger"><i class="fa fa-ban"></i> Error loading payment details. Please try again.</div>');
+            }
+        });
+    });
 
     // 1. When user clicks "Change Payment Status" link
     // We use $(document).on(...) to support DataTables pagination
@@ -367,29 +659,45 @@ $(document).ready(function() {
         $('#modal_sale_id').val(saleId);
         $('#modal_payment_status').val(currentStatus);
         $('#modal_payment_remark').val(''); // Clear remark field
+        $('#modal_utr_transaction_id').val(''); // Clear UTR field
+        $('#modal_payment_image').val(''); // Clear image field
+        $('#imagePreview').hide(); // Hide preview
         
-        // *** MODIFICATION: Use Materialize 'open' command ***
-        $('#paymentModal').modal('open');
+        // Open the modal
+        openPaymentModal();
     });
 
     // 2. When user clicks the "Save" button in the modal
     $('#savePaymentStatus').on('click', function() {
-        var saleId = $('#modal_sale_id').val();
-        var newStatus = $('#modal_payment_status').val();
-        var remark = $('#modal_payment_remark').val();
-
         var $button = $(this);
+        var $form = $('#paymentStatusForm');
+        
+        // Validate required fields
+        if (!$('#modal_payment_status').val()) {
+            alert('Please select a payment status');
+            return;
+        }
+        
         // Show loading state
         $button.html('<i class="fa fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
 
-        // 3. Perform the AJAX POST request to the controller
-        $.post(updateUrl, { sale_id: saleId, new_status: newStatus, remarks: remark })
-            .done(function(response) {
+        // Create FormData object for file upload
+        var formData = new FormData($form[0]);
+
+        // 3. Perform the AJAX POST request to the controller with file upload
+        $.ajax({
+            url: updateUrl,
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
                 // Check if the response from the controller is 'success'
                 if (response.success) {
                     
-                    // *** MODIFICATION: Use Materialize 'close' command ***
-                    $('#paymentModal').modal('close');
+                    // Close the modal
+                    closePaymentModal();
                     
                     // Show success message in the alert container
                     $('#alert-container').html(
@@ -401,13 +709,17 @@ $(document).ready(function() {
                     );
 
                     // Update the payment badge in the table
-                    var badgeClass = 'badge-danger'; // Default for UNPAID
+                    var newStatus = $('#modal_payment_status').val();
+                    var badgeClass = 'badge-danger'; // Default for PENDING
                     if (newStatus === 'PAID') {
                         badgeClass = 'badge-success';
                     } else if (newStatus === 'PARTIAL') {
                         badgeClass = 'badge-warning';
+                    } else if (newStatus === 'CANCELLED') {
+                        badgeClass = 'badge-secondary';
                     }
                     
+                    var saleId = $('#modal_sale_id').val();
                     var newBadge = '<span class="badge ' + badgeClass + '">' + newStatus + '</span>';
                     
                     // Update the cell content
@@ -423,21 +735,26 @@ $(document).ready(function() {
                         '</div>'
                      );
                 }
-            })
-            .fail(function() {
+            },
+            error: function(xhr, status, error) {
                 // Show a generic AJAX error
+                var errorMsg = 'Could not connect to the server. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
                 $('#alert-container').html(
                     '<div class="alert alert-danger alert-dismissible" style="margin-top: 15px;">' +
                     '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
                     '<h4><i class="icon fa fa-ban"></i> Error!</h4>' +
-                    'Could not connect to the server. Please try again.' +
+                    errorMsg +
                     '</div>'
                  );
-            })
-            .always(function() {
+            },
+            complete: function() {
                 // Reset button text and re-enable it
                 $button.html('Save Changes').prop('disabled', false);
-            });
+            }
+        });
     });
     // --- *** END OF NEW SCRIPT *** ---
     document.getElementById('modal_payment_status').addEventListener('change', function() {

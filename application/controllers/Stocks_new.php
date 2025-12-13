@@ -8788,23 +8788,62 @@ class Stocks_new extends CI_Controller
      */
     public function update_payment_status() 
     {
-        
-        // 1. Load the Sales_model.
-        // Make sure you have created the file application/models/Sales_model.php
-        // 2. Get the data from the AJAX POST request
+        // 1. Get the data from the AJAX POST request
         $sale_id = $this->input->post('sale_id');
         $new_status = $this->input->post('new_status'); 
-        $remark = $this->input->post('remarks'); 
+        $remark = $this->input->post('remarks');
+        $utr_transaction_id = $this->input->post('utr_transaction_id');
         $response = [];
-        // 3. Basic validation
+        
+        // 2. Basic validation
         if (!$sale_id || !$new_status) {
             $response = [
                 'success' => false, 
                 'message' => 'Sale ID and New Status are required.'
             ];
         } else {
+            // 3. Handle image upload if provided
+            $payment_image_path = null;
+            if (!empty($_FILES['payment_image']['name'])) {
+                // Use the configured upload path from config
+                $dest_path = $this->config->item('upload_path');
+                if (empty($dest_path)) {
+                    $dest_path = FCPATH . 'assets/';
+                }
+                
+                $config['upload_path']   = $dest_path . 'payment_proofs/';
+                $config['allowed_types'] = 'jpg|jpeg|png|gif|webp|pdf';
+                $config['max_size']      = 5120; // 5 MB
+                $config['file_ext_tolower'] = TRUE;
+                $config['remove_spaces'] = TRUE;
+                $config['overwrite']     = FALSE;
+                $config['encrypt_name']  = TRUE;
+                
+                // Create directory if it doesn't exist
+                if (!is_dir($config['upload_path'])) {
+                    mkdir($config['upload_path'], 0777, true);
+                }
+                
+                $this->load->library('upload', $config);
+                
+                if (!$this->upload->do_upload('payment_image')) {
+                    $error = $this->upload->display_errors('', '');
+                    $response = [
+                        'success' => false, 
+                        'message' => 'Image upload failed: ' . $error
+                    ];
+                    header('Content-Type: application/json');
+                    echo json_encode($response);
+                    return;
+                }
+                
+                $upload_data = $this->upload->data();
+                $payment_image_path = 'payment_proofs/' . $upload_data['file_name'];
+            }
+            
             // 4. Call the model to update the database
-            $success = $this->Stock_model_new->change_payment_status($sale_id, $new_status, $remark);
+            $success = $this->Stock_model_new->change_payment_status($sale_id, $new_status, $remark, $utr_transaction_id, $payment_image_path);
+            
             // 5. Prepare the JSON response
             if ($success) {
                 $response = [
@@ -8818,8 +8857,54 @@ class Stocks_new extends CI_Controller
                 ];
             }
         }
+        
         // 6. Send the JSON response back to the JavaScript
-        // This is crucial for the success/error message to appear
+        header('Content-Type: application/json');
+        echo json_encode($response);
+    }
+
+    public function get_payment_details()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == false) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
+            return;
+        }
+
+        $sale_id = $this->input->get('sale_id');
+        
+        if (!$sale_id) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'message' => 'Sale ID is required']);
+            return;
+        }
+
+        // Get payment details from database
+        $this->db->select('payment_status, utr_transaction_id, payment_image, remarks, updated_at');
+        $this->db->from('sales');
+        $this->db->where('id', $sale_id);
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $sale = $query->row();
+            $response = [
+                'success' => true,
+                'data' => [
+                    'payment_status' => $sale->payment_status ? $sale->payment_status : 'N/A',
+                    'utr_transaction_id' => $sale->utr_transaction_id ? $sale->utr_transaction_id : null,
+                    'payment_image' => $sale->payment_image ? $sale->payment_image : null,
+                    'remarks' => $sale->remarks ? $sale->remarks : null,
+                    'updated_at' => $sale->updated_at ? date('M d, Y h:i A', strtotime($sale->updated_at)) : null
+                ]
+            ];
+        } else {
+            $response = [
+                'success' => false,
+                'message' => 'Sale not found'
+            ];
+        }
+
         header('Content-Type: application/json');
         echo json_encode($response);
     }

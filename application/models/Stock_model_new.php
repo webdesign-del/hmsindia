@@ -2692,7 +2692,7 @@ class Stock_model_new extends CI_Model
                 // Explicitly list all columns from 'sales' (s)
                 's.id', 's.sale_number', 's.center_id', 's.patient_id', 's.patient_name',
                 's.doctor_id', 's.doctor_name', 's.sale_date', 's.sale_time',
-                's.payment_method', 's.payment_status', 's.status', 's.remarks', 's.created_by',
+                's.payment_method', 's.payment_status', 's.utr_transaction_id', 's.payment_image', 's.status', 's.remarks', 's.created_by',
                 's.created_at', 's.updated_at',
                 // Joined column from 'hms_centers'
                 'c.center_name',
@@ -8449,7 +8449,7 @@ public function add_stock_to_location($stock_data)
         }
     }
 
-    public function change_payment_status($sale_id, $new_status, $remark = null)
+    public function change_payment_status($sale_id, $new_status, $remark = null, $utr_transaction_id = null, $payment_image_path = null)
     {
         // Data to update in an associative array
         $data = [
@@ -8460,6 +8460,16 @@ public function add_stock_to_location($stock_data)
         // Add remark if provided
         if (!empty($remark)) {
             $data['remarks'] = $remark;
+        }
+        
+        // Add UTR/Transaction ID if provided
+        if (!empty($utr_transaction_id)) {
+            $data['utr_transaction_id'] = $utr_transaction_id;
+        }
+        
+        // Add payment image path if provided
+        if (!empty($payment_image_path)) {
+            $data['payment_image'] = $payment_image_path;
         }
         
         // Specify which sale to update (I assume your table is 'sales')

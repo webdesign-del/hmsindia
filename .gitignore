@@ -74,6 +74,8 @@ assets/stock_files/*
 !assets/stock_files/.gitkeep
 assets/purchase_orders/*
 !assets/purchase_orders/.gitkeep
+assets/payment_proofs/*
+!assets/payment_proofs/.gitkeep
 assets/whatsapp-pdf/*
 !assets/whatsapp-pdf/.gitkeep
 assets/package_form/*
