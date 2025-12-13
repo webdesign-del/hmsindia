@@ -1332,7 +1332,8 @@ class Stock_model_new extends CI_Model
         // return $center ? $center->id : null;
     }
 
-    public function get_center_stocks($center_id = null,$medicine_id = null,$batch_number = null,$status = null) {
+    public function get_center_stocks($center_id = null,$medicine_id = null,$batch_number = null,$status = null) 
+    {
         // try {
             // Select columns - ensure pack_size is explicitly included from medicines table
             // Using IFNULL (MySQL) to handle NULL pack_size values (defaults to 1)
@@ -1372,16 +1373,27 @@ class Stock_model_new extends CI_Model
             //     $this->db->where('ccs.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
             // }
             $center = null;
+            $department = null;
             if (!empty($_SESSION['logged_billing_manager']) &&
                 ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
                 $center = $_SESSION['logged_billing_manager']['center'];
+                $department = $_SESSION['logged_billing_manager']['department'] ?? null;
             }
             if (!empty($_SESSION['logged_stock_manager']) &&
                 ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
                 $center = $_SESSION['logged_stock_manager']['center'];
+                $department = $_SESSION['logged_stock_manager']['department'] ?? null;
             }
             if ($center !== null) {
                 $this->db->where('ccs.center_id', $this->get_center_id($center));
+            }
+            // Filter by department if available
+            if ($department !== null && $department !== '') {
+                    if ($department == 'billing') {
+                    $this->db->like('ccs.department', 'CASH MEDICINE');
+                } else {
+                    $this->db->like('ccs.department', $department);
+                }
             }
             $this->db->order_by("mb.expiry_date", "ASC");
             $results = $this->db->get()->result();
