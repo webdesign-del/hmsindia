@@ -89,14 +89,28 @@
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Center *</label>
                                         <div class="col-sm-8">
-                                            <select name="center_id" class="form-control" required>
-                                                <option value="">Select Center</option>
-                                                <?php foreach($centers as $center): ?>
-                                                    <option value="<?php echo $center->ID; ?>" <?php echo set_select('center_id', $center->ID); ?>>
-                                                        <?php echo $center->center_name; ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
+                                            <?php if (isset($selected_center_id) && !empty($selected_center_id)): ?>
+                                                <!-- Hidden field to ensure value is submitted when select is disabled -->
+                                                <input type="hidden" name="center_id" value="<?php echo $selected_center_id; ?>">
+                                                <select class="form-control" id="center_id" disabled style="background-color: #e9ecef; cursor: not-allowed;">
+                                                    <option value="">Select Center</option>
+                                                    <?php foreach($centers as $center): ?>
+                                                        <option value="<?php echo $center->ID; ?>" <?php echo ($center->ID == $selected_center_id) ? 'selected' : ''; ?>>
+                                                            <?php echo $center->center_name; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                                <small class="help-block text-muted"><i class="fa fa-info-circle"></i> Center is automatically selected based on your login</small>
+                                            <?php else: ?>
+                                                <select name="center_id" class="form-control" id="center_id" required>
+                                                    <option value="">Select Center</option>
+                                                    <?php foreach($centers as $center): ?>
+                                                        <option value="<?php echo $center->ID; ?>" <?php echo set_select('center_id', $center->ID); ?>>
+                                                            <?php echo $center->center_name; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <div class="form-group" id="department">

@@ -4525,6 +4525,28 @@ class Stocks_new extends CI_Controller
 
             $data["centers"] = $this->Stock_model_new->get_all_centers();
             $data["available_batches"] = $this->Stock_model_new->get_available_batches_for_return();
+            
+            // Auto-select center if user is not central stock manager
+            $data["selected_center_id"] = null;
+            if (!isset($_SESSION["logged_central_stock_manager"]) || empty($_SESSION["logged_central_stock_manager"])) {
+                // Get center from session (try different session variables)
+                $center_number = null;
+                if (isset($_SESSION['logged_billing_manager']['center']) && !empty($_SESSION['logged_billing_manager']['center'])) {
+                    $center_number = $_SESSION['logged_billing_manager']['center'];
+                } elseif (isset($_SESSION['logged_stock_manager']['center']) && !empty($_SESSION['logged_stock_manager']['center'])) {
+                    $center_number = $_SESSION['logged_stock_manager']['center'];
+                } elseif (isset($_SESSION['logged_counselor']['center']) && !empty($_SESSION['logged_counselor']['center'])) {
+                    $center_number = $_SESSION['logged_counselor']['center'];
+                }
+                
+                // Convert center number to center ID using model method
+                if ($center_number) {
+                    $center_id_result = $this->Stock_model_new->get_center_id($center_number);
+                    if ($center_id_result) {
+                        $data["selected_center_id"] = $center_id_result;
+                    }
+                }
+            }
          
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
