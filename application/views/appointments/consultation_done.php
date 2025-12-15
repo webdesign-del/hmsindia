@@ -6193,7 +6193,8 @@ $countdownDuration = 7200;
 										foreach($centers as $key => $center_item){
 											$selected = ($selected_center == $center_item['center_number']) ? 'selected="selected"' : '';
 										?>
-										<option value="<?php echo $center_item['center_number']; ?>" <?php echo $selected; ?>><?php echo $center_item['center_name']; ?></option>
+										<!-- <option value="<?php echo $center_item['center_number']; ?>" <?php echo $selected; ?>><?php echo $center_item['center_name']; ?></option> -->
+										<option value="<?php echo $center_item['center_number']; ?>" ><?php echo $center_item['center_name']; ?></option>
 										<?php } ?>
 									</select>
 								</div>
