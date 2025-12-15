@@ -87,14 +87,14 @@
                                                     <option value="">Select Department</option>
                                                     <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
                                                     <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
-                                                    <option value="CASH MEDICINE GP">CASH MEDICINE BASANT LOK</option>
+                                                    <option value="CASH MEDICINE BASANT LOK">CASH MEDICINE BASANT LOK</option>
                                                     <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
                                                     <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
-                                                    <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE  ROHINI</option>
-                                                    <option value="CASH MEDICINE GHAZIABAD">HORMONAL ROHINI</option>
+                                                    <option value="CASH MEDICINE  ROHINI">CASH MEDICINE  ROHINI</option>
+                                                    <option value="HORMONAL ROHINI">HORMONAL ROHINI</option>
                                                     <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
                                                     <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
-                                                    <option value="Hormonal Delhi">Hormonal Basant Lok</option>
+                                                    <option value="Hormonal Basant Lok">Hormonal Basant Lok</option>
                                                     <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
                                                     <option value="Hormonal Noida">Hormonal Noida</option>
                                                     <option value="Embryologist Noida">Embryologist Noida</option>
@@ -146,24 +146,24 @@
                                             </select> -->
                                             <select name="to_department" id="to_department" class="form-control" required>
                                                 <option value="">Select Department</option>
-                                                <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
-                                                <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
-                                                <option value="CASH MEDICINE GP">CASH MEDICINE BASANT LOK</option>
-                                                <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
-                                                <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
-                                                <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE  ROHINI</option>
-                                                <option value="CASH MEDICINE GHAZIABAD">HORMONAL ROHINI</option>
-                                                <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
-                                                <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
-                                                <option value="Hormonal Delhi">Hormonal Basant Lok</option>
-                                                <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
-                                                <option value="Hormonal Noida">Hormonal Noida</option>
-                                                <option value="Embryologist Noida">Embryologist Noida</option>
-                                                <option value="OT Noida">OT Noida</option>
-                                                <option value="OT Basant Lok">OT Basant Lok</option>
-                                                <option value="Embryology Basant Lok">Embryology Basant Lok</option>
-                                                <option value="Embryology Srinagar">Embryology Srinagar</option>
-                                                <option value="OT Srinagar">OT Srinagar</option>
+                                                    <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
+                                                    <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
+                                                    <option value="CASH MEDICINE BASANT LOK">CASH MEDICINE BASANT LOK</option>
+                                                    <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
+                                                    <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
+                                                    <option value="CASH MEDICINE  ROHINI">CASH MEDICINE  ROHINI</option>
+                                                    <option value="HORMONAL ROHINI">HORMONAL ROHINI</option>
+                                                    <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
+                                                    <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
+                                                    <option value="Hormonal Basant Lok">Hormonal Basant Lok</option>
+                                                    <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
+                                                    <option value="Hormonal Noida">Hormonal Noida</option>
+                                                    <option value="Embryologist Noida">Embryologist Noida</option>
+                                                    <option value="OT Noida">OT Noida</option>
+                                                    <option value="OT Basant Lok">OT Basant Lok</option>
+                                                    <option value="Embryology Basant Lok">Embryology Basant Lok</option>
+                                                    <option value="Embryology Srinagar">Embryology Srinagar</option>
+                                                    <option value="OT Srinagar">OT Srinagar</option>
                                             </select>
                                         </div>
                                     </div>
