@@ -187,16 +187,16 @@
               <li> <a href="<?php echo base_url(); ?>doctor-consultations">Doctor's Consultation</a> </li>
         </ul>
       </li>
-      <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Orders<span class="fa arrow"></span></a>
+      <!-- <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Orders<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>orders/orders">Centre requisition</a> </li>
           <li> <a href="<?php echo base_url(); ?>orders/my_orders">Orders</a> </li>
           <li> <a href="<?php echo base_url(); ?>orders/purchase_orders_list">Purchase orders</a> </li>
 		      <li> <a href="<?php echo base_url(); ?>orders/purchase_internal_orders_list">Internal orders</a> </li>
         </ul>
-      </li>
+      </li> -->
       <!-- purchase order module  -->
-       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Purchase Orders<span class="fa arrow"></span></a>
+       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage  Orders<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>new_purchase_orders">New Purchase Orders</a> </li>
           <li> <a href="<?php echo base_url(); ?>new_purchase_orders/add">Add New PO</a> </li>
