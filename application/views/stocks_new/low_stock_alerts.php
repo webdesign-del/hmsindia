@@ -166,24 +166,24 @@
                                                 <label for="departmentFilter">Filter by Department:</label>
                                                 <select id="departmentFilter" class="form-control">
                                                     <option value="">All Departments</option>
-                                                    <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
-                                                    <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
-                                                    <option value="CASH MEDICINE BASANT LOK">CASH MEDICINE BASANT LOK</option>
-                                                    <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
-                                                    <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
-                                                    <option value="CASH MEDICINE  ROHINI">CASH MEDICINE  ROHINI</option>
-                                                    <option value="HORMONAL ROHINI">HORMONAL ROHINI</option>
-                                                    <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
-                                                    <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
-                                                    <option value="Hormonal Basant Lok">Hormonal Basant Lok</option>
-                                                    <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
-                                                    <option value="Hormonal Noida">Hormonal Noida</option>
-                                                    <option value="Embryologist Noida">Embryologist Noida</option>
-                                                    <option value="OT Noida">OT Noida</option>
-                                                    <option value="OT Basant Lok">OT Basant Lok</option>
-                                                    <option value="Embryology Basant Lok">Embryology Basant Lok</option>
-                                                    <option value="Embryology Srinagar">Embryology Srinagar</option>
-                                                    <option value="OT Srinagar">OT Srinagar</option>
+                                                    <option value="CASH MEDICINE NOIDA" <?php echo (isset($selected_department) && $selected_department == 'CASH MEDICINE NOIDA') ? 'selected' : ''; ?>>CASH MEDICINE NOIDA</option>
+                                                    <option value="CASH MEDICINE GGN" <?php echo (isset($selected_department) && $selected_department == 'CASH MEDICINE GGN') ? 'selected' : ''; ?>>CASH MEDICINE GGN</option>
+                                                    <option value="CASH MEDICINE BASANT LOK" <?php echo (isset($selected_department) && $selected_department == 'CASH MEDICINE BASANT LOK') ? 'selected' : ''; ?>>CASH MEDICINE BASANT LOK</option>
+                                                    <option value="CASH MEDICINE SRINAGAR" <?php echo (isset($selected_department) && $selected_department == 'CASH MEDICINE SRINAGAR') ? 'selected' : ''; ?>>CASH MEDICINE SRINAGAR</option>
+                                                    <option value="CASH MEDICINE GHAZIABAD" <?php echo (isset($selected_department) && $selected_department == 'CASH MEDICINE GHAZIABAD') ? 'selected' : ''; ?>>CASH MEDICINE GHAZIABAD</option>
+                                                    <option value="CASH MEDICINE  ROHINI" <?php echo (isset($selected_department) && $selected_department == 'CASH MEDICINE  ROHINI') ? 'selected' : ''; ?>>CASH MEDICINE  ROHINI</option>
+                                                    <option value="HORMONAL ROHINI" <?php echo (isset($selected_department) && $selected_department == 'HORMONAL ROHINI') ? 'selected' : ''; ?>>HORMONAL ROHINI</option>
+                                                    <option value="Hormonal Ghaziabad" <?php echo (isset($selected_department) && $selected_department == 'Hormonal Ghaziabad') ? 'selected' : ''; ?>>Hormonal Ghaziabad</option>
+                                                    <option value="HORMONAL SRINAGAR" <?php echo (isset($selected_department) && $selected_department == 'HORMONAL SRINAGAR') ? 'selected' : ''; ?>>HORMONAL SRINAGAR</option>
+                                                    <option value="Hormonal Basant Lok" <?php echo (isset($selected_department) && $selected_department == 'Hormonal Basant Lok') ? 'selected' : ''; ?>>Hormonal Basant Lok</option>
+                                                    <option value="Hormonal Gurgaon" <?php echo (isset($selected_department) && $selected_department == 'Hormonal Gurgaon') ? 'selected' : ''; ?>>Hormonal Gurgaon</option>
+                                                    <option value="Hormonal Noida" <?php echo (isset($selected_department) && $selected_department == 'Hormonal Noida') ? 'selected' : ''; ?>>Hormonal Noida</option>
+                                                    <option value="Embryologist Noida" <?php echo (isset($selected_department) && $selected_department == 'Embryologist Noida') ? 'selected' : ''; ?>>Embryologist Noida</option>
+                                                    <option value="OT Noida" <?php echo (isset($selected_department) && $selected_department == 'OT Noida') ? 'selected' : ''; ?>>OT Noida</option>
+                                                    <option value="OT Basant Lok" <?php echo (isset($selected_department) && $selected_department == 'OT Basant Lok') ? 'selected' : ''; ?>>OT Basant Lok</option>
+                                                    <option value="Embryology Basant Lok" <?php echo (isset($selected_department) && $selected_department == 'Embryology Basant Lok') ? 'selected' : ''; ?>>Embryology Basant Lok</option>
+                                                    <option value="Embryology Srinagar" <?php echo (isset($selected_department) && $selected_department == 'Embryology Srinagar') ? 'selected' : ''; ?>>Embryology Srinagar</option>
+                                                    <option value="OT Srinagar" <?php echo (isset($selected_department) && $selected_department == 'OT Srinagar') ? 'selected' : ''; ?>>OT Srinagar</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3">

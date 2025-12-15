@@ -336,10 +336,8 @@ class Stock_model_new extends CI_Model
             }
             
             if (!empty($filters['department'])) {
-                // Filter by department - join with employees to get department
-                $this->db->join($this->config->item("db_prefix") . "employees e", "c.id = e.center_id", "left");
-                $this->db->where("e.department", $filters['department']);
-                $this->db->where("e.status", "1");
+                // Filter by department - filter directly on center_stocks department field
+                $this->db->where("ccs.department", $filters['department']);
             }
             
             $this->db->group_by("m.id, m.medicine_name, m.medicine_code, m.generic_name, m.min_stock_level, m.max_stock_level, m.reorder_level, b.brand_name");
