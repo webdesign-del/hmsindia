@@ -6180,7 +6180,7 @@ $countdownDuration = 7200;
 							</thead>
 							<tbody>
 					<tr>
-						<th>NEXT FOLLOW UP <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="follow_up" value="1" <?php if(isset($patient_doctor_consultation['follow_up']) && $patient_doctor_consultation['follow_up'] == "1"){echo 'checked="checked"';}?> name="follow_up" /></th>
+						<th>NEXT FOLLOW UP <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="follow_up" value="1" <?php if(isset($patient_doctor_consultation['follow_up']) && $patient_doctor_consultation['follow_up'] == "1"){echo 'checked="checked"';}?> checked name="follow_up" /></th>
 						<td colspan="2">
 							<div class="row">            
 								<div class="form-group col-sm-6 col-xs-12 role">
@@ -6353,7 +6353,6 @@ $countdownDuration = 7200;
 				// Current step is not saved
 				alert('Please save step ' + currentStep + ' before proceeding to step ' + targetStep + '.');
 				return false;
-				return true;
 			}
 		}
 		
