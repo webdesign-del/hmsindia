@@ -2786,6 +2786,8 @@ class Stock_model_new extends CI_Model
                 's.created_at', 's.updated_at',
                 // Joined column from 'hms_centers'
                 'c.center_name',
+                // Joined column from 'hms_employees' for salesperson name
+                'e.name as salesperson_name',
                 // Recalculated totals from 'sale_items' (si)
                 'COALESCE(COUNT(si.id), 0) as total_items',
                 'COALESCE(SUM(si.quantity_sold), 0) as total_quantity',
@@ -2796,6 +2798,7 @@ class Stock_model_new extends CI_Model
             ]);
             $this->db->from("sales s");
             $this->db->join("hms_centers c", "s.center_id = c.ID", "left");
+            $this->db->join("hms_employees e", "s.created_by = e.ID", "left");
             $this->db->join("sale_items si", "s.id = si.sale_id", "left"); // LEFT JOIN is important
 
             // --- Session Filter (Your original logic) ---
@@ -2825,7 +2828,7 @@ class Stock_model_new extends CI_Model
             }
             // --- End Filter ---
             // Correct GROUP BY for all non-aggregated columns
-            $this->db->group_by("s.id, c.center_name"); 
+            $this->db->group_by("s.id, c.center_name, e.name"); 
             if(!empty($filters['center_id'])) {
                 $this->db->where('s.center_id', $filters['center_id']);
             }

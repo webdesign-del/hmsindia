@@ -137,6 +137,7 @@
                                         <th>Sale #</th>
                                         <th>Patient</th>
                                         <th>Center</th>
+                                        <th>Sold By</th>
                                         <th>Date</th>
                                         <th>Items</th>
                                         <th>Quantity</th>
@@ -156,6 +157,7 @@
                                                 </td>
                                                 <td><?php echo isset($sale->patient_name) ? htmlspecialchars($sale->patient_name) : 'N/A'; ?></td>
                                                 <td><?php echo isset($sale->center_name) ? htmlspecialchars($sale->center_name) : 'N/A'; ?></td>
+                                                <td><?php echo isset($sale->salesperson_name) ? htmlspecialchars($sale->salesperson_name) : 'N/A'; ?></td>
                                                 <td><?php echo isset($sale->sale_date) && !empty($sale->sale_date) ? date('M d, Y', strtotime($sale->sale_date)) : 'N/A'; ?></td>
                                                 <td><?php echo isset($sale->total_items) && is_numeric($sale->total_items) ? number_format($sale->total_items) : '0'; ?></td>
                                                 <td><?php echo isset($sale->total_quantity) && is_numeric($sale->total_quantity) ? number_format($sale->total_quantity) : '0'; ?></td>
@@ -237,7 +239,7 @@
                                     
                                     <?php if(empty($sales) || !is_array($sales) || count(array_filter($sales, function($s) { return isset($s->sale_number) && !empty($s->sale_number); })) == 0): ?>
                                         <tr>
-                                            <td colspan="10" class="text-center text-muted">
+                                            <td colspan="11" class="text-center text-muted">
                                                 <i class="fa fa-info-circle fa-2x"></i><br>
                                                 No sales found. The database table 'sales' may not exist. <a href="<?php echo base_url('stocks_new/add_sale'); ?>">Create your first sale</a>
                                             </td>
@@ -384,7 +386,7 @@ $(document).ready(function() {
     var rows = tbody.find('tr');
     var validRows = rows.filter(function() {
         // Check if row has proper number of cells and is not the "no data" row
-        return $(this).find('td').length === 10 && !$(this).find('td[colspan]').length;
+        return $(this).find('td').length === 11 && !$(this).find('td[colspan]').length;
     });
     
     console.log('Total rows:', rows.length);
@@ -396,7 +398,7 @@ $(document).ready(function() {
                 "pageLength": 25,
                 "order": [[ 3, "desc" ]], // Sort by date descending
                 "columnDefs": [
-                    { "orderable": false, "targets": 9 }
+                    { "orderable": false, "targets": 10 }
                 ],
                 "responsive": true,
                 "autoWidth": false,
