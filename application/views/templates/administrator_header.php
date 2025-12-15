@@ -109,8 +109,10 @@
             <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> Reports</a> </li>
             <li> <a href="<?php echo base_url(); ?>stocks_new/low_stock_alerts">Low Stock Alerts</a> </li>
             <li> <a href="<?php echo base_url(); ?>stocks_new/expiry_alerts"> Expiry Alerts</a> </li>
-            <li> <a href="<?php echo base_url(); ?>stocks_new/stock_audit"> Stock Audit</a> </li>
+            <!-- <li> <a href="<?php echo base_url(); ?>stocks_new/stock_audit"> Stock Audit</a> </li> -->
             <li> <a href="<?php echo base_url(); ?>stocks_new/audit_reports"> Audit Reports</a> </li>
+            <li> <a href="<?php echo base_url(); ?>stocks_new/disposal_reports">  Medicine Disposal List</a> </li>
+            <li> <a href="<?php echo base_url(); ?>stocks_new/returns">  Medicine Return List</a> </li>
         </ul>
       </li>
       <li> <a href="<?php echo base_url(); ?>accounts/procedure_advice"><i class="fa fa-sitemap"></i>Financial Clearance</a> </li>
