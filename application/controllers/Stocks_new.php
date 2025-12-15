@@ -3402,7 +3402,7 @@ class Stocks_new extends CI_Controller
                     SUM(COALESCE(cs.quantity, 0)) as central_quantity,
                     SUM(COALESCE(ccs.quantity, 0)) as center_quantity,
                     SUM(COALESCE(cs.quantity, 0) + COALESCE(ccs.quantity, 0)) as total_quantity,
-                    GROUP_CONCAT(DISTINCT COALESCE(c.center_name, 'Central') SEPARATOR ', ') as center_names,
+                    GROUP_CONCAT(DISTINCT COALESCE(c.center_name, 'Central') SEPARATOR '<br> ') as center_names,
                     GROUP_CONCAT(DISTINCT ccs.center_id SEPARATOR ',') as center_ids,
                     mb.batch_status,
                     mb.quality_status,
