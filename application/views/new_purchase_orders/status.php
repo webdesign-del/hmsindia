@@ -473,11 +473,16 @@ $all_method->load->model('center_model');
                                         <td style="padding: 12px;"><?php echo isset($bill_to) ? $bill_to : 'N/A'; ?></td>
                                         <td style="padding: 12px;"><?php echo isset($ship_to) ? $ship_to : 'N/A'; ?></td>
                                         <?php
-                                        $all_method->load->model('Vendors_model');
-                                        $vendor_name = $all_method->Vendors_model->get_vendor_data_by_vendor_number($po['vendor_number']);
-                                        $vendor_name = $vendor_name[0]['name'];
+                                        $vendor_name = 'N/A';
+                                        if (!empty($po['vendor_number'])) {
+                                            $all_method->load->model('Vendors_model');
+                                            $vendor_data = $all_method->Vendors_model->get_vendor_data($po['vendor_number']);
+                                            if (!empty($vendor_data) && is_array($vendor_data) && isset($vendor_data['name'])) {
+                                                $vendor_name = $vendor_data['name'];
+                                            }
+                                        }
                                         ?>
-                                        <td style="padding: 12px;"><?php echo isset($vendor_name) ? $vendor_name : 'N/A'; ?></td>
+                                        <td style="padding: 12px;"><?php echo $vendor_name; ?></td>
                                         <td style="padding: 12px; font-weight: 600; color: #28a745;">
                                             ₹<?php echo isset($po['total_amount']) ? number_format($po['total_amount'], 2) : '0.00'; ?>
                                         </td>
