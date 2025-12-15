@@ -666,10 +666,8 @@ class New_purchase_orders extends CI_Controller {
             $this->load->model('Center_model');
             $bill_to_center = $this->Center_model->get_item_data($data['purchase_order']['bill_to']);
             $ship_to_center = $this->Center_model->get_item_data($data['purchase_order']['ship_to']);
-            $data['bill_to_address'] = $bill_to_center ? $bill_to_center['center_name'] : 'N/A';
-            //  . ', ' . $bill_to_center['center_location'] : 'N/A';
-            $data['ship_to_address'] = $ship_to_center ? $ship_to_center['center_name'] : 'N/A';
-            //  . ', ' . $ship_to_center['center_location'] : 'N/A';
+            $data['bill_to_address'] = $bill_to_center ? $bill_to_center['center_name'] . ', ' . $bill_to_center['center_location'] : 'N/A';
+            $data['ship_to_address'] = $ship_to_center ? $ship_to_center['center_name'] . ', ' . $ship_to_center['center_location'] : 'N/A';
             $this->load->view('new_purchase_orders/print', $data);
         } else {
             header("location:" .base_url(). "");
