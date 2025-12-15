@@ -125,6 +125,15 @@ class New_purchase_orders extends CI_Controller {
         $logg = checklogin();
         if($logg['status'] == true) {
             if ($this->input->post()) {
+                // Validate max stock levels before creating PO
+                $validation_errors = $this->validate_max_stock_levels();
+                if (!empty($validation_errors)) {
+                    $error_message = 'Cannot create purchase order. Max stock level exceeded for: ' . implode(', ', $validation_errors);
+                    $this->session->set_flashdata('error', $error_message);
+                    redirect('new_purchase_orders/add');
+                    return;
+                }
+
                 $po_data = [
                     'po_number' => $this->input->post('po_number'),
                     'vendor_number' => $this->input->post('vendor_number'),
@@ -156,6 +165,43 @@ class New_purchase_orders extends CI_Controller {
             header("location:" .base_url(). "");
             die;
         }
+    }
+
+    /**
+     * Validate that PO quantities don't exceed max stock levels
+     * @return array Array of error messages for items that exceed max stock
+     */
+    private function validate_max_stock_levels() {
+        $errors = [];
+        $i = 1;
+        
+        while ($this->input->post('consumables_name_' . $i) && !empty($this->input->post('consumables_name_' . $i))) {
+            $medicine_id = $this->input->post('consumables_name_' . $i);
+            $po_quantity = (int) $this->input->post('consumables_quantity_' . $i);
+            $item_name = $this->input->post('consumables_item_name_' . $i);
+            
+            if (!empty($medicine_id) && $po_quantity > 0) {
+                // Get current stock and max stock level
+                $stock_info = $this->Stock_model_new->get_medicine_stock_info($medicine_id);
+                
+                if ($stock_info) {
+                    $current_stock = (int) $stock_info->current_stock;
+                    $max_stock = (int) $stock_info->max_stock_level;
+                    
+                    // Check if max_stock_level is set (greater than 0)
+                    if ($max_stock > 0) {
+                        $total_after_po = $current_stock + $po_quantity;
+                        
+                        if ($total_after_po > $max_stock) {
+                            $errors[] = $item_name . " (Current: {$current_stock}, Max: {$max_stock}, PO Qty: {$po_quantity})";
+                        }
+                    }
+                }
+            }
+            $i++;
+        }
+        
+        return $errors;
     }
 
     // Save purchase order items
@@ -482,6 +528,73 @@ class New_purchase_orders extends CI_Controller {
         $items = $this->New_purchase_order_model->get_medicines_by_vendor($vendor_number);
         return $items;
     }
+    /**
+     * AJAX endpoint to check if adding quantity to PO would exceed max stock level
+     */
+    public function check_stock_level() {
+        $logg = checklogin();
+        if ($logg['status'] != true) {
+            return $this->output->set_content_type('application/json')
+                ->set_status_header(401)
+                ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+        }
+        
+        $medicine_id = $this->input->get('medicine_id');
+        $quantity = (int) $this->input->get('quantity');
+        
+        if (empty($medicine_id) || $quantity <= 0) {
+            return $this->output->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode(['status' => 'error', 'message' => 'medicine_id and quantity are required']));
+        }
+        
+        $stock_info = $this->Stock_model_new->get_medicine_stock_info($medicine_id);
+        
+        if (!$stock_info) {
+            return $this->output->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'can_order' => true,
+                    'message' => 'Stock information not available'
+                ]));
+        }
+        
+        $current_stock = (int) $stock_info->current_stock;
+        $max_stock = (int) $stock_info->max_stock_level;
+        $total_after_po = $current_stock + $quantity;
+        
+        // If max_stock_level is 0 or null, allow ordering (no limit set)
+        if ($max_stock <= 0) {
+            return $this->output->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'can_order' => true,
+                    'current_stock' => $current_stock,
+                    'max_stock' => $max_stock,
+                    'message' => 'No max stock limit set'
+                ]));
+        }
+        
+        $can_order = $total_after_po <= $max_stock;
+        $message = $can_order 
+            ? "OK - Stock after PO: {$total_after_po} (Max: {$max_stock})"
+            : "Max stock exceeded! Current: {$current_stock}, Max: {$max_stock}, After PO: {$total_after_po}";
+        
+        return $this->output->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode([
+                'status' => 'success',
+                'can_order' => $can_order,
+                'current_stock' => $current_stock,
+                'max_stock' => $max_stock,
+                'po_quantity' => $quantity,
+                'total_after_po' => $total_after_po,
+                'message' => $message
+            ]));
+    }
+
     public function items_by_vendor()
     {
         $logg = checklogin();

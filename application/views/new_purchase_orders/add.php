@@ -187,7 +187,7 @@
                                     </td>
                                     <td>
                                         <input type="number" class="form-control" name="consumables_quantity_1" id="consumables_quantity_1" 
-                                            value="1" min="1" onchange="updateTotal(1)">
+                                            value="1" min="1" onchange="updateTotal(1); checkStockLevel(1);">
                                     </td>
                                     <td>
                                         <input type="text" class="form-control" name="consumables_batch_number_1" id="consumables_batch_number_1">
@@ -311,7 +311,7 @@ function addNewRow() {
             </td>
             <td>
                 <input type="number" class="form-control" name="consumables_quantity_${rowCounter}" id="consumables_quantity_${rowCounter}" 
-                    value="1" min="1" onchange="updateTotal(${rowCounter})">
+                    value="1" min="1" onchange="updateTotal(${rowCounter}); checkStockLevel(${rowCounter});">
             </td>
             <td>
                 <input type="text" class="form-control" name="consumables_batch_number_${rowCounter}" id="consumables_batch_number_${rowCounter}" >
@@ -393,8 +393,56 @@ function populateItemDetails(rowId) {
         $('#consumables_company_' + rowId).val(selectedOption.data('company'));
         $('#consumables_brand_name_' + rowId).val(selectedOption.data('brand'));
         
+        // Check stock level when item is selected
+        checkStockLevel(rowId);
+        
         updateTotal(rowId);
     }
+}
+
+// Check stock level for a specific row
+function checkStockLevel(rowId) {
+    var medicineId = $('#consumables_name_' + rowId).val();
+    var quantity = parseInt($('#consumables_quantity_' + rowId).val()) || 0;
+    
+    if (!medicineId || quantity <= 0) {
+        // Clear any previous error messages
+        $('#row_' + rowId).removeClass('has-error');
+        $('#stock_error_' + rowId).remove();
+        $('#stock_info_' + rowId).remove();
+        return;
+    }
+    
+    $.getJSON('<?php echo base_url('new_purchase_orders/check_stock_level'); ?>', {
+        medicine_id: medicineId,
+        quantity: quantity
+    })
+    .done(function(response) {
+        if (response.status === 'success') {
+            // Remove previous error/info messages
+            $('#row_' + rowId).removeClass('has-error');
+            $('#stock_error_' + rowId).remove();
+            $('#stock_info_' + rowId).remove();
+            
+            if (!response.can_order) {
+                // Show error message
+                $('#row_' + rowId).addClass('has-error');
+                var errorMsg = '<small id="stock_error_' + rowId + '" class="text-danger" style="display: block; margin-top: 5px;">' +
+                    '<i class="fa fa-exclamation-triangle"></i> ' + response.message +
+                    '</small>';
+                $('#consumables_quantity_' + rowId).closest('td').append(errorMsg);
+            } else if (response.max_stock > 0) {
+                // Show info message if max stock is set
+                var infoMsg = '<small id="stock_info_' + rowId + '" class="text-muted" style="display: block; margin-top: 5px;">' +
+                    'Stock: ' + response.current_stock + ' / Max: ' + response.max_stock +
+                    '</small>';
+                $('#consumables_quantity_' + rowId).closest('td').append(infoMsg);
+            }
+        }
+    })
+    .fail(function() {
+        console.error('Error checking stock level');
+    });
 }
 
 function updateTotal(rowId) {
@@ -508,6 +556,7 @@ $(document).ready(function() {
     // Initialize form validation
     $('#add_po_form').on('submit', function(e) {
         var isValid = true;
+        var stockErrors = [];
         
         // Check department requirement based on ship_to
         var shipTo = $('#ship_to').val();
@@ -528,6 +577,57 @@ $(document).ready(function() {
         if (!hasItems) {
             alert('Please add at least one item to the purchase order.');
             isValid = false;
+        }
+        
+        // Check stock levels for all items synchronously
+        var checkPromises = [];
+        var rowIds = [];
+        $('.consumable-row').each(function() {
+            var rowId = $(this).attr('id').replace('row_', '');
+            var medicineId = $('#consumables_name_' + rowId).val();
+            var quantity = parseInt($('#consumables_quantity_' + rowId).val()) || 0;
+            
+            if (medicineId && quantity > 0) {
+                rowIds.push(rowId);
+                var checkPromise = $.getJSON('<?php echo base_url('new_purchase_orders/check_stock_level'); ?>', {
+                    medicine_id: medicineId,
+                    quantity: quantity
+                }).then(function(response) {
+                    if (response.status === 'success' && !response.can_order) {
+                        var itemName = $('#consumables_item_name_' + rowId).val() || 'Item';
+                        stockErrors.push(itemName + ': ' + response.message);
+                        return false;
+                    }
+                    return true;
+                });
+                checkPromises.push(checkPromise);
+            }
+        });
+        
+        // Wait for all stock checks to complete
+        if (checkPromises.length > 0) {
+            e.preventDefault();
+            var form = this;
+            $.when.apply($, checkPromises).done(function() {
+                var allValid = true;
+                var results = arguments.length === 1 ? [arguments[0]] : Array.prototype.slice.call(arguments);
+                results.forEach(function(result) {
+                    if (result === false) {
+                        allValid = false;
+                    }
+                });
+                
+                if (!allValid || stockErrors.length > 0) {
+                    alert('Cannot create purchase order. Max stock level exceeded:\n\n' + stockErrors.join('\n'));
+                    isValid = false;
+                }
+                
+                if (isValid) {
+                    // Re-submit the form
+                    form.submit();
+                }
+            });
+            return false;
         }
         
         if (!isValid) {
