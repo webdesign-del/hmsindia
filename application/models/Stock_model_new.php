@@ -260,9 +260,36 @@ class Stock_model_new extends CI_Model
     //     }
     // }
 
-    public function get_low_stock_alerts()
+    public function get_low_stock_alerts($filters = [])
     {
-        // try {
+        try {
+            // Determine what stock to calculate based on filters
+            $calculate_central = true;
+            $calculate_center = true;
+            
+            if (!empty($filters['center_id'])) {
+                // Only calculate center stock for the specific center
+                $calculate_central = false;
+            }
+            
+            if (!empty($filters['central_only'])) {
+                // Only calculate central stock
+                $calculate_center = false;
+            }
+            
+            // Build the SELECT clause based on filters
+            $stock_calculation = '';
+            if ($calculate_central && $calculate_center) {
+                // Calculate total stock from both central and centers
+                $stock_calculation = 'COALESCE(SUM(COALESCE(cs.quantity, 0) + COALESCE(ccs.quantity, 0)), 0)';
+            } elseif ($calculate_central) {
+                // Only central stock
+                $stock_calculation = 'COALESCE(SUM(COALESCE(cs.quantity, 0)), 0)';
+            } else {
+                // Only center stock (for specific center)
+                $stock_calculation = 'COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0)';
+            }
+            
             $this->db->select('
                 m.id as medicine_id,
                 m.medicine_name,
@@ -271,38 +298,59 @@ class Stock_model_new extends CI_Model
                 m.min_stock_level,
                 m.max_stock_level,
                 m.reorder_level,
-                COALESCE(SUM(mb.quantity_remaining), 0) as current_stock,
+                ' . $stock_calculation . ' as current_stock,
+                COALESCE(SUM(COALESCE(cs.quantity, 0)), 0) as central_stock,
+                COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0) as center_stock,
                 CASE
-                    WHEN COALESCE(SUM(mb.quantity_remaining), 0) = 0 THEN "OUT_OF_STOCK"
-                    WHEN COALESCE(SUM(mb.quantity_remaining), 0) <= m.min_stock_level THEN "LOW_STOCK"
+                    WHEN ' . $stock_calculation . ' = 0 THEN "OUT_OF_STOCK"
+                    WHEN ' . $stock_calculation . ' <= m.min_stock_level THEN "LOW_STOCK"
                     ELSE "NORMAL"
                 END as stock_status,
-                b.brand_name as brand_name
-            ');
+                b.brand_name as brand_name,
+                c.id as center_id,
+                c.center_name,
+                GROUP_CONCAT(DISTINCT c.center_name SEPARATOR ", ") as center_names
+            ', FALSE);
+            
             $this->db->from("medicines m");
-            $this->db->join(
-                "medicine_batches mb",
-                "m.id = mb.medicine_id",
-                "left",
-            );
+            $this->db->join("medicine_batches mb", "m.id = mb.medicine_id", "left");
+            $this->db->join("central_stocks cs", "mb.id = cs.batch_id AND (cs.status = \"ACTIVE\" OR cs.status IS NULL)", "left");
+            $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id AND (ccs.status = \"ACTIVE\" OR ccs.status IS NULL)", "left");
+            $this->db->join("hms_centers c", "ccs.center_id = c.id", "left");
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+            
             $this->db->where("m.status", "active");
             $this->db->where("m.min_stock_level >", 0);
-            $this->db->where(
-                '(mb.batch_status = "ACTIVE" OR mb.batch_status IS NULL)',
-            );
-            $this->db->where(
-                "(mb.quantity_remaining > 0 OR mb.quantity_remaining IS NULL)",
-            );
-            $this->db->group_by(
-                "m.id, m.medicine_name, m.medicine_code, m.generic_name, m.min_stock_level, m.max_stock_level, m.reorder_level, b.brand_name",
-            );
+            $this->db->where("(mb.batch_status = \"ACTIVE\" OR mb.batch_status IS NULL)");
+            
+            // Apply filters
+            if (!empty($filters['center_id'])) {
+                // Filter by specific center - only show stock for this center
+                $this->db->where("ccs.center_id", $filters['center_id']);
+            }
+            
+            if (!empty($filters['central_only'])) {
+                // Show only central stock (exclude center stocks)
+                $this->db->where("(ccs.quantity IS NULL OR ccs.quantity = 0)");
+                $this->db->where("(cs.quantity IS NOT NULL AND cs.quantity > 0)");
+            }
+            
+            if (!empty($filters['department'])) {
+                // Filter by department - join with employees to get department
+                $this->db->join($this->config->item("db_prefix") . "employees e", "c.id = e.center_id", "left");
+                $this->db->where("e.department", $filters['department']);
+                $this->db->where("e.status", "1");
+            }
+            
+            $this->db->group_by("m.id, m.medicine_name, m.medicine_code, m.generic_name, m.min_stock_level, m.max_stock_level, m.reorder_level, b.brand_name");
             $this->db->having("current_stock <= m.min_stock_level");
             $this->db->order_by("(current_stock - m.min_stock_level)", "ASC");
+            
             return $this->db->get()->result();
-        // } catch (Exception $e) {
-        //     return [];
-        // }
+        } catch (Exception $e) {
+            log_message('error', 'Error in get_low_stock_alerts: ' . $e->getMessage());
+            return [];
+        }
     }
     // public function get_low_stock_alerts()
     // {

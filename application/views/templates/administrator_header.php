@@ -100,7 +100,17 @@
           <li> <a href="<?php echo base_url(); ?>stocks_new/center_stocks"> Center Stocks</a> </li>
           <li> <a href="<?php echo base_url(); ?>stocks_new/transfers"> Transfers</a> </li>
           <li> <a href="<?php echo base_url(); ?>stocks_new/sales"> Sales</a> </li>
-          <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> Reports</a> </li>
+          <!-- <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> Reports</a> </li> -->
+        </ul>
+      </li>
+      <li>
+        <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Reports & Alerts<span class="fa arrow"></span></a>
+        <ul class="nav nav-second-level">
+            <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> Reports</a> </li>
+            <li> <a href="<?php echo base_url(); ?>stocks_new/low_stock_alerts">Low Stock Alerts</a> </li>
+            <li> <a href="<?php echo base_url(); ?>stocks_new/expiry_alerts"> Expiry Alerts</a> </li>
+            <li> <a href="<?php echo base_url(); ?>stocks_new/stock_audit"> Stock Audit</a> </li>
+            <li> <a href="<?php echo base_url(); ?>stocks_new/audit_reports"> Audit Reports</a> </li>
         </ul>
       </li>
       <li> <a href="<?php echo base_url(); ?>accounts/procedure_advice"><i class="fa fa-sitemap"></i>Financial Clearance</a> </li>

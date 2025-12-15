@@ -4481,10 +4481,32 @@ class Stocks_new extends CI_Controller
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
-            $data[
-                "low_stock_alerts"
-            ] = $this->Stock_model_new->get_low_stock_alerts();
+            // Get filter parameters
+            $filters = [];
+            $center_id = $this->input->get("center_id");
+            $central_only = $this->input->get("central_only");
+            $department = $this->input->get("department");
+            
+            if (!empty($center_id)) {
+                $filters['center_id'] = $center_id;
+            }
+            
+            if (!empty($central_only) && $central_only == '1') {
+                $filters['central_only'] = true;
+            }
+            
+            if (!empty($department)) {
+                $filters['department'] = $department;
+            }
+            
+            $data["low_stock_alerts"] = $this->Stock_model_new->get_low_stock_alerts($filters);
             $data["centers"] = $this->Stock_model_new->get_all_centers();
+            $data["departments"] = $this->get_departments_by_center();
+            
+            // Pass selected filters back to view
+            $data["selected_center_id"] = $center_id;
+            $data["selected_central_only"] = $central_only;
+            $data["selected_department"] = $department;
 
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);

@@ -132,8 +132,65 @@
                         <span class="badge pull-right"><?php echo isset($low_stock_alerts) ? count($low_stock_alerts) : 0; ?> alerts</span>
                     </div>
                     <div class="panel-body">
+                        <!-- Search and Filter Controls -->
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col-md-12">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <i class="fa fa-filter"></i> Filter Options
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <label for="centerFilter">Filter by Center:</label>
+                                                <select id="centerFilter" class="form-control">
+                                                    <option value="">All Centers</option>
+                                                    <?php if(isset($centers) && !empty($centers)): ?>
+                                                        <?php foreach($centers as $center): ?>
+                                                            <option value="<?php echo isset($center->id) ? $center->id : (isset($center->ID) ? $center->ID : ''); ?>" 
+                                                                <?php echo (isset($selected_center_id) && $selected_center_id == (isset($center->id) ? $center->id : (isset($center->ID) ? $center->ID : ''))) ? 'selected' : ''; ?>>
+                                                                <?php echo isset($center->center_name) ? htmlspecialchars($center->center_name) : (isset($center->name) ? htmlspecialchars($center->name) : 'N/A'); ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    <?php endif; ?>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="centralFilter">Filter by Central Stock:</label>
+                                                <select id="centralFilter" class="form-control">
+                                                    <option value="">All Stock</option>
+                                                    <option value="1" <?php echo (isset($selected_central_only) && $selected_central_only == '1') ? 'selected' : ''; ?>>Central Stock Only</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label for="departmentFilter">Filter by Department:</label>
+                                                <select id="departmentFilter" class="form-control">
+                                                    <option value="">All Departments</option>
+                                                    <?php if(isset($departments) && !empty($departments)): ?>
+                                                        <?php foreach($departments as $dept): ?>
+                                                            <option value="<?php echo isset($dept['department']) ? htmlspecialchars($dept['department']) : ''; ?>" 
+                                                                <?php echo (isset($selected_department) && $selected_department == (isset($dept['department']) ? $dept['department'] : '')) ? 'selected' : ''; ?>>
+                                                                <?php echo isset($dept['department']) ? htmlspecialchars($dept['department']) : 'N/A'; ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    <?php endif; ?>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>&nbsp;</label><br>
+                                                <button id="applyFilters" class="btn btn-primary">
+                                                    <i class="fa fa-filter"></i> Apply Filters
+                                                </button>
+                                                <button id="clearAllFilters" class="btn btn-default">
+                                                    <i class="fa fa-refresh"></i> Clear All
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        
                         <?php if(!empty($low_stock_alerts)): ?>
-                            <!-- Search and Filter Controls -->
                             <div class="row" style="margin-bottom: 15px;">
                                 <div class="col-md-3">
                                     <label for="priorityFilter">Filter by Priority:</label>
@@ -156,7 +213,7 @@
                                 <div class="col-md-3">
                                     <label>&nbsp;</label><br>
                                     <button id="clearFilters" class="btn btn-default">
-                                        <i class="fa fa-refresh"></i> Clear Filters
+                                        <i class="fa fa-refresh"></i> Clear Table Filters
                                     </button>
                                 </div>
                                 <div class="col-md-3">
@@ -186,6 +243,7 @@
                                             <th>Min Level</th>
                                             <th>Max Level</th>
                                             <th>Reorder Level</th>
+                                            <th>Center/Location</th>
                                             <th>Status</th>
                                             <th>Priority</th>
                                             <th>Actions</th>
@@ -207,6 +265,19 @@
                                                 <td><?php echo isset($alert->min_stock_level) ? number_format($alert->min_stock_level) : '0'; ?></td>
                                                 <td><?php echo isset($alert->max_stock_level) ? number_format($alert->max_stock_level) : '0'; ?></td>
                                                 <td><?php echo isset($alert->reorder_level) ? number_format($alert->reorder_level) : '0'; ?></td>
+                                                <td>
+                                                    <?php 
+                                                    if (isset($alert->center_names) && !empty($alert->center_names)) {
+                                                        echo '<span class="badge badge-info">' . htmlspecialchars($alert->center_names) . '</span>';
+                                                    } elseif (isset($alert->center_name) && !empty($alert->center_name)) {
+                                                        echo '<span class="badge badge-info">' . htmlspecialchars($alert->center_name) . '</span>';
+                                                    } elseif (isset($alert->central_stock) && $alert->central_stock > 0) {
+                                                        echo '<span class="badge badge-primary">Central Stock</span>';
+                                                    } else {
+                                                        echo '<span class="badge badge-secondary">N/A</span>';
+                                                    }
+                                                    ?>
+                                                </td>
                                                 <td>
                                                     <span class="badge <?php echo (isset($alert->stock_status) && $alert->stock_status == 'OUT_OF_STOCK') ? 'badge-danger' : 'badge-warning'; ?>">
                                                         <?php echo isset($alert->stock_status) ? htmlspecialchars($alert->stock_status) : 'N/A'; ?>
@@ -441,6 +512,46 @@ $(document).ready(function() {
         table.search('').columns().search('').draw();
         $('#priorityFilter').val('');
         $('#statusFilter').val('');
+    });
+    
+    // Apply filters (Center, Central, Department) - reload page with new filters
+    $('#applyFilters').on('click', function() {
+        var centerId = $('#centerFilter').val();
+        var centralOnly = $('#centralFilter').val();
+        var department = $('#departmentFilter').val();
+        
+        var url = '<?php echo base_url("stocks_new/low_stock_alerts"); ?>';
+        var params = [];
+        
+        if (centerId) {
+            params.push('center_id=' + encodeURIComponent(centerId));
+        }
+        
+        if (centralOnly) {
+            params.push('central_only=' + encodeURIComponent(centralOnly));
+        }
+        
+        if (department) {
+            params.push('department=' + encodeURIComponent(department));
+        }
+        
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+        
+        window.location.href = url;
+    });
+    
+    // Clear all filters and reload
+    $('#clearAllFilters').on('click', function() {
+        window.location.href = '<?php echo base_url("stocks_new/low_stock_alerts"); ?>';
+    });
+    
+    // Allow Enter key to trigger filter apply
+    $('#centerFilter, #centralFilter, #departmentFilter').on('keypress', function(e) {
+        if (e.which === 13) { // Enter key
+            $('#applyFilters').click();
+        }
     });
 
     // Export functionality
