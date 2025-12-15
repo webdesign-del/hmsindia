@@ -4579,6 +4579,8 @@ class Stocks_new extends CI_Controller
                     // Stock manager
                     elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
                         $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
+                    }elseif (!empty($_SESSION['logged_billing_manager']['employee_number'])) {
+                        $employee_number = $_SESSION['logged_billing_manager']['employee_number'];
                     }
                     // CodeIgniter session fallback
                     elseif ($this->session->userdata('employee_number')) {
