@@ -9580,9 +9580,22 @@ class Stocks_new extends CI_Controller
             $employee_number = null;
             $center_name = null;     
             $department = null;
-            $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
-            $center_number = $_SESSION['logged_stock_manager']['center'];
-            $department = $_SESSION['logged_stock_manager']['department'];
+            if (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
+                $employee_number = $_SESSION['logged_billing_manager']['employee_number'];
+                 $center_number = $_SESSION['logged_billing_manager']['center'];
+                 $department = $_SESSION['logged_billing_manager']['department'];
+            } elseif (isset($_SESSION['logged_stock_manager']['employee_number']) && !empty($_SESSION['logged_stock_manager']['employee_number'])) {
+                $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
+                $center_number = $_SESSION['logged_stock_manager']['center'];
+                $department = $_SESSION['logged_stock_manager']['department'];
+            } elseif (isset($_SESSION['logged_counselor']['employee_number']) && !empty($_SESSION['logged_counselor']['employee_number'])) {
+                $employee_number = $_SESSION['logged_counselor']['employee_number'];
+                $center_number = $_SESSION['logged_counselor']['center'];
+                $department = $_SESSION['logged_counselor']['department'];
+            }
+            // $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
+            // $center_number = $_SESSION['logged_stock_manager']['center'];
+            // $department = $_SESSION['logged_stock_manager']['department'];
             $center_id = $this->get_center_id_by_number($center_number);
             if (!$center_id) {
                 $this->session->set_flashdata('error', 'Your assigned center could not be found in the database.');
