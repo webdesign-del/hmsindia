@@ -99,7 +99,7 @@
           <li> <a href="<?php echo base_url(); ?>stocks_new/central_stocks"> Central Stocks</a> </li>
           <li> <a href="<?php echo base_url(); ?>stocks_new/center_stocks"> Center Stocks</a> </li>
           <li> <a href="<?php echo base_url(); ?>stocks_new/transfers"> Transfers</a> </li>
-          <li> <a href="<?php echo base_url(); ?>stocks_new/sales"> Sales</a> </li>
+          <li> <a href="<?php echo base_url(); ?>stocks_new/sales_report"> Sales</a> </li>
           <!-- <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> Reports</a> </li> -->
         </ul>
       </li>
