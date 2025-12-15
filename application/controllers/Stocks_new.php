@@ -2607,18 +2607,22 @@ class Stocks_new extends CI_Controller
             $medicine_id = $this->input->get("medicine_id");
             $batch_number = $this->input->get("batch_number");
             $status = $this->input->get("status");
+            $department = $this->input->get("department");
             $data["center_stocks"] = $this->Stock_model_new->get_center_stocks(
                 $center_id,
                 $medicine_id,
                 $batch_number,
                 $status,
+                $department,
             );
             $data["centers"] = $this->Stock_model_new->get_all_centers();
             $data["medicines"] = $this->Stock_model_new->get_all_medicines();
+            // $data["departments"] = $this->Stock_model_new->get_departments_by_center();
             $data["selected_center_id"] = $center_id;
             $data["selected_medicine_id"] = $medicine_id;
             $data["selected_batch_number"] = $batch_number;
             $data["selected_status"] = $status;
+            $data["selected_department"] = $department;
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $this->load->view("stocks_new/center_stocks", $data);
@@ -9044,6 +9048,7 @@ class Stocks_new extends CI_Controller
         $medicine_id = $this->input->get("medicine_id");
         $batch_number = $this->input->get("batch_number");
         $status = $this->input->get("status");
+        $department = $this->input->get("department");
      
         $filename = 'center_stock_export_' . date('Y-m-d') . '.csv';
         header('Content-Type: text/csv');
@@ -9053,6 +9058,7 @@ class Stocks_new extends CI_Controller
                 $medicine_id,
                 $batch_number,
                 $status,
+                $department,
         );  
         // 5. Open output stream
         $output = fopen('php://output', 'w');

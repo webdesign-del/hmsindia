@@ -1380,7 +1380,7 @@ class Stock_model_new extends CI_Model
         // return $center ? $center->id : null;
     }
 
-    public function get_center_stocks($center_id = null,$medicine_id = null,$batch_number = null,$status = null) 
+    public function get_center_stocks($center_id = null,$medicine_id = null,$batch_number = null,$status = null,$department = null) 
     {
         // try {
             // Select columns - ensure pack_size is explicitly included from medicines table
@@ -1415,6 +1415,10 @@ class Stock_model_new extends CI_Model
 
             if ($status && $status != "") {
                 $this->db->where("ccs.status", $status);
+            }
+
+            if ($department && $department != "") {
+                $this->db->where("ccs.department", $department);
             }
             // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
             // // if (isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') {

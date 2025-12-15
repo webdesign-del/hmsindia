@@ -67,6 +67,31 @@
                         </select>
                     </div>
                     
+                    <div class="form-group">
+                        <label>Department:</label>
+                        <select name="department" class="form-control" id="departmentFilter">
+                            <option value="">All Departments</option>
+                            <option value="CASH MEDICINE NOIDA" <?php echo ($selected_department == 'CASH MEDICINE NOIDA') ? 'selected' : ''; ?>>CASH MEDICINE NOIDA</option>
+                            <option value="CASH MEDICINE GGN" <?php echo ($selected_department == 'CASH MEDICINE GGN') ? 'selected' : ''; ?>>CASH MEDICINE GGN</option>
+                            <option value="CASH MEDICINE BASANT LOK" <?php echo ($selected_department == 'CASH MEDICINE BASANT LOK') ? 'selected' : ''; ?>>CASH MEDICINE BASANT LOK</option>
+                            <option value="CASH MEDICINE SRINAGAR" <?php echo ($selected_department == 'CASH MEDICINE SRINAGAR') ? 'selected' : ''; ?>>CASH MEDICINE SRINAGAR</option>
+                            <option value="CASH MEDICINE GHAZIABAD" <?php echo ($selected_department == 'CASH MEDICINE GHAZIABAD') ? 'selected' : ''; ?>>CASH MEDICINE GHAZIABAD</option>
+                            <option value="CASH MEDICINE  ROHINI" <?php echo ($selected_department == 'CASH MEDICINE  ROHINI') ? 'selected' : ''; ?>>CASH MEDICINE  ROHINI</option>
+                            <option value="HORMONAL ROHINI" <?php echo ($selected_department == 'HORMONAL ROHINI') ? 'selected' : ''; ?>>HORMONAL ROHINI</option>
+                            <option value="Hormonal Ghaziabad" <?php echo ($selected_department == 'Hormonal Ghaziabad') ? 'selected' : ''; ?>>Hormonal Ghaziabad</option>
+                            <option value="HORMONAL SRINAGAR" <?php echo ($selected_department == 'HORMONAL SRINAGAR') ? 'selected' : ''; ?>>HORMONAL SRINAGAR</option>
+                            <option value="Hormonal Basant Lok" <?php echo ($selected_department == 'Hormonal Basant Lok') ? 'selected' : ''; ?>>Hormonal Basant Lok</option>
+                            <option value="Hormonal Gurgaon" <?php echo ($selected_department == 'Hormonal Gurgaon') ? 'selected' : ''; ?>>Hormonal Gurgaon</option>
+                            <option value="Hormonal Noida" <?php echo ($selected_department == 'Hormonal Noida') ? 'selected' : ''; ?>>Hormonal Noida</option>
+                            <option value="Embryologist Noida" <?php echo ($selected_department == 'Embryologist Noida') ? 'selected' : ''; ?>>Embryologist Noida</option>
+                            <option value="OT Noida" <?php echo ($selected_department == 'OT Noida') ? 'selected' : ''; ?>>OT Noida</option>
+                            <option value="OT Basant Lok" <?php echo ($selected_department == 'OT Basant Lok') ? 'selected' : ''; ?>>OT Basant Lok</option>
+                            <option value="Embryology Basant Lok" <?php echo ($selected_department == 'Embryology Basant Lok') ? 'selected' : ''; ?>>Embryology Basant Lok</option>
+                            <option value="Embryology Srinagar" <?php echo ($selected_department == 'Embryology Srinagar') ? 'selected' : ''; ?>>Embryology Srinagar</option>
+                            <option value="OT Srinagar" <?php echo ($selected_department == 'OT Srinagar') ? 'selected' : ''; ?>>OT Srinagar</option>
+                        </select>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary">
                         <i class="fa fa-search"></i> Filter
                     </button>
@@ -257,6 +282,7 @@ function exportCenterStockReport() {
         medicine_id: $('#medicineFilter').val(),
         batch_number: $('#batchFilter').val(),
         status: $('#statusFilter').val(),
+        department: $('#departmentFilter').val(),
     };
     var queryString = $.param(filters);
     window.open('<?php echo base_url("stocks_new/center_stocks_export"); ?>?' + queryString, '_blank');
