@@ -1963,6 +1963,9 @@ class Stock_model_new extends CI_Model
             } else {
                 $this->db->where("batch_id", $item->batch_id);
                 $this->db->where("center_id", $transfer->from_center_id);
+                if (!empty($transfer->from_department)) {
+                    $this->db->where("department", $transfer->from_department);
+                }
                 $this->db->set(
                     "quantity",
                     "quantity - " . $item->quantity_transferred,
@@ -1974,11 +1977,17 @@ class Stock_model_new extends CI_Model
             // Add to destination location
             $this->db->where("batch_id", $item->batch_id);
             $this->db->where("center_id", $transfer->to_center_id);
+            if (!empty($transfer->to_department)) {
+                $this->db->where("department", $transfer->to_department);
+            }
             $existing = $this->db->get("center_stocks")->row();
 
             if ($existing) {
                 $this->db->where("batch_id", $item->batch_id);
                 $this->db->where("center_id", $transfer->to_center_id);
+                if (!empty($transfer->to_department)) {
+                    $this->db->where("department", $transfer->to_department);
+                }
                 $this->db->set(
                     "quantity",
                     "quantity + " . $item->quantity_transferred,
