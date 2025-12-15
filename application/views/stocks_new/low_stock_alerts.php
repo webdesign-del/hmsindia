@@ -166,14 +166,24 @@
                                                 <label for="departmentFilter">Filter by Department:</label>
                                                 <select id="departmentFilter" class="form-control">
                                                     <option value="">All Departments</option>
-                                                    <?php if(isset($departments) && !empty($departments)): ?>
-                                                        <?php foreach($departments as $dept): ?>
-                                                            <option value="<?php echo isset($dept['department']) ? htmlspecialchars($dept['department']) : ''; ?>" 
-                                                                <?php echo (isset($selected_department) && $selected_department == (isset($dept['department']) ? $dept['department'] : '')) ? 'selected' : ''; ?>>
-                                                                <?php echo isset($dept['department']) ? htmlspecialchars($dept['department']) : 'N/A'; ?>
-                                                            </option>
-                                                        <?php endforeach; ?>
-                                                    <?php endif; ?>
+                                                    <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
+                                                    <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
+                                                    <option value="CASH MEDICINE BASANT LOK">CASH MEDICINE BASANT LOK</option>
+                                                    <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
+                                                    <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
+                                                    <option value="CASH MEDICINE  ROHINI">CASH MEDICINE  ROHINI</option>
+                                                    <option value="HORMONAL ROHINI">HORMONAL ROHINI</option>
+                                                    <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
+                                                    <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
+                                                    <option value="Hormonal Basant Lok">Hormonal Basant Lok</option>
+                                                    <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
+                                                    <option value="Hormonal Noida">Hormonal Noida</option>
+                                                    <option value="Embryologist Noida">Embryologist Noida</option>
+                                                    <option value="OT Noida">OT Noida</option>
+                                                    <option value="OT Basant Lok">OT Basant Lok</option>
+                                                    <option value="Embryology Basant Lok">Embryology Basant Lok</option>
+                                                    <option value="Embryology Srinagar">Embryology Srinagar</option>
+                                                    <option value="OT Srinagar">OT Srinagar</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3">
@@ -268,9 +278,9 @@
                                                 <td>
                                                     <?php 
                                                     if (isset($alert->center_names) && !empty($alert->center_names)) {
-                                                        echo '<span class="badge badge-info">' . htmlspecialchars($alert->center_names) . '</span>';
+                                                        echo '<span class="badge badge-info">' . htmlspecialchars($alert->center_names) . '<br></span>';
                                                     } elseif (isset($alert->center_name) && !empty($alert->center_name)) {
-                                                        echo '<span class="badge badge-info">' . htmlspecialchars($alert->center_name) . '</span>';
+                                                        echo '<span class="badge badge-info">' . htmlspecialchars($alert->center_name) . '<br></span>';
                                                     } elseif (isset($alert->central_stock) && $alert->central_stock > 0) {
                                                         echo '<span class="badge badge-primary">Central Stock</span>';
                                                     } else {
