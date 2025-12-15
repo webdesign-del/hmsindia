@@ -278,9 +278,21 @@
                                                 <td>
                                                     <?php 
                                                     if (isset($alert->center_names) && !empty($alert->center_names)) {
-                                                        echo '<span class="badge badge-info">' . htmlspecialchars($alert->center_names) . '<br></span>';
+                                                        // Split centers by comma and display each on a separate line
+                                                        $centers = explode(', ', $alert->center_names);
+                                                        $center_count = count($centers);
+                                                        foreach ($centers as $index => $center) {
+                                                            $center = trim($center);
+                                                            if (!empty($center)) {
+                                                                echo '<span class="badge badge-info">' . htmlspecialchars($center) . '</span>';
+                                                                // Add line break after each center except the last one
+                                                                if ($index < $center_count - 1) {
+                                                                    echo '<br>';
+                                                                }
+                                                            }
+                                                        }
                                                     } elseif (isset($alert->center_name) && !empty($alert->center_name)) {
-                                                        echo '<span class="badge badge-info">' . htmlspecialchars($alert->center_name) . '<br></span>';
+                                                        echo '<span class="badge badge-info">' . htmlspecialchars($alert->center_name) . '</span>';
                                                     } elseif (isset($alert->central_stock) && $alert->central_stock > 0) {
                                                         echo '<span class="badge badge-primary">Central Stock</span>';
                                                     } else {
