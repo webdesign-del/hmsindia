@@ -4573,21 +4573,16 @@ class Stocks_new extends CI_Controller
                 if ($this->form_validation->run() == true) {
                     // Get employee ID safely
                     $employee_number = null;
-                    if (
-                        isset(
-                            $_SESSION["logged_central_stock_manager"][
-                                "employee_number"
-                            ],
-                        )
-                    ) {
-                        $employee_number =
-                            $_SESSION["logged_central_stock_manager"][
-                                "employee_number"
-                            ];
-                    } elseif ($this->session->userdata("employee_number")) {
-                        $employee_number = $this->session->userdata(
-                            "employee_number",
-                        );
+                    if (!empty($_SESSION['logged_central_stock_manager']['employee_number'])) {
+                        $employee_number = $_SESSION['logged_central_stock_manager']['employee_number'];
+                    }
+                    // Stock manager
+                    elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
+                        $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
+                    }
+                    // CodeIgniter session fallback
+                    elseif ($this->session->userdata('employee_number')) {
+                        $employee_number = $this->session->userdata('employee_number');
                     }
                     // Get employee ID from number
                     $created_by_id = null;
