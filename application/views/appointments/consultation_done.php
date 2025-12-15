@@ -4180,20 +4180,28 @@ $countdownDuration = 7200;
 							</thead>
 							<tbody>
 					<tr>
-
 						<th style="color: red;">PAST INVESTIGATIONS</th>
-
 						<td>
-
 							<p><b style="color: red;">SERUM AMH / SEMEN ANALYSIS</b></p>
-
 							<table width="100%">
-
 								<tr>
-
 									<td style="color: red;">DT</td>
-
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_amh_dt_1'])?$patient_medical_info['female_amh_dt_1']:""; ?>" placeholder="yy-mm-dd" name="female_amh_dt_1" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_amh_dt_1'])?$patient_medical_info['female_amh_dt_1']:""; ?>" placeholder="yy-mm-dd" name="female_amh_dt_1" class="form-control datepicker" ></td>
+								</tr>
+								<tr>
+									<td style="color: green;">RESULT(Ng/ml)</td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_amh_dt_result_1'])?$patient_medical_info['female_amh_dt_result_1']:""; ?>" name="female_amh_dt_result_1" min="0" class="form-control" ></td>
+								</tr>
+								<tr>
+									<td style="color: red;">DT</td>
+									<td><input type="text" placeholder="yy-mm-dd" value="<?php echo !empty($patient_medical_info['female_amh_dt_2'])?$patient_medical_info['female_amh_dt_2']:""; ?>" name="female_amh_dt_2" class="form-control datepicker" ></td>
+								<tr>
+									<td style="color: green;">RESULT(Ng/ml)</td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_amh_dt_result_2'])?$patient_medical_info['female_amh_dt_result_2']:""; ?>" name="female_amh_dt_result_2" min="0" class="form-control" ></td>
+								</tr>
+								<tr>
+									<td style="color: red;">DT</td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_amh_dt_3'])?$patient_medical_info['female_amh_dt_3']:""; ?>" placeholder="yy-mm-dd" name="female_amh_dt_3" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4201,37 +4209,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT(Ng/ml)</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_amh_dt_result_1'])?$patient_medical_info['female_amh_dt_result_1']:""; ?>" name="female_amh_dt_result_1" min="0" class="form-control" required></td>
-
-								</tr>
-
-								<tr>
-
-									<td style="color: red;">DT</td>
-
-									<td><input type="text" placeholder="yy-mm-dd" value="<?php echo !empty($patient_medical_info['female_amh_dt_2'])?$patient_medical_info['female_amh_dt_2']:""; ?>" name="female_amh_dt_2" class="form-control datepicker" required></td>
-
-								<tr>
-
-									<td style="color: green;">RESULT(Ng/ml)</td>
-
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_amh_dt_result_2'])?$patient_medical_info['female_amh_dt_result_2']:""; ?>" name="female_amh_dt_result_2" min="0" class="form-control" required></td>
-
-								</tr>
-
-								<tr>
-
-									<td style="color: red;">DT</td>
-
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_amh_dt_3'])?$patient_medical_info['female_amh_dt_3']:""; ?>" placeholder="yy-mm-dd" name="female_amh_dt_3" class="form-control datepicker" required></td>
-
-								</tr>
-
-								<tr>
-
-									<td style="color: green;">RESULT(Ng/ml)</td>
-
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_amh_dt_result_3'])?$patient_medical_info['female_amh_dt_result_3']:""; ?>" name="female_amh_dt_result_3" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_amh_dt_result_3'])?$patient_medical_info['female_amh_dt_result_3']:""; ?>" name="female_amh_dt_result_3" min="0" class="form-control"></td>
 
 								</tr>
 
@@ -4247,7 +4225,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_1'])?$patient_medical_info['female_fsh_dt_1']:""; ?>" placeholder="yy-mm-dd" name="female_fsh_dt_1" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_1'])?$patient_medical_info['female_fsh_dt_1']:""; ?>" placeholder="yy-mm-dd" name="female_fsh_dt_1" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4255,7 +4233,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT(Ng/ml)</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_result_1'])?$patient_medical_info['female_fsh_dt_result_1']:""; ?>" name="female_fsh_dt_result_1" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_result_1'])?$patient_medical_info['female_fsh_dt_result_1']:""; ?>" name="female_fsh_dt_result_1" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4263,13 +4241,13 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_2'])?$patient_medical_info['female_fsh_dt_2']:""; ?>" placeholder="yy-mm-dd" name="female_fsh_dt_2" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_2'])?$patient_medical_info['female_fsh_dt_2']:""; ?>" placeholder="yy-mm-dd" name="female_fsh_dt_2" class="form-control datepicker" ></td>
 
 								<tr>
 
 									<td style="color: green;">RESULT(Ng/ml)</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_result_2'])?$patient_medical_info['female_fsh_dt_result_2']:""; ?>" name="female_fsh_dt_result_2" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_result_2'])?$patient_medical_info['female_fsh_dt_result_2']:""; ?>" name="female_fsh_dt_result_2" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4277,7 +4255,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_3'])?$patient_medical_info['female_fsh_dt_3']:""; ?>" placeholder="yy-mm-dd" name="female_fsh_dt_3" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_3'])?$patient_medical_info['female_fsh_dt_3']:""; ?>" placeholder="yy-mm-dd" name="female_fsh_dt_3" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4285,7 +4263,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT(Ng/ml)</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_result_3'])?$patient_medical_info['female_fsh_dt_result_3']:""; ?>" name="female_fsh_dt_result_3" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_fsh_dt_result_3'])?$patient_medical_info['female_fsh_dt_result_3']:""; ?>" name="female_fsh_dt_result_3" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4301,7 +4279,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_1'])?$patient_medical_info['female_hsg_dt_1']:""; ?>" placeholder="yy-mm-dd" name="female_hsg_dt_1" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_1'])?$patient_medical_info['female_hsg_dt_1']:""; ?>" placeholder="yy-mm-dd" name="female_hsg_dt_1" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4309,7 +4287,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_result_1'])?$patient_medical_info['female_hsg_dt_result_1']:""; ?>" name="female_hsg_dt_result_1" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_result_1'])?$patient_medical_info['female_hsg_dt_result_1']:""; ?>" name="female_hsg_dt_result_1" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4317,13 +4295,13 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_2'])?$patient_medical_info['female_hsg_dt_2']:""; ?>" placeholder="yy-mm-dd" name="female_hsg_dt_2" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_2'])?$patient_medical_info['female_hsg_dt_2']:""; ?>" placeholder="yy-mm-dd" name="female_hsg_dt_2" class="form-control datepicker" ></td>
 
 								<tr>
 
 									<td style="color: green;">RESULT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_result_2'])?$patient_medical_info['female_hsg_dt_result_2']:""; ?>" name="female_hsg_dt_result_2" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_result_2'])?$patient_medical_info['female_hsg_dt_result_2']:""; ?>" name="female_hsg_dt_result_2" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4331,7 +4309,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_3'])?$patient_medical_info['female_hsg_dt_3']:""; ?>" placeholder="yy-mm-dd" name="female_hsg_dt_3" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_3'])?$patient_medical_info['female_hsg_dt_3']:""; ?>" placeholder="yy-mm-dd" name="female_hsg_dt_3" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4339,7 +4317,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_result_3'])?$patient_medical_info['female_hsg_dt_result_3']:""; ?>" name="female_hsg_dt_result_3" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_hsg_dt_result_3'])?$patient_medical_info['female_hsg_dt_result_3']:""; ?>" name="female_hsg_dt_result_3" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4355,7 +4333,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_1'])?$patient_medical_info['female_pelvis_dt_1']:""; ?>" placeholder="yy-mm-dd" name="female_pelvis_dt_1" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_1'])?$patient_medical_info['female_pelvis_dt_1']:""; ?>" placeholder="yy-mm-dd" name="female_pelvis_dt_1" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4363,7 +4341,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_result_1'])?$patient_medical_info['female_pelvis_dt_result_1']:""; ?>" name="female_pelvis_dt_result_1" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_result_1'])?$patient_medical_info['female_pelvis_dt_result_1']:""; ?>" name="female_pelvis_dt_result_1" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4371,13 +4349,13 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_2'])?$patient_medical_info['female_pelvis_dt_2']:""; ?>" placeholder="yy-mm-dd" name="female_pelvis_dt_2" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_2'])?$patient_medical_info['female_pelvis_dt_2']:""; ?>" placeholder="yy-mm-dd" name="female_pelvis_dt_2" class="form-control datepicker" ></td>
 
 								<tr>
 
 									<td style="color: green;">RESULT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_result_2'])?$patient_medical_info['female_pelvis_dt_result_2']:""; ?>" name="female_pelvis_dt_result_2" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_result_2'])?$patient_medical_info['female_pelvis_dt_result_2']:""; ?>" name="female_pelvis_dt_result_2" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4385,7 +4363,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_3'])?$patient_medical_info['female_pelvis_dt_3']:""; ?>" placeholder="yy-mm-dd" name="female_pelvis_dt_3" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_3'])?$patient_medical_info['female_pelvis_dt_3']:""; ?>" placeholder="yy-mm-dd" name="female_pelvis_dt_3" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4393,7 +4371,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_result_3'])?$patient_medical_info['female_pelvis_dt_result_3']:""; ?>" name="female_pelvis_dt_result_3" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_pelvis_dt_result_3'])?$patient_medical_info['female_pelvis_dt_result_3']:""; ?>" name="female_pelvis_dt_result_3" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4407,7 +4385,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">Others</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_past_investigation_others'])?$patient_medical_info['female_past_investigation_others']:""; ?>" name="female_past_investigation_others" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['female_past_investigation_others'])?$patient_medical_info['female_past_investigation_others']:""; ?>" name="female_past_investigation_others" class="form-control" ></td>
 
 								</tr>
 
@@ -4425,7 +4403,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_1'])?$patient_medical_info['male_semen_dt_1']:""; ?>" name="male_semen_dt_1" placeholder="yy-mm-dd" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_1'])?$patient_medical_info['male_semen_dt_1']:""; ?>" name="male_semen_dt_1" placeholder="yy-mm-dd" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4433,7 +4411,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_result_1'])?$patient_medical_info['male_semen_dt_result_1']:""; ?>" name="male_semen_dt_result_1" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_result_1'])?$patient_medical_info['male_semen_dt_result_1']:""; ?>" name="male_semen_dt_result_1" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4441,13 +4419,13 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_2'])?$patient_medical_info['male_semen_dt_2']:""; ?>" name="male_semen_dt_2" placeholder="yy-mm-dd" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_2'])?$patient_medical_info['male_semen_dt_2']:""; ?>" name="male_semen_dt_2" placeholder="yy-mm-dd" class="form-control datepicker" ></td>
 
 								<tr>
 
 									<td style="color: green;">RESULT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_result_2'])?$patient_medical_info['male_semen_dt_result_2']:""; ?>" name="male_semen_dt_result_2" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_result_2'])?$patient_medical_info['male_semen_dt_result_2']:""; ?>" name="male_semen_dt_result_2" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4455,7 +4433,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_3'])?$patient_medical_info['male_semen_dt_3']:""; ?>" name="male_semen_dt_3" placeholder="yy-mm-dd" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_3'])?$patient_medical_info['male_semen_dt_3']:""; ?>" name="male_semen_dt_3" placeholder="yy-mm-dd" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4463,7 +4441,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_result_3'])?$patient_medical_info['male_semen_dt_result_3']:""; ?>" name="male_semen_dt_result_3" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_semen_dt_result_3'])?$patient_medical_info['male_semen_dt_result_3']:""; ?>" name="male_semen_dt_result_3" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4479,7 +4457,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_1'])?$patient_medical_info['male_fsh_dt_1']:""; ?>"  name="male_fsh_dt_1" placeholder="yy-mm-dd" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_1'])?$patient_medical_info['male_fsh_dt_1']:""; ?>"  name="male_fsh_dt_1" placeholder="yy-mm-dd" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4487,7 +4465,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT(Ng/ml)</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_1'])?$patient_medical_info['male_fsh_dt_1']:""; ?>"  name="male_fsh_dt_result_1" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_1'])?$patient_medical_info['male_fsh_dt_1']:""; ?>"  name="male_fsh_dt_result_1" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4495,13 +4473,13 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_2'])?$patient_medical_info['male_fsh_dt_2']:""; ?>" name="male_fsh_dt_2" placeholder="yy-mm-dd" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_2'])?$patient_medical_info['male_fsh_dt_2']:""; ?>" name="male_fsh_dt_2" placeholder="yy-mm-dd" class="form-control datepicker" ></td>
 
 								<tr>
 
 									<td style="color: green;">RESULT(Ng/ml)</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_result_2'])?$patient_medical_info['male_fsh_dt_result_2']:""; ?>" name="male_fsh_dt_result_2" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_result_2'])?$patient_medical_info['male_fsh_dt_result_2']:""; ?>" name="male_fsh_dt_result_2" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4509,7 +4487,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_3'])?$patient_medical_info['male_fsh_dt_3']:""; ?>" name="male_fsh_dt_3" placeholder="yy-mm-dd" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_3'])?$patient_medical_info['male_fsh_dt_3']:""; ?>" name="male_fsh_dt_3" placeholder="yy-mm-dd" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4517,7 +4495,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT(Ng/ml)</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_result_3'])?$patient_medical_info['male_fsh_dt_result_3']:""; ?>" name="male_fsh_dt_result_3" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_fsh_dt_result_3'])?$patient_medical_info['male_fsh_dt_result_3']:""; ?>" name="male_fsh_dt_result_3" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4533,7 +4511,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_1'])?$patient_medical_info['male_testost_dt_1']:""; ?>" name="male_testost_dt_1" placeholder="yy-mm-dd" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_1'])?$patient_medical_info['male_testost_dt_1']:""; ?>" name="male_testost_dt_1" placeholder="yy-mm-dd" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4541,7 +4519,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT(Ng/ml)</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_result_1'])?$patient_medical_info['male_testost_dt_result_1']:""; ?>" name="male_testost_dt_result_1" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_result_1'])?$patient_medical_info['male_testost_dt_result_1']:""; ?>" name="male_testost_dt_result_1" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4549,13 +4527,13 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_2'])?$patient_medical_info['male_testost_dt_2']:""; ?>" name="male_testost_dt_2" placeholder="yy-mm-dd" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_2'])?$patient_medical_info['male_testost_dt_2']:""; ?>" name="male_testost_dt_2" placeholder="yy-mm-dd" class="form-control datepicker" ></td>
 
 								<tr>
 
 									<td style="color: green;">RESULT(Ng/ml)</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_result_2'])?$patient_medical_info['male_testost_dt_result_2']:""; ?>" name="male_testost_dt_result_2" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_result_2'])?$patient_medical_info['male_testost_dt_result_2']:""; ?>" name="male_testost_dt_result_2" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4563,7 +4541,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">DT</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_3'])?$patient_medical_info['male_testost_dt_3']:""; ?>" name="male_testost_dt_3" placeholder="yy-mm-dd" class="form-control datepicker" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_3'])?$patient_medical_info['male_testost_dt_3']:""; ?>" name="male_testost_dt_3" placeholder="yy-mm-dd" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -4571,7 +4549,7 @@ $countdownDuration = 7200;
 
 									<td style="color: green;">RESULT(Ng/ml)</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_result_3'])?$patient_medical_info['male_testost_dt_result_3']:""; ?>" name="male_testost_dt_result_3" min="0" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_testost_dt_result_3'])?$patient_medical_info['male_testost_dt_result_3']:""; ?>" name="male_testost_dt_result_3" min="0" class="form-control" ></td>
 
 								</tr>
 
@@ -4585,7 +4563,7 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">Others</td>
 
-									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_past_investigation_others'])?$patient_medical_info['male_past_investigation_others']:""; ?>" name="male_past_investigation_others" class="form-control" required></td>
+									<td><input type="text" value="<?php echo !empty($patient_medical_info['male_past_investigation_others'])?$patient_medical_info['male_past_investigation_others']:""; ?>" name="male_past_investigation_others" class="form-control" ></td>
 
 								</tr>
 
@@ -6220,7 +6198,7 @@ $countdownDuration = 7200;
 									</select>
 								</div>
 							</div>
-								<div class="row appoitmented_doctor" style="display:none;">            
+								<div class="row appoitmented_doctor" >            
 									<div class="form-group col-sm-6 col-xs-12 role">
 										<label for="statuss">Doctor (Required)</label>
 										<select name="appoitmented_doctor" disabled class="empty-field" id="appoitmented_doctor" required>
@@ -6228,7 +6206,7 @@ $countdownDuration = 7200;
 										</select>
 									</div>
 								</div>
-								<div class="row appoitmented_date" style="display:none;">            
+								<div class="row appoitmented_date" >            
 									<div class="form-group col-sm-6 col-xs-12 role">
 										<label for="statuss">Appointment date (Required)</label>
 										<input value="" id="appoitmented_date" disabled autocomplete="off" name="follow_up_date" type="text" class="form-control empty-field validate" required>
@@ -6236,7 +6214,7 @@ $countdownDuration = 7200;
 								</div>
 								
 
-								<div class="row appoitmented_slot" style="display:none;">            
+								<div class="row appoitmented_slot">            
 
 									<div class="form-group col-sm-6 col-xs-12 role">
 
@@ -6375,6 +6353,7 @@ $countdownDuration = 7200;
 				// Current step is not saved
 				alert('Please save step ' + currentStep + ' before proceeding to step ' + targetStep + '.');
 				return false;
+				return true;
 			}
 		}
 		
