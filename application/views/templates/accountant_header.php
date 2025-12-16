@@ -76,6 +76,10 @@
                   <ul class="nav nav-second-level">
                      <li> <a href="<?php echo base_url(); ?>accounts/procedure_reports">Procedure</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/investigation_sales">Investigation</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/sales_report">Medicine Sales Report</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_report">Patient Consumption Report</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_summary">Patient Consumption Summary</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/all_consumption_report">All Consumption Report</a> </li>
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_stock">Medicine Report (Item Wise)</a> </li> -->
                      <li> <a href="<?php echo base_url(); ?>accounts/consultation_reports">Consultation</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/partialpayments_report">Partial</a> </li>
@@ -102,6 +106,7 @@
                <li> <a href="<?php echo base_url(); ?>accounts/procedure_advice"><i class="fa fa-sitemap"></i>Financial Clearance</a> </li>
                <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>accounts/procedure_origin"><i class="fa fa-sitemap"></i> Procedure Revenue Reports</a> </li>
                <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>procedures"><i class="fa fa-sitemap"></i>Procedures List</a> </li>
+               <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>stocks_new/center_stocks"><i class="fa fa-sitemap"></i> All Center Stocks</a> </li>
                <!-- <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>stocks/all_center_stocks"><i class="fa fa-sitemap"></i> All Center Stocks</a> </li> -->
                <li> <a href="<?php echo base_url(); ?>accounts/patient_center_wise_report" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Patient Journey</a></li>
              <li> <a href="<?php echo base_url(); ?>accounts/patient_financial_clearance" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Financial Clearance</a></li>
@@ -143,11 +148,13 @@
                <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Reports<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> All Stock Reports</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/procedure_reports">Procedure</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/investigation_sales">Investigation</a> </li>
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_stock">Medicine Report (Item Wise)</a> </li> -->
                      <li> <a href="<?php echo base_url(); ?>accounts/medicine_patients">Medicine Report (Patient Wise)</a> </li>
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_return_report">Medicine Return Report</a> </li> -->
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/returns">Medicine Return Report</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/consultation_reports">Consultation</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/partialpayments_report">Partial</a> </li>
                      <!-- <li><a href="<?php echo base_url(); ?>stocks/patient_items">Patient Consumption</a></li> -->
@@ -198,7 +205,7 @@
                <li> <a href="<?php echo base_url(); ?>accounts/wallet_list"><i class="fa fa-sitemap"></i>Refund Amount</a> </li>
                <li> <a href="<?php echo base_url(); ?>accounts/procedure_advice"><i class="fa fa-sitemap"></i>Financial Clearance</a> </li>
                <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>procedures"><i class="fa fa-sitemap"></i>Procedures List</a> </li>
-               <!-- <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>stocks/all_center_stocks"><i class="fa fa-sitemap"></i> All Center Stocks</a> </li> -->
+               <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>stocks_new/center_stocks"><i class="fa fa-sitemap"></i> All Center Stocks</a> </li>
                <li> <a href="<?php echo base_url(); ?>accounts/patient_center_wise_report" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Patient Journey</a></li>
                <li> <a href="<?php echo base_url(); ?>accounts/revenue_potential" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Revenue Potential</a></li>
                 <li><a href="<?php echo base_url(); ?>my_appointments" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>My appointments</a></li>
