@@ -3909,24 +3909,25 @@ class Stocks_new extends CI_Controller
                 );
 
                 if ($this->form_validation->run() == true) {
+                    $created_by_id= null;
                     // Get employee ID from employee_number (required for foreign key constraint)
-                    $employee_number = isset(
-                        $_SESSION["logged_central_stock_manager"][
-                            "employee_number"
-                        ],
-                    )
-                        ? $_SESSION["logged_central_stock_manager"][
-                            "employee_number"
-                        ]
-                        : null;
-
+                    if(!empty($_SESSION["logged_central_stock_manager"]["employee_number"])) {
+                        $employee_number = $_SESSION["logged_central_stock_manager"]["employee_number"];
+                    } elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
+                        $employee_number = $_SESSION["logged_stock_manager"]["employee_number"];
+                    } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
+                        $employee_number = $_SESSION["billing_manager"]["employee_number"];
+                    }elseif (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
+                        $employee_number = $_SESSION["logged_billing_manager"]["employee_number"];
+                    }elseif (isset($_SESSION['logged_accountant']['employee_number']) && !empty($_SESSION['logged_accountant']['employee_number'])) {
+                        $employee_number = $_SESSION["logged_accountant"]["employee_number"];
+                    }
                     $created_by_id = $this->get_employee_id_from_number(
                         $employee_number,
                     );
                     if (!$created_by_id) {
-                        $created_by_id = 1; // Default fallback
+                        $created_by_id = 1;
                     }
-
                     $sale_data = [
                         "center_id" => $this->input->post("center_id"),
                         "patient_id" => $this->input->post("patient_id"),
