@@ -5019,7 +5019,7 @@ class Stocks_new extends CI_Controller
                 $created_by_id = null;
                 if (isset($logg['ID'])) {
                    $created_by_id = $logg['ID'];
-                } elseif ($_SESSION["logged_central_stock_manager"]["employee_number"]) {
+                } elseif (!empty($_SESSION["logged_central_stock_manager"]["employee_number"])) {
                     $employee = $this->db->where("employee_number", $_SESSION["logged_central_stock_manager"]["employee_number"])->get("hms_employees")->row();
                     if ($employee) $created_by_id = $employee->ID;
                 } elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
@@ -5027,6 +5027,9 @@ class Stocks_new extends CI_Controller
                     if ($employee) $created_by_id = $employee->ID;
                 } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
                    $employee = $this->db->where("employee_number", $_SESSION["billing_manager"]["employee_number"])->get("hms_employees")->row();
+                    if ($employee) $created_by_id = $employee->ID;
+                }elseif (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
+                   $employee = $this->db->where("employee_number", $_SESSION["logged_billing_manager"]["employee_number"])->get("hms_employees")->row();
                     if ($employee) $created_by_id = $employee->ID;
                 }
                 if (!$created_by_id) {
