@@ -67,12 +67,6 @@ php_value memory_limit 256M
 <Files ".git">
     Require all denied
 </Files>
-<FilesMatch "^\.git">
-    Require all denied
-</FilesMatch>
-<DirectoryMatch "^/.*/\.git/">
-    Require all denied
-</DirectoryMatch>
 
 # Error pages
 ErrorDocument 404 /index.php
