@@ -72,6 +72,10 @@
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label>Patient ID:</label>
+                                <input type="text" name="patient_id" class="form-control" placeholder="Search by ID" value="<?php echo $this->input->get('patient_id'); ?>">
+                            </div>
+                            <div class="form-group">
                                 <label>Patient:</label>
                                 <input type="text" name="patient_name" class="form-control" placeholder="Search patient" value="<?php echo $this->input->get('patient_name'); ?>">
                             </div>
@@ -1017,6 +1021,7 @@ $(document).ready(function() {
     window.exportSalesList = function(format) {
         // Get current filter values
         var centerId = $('select[name="center_id"]').val() || '';
+        var patientId = $('input[name="patient_id"]').val() || '';
         var patientName = $('input[name="patient_name"]').val() || '';
         var status = $('select[name="status"]').val() || '';
         var dateFrom = $('input[name="date_from"]').val() || '';
@@ -1025,6 +1030,7 @@ $(document).ready(function() {
         // Build export URL with filters
         var url = '<?php echo base_url("stocks_new/export_sales_list"); ?>?format=' + format;
         if(centerId) url += '&center_id=' + centerId;
+        if(patientId) url += '&patient_id=' + patientId;
         if(patientName) url += '&patient_name=' + patientName;
         if(status) url += '&status=' + status;
         if(dateFrom) url += '&date_from=' + dateFrom;

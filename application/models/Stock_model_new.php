@@ -605,6 +605,10 @@ class Stock_model_new extends CI_Model
             $this->db->where('s.center_id', $filters['center_id']);
         }
         
+        if (!empty($filters['patient_id'])) {
+            $this->db->like('s.patient_id', $filters['patient_id']);
+        }
+        
         if (!empty($filters['patient_name'])) {
             $this->db->like('s.patient_name', $filters['patient_name']);
         }
@@ -2864,6 +2868,9 @@ class Stock_model_new extends CI_Model
             $this->db->group_by("s.id, c.center_name, e.name"); 
             if(!empty($filters['center_id'])) {
                 $this->db->where('s.center_id', $filters['center_id']);
+            }
+            if(!empty($filters['patient_id'])) {
+                $this->db->like('s.patient_id', $filters['patient_id']);
             }
             if(!empty($filters['patient_name'])) {
                 $this->db->like('s.patient_name', $filters['patient_name']);

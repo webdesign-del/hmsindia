@@ -3846,6 +3846,7 @@ class Stocks_new extends CI_Controller
         if ($logg["status"] == true) {
             $filters = [
                 'center_id'    => $this->input->get('center_id'),
+                'patient_id'   => $this->input->get('patient_id'),
                 'patient_name' => $this->input->get('patient_name'),
                 'status'       => $this->input->get('status'),
                 'date_from'    => $this->input->get('date_from'),
@@ -6378,6 +6379,7 @@ class Stocks_new extends CI_Controller
         $format = $this->input->get('format'); // 'excel' or 'pdf'
         $filters = [
             'center_id' => $this->input->get('center_id'),
+            'patient_id' => $this->input->get('patient_id'),
             'patient_name' => $this->input->get('patient_name'),
             'status' => $this->input->get('status'),
             'date_from' => $this->input->get('date_from'),
