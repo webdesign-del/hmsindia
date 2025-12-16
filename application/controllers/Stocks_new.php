@@ -5025,6 +5025,9 @@ class Stocks_new extends CI_Controller
                 } elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
                     $employee = $this->db->where("employee_number", $_SESSION["logged_stock_manager"]["employee_number"])->get("hms_employees")->row();
                     if ($employee) $created_by_id = $employee->ID;
+                } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
+                   $employee = $this->db->where("employee_number", $_SESSION["billing_manager"]["employee_number"])->get("hms_employees")->row();
+                    if ($employee) $created_by_id = $employee->ID;
                 }
                 if (!$created_by_id) {
                     $this->session->set_flashdata('error', 'Could not identify logged-in user ID.');
@@ -9592,6 +9595,10 @@ class Stocks_new extends CI_Controller
                 $employee_number = $_SESSION['logged_counselor']['employee_number'];
                 $center_number = $_SESSION['logged_counselor']['center'];
                 $department = $_SESSION['logged_counselor']['department'];
+            } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
+                $employee_number = $_SESSION['billing_manager']['employee_number'];
+                $center_number = $_SESSION['billing_manager']['center'];
+                $department = $_SESSION['billing_manager']['department'];
             }
             // $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
             // $center_number = $_SESSION['logged_stock_manager']['center'];
