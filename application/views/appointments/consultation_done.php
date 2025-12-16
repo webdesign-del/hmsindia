@@ -5253,9 +5253,9 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">LOW OVARIAN RESERVE</td>
 
-									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['low_ovarian_reserve_evidence'])?$patient_medical_info['low_ovarian_reserve_evidence']:""; ?>" name="low_ovarian_reserve_evidence" maxlength="20" class="form-control" required></td>
+									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['low_ovarian_reserve_evidence'])?$patient_medical_info['low_ovarian_reserve_evidence']:""; ?>" name="low_ovarian_reserve_evidence" maxlength="20" class="form-control" ></td>
 
-									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['low_ovarian_reserve_evidence_date'])?$patient_medical_info['low_ovarian_reserve_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="low_ovarian_reserve_evidence_date" class="form-control datepicker" required></td>
+									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['low_ovarian_reserve_evidence_date'])?$patient_medical_info['low_ovarian_reserve_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="low_ovarian_reserve_evidence_date" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -5263,9 +5263,9 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">TUBAL FACTOR</td>
 
-									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['tubal_factor_evidence'])?$patient_medical_info['tubal_factor_evidence']:""; ?>" name="tubal_factor_evidence" maxlength="20" class="form-control" required></td>
+									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['tubal_factor_evidence'])?$patient_medical_info['tubal_factor_evidence']:""; ?>" name="tubal_factor_evidence" maxlength="20" class="form-control" ></td>
 
-									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['tubal_factor_evidence_date'])?$patient_medical_info['tubal_factor_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="tubal_factor_evidence_date" class="form-control datepicker" required></td>
+									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['tubal_factor_evidence_date'])?$patient_medical_info['tubal_factor_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="tubal_factor_evidence_date" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -5273,9 +5273,9 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">MALE FACTOR</td>
 
-									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['male_factor_evidence'])?$patient_medical_info['male_factor_evidence']:""; ?>" name="male_factor_evidence" maxlength="20" class="form-control" required></td>
+									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['male_factor_evidence'])?$patient_medical_info['male_factor_evidence']:""; ?>" name="male_factor_evidence" maxlength="20" class="form-control" ></td>
 
-									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['male_factor_evidence_date'])?$patient_medical_info['male_factor_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="male_factor_evidence_date" class="form-control datepicker" required></td>
+									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['male_factor_evidence_date'])?$patient_medical_info['male_factor_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="male_factor_evidence_date" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -5283,9 +5283,9 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">ENDOMETRIOSIS</td>
 
-									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['endometriosis_evidence'])?$patient_medical_info['endometriosis_evidence']:""; ?>" name="endometriosis_evidence" maxlength="20" class="form-control" required></td>
+									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['endometriosis_evidence'])?$patient_medical_info['endometriosis_evidence']:""; ?>" name="endometriosis_evidence" maxlength="20" class="form-control" ></td>
 
-									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['endometriosis_evidence_date'])?$patient_medical_info['endometriosis_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="endometriosis_evidence_date" class="form-control datepicker" required></td>
+									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['endometriosis_evidence_date'])?$patient_medical_info['endometriosis_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="endometriosis_evidence_date" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -5293,9 +5293,9 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">PCOS</td>
 
-									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['pcos_evidence'])?$patient_medical_info['pcos_evidence']:""; ?>" name="pcos_evidence" maxlength="20" class="form-control" required></td>
+									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['pcos_evidence'])?$patient_medical_info['pcos_evidence']:""; ?>" name="pcos_evidence" maxlength="20" class="form-control" ></td>
 
-									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['pcos_evidence_date'])?$patient_medical_info['pcos_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="pcos_evidence_date" class="form-control datepicker" required></td>
+									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['pcos_evidence_date'])?$patient_medical_info['pcos_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="pcos_evidence_date" class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -5303,9 +5303,9 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">UNEXPLAINED INFERTILITY</td>
 
-									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['unexplained_infertility_evidence'])?$patient_medical_info['unexplained_infertility_evidence']:""; ?>" name="unexplained_infertility_evidence" maxlength="20" class="form-control" required></td>
+									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['unexplained_infertility_evidence'])?$patient_medical_info['unexplained_infertility_evidence']:""; ?>" name="unexplained_infertility_evidence" maxlength="20" class="form-control" ></td>
 
-									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['unexplained_infertility_evidence_date'])?$patient_medical_info['unexplained_infertility_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="unexplained_infertility_evidence_date"  class="form-control datepicker" required></td>
+									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['unexplained_infertility_evidence_date'])?$patient_medical_info['unexplained_infertility_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="unexplained_infertility_evidence_date"  class="form-control datepicker" ></td>
 
 								</tr>
 
@@ -5313,9 +5313,9 @@ $countdownDuration = 7200;
 
 									<td style="color: red;">Others</td>
 
-									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['advised_reason_other_evidence'])?$patient_medical_info['advised_reason_other_evidence']:""; ?>" name="advised_reason_other_evidence" maxlength="20" class="form-control" required></td>
+									<td style="color: red;">Evidence: <input type="text" value="<?php echo !empty($patient_medical_info['advised_reason_other_evidence'])?$patient_medical_info['advised_reason_other_evidence']:""; ?>" name="advised_reason_other_evidence" maxlength="20" class="form-control" ></td>
 
-									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['advised_reason_other_evidence_date'])?$patient_medical_info['advised_reason_other_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="advised_reason_other_evidence_date" class="form-control datepicker" required></td>
+									<td style="color: red;"><input type="text" value="<?php echo !empty($patient_medical_info['advised_reason_other_evidence_date'])?$patient_medical_info['advised_reason_other_evidence_date']:""; ?>" placeholder="yy-mm-dd" name="advised_reason_other_evidence_date" class="form-control datepicker" ></td>
 
 								</tr>
 
