@@ -620,6 +620,10 @@ class Stock_model_new extends CI_Model
             $this->db->where('s.status', $filters['status']);
         }
         
+        if (!empty($filters['approval_status'])) {
+            $this->db->where('s.accountant_approval_status', $filters['approval_status']);
+        }
+        
         if (!empty($filters['date_from'])) {
             $this->db->where('DATE(s.sale_date) >=', $filters['date_from']);
         }
@@ -2883,6 +2887,10 @@ class Stock_model_new extends CI_Model
             }
             if (!empty($filters['status'])) {
                 $this->db->where('s.status', $filters['status']);
+            }
+            // Filter by Approval Status (accountant approval)
+            if (!empty($filters['approval_status'])) {
+                $this->db->where('s.accountant_approval_status', $filters['approval_status']);
             }
             // Filter by Date From (using the 'sale_date' column)
             if (!empty($filters['date_from'])) {

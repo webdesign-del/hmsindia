@@ -3845,12 +3845,13 @@ class Stocks_new extends CI_Controller
         $logg = checklogin();
         if ($logg["status"] == true) {
             $filters = [
-                'center_id'    => $this->input->get('center_id'),
-                'patient_id'   => $this->input->get('patient_id'),
-                'patient_name' => $this->input->get('patient_name'),
-                'status'       => $this->input->get('status'),
-                'date_from'    => $this->input->get('date_from'),
-                'date_to'      => $this->input->get('date_to')
+                'center_id'       => $this->input->get('center_id'),
+                'patient_id'      => $this->input->get('patient_id'),
+                'patient_name'    => $this->input->get('patient_name'),
+                'status'          => $this->input->get('status'),
+                'approval_status' => $this->input->get('approval_status'),
+                'date_from'       => $this->input->get('date_from'),
+                'date_to'         => $this->input->get('date_to')
             ];
             $data["sales"] = $this->Stock_model_new->get_all_sales($filters);
             $data["centers"] = $this->Stock_model_new->get_all_centers();
@@ -6382,6 +6383,7 @@ class Stocks_new extends CI_Controller
             'patient_id' => $this->input->get('patient_id'),
             'patient_name' => $this->input->get('patient_name'),
             'status' => $this->input->get('status'),
+            'approval_status' => $this->input->get('approval_status'),
             'date_from' => $this->input->get('date_from'),
             'date_to' => $this->input->get('date_to')
         ];

@@ -89,6 +89,16 @@
                                 </select>
                             </div>
                             <div class="form-group">
+                                <label>Approval:</label>
+                                <select name="approval_status" class="form-control">
+                                    <option value="">All Approval</option>
+                                    <option value="PENDING" <?php echo $this->input->get('approval_status') == 'PENDING' ? 'selected' : ''; ?>>Pending</option>
+                                    <option value="APPROVED" <?php echo $this->input->get('approval_status') == 'APPROVED' ? 'selected' : ''; ?>>Approved</option>
+                                    <option value="DISAPPROVED" <?php echo $this->input->get('approval_status') == 'DISAPPROVED' ? 'selected' : ''; ?>>Disapproved</option>
+                                    <option value="CANCELLED" <?php echo $this->input->get('approval_status') == 'CANCELLED' ? 'selected' : ''; ?>>Cancelled</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
                                 <label>Date From:</label>
                                 <input type="date" name="date_from" class="form-control" value="<?php echo $this->input->get('date_from'); ?>">
                             </div>
@@ -1028,6 +1038,7 @@ $(document).ready(function() {
         var patientId = $('input[name="patient_id"]').val() || '';
         var patientName = $('input[name="patient_name"]').val() || '';
         var status = $('select[name="status"]').val() || '';
+        var approvalStatus = $('select[name="approval_status"]').val() || '';
         var dateFrom = $('input[name="date_from"]').val() || '';
         var dateTo = $('input[name="date_to"]').val() || '';
         
@@ -1037,6 +1048,7 @@ $(document).ready(function() {
         if(patientId) url += '&patient_id=' + patientId;
         if(patientName) url += '&patient_name=' + patientName;
         if(status) url += '&status=' + status;
+        if(approvalStatus) url += '&approval_status=' + approvalStatus;
         if(dateFrom) url += '&date_from=' + dateFrom;
         if(dateTo) url += '&date_to=' + dateTo;
         
