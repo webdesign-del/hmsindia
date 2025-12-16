@@ -5,7 +5,7 @@
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>Accountant Dashboard</title>
-      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
       <link rel="stylesheet" href="<?php echo base_url(); ?>assets/materialize/css/materialize.min.css" media="screen,projection" />
       <!-- Bootstrap Styles-->
       <link href="<?php echo base_url();?>assets/css/bootstrap.css" rel="stylesheet" />
@@ -15,16 +15,17 @@
       <link href="<?php echo base_url();?>assets/css/morris/morris-0.4.3.min.css" rel="stylesheet" />
       <!-- Custom Styles-->
       <link href="<?php echo base_url();?>assets/css/custom-styles.css" rel="stylesheet" />
-      <!-- <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"> -->
+      <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+      <link rel="stylesheet" href="<?php echo base_url();?>assets/css/select2.min.css">
       <!-- jQuery Js -->
       <link rel="stylesheet" href="<?php echo base_url();?>assets/css/jquery-ui.css">
-      <!-- <script src="<?php echo base_url();?>assets/js/jquery-1.12.4.js"></script> -->
-      <script src="<?php echo base_url();?>assets/js/jquery.min.js"></script>
+      <script src="<?php echo base_url();?>assets/js/jquery-1.12.4.js"></script>
       <script src="<?php echo base_url();?>assets/js/jquery-ui.js"></script>
-      <script src="<?php echo base_url();?>assets/js/bootstrap.min.js"></script>
+      <script src="<?php echo base_url();?>assets/js/select2.min.js"></script>
       <!-- Google Fonts-->
       <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
       <link rel="stylesheet" href="<?php echo base_url();?>assets/css/Lightweight-Chart/cssCharts.css">
+      <link rel="stylesheet" href="<?php echo base_url();?>assets/css/bootstrap-multiselect.css">
       <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
    </head>
    <body>
