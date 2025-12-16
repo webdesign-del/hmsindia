@@ -152,7 +152,7 @@
                      <li> <a href="<?php echo base_url(); ?>accounts/procedure_reports">Procedure</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/investigation_sales">Investigation</a> </li>
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_stock">Medicine Report (Item Wise)</a> </li> -->
-                     <li> <a href="<?php echo base_url(); ?>accounts/medicine_patients">Medicine Report (Patient Wise)</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/sales_report">Medicine Report (Patient Wise)</a> </li>
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_return_report">Medicine Return Report</a> </li> -->
                      <li> <a href="<?php echo base_url(); ?>stocks_new/returns">Medicine Return Report</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/consultation_reports">Consultation</a> </li>
