@@ -3592,68 +3592,148 @@ class Stock_model_new extends CI_Model
     //     //     return [];
     //     // }
     // }
+ 
 
+    // public function get_audit_reports($filters = [])
+    // {
+    //     // try {
+    //         $this->db->select("ar.*, c.center_name");
+    //         $center = null;
+    //         $created_by = null;
+    //         if (!empty($_SESSION['logged_billing_manager']) &&
+    //             ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+    //             $center = $_SESSION['logged_billing_manager']['center'];
+    //             $created_by =$this->get_employee_id_from_number($_SESSION['logged_billing_manager']['employee_number']);
+    //         }
+    //         if (!empty($_SESSION['logged_stock_manager']) &&
+    //             ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+    //             $center = $_SESSION['logged_stock_manager']['center'];
+    //             $created_by =$this->get_employee_id_from_number($_SESSION['logged_stock_manager']['employee_number']);
+
+    //         }
+    //         if ($center !== null) {
+    //             $this->db->where('ar.center_id', $this->get_center_id($center));
+    //         }
+    //         if ($created_by !== null) {
+    //             $this->db->where('ar.created_by', $created_by);
+    //         }
+            
+    //         // Apply filters
+    //         if (!empty($filters['center_id'])) {
+    //             // Handle filtering for central warehouse
+    //             if ($filters['center_id'] === 'central' || $filters['center_id'] === '0') {
+    //                 $this->db->where('ar.center_id IS NULL');
+    //             } else {
+    //                 $this->db->where('ar.center_id', $filters['center_id']);
+    //             }
+    //         }
+            
+    //         if (!empty($filters['audit_type'])) {
+    //             // Use the audit_type directly as it now matches database values
+    //             $this->db->where('ar.audit_type', $filters['audit_type']);
+    //         }
+            
+    //         if (!empty($filters['status'])) {
+    //             $this->db->where('ar.status', $filters['status']);
+    //         }
+            
+    //         if (!empty($filters['from_date'])) {
+    //             $this->db->where('DATE(ar.audit_date) >=', $filters['from_date']);
+    //         }
+            
+    //         if (!empty($filters['to_date'])) {
+    //             $this->db->where('DATE(ar.audit_date) <=', $filters['to_date']);
+    //         }
+            
+    //         $this->db->from("audit_reports ar");
+    //         $this->db->join("hms_centers c", "ar.center_id = c.ID", "left"); // Use LEFT JOIN to include central warehouse (NULL center_id)
+    //         $this->db->order_by("ar.created_at", "DESC");
+            
+    //         $results = $this->db->get()->result();
+            
+    //         // Handle central warehouse display for records with NULL center_id
+    //         foreach ($results as $result) {
+    //             if ($result->center_id === null || $result->center_id == 0) {
+    //                 $result->center_name = 'Central Warehouse';
+    //             }
+    //         }
+    //         return $results;
+    //     // } catch (Exception $e) {
+    //     //     return [];
+    //     // }
+    // }
     public function get_audit_reports($filters = [])
     {
-        // try {
-            $this->db->select("ar.*, c.center_name");
-            $center = null;
-            if (!empty($_SESSION['logged_billing_manager']) &&
-                ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
-                $center = $_SESSION['logged_billing_manager']['center'];
+        $center = null;
+        $created_by = null;
+
+        if (!empty($_SESSION['logged_billing_manager']) &&
+            ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+
+            $center = $_SESSION['logged_billing_manager']['center'];
+            $created_by = $this->get_employee_id_from_number(
+                $_SESSION['logged_billing_manager']['employee_number']
+            );
+        }
+        if (!empty($_SESSION['logged_stock_manager']) &&
+            ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+
+            $center = $_SESSION['logged_stock_manager']['center'];
+            $created_by = $this->get_employee_id_from_number(
+                $_SESSION['logged_stock_manager']['employee_number']
+            );
+        }
+        /* 🔑 NOW start building the audit query */
+        $this->db->select("ar.*, c.center_name");
+        $this->db->from("audit_reports ar");
+        $this->db->join("hms_centers c", "ar.center_id = c.ID", "left");
+
+        if ($center !== null) {
+            $this->db->where('ar.center_id', $this->get_center_id($center));
+        }
+
+        if ($created_by !== null) {
+            $this->db->where('ar.created_by', $created_by);
+        }
+
+        // Filters
+        if (!empty($filters['center_id'])) {
+            if ($filters['center_id'] === 'central' || $filters['center_id'] === '0') {
+                $this->db->where('ar.center_id IS NULL', null, false);
+            } else {
+                $this->db->where('ar.center_id', $filters['center_id']);
             }
-            if (!empty($_SESSION['logged_stock_manager']) &&
-                ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
-                $center = $_SESSION['logged_stock_manager']['center'];
+        }
+
+        if (!empty($filters['audit_type'])) {
+            $this->db->where('ar.audit_type', $filters['audit_type']);
+        }
+
+        if (!empty($filters['status'])) {
+            $this->db->where('ar.status', $filters['status']);
+        }
+
+        if (!empty($filters['from_date'])) {
+            $this->db->where('DATE(ar.audit_date) >=', $filters['from_date']);
+        }
+
+        if (!empty($filters['to_date'])) {
+            $this->db->where('DATE(ar.audit_date) <=', $filters['to_date']);
+        }
+
+        $this->db->order_by("ar.created_at", "DESC");
+
+        $results = $this->db->get()->result();
+
+        foreach ($results as $result) {
+            if ($result->center_id === null || $result->center_id == 0) {
+                $result->center_name = 'Central Warehouse';
             }
-            if ($center !== null) {
-                $this->db->where('ar.center_id', $this->get_center_id($center));
-            }
-            
-            // Apply filters
-            if (!empty($filters['center_id'])) {
-                // Handle filtering for central warehouse
-                if ($filters['center_id'] === 'central' || $filters['center_id'] === '0') {
-                    $this->db->where('ar.center_id IS NULL');
-                } else {
-                    $this->db->where('ar.center_id', $filters['center_id']);
-                }
-            }
-            
-            if (!empty($filters['audit_type'])) {
-                // Use the audit_type directly as it now matches database values
-                $this->db->where('ar.audit_type', $filters['audit_type']);
-            }
-            
-            if (!empty($filters['status'])) {
-                $this->db->where('ar.status', $filters['status']);
-            }
-            
-            if (!empty($filters['from_date'])) {
-                $this->db->where('DATE(ar.audit_date) >=', $filters['from_date']);
-            }
-            
-            if (!empty($filters['to_date'])) {
-                $this->db->where('DATE(ar.audit_date) <=', $filters['to_date']);
-            }
-            
-            $this->db->from("audit_reports ar");
-            $this->db->join("hms_centers c", "ar.center_id = c.ID", "left"); // Use LEFT JOIN to include central warehouse (NULL center_id)
-            $this->db->order_by("ar.created_at", "DESC");
-            
-            $results = $this->db->get()->result();
-            
-            // Handle central warehouse display for records with NULL center_id
-            foreach ($results as $result) {
-                if ($result->center_id === null || $result->center_id == 0) {
-                    $result->center_name = 'Central Warehouse';
-                }
-            }
-            return $results;
-        // } catch (Exception $e) {
-        //     return [];
-        // }
+        }
+
+        return $results;
     }
+
 
     // public function get_disposal_reports()
     // {
@@ -6461,18 +6541,22 @@ class Stock_model_new extends CI_Model
                 return null;
             }
 
-            $this->db->select("ID");
+            // 🔑 Reset previous query state
+            $this->db->reset_query();
+
+            $this->db->select("hms_employees.ID AS employee_id");
             $this->db->from("hms_employees");
-            $this->db->where("employee_number", $employee_number);
+            $this->db->where("hms_employees.employee_number", $employee_number);
+
             $query = $this->db->get();
 
             if ($query->num_rows() > 0) {
-                $result = $query->row();
-                return $result->ID;
+                return $query->row()->employee_id;
             }
 
             return null;
         }
+
          // End function
         // public function process_vendor_return($return_data, $return_items)
         // {
