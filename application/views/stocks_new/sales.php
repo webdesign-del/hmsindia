@@ -147,6 +147,8 @@
                                         <th>Items</th>
                                         <th>Qty</th>
                                         <th>Taxable Amt</th>
+                                        <th>GST Rate</th>
+                                        <th>GST Amt</th>
                                         <th>Total Amt</th>
                                         <th>Payment</th>
                                         <th>Status</th>
@@ -175,6 +177,8 @@
                                                     $taxable_amount = (isset($sale->subtotal) ? $sale->subtotal : 0) - (isset($sale->discount_amount) ? $sale->discount_amount : 0);
                                                     echo number_format($taxable_amount, 2); 
                                                 ?></td>
+                                                <td><?php echo isset($sale->gst_rates) && !empty($sale->gst_rates) ? htmlspecialchars($sale->gst_rates) . '%' : 'N/A'; ?></td>
+                                                <td>₹<?php echo isset($sale->tax_amount) && is_numeric($sale->tax_amount) ? number_format($sale->tax_amount, 2) : '0.00'; ?></td>
                                                 <td>₹<?php echo isset($sale->total_amount) && is_numeric($sale->total_amount) ? number_format($sale->total_amount, 2) : '0.00'; ?></td>
                                                 
                                                 <!-- *** MODIFIED: Added ID to this TD for easy JS update *** -->
@@ -328,7 +332,7 @@
                                     
                                     <?php if(empty($sales) || !is_array($sales) || count(array_filter($sales, function($s) { return isset($s->sale_number) && !empty($s->sale_number); })) == 0): ?>
                                         <tr>
-                                            <td colspan="15" class="text-center text-muted">
+                                            <td colspan="17" class="text-center text-muted">
                                                 <i class="fa fa-info-circle fa-2x"></i><br>
                                                 No sales found. The database table 'sales' may not exist. <a href="<?php echo base_url('stocks_new/add_sale'); ?>">Create your first sale</a>
                                             </td>
@@ -574,7 +578,7 @@ $(document).ready(function() {
     var rows = tbody.find('tr');
     var validRows = rows.filter(function() {
         // Check if row has proper number of cells and is not the "no data" row
-        return $(this).find('td').length === 11 && !$(this).find('td[colspan]').length;
+        return $(this).find('td').length === 17 && !$(this).find('td[colspan]').length;
     });
     
     console.log('Total rows:', rows.length);
@@ -586,7 +590,7 @@ $(document).ready(function() {
                 "pageLength": 25,
                 "order": [[ 5, "desc" ]], // Sort by date descending
                 "columnDefs": [
-                    { "orderable": false, "targets": [12, 13, 14] } // Approval, Approved By, Actions columns
+                    { "orderable": false, "targets": [14, 15, 16] } // Approval, Approved By, Actions columns
                 ],
                 "responsive": true,
                 "autoWidth": false,

@@ -593,12 +593,15 @@ class Stock_model_new extends CI_Model
             COALESCE(SUM(si.subtotal), 0) as subtotal,
             COALESCE(SUM(si.discount_amount), 0) as discount_amount,
             COALESCE(SUM(si.tax_amount), 0) as tax_amount,
-            COALESCE(SUM(si.total), 0) as total_amount
-        ');
+            COALESCE(SUM(si.total), 0) as total_amount,
+            GROUP_CONCAT(DISTINCT m.gst_rate ORDER BY m.gst_rate SEPARATOR ", ") as gst_rates
+        ', FALSE);
         $this->db->from('sales s');
         $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
         $this->db->join('hms_employees e', 's.created_by = e.ID', 'left');
         $this->db->join('sale_items si', 's.id = si.sale_id', 'left');
+        $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
+        $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
         
         // Apply filters
         if (!empty($filters['center_id'])) {
@@ -2800,7 +2803,8 @@ class Stock_model_new extends CI_Model
                 COALESCE(SUM(si.subtotal), 0) as subtotal,
                 COALESCE(SUM(si.discount_amount), 0) as discount_amount,
                 COALESCE(SUM(si.tax_amount), 0) as tax_amount,
-                COALESCE(SUM(si.total), 0) as total_amount
+                COALESCE(SUM(si.total), 0) as total_amount,
+                GROUP_CONCAT(DISTINCT m.gst_rate ORDER BY m.gst_rate SEPARATOR ', ') as gst_rates
             ";
             
             // Check if new columns exist and add them to select
@@ -2837,6 +2841,8 @@ class Stock_model_new extends CI_Model
             $this->db->join("hms_centers c", "s.center_id = c.ID", "left");
             $this->db->join("hms_employees e", "s.created_by = e.ID", "left");
             $this->db->join("sale_items si", "s.id = si.sale_id", "left"); // LEFT JOIN is important
+            $this->db->join("medicine_batches mb", "si.batch_id = mb.id", "left");
+            $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
 
             // --- Session Filter (Your original logic) ---
             // if (
