@@ -587,12 +587,17 @@ class Stock_model_new extends CI_Model
         $this->db->select('
             s.*,
             c.center_name,
+            e.name as salesperson_name,
             COALESCE(COUNT(si.id), 0) as total_items,
             COALESCE(SUM(si.quantity_sold), 0) as total_quantity,
+            COALESCE(SUM(si.subtotal), 0) as subtotal,
+            COALESCE(SUM(si.discount_amount), 0) as discount_amount,
+            COALESCE(SUM(si.tax_amount), 0) as tax_amount,
             COALESCE(SUM(si.total), 0) as total_amount
         ');
         $this->db->from('sales s');
         $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
+        $this->db->join('hms_employees e', 's.created_by = e.ID', 'left');
         $this->db->join('sale_items si', 's.id = si.sale_id', 'left');
         
         // Apply filters
@@ -616,7 +621,7 @@ class Stock_model_new extends CI_Model
             $this->db->where('DATE(s.sale_date) <=', $filters['date_to']);
         }
         
-        $this->db->group_by('s.id, c.center_name');
+        $this->db->group_by('s.id, c.center_name, e.name');
         $this->db->order_by('s.sale_date', 'DESC');
         $this->db->order_by('s.id', 'DESC');
         

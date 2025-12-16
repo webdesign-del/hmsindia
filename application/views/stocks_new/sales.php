@@ -135,16 +135,19 @@
                                 <thead>
                                     <tr>
                                         <th>Sale #</th>
-                                        <th>Patient</th>
+                                        <th>Patient ID</th>
+                                        <th>Patient Name</th>
                                         <th>Center</th>
                                         <th>Sold By</th>
                                         <th>Date</th>
                                         <th>Items</th>
-                                        <th>Quantity</th>
-                                        <th>Total Amount</th>
+                                        <th>Qty</th>
+                                        <th>Taxable Amt</th>
+                                        <th>Total Amt</th>
                                         <th>Payment</th>
                                         <th>Status</th>
-                                        <th>Accountant Approval</th>
+                                        <th>Approval</th>
+                                        <th>Approved By</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -156,12 +159,18 @@
                                                 <td>
                                                     <strong><?php echo htmlspecialchars($sale->sale_number); ?></strong>
                                                 </td>
+                                                <td><?php echo isset($sale->patient_id) ? htmlspecialchars($sale->patient_id) : 'N/A'; ?></td>
                                                 <td><?php echo isset($sale->patient_name) ? htmlspecialchars($sale->patient_name) : 'N/A'; ?></td>
                                                 <td><?php echo isset($sale->center_name) ? htmlspecialchars($sale->center_name) : 'N/A'; ?></td>
                                                 <td><?php echo isset($sale->salesperson_name) ? htmlspecialchars($sale->salesperson_name) : 'N/A'; ?></td>
                                                 <td><?php echo isset($sale->sale_date) && !empty($sale->sale_date) ? date('M d, Y', strtotime($sale->sale_date)) : 'N/A'; ?></td>
                                                 <td><?php echo isset($sale->total_items) && is_numeric($sale->total_items) ? number_format($sale->total_items) : '0'; ?></td>
                                                 <td><?php echo isset($sale->total_quantity) && is_numeric($sale->total_quantity) ? number_format($sale->total_quantity) : '0'; ?></td>
+                                                <td>₹<?php 
+                                                    // Taxable Amount = Subtotal - Discount
+                                                    $taxable_amount = (isset($sale->subtotal) ? $sale->subtotal : 0) - (isset($sale->discount_amount) ? $sale->discount_amount : 0);
+                                                    echo number_format($taxable_amount, 2); 
+                                                ?></td>
                                                 <td>₹<?php echo isset($sale->total_amount) && is_numeric($sale->total_amount) ? number_format($sale->total_amount, 2) : '0.00'; ?></td>
                                                 
                                                 <!-- *** MODIFIED: Added ID to this TD for easy JS update *** -->
@@ -254,6 +263,18 @@
                                                     <?php endif; ?>
                                                 </td>
                                                 
+                                                <!-- Approved By Column -->
+                                                <td>
+                                                    <?php if(isset($sale->accountant_approved_by_name) && !empty($sale->accountant_approved_by_name)): ?>
+                                                        <?php echo htmlspecialchars($sale->accountant_approved_by_name); ?>
+                                                        <?php if(isset($sale->accountant_approved_at) && !empty($sale->accountant_approved_at)): ?>
+                                                            <br><small class="text-muted"><?php echo date('d/m/Y', strtotime($sale->accountant_approved_at)); ?></small>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">-</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                
                                                 <td>
                                                     <div class="btn-group">
                                                         <button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown">
@@ -303,7 +324,7 @@
                                     
                                     <?php if(empty($sales) || !is_array($sales) || count(array_filter($sales, function($s) { return isset($s->sale_number) && !empty($s->sale_number); })) == 0): ?>
                                         <tr>
-                                            <td colspan="12" class="text-center text-muted">
+                                            <td colspan="15" class="text-center text-muted">
                                                 <i class="fa fa-info-circle fa-2x"></i><br>
                                                 No sales found. The database table 'sales' may not exist. <a href="<?php echo base_url('stocks_new/add_sale'); ?>">Create your first sale</a>
                                             </td>
@@ -559,9 +580,9 @@ $(document).ready(function() {
         try {
             $('#salesTable').DataTable({
                 "pageLength": 25,
-                "order": [[ 4, "desc" ]], // Sort by date descending
+                "order": [[ 5, "desc" ]], // Sort by date descending
                 "columnDefs": [
-                    { "orderable": false, "targets": [10, 11] } // Accountant Approval and Actions columns
+                    { "orderable": false, "targets": [12, 13, 14] } // Approval, Approved By, Actions columns
                 ],
                 "responsive": true,
                 "autoWidth": false,

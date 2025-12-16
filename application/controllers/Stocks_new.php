@@ -6421,32 +6421,57 @@ class Stocks_new extends CI_Controller
         // Add headers
         $headers = [
             'Sale Number',
-            'Patient Name',
             'Patient ID',
+            'Patient Name',
             'Doctor Name',
             'Center',
+            'Sold By',
             'Sale Date',
             'Total Items',
+            'Total Qty',
+            'Subtotal (₹)',
+            'Discount (₹)',
+            'Taxable Amount (₹)',
+            'Tax Amount (₹)',
             'Total Amount (₹)',
             'Payment Status',
             'Sale Status',
+            'Approval Status',
+            'Approved By',
+            'Approved Date',
+            'Approval Remarks',
             'Created Date'
         ];
         fputcsv($output, $headers);
 
         // Add data rows
         foreach ($sales as $sale) {
+            // Calculate taxable amount
+            $subtotal = $sale->subtotal ?? 0;
+            $discount = $sale->discount_amount ?? 0;
+            $taxable_amount = $subtotal - $discount;
+            
             $row = [
                 $sale->sale_number ?? 'N/A',
-                $sale->patient_name ?? 'N/A',
                 $sale->patient_id ?? 'N/A',
+                $sale->patient_name ?? 'N/A',
                 $sale->doctor_name ?? 'N/A',
                 $sale->center_name ?? 'N/A',
-                date('d-m-Y', strtotime($sale->sale_date)),
+                $sale->salesperson_name ?? 'N/A',
+                isset($sale->sale_date) ? date('d-m-Y', strtotime($sale->sale_date)) : 'N/A',
                 $sale->total_items ?? 0,
+                $sale->total_quantity ?? 0,
+                number_format($subtotal, 2),
+                number_format($discount, 2),
+                number_format($taxable_amount, 2),
+                number_format($sale->tax_amount ?? 0, 2),
                 number_format($sale->total_amount ?? 0, 2),
                 $sale->payment_status ?? 'N/A',
                 $sale->status ?? 'N/A',
+                $sale->accountant_approval_status ?? 'PENDING',
+                $sale->accountant_approved_by_name ?? '-',
+                isset($sale->accountant_approved_at) && $sale->accountant_approved_at ? date('d-m-Y H:i', strtotime($sale->accountant_approved_at)) : '-',
+                $sale->accountant_remarks ?? '-',
                 isset($sale->created_at) ? date('d-m-Y H:i', strtotime($sale->created_at)) : 'N/A'
             ];
             fputcsv($output, $row);
