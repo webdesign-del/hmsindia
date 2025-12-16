@@ -53,11 +53,11 @@
                             </div>
                             <div class="form-group">
                                 <label>From Date:</label>
-                                <input type="date" name="start_date" class="form-control" value="">
+                                <input type="date" name="start_date" class="form-control" value="<?php echo isset($start_date) ? htmlspecialchars($start_date) : ''; ?>">
                             </div>
                             <div class="form-group">
                                 <label>To Date:</label>
-                                <input type="date" name="end_date" class="form-control" value="">
+                                <input type="date" name="end_date" class="form-control" value="<?php echo isset($end_date) ? htmlspecialchars($end_date) : ''; ?>">
                             </div>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa fa-search"></i> Generate Report

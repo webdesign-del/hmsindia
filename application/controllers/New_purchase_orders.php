@@ -218,7 +218,9 @@ class New_purchase_orders extends CI_Controller {
                     'item_name' => $this->input->post('consumables_item_name_' . $i),
                     'item_number' => $item_number,
                     'quantity' => $this->input->post('consumables_quantity_' . $i) ,
-                    'batch_number' => $this->input->post('consumables_batch_number_' . $i),
+                    'batch_number' => $this->input->post
+                    
+                    ('consumables_batch_number_' . $i),
                     'price' => $this->input->post('consumables_price_' . $i),
                     'vendor_price' => $this->input->post('consumables_vendor_price_' . $i),
                     'pack_size' => $this->input->post('consumables_pack_size_' . $i),
