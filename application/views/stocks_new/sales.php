@@ -144,6 +144,7 @@
                                         <th>Total Amount</th>
                                         <th>Payment</th>
                                         <th>Status</th>
+                                        <th>Accountant Approval</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -166,16 +167,24 @@
                                                 <!-- *** MODIFIED: Added ID to this TD for easy JS update *** -->
                                                 <td id="payment-cell-<?php echo $sale->id; ?>">
                                                     <?php if(isset($sale->payment_status) && !empty($sale->payment_status)): ?>
-                                                    <span id="payment_status_badge" 
+                                                    <span id="payment_status_badge_<?php echo $sale->id; ?>" 
                                                         class="badge 
                                                         <?php 
                                                             echo $sale->payment_status == 'PAID' ? 'badge-success' : 
                                                                 ($sale->payment_status == 'PARTIAL' ? 'badge-warning' : 
-                                                                ($sale->payment_status == 'CANCELLED' ? 'badge-secondary' : 'badge-danger'));
+                                                                ($sale->payment_status == 'CANCELLED' ? 'badge-secondary' : 
+                                                                ($sale->payment_status == 'REJECTED' ? 'badge-danger' : 'badge-danger')));
                                                         ?>">
                                                         <?php echo htmlspecialchars($sale->payment_status); ?>
                                                     </span>
-                                                    <?php if((isset($sale->utr_transaction_id) && !empty($sale->utr_transaction_id)) || (isset($sale->payment_image) && !empty($sale->payment_image))): ?>
+                                                    <?php 
+                                                    // Show who approved/rejected
+                                                    if($sale->payment_status == 'PAID' && isset($sale->payment_approved_by_name) && !empty($sale->payment_approved_by_name)): ?>
+                                                        <br><small class="text-success"><i class="fa fa-check"></i> By: <?php echo htmlspecialchars($sale->payment_approved_by_name); ?></small>
+                                                    <?php elseif($sale->payment_status == 'REJECTED' && isset($sale->payment_rejected_by_name) && !empty($sale->payment_rejected_by_name)): ?>
+                                                        <br><small class="text-danger"><i class="fa fa-times"></i> By: <?php echo htmlspecialchars($sale->payment_rejected_by_name); ?></small>
+                                                    <?php endif; ?>
+                                                    <?php if((isset($sale->utr_transaction_id) && !empty($sale->utr_transaction_id)) || (isset($sale->payment_image) && !empty($sale->payment_image)) || $sale->payment_status == 'PAID' || $sale->payment_status == 'REJECTED'): ?>
                                                         <br><a href="#" class="view-payment-details" data-sale-id="<?php echo $sale->id; ?>" style="font-size: 11px; color: #007bff;">
                                                             <i class="fa fa-eye"></i> View Details
                                                         </a>
@@ -194,6 +203,57 @@
                                                     <span class="badge badge-default">N/A</span>
                                                     <?php endif; ?>
                                                 </td>
+                                                
+                                                <!-- NEW: Accountant Approval Column -->
+                                                <td id="approval-cell-<?php echo $sale->id; ?>">
+                                                    <?php 
+                                                    $approval_status = isset($sale->accountant_approval_status) ? $sale->accountant_approval_status : 'PENDING';
+                                                    $is_accountant = isset($_SESSION['logged_accountant']) && !empty($_SESSION['logged_accountant']);
+                                                    // Show approval column for CONFIRMED sales OR sales that have been reviewed (DISAPPROVED/CANCELLED by accountant)
+                                                    $show_approval = ($sale->status == 'CONFIRMED') || 
+                                                                     ($approval_status == 'DISAPPROVED') || 
+                                                                     ($approval_status == 'CANCELLED') ||
+                                                                     ($approval_status == 'APPROVED');
+                                                    ?>
+                                                    
+                                                    <?php if($show_approval): ?>
+                                                        <?php if($approval_status == 'APPROVED'): ?>
+                                                            <span class="badge badge-success"><i class="fa fa-check"></i> APPROVED</span>
+                                                            <?php if(isset($sale->accountant_approved_by_name) && !empty($sale->accountant_approved_by_name)): ?>
+                                                                <br><small class="text-success">By: <?php echo htmlspecialchars($sale->accountant_approved_by_name); ?></small>
+                                                            <?php endif; ?>
+                                                        <?php elseif($approval_status == 'DISAPPROVED'): ?>
+                                                            <span class="badge badge-danger"><i class="fa fa-times"></i> DISAPPROVED</span>
+                                                            <?php if(isset($sale->accountant_approved_by_name) && !empty($sale->accountant_approved_by_name)): ?>
+                                                                <br><small class="text-danger">By: <?php echo htmlspecialchars($sale->accountant_approved_by_name); ?></small>
+                                                            <?php endif; ?>
+                                                            <?php if(isset($sale->stock_restored) && $sale->stock_restored == 1): ?>
+                                                                <br><small class="text-info"><i class="fa fa-undo"></i> Stock Restored</small>
+                                                            <?php endif; ?>
+                                                        <?php elseif($approval_status == 'CANCELLED'): ?>
+                                                            <span class="badge badge-secondary"><i class="fa fa-ban"></i> CANCELLED</span>
+                                                            <?php if(isset($sale->accountant_approved_by_name) && !empty($sale->accountant_approved_by_name)): ?>
+                                                                <br><small class="text-muted">By: <?php echo htmlspecialchars($sale->accountant_approved_by_name); ?></small>
+                                                            <?php endif; ?>
+                                                            <?php if(isset($sale->stock_restored) && $sale->stock_restored == 1): ?>
+                                                                <br><small class="text-info"><i class="fa fa-undo"></i> Stock Restored</small>
+                                                            <?php endif; ?>
+                                                        <?php else: ?>
+                                                            <!-- PENDING - Show View Invoice link for accountant -->
+                                                            <span class="badge badge-warning"><i class="fa fa-clock-o"></i> PENDING</span>
+                                                            <?php if($is_accountant): ?>
+                                                                <br>
+                                                                <a href="<?php echo base_url('stocks_new/edit_sale/' . $sale->id); ?>" 
+                                                                   class="btn btn-xs btn-info" style="margin-top: 5px;">
+                                                                    <i class="fa fa-eye"></i> View & Approve
+                                                                </a>
+                                                            <?php endif; ?>
+                                                        <?php endif; ?>
+                                                    <?php else: ?>
+                                                        <span class="text-muted">-</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                                
                                                 <td>
                                                     <div class="btn-group">
                                                         <button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown">
@@ -218,7 +278,11 @@
                                                                 <a href="#" class="change-payment-status" 
                                                                    data-sale-id="<?php echo isset($sale->id) ? $sale->id : ''; ?>"
                                                                    data-current-status="<?php echo isset($sale->payment_status) ? $sale->payment_status : 'UNPAID'; ?>">
+                                                                    <?php if(isset($_SESSION['logged_accountant']) && !empty($_SESSION['logged_accountant'])): ?>
+                                                                    <i class="fa fa-check-square-o"></i> Verify Payment (Approve/Reject)
+                                                                    <?php else: ?>
                                                                     <i class="fa fa-money"></i> Change Payment Status
+                                                                    <?php endif; ?>
                                                                 </a>
                                                             </li>
                                                             <?php if((isset($sale->utr_transaction_id) && !empty($sale->utr_transaction_id)) || (isset($sale->payment_image) && !empty($sale->payment_image))): ?>
@@ -239,7 +303,7 @@
                                     
                                     <?php if(empty($sales) || !is_array($sales) || count(array_filter($sales, function($s) { return isset($s->sale_number) && !empty($s->sale_number); })) == 0): ?>
                                         <tr>
-                                            <td colspan="11" class="text-center text-muted">
+                                            <td colspan="12" class="text-center text-muted">
                                                 <i class="fa fa-info-circle fa-2x"></i><br>
                                                 No sales found. The database table 'sales' may not exist. <a href="<?php echo base_url('stocks_new/add_sale'); ?>">Create your first sale</a>
                                             </td>
@@ -262,28 +326,65 @@
 
 
 <!-- *** NEW: Payment Status Modal *** -->
+<?php 
+// Check if user is from account team
+$is_accountant = isset($_SESSION['logged_accountant']) && !empty($_SESSION['logged_accountant']);
+?>
 <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close modal-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="paymentModalLabel">Change Payment Status</h4>
+                <h4 class="modal-title" id="paymentModalLabel">
+                    <?php echo $is_accountant ? 'Payment Verification' : 'Change Payment Status'; ?>
+                </h4>
             </div>
             <div class="modal-body">
                 <form id="paymentStatusForm" enctype="multipart/form-data">
                     <!-- Hidden field to store the sale ID -->
                     <input type="hidden" id="modal_sale_id" name="sale_id" value="">
                     
+                    <?php if($is_accountant): ?>
+                    <!-- ACCOUNTANT VIEW: Only Approve/Reject/Cancel options -->
+                    <div class="form-group">
+                        <label for="modal_payment_status"><strong>Payment Action:</strong></label>
+                        <select id="modal_payment_status" name="new_status" class="form-control" required>
+                            <option value="">-- Select Action --</option>
+                            <option value="PAID">✓ APPROVE (Confirm Payment)</option>
+                            <option value="REJECTED">✗ REJECT (Restore Stock)</option>
+                            <option value="CANCELLED">✗ CANCEL (Restore Stock)</option>
+                        </select>
+                        <small class="help-block text-info">
+                            <i class="fa fa-info-circle"></i> As an accountant, you can approve, reject or cancel this payment.
+                        </small>
+                        <small class="help-block text-warning" id="stock_restore_warning" style="display: none;">
+                            <i class="fa fa-exclamation-triangle"></i> This action will restore stock to inventory.
+                        </small>
+                    </div>
+                    <?php else: ?>
+                    <!-- OTHER USERS VIEW: All status options -->
                     <div class="form-group">
                         <label for="modal_payment_status">New Payment Status:</label>
                         <select id="modal_payment_status" name="new_status" class="form-control" required>
                             <option value="PENDING">PENDING</option>
                             <option value="PARTIAL">PARTIAL</option>
                             <option value="PAID">PAID</option>
-                            <option value="CANCELLED">CANCELLED</option>
+                            <option value="REJECTED">REJECTED (Restore Stock)</option>
+                            <option value="CANCELLED">CANCELLED (Restore Stock)</option>
                         </select>
+                        <small class="help-block text-warning" id="stock_restore_warning" style="display: none;">
+                            <i class="fa fa-exclamation-triangle"></i> Selecting REJECTED or CANCELLED will restore stock to inventory.
+                        </small>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <div class="form-group">
+                        <label for="modal_payment_remark">Remark: <span class="text-danger">*</span></label>
+                        <textarea id="modal_payment_remark" name="remarks" class="form-control" rows="3" placeholder="<?php echo $is_accountant ? 'Enter reason for your decision (required)' : 'Enter remark (optional)'; ?>" <?php echo $is_accountant ? 'required' : ''; ?>></textarea>
                     </div>
                     
+                    <?php if(!$is_accountant): ?>
+                    <!-- Only show these fields for non-accountants -->
                     <div class="form-group">
                         <label for="modal_utr_transaction_id">UTR / Transaction ID:</label>
                         <input type="text" id="modal_utr_transaction_id" name="utr_transaction_id" class="form-control" placeholder="Enter UTR or Transaction ID (optional)">
@@ -297,16 +398,14 @@
                             <img id="previewImg" src="" alt="Preview" style="max-width: 100%; max-height: 200px; border: 1px solid #ddd; padding: 5px;">
                         </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="modal_payment_remark">Remark:</label>
-                        <textarea id="modal_payment_remark" name="remarks" class="form-control" rows="3" placeholder="Enter remark for payment status change (optional)"></textarea>
-                    </div>
+                    <?php endif; ?>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default modal-close">Close</button>
-                <button type="button" class="btn btn-primary" id="savePaymentStatus">Save Changes</button>
+                <button type="button" class="btn btn-primary" id="savePaymentStatus">
+                    <?php echo $is_accountant ? 'Submit Decision' : 'Save Changes'; ?>
+                </button>
             </div>
         </div>
     </div>
@@ -378,6 +477,70 @@
     </div>
 </div>
 
+<!-- *** NEW: Accountant Sale Approval Modal *** -->
+<div class="modal fade" id="saleApprovalModal" tabindex="-1" role="dialog" aria-labelledby="saleApprovalModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f7f7f7; border-bottom: 2px solid #3498db;">
+                <button type="button" class="close modal-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="saleApprovalModalLabel">
+                    <i class="fa fa-gavel"></i> Sale Approval - Accountant Review
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <strong><i class="fa fa-info-circle"></i> Sale Number:</strong> <span id="approval_sale_number"></span>
+                </div>
+                
+                <form id="saleApprovalForm">
+                    <input type="hidden" id="approval_sale_id" name="sale_id" value="">
+                    
+                    <div class="form-group">
+                        <label><strong>Select Your Decision:</strong></label>
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col-md-4">
+                                <label class="btn btn-success btn-block" style="padding: 15px;">
+                                    <input type="radio" name="approval_action" value="APPROVED" style="margin-right: 5px;" required>
+                                    <i class="fa fa-check fa-2x"></i><br>
+                                    <strong>APPROVE</strong>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="btn btn-danger btn-block" style="padding: 15px;">
+                                    <input type="radio" name="approval_action" value="DISAPPROVED" style="margin-right: 5px;">
+                                    <i class="fa fa-times fa-2x"></i><br>
+                                    <strong>DISAPPROVE</strong>
+                                    <small style="display:block; font-size:10px;">(Restore Stock)</small>
+                                </label>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="btn btn-warning btn-block" style="padding: 15px;">
+                                    <input type="radio" name="approval_action" value="CANCELLED" style="margin-right: 5px;">
+                                    <i class="fa fa-ban fa-2x"></i><br>
+                                    <strong>CANCEL</strong>
+                                    <small style="display:block; font-size:10px;">(Restore Stock)</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="approval_remarks"><strong>Remarks / Reason:</strong> <span class="text-danger">*</span></label>
+                        <textarea id="approval_remarks" name="remarks" class="form-control" rows="3" placeholder="Enter your reason for this decision (required)" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default modal-close">Cancel</button>
+                <button type="button" class="btn btn-primary" id="submitSaleApproval">
+                    <i class="fa fa-check"></i> Submit Decision
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- *** END: Accountant Sale Approval Modal *** -->
+
 <script>
 $(document).ready(function() {
     // Check if table has valid data before initializing DataTables
@@ -396,9 +559,9 @@ $(document).ready(function() {
         try {
             $('#salesTable').DataTable({
                 "pageLength": 25,
-                "order": [[ 3, "desc" ]], // Sort by date descending
+                "order": [[ 4, "desc" ]], // Sort by date descending
                 "columnDefs": [
-                    { "orderable": false, "targets": 10 }
+                    { "orderable": false, "targets": [10, 11] } // Accountant Approval and Actions columns
                 ],
                 "responsive": true,
                 "autoWidth": false,
@@ -568,6 +731,16 @@ $(document).ready(function() {
         }
     });
 
+    // Show/hide stock restore warning based on selected status
+    $('#modal_payment_status').on('change', function() {
+        var selectedStatus = $(this).val();
+        if (selectedStatus == 'CANCELLED' || selectedStatus == 'REJECTED') {
+            $('#stock_restore_warning').show();
+        } else {
+            $('#stock_restore_warning').hide();
+        }
+    });
+
     // View Payment Details handler
     $(document).on('click', '.view-payment-details', function(e) {
         e.preventDefault();
@@ -595,8 +768,49 @@ $(document).ready(function() {
                     // Payment Status
                     html += '<div class="form-group">';
                     html += '<label><strong>Payment Status:</strong></label>';
-                    html += '<p><span class="badge ' + (response.data.payment_status == 'PAID' ? 'badge-success' : (response.data.payment_status == 'PARTIAL' ? 'badge-warning' : 'badge-danger')) + '">' + response.data.payment_status + '</span></p>';
+                    var statusClass = 'badge-danger';
+                    if (response.data.payment_status == 'PAID') statusClass = 'badge-success';
+                    else if (response.data.payment_status == 'PARTIAL') statusClass = 'badge-warning';
+                    else if (response.data.payment_status == 'REJECTED') statusClass = 'badge-danger';
+                    else if (response.data.payment_status == 'CANCELLED') statusClass = 'badge-secondary';
+                    html += '<p><span class="badge ' + statusClass + '">' + response.data.payment_status + '</span></p>';
                     html += '</div>';
+                    
+                    // Approval Info (if PAID)
+                    if (response.data.payment_status == 'PAID' && response.data.payment_approved_by_name) {
+                        html += '<div class="form-group">';
+                        html += '<label><strong><i class="fa fa-check-circle text-success"></i> Approved By:</strong></label>';
+                        html += '<p class="form-control-static text-success"><strong>' + response.data.payment_approved_by_name + '</strong>';
+                        if (response.data.payment_approved_at) {
+                            html += ' <small class="text-muted">on ' + response.data.payment_approved_at + '</small>';
+                        }
+                        html += '</p>';
+                        html += '</div>';
+                    }
+                    
+                    // Rejection Info (if REJECTED)
+                    if (response.data.payment_status == 'REJECTED' && response.data.payment_rejected_by_name) {
+                        html += '<div class="form-group">';
+                        html += '<label><strong><i class="fa fa-times-circle text-danger"></i> Rejected By:</strong></label>';
+                        html += '<p class="form-control-static text-danger"><strong>' + response.data.payment_rejected_by_name + '</strong>';
+                        if (response.data.payment_rejected_at) {
+                            html += ' <small class="text-muted">on ' + response.data.payment_rejected_at + '</small>';
+                        }
+                        html += '</p>';
+                        html += '</div>';
+                    }
+                    
+                    // Stock Restoration Info
+                    if (response.data.stock_restored == 1) {
+                        html += '<div class="form-group">';
+                        html += '<label><strong><i class="fa fa-undo text-info"></i> Stock Restored:</strong></label>';
+                        html += '<p class="form-control-static text-info">Yes';
+                        if (response.data.stock_restored_at) {
+                            html += ' <small class="text-muted">on ' + response.data.stock_restored_at + '</small>';
+                        }
+                        html += '</p>';
+                        html += '</div>';
+                    }
                     
                     // UTR/Transaction ID
                     if (response.data.utr_transaction_id) {
@@ -673,10 +887,18 @@ $(document).ready(function() {
     $('#savePaymentStatus').on('click', function() {
         var $button = $(this);
         var $form = $('#paymentStatusForm');
+        var isAccountant = <?php echo (isset($_SESSION['logged_accountant']) && !empty($_SESSION['logged_accountant'])) ? 'true' : 'false'; ?>;
         
         // Validate required fields
         if (!$('#modal_payment_status').val()) {
-            alert('Please select a payment status');
+            alert(isAccountant ? 'Please select an action (Approve/Reject/Cancel)' : 'Please select a payment status');
+            return;
+        }
+        
+        // Accountants must provide a remark
+        if (isAccountant && !$('#modal_payment_remark').val().trim()) {
+            alert('Please provide a reason for your decision');
+            $('#modal_payment_remark').focus();
             return;
         }
         
@@ -790,6 +1012,158 @@ $(document).ready(function() {
         // Open in new window for download
         window.open(url, '_blank');
     };
+
+    // *** NEW: Sale Approval Modal Functions ***
+    
+    // Open Sale Approval Modal
+    function openSaleApprovalModal() {
+        if (typeof M !== 'undefined' && M.Modal) {
+            var modalElement = document.getElementById('saleApprovalModal');
+            var modalInstance = M.Modal.getInstance(modalElement);
+            if (!modalInstance) {
+                modalInstance = M.Modal.init(modalElement, {
+                    dismissible: true,
+                    opacity: 0.5,
+                    inDuration: 300,
+                    outDuration: 200
+                });
+            }
+            modalInstance.open();
+        } else {
+            $('#saleApprovalModal').addClass('in').css('display', 'block');
+            $('body').addClass('modal-open');
+            $('<div class="modal-backdrop fade in"></div>').appendTo('body');
+        }
+    }
+
+    // Close Sale Approval Modal
+    function closeSaleApprovalModal() {
+        if (typeof M !== 'undefined' && M.Modal) {
+            var modalElement = document.getElementById('saleApprovalModal');
+            var modalInstance = M.Modal.getInstance(modalElement);
+            if (modalInstance) {
+                modalInstance.close();
+            }
+        }
+        $('#saleApprovalModal').removeClass('in').css('display', 'none');
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+        
+        // Reset form
+        $('#saleApprovalForm')[0].reset();
+        $('input[name="approval_action"]').parent().removeClass('active');
+        $('#submitSaleApproval').html('<i class="fa fa-check"></i> Submit Decision').prop('disabled', false);
+    }
+
+    // Handle close button for approval modal
+    $(document).on('click', '#saleApprovalModal .modal-close', function(e) {
+        e.preventDefault();
+        closeSaleApprovalModal();
+    });
+
+    // Highlight selected radio button
+    $(document).on('change', 'input[name="approval_action"]', function() {
+        $('input[name="approval_action"]').parent().removeClass('active');
+        $(this).parent().addClass('active');
+    });
+
+    // Open modal when Review button is clicked
+    $(document).on('click', '.approve-sale-btn', function(e) {
+        e.preventDefault();
+        var saleId = $(this).data('sale-id');
+        var saleNumber = $(this).data('sale-number');
+        
+        // Set values in modal
+        $('#approval_sale_id').val(saleId);
+        $('#approval_sale_number').text(saleNumber);
+        
+        // Open modal
+        openSaleApprovalModal();
+    });
+
+    // Submit Sale Approval
+    $('#submitSaleApproval').on('click', function() {
+        var $button = $(this);
+        var saleId = $('#approval_sale_id').val();
+        var action = $('input[name="approval_action"]:checked').val();
+        var remarks = $('#approval_remarks').val().trim();
+        
+        // Validation
+        if (!action) {
+            alert('Please select an action (Approve, Disapprove, or Cancel)');
+            return;
+        }
+        
+        if (!remarks) {
+            alert('Please provide a reason for your decision');
+            $('#approval_remarks').focus();
+            return;
+        }
+        
+        // Confirm action for disapprove/cancel (stock will be restored)
+        if (action == 'DISAPPROVED' || action == 'CANCELLED') {
+            if (!confirm('This will restore the stock to inventory. Are you sure you want to ' + action.toLowerCase() + ' this sale?')) {
+                return;
+            }
+        }
+        
+        // Show loading
+        $button.html('<i class="fa fa-spinner fa-spin"></i> Processing...').prop('disabled', true);
+        
+        // AJAX call
+        $.ajax({
+            url: "<?php echo base_url('stocks_new/accountant_approve_sale'); ?>",
+            type: 'POST',
+            data: {
+                sale_id: saleId,
+                approval_action: action,
+                remarks: remarks
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    closeSaleApprovalModal();
+                    
+                    $('#alert-container').html(
+                        '<div class="alert alert-success alert-dismissible" style="margin-top: 15px;">' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+                        '<h4><i class="icon fa fa-check"></i> Success!</h4>' +
+                        response.message + '<br><small>Page will refresh in 1 second...</small>' +
+                        '</div>'
+                    );
+                    
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1000);
+                } else {
+                    $('#alert-container').html(
+                        '<div class="alert alert-danger alert-dismissible" style="margin-top: 15px;">' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+                        '<h4><i class="icon fa fa-ban"></i> Error!</h4>' +
+                        response.message +
+                        '</div>'
+                    );
+                }
+            },
+            error: function(xhr, status, error) {
+                var errorMsg = 'Could not connect to the server. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
+                }
+                $('#alert-container').html(
+                    '<div class="alert alert-danger alert-dismissible" style="margin-top: 15px;">' +
+                    '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+                    '<h4><i class="icon fa fa-ban"></i> Error!</h4>' +
+                    errorMsg +
+                    '</div>'
+                );
+            },
+            complete: function() {
+                $button.html('<i class="fa fa-check"></i> Submit Decision').prop('disabled', false);
+            }
+        });
+    });
+    // *** END: Sale Approval Modal Functions ***
 
 });
 </script>

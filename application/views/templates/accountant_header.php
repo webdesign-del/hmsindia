@@ -72,22 +72,14 @@
                      <li> <a href="<?php echo base_url(); ?>accounts/accounts">Account Ledger</a> </li>
                   </ul>
                </li>
-               <li>
+               <!-- <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Reports<span class="fa arrow"></span></a>
                   <ul class="nav nav-second-level">
-                     <li> <a href="<?php echo base_url(); ?>accounts/procedure_reports">Procedure</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>accounts/investigation_sales">Investigation</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/sales_report">Medicine Sales Report</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_report">Patient Consumption Report</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_summary">Patient Consumption Summary</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/all_consumption_report">All Consumption Report</a> </li>
-                     <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_stock">Medicine Report (Item Wise)</a> </li> -->
-                     <li> <a href="<?php echo base_url(); ?>accounts/consultation_reports">Consultation</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>accounts/partialpayments_report">Partial</a> </li>
+                   -->
                      <!-- <li><a href="<?php echo base_url(); ?>stocks/patient_items">Patient Consumption</a></li> -->
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/stocks_reports">Live Stocks Report</a> </li> -->
-                  </ul>
-               </li>
+                  <!-- </ul>
+               </li> -->
                <li><a class="waves-effect waves-dark" href="<?php echo base_url(); ?>accounts/reports"><i class="fa fa-sitemap"></i> Revenue Dashboard</a> </li>
                <li>
                   <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Mou<span class="fa arrow"></span></a>
@@ -151,13 +143,19 @@
                   <ul class="nav nav-second-level">
                      <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> All Stock Reports</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/procedure_reports">Procedure</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>accounts/investigation_sales">Investigation</a> </li>
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_stock">Medicine Report (Item Wise)</a> </li> -->
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/sales_report">Medicine Report (Patient Wise)</a> </li>
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_return_report">Medicine Return Report</a> </li> -->
                      <li> <a href="<?php echo base_url(); ?>stocks_new/returns">Medicine Return Report</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>accounts/investigation_sales">Investigation</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/sales">Patient Sales</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/sales_report">Medicine Sales Report</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_report">Patient Consumption Report</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_summary">Patient Consumption Summary</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/all_consumption_report">All Consumption Report</a> </li>
+                     <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_stock">Medicine Report (Item Wise)</a> </li> -->
                      <li> <a href="<?php echo base_url(); ?>accounts/consultation_reports">Consultation</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/partialpayments_report">Partial</a> </li>
+                     
                      <!-- <li><a href="<?php echo base_url(); ?>stocks/patient_items">Patient Consumption</a></li> -->
                      <!-- <li><a href="<?php echo base_url(); ?>stocks/all_consumption">All Consumption</a></li> -->
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/stocks_reports">Live Stocks Report</a> </li> -->

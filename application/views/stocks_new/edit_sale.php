@@ -46,12 +46,179 @@
                                     <?php if(!empty($sale->remarks)): ?>
                                     <p><strong>Payment Remarks:</strong> <?php echo htmlspecialchars($sale->remarks); ?></p>
                                     <?php endif; ?>
+                                    
+                                    <!-- Show Accountant Approval Status -->
+                                    <?php 
+                                    $approval_status = isset($sale->accountant_approval_status) ? $sale->accountant_approval_status : 'PENDING';
+                                    if($sale->status == 'CONFIRMED'): 
+                                    ?>
+                                    <hr>
+                                    <p><strong>Accountant Approval:</strong> 
+                                        <span class="badge <?php 
+                                            echo $approval_status == 'APPROVED' ? 'badge-success' : 
+                                                ($approval_status == 'DISAPPROVED' ? 'badge-danger' : 
+                                                ($approval_status == 'CANCELLED' ? 'badge-secondary' : 'badge-warning')); 
+                                        ?>">
+                                            <?php echo $approval_status; ?>
+                                        </span>
+                                    </p>
+                                    <?php if(isset($sale->accountant_approved_by_name) && !empty($sale->accountant_approved_by_name)): ?>
+                                    <p><strong>Reviewed By:</strong> <?php echo htmlspecialchars($sale->accountant_approved_by_name); ?></p>
+                                    <?php endif; ?>
+                                    <?php if(isset($sale->accountant_approved_at) && !empty($sale->accountant_approved_at)): ?>
+                                    <p><strong>Reviewed On:</strong> <?php echo date('M d, Y h:i A', strtotime($sale->accountant_approved_at)); ?></p>
+                                    <?php endif; ?>
+                                    <?php if(isset($sale->accountant_remarks) && !empty($sale->accountant_remarks)): ?>
+                                    <p><strong>Remarks:</strong> <?php echo htmlspecialchars($sale->accountant_remarks); ?></p>
+                                    <?php endif; ?>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Accountant Approval Section - Only for accountants on CONFIRMED sales with PENDING status -->
+            <?php 
+            $is_accountant = isset($_SESSION['logged_accountant']) && !empty($_SESSION['logged_accountant']);
+            $approval_status = isset($sale->accountant_approval_status) ? $sale->accountant_approval_status : 'PENDING';
+            
+            if($is_accountant && $sale->status == 'CONFIRMED' && $approval_status == 'PENDING'): 
+            ?>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-warning">
+                        <div class="panel-heading">
+                            <i class="fa fa-gavel"></i> <strong>Accountant Review Required</strong>
+                        </div>
+                        <div class="panel-body">
+                            <div class="alert alert-info">
+                                <i class="fa fa-info-circle"></i> 
+                                Please review this invoice carefully and then <strong>Approve</strong>, <strong>Disapprove</strong>, or <strong>Cancel</strong> this sale.
+                            </div>
+                            
+                            <form id="accountantApprovalForm" method="post">
+                                <input type="hidden" name="sale_id" value="<?php echo $sale->id; ?>">
+                                
+                                <div class="form-group">
+                                    <label><strong>Your Decision:</strong></label>
+                                    <div class="row" style="margin-top: 10px;">
+                                        <div class="col-md-4">
+                                            <label class="btn btn-success btn-block approval-btn" style="padding: 20px;">
+                                                <strong style="color:black">APPROVE</strong><br>
+                                                <input type="radio" name="approval_action" value="APPROVED" style="margin-right: 8px;" required>
+                                                <i class="fa fa-check fa-2x"></i><br><br>
+                                                <small>Confirm this sale is valid</small>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="btn btn-danger btn-block approval-btn" style="padding: 20px;">
+                                                <strong style="color:black">DISAPPROVE</strong><br>
+                                                <input type="radio" name="approval_action" value="DISAPPROVED" style="margin-right: 8px;">
+                                                <i class="fa fa-times fa-2x"></i><br><br>
+                                                <small>Reject & restore stock</small>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="btn btn-secondary btn-block approval-btn" style="padding: 20px; background: #6c757d; color: white;">
+                                                <strong style="color:black">CANCEL</strong><br>
+                                                <input type="radio" name="approval_action" value="CANCELLED" style="margin-right: 8px;">
+                                                <i class="fa fa-ban fa-2x"></i><br><br>
+                                                <strong>CANCEL</strong><br>
+                                                <small>Cancel & restore stock</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="approval_remarks"><strong>Remarks / Reason:</strong> <span class="text-danger">*</span></label>
+                                    <textarea name="remarks" id="approval_remarks" class="form-control" rows="3" 
+                                              placeholder="Enter your reason for this decision (required)" required></textarea>
+                                </div>
+                                
+                                <div class="form-group text-right">
+                                    <a href="<?php echo base_url('stocks_new/sales'); ?>" class="btn btn-default">
+                                        <i class="fa fa-arrow-left"></i> Back to Sales
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg" id="submitApprovalBtn">
+                                        <i class="fa fa-check"></i> Submit Decision
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+            $(document).ready(function() {
+                // Highlight selected option
+                $('input[name="approval_action"]').on('change', function() {
+                    $('.approval-btn').removeClass('active').css('opacity', '0.6');
+                    $(this).parent().addClass('active').css('opacity', '1');
+                });
+                
+                // Set initial opacity
+                $('.approval-btn').css('opacity', '0.6');
+                
+                // Form submission
+                $('#accountantApprovalForm').on('submit', function(e) {
+                    e.preventDefault();
+                    
+                    var action = $('input[name="approval_action"]:checked').val();
+                    var remarks = $('#approval_remarks').val().trim();
+                    var saleId = $('input[name="sale_id"]').val();
+                    
+                    if (!action) {
+                        alert('Please select an action (Approve, Disapprove, or Cancel)');
+                        return false;
+                    }
+                    
+                    if (!remarks) {
+                        alert('Please provide a reason for your decision');
+                        $('#approval_remarks').focus();
+                        return false;
+                    }
+                    
+                    // Confirm for disapprove/cancel
+                    if (action == 'DISAPPROVED' || action == 'CANCELLED') {
+                        if (!confirm('This will restore the stock to inventory. Are you sure?')) {
+                            return false;
+                        }
+                    }
+                    
+                    var $btn = $('#submitApprovalBtn');
+                    $btn.html('<i class="fa fa-spinner fa-spin"></i> Processing...').prop('disabled', true);
+                    
+                    $.ajax({
+                        url: '<?php echo base_url("stocks_new/accountant_approve_sale"); ?>',
+                        type: 'POST',
+                        data: {
+                            sale_id: saleId,
+                            approval_action: action,
+                            remarks: remarks
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                alert(response.message);
+                                window.location.href = '<?php echo base_url("stocks_new/sales"); ?>';
+                            } else {
+                                alert('Error: ' + response.message);
+                                $btn.html('<i class="fa fa-check"></i> Submit Decision').prop('disabled', false);
+                            }
+                        },
+                        error: function() {
+                            alert('Error connecting to server. Please try again.');
+                            $btn.html('<i class="fa fa-check"></i> Submit Decision').prop('disabled', false);
+                        }
+                    });
+                });
+            });
+            </script>
+            <?php endif; ?>
             
             <!-- Add Sale Item Form -->
             <?php if($sale->status == 'DRAFT'): ?>

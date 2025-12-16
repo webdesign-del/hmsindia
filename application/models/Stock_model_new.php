@@ -2778,24 +2778,52 @@ class Stock_model_new extends CI_Model
     public function get_all_sales($filters = [])
     {
         try {
-            $this->db->select([
-                // Explicitly list all columns from 'sales' (s)
-                's.id', 's.sale_number', 's.center_id', 's.patient_id', 's.patient_name',
-                's.doctor_id', 's.doctor_name', 's.sale_date', 's.sale_time',
-                's.payment_method', 's.payment_status', 's.utr_transaction_id', 's.payment_image', 's.status', 's.remarks', 's.created_by',
-                's.created_at', 's.updated_at',
-                // Joined column from 'hms_centers'
-                'c.center_name',
-                // Joined column from 'hms_employees' for salesperson name
-                'e.name as salesperson_name',
-                // Recalculated totals from 'sale_items' (si)
-                'COALESCE(COUNT(si.id), 0) as total_items',
-                'COALESCE(SUM(si.quantity_sold), 0) as total_quantity',
-                'COALESCE(SUM(si.subtotal), 0) as subtotal',
-                'COALESCE(SUM(si.discount_amount), 0) as discount_amount',
-                'COALESCE(SUM(si.tax_amount), 0) as tax_amount',
-                'COALESCE(SUM(si.total), 0) as total_amount'
-            ]);
+            // Build select with safe column references (handles missing columns)
+            $select_columns = "
+                s.id, s.sale_number, s.center_id, s.patient_id, s.patient_name,
+                s.doctor_id, s.doctor_name, s.sale_date, s.sale_time,
+                s.payment_method, s.payment_status, s.utr_transaction_id, s.payment_image, 
+                s.status, s.remarks, s.created_by, s.created_at, s.updated_at,
+                c.center_name,
+                e.name as salesperson_name,
+                COALESCE(COUNT(si.id), 0) as total_items,
+                COALESCE(SUM(si.quantity_sold), 0) as total_quantity,
+                COALESCE(SUM(si.subtotal), 0) as subtotal,
+                COALESCE(SUM(si.discount_amount), 0) as discount_amount,
+                COALESCE(SUM(si.tax_amount), 0) as tax_amount,
+                COALESCE(SUM(si.total), 0) as total_amount
+            ";
+            
+            // Check if new columns exist and add them to select
+            $table_fields = $this->db->list_fields('sales');
+            
+            // Payment approval columns
+            if (in_array('payment_approved_by', $table_fields)) {
+                $select_columns .= ", s.payment_approved_by, s.payment_approved_by_name, s.payment_approved_at";
+            } else {
+                $select_columns .= ", NULL as payment_approved_by, NULL as payment_approved_by_name, NULL as payment_approved_at";
+            }
+            
+            if (in_array('payment_rejected_by', $table_fields)) {
+                $select_columns .= ", s.payment_rejected_by, s.payment_rejected_by_name, s.payment_rejected_at";
+            } else {
+                $select_columns .= ", NULL as payment_rejected_by, NULL as payment_rejected_by_name, NULL as payment_rejected_at";
+            }
+            
+            if (in_array('stock_restored', $table_fields)) {
+                $select_columns .= ", s.stock_restored, s.stock_restored_at, s.stock_restored_by";
+            } else {
+                $select_columns .= ", 0 as stock_restored, NULL as stock_restored_at, NULL as stock_restored_by";
+            }
+            
+            // Accountant approval columns
+            if (in_array('accountant_approval_status', $table_fields)) {
+                $select_columns .= ", s.accountant_approval_status, s.accountant_approved_by, s.accountant_approved_by_name, s.accountant_approved_at, s.accountant_remarks";
+            } else {
+                $select_columns .= ", 'PENDING' as accountant_approval_status, NULL as accountant_approved_by, NULL as accountant_approved_by_name, NULL as accountant_approved_at, NULL as accountant_remarks";
+            }
+            
+            $this->db->select($select_columns, FALSE);
             $this->db->from("sales s");
             $this->db->join("hms_centers c", "s.center_id = c.ID", "left");
             $this->db->join("hms_employees e", "s.created_by = e.ID", "left");
@@ -8626,7 +8654,7 @@ public function add_stock_to_location($stock_data)
         }
     }
 
-    public function change_payment_status($sale_id, $new_status, $remark = null, $utr_transaction_id = null, $payment_image_path = null)
+    public function change_payment_status($sale_id, $new_status, $remark = null, $utr_transaction_id = null, $payment_image_path = null, $approved_by = null, $approved_by_name = null)
     {
         // Data to update in an associative array
         $data = [
@@ -8649,12 +8677,186 @@ public function add_stock_to_location($stock_data)
             $data['payment_image'] = $payment_image_path;
         }
         
+        // If payment is APPROVED (PAID), record who approved it and when
+        if ($new_status == 'PAID' && !empty($approved_by)) {
+            $data['payment_approved_by'] = $approved_by;
+            $data['payment_approved_by_name'] = $approved_by_name;
+            $data['payment_approved_at'] = date('Y-m-d H:i:s');
+        }
+        
+        // If payment is REJECTED, record who rejected it
+        if ($new_status == 'REJECTED' && !empty($approved_by)) {
+            $data['payment_rejected_by'] = $approved_by;
+            $data['payment_rejected_by_name'] = $approved_by_name;
+            $data['payment_rejected_at'] = date('Y-m-d H:i:s');
+        }
+        
         // Specify which sale to update (I assume your table is 'sales')
         $this->db->where('id', $sale_id);
         // Run the UPDATE query on the 'sales' table
         $this->db->update('sales', $data);
         // Check if any rows were actually changed
         // This returns true if the update was successful, and false if not.
+        return $this->db->affected_rows() > 0;
+    }
+    
+    /**
+     * Restore stock when a sale payment is CANCELLED or REJECTED
+     * This returns the sold items back to inventory
+     * @param int $sale_id The sale ID to restore stock for
+     * @param int $restored_by Employee ID who performed the restoration
+     * @return array Result with status and message
+     */
+    public function restore_sale_stock($sale_id, $restored_by = null)
+    {
+        $this->db->trans_start();
+        
+        // Get the sale details
+        $sale = $this->get_sale_by_id($sale_id);
+        if (!$sale) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Sale not found.'];
+        }
+        
+        // Only restore stock if sale was CONFIRMED (stock was already reduced)
+        if ($sale->status != 'CONFIRMED') {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Stock can only be restored for confirmed sales.'];
+        }
+        
+        // Get sale items
+        $items = $this->get_sale_items($sale_id);
+        if (empty($items)) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'No items found for this sale.'];
+        }
+        
+        // Validate restored_by - check if employee exists, otherwise use NULL
+        $valid_restored_by = null;
+        if ($restored_by) {
+            $emp_check = $this->db->select('ID')->from('hms_employees')->where('ID', $restored_by)->get()->row();
+            if ($emp_check) {
+                $valid_restored_by = $restored_by;
+            } else {
+                // Try employee_number field
+                $emp_check2 = $this->db->select('ID')->from('hms_employees')->where('employee_number', $restored_by)->get()->row();
+                if ($emp_check2) {
+                    $valid_restored_by = $emp_check2->ID;
+                }
+            }
+        }
+        
+        // Restore stock for each item
+        foreach ($items as $item) {
+            // Get current stock quantity for the log
+            $stock_before = $this->db->select('quantity')
+                                     ->from('center_stocks')
+                                     ->where('batch_id', $item->batch_id)
+                                     ->where('center_id', $sale->center_id)
+                                     ->get()->row();
+            
+            $quantity_before = $stock_before ? (int)$stock_before->quantity : 0;
+            $quantity_after = $quantity_before + (int)$item->quantity_sold;
+            
+            // Restore center stock
+            $this->db->where("batch_id", $item->batch_id);
+            $this->db->where("center_id", $sale->center_id);
+            $this->db->set("quantity", "quantity + " . (int)$item->quantity_sold, false);
+            $this->db->set("last_movement_date", "NOW()", false);
+            $this->db->update("center_stocks");
+            
+            // Restore master batch stock
+            $this->db->where("id", $item->batch_id);
+            $this->db->set("quantity_remaining", "quantity_remaining + " . (int)$item->quantity_sold, false);
+            $this->db->update("medicine_batches");
+            
+            // Log stock movement (SALE_CANCELLED)
+            $movement_data = [
+                "batch_id"          => $item->batch_id,
+                "movement_type"     => "SALE_CANCELLED",
+                "from_location_type"=> "SALE",
+                "from_location_id"  => $sale_id,
+                "to_location_type"  => "CENTER",
+                "to_location_id"    => $sale->center_id,
+                "quantity_before"   => $quantity_before,
+                "quantity_change"   => (int)$item->quantity_sold,
+                "quantity_after"    => $quantity_after,
+                "unit_price"        => $item->unit_price,
+                "total_value"       => $item->total,
+                "reference_type"    => "SALE_CANCELLED",
+                "reference_id"      => $sale_id,
+                "reference_number"  => $sale->sale_number,
+                "patient_id"        => $sale->patient_id,
+                "patient_name"      => $sale->patient_name,
+                "created_by"        => $valid_restored_by,
+                "created_at"        => date('Y-m-d H:i:s'),
+                "remarks"           => "Stock restored due to payment cancellation/rejection"
+            ];
+            $this->db->insert("stock_movements", $movement_data);
+        }
+        
+        // Update the sale status to CANCELLED
+        $this->db->where("id", $sale_id);
+        $this->db->update("sales", [
+            "status" => "CANCELLED",
+            "stock_restored" => 1,
+            "stock_restored_at" => date('Y-m-d H:i:s'),
+            "stock_restored_by" => $valid_restored_by,
+            "updated_at" => date('Y-m-d H:i:s')
+        ]);
+        
+        $this->db->trans_complete();
+        
+        if ($this->db->trans_status()) {
+            return ['status' => 'success', 'message' => 'Stock restored successfully.'];
+        } else {
+            return ['status' => 'error', 'message' => 'Failed to restore stock.'];
+        }
+    }
+    
+    /**
+     * Update accountant approval status for a sale
+     * @param int $sale_id The sale ID
+     * @param string $approval_status APPROVED, DISAPPROVED, or CANCELLED
+     * @param int $accountant_id The accountant's employee ID
+     * @param string $accountant_name The accountant's name
+     * @param string $remarks Remarks for the decision
+     * @return bool True if successful
+     */
+    public function update_accountant_approval($sale_id, $approval_status, $accountant_id, $accountant_name, $remarks = null)
+    {
+        // Validate accountant_id - check if employee exists
+        $valid_accountant_id = null;
+        if ($accountant_id) {
+            $emp_check = $this->db->select('ID')->from('hms_employees')->where('ID', $accountant_id)->get()->row();
+            if ($emp_check) {
+                $valid_accountant_id = $accountant_id;
+            } else {
+                // Try employee_number field
+                $emp_check2 = $this->db->select('ID')->from('hms_employees')->where('employee_number', $accountant_id)->get()->row();
+                if ($emp_check2) {
+                    $valid_accountant_id = $emp_check2->ID;
+                }
+            }
+        }
+        
+        $data = [
+            'accountant_approval_status' => $approval_status,
+            'accountant_approved_by' => $valid_accountant_id,
+            'accountant_approved_by_name' => $accountant_name,
+            'accountant_approved_at' => date('Y-m-d H:i:s'),
+            'accountant_remarks' => $remarks,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+        
+        // If disapproved or cancelled, also update the main status
+        if ($approval_status == 'DISAPPROVED' || $approval_status == 'CANCELLED') {
+            $data['status'] = 'CANCELLED';
+        }
+        
+        $this->db->where('id', $sale_id);
+        $this->db->update('sales', $data);
+        
         return $this->db->affected_rows() > 0;
     }
     /**

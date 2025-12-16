@@ -8854,6 +8854,24 @@ class Stocks_new extends CI_Controller
         $utr_transaction_id = $this->input->post('utr_transaction_id');
         $response = [];
         
+        // Get the current user info for approval tracking
+        $approved_by = null;
+        $approved_by_name = null;
+        
+        if (isset($_SESSION['logged_accountant'])) {
+            $approved_by = $_SESSION['logged_accountant']['employee_number'] ?? null;
+            $approved_by_name = $_SESSION['logged_accountant']['name'] ?? 'Accountant';
+        } elseif (isset($_SESSION['logged_administrator'])) {
+            $approved_by = $_SESSION['logged_administrator']['employee_number'] ?? null;
+            $approved_by_name = $_SESSION['logged_administrator']['name'] ?? 'Administrator';
+        } elseif (isset($_SESSION['logged_billing_manager'])) {
+            $approved_by = $_SESSION['logged_billing_manager']['employee_number'] ?? null;
+            $approved_by_name = $_SESSION['logged_billing_manager']['name'] ?? 'Billing Manager';
+        } else {
+            $approved_by = $this->session->userdata('employee_number');
+            $approved_by_name = $this->session->userdata('name') ?? 'User';
+        }
+        
         // 2. Basic validation
         if (!$sale_id || !$new_status) {
             $response = [
@@ -8903,14 +8921,42 @@ class Stocks_new extends CI_Controller
                 $payment_image_path = 'payment_proofs/' . $upload_data['file_name'];
             }
             
-            // 4. Call the model to update the database
-            $success = $this->Stock_model_new->change_payment_status($sale_id, $new_status, $remark, $utr_transaction_id, $payment_image_path);
+            // 4. If status is CANCELLED or REJECTED, restore the stock first
+            if ($new_status == 'CANCELLED' || $new_status == 'REJECTED') {
+                $restore_result = $this->Stock_model_new->restore_sale_stock($sale_id, $approved_by);
+                
+                if ($restore_result['status'] == 'error') {
+                    // If stock restoration fails, still update payment status but warn user
+                    // This handles cases where sale was DRAFT (stock not yet reduced)
+                    log_message('info', 'Stock restoration skipped or failed for sale ' . $sale_id . ': ' . $restore_result['message']);
+                }
+            }
             
-            // 5. Prepare the JSON response
+            // 5. Call the model to update the database with approval tracking
+            $success = $this->Stock_model_new->change_payment_status(
+                $sale_id, 
+                $new_status, 
+                $remark, 
+                $utr_transaction_id, 
+                $payment_image_path,
+                $approved_by,
+                $approved_by_name
+            );
+            
+            // 6. Prepare the JSON response
             if ($success) {
+                $message = 'Payment status updated to ' . $new_status . ' successfully.';
+                
+                // Add additional info based on status
+                if ($new_status == 'PAID') {
+                    $message .= ' Approved by ' . $approved_by_name . '.';
+                } elseif ($new_status == 'CANCELLED' || $new_status == 'REJECTED') {
+                    $message .= ' Stock has been restored to inventory.';
+                }
+                
                 $response = [
                     'success' => true, 
-                    'message' => 'Payment status updated to ' . $new_status . ' successfully.'
+                    'message' => $message
                 ];
             } else {
                 $response = [
@@ -8920,7 +8966,103 @@ class Stocks_new extends CI_Controller
             }
         }
         
-        // 6. Send the JSON response back to the JavaScript
+        // 7. Send the JSON response back to the JavaScript
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response, JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
+    /**
+     * Accountant Sale Approval - Approve, Disapprove, or Cancel a confirmed sale
+     * Only accessible by accountant role
+     */
+    public function accountant_approve_sale()
+    {
+        // Clean any output buffers
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        $response = [];
+        
+        // Check if user is logged in as accountant
+        if (!isset($_SESSION['logged_accountant']) || empty($_SESSION['logged_accountant'])) {
+            $response = [
+                'success' => false,
+                'message' => 'Unauthorized. Only accountants can approve/disapprove sales.'
+            ];
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($response, JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+        
+        // Get POST data
+        $sale_id = $this->input->post('sale_id');
+        $approval_action = $this->input->post('approval_action'); // APPROVED, DISAPPROVED, CANCELLED
+        $remarks = $this->input->post('remarks');
+        
+        // Validation
+        if (!$sale_id || !$approval_action) {
+            $response = [
+                'success' => false,
+                'message' => 'Sale ID and action are required.'
+            ];
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($response, JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+        
+        if (!in_array($approval_action, ['APPROVED', 'DISAPPROVED', 'CANCELLED'])) {
+            $response = [
+                'success' => false,
+                'message' => 'Invalid action. Must be APPROVED, DISAPPROVED, or CANCELLED.'
+            ];
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($response, JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+        
+        // Get accountant info
+        $accountant_id = $_SESSION['logged_accountant']['employee_number'] ?? null;
+        $accountant_name = $_SESSION['logged_accountant']['name'] ?? 'Accountant';
+        
+        // If DISAPPROVED or CANCELLED, restore stock first
+        if ($approval_action == 'DISAPPROVED' || $approval_action == 'CANCELLED') {
+            $restore_result = $this->Stock_model_new->restore_sale_stock($sale_id, $accountant_id);
+            
+            if ($restore_result['status'] == 'error') {
+                log_message('info', 'Stock restoration note for sale ' . $sale_id . ': ' . $restore_result['message']);
+            }
+        }
+        
+        // Update the sale with accountant approval
+        $result = $this->Stock_model_new->update_accountant_approval(
+            $sale_id,
+            $approval_action,
+            $accountant_id,
+            $accountant_name,
+            $remarks
+        );
+        
+        if ($result) {
+            $action_text = $approval_action == 'APPROVED' ? 'approved' : ($approval_action == 'DISAPPROVED' ? 'disapproved' : 'cancelled');
+            $message = 'Sale has been ' . $action_text . ' by ' . $accountant_name . '.';
+            
+            if ($approval_action == 'DISAPPROVED' || $approval_action == 'CANCELLED') {
+                $message .= ' Stock has been restored to inventory.';
+            }
+            
+            $response = [
+                'success' => true,
+                'message' => $message
+            ];
+        } else {
+            $response = [
+                'success' => false,
+                'message' => 'Failed to update sale approval status.'
+            ];
+        }
+        
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($response, JSON_UNESCAPED_SLASHES);
         exit;
@@ -8948,8 +9090,11 @@ class Stocks_new extends CI_Controller
             exit;
         }
 
-        // Get payment details from database
-        $this->db->select('payment_status, utr_transaction_id, payment_image, remarks, updated_at');
+        // Get payment details from database including approval/rejection info
+        $this->db->select('payment_status, utr_transaction_id, payment_image, remarks, updated_at, 
+                          payment_approved_by, payment_approved_by_name, payment_approved_at,
+                          payment_rejected_by, payment_rejected_by_name, payment_rejected_at,
+                          stock_restored, stock_restored_at, stock_restored_by, status');
         $this->db->from('sales');
         $this->db->where('id', $sale_id);
         $query = $this->db->get();
@@ -8960,10 +9105,20 @@ class Stocks_new extends CI_Controller
                 'success' => true,
                 'data' => [
                     'payment_status' => $sale->payment_status ? $sale->payment_status : 'N/A',
+                    'sale_status' => $sale->status ? $sale->status : 'N/A',
                     'utr_transaction_id' => $sale->utr_transaction_id ? $sale->utr_transaction_id : null,
                     'payment_image' => $sale->payment_image ? $sale->payment_image : null,
                     'remarks' => $sale->remarks ? $sale->remarks : null,
-                    'updated_at' => $sale->updated_at ? date('M d, Y h:i A', strtotime($sale->updated_at)) : null
+                    'updated_at' => $sale->updated_at ? date('M d, Y h:i A', strtotime($sale->updated_at)) : null,
+                    // Approval info
+                    'payment_approved_by_name' => isset($sale->payment_approved_by_name) ? $sale->payment_approved_by_name : null,
+                    'payment_approved_at' => isset($sale->payment_approved_at) && $sale->payment_approved_at ? date('M d, Y h:i A', strtotime($sale->payment_approved_at)) : null,
+                    // Rejection info
+                    'payment_rejected_by_name' => isset($sale->payment_rejected_by_name) ? $sale->payment_rejected_by_name : null,
+                    'payment_rejected_at' => isset($sale->payment_rejected_at) && $sale->payment_rejected_at ? date('M d, Y h:i A', strtotime($sale->payment_rejected_at)) : null,
+                    // Stock restoration info
+                    'stock_restored' => isset($sale->stock_restored) ? $sale->stock_restored : 0,
+                    'stock_restored_at' => isset($sale->stock_restored_at) && $sale->stock_restored_at ? date('M d, Y h:i A', strtotime($sale->stock_restored_at)) : null
                 ]
             ];
         } else {
