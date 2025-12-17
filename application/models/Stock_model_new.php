@@ -1439,7 +1439,6 @@ class Stock_model_new extends CI_Model
             //     $this->db->where('ccs.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
             // }
             $center = null;
-            $department = null;
             if (!empty($_SESSION['logged_billing_manager']) &&
                 ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
                 $center = $_SESSION['logged_billing_manager']['center'];
@@ -1455,7 +1454,7 @@ class Stock_model_new extends CI_Model
             }
             // Filter by department if available
             if ($department !== null && $department !== '') {
-                    if ($department == 'billing') {
+                if ($department == 'billing') {
                     $this->db->like('ccs.department', 'CASH MEDICINE');
                 } else {
                     $this->db->like('ccs.department', $department);
