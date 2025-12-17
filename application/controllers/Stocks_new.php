@@ -9830,7 +9830,27 @@ class Stocks_new extends CI_Controller
                 $items_failed = 0;
                 $error_messages = [];
                 $total_amount = 0;
-                $m_counter = $this->input->post('medicine_name_1') ? [1] : []; // Simple check for first row
+                
+                // Collect all item indices from POST data (fixes bug where only row 1 was processed)
+                $m_counter = [];
+                $i_counter = [];
+                $c_counter = [];
+                foreach ($_POST as $key => $val) {
+                    if (strpos($key, 'medicine_name_') !== false) {
+                        $mid = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
+                        if ($mid > 0) $m_counter[] = $mid;
+                    }
+                    if (strpos($key, 'injections_name_') !== false) {
+                        $iid = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
+                        if ($iid > 0) $i_counter[] = $iid;
+                    }
+                    if (strpos($key, 'consumables_name_') !== false) {
+                        $cid = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
+                        if ($cid > 0) $c_counter[] = $cid;
+                    }
+                }
+                
+                // Process all medicine rows
                 foreach ($m_counter as $mcounte) {
                     if (!empty($_POST['medicine_name_' . $mcounte]) && (int)$_POST['medicine_quantity_' . $mcounte] > 0) {
                         $batch_id = (int)$_POST['medicine_ID_' . $mcounte]; // Your form sends Batch ID in the 'ID' field
@@ -9853,7 +9873,7 @@ class Stocks_new extends CI_Controller
                         }
                     }
                 }
-                $i_counter = $this->input->post('injections_name_1') ? [1] : [];
+                // Process all injection rows
                 foreach ($i_counter as $icounte) {
                     if (!empty($_POST['injections_name_' . $icounte]) && (int)$_POST['injections_quantity_' . $icounte] > 0) {
                         $batch_id = (int)$_POST['injections_ID_' . $icounte];
@@ -9876,7 +9896,7 @@ class Stocks_new extends CI_Controller
                         }
                     }
                 }
-                $c_counter = $this->input->post('consumables_name_1') ? [1] : [];
+                // Process all consumable rows
                 foreach ($c_counter as $ccounte) {
                     if (!empty($_POST['consumables_name_' . $ccounte]) && (int)$_POST['consumables_quantity_' . $ccounte] > 0) {
                         $batch_id = (int)$_POST['consumables_ID_' . $ccounte];

@@ -9100,6 +9100,18 @@ public function add_stock_to_location($stock_data)
             $department = $item_data['department'];
             $quantity = $item_data['quantity'];
             // 1. Get Batch & Stock Details (and lock the rows)
+            // IMPORTANT: Explicitly select ccs.id as center_stock_id to avoid column name conflicts
+            $this->db->select('
+                ccs.id as center_stock_id,
+                ccs.quantity,
+                ccs.batch_id,
+                ccs.center_id,
+                mb.id as batch_id,
+                mb.batch_number,
+                mb.selling_price,
+                m.medicine_name,
+                m.gst_rate
+            ');
             $this->db->from('center_stocks ccs');
             $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id', 'inner');
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
@@ -9145,8 +9157,8 @@ public function add_stock_to_location($stock_data)
                 'total'           => $total_price
             ];
             $this->db->insert('sale_items', $sale_item_data);
-            // 5. Deduct from 'center_stocks'
-            $this->db->where('id', $stock_record->id);
+            // 5. Deduct from 'center_stocks' - use center_stock_id (not id) to avoid column conflicts
+            $this->db->where('id', $stock_record->center_stock_id);
             $this->db->set('quantity', 'quantity - ' . (int)$quantity, FALSE);
             $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
             $this->db->update('center_stocks');
