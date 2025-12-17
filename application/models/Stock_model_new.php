@@ -1431,9 +1431,9 @@ class Stock_model_new extends CI_Model
                 $this->db->where("ccs.status", $status);
             }
 
-            if ($department && $department != "") {
-                $this->db->where("ccs.department", $department);
-            }
+            // if ($department && $department != "") {
+            //     $this->db->where("ccs.department", $department);
+            // }
             // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
             // // if (isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') {
             //     $this->db->where('ccs.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
