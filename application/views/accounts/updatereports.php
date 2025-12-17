@@ -66,10 +66,12 @@ if (isset($_POST['submit'])) {
                 $total_etapr = $res_val->fresh_cycle_etapr + $res_val->thawed_cycle_fetapr;
 				$total_etmay = $res_val->fresh_cycle_etmay + $res_val->thawed_cycle_fetmay; 
 				$total_etjun = $res_val->fresh_cycle_etjun + $res_val->thawed_cycle_fetjun;
-                $total_etjul = $res_val->fresh_cycle_etjul + $res_val->thawed_cycle_jul; 
-				$total_etaug = $res_val->fresh_cycle_etaug + $res_val->thawed_cycle_fetaug;
+             $fresh_et = isset($res_val->fresh_cycle_etjul) ? $res_val->fresh_cycle_etjul : 0;
+$thawed_jul = isset($res_val->thawed_cycle_jul) ? $res_val->thawed_cycle_jul : 0;
+
+$total_etjul = $fresh_et + $thawed_jul;	$total_etaug = $res_val->fresh_cycle_etaug + $res_val->thawed_cycle_fetaug;
 				$total_etsep = $res_val->fresh_cycle_etsep + $res_val->thawed_cycle_fetsep;
-                $total_etoct = $res_val->fresh_cycle_etoct + $res_val->thawed_cycle_fetapr; 
+                $total_etoct = $res_val->fresh_cycle_etoct + $res_val->thawed_cycle_fetoct; 
 				$total_etnov = $res_val->fresh_cycle_etnov + $res_val->thawed_cycle_fetnov;
 				$total_etdec = $res_val->fresh_cycle_etdec + $res_val->thawed_cycle_fetdec;
 				
@@ -93,6 +95,7 @@ if (isset($_POST['submit'])) {
                 $total_opu = $res_val->opu + $res_val->opufeb + $res_val->opumar + $res_val->opuapr + $res_val->opumay + $res_val->opujun + $res_val->opujul + $res_val->opuaug + $res_val->opusep + $res_val->opuoct + $res_val->opunov + $res_val->opudec; 
                 $total_fresh_cycle_et = $res_val->fresh_cycle_et + $res_val->fresh_cycle_etfeb + $res_val->fresh_cycle_etmar + $res_val->fresh_cycle_etapr + $res_val->fresh_cycle_etmay + $res_val->fresh_cycle_etjun + $res_val->fresh_cycle_etjul + $res_val->fresh_cycle_etaug + $res_val->fresh_cycle_etsep + $res_val->fresh_cycle_etoct + $res_val->fresh_cycle_etnov + $res_val->fresh_cycle_etdec;
 			    $total_thawed_cycle_fet = $res_val->thawed_cycle_fet + $res_val->thawed_cycle_fetfeb + $res_val->thawed_cycle_fetmar + $res_val->thawed_cycle_fetapr + $res_val->thawed_cycle_fetmay + $res_val->thawed_cycle_fetjun + $res_val->thawed_cycle_fetjul + $res_val->thawed_cycle_fetaug + $res_val->thawed_cycle_fetsep + $res_val->thawed_cycle_fetoct + $res_val->thawed_cycle_fetnov + $res_val->thawed_cycle_fetdec;
+			    
 				$total_iui = $res_val->iui + $res_val->iuifeb + $res_val->iuimar + $res_val->iuiapr + $res_val->iuimay + $res_val->iuijun + $res_val->iuijul + $res_val->iuiaug + $res_val->iuisep + $res_val->iuioct + $res_val->iuinov + $res_val->iuidec;
 				$total_ivf = $res_val->ivf + $res_val->ivffeb + $res_val->ivfmar + $res_val->ivfapr + $res_val->ivfmay + $res_val->ivfjun + $res_val->ivfjul + $res_val->ivfaug + $res_val->ivfsep + $res_val->ivfoct + $res_val->ivfnov + $res_val->ivfdec;
 				$total_icsi = $res_val->icsi + $res_val->icsifeb + $res_val->icsimar + $res_val->icsiapr + $res_val->icsimay + $res_val->icsijun + $res_val->icsijul + $res_val->icsiaug + $res_val->icsisep + $res_val->icsioct + $res_val->icsinov + $res_val->icsidec;
@@ -116,11 +119,13 @@ if (isset($_POST['submit'])) {
 				$total_male = $res_val->male + $res_val->malefeb + $res_val->malemar + $res_val->maleapr + $res_val->malemay + $res_val->malejun + $res_val->malejul + $res_val->maleaug + $res_val->malesep + $res_val->maleoct + $res_val->malenov + $res_val->maledec;
 				$total_female = $res_val->female + $res_val->femalefeb + $res_val->femalemar + $res_val->femaleapr + $res_val->femalemay + $res_val->femalejun + $res_val->femalejul + $res_val->femaleaug + $res_val->femalesep + $res_val->femaleoct + $res_val->femalenov + $res_val->femaledec;
 				$total_ongoing = $res_val->ongoing + $res_val->ongoingfeb + $res_val->ongoingmar + $res_val->ongoingapr + $res_val->ongoingmay + $res_val->ongoingjun + $res_val->ongoingjul + $res_val->ongoingaug + $res_val->ongoingsep + $res_val->ongoingoct + $res_val->ongoingnov + $res_val->ongoingdec;
-				$total_ivm = $res_val->ivm + $res_val->ivmfeb + $res_val->ivmmar + $res_val->ivmapr + $res_val->ivmmay + $res_val->ivmjun + $res_val->ivmjul + $res_val->ivmaug + $res_val->ivmsep + $res_val->ivmoct + $res_val->ivmsenov + $res_val->ivmdec;
+				$total_ivm = $res_val->ivm + $res_val->ivmfeb + $res_val->ivmmar + $res_val->ivmapr + $res_val->ivmmay + $res_val->ivmjun + $res_val->ivmjul + $res_val->ivmaug + $res_val->ivmsep + $res_val->ivmoct + $res_val->ivmnov + $res_val->ivmdec;
                 //$total_egg_freezing = $res_val->egg_freezing + $res_val->egg_freezingfeb + $res_val->egg_freezingmar + $res_val->egg_freezingapr + $res_val->egg_freezingmay + $res_val->egg_freezingjun + $res_val->egg_freezingjul + $res_val->egg_freezingaug + $res_val->egg_freezingsep + $res_val->egg_freezingoct + $res_val->egg_freezingnov + $res_val->egg_freezingdec;
 				$total_egg_freezing = (float)$res_val->egg_freezing + (float)$res_val->egg_freezingfeb + (float)$res_val->egg_freezingmar + (float)$res_val->egg_freezingapr + (float)$res_val->egg_freezingmay + (float)$res_val->egg_freezingjun + (float)$res_val->egg_freezingjul + (float)$res_val->egg_freezingaug + (float)$res_val->egg_freezingsep + (float)$res_val->egg_freezingoct + (float)$res_val->egg_freezingnov + (float)$res_val->egg_freezingdec;
 				$total_semen_freezing = (float)$res_val->semen_freezing + (float)$res_val->semen_freezingfeb + (float)$res_val->semen_freezingmar + (float)$res_val->semen_freezingapr + (float)$res_val->semen_freezingmay + (float)$res_val->semen_freezingjun + (float)$res_val->semen_freezingjul + (float)$res_val->semen_freezingaug + (float)$res_val->semen_freezingsep + (float)$res_val->semen_freezingoct + (float)$res_val->semen_freezingnov + (float)$res_val->semen_freezingdec;
 				$total_embryo_freezing = (float)$res_val->embryo_freezing + (float)$res_val->embryo_freezingfeb + (float)$res_val->embryo_freezingmar + (float)$res_val->embryo_freezingapr + (float)$res_val->embryo_freezingmay + (float)$res_val->embryo_freezingjun + (float)$res_val->embryo_freezingjul + (float)$res_val->embryo_freezingaug + (float)$res_val->embryo_freezingsep + (float)$res_val->embryo_freezingoct + (float)$res_val->embryo_freezingnov + (float)$res_val->embryo_freezingdec;								
+                $totalet =  $total_et + $total_etfeb + $total_etmar + $total_etapr  + $total_etmay + $total_etjun + $total_etjul + $total_etaug + $total_etsep + $total_etoct + $total_etnov + $total_etdec;
+
 ?>
 <div class="page-wrapper">
 <form class="col-sm-12 col-xs-12" action="" enctype='multipart/form-data' method="post">
@@ -497,7 +502,7 @@ if (isset($_POST['submit'])) {
 								<td><?php echo $total_etsep; ?></td>
 								<td><input placeholder="IUI" name="iuisep" id="iuisep" value="<?php echo $res_val->iuisep; ?>" type="text" class="form-control"></td>
 								<td><input placeholder="IVF" name="ivfsep" id="ivfsep" value="<?php echo $res_val->ivfsep; ?>" type="text" class="form-control"></td>
-								<td><?php echo $res_val->icsiep; ?></td>
+								<td><?php echo $res_val->icsisep; ?></td>
 								<td><input placeholder="TESA/MTESE" name="tesa_mtesesep" id="tesa_mtesesep" value="<?php echo $res_val->tesa_mtesesep; ?>" type="text" class="form-control"></td>
 								<td><input placeholder="DONOR CYCLE" name="donor_cyclesep" id="donor_cyclesep" value="<?php echo $res_val->donor_cyclesep; ?>" type="text" class="form-control"></td>
 								<td><input placeholder="SURROGACY" name="surrogacysep" id="surrogacysep" value="<?php echo $res_val->surrogacysep; ?>" type="text" class="form-control"></td>
@@ -650,7 +655,7 @@ if (isset($_POST['submit'])) {
 								<th><?php echo $total_opu; ?></th>
 								<th><?php echo $total_fresh_cycle_et; ?></th>
 								<th><?php echo $total_thawed_cycle_fet; ?></th>
-								<th></th>
+								<th><?php echo $totalet; ?></th>
 								<th><?php echo $total_iui; ?></th>
 								<th><?php echo $total_ivf; ?></th>
 								<th><?php echo $total_icsi; ?></th>

@@ -1,4 +1,5 @@
  <?php $all_method =&get_instance(); ?>
+
     <div class="col-md-12">
       <div class="card">
 	   <div class="card-action"><h3>Clinical Reports  </h3></div>
@@ -46,7 +47,47 @@
 	   <?php } ?>
         <div class="clearfix"></div>
 	    <div class="card-content">
-          <div class="table-responsive">
+          <div class="table-responsive"><table class="table table-striped table-bordered table-hover" id="procedure_billing_list">
+    <thead>
+        <tr>
+            <th>YEAR</th>
+            <th>TOTAL CONSULTATION</th>
+        </tr>
+    </thead>
+    <tbody id="procedure_result">
+        <?php 
+        // 1. Fetch the Center Name once for the logged-in doctor
+        $center_id = $_SESSION['logged_doctor']['center'];
+        $sql_center = "SELECT center_name FROM hms_centers WHERE center_number = " . $this->db->escape($center_id);
+        $center_query = $this->db->query($sql_center);
+        $center_row = $center_query->row();
+        $center_name = ($center_row) ? $center_row->center_name : "Unknown Center";
+
+        // 2. Fetch Yearly Appointment Statistics
+        $sql2 = "SELECT 
+                    YEAR(`appoitmented_date`) AS appointment_year, 
+                    COUNT(*) AS total_appointments
+                 FROM `hms_appointments` 
+                 WHERE `status` = 'consultation_done' 
+                 AND `appoitment_for` = " . $this->db->escape($center_id) . "
+                 GROUP BY YEAR(`appoitmented_date`)
+                 ORDER BY appointment_year DESC";
+
+        $query = $this->db->query($sql2);
+        $yearly_results = $query->result();  
+
+        // 3. Loop through yearly results to create merged rows
+        foreach ($yearly_results as $row) {
+        ?>
+            <tr class="odd gradeX">
+                <td><a href="updatereports?ID=<?php echo $center_id; ?>&year=<?php echo $row->appointment_year; ?>"><?php echo $row->appointment_year; ?></a></td>
+                
+                <td><?php echo $row->total_appointments; ?></td>
+                
+                </tr>
+        <?php } ?>
+    </tbody>
+</table>
             <table class="table table-striped table-bordered table-hover" id="procedure_billing_list">
               <thead>
                 <tr>
@@ -106,6 +147,7 @@
 				
               </thead>
               <tbody id="procedure_result">
+				
               <?php 
 			    $total_consultations = 0;
 			    $total_tele_consult = 0;
@@ -172,19 +214,22 @@
 				  $total_semen_freezing = (float)$vl['semen_freezing'] + (float)$vl['semen_freezingfeb'] + (float)$vl['semen_freezingmar']+ (float)$vl['semen_freezingapr'] + (float)$vl['semen_freezingmay'] + (float)$vl['semen_freezingjun'] + (float)$vl['semen_freezingjul'] + (float)$vl['semen_freezingaug'] + (float)$vl['semen_freezingsep'] + (float)$vl['semen_freezingoct'] + (float)$vl['semen_freezingnov'] + (float)$vl['semen_freezingdec'];
 				  $total_embryo_freezing = (float)$vl['embryo_freezing'] + (float)$vl['embryo_freezingfeb'] + (float)$vl['embryo_freezingmar']+ (float)$vl['embryo_freezingapr'] + (float)$vl['embryo_freezingmay'] + (float)$vl['embryo_freezingjun'] + (float)$vl['embryo_freezingjul'] + (float)$vl['embryo_freezingaug'] + (float)$vl['embryo_freezingsep'] + (float)$vl['embryo_freezingoct'] + (float)$vl['embryo_freezingnov'] + (float)$vl['embryo_freezingdec'];
 				  $total_consultations_tele_consult = $total_consultations + $total_tele_consult;;
-				  $total_opu_fresh_thawed_cycle_fet = $total_opu + $total_fresh_cycle_et + $total_thawed_cycle_fet;
+				  $total_opu_fresh_thawed_cycle_fet =  $total_fresh_cycle_et + $total_thawed_cycle_fet;
 				  $total_uterine_ovarian_testicular_prp = $total_uterine_prp + $total_ovarian_prp + $total_testicular_prp;
+
+		
 				?>
+				
 				<tr class="odd gradeX">
 				    
-				    <td><?php $sql1 = "SELECT * FROM hms_centers WHERE center_number=".$vl['center']."";
+				    <td><?php  $sql1 = "SELECT * FROM hms_centers WHERE center_number=".$vl['center']."";
 	                 $query = $this->db->query($sql1);
                      $select_result1 = $query->result(); 
                      foreach ($select_result1 as $res_val){ 
                            echo $res_val->center_name;
 					 }
-                     
-		                  
+
+					
 					?></td>
                     
 					 <?php if($_SESSION['logged_embryologist']){ ?>
@@ -201,7 +246,7 @@
 					<td><?php echo $total_embryo_freezing; ?></td>
 					  <?php }else{ ?>
 					<td><a href="<?php base_url(); ?>updatereports?ID=<?php echo $vl['id']; ?>"><?php echo $vl['year']; ?></td>  
-					<td><?php echo $total_consultations; ?></td>
+					<td><?php echo $total_consultations;?> </td>
                     <td><?php echo $total_tele_consult; ?></td>
 			        <td><?php echo $total_consultations_tele_consult; ?></td>
 			        <td><?php echo $total_opu; ?></td>
@@ -237,6 +282,7 @@
 					<td><?php echo $total_embryo_freezing; ?></td>
 					<?php } ?>
 			    </tr>
+				<?php //} ?>
                   <?php  
 				$total_consultations2 += $total_consultations;
 				$total_tele_consult2 += $total_tele_consult;
