@@ -147,7 +147,7 @@
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks/medicine_return_report">Medicine Return Report</a> </li> -->
                      <li> <a href="<?php echo base_url(); ?>stocks_new/returns">Medicine Return Report</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/investigation_sales">Investigation</a> </li>
-                     <li> <a href="<?php echo base_url(); ?>stocks_new/sales">Patient Sales</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/sales">Patient Medicine Sales</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/sales_report">Medicine Sales Report</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_report">Patient Consumption Report</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_summary">Patient Consumption Summary</a> </li>
