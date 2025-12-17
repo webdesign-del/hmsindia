@@ -9099,13 +9099,13 @@ public function add_stock_to_location($stock_data)
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
             $this->db->where('ccs.batch_id', $batch_id);
             $this->db->where('ccs.center_id', $center_id);
-            if ($department !== null && $department !== '') {
-                    if ($department == 'billing') {
-                    $this->db->like('ccs.department', 'CASH MEDICINE');
-                } else {
-                    $this->db->like('ccs.department', $department);
-                }
-            }
+            // if ($department !== null && $department !== '') {
+            //         if ($department == 'billing') {
+            //         $this->db->like('ccs.department', 'CASH MEDICINE');
+            //     } else {
+            //         $this->db->like('ccs.department', $department);
+            //     }
+            // }
             // $this->db->where('ccs.department', $department);
             $this->db->limit(1);
             $stock_record = $this->db->get()->row();
