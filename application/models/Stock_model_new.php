@@ -9172,7 +9172,7 @@ public function add_stock_to_location($stock_data)
                 "movement_type"      => "SALE",
                 "from_location_type" => "CENTER",
                 "from_location_id"   => $center_id,
-                "to_location_type"   => "SALE",
+                "to_location_type"   => "SALE_CONSUMPTION_BILLING",
                 "to_location_id"     => $sale_id,
                 "quantity_before"    => $quantity_before,
                 "quantity_change"    => - (int)$quantity,
@@ -9356,7 +9356,7 @@ public function add_stock_to_location($stock_data)
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
             
             // We only want 'SALE' transactions
-            $this->db->where('sm.movement_type', 'SALE');
+            $this->db->where('sm.movement_type', 'SALE_CONSUMPTION_BILLING');
             
             // Apply filters
             if (!empty($filters['patient_id'])) {
