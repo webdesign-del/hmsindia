@@ -9076,6 +9076,13 @@ public function add_stock_to_location($stock_data)
         // Filters
         $this->db->where('m.category', $category_name);
         $this->db->where('ccs.center_id', $center_id);
+        if ($department !== null && $department !== '') {
+                if ($department == 'billing') {
+                $this->db->like('ccs.department', 'CASH MEDICINE');
+            } else {
+                $this->db->like('ccs.department', $department);
+            }
+        }
         // $this->db->where('ccs.department', $department);
         // Stock checks
         $this->db->where('ccs.quantity >', 0);
