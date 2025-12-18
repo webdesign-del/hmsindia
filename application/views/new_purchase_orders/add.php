@@ -150,6 +150,7 @@
                                                     $itemName   = htmlspecialchars(str_replace('`', "'", $consumable['item_name']), ENT_QUOTES, 'UTF-8');
                                                     $batchNo    = htmlspecialchars(str_replace('`', "'", $consumable['batch_number']), ENT_QUOTES, 'UTF-8');
                                                     $itemNumber = htmlspecialchars($consumable['item_number'], ENT_QUOTES, 'UTF-8');
+                                                    $medicine_code = htmlspecialchars($consumable['medicine_code'], ENT_QUOTES, 'UTF-8');
                                                     $price      = htmlspecialchars($consumable['price'], ENT_QUOTES, 'UTF-8');
                                                     $vendorPrice= htmlspecialchars($consumable['vendor_price'], ENT_QUOTES, 'UTF-8');
                                                     $packSize   = htmlspecialchars($consumable['pack_size'], ENT_QUOTES, 'UTF-8');
@@ -174,7 +175,7 @@
                                                     data-company="<?= $company ?>"
                                                     data-brand="<?= $brand ?>"
                                                     data-vendor-number="<?= $vendorNum ?>">
-                                                    <?= $itemName ?> (<?= $itemNumber ?>)
+                                                    <?= $itemName ?>(<?= $medicine_code ?>) (<?= $itemNumber ?>) 
                                                 </option>
                                             <?php endforeach; ?>
                                         <?php endif; ?>
