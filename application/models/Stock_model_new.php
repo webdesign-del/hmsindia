@@ -9118,6 +9118,8 @@ public function add_stock_to_location($stock_data)
             $this->db->where('ccs.batch_id', $batch_id);
             $this->db->where('ccs.center_id', $center_id);
             $this->db->where('ccs.status','ACTIVE');
+            $this->db->where('ccs.quantity >', 0);  
+            $this->db->order_by('ccs.quantity', 'DESC');
             // if ($department !== null && $department !== '') {
             //         if ($department == 'billing') {
             //         $this->db->like('ccs.department', 'CASH MEDICINE');

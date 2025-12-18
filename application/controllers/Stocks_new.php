@@ -9830,7 +9830,8 @@ class Stocks_new extends CI_Controller
                 $items_failed = 0;
                 $error_messages = [];
                 $total_amount = 0;
-                
+                $processed_batches = []; // Track processed batch IDs to prevent duplicates
+
                 // Collect all item indices from POST data (fixes bug where only row 1 was processed)
                 $m_counter = [];
                 $i_counter = [];
@@ -9849,12 +9850,45 @@ class Stocks_new extends CI_Controller
                         if ($cid > 0) $c_counter[] = $cid;
                     }
                 }
-                
+
                 // Process all medicine rows
                 foreach ($m_counter as $mcounte) {
                     if (!empty($_POST['medicine_name_' . $mcounte]) && (int)$_POST['medicine_quantity_' . $mcounte] > 0) {
-                        $batch_id = (int)$_POST['medicine_ID_' . $mcounte]; // Your form sends Batch ID in the 'ID' field
+                        $batch_id = (int)$_POST['medicine_ID_' . $mcounte];
                         $quantity = (int)$_POST['medicine_quantity_' . $mcounte];
+
+                        // Skip if this batch was already processed
+                        if (in_array($batch_id, $processed_batches)) {
+                            $items_failed++;
+                            $error_messages[] = "Medicine: Duplicate batch ID {$batch_id} found in submission.";
+                            continue;
+                        }
+
+                        // Check if batch has sufficient quantity in center stocks
+                        $this->db->select('ccs.quantity, m.medicine_name, mb.batch_number');
+                        $this->db->from('center_stocks ccs');
+                        $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id', 'inner');
+                        $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+                        $this->db->where('ccs.batch_id', $batch_id);
+                        $this->db->where('ccs.center_id', $center_id);
+                        $this->db->where('ccs.status', 'ACTIVE');
+                        $this->db->where('mb.batch_status', 'ACTIVE');
+                        $this->db->where('mb.expiry_date >', date('Y-m-d'));
+                        $stock_check = $this->db->get()->row();
+
+                        if (!$stock_check) {
+                            $items_failed++;
+                            $error_messages[] = "Medicine: Batch ID {$batch_id} not found or inactive.";
+                            continue;
+                        }
+
+                        if ($stock_check->quantity < $quantity) {
+                            $items_failed++;
+                            $error_messages[] = "Medicine: Insufficient stock for {$stock_check->medicine_name} (Batch: {$stock_check->batch_number}). Available: {$stock_check->quantity}, Requested: {$quantity}.";
+                            continue;
+                        }
+
+                        // Process the item
                         $item_data = [
                             'batch_id'    => $batch_id,
                             'center_id'   => $center_id,
@@ -9867,17 +9901,52 @@ class Stocks_new extends CI_Controller
                         if ($result['status'] == 'success') {
                             $items_processed++;
                             $total_amount += $result['total_price'];
+                            $processed_batches[] = $batch_id; // Mark this batch as processed
                         } else {
                             $items_failed++;
                             $error_messages[] = "Medicine: " . $result['message'];
                         }
                     }
                 }
+
                 // Process all injection rows
                 foreach ($i_counter as $icounte) {
                     if (!empty($_POST['injections_name_' . $icounte]) && (int)$_POST['injections_quantity_' . $icounte] > 0) {
                         $batch_id = (int)$_POST['injections_ID_' . $icounte];
                         $quantity = (int)$_POST['injections_quantity_' . $icounte];
+
+                        // Skip if this batch was already processed
+                        if (in_array($batch_id, $processed_batches)) {
+                            $items_failed++;
+                            $error_messages[] = "Injection: Duplicate batch ID {$batch_id} found in submission.";
+                            continue;
+                        }
+
+                        // Check if batch has sufficient quantity in center stocks
+                        $this->db->select('ccs.quantity, m.medicine_name, mb.batch_number');
+                        $this->db->from('center_stocks ccs');
+                        $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id', 'inner');
+                        $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+                        $this->db->where('ccs.batch_id', $batch_id);
+                        $this->db->where('ccs.center_id', $center_id);
+                        $this->db->where('ccs.status', 'ACTIVE');
+                        $this->db->where('mb.batch_status', 'ACTIVE');
+                        $this->db->where('mb.expiry_date >', date('Y-m-d'));
+                        $stock_check = $this->db->get()->row();
+
+                        if (!$stock_check) {
+                            $items_failed++;
+                            $error_messages[] = "Injection: Batch ID {$batch_id} not found or inactive.";
+                            continue;
+                        }
+
+                        if ($stock_check->quantity < $quantity) {
+                            $items_failed++;
+                            $error_messages[] = "Injection: Insufficient stock for {$stock_check->medicine_name} (Batch: {$stock_check->batch_number}). Available: {$stock_check->quantity}, Requested: {$quantity}.";
+                            continue;
+                        }
+
+                        // Process the item
                         $item_data = [
                             'batch_id'    => $batch_id,
                             'center_id'   => $center_id,
@@ -9890,17 +9959,52 @@ class Stocks_new extends CI_Controller
                         if ($result['status'] == 'success') {
                             $items_processed++;
                             $total_amount += $result['total_price'];
+                            $processed_batches[] = $batch_id; // Mark this batch as processed
                         } else {
                             $items_failed++;
                             $error_messages[] = "Injection: " . $result['message'];
                         }
                     }
                 }
+
                 // Process all consumable rows
                 foreach ($c_counter as $ccounte) {
                     if (!empty($_POST['consumables_name_' . $ccounte]) && (int)$_POST['consumables_quantity_' . $ccounte] > 0) {
                         $batch_id = (int)$_POST['consumables_ID_' . $ccounte];
                         $quantity = (int)$_POST['consumables_quantity_' . $ccounte];
+
+                        // Skip if this batch was already processed
+                        if (in_array($batch_id, $processed_batches)) {
+                            $items_failed++;
+                            $error_messages[] = "Consumable: Duplicate batch ID {$batch_id} found in submission.";
+                            continue;
+                        }
+
+                        // Check if batch has sufficient quantity in center stocks
+                        $this->db->select('ccs.quantity, m.medicine_name, mb.batch_number');
+                        $this->db->from('center_stocks ccs');
+                        $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id', 'inner');
+                        $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+                        $this->db->where('ccs.batch_id', $batch_id);
+                        $this->db->where('ccs.center_id', $center_id);
+                        $this->db->where('ccs.status', 'ACTIVE');
+                        $this->db->where('mb.batch_status', 'ACTIVE');
+                        $this->db->where('mb.expiry_date >', date('Y-m-d'));
+                        $stock_check = $this->db->get()->row();
+
+                        if (!$stock_check) {
+                            $items_failed++;
+                            $error_messages[] = "Consumable: Batch ID {$batch_id} not found or inactive.";
+                            continue;
+                        }
+
+                        if ($stock_check->quantity < $quantity) {
+                            $items_failed++;
+                            $error_messages[] = "Consumable: Insufficient stock for {$stock_check->medicine_name} (Batch: {$stock_check->batch_number}). Available: {$stock_check->quantity}, Requested: {$quantity}.";
+                            continue;
+                        }
+
+                        // Process the item
                         $item_data = [
                             'batch_id'    => $batch_id,
                             'center_id'   => $center_id,
@@ -9913,6 +10017,7 @@ class Stocks_new extends CI_Controller
                         if ($result['status'] == 'success') {
                             $items_processed++;
                             $total_amount += $result['total_price'];
+                            $processed_batches[] = $batch_id; // Mark this batch as processed
                         } else {
                             $items_failed++;
                             $error_messages[] = "Consumable: " . $result['message'];
