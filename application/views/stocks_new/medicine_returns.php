@@ -131,8 +131,8 @@
                                                 <option value="CASH MEDICINE GP">CASH MEDICINE BASANT LOK</option>
                                                 <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
                                                 <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
-                                                <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE  ROHINI</option>
-                                                <option value="CASH MEDICINE GHAZIABAD">HORMONAL ROHINI</option>
+                                                <option value="CASH MEDICINE ROHINI">CASH MEDICINE  ROHINI</option>
+                                                <option value="CASH MEDICINE ROHINI">HORMONAL ROHINI</option>
                                                 <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
                                                 <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
                                                 <option value="Hormonal Delhi">Hormonal Basant Lok</option>
