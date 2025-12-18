@@ -282,9 +282,9 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <button type="button" class="btn btn-success" id="add_audit_item">
+                            <!-- <button type="button" class="btn btn-success" id="add_audit_item">
                                 <i class="fa fa-plus"></i> Add Item (for found stock not listed)
-                            </button>
+                            </button> -->
                         </div>
                     </div>
                     
