@@ -9117,6 +9117,7 @@ public function add_stock_to_location($stock_data)
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
             $this->db->where('ccs.batch_id', $batch_id);
             $this->db->where('ccs.center_id', $center_id);
+            $this->db->where('ccs.status','ACTIVE');
             // if ($department !== null && $department !== '') {
             //         if ($department == 'billing') {
             //         $this->db->like('ccs.department', 'CASH MEDICINE');
