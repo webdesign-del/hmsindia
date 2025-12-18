@@ -316,15 +316,45 @@ class New_purchase_orders extends CI_Controller {
         $logg = checklogin();
         if($logg['status'] == true) {
             $data['title'] = 'View Purchase Order';
-            
+
             $data['purchase_order'] = $this->New_purchase_order_model->get_purchase_order_by_id($id);
             $data['purchase_order_items'] = $this->New_purchase_order_model->get_purchase_order_items($id);
-            
+
             if (!$data['purchase_order']) {
                 $this->session->set_flashdata('error', 'Purchase order not found!');
                 redirect('new_purchase_orders');
             }
-            
+
+            // Get current stock levels for each PO item
+            if (!empty($data['purchase_order_items'])) {
+                $po_center = isset($data['purchase_order']['ship_to']) ? $data['purchase_order']['ship_to'] : null;
+                $center_id=$this->get_center_id_from_number($po_center);
+                $po_department = isset($data['purchase_order']['department']) ? $data['purchase_order']['department'] : null;
+
+                foreach ($data['purchase_order_items'] as &$item) {
+                    // Get medicine_id from medicine name first
+                    $medicine_id = null;
+                    $this->db->select('id');
+                    $this->db->from('medicines');
+                    $this->db->where('medicine_name', $item['item_name']);
+                    $this->db->where('status', 'active');
+                    $medicine_query = $this->db->get();
+                    $medicine_info = $medicine_query->row();
+                    if (!empty($medicine_info)) {
+                        $medicine_id = $medicine_info->id;
+                    }
+                    $current_stock = $this->Stock_model_new->get_center_stocks($center_id, $medicine_id, null, 'ACTIVE', $po_department);
+                    $item['current_quantity'] = 0;
+                    if (!empty($current_stock)) {
+                        foreach ($current_stock as $stock) {
+                            if (isset($stock->quantity)) {
+                                $item['current_quantity'] += $stock->quantity;
+                            }
+                        }
+                    }
+                }
+            }
+
             $template = get_header_template($logg['role']);
             $this->load->view($template['header']);
             $data['employee_detail_number'] = $this->employee_detail_number($data['purchase_order']['created_by']);

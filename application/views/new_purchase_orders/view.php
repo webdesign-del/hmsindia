@@ -168,6 +168,7 @@
                                     <th>Item Number</th>
                                     <th>Quantity Order</th>
                                     <th>Quantity Received</th>
+                                    <th>Current Quantity</th>
                                     <th>Batch</th>
                                     <th>Price</th>
                                     <th>Vendor Price</th>
@@ -188,6 +189,7 @@
                                        <td><?php echo $item['item_number']; ?></td>
                                        <td><?php echo $item['quantity']; ?></td>
                                        <td><?php echo $item['quantity_received']; ?></td>
+                                       <td><?php echo isset($item['current_quantity']) ? $item['current_quantity'] : '0'; ?> units</td>
                                        <td><?php echo $item['batch_number']; ?></td>
                                        <td>₹<?php echo number_format($item['price'], 2); ?></td>
                                        <td>₹<?php echo number_format($item['vendor_price'], 2); ?></td>
