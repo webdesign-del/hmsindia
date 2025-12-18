@@ -191,9 +191,9 @@
                                                 <!-- <button type="button" class="btn btn-xs btn-danger" onclick="updateCenterStockStatus(<?php echo $stock->id; ?>, 'QUARANTINE')">
                                                     <i class="fa fa-ban"></i> Quarantine
                                                 </button> -->
-                                                <button type="button" class="btn btn-xs btn-danger" onclick="deleteCenterStock(<?php echo $stock->id; ?>)">
+                                                <!-- <button type="button" class="btn btn-xs btn-danger" onclick="deleteCenterStock(<?php echo $stock->id; ?>)">
                                                     <i class="fa fa-trash"></i> Delete
-                                                </button>
+                                                </button> -->
                                             </div>
                                         </td>
                                     </tr>
