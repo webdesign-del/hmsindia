@@ -80,7 +80,7 @@
         foreach ($yearly_results as $row) {
         ?>
             <tr class="odd gradeX">
-                <td><a href="updatereports?ID=<?php echo $center_id; ?>&year=<?php echo $row->appointment_year; ?>"><?php echo $row->appointment_year; ?></a></td>
+                <td><!--<a href="updatereports?ID=<?php echo $center_id; ?>&year=<?php echo $row->appointment_year; ?>"></a>--><?php echo $row->appointment_year; ?></td>
                 
                 <td><?php echo $row->total_appointments; ?></td>
                 
