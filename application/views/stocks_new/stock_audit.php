@@ -60,7 +60,7 @@
                             <option value="">All Departments</option>
                             <option value="CASH MEDICINE NOIDA" <?php echo ($selected_department == 'CASH MEDICINE NOIDA') ? 'selected' : ''; ?>>CASH MEDICINE NOIDA</option>
                             <option value="CASH MEDICINE GGN" <?php echo ($selected_department == 'CASH MEDICINE GGN') ? 'selected' : ''; ?>>CASH MEDICINE GGN</option>
-                            <option value="CASH MEDICINE GP" <?php echo ($selected_department == 'CASH MEDICINE GP') ? 'selected' : ''; ?>>CASH MEDICINE BASANT LOK</option>
+                            <option value="CASH MEDICINE BASANT LOK" <?php echo ($selected_department == 'CASH MEDICINE BASANT LOK') ? 'selected' : ''; ?>>CASH MEDICINE BASANT LOK</option>
                             <option value="CASH MEDICINE SRINAGAR" <?php echo ($selected_department == 'CASH MEDICINE SRINAGAR') ? 'selected' : ''; ?>>CASH MEDICINE SRINAGAR</option>
                             <option value="CASH MEDICINE GHAZIABAD" <?php echo ($selected_department == 'CASH MEDICINE GHAZIABAD') ? 'selected' : ''; ?>>CASH MEDICINE GHAZIABAD</option>
                             <option value="CASH MEDICINE ROHINI" <?php echo ($selected_department == 'CASH MEDICINE ROHINI') ? 'selected' : ''; ?>>CASH MEDICINE  ROHINI</option>
