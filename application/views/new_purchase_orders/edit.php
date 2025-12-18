@@ -212,6 +212,7 @@
                                                    $company    = htmlspecialchars($consumable['company'], ENT_QUOTES, 'UTF-8');
                                                    $brand      = htmlspecialchars($consumable['brand_name'], ENT_QUOTES, 'UTF-8');
                                                    $vendorNum  = htmlspecialchars($consumable['vendor_number'], ENT_QUOTES, 'UTF-8');
+                                                   $medicine_code  = htmlspecialchars($consumable['medicine_code'], ENT_QUOTES, 'UTF-8');
                                                  ?>
                                                  <option value="<?= $itemNumber ?>"
                                                    data-item-name="<?= $itemName ?>"
@@ -226,7 +227,7 @@
                                                    data-company="<?= $company ?>"
                                                    data-brand="<?= $brand ?>"
                                                    data-vendor-number="<?= $vendorNum ?>">
-                                                   <?= $itemName ?> (<?= $itemNumber ?>)
+                                                   <?= $itemName ?> (<?= $medicine_code ?>)(<?= $itemNumber ?>)
                                                  </option>
                                              <?php endforeach; ?>
                                           <?php endif; ?>
