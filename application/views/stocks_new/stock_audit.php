@@ -63,7 +63,7 @@
                             <option value="CASH MEDICINE GP" <?php echo ($selected_department == 'CASH MEDICINE GP') ? 'selected' : ''; ?>>CASH MEDICINE BASANT LOK</option>
                             <option value="CASH MEDICINE SRINAGAR" <?php echo ($selected_department == 'CASH MEDICINE SRINAGAR') ? 'selected' : ''; ?>>CASH MEDICINE SRINAGAR</option>
                             <option value="CASH MEDICINE GHAZIABAD" <?php echo ($selected_department == 'CASH MEDICINE GHAZIABAD') ? 'selected' : ''; ?>>CASH MEDICINE GHAZIABAD</option>
-                            <option value="CASH MEDICINE  ROHINI" <?php echo ($selected_department == 'CASH MEDICINE  ROHINI') ? 'selected' : ''; ?>>CASH MEDICINE  ROHINI</option>
+                            <option value="CASH MEDICINE ROHINI" <?php echo ($selected_department == 'CASH MEDICINE ROHINI') ? 'selected' : ''; ?>>CASH MEDICINE  ROHINI</option>
                             <option value="HORMONAL ROHINI" <?php echo ($selected_department == 'HORMONAL ROHINI') ? 'selected' : ''; ?>>HORMONAL ROHINI</option>
                             <option value="Hormonal Ghaziabad" <?php echo ($selected_department == 'Hormonal Ghaziabad') ? 'selected' : ''; ?>>Hormonal Ghaziabad</option>
                             <option value="HORMONAL SRINAGAR" <?php echo ($selected_department == 'HORMONAL SRINAGAR') ? 'selected' : ''; ?>>HORMONAL SRINAGAR</option>
