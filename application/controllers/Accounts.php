@@ -1559,10 +1559,13 @@ public function procedure_reports(){
 			$end_date = $this->input->get('end_date', true);
 			$patient_id = $this->input->get('iic_id', true);
 			$biller_id = $this->input->get('biller_id', true);
+			$clearance = $this->input->get('clearance', true);
+			$consultant = $this->input->get('consultant', true);
+			$accclearance = $this->input->get('accclearance', true);
 			
 			$config = array();
         	$config["base_url"] = base_url() . "accounts/patient_financial_clearance";
-        	$config["total_rows"] = $this->accounts_model->patient_procedure_reports_count($center, $start_date, $end_date, $patient_id, $biller_id);
+        	$config["total_rows"] = $this->accounts_model->patient_procedure_reports_count($center, $start_date, $end_date, $patient_id, $biller_id, $clearance, $consultant, $accclearance);
         	$config["per_page"] = 20;
         	$config["uri_segment"] = 2;
 			$config['use_page_numbers'] = true;
@@ -1573,13 +1576,16 @@ public function procedure_reports(){
         	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
 			
         	$data["links"] = $this->pagination->create_links();
-			$data['procedure_result'] = $this->accounts_model->patient_procedure_reports_list_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $biller_id);
+			$data['procedure_result'] = $this->accounts_model->patient_procedure_reports_list_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $biller_id, $clearance, $consultant, $accclearance);
 			$data["billing_at"] = $center;
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;
 			$data["patient_id"] = $patient_id;
 			$data["payment_method"] = $payment_method;
 			$data["biller_id"] = $biller_id;
+			$data["clearance"] = $clearance;
+			$data["consultant"] = $consultant;
+			$data["accclearance"] = $accclearance;
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
 			$this->load->view('accounts/patient_financial_clearance', $data);
@@ -1866,6 +1872,8 @@ public function procedure_reports(){
 			$start_date = $this->input->get('start_date', true);
 			$end_date = $this->input->get('end_date', true);
 			$patient_id = $this->input->get('iic_id', true);
+			$reason_of_visit = $this->input->get('reason_of_visit', true);
+			$payment_method = $this->input->get('payment_method', true);
 			$export_billing = $this->input->get('export-billing', true);
 			$paid_amount = 0;
 			$discounted_package = 0;
@@ -1909,11 +1917,13 @@ public function procedure_reports(){
         	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
 			
         	$data["links"] = $this->pagination->create_links();
-			$data['consultation_result'] = $this->accounts_model->patient_consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id,$type,$doctor_id=null);
+			$data['consultation_result'] = $this->accounts_model->consultation_report_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id,$reason_of_visit,$payment_method);
 			$data["billing_at"] = $center;
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;
 			$data["patient_id"] = $patient_id;
+			$data["reason_of_visit"] = $reason_of_visit;
+			$data["payment_method"] = $payment_method;
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
 			$this->load->view('accounts/consultation_reports', $data);
@@ -1968,42 +1978,59 @@ public function procedure_reports(){
 					$total_package = $total_package +  (int)$val['totalpackage'];
 					$discounted_package = $discounted_package +  (int)$val['discounted_package'];
 					$billing_at = get_center_name($val['billing_at']);
+					
 					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "'";
                     $select_result = run_select_query($sql);
+                    					
                     $sql3 = "SELECT * FROM hms_appointments WHERE wife_phone='" . $select_result['wife_phone'] . "' and paitent_type='new_patient'";
                     $select_result3 = run_select_query($sql3);
+                    					
                     $sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $select_result3['appoitment_for'] . "'";
                     $select_result4 = run_select_query($sql4);
+                    					
                     $uhid = $select_result4['center_code']."/".$select_result3['uhid'];
+
 					$lead_id = $select_result3['crm_id']; 
 					$lead_source = $select_result3['lead_source']; 
+
 					//$crm_id = get_lead($val['patient_id']);
 					$agent = $select_result3['agent']; 
 					$councellor = $select_result3['councellor']; 
+
+					// 1. INITIALIZE $category BEFORE the main if block to guarantee scope
 					$category = 'not booked'; // Default value (safer than 'not found')
+
 					$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $val['patient_id'] . "'";
 					$select_result4 = run_select_query($sql4);
+
 					// Check if 'data' exists and is not empty before proceeding
 					if (!empty($select_result4['data'])) {
+						
 						$unserialized_data = unserialize($select_result4['data']);
+
 						// 2. CRITICAL FIX: Access the array structure using index [0] for the sub_procedure
 						if (isset($unserialized_data['patient_procedures']['sub_procedure'])) {
+							
 							$sub_procedure = $unserialized_data['patient_procedures']['sub_procedure'];
+							
 							// 3. Use the correct SQL variable ($sql5)
 							$sql5 = "SELECT * FROM hms_procedures WHERE ID='" . $sub_procedure . "'"; 
 							$select_result5 = run_select_query($sql5);
+							
 							// --- Category Determination ---
 							if (!empty($select_result5) && isset($select_result5['category'])) {
 								$category = $select_result5['category']; 
 							} else {
 								$category = 'not found';
 							}
+							
 							// Optional: Echo the booking status if needed
 							if($category == 'IVF with Bed'){
 								echo ' booked';
 							} else {
 								echo ' not booked';
 							}
+							
 						} else {
 							// Procedure data structure exists but 'sub_procedure' is missing.
 							$category = 'data missing';
@@ -2011,7 +2038,9 @@ public function procedure_reports(){
 					} 				
 					$sql1 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$val['doctor_id']."'";
 	                $select_appoint = run_select_query($sql1);
+
 					$doctor = $select_appoint['name'];
+					
 					$lead_arr = array($uhid, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $lead_id, $lead_source, $agent, $councellor, $doctor,$category);
 					fputcsv($fp, $lead_arr);
 				}
@@ -2299,7 +2328,9 @@ public function export_consultation_csv() {
 		}
 	}
 
-	function clearance_procedure($ID){
+
+
+/*	function clearance_procedure($ID){
 		$approved = $this->accounts_model->clearance_procedure($ID);
 		if($approved > 0){
 			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure Clearance!').'&t='.base64_encode('success'));
@@ -2319,7 +2350,222 @@ public function export_consultation_csv() {
 			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure went wrong !').'&t='.base64_encode('error'));
 			die();
 		}
-	}
+	}*/
+
+public function clearance_procedure()
+{
+    $id     = $this->input->post('id');
+    $emails = $this->input->post('emails'); // ARRAY
+
+    if (empty($id) || empty($emails)) {
+        echo 'invalid_request';
+        return;
+    }
+
+    // Fetch row
+    $row = $this->db->where('ID', $id)
+                    ->get('hms_patient_procedure')
+                    ->row_array();
+
+    if (!$row) {
+        echo 'record_not_found';
+        return;
+    }
+
+    // Prevent duplicate clearance
+    if ($row['clearance'] === 'Yes') {
+        echo 'already_done';
+        return;
+    }
+
+    // Update clearance
+    $this->db->where('ID', $id)
+             ->update('hms_patient_procedure', ['clearance' => 'Yes']);
+
+    // ---------- SEND EMAIL ----------
+    $this->load->library('email');
+    $this->email->set_mailtype('html');
+
+    $this->email->from('digital@indiaivf.in', 'India IVF Procedure Financial Clearance');
+    $this->email->to($emails); // ✅ SELECTED EMAILS ONLY
+
+    $this->email->subject(
+        'Financial Clearance Done - Patient ID: ' . $row['patient_id']
+    );
+
+    $message = "
+        <h3>Financial Clearance Completed</h3>
+
+        <table border='1' cellpadding='6' cellspacing='0' width='100%'>
+            <tr>
+                <th>Patient ID</th>
+                <th>Receipt No</th>
+                <th>Billing Date</th>
+                <th>Package Amount</th>
+                <th>Discount</th>
+                <th>Received Amount</th>
+                <th>Procedure</th>
+                <th>Category</th>
+                <th>Clearance By</th>
+            </tr>
+            <tr>
+                <td>{$row['patient_id']}</td>
+                <td>{$row['receipt_number']}</td>
+                <td>{$row['on_date']}</td>
+                <td>{$row['totalpackage']}</td>
+                <td>{$row['discount_amount']}</td>
+                <td>{$row['fees']}</td>
+                <td>{$row['procedure_name']}</td>
+                <td>{$row['category']}</td>
+                <td>{$row['councellor']}</td>
+            </tr>
+        </table>
+
+        <br>
+        <p>India IVF System</p>
+    ";
+
+    $this->email->message($message);
+
+    if ($this->email->send()) {
+        echo 'success';
+    } else {
+        echo $this->email->print_debugger();
+    }
+}
+
+
+public function consultant_procedure()
+{
+    $id     = $this->input->post('id');
+    $emails = $this->input->post('emails'); // ARRAY
+
+    if (empty($id) || empty($emails)) {
+        echo 'invalid_request';
+        return;
+    }
+
+    // Fetch row
+    $row = $this->db->where('ID', $id)
+                    ->get('hms_patient_procedure')
+                    ->row_array();
+
+    if (!$row) {
+        echo 'record_not_found';
+        return;
+    }
+
+    // Prevent duplicate
+    if ($row['consultant'] === 'Done') {
+        echo 'already_done';
+        return;
+    }
+
+    // Update consultant status
+    $this->db->where('ID', $id)
+             ->update('hms_patient_procedure', ['consultant' => 'Done']);
+
+    // ---------- SEND MAIL ----------
+    $this->load->library('email');
+    $this->email->set_mailtype('html');
+
+    $this->email->from('digital@indiaivf.in', 'India IVF Procedure Financial Clearance');
+    $this->email->to($emails); // ✅ ONLY SELECTED EMAILS
+
+    $this->email->subject(
+        'Consultant Clearance Done - Patient ID: ' . $row['patient_id']
+    );
+
+    $message = "
+        <h3>Consultant Clearance Completed</h3>
+
+        <table border='1' cellpadding='6' cellspacing='0' width='100%'>
+            <tr>
+                <th>Patient ID</th>
+                <th>Receipt No</th>
+                <th>Billing Date</th>
+                <th>Procedure</th>
+                <th>Category</th>
+                <th>Consultant Status</th>
+            </tr>
+            <tr>
+                <td>{$row['patient_id']}</td>
+                <td>{$row['receipt_number']}</td>
+                <td>{$row['on_date']}</td>
+                <td>{$row['procedure_name']}</td>
+                <td>{$row['category']}</td>
+                <td>Done</td>
+            </tr>
+        </table>
+
+        <br>
+        <p>India IVF System</p>
+    ";
+
+    $this->email->message($message);
+
+    if ($this->email->send()) {
+        echo 'success';
+    } else {
+        echo $this->email->print_debugger();
+    }
+}
+
+
+public function update_procedure_date()
+{
+    $id             = $this->input->post('id');
+    $procedure_date = $this->input->post('procedure_date');
+    $emails         = $this->input->post('emails'); // array
+
+    if (empty($id) || empty($procedure_date) || empty($emails)) {
+        echo 'invalid_request';
+        return;
+    }
+
+    // Fetch record
+    $row = $this->db->where('ID', $id)
+                    ->get('hms_patient_procedure')
+                    ->row_array();
+
+    if (!$row) {
+        echo 'record_not_found';
+        return;
+    }
+
+    // Update date
+    $this->db->where('ID', $id)->update('hms_patient_procedure', [
+        'procedure_date' => $procedure_date
+    ]);
+
+    // ---------- SEND EMAIL ----------
+    $this->load->library('email');
+    $this->email->set_mailtype('html');
+
+    $this->email->from('digital@indiaivf.in', 'India IVF Procedure Date');
+    $this->email->to($emails); // SEND ONLY TO CHECKED EMAILS
+
+    $this->email->subject(
+        'Procedure Date - Patient ID: ' . $row['patient_id']
+    );
+
+    $this->email->message("
+        <h3>Procedure  Details</h3>
+        <table border='1' cellpadding='6' cellspacing='0'>
+            <tr><th>Patient ID</th><th>Receipt number</th><th>Billing Date & Time</th><th>Package Amount</th><th>Discount Amount</th><th>Discounted Package</th><th>Received Amount</th><th>Procedure</th><th>Code</th><th>Category</th><th>FC / CH Clearance</th><th>Procedure Date:</th></tr>
+            <tr><td>{$row['patient_id']}</td><td>{$row['receipt_number']}</td><td>{$row['on_date']}</td><td>{$row['totalpackage']}</td><td>{$row['discount_amount']}</td><td>{$row['fees']}</td><td>{$row['fees']}</td><td>{$row['procedure_name']}</td><td>{$row['code']}</td><td>{$row['category']}</td><td>{$row['councellor']}</td><td><b>{$procedure_date}</b></td></tr>
+			
+        </table>
+        <br>
+        <p>India IVF System</p>
+    ");
+
+    if ($this->email->send()) {
+        echo 'success';
+    } else {
+        echo $this->email->print_debugger();
+    }
+}
 
 	function nonclearance_procedure($ID){
 		$approved = $this->accounts_model->nonclearance_procedure($ID);
@@ -2446,7 +2692,7 @@ public function tally()
     // ---- Parent sale fields ----
     $formatted = [
         "patient_id"      => $sale["patient_id"],
-     "patient_name" => ($patients_result['wife_name'] ?? '') . ' W/O ' . ($patients_result['husband_name'] ?? ''),
+     	"patient_name" => ($patients_result['wife_name'] ?? '') . ' W/O ' . ($patients_result['husband_name'] ?? ''),
         "billing_center"  => $billing_centers_result['center_name'],
         "booking_center"  => $booking_centers_result['center_name'],
         "origin_center"   => $centers_result['center_name'],
@@ -2689,7 +2935,7 @@ public function investigations_send_tally() {
     }
 }
 
-     public function investigation_tally()
+public function investigation_tally()
 {
     // 1. Security Check
     $logg = checklogin(); 
@@ -2719,7 +2965,7 @@ public function investigations_send_tally() {
     } else {
         // Case B: Direct DB Fetch (Last 50)
         $sql = "SELECT * FROM hms_patient_investigations 
-                WHERE status='approved' AND tally_status='1'
+                WHERE `status`='approved' AND `tally_status`='1'
                 ORDER BY ID DESC LIMIT 50";
         $query = $this->db->query($sql);
         $sales = $query->result_array();
@@ -2794,11 +3040,11 @@ public function investigations_send_tally() {
                                 $price   = isset($item[$keys['price']]) ? (float)$item[$keys['price']] : 0;
                                 $percent = isset($item[$keys['disc']])  ? (float)$item[$keys['disc']]  : 0;
 
-                                $investigation_q = $this->db->query("SELECT * FROM hms_investigation WHERE ID = " . $item[$keys['name']]);
-                                $investigation = $investigation_q->row_array() ?? [];
+								$investigation_q = $this->db->query("SELECT * FROM hms_investigation WHERE ID = " . $item[$keys['name']]);
+								$investigation = $investigation_q->row_array() ?? [];
 
-                                $m_investigation_q = $this->db->query("SELECT * FROM hms_master_investigations WHERE ID = " . $investigation['master_id']);
-                                $m_investigation = $m_investigation_q->row_array() ?? [];
+								$m_investigation_q = $this->db->query("SELECT * FROM hms_master_investigations WHERE ID = " . $investigation['master_id']);
+								$m_investigation = $m_investigation_q->row_array() ?? [];
 
 
                                 // CALCULATION: Convert % to Amount
@@ -2806,7 +3052,7 @@ public function investigations_send_tally() {
 
                                 $formatted["patient_investigations"][] = [
                                     "investigation_name"             => $m_investigation['investigation_name'],
-                                    "investigation_category"             => "",
+									"investigation_category"             => "",
                                     "investigation_code"             => $m_investigation['code'],
                                     "investigation_price"            => $price,
                                     
@@ -2839,6 +3085,134 @@ public function investigations_send_tally() {
     return $this->output
         ->set_content_type('application/json')
         ->set_output(json_encode($response, JSON_PRETTY_PRINT));
+}
+
+public function consultation_send_tally() {
+
+    $payment_ids = $this->input->post('payment_ids');
+
+    if (empty($payment_ids)) {
+        echo json_encode(['success' => false, 'message' => 'No IDs received.']);
+        return;
+    }
+
+    $success_count = 0;
+    $error_count = 0;
+    $already_sent_count = 0; // Track how many were skipped
+
+    foreach ($payment_ids as $id) {
+
+        // 1. Get the current status of THIS specific ID
+        // We select only tally_status to be efficient
+        $this->db->select('tally_status');
+        $this->db->where('ID', $id);
+        $q = $this->db->get('hms_consultation');
+        
+        $row = $q->row_array();
+
+        // 2. CHECK: If row exists AND tally_status is already 1, skip it
+        if (!empty($row) && $row['tally_status'] == '1') {
+            $already_sent_count++;
+            continue; // specific keyword to skip to the next ID in the loop
+        }
+
+        // --- Tally Logic Here ---
+        // Put your actual code to send data to Tally API here.
+        // For now, we assume it is successful.
+        $result = true; 
+
+        if ($result) {
+            $success_count++;
+            // Update the status to 1 so it isn't sent again next time
+            $this->db->where('ID', $id)->update('hms_consultation', ['tally_status' => 1]);
+        } else {
+            $error_count++;
+        }
+    }
+
+    // 3. Build the response message
+    if ($success_count > 0 || $already_sent_count > 0) {
+        
+        $msg = "";
+        
+        if ($success_count > 0) {
+            $msg .= "$success_count records sent successfully. ";
+        }
+        
+        if ($already_sent_count > 0) {
+            $msg .= "($already_sent_count records were already sent). ";
+        }
+
+        if ($error_count > 0) {
+            $msg .= "($error_count failed).";
+        }
+
+        echo json_encode(['success' => true, 'message' => trim($msg)]);
+
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to send records to Tally.']);
+    }
+}
+
+public function consultation_tally() {
+    
+    $q = $this->db->query("SELECT * FROM hms_consultation WHERE status='approved' AND tally_status='1' ORDER BY modified_on DESC LIMIT 20");
+	$payment_rows = $q->result_array();
+
+	$sales_data = []; 
+
+    // 2. Loop through the database results
+    foreach ($payment_rows as $payment_row) {
+        
+       $id = $payment_row['ID'];
+
+        // A. Fetch PROCEDURE details linked to this receipt
+        $receipt_no = $payment_row['receipt_number'];
+
+		$pt_q = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$payment_row['patient_id']]);
+        $patient = $pt_q->row_array() ?? [];
+
+		$appointments_q = $this->db->query("SELECT * FROM hms_appointments WHERE paitent_id = ? AND paitent_type = ?",[$payment_row['patient_id'], 'new_patient']);
+		$appointments = $appointments_q->row_array() ?? [];
+
+		$org_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["origins"]]);
+        $origin = $org_q->row_array() ?? [];
+
+        $bill_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]);
+        $bill_center = $bill_q->row_array() ?? [];
+
+        $book_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]); 
+        $book_center = $book_q->row_array() ?? [];
+
+        $emp_q = $this->db->query("SELECT * FROM hms_employees WHERE employee_number = ?", [$payment_row["biller_id"]]);
+        $employee = $emp_q->row_array() ?? [];
+
+		$doctors_q = $this->db->query("SELECT * FROM hms_doctors WHERE ID = ?", [$payment_row["doctor_id"]]);
+        $doctors = $doctors_q->row_array() ?? [];
+        
+        // C. Build the Record
+        $sales_data[] = [
+            "patient_id"      => $payment_row['patient_id'],
+			"crm_id"      => $appointments['crm_id'] ?? '',
+			"patient_name"    => ($patient['wife_name'] ?? '') . ' W/O ' . ($patient['husband_name'] ?? ''),
+			"billing_id" => $payment_row['billing_id'],
+			"payment_done"  => $payment_row['payment_done'],
+            "billing_center"  => $bill_center['center_name'] ?? 'N/A',
+            "booking_center"  => $book_center['center_name'] ?? 'N/A',
+            "origin_center"   => $origin['center_name'] ?? 'N/A',
+			"doctor_name"   => $doctors['name'] ?? 'N/A',
+            "on_date"         => !empty($payment_row["on_date"]) ? date("d-m-Y h:m:s", strtotime($payment_row["on_date"])) : '',
+            "receipt_number"  => $payment_row["receipt_number"] ?? '',
+            "biller_name"     => $employee['name'] ?? 'N/A',
+            "payment_method"  => $payment_row['payment_method'],
+           	"status" => $payment_row['status']
+		];
+
+    }
+
+    // 3. Return JSON Response
+    header('Content-Type: application/json');
+    echo json_encode(["Sales_Details" => $sales_data], JSON_PRETTY_PRINT);
 }
 
 	public function front_approve($request = NULL){
@@ -8408,7 +8782,7 @@ public function partial_procedure(){
 		if($logg['status'] == true){
 
 			//$per_page = $this->input->get('per_page', true);
-			$center = $this->input->get('billing_at', true);
+			$center_number = $this->input->get('billing_at', true);
 			$payment_method = $this->input->get('payment_method', true);
 			$start_date = $this->input->get('start_date', true);
 			$end_date = $this->input->get('end_date', true);
@@ -9465,6 +9839,34 @@ function assessment_form($patient_id = 0){ // Keep the = 0 fix from before
 			die();
 		}
 	}
+
+
+	public function yearly_monthly_details(){
+	$logg = checklogin();
+    $year   = $this->input->get('year');
+    $center = $_SESSION['logged_doctor']['center'];
+
+    if (empty($year)) {
+        show_error('Invalid Year');
+    }
+
+    $data['year']   = $year;
+    $data['center'] = $center;
+
+    $data['consult_monthly'] = $this->accounts_model
+        ->monthly_consultation($center, $year);
+
+    $data['stem_monthly'] = $this->accounts_model
+        ->monthly_ovarian_stem($center, $year);
+
+    $data['testi_monthly'] = $this->accounts_model
+        ->monthly_testicular_stem($center, $year);
+	$template = get_header_template($logg['role']);
+	$this->load->view($template['header']);
+    $this->load->view('accounts/yearly_monthly_details', $data);
+	$this->load->view($template['footer']);
+}
+
 
 
 } // End of class - MAKE SURE THIS IS THE LAST LINE

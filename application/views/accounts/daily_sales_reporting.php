@@ -340,25 +340,31 @@ $(document).ready(function() {
                     
                 </tr>
                 <?php } ?>
-                         <?php 
-        $medicine_net = 0;
-        $medicine_receive = 0;
-        $medicine_total = 0;
-        $medicine_discount = 0;
-        foreach($medicine_daily_result as $ky => $vl){
-            $medicine_net += round($vl['total_patients'],2);
-            $medicine_receive += round($vl['payment_done'],2);
-            $medicine_total += round($vl['fees'],2);
-            $medicine_discount += round($vl['discount_amount'],2);
-        ?>
-                <tr>
-                    <td>Medicine</td>
-                    <td><input type="text" id="medicine_customer_count" name="medicine_customer_count" value="<?php echo round($vl['total_patients'],2); ?>"></td>
-                    <td><input type="text" id="medicine_amount" name="medicine_amount" value="<?php echo round($vl['total_patients'],2); ?>"></td>
-                    <td><input type="text" id="medicine_bill_count" name="medicine_bill_count" value="<?php echo round($vl['total_payment'],2); ?>"></td>
-                    
-                </tr>
-                <?php } ?>
+                <?php
+$medicine_net      = 0;
+$medicine_receive = 0;
+$medicine_total   = 0;
+$medicine_discount = 0;
+
+if (!empty($medicine_daily_result)) {
+
+    $medicine_net      = round($medicine_daily_result['total_patients'], 2);
+    $medicine_receive = round($medicine_daily_result['total_payment'], 2);
+?>
+<tr>
+    <td>Medicine</td>
+    <td>
+        <input type="text" value="<?php echo $medicine_net; ?>">
+    </td>
+    <td>
+        <input type="text" value="<?php echo $medicine_net; ?>">
+    </td>
+    <td>
+        <input type="text" value="<?php echo $medicine_receive; ?>">
+    </td>
+</tr>
+<?php } ?>
+
                         <?php 
         $investigations_net = 0;
         $investigations_receive = 0;

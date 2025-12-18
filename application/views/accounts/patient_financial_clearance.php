@@ -24,13 +24,36 @@
             	<label>Start Date</label>
               <input type="text" class="particular_date_filter form-control" id="start_date" name="start_date" value="<?php echo $start_date;?>" />
             </div>
-            <div class="col-sm-2 col-xs-12" style="margin-top:10px;">
+            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>End Date</label>
                 <input type="text" class="particular_date_filter form-control" id="end_date" name="end_date" value="<?php echo $end_date;?>" />
             </div>
-            <div class="col-sm-2 col-xs-12" style="margin-top:10px;">
+            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>IIC ID </label>
                 <input type="text" class="form-control" id="iic_id" name="iic_id" value="<?php echo $patient_id;?>" />
+            </div>
+            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            	<label>Clearance by Counsellor</label>
+                <select class="form-control" id="clearance" name="clearance">
+                	<option value=''>--Select From--</option>
+                    <option value="Yes" selected>Yes</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+                <label>Doctor Consultant </label>
+                 <select class="form-control" id="consultant" name="consultant">
+                	<option value=''>--Select From--</option>
+                    <option value="Done" selected>Done</option>
+                </select>
+                </div>
+             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+                <label>Clearance by Accounts</label>
+                 <select class="form-control" id="accclearance" name="accclearance">
+                	<option value=''>--Select From--</option>
+                    <option value="Yes" selected>Yes</option>
+                    <option value="No">No</option>
+                </select>
             </div>
 			<div class="col-sm-1" style="margin-top: 10px;">
             	<button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>
@@ -65,6 +88,10 @@
 				    <th>Procedure</th>
                     <th>Code</th>
                     <th>Category</th>
+                    <?php if (!empty($_SESSION['logged_doctor']['name'])) { ?>
+                     <th>Email</th>
+                     <?php } ?>
+                    <th>Procedure Date</th>
 				    <th>FC / CH Clearance</th>
                     <th>User / Doctor /  Embryologist</th>
                     <th>Account</th>
@@ -115,8 +142,90 @@
 				    <td><?php echo $all_method->get_center_name($vl['origins']); ?></td>
 				    <td><?php echo $vl['procedure_name']; ?></td>
                     <td><?php echo $vl['code']; ?></td>
-                     <td><?php echo $vl['category']; ?></td>
-                    <td><?php 
+                    <td><?php echo $vl['category']; ?></td>
+                    <?php if (!empty($_SESSION['logged_doctor']['name'])) { ?>
+                    <td>
+    <label>
+        <input type="checkbox" class="mail_check"
+               value="deepakdelhi@indiaivf.in"
+               id="mail_1_<?php echo $vl['ID']; ?>">
+        deepakdelhi@indiaivf.in
+    </label><br>
+
+    <label>
+        <input type="checkbox" class="mail_check"
+               value="accounts@indiaivf.in"
+               id="mail_2_<?php echo $vl['ID']; ?>">
+        accounts@indiaivf.in
+    </label><br>
+
+    <label>
+        <input type="checkbox" class="mail_check"
+               value="rahulghaziabad@indiaivf.in"
+               id="mail_3_<?php echo $vl['ID']; ?>">
+        rahulghaziabad@indiaivf.in
+    </label><br>
+
+    <label>
+        <input type="checkbox" class="mail_check"
+               value="digital@indiaivf.in"
+               id="mail_4_<?php echo $vl['ID']; ?>">
+        digital@indiaivf.in
+    </label><br>
+
+    <label>
+        <input type="checkbox" class="mail_check"
+               value="webdesign@indiaivf.in"
+               id="mail_5_<?php echo $vl['ID']; ?>">
+        webdesign@indiaivf.in
+    </label><br>
+
+    
+</td><?php } ?>
+
+                   <td><?php if (!empty($_SESSION['logged_doctor']['name'])) { ?>
+                    <input type="date" id="procedure_date_<?php echo $vl['ID']; ?>" value="<?php echo $vl['procedure_date']; ?>" onchange="updateProcedureDate('<?php echo $vl['ID']; ?>', this.value)">
+<?php }else{ ?>
+                    <?php echo $vl['procedure_date']; } ?>
+</td>
+<?php if (
+    !empty($_SESSION['logged_doctor']['name']) ||
+    !empty($_SESSION['logged_embryologist']['name']) ||
+    !empty($_SESSION['logged_counselor']['name'])
+) { ?>
+<td>
+    <label>
+        <input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>"
+               value="deepakdelhi@indiaivf.in">
+        deepakdelhi@indiaivf.in
+    </label><br>
+
+    <label>
+        <input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>"
+               value="accounts@indiaivf.in">
+        accounts@indiaivf.in
+    </label><br>
+
+    <label>
+        <input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>"
+               value="rahulghaziabad@indiaivf.in">
+        rahulghaziabad@indiaivf.in
+    </label><br>
+
+    <label>
+        <input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>"
+               value="digital@indiaivf.in">
+        digital@indiaivf.in
+    </label><br>
+
+    <label>
+        <input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>"
+               value="webdesign@indiaivf.in">
+        webdesign@indiaivf.in
+    </label>
+</td>
+<?php } ?>
+ <td><?php 
 // 1. Check if Counselor is logged in AND Status is pending (empty)
 if(!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') { 
     
@@ -153,8 +262,7 @@ if(!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') {
 } 
 ?>
                     </td>
-                  <td><?php 
-// 1. First, check if Clearance is 'Yes'
+                  <td><?php
 if ($vl['clearance'] == 'Yes') {
 
     $show_button = false;
@@ -208,30 +316,53 @@ if ($vl['clearance'] == 'Yes') {
 }
 ?>
 </td>
-                   <td><?php 
-                    // 1. If Accountant is logged in AND Status is empty -> Show Buttons
-                    if(!empty($_SESSION['logged_accountant']['name']) && $vl['accclearance'] == '') { 
-                    ?> 
-                        <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="accClearanceProcedure('<?php echo $vl['ID']; ?>')">
-                            <i class="fas fa-check"></i> Clearance
-                        </a>
-                        <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="accNonClearanceProcedure('<?php echo $vl['ID']; ?>')">
-                            <i class="fas fa-times"></i> Non Clearance
-                        </a>
+                   <td><?php
+// Note: This is a reconstructed complete block, assuming it's part of a loop
+// processing individual items (e.g., in a table row).
 
-                    <?php 
-                    } 
-                    // 2. Otherwise (User is not accountant OR Status is already updated) -> Show Text
-                    else { 
-                        if($vl['accclearance'] == '') {
-                            echo '<span class="text-warning">Pending</span>'; // Optional: Show 'Pending' if empty
-                        } else {
-                            // Color code the result for better UI
-                            $color_class = ($vl['accclearance'] == 'Clearance') ? 'text-success' : 'text-danger';
-                            echo '<span class="'.$color_class.'">'.ucwords($vl['accclearance']).'</span>';
-                        }
-                    } 
-                    ?>
+// Outer condition: Only proceed if the current item is marked as a consultant entry.
+if ($vl['consultant'] == 'Done') {
+
+    // 1. If Accountant is logged in AND Status is empty -> Show Buttons
+    // This block is for the Accountant to take action on a pending item.
+    if (!empty($_SESSION['logged_accountant']['name']) && $vl['accclearance'] == '') {
+        ?>
+        
+        <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="accClearanceProcedure('<?php echo $vl['ID']; ?>')">
+            <i class="fas fa-check"></i> Clearance
+        </a>
+        <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="accNonClearanceProcedure('<?php echo $vl['ID']; ?>')">
+            <i class="fas fa-times"></i> Non Clearance
+        </a>
+
+        <?php
+    }
+    
+    // 2. Otherwise (User is not accountant OR Status is already updated) -> Show Text
+    // This block is for displaying the current status (for all users).
+    else {
+        if ($vl['accclearance'] == '') {
+            // Case A: Status is pending (Accountant not logged in, or viewing status cell)
+            echo '<span class="text-warning">Pending</span>'; 
+        } else {
+            // Case B: Status is already set
+            
+            // Determine the appropriate CSS class for color coding
+            $color_class = ($vl['accclearance'] == 'Clearance') ? 'text-success' : 'text-danger';
+            
+            // Display the color-coded status text
+            echo '<span class="'.$color_class.'">'.ucwords($vl['accclearance']).'</span>';
+        }
+    }
+} 
+// If the outer condition is NOT met (e.g., $vl['consultant'] != 'Yes'), 
+// you might add an 'else' here to handle non-consultant entries, e.g.:
+/*
+else {
+    echo '<span class="text-muted">N/A</span>';
+}
+*/
+?>
                 </td>
                 </tr>
               <?php $count++;} ?>
@@ -246,27 +377,54 @@ if ($vl['clearance'] == 'Yes') {
         </div>
       </div>
      </div>
+     <script>
+function ClearanceProcedure(ID) {
+
+    let emails = [];
+
+    $('.mail_check_' + ID + ':checked').each(function () {
+        emails.push($(this).val());
+    });
+
+    if (emails.length === 0) {
+        alert('Please select at least one email');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to approve this Clearance?')) {
+        return;
+    }
+
+    $.ajax({
+        url: '<?php echo base_url("accounts/clearance_procedure"); ?>',
+        type: 'POST',
+        data: {
+            id: ID,
+            emails: emails
+        },
+        success: function (response) {
+
+            if (response === 'success') {
+                alert('Clearance approved and mail sent successfully.');
+                location.reload();
+            } else if (response === 'already_done') {
+                alert('Clearance already completed.');
+            } else {
+                alert(response);
+            }
+
+        },
+        error: function (xhr) {
+            alert('Something went wrong.');
+            console.log(xhr.responseText);
+        }
+    });
+}
+</script>
+
   <script>
     // 1. Function for CLEARANCE
-    function ClearanceProcedure(ID) {
-        if (confirm('Are you sure you want to approve this Clearance?')) {
-            $.ajax({
-                url: '<?php echo base_url("accounts/clearance_procedure/"); ?>' + ID,
-                type: 'POST',
-                success: function(response) {
-                    // You can keep the alert if you want, or remove it for a faster feel
-                    alert('Procedure Clearance successful!'); 
-                    
-                    // --- THIS COMMAND RELOADS THE PAGE ---
-                    location.reload(); 
-                },
-                error: function(xhr, status, error) {
-                    alert('Something went wrong. Please try again.');
-                    console.log(xhr.responseText);
-                }
-            });
-        }
-    }
+   
 
     // 2. Function for NON-CLEARANCE
     function NonClearanceProcedure(ID) {
@@ -289,29 +447,53 @@ if ($vl['clearance'] == 'Yes') {
         }
     }
 </script>  
+<script>
+function consultantProcedure(ID) {
 
- <script>
-    // 1. Function for CLEARANCE
-    function consultantProcedure(ID) {
-        if (confirm('Are you sure you want to approve this Clearance?')) {
-            $.ajax({
-                url: '<?php echo base_url("accounts/consultant_procedure/"); ?>' + ID,
-                type: 'POST',
-                success: function(response) {
-                    // You can keep the alert if you want, or remove it for a faster feel
-                    alert('Procedure consultant successful!'); 
-                    
-                    // --- THIS COMMAND RELOADS THE PAGE ---
-                    location.reload(); 
-                },
-                error: function(xhr, status, error) {
-                    alert('Something went wrong. Please try again.');
-                    console.log(xhr.responseText);
-                }
-            });
-        }
+    let emails = [];
+
+    $('.mail_check_' + ID + ':checked').each(function () {
+        emails.push($(this).val());
+    });
+
+    if (emails.length === 0) {
+        alert('Please select at least one email');
+        return;
     }
 
+    if (!confirm('Are you sure you want to approve this Consultant Clearance?')) {
+        return;
+    }
+
+    $.ajax({
+        url: '<?php echo base_url("accounts/consultant_procedure"); ?>',
+        type: 'POST',
+        data: {
+            id: ID,
+            emails: emails
+        },
+        success: function (response) {
+
+            if (response === 'success') {
+                alert('Consultant clearance done and mail sent.');
+                location.reload();
+            } else if (response === 'already_done') {
+                alert('Consultant clearance already completed.');
+            } else {
+                alert(response);
+            }
+
+        },
+        error: function (xhr) {
+            alert('Something went wrong.');
+            console.log(xhr.responseText);
+        }
+    });
+}
+</script>
+
+ <script>
+  
     // 2. Function for NON-CLEARANCE
     function accClearanceProcedure(ID) {
         if (confirm('Are you sure you want to mark this as Non-Clearance?')) {
@@ -353,7 +535,49 @@ if ($vl['clearance'] == 'Yes') {
             });
         }
     }
-</script>  
+</script> 
+<script>
+function updateProcedureDate(id) {
+
+    let date = $('#procedure_date_' + id).val();
+
+    if (!date) {
+        alert('Please select procedure date');
+        return;
+    }
+
+    let emails = [];
+    $('#mail_1_' + id + ':checked, #mail_2_' + id + ':checked, #mail_3_' + id + ':checked, #mail_4_' + id + ':checked, #mail_5_' + id + ':checked')
+        .each(function () {
+            emails.push($(this).val());
+        });
+
+    if (emails.length === 0) {
+        alert('Please select at least one email');
+        return;
+    }
+
+    $.ajax({
+        url: '<?php echo base_url("accounts/update_procedure_date"); ?>',
+        type: 'POST',
+        data: {
+            id: id,
+            procedure_date: date,
+            emails: emails
+        },
+        success: function(response) {
+            if (response === 'success') {
+                alert('Date saved and email sent successfully.');
+            } else {
+                alert(response);
+            }
+        }
+    });
+}
+</script>
+
+
+
 <style >
 .custom-pagination{
   padding:8px;
@@ -369,6 +593,12 @@ if ($vl['clearance'] == 'Yes') {
 .form-control#billing_at{
   height: 40px!important;
   border: 1px solid #9e9e9e!important;
+}
+[type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+    position: unset;
+    left: -9999px;
+    opacity: 1;
+    /* display: block; */
 }
 </style>
 <script>

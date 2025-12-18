@@ -1015,25 +1015,25 @@ class Accounts_model extends CI_Model
         $this->db->query($sql);
         return $this->db->affected_rows();
 	}
-
+/*
 	function clearance_procedure($ID){
 		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `clearance`='Yes', `clearance_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
         $this->db->query($sql);
         return $this->db->affected_rows();
 	}
-
+*/
 	function nonclearance_procedure($ID){
 		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `clearance`='No', `clearance_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
         $this->db->query($sql);
         return $this->db->affected_rows();
 	}
-
+/*
 	function consultant_procedure($ID){
 		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `consultant`='Done', `consultant_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
         $this->db->query($sql);
         return $this->db->affected_rows();
 	}
-	
+*/	
 	function accclearance_procedure($ID){
 		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `accclearance`='Yes', `accclearance_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
         $this->db->query($sql);
@@ -3407,6 +3407,42 @@ function get_available_lead_sources_for_consultations(){
 		return $consultation_result;
 	}
 	
+function consultation_report_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $reason_of_visit,$payment_method) {
+    // Calculate offset for pagination
+    $offset = empty($page) || $page <= 1 ? 0 : ($page - 1) * $limit;
+
+    // --- Build Conditions Securely using '?' Placeholders ---
+    $conditions = '';
+    
+	if (!empty($center)) {
+        $conditions .= " AND center='$center'";
+    }
+    if (!empty($patient_id)) {
+        $conditions .= " AND patient_id='$patient_id'";
+    }
+    if (!empty($reason_of_visit)){
+			$conditions .= " and reason_of_visit='$reason_of_visit'";
+	}
+	if (!empty($payment_method)){
+			$conditions .= " and payment_method='$payment_method'";
+	}
+    // Secure Date Filtering (with typo correction)
+   if (!empty($start_date) && !empty($end_date)){
+		$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
+	}
+	else if (!empty($start_date) && empty($end_date)){
+		$conditions .= " and on_date='$start_date'";			
+	}
+	else if (empty($start_date) && !empty($end_date)){
+		$conditions .= " and on_date='$end_date'";
+	}
+	
+    $consultation_sql = "Select * from ".$this->config->item('db_prefix')."consultation where 1".$conditions." order by on_date desc limit ". $limit." OFFSET ".$offset."";
+	$consultation_q = $this->db->query($consultation_sql);
+	$consultation_result = $consultation_q->result_array();
+	return $consultation_result;
+}
+
 	function export_registration_data($start, $end, $center, $status){
 		$registration_result = $response = array();
         $conditions = '';
@@ -6291,12 +6327,29 @@ function get_counselor_name($appointment_id) {
         return ''; // return empty string instead of array
     }
 }
-
-private function _get_common_conditions($center, $start_date, $end_date) {
-    $conditions = " AND status IN ('Pending', 'approved')";
+public function get_center_id($data)
+    {
+       $data ="Select c.ID from hms_centers as c where c.center_number='".$data."'";
+        $center = $this->db->query($data)->row();
+        return $center ? $center->ID : null;
+    }
+// 1. Helper Function: Added $center_col parameter
+private function _get_common_conditions(
+    $center, 
+    $start_date, 
+    $end_date, 
+    $center_col = 'billing_at', 
+    $date_col = 'on_date',
+    $status_col = 'status', // Added for status column
+    $status_values = ['Pending', 'approved'] // Added for status values
+) {
+    // 1. Initial Status Condition: Use dynamic arguments
+    // Use implode to correctly format the list: ('PENDING', 'APPROVED')
+    $status_string = "'" . implode("','", $status_values) . "'";
+    $conditions = " AND $status_col IN ($status_string)";
     $bindings = [];
 
-    // Center Logic: Use argument first, then session fallback
+    // --- Center Logic ---
     if (empty($center)) {
         if (isset($_SESSION['logged_billing_manager']['center'])) {
             $center = $_SESSION['logged_billing_manager']['center'];
@@ -6304,26 +6357,29 @@ private function _get_common_conditions($center, $start_date, $end_date) {
             $center = $_SESSION['logged_counselor']['center'];
         }
     }
+	$center_id= $this->get_center_id($center);
+
+	//var_dump($center_id);die();
     
     if (!empty($center)) {
-        $conditions .= " AND billing_at = ?";
+        $conditions .= " AND $center_col = ?";
         $bindings[] = $center;
     }
 
-    // Date Logic: Prioritize custom dates, fallback to today
+    // --- Date Logic (Using dynamic $date_col) ---
     if (!empty($start_date) && !empty($end_date)) {
-        $conditions .= " AND on_date BETWEEN ? AND ?";
+        $conditions .= " AND $date_col BETWEEN ? AND ?";
         $bindings[] = $start_date;
         $bindings[] = $end_date;
     } elseif (!empty($start_date)) {
-        $conditions .= " AND on_date = ?";
+        $conditions .= " AND $date_col = ?";
         $bindings[] = $start_date;
     } elseif (!empty($end_date)) {
-        $conditions .= " AND on_date = ?";
+        $conditions .= " AND $date_col = ?";
         $bindings[] = $end_date;
     } else {
-        // Default to today if no dates provided
-        $conditions .= " AND on_date >= CURDATE() AND on_date < CURDATE() + INTERVAL 1 DAY";
+        // Default to today
+        $conditions .= " AND $date_col >= CURDATE() AND $date_col < CURDATE() + INTERVAL 1 DAY";
     }
 
     return ['sql' => $conditions, 'bindings' => $bindings];
@@ -6331,16 +6387,42 @@ private function _get_common_conditions($center, $start_date, $end_date) {
 
 // 2. Dashboard Functions using the helper
 
-function dashboard_medicine_daily_sales($center, $start_date, $end_date) {
-    $data = $this->_get_common_conditions($center, $start_date, $end_date);
-    $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment 
-            FROM hms_patient_medicine WHERE 1 " . $data['sql'];
-    $q = $this->db->query($sql, $data['bindings']);
-    return $q->result_array();
+function dashboard_medicine_daily_sales($center, $start_date, $end_date)
+{
+    // Convert center code/name to numeric ID
+    if (empty($center)) {
+        if (isset($_SESSION['logged_billing_manager']['center'])) {
+            $center = $_SESSION['logged_billing_manager']['center'];
+        } elseif (isset($_SESSION['logged_counselor']['center'])) {
+            $center = $_SESSION['logged_counselor']['center'];
+        }
+    }
+	$center_id= $this->get_center_id($center);
+
+	//var_dump($center_id);
+
+    $sql = "
+        SELECT 
+            COALESCE(COUNT(DISTINCT patient_id), 0) AS total_patients,
+            COALESCE(SUM(total_amount), 0) AS total_payment
+        FROM sales
+        WHERE accountant_approval_status IN ('PENDING','APPROVED')
+        AND status='CONFIRMED' AND center_id = ?
+        AND sale_date >= CONCAT(CURDATE(), ' 00:00:00')
+        AND sale_date <= CONCAT(CURDATE(), ' 23:59:59')
+    ";
+
+    $q = $this->db->query($sql, [(int)$center_id]);
+    return $q->row_array();
 }
 
+
+
+
 function dashboard_investigation_daily_sales($center, $start_date, $end_date) {
-    $data = $this->_get_common_conditions($center, $start_date, $end_date);
+    // PASS 'billing_at' (or whatever column hms_patient_investigations uses)
+    $data = $this->_get_common_conditions($center, $start_date, $end_date, 'billing_at');
+    
     $sql = "SELECT COUNT(patient_id) AS total_patients, SUM(payment_done) AS total_payment 
             FROM hms_patient_investigations WHERE 1 " . $data['sql'];
     $q = $this->db->query($sql, $data['bindings']);
@@ -6406,8 +6488,18 @@ function dashboard_partial_daily_sales_report($center, $start_date, $end_date) {
 }
 
 function dashboard_medicine_reports_list_patination($center, $start_date, $end_date) {
-    $data = $this->_get_common_conditions($center, $start_date, $end_date);
-    $sql = "SELECT * FROM " . $this->config->item('db_prefix') . "patient_medicine WHERE 1 " . $data['sql'];
+	 if (empty($center)) {
+        if (isset($_SESSION['logged_billing_manager']['center'])) {
+            $center = $_SESSION['logged_billing_manager']['center'];
+        } elseif (isset($_SESSION['logged_counselor']['center'])) {
+            $center = $_SESSION['logged_counselor']['center'];
+        }
+    }
+	$center_id= $this->get_center_id($center);
+
+	var_dump($center_id);
+    $data = $this->_get_common_conditions($center, $start_date, $end_date, 'center_id', 'sale_date');
+   echo $sql = "SELECT * FROM sales WHERE 1 " . $data['sql'];
     $q = $this->db->query($sql, $data['bindings']);
     return $q->result_array();
 }
@@ -6702,7 +6794,7 @@ function assessment_form_insert_payment($patient_id, $data) {
 		return $wallet_result;
 	}
 
-	function patient_procedure_reports_count($center, $start_date, $end_date, $patient_id, $biller_id){
+	function patient_procedure_reports_count($center, $start_date, $end_date, $patient_id, $biller_id, $clearance, $consultant, $accclearance){
 		$procedure_result = array();
 		$conditions = '';
 		if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
@@ -6717,6 +6809,15 @@ function assessment_form_insert_payment($patient_id, $data) {
 		}
 		if (!empty($patient_id)){
 			$conditions .= " and patient_id='$patient_id'";
+		}
+		if (!empty($clearance)){
+			$conditions .= " and clearance='$clearance'";
+		}
+		if (!empty($consultant)){
+			$conditions .= " and consultant='$consultant'";
+		}
+		if (!empty($accclearance)){
+			$conditions .= " and accclearance='$accclearance'";
 		}
 		if (!empty($start_date) && !empty($end_date)){
 			$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
@@ -6734,7 +6835,7 @@ function assessment_form_insert_payment($patient_id, $data) {
 		
 	}
 
-	function patient_procedure_reports_list_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $biller_id){
+	function patient_procedure_reports_list_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $biller_id, $clearance, $consultant, $accclearance){
 		$procedure_result = array();
 		$conditions = '';
 		if(empty($page)){
@@ -6754,6 +6855,15 @@ function assessment_form_insert_payment($patient_id, $data) {
 		}
 		if (!empty($patient_id)){
 			$conditions .= " and patient_id='$patient_id'";
+		}
+		if (!empty($clearance)){
+			$conditions .= " and clearance='$clearance'";
+		}
+		if (!empty($consultant)){
+			$conditions .= " and consultant='$consultant'";
+		}
+		if (!empty($accclearance)){
+			$conditions .= " and accclearance='$accclearance'";
 		}
 		if (!empty($start_date) && !empty($end_date)){
 			//$conditions .= " and on_date >='$start_date' and  on_date <= '$end_date'";
@@ -6798,6 +6908,58 @@ function assessment_form_insert_payment($patient_id, $data) {
 		// This ensures the data is ALWAYS a list (Array of Arrays), even if there is only 1 row.
 		return $q->result_array(); 
 	}
+
+	public function monthly_consultation($center, $year)
+{
+    $sql = "
+        SELECT 
+            MONTH(appoitmented_date) AS month,
+            MONTHNAME(appoitmented_date) AS month_name,
+            COUNT(*) AS total
+        FROM hms_appointments
+        WHERE status = 'consultation_done'
+        AND appoitment_for = ?
+        AND YEAR(appoitmented_date) = ?
+        GROUP BY MONTH(appoitmented_date)
+        ORDER BY MONTH(appoitmented_date)
+    ";
+    return $this->db->query($sql, [$center, $year])->result_array();
+}
+
+public function monthly_ovarian_stem($center, $year)
+{
+    $sql = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            MONTHNAME(date_of_procedure) AS month_name,
+            COUNT(*) AS total
+        FROM ovarian_prp_discharge_summary
+        WHERE procedure_name = 'STEM CELL'
+        AND center = ?
+        AND YEAR(date_of_procedure) = ?
+        GROUP BY MONTH(date_of_procedure)
+        ORDER BY MONTH(date_of_procedure)
+    ";
+    return $this->db->query($sql, [$center, $year])->result_array();
+}
+
+public function monthly_testicular_stem($center, $year)
+{
+    $sql = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            MONTHNAME(date_of_procedure) AS month_name,
+            COUNT(*) AS total
+        FROM testicular_prp_discharge_summary
+        WHERE procedures = 'Testicular Stem Cell'
+        AND center = ?
+        AND YEAR(date_of_procedure) = ?
+        GROUP BY MONTH(date_of_procedure)
+        ORDER BY MONTH(date_of_procedure)
+    ";
+    return $this->db->query($sql, [$center, $year])->result_array();
+}
+
     
 
 }

@@ -18,7 +18,7 @@
 		                        echo '<option value="'.$val['center_number'].'">'.$val['center_name'].'</option>';
                           }
                     	  } 
-					    ?>
+					    ?>a
                 </select>
             </div>
 			<div class="col-sm-3 col-xs-12" style="margin-top:10px;">
@@ -61,10 +61,16 @@
        <div class="clearfix"></div>
         <div class="card-content">
           <div class="table-responsive">
+			<div class="action-buttons">
+            <button id="selectAllBtn" class="btn btn-default">Select All</button>
+            <button id="deselectAllBtn" class="btn btn-default">Deselect All</button>
+            <button id="sendToTallyBtn" class="btn btn-primary">Send Selected to Tally</button>
+        </div>
             <table class="table table-sriped table-bordered table-hover" id="consultation_billing_list">
               <thead>
                 <tr>
                   <th>S.No.</th>
+					<th></th>
                   <th>IIC ID</th>
                   <th>Patient name</th>
                   <th>Receipt number</th>
@@ -84,6 +90,8 @@
 			   ?>
                 <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
+				   <td>  <?php if($vl['status'] == 'approved') { ?><input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>"><?php } ?></td>
+                 
                   <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
                   <td><?php $patient_name = $all_method->get_patient_name($vl['patient_id']); echo strtoupper($patient_name); ?></td>
                   <td><a href="<?php echo base_url(); ?>accounts/details/<?php echo $vl['receipt_number']?>?t=consultation"><?php echo $vl['receipt_number']?></a></td>
@@ -317,6 +325,11 @@
 		a.now_cancle.btn.btn-large {
 			margin: 10px 0px;
 		}
+		 [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+      position: static;
+      left: -9999px;
+      opacity: 1;
+    }
 	</style>
      <script>
     $(document).on('click','a.xyx',function(){
@@ -393,25 +406,24 @@
 		});	
     </script>
 	<script type="text/javascript">
-    function approveConsultation(ID) {
-        if (confirm('Are you sure you want to approve this order?')) {
-            $.ajax({
-                url: '<?php echo base_url('accounts/approve_consultation/'); ?>' + ID,
-                type: 'POST', // Use 'POST' if necessary
-                success: function(response) {
-                    // Success handling, for example, show an alert and update the UI
-                    alert('Consultation approved successfully!');
-                    // Optionally, update the UI (like changing button text or removing the row)
-                    // $("#row_" + orderNumber).remove(); // If you want to remove the row
-                },
-                error: function(xhr, status, error) {
-                    // Handle the error, display an error message
-                    alert('Something went wrong. Please try again.');
-                    console.log(xhr.responseText); // For debugging
-                }
-            });
-        }
+   function approveConsultation(ID) {
+    if (confirm('Are you sure you want to approve this order?')) {
+        $.ajax({
+            url: '<?php echo base_url('accounts/approve_consultation/'); ?>' + ID,
+            type: 'POST',
+            success: function(response) {
+                alert('Consultation approved successfully!');
+               location.reload();
+
+            },
+            error: function(xhr, status, error) {
+                alert('Something went wrong. Please try again.');
+                console.log(xhr.responseText);
+            }
+        });
     }
+}
+
 </script>
 <script>
       $( function() {
@@ -426,6 +438,72 @@
           }
         });
     });
+</script>
+<script type="text/javascript">
+$(document).ready(function() {
+
+    // 1. Logic for "Select All"
+    $('#selectAllBtn').click(function() {
+        $('.rowCheckbox').prop('checked', true);
+    });
+
+    // 2. Logic for "Deselect All"
+    $('#deselectAllBtn').click(function() {
+        $('.rowCheckbox').prop('checked', false);
+    });
+
+    // 3. Logic for "Send to Tally"
+    $('#sendToTallyBtn').click(function() {
+        var btn = $(this);
+        var selectedIds = [];
+
+        // Gather all checked checkboxes
+        $('.rowCheckbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        // Validation: Check if anything is selected
+        if(selectedIds.length === 0) {
+            alert('Please select at least one record to send to Tally.');
+            return;
+        }
+
+        if(!confirm('Are you sure you want to send ' + selectedIds.length + ' records to Tally?')) {
+            return;
+        }
+
+        // Change button state to indicate loading
+        var originalText = btn.html();
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Sending...');
+
+        // 4. AJAX Request to your specific URL
+        $.ajax({
+            url: '<?php echo base_url("accounts/consultation_send_tally"); ?>', // Maps to your URL
+            type: 'POST',
+            data: {
+                payment_ids: selectedIds // Sending the array of IDs
+            },
+            dataType: 'json', // Expecting JSON response from controller
+            success: function(response) {
+                if(response.success) {
+                    alert('Success: ' + response.message);
+                    // Optional: Reload page to update status
+                    // location.reload(); 
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Server Error: Failed to connect to Tally endpoint.');
+                console.error(xhr.responseText);
+            },
+            complete: function() {
+                // Reset button
+                btn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+});
 </script>
 <style >
 .custom-pagination{

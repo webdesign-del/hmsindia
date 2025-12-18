@@ -52,42 +52,108 @@
         <tr>
             <th>YEAR</th>
             <th>TOTAL CONSULTATION</th>
+            <th>TOTAL STEM CELL PROCEDURES</th>
+			 <th>TOTAL TESTICULAR STEM CELL PROCEDURES</th>
         </tr>
     </thead>
-    <tbody id="procedure_result">
-        <?php 
-        // 1. Fetch the Center Name once for the logged-in doctor
-        $center_id = $_SESSION['logged_doctor']['center'];
-        $sql_center = "SELECT center_name FROM hms_centers WHERE center_number = " . $this->db->escape($center_id);
-        $center_query = $this->db->query($sql_center);
-        $center_row = $center_query->row();
-        $center_name = ($center_row) ? $center_row->center_name : "Unknown Center";
+    <tbody>
 
-        // 2. Fetch Yearly Appointment Statistics
-        $sql2 = "SELECT 
-                    YEAR(`appoitmented_date`) AS appointment_year, 
-                    COUNT(*) AS total_appointments
-                 FROM `hms_appointments` 
-                 WHERE `status` = 'consultation_done' 
-                 AND `appoitment_for` = " . $this->db->escape($center_id) . "
-                 GROUP BY YEAR(`appoitmented_date`)
-                 ORDER BY appointment_year DESC";
+<?php
+$center = $_SESSION['logged_doctor']['center'];
 
-        $query = $this->db->query($sql2);
-        $yearly_results = $query->result();  
+/* ===============================
+   1. FETCH CONSULTATION YEAR-WISE
+=================================*/
+$sql_consult = "
+    SELECT 
+        YEAR(appoitmented_date) AS year,
+        COUNT(*) AS total_consultations
+    FROM hms_appointments
+    WHERE status = 'consultation_done'
+    AND appoitment_for = ?
+    GROUP BY YEAR(appoitmented_date)
+";
 
-        // 3. Loop through yearly results to create merged rows
-        foreach ($yearly_results as $row) {
+$consult_data = $this->db->query($sql_consult, [$center])->result_array();
+
+/* ===============================
+   2. FETCH STEM CELL YEAR-WISE
+=================================*/
+$sql_stem = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_stem
+    FROM ovarian_prp_discharge_summary
+    WHERE procedure_name = 'STEM CELL'
+    AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+
+$stem_data = $this->db->query($sql_stem, [$center])->result_array();
+
+$sql_testi = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_stem
+    FROM testicular_prp_discharge_summary
+    WHERE procedures = 'Testicular Stem Cell'
+    AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$testi_data = $this->db->query($sql_testi, [$center])->result_array();
+
+/* ===============================
+   3. INDEX STEM DATA BY YEAR
+=================================*/
+$stem_by_year = [];
+foreach ($stem_data as $s) {
+    $stem_by_year[$s['year']] = $s['total_stem'];
+}
+
+$testi_by_year = [];
+foreach ($testi_data as $s) {
+    $testi_by_year[$s['year']] = $s['total_stem'];
+}
+
+/* ===============================
+   4. MERGE & DISPLAY
+=================================*/
+if (!empty($consult_data)) {
+    foreach ($consult_data as $row) {
+
+        $year = $row['year'];
+        $consult_count = $row['total_consultations'];
+        $stem_count = isset($stem_by_year[$year]) ? $stem_by_year[$year] : 0;
+		$testi_count = isset($testi_by_year[$year]) ? $testi_by_year[$year] : 0;
         ?>
-            <tr class="odd gradeX">
-                <td><!--<a href="updatereports?ID=<?php echo $center_id; ?>&year=<?php echo $row->appointment_year; ?>"></a>--><?php echo $row->appointment_year; ?></td>
-                
-                <td><?php echo $row->total_appointments; ?></td>
-                
-                </tr>
-        <?php } ?>
+        <tr>
+            <td>
+    <a href="<?php echo base_url('accounts/yearly_monthly_details?year='.$year); ?>">
+        <?php echo $year; ?>
+    </a>
+</td>
+            <td><?php echo $consult_count; ?></td>
+            <td><?php echo $stem_count; ?></td>
+			<td><?php echo $testi_count; ?></td>
+        </tr>
+        <?php
+    }
+} else {
+    ?>
+    <tr>
+        <td colspan="3" class="text-center text-danger">
+            No data found
+        </td>
+    </tr>
+<?php } ?>
+
     </tbody>
 </table>
+
             <table class="table table-striped table-bordered table-hover" id="procedure_billing_list">
               <thead>
                 <tr>
