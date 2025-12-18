@@ -769,6 +769,7 @@ public function get_medicines_by_vendor($vendor_id)
         'm.id AS item_number',
         'm.medicine_name AS item_name',
         'm.pack_size',
+        'm.medicine_code',
         'm.gst_rate AS gstrate',
         'm.hsn_code AS hsn',
         'b.brand_name',

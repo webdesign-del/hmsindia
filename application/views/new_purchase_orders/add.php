@@ -521,7 +521,8 @@ $(document).ready(function() {
                             + ' data-company="'+ safe(item.company) +'"'
                             + ' data-brand="'+ safe(item.brand_name) +'"'
                             + ' data-vendor-number="'+ safe(item.vendor_number) +'"'
-                            + '>' + safe(item.item_name) + ' ('+ safe(item.item_number) +')</option>';
+                            + ' data-medicine-code="'+ safe(item.medicine_code) +'"'
+                            + '>' + safe(item.item_name) + ' ('+ safe(item.medicine_code) + ' - ' + safe(item.item_number) +')</option>';
                     });
                     // cache for newly added rows
                     filteredOptionsHtml = optionsHtml;
