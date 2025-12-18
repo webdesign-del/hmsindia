@@ -77,18 +77,18 @@ $total_etjul = $fresh_et + $thawed_jul;	$total_etaug = $res_val->fresh_cycle_eta
 				
 				$total_et = 0; $total_prpfeb = 0; $total_prpmar = 0;$total_prpapr = 0; $total_prpmay = 0; $total_prpjun = 0; $total_prpjul = 0; $total_prpaug = 0; $total_prpsep = 0; $total_prpoct = 0; $total_prpnov = 0; $total_prpdec = 0;
 			
-			    $total_prp = $res_val->ovarian_prp + $res_val->testicular_prp;
-				$total_prpfeb = $res_val->ovarian_prpfeb + $res_val->testicular_prpfeb;
-				$total_prpmar = $res_val->ovarian_prpmar + $res_val->testicular_prpmar;
-                $total_prpapr = $res_val->ovarian_prpapr + $res_val->testicular_prpapr;
-				$total_prpmay = $res_val->ovarian_prpmay + $res_val->testicular_prpmay; 
-				$total_prpjun = $res_val->ovarian_prpjun + $res_val->testicular_prpjun;
-                $total_prpjul = $res_val->ovarian_prpjul + $res_val->testicular_prpjul; 
-				$total_prpaug = $res_val->ovarian_prpaug + $res_val->testicular_prpaug;
-				$total_prpsep = $res_val->ovarian_prpsep + $res_val->testicular_prpsep;
-                $total_prpoct = $res_val->ovarian_prpoct + $res_val->testicular_prpoct; 
-				$total_prpnov = $res_val->ovarian_prpnov + $res_val->testicular_prpnov;
-				$total_prpdec = $res_val->ovarian_prpdec + $res_val->testicular_prpdec;
+			    $total_prp = $res_val->uterine_prp + $res_val->ovarian_prp + $res_val->testicular_prp;
+				$total_prpfeb = $res_val->uterine_prpfeb + $res_val->ovarian_prpfeb + $res_val->testicular_prpfeb;
+				$total_prpmar = $res_val->uterine_prpmar + $res_val->ovarian_prpmar + $res_val->testicular_prpmar;
+                $total_prpapr = $res_val->uterine_prpapr + $res_val->ovarian_prpapr + $res_val->testicular_prpapr;
+				$total_prpmay = $res_val->uterine_prpmay + $res_val->ovarian_prpmay + $res_val->testicular_prpmay; 
+				$total_prpjun = $res_val->uterine_prpjun + $res_val->ovarian_prpjun + $res_val->testicular_prpjun;
+                $total_prpjul = $res_val->uterine_prpjul + $res_val->ovarian_prpjul + $res_val->testicular_prpjul; 
+				$total_prpaug = $res_val->uterine_prpaug + $res_val->ovarian_prpaug + $res_val->testicular_prpaug;
+				$total_prpsep = $res_val->uterine_prpsep + $res_val->ovarian_prpsep + $res_val->testicular_prpsep;
+                $total_prpoct = $res_val->uterine_prpoct + $res_val->ovarian_prpoct + $res_val->testicular_prpoct; 
+				$total_prpnov = $res_val->uterine_prpnov + $res_val->ovarian_prpnov + $res_val->testicular_prpnov;
+				$total_prpdec = $res_val->uterine_prpdec + $res_val->ovarian_prpdec + $res_val->testicular_prpdec;
                 
 				$total_consultations = $res_val->consultations + $res_val->consultationsfeb + $res_val->consultationsmar + $res_val->consultationsapr + $res_val->consultationsmay + $res_val->consultationsjun + $res_val->consultationsjul + $res_val->consultationsaug + $res_val->consultationssep + $res_val->consultationsoct + $res_val->consultationsnov + $res_val->consultationsdec; 
                 $total_tele_consult = $res_val->tele_consult + $res_val->tele_consultfeb + $res_val->tele_consultmar + $res_val->tele_consultapr + $res_val->tele_consultmay + $res_val->tele_consultjun + $res_val->tele_consultjul + $res_val->tele_consultaug + $res_val->tele_consultsep + $res_val->tele_consultoct + $res_val->tele_consultnov + $res_val->tele_consultdec; 
@@ -665,7 +665,7 @@ $total_etjul = $fresh_et + $thawed_jul;	$total_etaug = $res_val->fresh_cycle_eta
 								<th><?php echo $total_uterine_prp; ?></th>
 								<th><?php echo $total_ovarian_prp; ?></th>
 								<th><?php echo $total_testicular_prp; ?></th>
-								<th></th>
+								<th><?php echo $total_prp + $total_prpfeb + $total_prpmar + $total_prpapr + $total_prpmay + $total_prpjun + $total_prpjul + $total_prpaug + $total_prpsep + $total_prpoct + $total_prpnov + $total_prpdec; ?></th>
 								<th><?php echo $total_macs_qualis_candor; ?></th>
 								<th><?php echo $total_lah; ?></th>
 								<th><?php echo $total_pgd; ?></th>
