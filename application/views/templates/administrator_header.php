@@ -184,8 +184,8 @@
               <li> <a href="<?php echo base_url(); ?>accounts/accounts">Account Ledger</a> </li>
               <li> <a href="<?php echo base_url(); ?>accounts/patient_ledger">Patient Ledger</a> </li>
               <li> <a href="<?php echo base_url(); ?>accounts/reconciliation">Center Reconciliation</a> </li>
-              <li> <a href="<?php echo base_url(); ?>accounts/purchase-orders">Purchase Order</a> </li>
-              <li> <a href="<?php echo base_url(); ?>accounts/purchase-orders-list">Purchase Order List</a> </li>
+              <!-- <li> <a href="<?php echo base_url(); ?>accounts/purchase-orders">Purchase Order</a> </li> -->
+              <!-- <li> <a href="<?php echo base_url(); ?>accounts/purchase-orders-list">Purchase Order List</a> </li> -->
               <!-- <li> <a href="<?php echo base_url(); ?>my-approvals">My Approvals</a> </li> -->
         </ul>
       </li>
