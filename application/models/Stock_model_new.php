@@ -3396,7 +3396,7 @@ class Stock_model_new extends CI_Model
         $transfer_type = null,
         $from_center_id = null,
         $to_center_id = null,
-    ) {
+        ) {
         try {
             $this->db->select(
                 "st.*, fc.center_name as from_center, tc.center_name as to_center",
@@ -5897,7 +5897,7 @@ class Stock_model_new extends CI_Model
         // ===============================================
         // CENTERS FUNCTIONS
         // ===============================================
-     public function get_all_centers()
+        public function get_all_centers()
         {
             try {
                 $sql = "SELECT * FROM hms_centers WHERE hms_centers.status = 1 ORDER BY hms_centers.center_name ASC";
@@ -9460,7 +9460,7 @@ public function add_stock_to_location($stock_data)
             $this->db->from('stock_movements sm');
             
             // This is the main logic for your report
-            $this->db->where('sm.movement_type', 'SALE');
+            $this->db->where('sm.movement_type', 'SALE_CONSUMPTION_BILLING');
             $this->db->where('sm.patient_id', $patient_id);
 
             // Joins to get the details
