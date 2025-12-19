@@ -9459,7 +9459,7 @@ public function add_stock_to_location($stock_data)
             ');
             $this->db->from('stock_movements sm');
             // This is the main logic for your report
-            $this->db->where('sm.movement_type', 'SALE_CONSUMPTION_BILLING');
+            $this->db->where('sm.to_location_type', 'SALE_CONSUMPTION_BILLING');
             $this->db->where('sm.patient_id', $patient_id);
             // Joins to get the details
             $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
@@ -9557,7 +9557,7 @@ public function add_stock_to_location($stock_data)
     }
     public function get_consumption_report_pivoted($filters = [])
     {
-        try {
+        // try {
             $this->db->select('
                 sm.patient_id,
                 sm.patient_name,
@@ -9593,10 +9593,10 @@ public function add_stock_to_location($stock_data)
             
             return $this->db->get()->result();
 
-        } catch (Exception $e) {
-            log_message('error', 'Error in get_consumption_report_pivoted: ' . $e->getMessage());
-            return [];
-        }
+        // } catch (Exception $e) {
+        //     log_message('error', 'Error in get_consumption_report_pivoted: ' . $e->getMessage());
+        //     return [];
+        // }
     }
 }
 
