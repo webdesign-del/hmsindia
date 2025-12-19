@@ -640,16 +640,16 @@ if (!empty($medicine_daily_result)) {
                 <tr>
                     <td><?php echo $vl['']; ?></td>
                     <td><?php echo $vl['patient_id']; ?></td>
-                    <td><?php echo $vl['patient_detail_name']; ?></td>
+                    <td><?php echo $vl['patient_name']; ?></td>
                     <td>OPD Medicines</td>
                     <td></td>
                     <td></td>
                     <td>Sale Receipts</td>
                     <td><?php echo $vl['payment_method']; ?></td>
-                    <td><?php echo $vl['payment_done']; ?></td>
-                    <td><?php echo $vl['on_date']; ?></td>
-                    <td><?php echo $vl['receipt_number']; ?></td>
-                     <td><?php echo $vl['transaction_img']; ?></td>
+                    <td><?php echo $vl['total_amount']; ?></td>
+                    <td><?php echo $vl['sale_date']; ?></td>
+                    <td><?php echo $vl['sale_number']; ?></td>
+                     <td><?php echo $vl['payment_image']; ?></td>
                 </tr>
                 <?php } ?>
                  <?php 
