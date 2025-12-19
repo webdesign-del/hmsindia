@@ -189,7 +189,8 @@
   <li> <a href="<?php echo base_url(); ?>doctors/pcp_ndt" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>PCPNDT</a></li>
  <li> <a href="<?php echo base_url(); ?>accounts/clinical_reports" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Clinical Reports</a></li>
  <li> <a href="<?php echo base_url(); ?>doctors/patient_general_instructions" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>General Instructions</a></li>
- 
+  <li> <a href="<?php echo base_url(); ?>accounts/patient_financial_clearance" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Financial Clearance</a></li>
+     
             </ul>
          </div>
       </nav>

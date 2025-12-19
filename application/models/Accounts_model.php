@@ -6497,7 +6497,7 @@ function dashboard_medicine_reports_list_patination($center, $start_date, $end_d
     }
 	$center_id= $this->get_center_id($center);
 
-	var_dump($center_id);
+	//var_dump($center_id);
     $data = $this->_get_common_conditions($center, $start_date, $end_date, 'center_id', 'sale_date');
     $sql = "SELECT * FROM sales WHERE 1 " . $data['sql'];
     $q = $this->db->query($sql, $data['bindings']);
