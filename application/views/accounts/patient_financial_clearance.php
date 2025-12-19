@@ -91,7 +91,11 @@
                     <?php if (!empty($_SESSION['logged_doctor']['name'])) { ?>
                      <th>Email</th>
                      <?php } ?>
+                    
                     <th>Procedure Date</th>
+                     <?php if (!empty($_SESSION['logged_embryologist']['name'])) { ?>
+                     <th>Email</th>
+                     <?php } ?>
 				    <th>FC / CH Clearance</th>
                     <th>User / Doctor /  Embryologist</th>
                     <th>Account</th>

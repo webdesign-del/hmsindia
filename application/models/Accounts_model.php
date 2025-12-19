@@ -6486,7 +6486,7 @@ function dashboard_partial_daily_sales_report($center, $start_date, $end_date) {
     $q = $this->db->query($sql, $data['bindings']);
     return $q->result_array();
 }
-
+/*
 function dashboard_medicine_reports_list_patination($center, $start_date, $end_date) {
 	 if (empty($center)) {
         if (isset($_SESSION['logged_billing_manager']['center'])) {
@@ -6497,12 +6497,62 @@ function dashboard_medicine_reports_list_patination($center, $start_date, $end_d
     }
 	$center_id= $this->get_center_id($center);
 
+	// Safety check
+    if (empty($center_id)) {
+        return [];
+    }
+
 	//var_dump($center_id);
-    $data = $this->_get_common_conditions($center, $start_date, $end_date, 'center_id', 'sale_date');
+   echo $data = $this->_get_common_conditions($center_id, $start_date, $end_date, 'center_id', 'sale_date');
     $sql = "SELECT * FROM sales WHERE 1 " . $data['sql'];
     $q = $this->db->query($sql, $data['bindings']);
     return $q->result_array();
+}*/
+
+public function dashboard_medicine_reports_list_patination($center, $start_date, $end_date)
+{
+    // 1. Resolve center from session if not passed
+    if (empty($center)) {
+        if (!empty($_SESSION['logged_billing_manager']['center'])) {
+            $center = $_SESSION['logged_billing_manager']['center'];
+        } elseif (!empty($_SESSION['logged_counselor']['center'])) {
+            $center = $_SESSION['logged_counselor']['center'];
+        }
+    }
+
+    // 2. Convert center number → center_id
+    $center_id = $this->get_center_id($center);
+
+    // Safety check
+    if (empty($center_id)) {
+        return [];
+    }
+
+    // 3. Build common conditions (PASS center_id)
+    $data = $this->_get_common_conditions(
+        $center_id,
+        $start_date,
+        $end_date,
+        'center_id',
+        'sale_date'
+    );
+
+    // 4. Final SQL
+   echo $sql = "
+        SELECT * FROM sales
+        WHERE accountant_approval_status IN ('PENDING','APPROVED')
+        AND status='CONFIRMED' AND center_id = ?
+        AND sale_date >= CONCAT(CURDATE(), ' 00:00:00')
+        AND sale_date <= CONCAT(CURDATE(), ' 23:59:59')
+    ";
+
+
+    // 5. Execute query
+    $query = $this->db->query($sql, $data['bindings']);
+
+    return $query->result_array();
 }
+
 
 function dashboard_diagnostic_reports_list_patination($center, $start_date, $end_date) {
     $data = $this->_get_common_conditions($center, $start_date, $end_date);
