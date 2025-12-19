@@ -609,7 +609,7 @@ $(document).ready(function() {
     var rows = tbody.find('tr');
     var validRows = rows.filter(function() {
         // Check if row has proper number of cells and is not the "no data" row
-        return $(this).find('td').length === 17 && !$(this).find('td[colspan]').length;
+        return $(this).find('td').length === 19 && !$(this).find('td[colspan]').length;
     });
     
     console.log('Total rows:', rows.length);
@@ -621,7 +621,7 @@ $(document).ready(function() {
                 "pageLength": 25,
                 "order": [[ 5, "desc" ]], // Sort by date descending
                 "columnDefs": [
-                    { "orderable": false, "targets": [14, 15, 16] } // Approval, Approved By, Actions columns
+                    { "orderable": false, "targets": [16, 17, 18] } // Approval, Approved By, Actions columns
                 ],
                 "responsive": true,
                 "autoWidth": false,
