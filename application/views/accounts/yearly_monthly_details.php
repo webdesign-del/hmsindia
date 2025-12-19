@@ -10,6 +10,8 @@
             <th>Total Consultations</th>
             <th>Ovarian Stem Cell</th>
             <th>Testicular Stem Cell</th>
+            <th>Ovarian PRP</th>
+            <th>OPU</th>
         </tr>
     </thead>
     <tbody>
@@ -24,7 +26,9 @@ for ($m = 1; $m <= 12; $m++) {
         'name'    => date('F', mktime(0, 0, 0, $m, 1)),
         'consult' => 0,
         'stem'    => 0,
-        'testi'   => 0
+        'testi'   => 0,
+        'ovarian_prp'   => 0,
+        'ovum_pickup'   => 0
     ];
 }
 
@@ -50,6 +54,20 @@ foreach ($testi_monthly as $t) {
 }
 
 /* ==================================
+   MERGE OVARIAN PRP DATA
+================================== */
+foreach ($ovarian_prp_monthly as $s) {
+    $months[$s['month']]['ovarian_prp'] = (int)$s['total'];
+}
+
+/* ==================================
+   MERGE OPU DATA
+================================== */
+foreach ($ovum_pickup_monthly as $t) {
+    $months[$t['month']]['ovum_pickup'] = (int)$t['total'];
+}
+
+/* ==================================
    DISPLAY TABLE
 ================================== */
 foreach ($months as $m) {
@@ -59,13 +77,15 @@ foreach ($months as $m) {
     <td><?php echo $m['consult']; ?></td>
     <td><?php echo $m['stem']; ?></td>
     <td><?php echo $m['testi']; ?></td>
+    <td><?php echo $m['ovarian_prp']; ?></td>
+    <td><?php echo $m['ovum_pickup']; ?></td>
 </tr>
 <?php } ?>
 
     </tbody>
 </table>
 
-<a href="<?php echo base_url('accounts/your_summary_page'); ?>" class="btn btn-secondary">
+<a href="<?php echo base_url('accounts/clinical_reports'); ?>" class="btn btn-secondary">
     ← Back to Yearly Summary
 </a>
 </div>

@@ -53,7 +53,10 @@
             <th>YEAR</th>
             <th>TOTAL CONSULTATION</th>
             <th>TOTAL STEM CELL PROCEDURES</th>
-			 <th>TOTAL TESTICULAR STEM CELL PROCEDURES</th>
+			<th>TOTAL TESTICULAR STEM CELL PROCEDURES</th>
+			<th>Ovarian PRP</th>
+			<th>TOTAL OPU</th>
+			
         </tr>
     </thead>
     <tbody>
@@ -106,6 +109,35 @@ $sql_testi = "
 
 $testi_data = $this->db->query($sql_testi, [$center])->result_array();
 
+$sql_ovum_pickup = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_ovum_pickup
+    FROM ovum_pickup_discharge_summary
+    WHERE center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$ovum_pickup_data = $this->db->query($sql_ovum_pickup, [$center])->result_array();
+
+/* ===============================
+   2. FETCH STEM CELL YEAR-WISE
+=================================*/
+ $sql_ovarian_prp = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_ovarian_prp
+    FROM ovarian_prp_discharge_summary
+    WHERE procedure_name = 'Ovarian PRP'
+    AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+
+$ovarian_prp_data = $this->db->query($sql_ovarian_prp, [$center])->result_array();
+
 /* ===============================
    3. INDEX STEM DATA BY YEAR
 =================================*/
@@ -119,6 +151,15 @@ foreach ($testi_data as $s) {
     $testi_by_year[$s['year']] = $s['total_stem'];
 }
 
+$ovum_pickup_by_year = [];
+foreach ($ovum_pickup_data as $s) {
+    $ovum_pickup_by_year[$s['year']] = $s['total_ovum_pickup'];
+}
+
+$ovarian_prp_by_year = [];
+foreach ($ovarian_prp_data as $s) {
+    $ovarian_prp_by_year[$s['year']] = $s['total_ovarian_prp'];
+}
 /* ===============================
    4. MERGE & DISPLAY
 =================================*/
@@ -129,6 +170,8 @@ if (!empty($consult_data)) {
         $consult_count = $row['total_consultations'];
         $stem_count = isset($stem_by_year[$year]) ? $stem_by_year[$year] : 0;
 		$testi_count = isset($testi_by_year[$year]) ? $testi_by_year[$year] : 0;
+		$ovum_pickup_count = isset($ovum_pickup_by_year[$year]) ? $ovum_pickup_by_year[$year] : 0;
+		$varian_prp_count = isset($ovarian_prp_by_year[$year]) ? $ovarian_prp_by_year[$year] : 0;
         ?>
         <tr>
             <td>
@@ -139,6 +182,9 @@ if (!empty($consult_data)) {
             <td><?php echo $consult_count; ?></td>
             <td><?php echo $stem_count; ?></td>
 			<td><?php echo $testi_count; ?></td>
+			<td><?php echo $varian_prp_count; ?></td>
+			<td><?php echo $ovum_pickup_count; ?></td>
+			
         </tr>
         <?php
     }

@@ -6499,7 +6499,7 @@ function dashboard_medicine_reports_list_patination($center, $start_date, $end_d
 
 	var_dump($center_id);
     $data = $this->_get_common_conditions($center, $start_date, $end_date, 'center_id', 'sale_date');
-   echo $sql = "SELECT * FROM sales WHERE 1 " . $data['sql'];
+    $sql = "SELECT * FROM sales WHERE 1 " . $data['sql'];
     $q = $this->db->query($sql, $data['bindings']);
     return $q->result_array();
 }
@@ -6909,57 +6909,126 @@ function assessment_form_insert_payment($patient_id, $data) {
 		return $q->result_array(); 
 	}
 
-	public function monthly_consultation($center, $year)
+public function monthly_consultation($center, $year)
 {
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND appoitment_for = ?";
+        $params[] = $center;
+    }
+
     $sql = "
         SELECT 
             MONTH(appoitmented_date) AS month,
-            MONTHNAME(appoitmented_date) AS month_name,
             COUNT(*) AS total
         FROM hms_appointments
         WHERE status = 'consultation_done'
-        AND appoitment_for = ?
         AND YEAR(appoitmented_date) = ?
+        $where
         GROUP BY MONTH(appoitmented_date)
-        ORDER BY MONTH(appoitmented_date)
     ";
-    return $this->db->query($sql, [$center, $year])->result_array();
+
+    return $this->db->query($sql, $params)->result_array();
 }
 
 public function monthly_ovarian_stem($center, $year)
 {
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
     $sql = "
         SELECT 
             MONTH(date_of_procedure) AS month,
-            MONTHNAME(date_of_procedure) AS month_name,
             COUNT(*) AS total
         FROM ovarian_prp_discharge_summary
         WHERE procedure_name = 'STEM CELL'
-        AND center = ?
         AND YEAR(date_of_procedure) = ?
+        $where
         GROUP BY MONTH(date_of_procedure)
-        ORDER BY MONTH(date_of_procedure)
     ";
-    return $this->db->query($sql, [$center, $year])->result_array();
+
+    return $this->db->query($sql, $params)->result_array();
 }
 
-public function monthly_testicular_stem($center, $year)
+
+public function monthly_ovarian_prp($center, $year)
 {
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
     $sql = "
         SELECT 
             MONTH(date_of_procedure) AS month,
-            MONTHNAME(date_of_procedure) AS month_name,
+            COUNT(*) AS total
+        FROM ovarian_prp_discharge_summary
+        WHERE procedure_name = 'Ovarian PRP'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+
+public function monthly_testicular_stem($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
             COUNT(*) AS total
         FROM testicular_prp_discharge_summary
         WHERE procedures = 'Testicular Stem Cell'
-        AND center = ?
         AND YEAR(date_of_procedure) = ?
+        $where
         GROUP BY MONTH(date_of_procedure)
-        ORDER BY MONTH(date_of_procedure)
     ";
-    return $this->db->query($sql, [$center, $year])->result_array();
+
+    return $this->db->query($sql, $params)->result_array();
 }
 
+public function monthly_ovum_pickup($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM ovum_pickup_discharge_summary
+        WHERE YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
     
 
 }

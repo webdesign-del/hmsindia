@@ -9844,26 +9844,186 @@ function assessment_form($patient_id = 0){ // Keep the = 0 fix from before
 	public function yearly_monthly_details(){
 	$logg = checklogin();
     $year   = $this->input->get('year');
-    $center = $_SESSION['logged_doctor']['center'];
-
-    if (empty($year)) {
+ 
+	if (empty($year)) {
         show_error('Invalid Year');
+    }
+	// ROLE CHECK
+    if (!empty($_SESSION['logged_doctor']['center'])) {
+        // Doctor login
+        $center = $_SESSION['logged_doctor']['center'];
+    } else {
+        // Admin login → ALL centers
+        $center = null;
     }
 
     $data['year']   = $year;
     $data['center'] = $center;
 
-    $data['consult_monthly'] = $this->accounts_model
-        ->monthly_consultation($center, $year);
+    $data['consult_monthly'] = $this->accounts_model->monthly_consultation($center, $year);
 
-    $data['stem_monthly'] = $this->accounts_model
-        ->monthly_ovarian_stem($center, $year);
+    $data['stem_monthly'] = $this->accounts_model->monthly_ovarian_stem($center, $year);
 
-    $data['testi_monthly'] = $this->accounts_model
-        ->monthly_testicular_stem($center, $year);
+	$data['ovarian_prp_monthly'] = $this->accounts_model->monthly_ovarian_prp($center, $year);	
+
+    $data['testi_monthly'] = $this->accounts_model->monthly_testicular_stem($center, $year);
+
+	$data['ovum_pickup_monthly'] = $this->accounts_model->monthly_ovum_pickup($center, $year);	
 	$template = get_header_template($logg['role']);
 	$this->load->view($template['header']);
     $this->load->view('accounts/yearly_monthly_details', $data);
+	$this->load->view($template['footer']);
+}
+/*
+public function yearly_monthly_details(){
+    $logg = checklogin();
+    if ($logg['status'] != true) {
+        redirect(base_url());
+        return;
+    }
+
+    $year   = $this->input->get('year');
+    $center = $_SESSION['logged_doctor']['center'] ?? null;
+
+    /* ==========================
+       MONTHLY CONSULTATION
+    ===========================*/
+  /*  $sql_consult = "
+        SELECT 
+            MONTH(a.appoitmented_date) AS month,
+            c.center_name,
+            COUNT(*) AS total
+        FROM hms_appointments a
+        JOIN hms_centers c ON c.center_number = a.appoitment_for
+        WHERE a.status = 'consultation_done'
+        AND YEAR(a.appoitmented_date) = ?
+        " . ($center ? "AND a.appoitment_for = ?" : "") . "
+        GROUP BY MONTH(a.appoitmented_date), c.center_name
+    ";
+
+    $params = [$year];
+    if ($center) $params[] = $center;
+
+    $data['consult_monthly'] = $this->db->query($sql_consult, $params)->result_array();
+
+    /* ==========================
+       OVARIAN STEM CELL
+    ===========================*/
+   /* $sql_stem = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM ovarian_prp_discharge_summary
+        WHERE procedure_name = 'STEM CELL'
+        AND YEAR(date_of_procedure) = ?
+        " . ($center ? "AND center = ?" : "") . "
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    $params = [$year];
+    if ($center) $params[] = $center;
+
+    $data['stem_monthly'] = $this->db->query($sql_stem, $params)->result_array();
+
+    /* ==========================
+       TESTICULAR STEM CELL
+    ===========================*/
+   /* $sql_testi = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM testicular_prp_discharge_summary
+        WHERE procedures = 'Testicular Stem Cell'
+        AND YEAR(date_of_procedure) = ?
+        " . ($center ? "AND center = ?" : "") . "
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    $params = [$year];
+    if ($center) $params[] = $center;
+
+    $data['testi_monthly'] = $this->db->query($sql_testi, $params)->result_array();
+
+    $data['year'] = $year;
+
+    $template = get_header_template($logg['role']);
+	$this->load->view($template['header']);
+    $this->load->view('accounts/yearly_monthly_details', $data);
+	$this->load->view($template['footer']);
+}*/
+
+public function yearly_monthly_details_admin()
+{
+    $logg = checklogin();
+    if ($logg['status'] != true) {
+        redirect(base_url());
+        return;
+    }
+
+    $year = $this->input->get('year');
+
+    /* =========================
+       MONTHLY CONSULTATIONS
+    ==========================*/
+    $sql_consult = "
+        SELECT 
+            MONTH(a.appoitmented_date) AS month,
+            c.center_name,
+            COUNT(*) AS total_consultations
+        FROM hms_appointments a
+        JOIN hms_centers c 
+            ON c.center_number = a.appoitment_for
+        WHERE a.status = 'consultation_done'
+        AND YEAR(a.appoitmented_date) = ?
+        GROUP BY MONTH(a.appoitmented_date), c.center_name
+    ";
+
+    $consult_data = $this->db->query($sql_consult, [$year])->result_array();
+
+    /* =========================
+       OVARIAN STEM CELL
+    ==========================*/
+    $sql_stem = "
+        SELECT 
+            MONTH(o.date_of_procedure) AS month,
+            c.center_name,
+            COUNT(*) AS total_ovarian
+        FROM ovarian_prp_discharge_summary o
+        JOIN hms_centers c 
+            ON c.center_number = o.center
+        WHERE o.procedure_name = 'STEM CELL'
+        AND YEAR(o.date_of_procedure) = ?
+        GROUP BY MONTH(o.date_of_procedure), c.center_name
+    ";
+
+    $stem_data = $this->db->query($sql_stem, [$year])->result_array();
+
+    /* =========================
+       TESTICULAR STEM CELL
+    ==========================*/
+    $sql_testi = "
+        SELECT 
+            MONTH(t.date_of_procedure) AS month,
+            c.center_name,
+            COUNT(*) AS total_testicular
+        FROM testicular_prp_discharge_summary t
+        JOIN hms_centers c 
+            ON c.center_number = t.center
+        WHERE t.procedures = 'Testicular Stem Cell'
+        AND YEAR(t.date_of_procedure) = ?
+        GROUP BY MONTH(t.date_of_procedure), c.center_name
+    ";
+
+    $testi_data = $this->db->query($sql_testi, [$year])->result_array();
+
+    $data['consult'] = $consult_data;
+    $data['stem']    = $stem_data;
+    $data['testi']   = $testi_data;
+    $data['year']    = $year;
+
+    $template = get_header_template($logg['role']);
+	$this->load->view($template['header']);
+    $this->load->view('accounts/yearly_monthly_details_admin', $data);
 	$this->load->view($template['footer']);
 }
 
