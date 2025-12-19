@@ -1406,94 +1406,50 @@ class Stock_model_new extends CI_Model
         // $center = $this->db->get()->row();
         // return $center ? $center->id : null;
     }
+    public function get_center_stock_quantity_for_po(
+        $center_id = null,
+        $medicine_id = null,
+        $status = null,
+        $department = null
+    ) {
+        $this->db->select('IFNULL(SUM(ccs.quantity), 0) AS total_quantity');
+        $this->db->from('center_stocks ccs');
+        $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id');
 
-     public function get_center_stocks_for_po($center_id = null,$medicine_id = null,$batch_number = null,$status = null,$department = null) 
-    {
-        // try {
-            // Select columns - ensure pack_size is explicitly included from medicines table
-            // Using IFNULL (MySQL) to handle NULL pack_size values (defaults to 1)
-            // This ensures pack_size is always returned, even if medicine doesn't have it set
-            $this->db->select(
-                "ccs.*, mb.batch_number, mb.medicine_id, IFNULL(m.pack_size, 1) as pack_size, mb.expiry_date, mb.purchase_price, mb.selling_price, mb.mrp, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, c.center_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
-            );
-            $this->db->from("center_stocks ccs");
-            $this->db->join("medicine_batches mb", "ccs.batch_id = mb.id");
-            $this->db->join("medicines m", "mb.medicine_id = m.id");
-            $this->db->join("medicine_brands b",
-                "m.brand_id = b.id",
-            );
-            $this->db->join(
-                $this->config->item("db_prefix") . "vendors v",
-                "mb.vendor_id = v.ID",
-            );
-            $this->db->join("hms_centers c", "ccs.center_id = c.ID");
+        if ($center_id) {
+            $this->db->where('ccs.center_id', $center_id);
+        }
 
-            if ($center_id && $center_id != "") {
-                $this->db->where("ccs.center_id", $center_id);
-            }
+        if ($medicine_id) {
+            $this->db->where('mb.medicine_id', $medicine_id);
+        }
 
-            if ($medicine_id && $medicine_id != "") {
-                $this->db->where("mb.medicine_id", $medicine_id);
-            }
+        if ($status) {
+            $this->db->where('ccs.status', $status);
+        }
 
-            if ($batch_number && $batch_number != "") {
-                $this->db->like("mb.batch_number", $batch_number);
-            }
+        if ($department) {
+            $this->db->like('ccs.department', $department);
+        }
 
-            if ($status && $status != "") {
-                $this->db->where("ccs.status", $status);
-            }
+        // role-based center restriction
+        $center = null;
+        if (!empty($_SESSION['logged_billing_manager']) &&
+            ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+            $center = $_SESSION['logged_billing_manager']['center'];
+        }
 
-            if ($department && $department != "") {
-                $this->db->like('ccs.department', $department);
-            }
-            // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
-            // // if (isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') {
-            //     $this->db->where('ccs.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
-            // }
-            $center = null;
-            if (!empty($_SESSION['logged_billing_manager']) &&
-                ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
-                $center = $_SESSION['logged_billing_manager']['center'];
-                // $department = $_SESSION['logged_billing_manager']['department'] ?? null;
-            }
-            if (!empty($_SESSION['logged_stock_manager']) &&
-                ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
-                $center = $_SESSION['logged_stock_manager']['center'];
-                // $department = $_SESSION['logged_stock_manager']['department'] ?? null;
-            }
-            if ($center !== null) {
-                $this->db->where('ccs.center_id', $this->get_center_id($center));
-            }
-            // Filter by department if available
-            // if ($department !== null && $department !== '') {
-            //     if ($department == 'billing') {
-            //         $this->db->like('ccs.department', 'CASH MEDICINE');
-            //     } else {
-            //         $this->db->like('ccs.department', $department);
-            //     }
-            // }
-            $this->db->order_by("mb.expiry_date", "ASC");
-            $results = $this->db->get()->result();
-            
-            // Post-process results to ensure pack_size is always set (fallback safety)
-            foreach ($results as $result) {
-                // Ensure pack_size is always set and valid
-                if (!isset($result->pack_size) || $result->pack_size === null || $result->pack_size === '' || $result->pack_size == 0) {
-                    $result->pack_size = 1;
-                } else {
-                    // Ensure pack_size is numeric
-                    $result->pack_size = floatval($result->pack_size);
-                    if ($result->pack_size <= 0) {
-                        $result->pack_size = 1;
-                    }
-                }
-            }
-            
-            return $results;
-        // } catch (Exception $e) {
-        //     return [];
-        // }
+        if (!empty($_SESSION['logged_stock_manager']) &&
+            ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+            $center = $_SESSION['logged_stock_manager']['center'];
+        }
+
+        if ($center !== null) {
+            $this->db->where('ccs.center_id', $this->get_center_id($center));
+        }
+
+        $row = $this->db->get()->row();
+        return (int) ($row->total_quantity ?? 0);
     }
 
     public function get_center_stocks($center_id = null,$medicine_id = null,$batch_number = null,$status = null,$department = null) 
