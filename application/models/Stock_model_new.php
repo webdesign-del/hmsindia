@@ -602,7 +602,16 @@ class Stock_model_new extends CI_Model
         $this->db->join('sale_items si', 's.id = si.sale_id', 'left');
         $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
-        $this->db->join("stock_movements sm", "sm.reference_id = s.id AND sm.movement_type = 'SALE' AND sm.to_location_type = 'SALE'", "left");
+        $this->db->where("
+            EXISTS (
+                SELECT 1 FROM stock_movements sm
+                WHERE sm.reference_id = s.id
+                AND sm.movement_type = 'SALE'
+                AND sm.to_location_type = 'SALE'
+            )
+        ", null, false);
+
+        // $this->db->join("stock_movements sm", "sm.reference_id = s.id AND sm.movement_type = 'SALE' AND sm.to_location_type = 'SALE'", "left");
         
         // Apply filters
         if (!empty($filters['center_id'])) {
@@ -634,9 +643,9 @@ class Stock_model_new extends CI_Model
         }
 
         // Filter sales where stock movements exist
-        $this->db->where('sm.id IS NOT NULL');
-
-        $this->db->group_by('s.id, c.center_name, e.name, sm.id');
+        // $this->db->where('sm.id IS NOT NULL');
+        $this->db->group_by('s.id');
+        // $this->db->group_by('s.id, c.center_name, e.name, sm.id');
         $this->db->order_by('s.sale_date', 'DESC');
         $this->db->order_by('s.id', 'DESC');
         
