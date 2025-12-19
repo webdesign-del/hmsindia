@@ -601,6 +601,7 @@ class Stock_model_new extends CI_Model
         $this->db->join('hms_employees e', 's.created_by = e.ID', 'left');
         $this->db->join('sale_items si', 's.id = si.sale_id', 'left');
         $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
+        $this->db->join("stock_movements sm", "sm.reference_id = s.id AND sm.movement_type = 'SALE'", "inner");
         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
         
         // Apply filters
@@ -631,8 +632,11 @@ class Stock_model_new extends CI_Model
         if (!empty($filters['date_to'])) {
             $this->db->where('DATE(s.sale_date) <=', $filters['date_to']);
         }
-        
-        $this->db->group_by('s.id, c.center_name, e.name');
+
+        // Filter sales where stock movements have to_location_type = 'SALE'
+        $this->db->where('sm.to_location_type', 'SALE');
+
+        $this->db->group_by('s.id, c.center_name, e.name, sm.id');
         $this->db->order_by('s.sale_date', 'DESC');
         $this->db->order_by('s.id', 'DESC');
         
@@ -2797,7 +2801,7 @@ class Stock_model_new extends CI_Model
             $select_columns = "
                 s.id, s.sale_number, s.center_id, s.patient_id, s.patient_name,
                 s.doctor_id, s.doctor_name, s.sale_date, s.sale_time,
-                s.payment_method, s.payment_status, s.utr_transaction_id, s.payment_image, 
+                s.payment_method, s.payment_status,s.remarks, s.utr_transaction_id, s.payment_image, 
                 s.status, s.remarks, s.created_by, s.created_at, s.updated_at,
                 c.center_name,
                 e.name as salesperson_name,
@@ -2846,6 +2850,7 @@ class Stock_model_new extends CI_Model
             $this->db->join("sale_items si", "s.id = si.sale_id", "left"); // LEFT JOIN is important
             $this->db->join("medicine_batches mb", "si.batch_id = mb.id", "left");
             $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+            $this->db->join("stock_movements sm", "sm.reference_id = s.id AND sm.movement_type = 'SALE'", "inner");
 
             // --- Session Filter (Your original logic) ---
             // if (
@@ -2874,7 +2879,7 @@ class Stock_model_new extends CI_Model
             }
             // --- End Filter ---
             // Correct GROUP BY for all non-aggregated columns
-            $this->db->group_by("s.id, c.center_name, e.name"); 
+            $this->db->group_by("s.id, c.center_name, e.name, sm.id"); 
             if(!empty($filters['center_id'])) {
                 $this->db->where('s.center_id', $filters['center_id']);
             }
@@ -2900,6 +2905,10 @@ class Stock_model_new extends CI_Model
             if (!empty($filters['date_to'])) {
                 $this->db->where('s.sale_date <=', $filters['date_to']);
             }
+
+            // Filter sales where stock movements have to_location_type = 'SALE'
+            $this->db->where('sm.to_location_type', 'SALE');
+
             $this->db->order_by("s.created_at", "DESC");
             return $this->db->get()->result();
             

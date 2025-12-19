@@ -176,6 +176,8 @@
                                         <th>GST Amt</th>
                                         <th>Total Amt</th>
                                         <th>Payment</th>
+                                        <th>Payment Mode</th>
+                                        <th>Remarks</th>
                                         <th>Status</th>
                                         <th>Approval</th>
                                         <th>Approved By</th>
@@ -233,6 +235,8 @@
                                                     <?php endif; ?>
                                                     <?php endif; ?>
                                                 </td>
+                                                <td><?php echo isset($sale->payment_method) ? htmlspecialchars($sale->payment_method) : 'N/A'; ?></td>
+                                                <td><?php echo isset($sale->remarks) ? htmlspecialchars($sale->remarks) : 'N/A'; ?></td>
                                                 <td>
                                                     <?php if(isset($sale->status) && !empty($sale->status)): ?>
                                                     <span class="badge <?php 
