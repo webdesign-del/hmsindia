@@ -9413,16 +9413,38 @@ class Stocks_new extends CI_Controller
         exit;
     }
 
-    public function search_patients_json() {
+    public function search_patients_json()
+    {
+        // Clean any previous output (VERY IMPORTANT)
+        if (ob_get_length()) {
+            ob_clean();
+        }
+
         if (!checklogin()['status']) {
-            echo json_encode([]); // Return empty on no session
+            $this->output
+                ->set_content_type('application/json')
+                ->set_output(json_encode([]));
             return;
         }
-        
-        $search = $this->input->get('search');
-        $data = $this->Stock_model_new->search_patients($search);
-        echo json_encode($data);
+
+        $search = $this->input->get('search', TRUE);
+        $data   = $this->Stock_model_new->search_patients($search);
+
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($data));
     }
+
+    // public function search_patients_json() {
+    //     if (!checklogin()['status']) {
+    //         echo json_encode([]); // Return empty on no session
+    //         return;
+    //     }
+        
+    //     $search = $this->input->get('search');
+    //     $data = $this->Stock_model_new->search_patients($search);
+    //     echo json_encode($data);
+    // }
     public function patient_consumption_summary()
     {
         $logg = checklogin();
