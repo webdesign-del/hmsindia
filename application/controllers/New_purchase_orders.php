@@ -344,16 +344,16 @@ class New_purchase_orders extends CI_Controller {
 
                 foreach ($data['purchase_order_items'] as &$item) {
                     // Get medicine_id from medicine name first
-                    $medicine_id = null;
-                    $this->db->select('id');
-                    $this->db->from('medicines');
-                    $this->db->where('medicine_name', $item['item_name']);
-                    $this->db->where('status', 'active');
-                    $medicine_query = $this->db->get();
-                    $medicine_info = $medicine_query->row();
-                    if (!empty($medicine_info)) {
-                        $medicine_id = $medicine_info->id;
-                    }
+                    $medicine_id = $item['item_number'];
+                    // $this->db->select('id');
+                    // $this->db->from('medicines');
+                    // $this->db->where('id', $item['item_number']);
+                    // $this->db->where('status', 'active');
+                    // $medicine_query = $this->db->get();
+                    // $medicine_info = $medicine_query->row();
+                    // if (!empty($medicine_info)) {
+                    //     $medicine_id = $medicine_info->id;
+                    // }
                     $item['current_quantity'] =
                     $this->Stock_model_new->get_center_stock_quantity_for_po(
                         $center_id,
