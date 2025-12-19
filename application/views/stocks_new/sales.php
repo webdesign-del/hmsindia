@@ -143,6 +143,21 @@
                         <i class="fa fa-list"></i> Sales List
                         <span class="badge pull-right"><?php echo count($sales); ?> sales</span>
                     </div>
+                    <?php
+                    $is_accountant = !empty($_SESSION['logged_accountant']);
+                    $is_central_stock_manager = !empty($_SESSION['logged_central_stock_manager']);
+                    $is_billing_manager = !empty($_SESSION['logged_billing_manager']);
+                    $can_view_report = $is_accountant || $is_central_stock_manager || $is_billing_manager;
+                    ?>
+                    <?php if ($can_view_report): ?>
+                        <div class="panel-heading">
+                            <a href="<?php echo base_url('/accounts/medicine_patients/?date=12-12-2025'); ?>"
+                            class="badge pull-right">
+                                old report (12-12-2025)
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                    <!-- hide old report link if not an accountant -->
                     <div class="panel-body">
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered table-hover" id="salesTable">
