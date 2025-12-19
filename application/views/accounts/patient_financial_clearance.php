@@ -36,7 +36,7 @@
             	<label>Clearance by Counsellor</label>
                 <select class="form-control" id="clearance" name="clearance">
                 	<option value=''>--Select From--</option>
-                    <option value="Yes" selected>Yes</option>
+                    <option value="Yes">Yes</option>
                     <option value="No">No</option>
                 </select>
             </div>
@@ -44,14 +44,14 @@
                 <label>Doctor Consultant </label>
                  <select class="form-control" id="consultant" name="consultant">
                 	<option value=''>--Select From--</option>
-                    <option value="Done" selected>Done</option>
+                    <option value="Done">Done</option>
                 </select>
                 </div>
              <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
                 <label>Clearance by Accounts</label>
                  <select class="form-control" id="accclearance" name="accclearance">
                 	<option value=''>--Select From--</option>
-                    <option value="Yes" selected>Yes</option>
+                    <option value="Yes">Yes</option>
                     <option value="No">No</option>
                 </select>
             </div>
@@ -88,15 +88,15 @@
 				    <th>Procedure</th>
                     <th>Code</th>
                     <th>Category</th>
-                    <?php if (!empty($_SESSION['logged_doctor']['name'])) { ?>
-                     <th>Email</th>
-                     <?php } ?>
-                    
                     <th>Procedure Date</th>
-                     <?php if (!empty($_SESSION['logged_embryologist']['name'])) { ?>
+                    <?php if (
+    !empty($_SESSION['logged_doctor']['name']) ||
+    !empty($_SESSION['logged_embryologist']['name']) ||
+    !empty($_SESSION['logged_counselor']['name'])
+) { ?>
                      <th>Email</th>
                      <?php } ?>
-				    <th>FC / CH Clearance</th>
+				    <th><strong>FC / CH Clearance</strong></th>
                     <th>User / Doctor /  Embryologist</th>
                     <th>Account</th>
                 </tr>
@@ -149,40 +149,23 @@
                     <td><?php echo $vl['category']; ?></td>
                     <?php if (!empty($_SESSION['logged_doctor']['name'])) { ?>
                     <td>
-    <label>
-        <input type="checkbox" class="mail_check"
-               value="deepakdelhi@indiaivf.in"
-               id="mail_1_<?php echo $vl['ID']; ?>">
-        deepakdelhi@indiaivf.in
-    </label><br>
-
-    <label>
-        <input type="checkbox" class="mail_check"
-               value="accounts@indiaivf.in"
-               id="mail_2_<?php echo $vl['ID']; ?>">
-        accounts@indiaivf.in
-    </label><br>
-
-    <label>
-        <input type="checkbox" class="mail_check"
-               value="rahulghaziabad@indiaivf.in"
-               id="mail_3_<?php echo $vl['ID']; ?>">
-        rahulghaziabad@indiaivf.in
-    </label><br>
-
-    <label>
-        <input type="checkbox" class="mail_check"
-               value="digital@indiaivf.in"
-               id="mail_4_<?php echo $vl['ID']; ?>">
-        digital@indiaivf.in
-    </label><br>
-
-    <label>
-        <input type="checkbox" class="mail_check"
-               value="webdesign@indiaivf.in"
-               id="mail_5_<?php echo $vl['ID']; ?>">
-        webdesign@indiaivf.in
-    </label><br>
+    <label><input type="checkbox" class="mail_check" value="director@indiaivf.in" id="mail_1_<?php echo $vl['ID']; ?>">director@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="dranu.singh@indiaivf.in" id="mail_2_<?php echo $vl['ID']; ?>">dranu.singh@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="rdrdivya.pandey@indiaivf.in" id="mail_3_<?php echo $vl['ID']; ?>">rahulghaziabad@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="drshavya.aggarwal@indiaivf.in" id="mail_4_<?php echo $vl['ID']; ?>">drshavya.aggarwal@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="dreshna.gupta@indiaivf.in" id="mail_5_<?php echo $vl['ID']; ?>">dreshna.gupta@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="drmanjote.kour@indiaivf.in" id="mail_6_<?php echo $vl['ID']; ?>">drmanjote.kour@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="drsheeba.farooq@indiaivf.in" id="mail_7_<?php echo $vl['ID']; ?>">drsheeba.farooq@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="gaurav.kumar@indiaivf.in" id="mail_8_<?php echo $vl['ID']; ?>">gaurav.kumar@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="ethan.rinngheta@indiaivf.in" id="mail_9_<?php echo $vl['ID']; ?>">ethan.rinngheta@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="sangeeth.samuel@indiaivf.in" id="mail_10_<?php echo $vl['ID']; ?>">sangeeth.samuel@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="harsh.sharma@indiaivf.in" id="mail_11_<?php echo $vl['ID']; ?>">harsh.sharma@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="tajinder.kaur@indiaivf.in" id="mail_12_<?php echo $vl['ID']; ?>">tajinder.kaur@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="ishver.singh@indiaivf.in" id="mail_13_<?php echo $vl['ID']; ?>">ishver.singh@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="drbabita.singh@indiaivf.in" id="mail_14_<?php echo $vl['ID']; ?>">drbabita.singh@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="anjali.sodhi@indiaivf.in" id="mail_15_<?php echo $vl['ID']; ?>">anjali.sodhi@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="mohd.ovais@indiaivf.in" id="mail_16_<?php echo $vl['ID']; ?>">mohd.ovais@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check" value="webdesign@indiaivf.in" id="mail_5_<?php echo $vl['ID']; ?>">webdesign@indiaivf.in</label><br>
 
     
 </td><?php } ?>
@@ -198,36 +181,26 @@
     !empty($_SESSION['logged_counselor']['name'])
 ) { ?>
 <td>
-    <label>
-        <input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>"
-               value="deepakdelhi@indiaivf.in">
-        deepakdelhi@indiaivf.in
-    </label><br>
-
-    <label>
-        <input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>"
-               value="accounts@indiaivf.in">
-        accounts@indiaivf.in
-    </label><br>
-
-    <label>
-        <input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>"
-               value="rahulghaziabad@indiaivf.in">
-        rahulghaziabad@indiaivf.in
-    </label><br>
-
-    <label>
-        <input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>"
-               value="digital@indiaivf.in">
-        digital@indiaivf.in
-    </label><br>
-
-    <label>
-        <input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>"
-               value="webdesign@indiaivf.in">
-        webdesign@indiaivf.in
-    </label>
-</td>
+    <label><input type="checkbox" value="director@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">director@indiaivf.in</label><br>
+    <label><input type="checkbox" value="dranu.singh@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">dranu.singh@indiaivf.in</label><br>
+    <label><input type="checkbox" value="rdrdivya.pandey@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">rahulghaziabad@indiaivf.in</label><br>
+    <label><input type="checkbox" value="drshavya.aggarwal@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">drshavya.aggarwal@indiaivf.in</label><br>
+    <label><input type="checkbox" value="dreshna.gupta@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">dreshna.gupta@indiaivf.in</label><br>
+    <label><input type="checkbox" value="drmanjote.kour@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">drmanjote.kour@indiaivf.in</label><br>
+    <label><input type="checkbox" value="drsheeba.farooq@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">drsheeba.farooq@indiaivf.in</label><br>
+    <label><input type="checkbox" value="gaurav.kumar@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">gaurav.kumar@indiaivf.in</label><br>
+    <label><input type="checkbox" value="ethan.rinngheta@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">ethan.rinngheta@indiaivf.in</label><br>
+    <label><input type="checkbox" value="sangeeth.samuel@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">sangeeth.samuel@indiaivf.in</label><br>
+    <label><input type="checkbox" value="harsh.sharma@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">harsh.sharma@indiaivf.in</label><br>
+    <label><input type="checkbox" value="tajinder.kaur@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">tajinder.kaur@indiaivf.in</label><br>
+    <label><input type="checkbox" value="ishver.singh@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">ishver.singh@indiaivf.in</label><br>
+    <label><input type="checkbox" value="drbabita.singh@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">drbabita.singh@indiaivf.in</label><br>
+    <label><input type="checkbox" value="anjali.sodhi@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">anjali.sodhi@indiaivf.in</label><br>
+    <label><input type="checkbox" value="mohd.ovais@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">mohd.ovais@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="accounts@indiaivf.in">accounts@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="pan.singh@indiaivf.in">pan.singh@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="deepa.mishra@indiaivf.in">rahulghaziabad@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="webdesign@indiaivf.in">webdesign@indiaivf.in</label></td>
 <?php } ?>
  <td><?php 
 // 1. Check if Counselor is logged in AND Status is pending (empty)
@@ -551,7 +524,7 @@ function updateProcedureDate(id) {
     }
 
     let emails = [];
-    $('#mail_1_' + id + ':checked, #mail_2_' + id + ':checked, #mail_3_' + id + ':checked, #mail_4_' + id + ':checked, #mail_5_' + id + ':checked')
+    $('#mail_1_' + id + ':checked, #mail_2_' + id + ':checked, #mail_3_' + id + ':checked, #mail_4_' + id + ':checked, #mail_5_' + id + ':checked, #mail_6_' + id + ':checked, #mail_7_' + id + ':checked, #mail_8_' + id + ':checked, #mail_9_' + id + ':checked, #mail_10_' + id + ':checked, #mail_11_' + id + ':checked, #mail_12_' + id + ':checked, #mail_13_' + id + ':checked, #mail_14_' + id + ':checked, #mail_15_' + id + ':checked, #mail_16_' + id + ':checked')
         .each(function () {
             emails.push($(this).val());
         });
