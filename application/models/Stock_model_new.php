@@ -9458,11 +9458,9 @@ public function add_stock_to_location($stock_data)
                 e.name as user_name
             ');
             $this->db->from('stock_movements sm');
-            
             // This is the main logic for your report
             $this->db->where('sm.movement_type', 'SALE_CONSUMPTION_BILLING');
             $this->db->where('sm.patient_id', $patient_id);
-
             // Joins to get the details
             $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
