@@ -601,8 +601,8 @@ class Stock_model_new extends CI_Model
         $this->db->join('hms_employees e', 's.created_by = e.ID', 'left');
         $this->db->join('sale_items si', 's.id = si.sale_id', 'left');
         $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
-        $this->db->join("stock_movements sm", "sm.reference_id = s.id AND sm.movement_type = 'SALE'", "inner");
         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+        $this->db->join("stock_movements sm", "sm.reference_id = s.id AND sm.movement_type = 'SALE' AND sm.to_location_type = 'SALE'", "left");
         
         // Apply filters
         if (!empty($filters['center_id'])) {
@@ -633,8 +633,8 @@ class Stock_model_new extends CI_Model
             $this->db->where('DATE(s.sale_date) <=', $filters['date_to']);
         }
 
-        // Filter sales where stock movements have to_location_type = 'SALE'
-        $this->db->where('sm.to_location_type', 'SALE');
+        // Filter sales where stock movements exist
+        $this->db->where('sm.id IS NOT NULL');
 
         $this->db->group_by('s.id, c.center_name, e.name, sm.id');
         $this->db->order_by('s.sale_date', 'DESC');
@@ -2793,131 +2793,330 @@ class Stock_model_new extends CI_Model
     //     //     return [];
     //     // }
     // }
-
     public function get_all_sales($filters = [])
     {
         try {
-            // Build select with safe column references (handles missing columns)
-            $select_columns = "
-                s.id, s.sale_number, s.center_id, s.patient_id, s.patient_name,
-                s.doctor_id, s.doctor_name, s.sale_date, s.sale_time,
-                s.payment_method, s.payment_status,s.remarks, s.utr_transaction_id, s.payment_image, 
-                s.status, s.remarks, s.created_by, s.created_at, s.updated_at,
-                c.center_name,
-                e.name as salesperson_name,
-                COALESCE(COUNT(si.id), 0) as total_items,
-                COALESCE(SUM(si.quantity_sold), 0) as total_quantity,
-                COALESCE(SUM(si.subtotal), 0) as subtotal,
-                COALESCE(SUM(si.discount_amount), 0) as discount_amount,
-                COALESCE(SUM(si.tax_amount), 0) as tax_amount,
-                COALESCE(SUM(si.total), 0) as total_amount,
-                GROUP_CONCAT(DISTINCT m.gst_rate ORDER BY m.gst_rate SEPARATOR ', ') as gst_rates
-            ";
-            
-            // Check if new columns exist and add them to select
-            $table_fields = $this->db->list_fields('sales');
-            
-            // Payment approval columns
-            if (in_array('payment_approved_by', $table_fields)) {
-                $select_columns .= ", s.payment_approved_by, s.payment_approved_by_name, s.payment_approved_at";
-            } else {
-                $select_columns .= ", NULL as payment_approved_by, NULL as payment_approved_by_name, NULL as payment_approved_at";
-            }
-            
-            if (in_array('payment_rejected_by', $table_fields)) {
-                $select_columns .= ", s.payment_rejected_by, s.payment_rejected_by_name, s.payment_rejected_at";
-            } else {
-                $select_columns .= ", NULL as payment_rejected_by, NULL as payment_rejected_by_name, NULL as payment_rejected_at";
-            }
-            
-            if (in_array('stock_restored', $table_fields)) {
-                $select_columns .= ", s.stock_restored, s.stock_restored_at, s.stock_restored_by";
-            } else {
-                $select_columns .= ", 0 as stock_restored, NULL as stock_restored_at, NULL as stock_restored_by";
-            }
-            
-            // Accountant approval columns
-            if (in_array('accountant_approval_status', $table_fields)) {
-                $select_columns .= ", s.accountant_approval_status, s.accountant_approved_by, s.accountant_approved_by_name, s.accountant_approved_at, s.accountant_remarks";
-            } else {
-                $select_columns .= ", 'PENDING' as accountant_approval_status, NULL as accountant_approved_by, NULL as accountant_approved_by_name, NULL as accountant_approved_at, NULL as accountant_remarks";
-            }
-            
-            $this->db->select($select_columns, FALSE);
-            $this->db->from("sales s");
-            $this->db->join("hms_centers c", "s.center_id = c.ID", "left");
-            $this->db->join("hms_employees e", "s.created_by = e.ID", "left");
-            $this->db->join("sale_items si", "s.id = si.sale_id", "left"); // LEFT JOIN is important
-            $this->db->join("medicine_batches mb", "si.batch_id = mb.id", "left");
-            $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
-            $this->db->join("stock_movements sm", "sm.reference_id = s.id AND sm.movement_type = 'SALE'", "inner");
 
-            // --- Session Filter (Your original logic) ---
-            // if (
-            //     isset(
-            //         $_SESSION['logged_billing_manager']
-            //             ['center'],
-            //     ) &&
-            //     !empty(
-            //         $_SESSION['logged_billing_manager']
-            //             ['center']
-            //     )
-            // ) {
-            //     $this->db->where("s.center_id", $this->get_center_id($_SESSION['logged_billing_manager']['center']));
-            // }
+            /* -------------------------------------------------
+            *  SELECT COLUMNS
+            * -------------------------------------------------*/
+            $select = "
+                s.id,
+                s.sale_number,
+                s.center_id,
+                s.patient_id,
+                s.patient_name,
+                s.doctor_id,
+                s.doctor_name,
+                s.sale_date,
+                s.sale_time,
+                s.payment_method,
+                s.payment_status,
+                s.utr_transaction_id,
+                s.payment_image,
+                s.status,
+                s.remarks,
+                s.created_by,
+                s.created_at,
+                s.updated_at,
+
+                c.center_name,
+                e.name AS salesperson_name,
+
+                COUNT(DISTINCT si.id) AS total_items,
+                COALESCE(SUM(si.quantity_sold), 0) AS total_quantity,
+                COALESCE(SUM(si.subtotal), 0) AS subtotal,
+                COALESCE(SUM(si.discount_amount), 0) AS discount_amount,
+                COALESCE(SUM(si.tax_amount), 0) AS tax_amount,
+                COALESCE(SUM(si.total), 0) AS total_amount,
+
+                GROUP_CONCAT(DISTINCT m.gst_rate ORDER BY m.gst_rate SEPARATOR ', ') AS gst_rates
+            ";
+
+            /* -------------------------------------------------
+            *  SAFE COLUMN CHECKS
+            * -------------------------------------------------*/
+            $fields = $this->db->list_fields('sales');
+
+            if (in_array('payment_approved_by', $fields)) {
+                $select .= ",
+                    s.payment_approved_by,
+                    s.payment_approved_by_name,
+                    s.payment_approved_at
+                ";
+            } else {
+                $select .= ",
+                    NULL AS payment_approved_by,
+                    NULL AS payment_approved_by_name,
+                    NULL AS payment_approved_at
+                ";
+            }
+
+            if (in_array('payment_rejected_by', $fields)) {
+                $select .= ",
+                    s.payment_rejected_by,
+                    s.payment_rejected_by_name,
+                    s.payment_rejected_at
+                ";
+            } else {
+                $select .= ",
+                    NULL AS payment_rejected_by,
+                    NULL AS payment_rejected_by_name,
+                    NULL AS payment_rejected_at
+                ";
+            }
+
+            if (in_array('stock_restored', $fields)) {
+                $select .= ",
+                    s.stock_restored,
+                    s.stock_restored_at,
+                    s.stock_restored_by
+                ";
+            } else {
+                $select .= ",
+                    0 AS stock_restored,
+                    NULL AS stock_restored_at,
+                    NULL AS stock_restored_by
+                ";
+            }
+
+            if (in_array('accountant_approval_status', $fields)) {
+                $select .= ",
+                    s.accountant_approval_status,
+                    s.accountant_approved_by,
+                    s.accountant_approved_by_name,
+                    s.accountant_approved_at,
+                    s.accountant_remarks
+                ";
+            } else {
+                $select .= ",
+                    'PENDING' AS accountant_approval_status,
+                    NULL AS accountant_approved_by,
+                    NULL AS accountant_approved_by_name,
+                    NULL AS accountant_approved_at,
+                    NULL AS accountant_remarks
+                ";
+            }
+
+            /* -------------------------------------------------
+            *  QUERY START
+            * -------------------------------------------------*/
+            $this->db->select($select, false);
+            $this->db->from('sales s');
+
+            $this->db->join('hms_centers c', 'c.ID = s.center_id', 'left');
+            $this->db->join('hms_employees e', 'e.ID = s.created_by', 'left');
+
+            /* Sale items (aggregation only) */
+            $this->db->join('sale_items si', 'si.sale_id = s.id', 'left');
+            $this->db->join('medicine_batches mb', 'mb.id = si.batch_id', 'left');
+            $this->db->join('medicines m', 'm.id = mb.medicine_id', 'left');
+
+            /* -------------------------------------------------
+            *  STOCK MOVEMENT EXISTS (NO DUPLICATION)
+            * -------------------------------------------------*/
+            $this->db->where("
+                EXISTS (
+                    SELECT 1
+                    FROM stock_movements sm
+                    WHERE sm.reference_id = s.id
+                    AND sm.movement_type = 'SALE'
+                    AND sm.to_location_type = 'SALE'
+                )
+            ", null, false);
+
+            /* -------------------------------------------------
+            *  SESSION CENTER FILTER
+            * -------------------------------------------------*/
             $center = null;
+
             if (!empty($_SESSION['logged_billing_manager']) &&
                 ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
                 $center = $_SESSION['logged_billing_manager']['center'];
             }
+
             if (!empty($_SESSION['logged_stock_manager']) &&
                 ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
                 $center = $_SESSION['logged_stock_manager']['center'];
             }
+
             if ($center !== null) {
                 $this->db->where('s.center_id', $this->get_center_id($center));
             }
-            // --- End Filter ---
-            // Correct GROUP BY for all non-aggregated columns
-            $this->db->group_by("s.id, c.center_name, e.name, sm.id"); 
-            if(!empty($filters['center_id'])) {
+
+            /* -------------------------------------------------
+            *  FILTERS
+            * -------------------------------------------------*/
+            if (!empty($filters['center_id'])) {
                 $this->db->where('s.center_id', $filters['center_id']);
             }
-            if(!empty($filters['patient_id'])) {
+
+            if (!empty($filters['patient_id'])) {
                 $this->db->like('s.patient_id', $filters['patient_id']);
             }
-            if(!empty($filters['patient_name'])) {
+
+            if (!empty($filters['patient_name'])) {
                 $this->db->like('s.patient_name', $filters['patient_name']);
             }
+
             if (!empty($filters['status'])) {
                 $this->db->where('s.status', $filters['status']);
             }
-            // Filter by Approval Status (accountant approval)
+
             if (!empty($filters['approval_status'])) {
                 $this->db->where('s.accountant_approval_status', $filters['approval_status']);
             }
-            // Filter by Date From (using the 'sale_date' column)
+
             if (!empty($filters['date_from'])) {
                 $this->db->where('s.sale_date >=', $filters['date_from']);
             }
 
-            // Filter by Date To (using the 'sale_date' column)
             if (!empty($filters['date_to'])) {
                 $this->db->where('s.sale_date <=', $filters['date_to']);
             }
 
-            // Filter sales where stock movements have to_location_type = 'SALE'
-            $this->db->where('sm.to_location_type', 'SALE');
+            /* -------------------------------------------------
+            *  FINAL GROUP + ORDER
+            * -------------------------------------------------*/
+            $this->db->group_by('s.id');
+            $this->db->order_by('s.created_at', 'DESC');
 
-            $this->db->order_by("s.created_at", "DESC");
             return $this->db->get()->result();
-            
+
         } catch (Exception $e) {
-            // If tables don't exist or have issues, return empty array
-            log_message('error', 'Error in get_all_sales: ' . $e->getMessage());
+            log_message('error', 'get_all_sales error: ' . $e->getMessage());
             return [];
         }
     }
+
+
+    // public function get_all_sales($filters = [])
+    // {
+    //     try {
+    //         // Build select with safe column references (handles missing columns)
+    //         $select_columns = "
+    //             s.id, s.sale_number, s.center_id, s.patient_id, s.patient_name,
+    //             s.doctor_id, s.doctor_name, s.sale_date, s.sale_time,
+    //             s.payment_method, s.payment_status,s.remarks, s.utr_transaction_id, s.payment_image, 
+    //             s.status, s.remarks, s.created_by, s.created_at, s.updated_at,
+    //             c.center_name,
+    //             e.name as salesperson_name,
+    //             COALESCE(COUNT(si.id), 0) as total_items,
+    //             COALESCE(SUM(si.quantity_sold), 0) as total_quantity,
+    //             COALESCE(SUM(si.subtotal), 0) as subtotal,
+    //             COALESCE(SUM(si.discount_amount), 0) as discount_amount,
+    //             COALESCE(SUM(si.tax_amount), 0) as tax_amount,
+    //             COALESCE(SUM(si.total), 0) as total_amount,
+    //             GROUP_CONCAT(DISTINCT m.gst_rate ORDER BY m.gst_rate SEPARATOR ', ') as gst_rates
+    //         ";
+            
+    //         // Check if new columns exist and add them to select
+    //         $table_fields = $this->db->list_fields('sales');
+            
+    //         // Payment approval columns
+    //         if (in_array('payment_approved_by', $table_fields)) {
+    //             $select_columns .= ", s.payment_approved_by, s.payment_approved_by_name, s.payment_approved_at";
+    //         } else {
+    //             $select_columns .= ", NULL as payment_approved_by, NULL as payment_approved_by_name, NULL as payment_approved_at";
+    //         }
+            
+    //         if (in_array('payment_rejected_by', $table_fields)) {
+    //             $select_columns .= ", s.payment_rejected_by, s.payment_rejected_by_name, s.payment_rejected_at";
+    //         } else {
+    //             $select_columns .= ", NULL as payment_rejected_by, NULL as payment_rejected_by_name, NULL as payment_rejected_at";
+    //         }
+            
+    //         if (in_array('stock_restored', $table_fields)) {
+    //             $select_columns .= ", s.stock_restored, s.stock_restored_at, s.stock_restored_by";
+    //         } else {
+    //             $select_columns .= ", 0 as stock_restored, NULL as stock_restored_at, NULL as stock_restored_by";
+    //         }
+            
+    //         // Accountant approval columns
+    //         if (in_array('accountant_approval_status', $table_fields)) {
+    //             $select_columns .= ", s.accountant_approval_status, s.accountant_approved_by, s.accountant_approved_by_name, s.accountant_approved_at, s.accountant_remarks";
+    //         } else {
+    //             $select_columns .= ", 'PENDING' as accountant_approval_status, NULL as accountant_approved_by, NULL as accountant_approved_by_name, NULL as accountant_approved_at, NULL as accountant_remarks";
+    //         }
+            
+    //         $this->db->select($select_columns, FALSE);
+    //         $this->db->from("sales s");
+    //         $this->db->join("hms_centers c", "s.center_id = c.ID", "left");
+    //         $this->db->join("hms_employees e", "s.created_by = e.ID", "left");
+    //         $this->db->join("sale_items si", "s.id = si.sale_id", "left"); // LEFT JOIN is important
+    //         $this->db->join("medicine_batches mb", "si.batch_id = mb.id", "left");
+    //         $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+    //         $this->db->join("stock_movements sm", "sm.reference_id = s.id AND sm.movement_type = 'SALE' AND sm.to_location_type = 'SALE'", "left");
+
+    //         // --- Session Filter (Your original logic) ---
+    //         // if (
+    //         //     isset(
+    //         //         $_SESSION['logged_billing_manager']
+    //         //             ['center'],
+    //         //     ) &&
+    //         //     !empty(
+    //         //         $_SESSION['logged_billing_manager']
+    //         //             ['center']
+    //         //     )
+    //         // ) {
+    //         //     $this->db->where("s.center_id", $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+    //         // }
+    //         $center = null;
+    //         if (!empty($_SESSION['logged_billing_manager']) &&
+    //             ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+    //             $center = $_SESSION['logged_billing_manager']['center'];
+    //         }
+    //         if (!empty($_SESSION['logged_stock_manager']) &&
+    //             ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+    //             $center = $_SESSION['logged_stock_manager']['center'];
+    //         }
+    //         if ($center !== null) {
+    //             $this->db->where('s.center_id', $this->get_center_id($center));
+    //         }
+    //         // --- End Filter ---
+    //         // Correct GROUP BY for all non-aggregated columns
+    //         $this->db->group_by("s.id, c.center_name, e.name, sm.id"); 
+    //         if(!empty($filters['center_id'])) {
+    //             $this->db->where('s.center_id', $filters['center_id']);
+    //         }
+    //         if(!empty($filters['patient_id'])) {
+    //             $this->db->like('s.patient_id', $filters['patient_id']);
+    //         }
+    //         if(!empty($filters['patient_name'])) {
+    //             $this->db->like('s.patient_name', $filters['patient_name']);
+    //         }
+    //         if (!empty($filters['status'])) {
+    //             $this->db->where('s.status', $filters['status']);
+    //         }
+    //         // Filter by Approval Status (accountant approval)
+    //         if (!empty($filters['approval_status'])) {
+    //             $this->db->where('s.accountant_approval_status', $filters['approval_status']);
+    //         }
+    //         // Filter by Date From (using the 'sale_date' column)
+    //         if (!empty($filters['date_from'])) {
+    //             $this->db->where('s.sale_date >=', $filters['date_from']);
+    //         }
+
+    //         // Filter by Date To (using the 'sale_date' column)
+    //         if (!empty($filters['date_to'])) {
+    //             $this->db->where('s.sale_date <=', $filters['date_to']);
+    //         }
+
+    //         // Filter sales where stock movements exist
+    //         $this->db->where('sm.id IS NOT NULL');
+
+    //         // Correct GROUP BY for all non-aggregated columns
+    //         $this->db->group_by("s.id, c.center_name, e.name, sm.id");
+
+    //         $this->db->order_by("s.created_at", "DESC");
+    //         return $this->db->get()->result();
+            
+    //     } catch (Exception $e) {
+    //         // If tables don't exist or have issues, return empty array
+    //         log_message('error', 'Error in get_all_sales: ' . $e->getMessage());
+    //         return [];
+    //     }
+    // }
     public function add_sale($data)
     {
         // Generate sale_number if not provided - trigger will handle if still NULL
