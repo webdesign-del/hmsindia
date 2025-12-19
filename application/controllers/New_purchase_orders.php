@@ -570,17 +570,21 @@ class New_purchase_orders extends CI_Controller {
                 ->set_status_header(401)
                 ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
         }
-        
+
         $medicine_id = $this->input->get('medicine_id');
         $quantity = (int) $this->input->get('quantity');
-        
+        $ship_to_center_id = $this->input->get('ship_to_center_id');
+        $center_data =$this->get_center_by_id($ship_to_center_id);
+        $center_id =$center_data->ID;
+        $department = $this->input->get('department');
+
         if (empty($medicine_id) || $quantity <= 0) {
             return $this->output->set_content_type('application/json')
                 ->set_status_header(400)
                 ->set_output(json_encode(['status' => 'error', 'message' => 'medicine_id and quantity are required']));
         }
-        
-        $stock_info = $this->Stock_model_new->get_medicine_stock_info($medicine_id);
+
+        $stock_info = $this->Stock_model_new->get_medicine_stock_info($medicine_id, $center_id, $department);
         
         if (!$stock_info) {
             return $this->output->set_content_type('application/json')

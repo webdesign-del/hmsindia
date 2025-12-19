@@ -1849,19 +1849,25 @@ class Stock_model_new extends CI_Model
      * @param int $medicine_id
      * @return object|null Returns object with current_stock and max_stock_level
      */
-    public function get_medicine_stock_info($medicine_id) {
-        try {
+    public function get_medicine_stock_info($medicine_id, $center_id = null, $department = null) {
+        // try {
             $this->db->select('
                 m.id as medicine_id,
                 m.max_stock_level,
-                COALESCE(SUM(COALESCE(cs.quantity, 0)), 0) + COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0) as current_stock
+                COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0) as current_stock
             ');
             $this->db->from('medicines m');
             $this->db->join('medicine_batches mb', 'm.id = mb.medicine_id', 'left');
-            $this->db->join('central_stocks cs', 'mb.id = cs.batch_id AND (cs.status = "ACTIVE" OR cs.status IS NULL)', 'left');
+            // $this->db->join('central_stocks cs', 'mb.id = cs.batch_id AND (cs.status = "ACTIVE" OR cs.status IS NULL)', 'left');
             $this->db->join('center_stocks ccs', 'mb.id = ccs.batch_id AND (ccs.status = "ACTIVE" OR ccs.status IS NULL)', 'left');
             $this->db->where('m.id', $medicine_id);
             $this->db->where('(mb.batch_status = "ACTIVE" OR mb.batch_status IS NULL)');
+            if (!empty($center_id)) {
+                $this->db->where('ccs.center_id', $center_id);
+            }
+            if (!empty($department)) {
+                $this->db->like('ccs.department',$department);
+            }
             $this->db->group_by('m.id, m.max_stock_level');
             $query = $this->db->get();
             
@@ -1869,10 +1875,10 @@ class Stock_model_new extends CI_Model
                 return $query->row();
             }
             return null;
-        } catch (Exception $e) {
-            log_message('error', 'Error in get_medicine_stock_info: ' . $e->getMessage());
-            return null;
-        }
+        // } catch (Exception $e) {
+        //     log_message('error', 'Error in get_medicine_stock_info: ' . $e->getMessage());
+        //     return null;
+        // }
     }
 
     // ===============================================

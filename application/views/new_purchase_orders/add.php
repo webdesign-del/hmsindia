@@ -405,7 +405,9 @@ function populateItemDetails(rowId) {
 function checkStockLevel(rowId) {
     var medicineId = $('#consumables_name_' + rowId).val();
     var quantity = parseInt($('#consumables_quantity_' + rowId).val()) || 0;
-    
+    var shipToCenterId = $('#ship_to').val();
+    var department = $('#department').val();
+
     if (!medicineId || quantity <= 0) {
         // Clear any previous error messages
         $('#row_' + rowId).removeClass('has-error');
@@ -413,10 +415,12 @@ function checkStockLevel(rowId) {
         $('#stock_info_' + rowId).remove();
         return;
     }
-    
+
     $.getJSON('<?php echo base_url('new_purchase_orders/check_stock_level'); ?>', {
         medicine_id: medicineId,
-        quantity: quantity
+        quantity: quantity,
+        ship_to_center_id: shipToCenterId,
+        department: department
     })
     .done(function(response) {
         if (response.status === 'success') {
@@ -584,16 +588,20 @@ $(document).ready(function() {
         // Check stock levels for all items synchronously
         var checkPromises = [];
         var rowIds = [];
+        var shipToCenterId = $('#ship_to').val();
+        var department = $('#department').val();
         $('.consumable-row').each(function() {
             var rowId = $(this).attr('id').replace('row_', '');
             var medicineId = $('#consumables_name_' + rowId).val();
             var quantity = parseInt($('#consumables_quantity_' + rowId).val()) || 0;
-            
+
             if (medicineId && quantity > 0) {
                 rowIds.push(rowId);
                 var checkPromise = $.getJSON('<?php echo base_url('new_purchase_orders/check_stock_level'); ?>', {
                     medicine_id: medicineId,
-                    quantity: quantity
+                    quantity: quantity,
+                    ship_to_center_id: shipToCenterId,
+                    department: department
                 }).then(function(response) {
                     if (response.status === 'success' && !response.can_order) {
                         var itemName = $('#consumables_item_name_' + rowId).val() || 'Item';
