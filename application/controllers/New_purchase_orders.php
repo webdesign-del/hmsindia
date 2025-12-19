@@ -174,15 +174,26 @@ class New_purchase_orders extends CI_Controller {
     private function validate_max_stock_levels() {
         $errors = [];
         $i = 1;
-        
+
+        // Get center and department from POST data
+        $ship_to_center_id = $this->input->post('ship_to');
+        $department = $this->input->post('department');
+
+        // Get center ID if ship_to is provided
+        $center_id = null;
+        if (!empty($ship_to_center_id)) {
+            $center_data = $this->get_center_by_id($ship_to_center_id);
+            $center_id = $center_data ? $center_data->ID : null;
+        }
+
         while ($this->input->post('consumables_name_' . $i) && !empty($this->input->post('consumables_name_' . $i))) {
             $medicine_id = $this->input->post('consumables_name_' . $i);
             $po_quantity = (int) $this->input->post('consumables_quantity_' . $i);
             $item_name = $this->input->post('consumables_item_name_' . $i);
-            
+
             if (!empty($medicine_id) && $po_quantity > 0) {
                 // Get current stock and max stock level
-                $stock_info = $this->Stock_model_new->get_medicine_stock_info($medicine_id);
+                $stock_info = $this->Stock_model_new->get_medicine_stock_info($medicine_id, $center_id, $department);
                 
                 if ($stock_info) {
                     $current_stock = (int) $stock_info->current_stock;
