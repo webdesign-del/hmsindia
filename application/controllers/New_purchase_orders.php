@@ -354,7 +354,7 @@ class New_purchase_orders extends CI_Controller {
                     if (!empty($medicine_info)) {
                         $medicine_id = $medicine_info->id;
                     }
-                    $current_stock = $this->Stock_model_new->get_center_stocks($center_id, $medicine_id, null, 'ACTIVE', $po_department);
+                    $current_stock = $this->Stock_model_new->get_center_stocks_for_po($center_id, $medicine_id, null, 'ACTIVE', $po_department);
                     $item['current_quantity'] = 0;
                     if (!empty($current_stock)) {
                         foreach ($current_stock as $stock) {
