@@ -167,6 +167,7 @@
                                     <th>Item Name</th>
                                     <th>Item Number</th>
                                     <th>Unit</th>
+                                    <th>Pack Size</th>
                                     <th>Quantity Order(Pack)</th>
                                     <th>Quantity Received</th>
                                     <th>Current Quantity(Pack)</th>
@@ -189,6 +190,7 @@
                                        <td><?php echo $item['item_name']; ?></td>
                                        <td><?php echo $item['item_number']; ?></td>
                                        <td><?php echo $item['unit']; ?></td>
+                                       <td><?php echo $item['pack_size']; ?></td>
                                        <td><?php echo $item['quantity']; ?></td>
                                        <td><?php echo $item['quantity_received']; ?></td>
                                        <td><?php echo isset($item['current_quantity']) && is_numeric($item['current_quantity']) ? number_format($item['current_quantity'] / $item['pack_size'], 2) : '0.00'; ?> </td>
