@@ -1514,7 +1514,11 @@ class Stock_model_new extends CI_Model
             if ($department !== null && $department !== '') {
                 if ($department == 'billing') {
                     $this->db->like('ccs.department', 'CASH MEDICINE');
-                } else {
+                }elseif($department == 'Embryologist Basant Lok')
+                {
+                    $this->db->like('ccs.department', 'Embryology Basant Lok');
+                }
+                 else {
                     $this->db->like('ccs.department', $department);
                 }
             }
