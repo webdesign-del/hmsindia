@@ -649,7 +649,7 @@ if (!empty($medicine_daily_result)) {
                     <td><?php echo $vl['total_amount']; ?></td>
                     <td><?php echo $vl['sale_date']; ?></td>
                     <td><?php echo $vl['sale_number']; ?></td>
-                     <td><?php echo $vl['payment_image']; ?></td>
+                     <td><a href="https://indiaivf.website/assets/<?php echo $vl['payment_image']; ?>" target="_blank">https://indiaivf.website/assets/<?php echo $vl['payment_image']; ?></a></td>
                 </tr>
                 <?php } ?>
                  <?php 

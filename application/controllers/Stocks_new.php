@@ -946,8 +946,9 @@ class Stocks_new extends CI_Controller
                     redirect("stocks_new/medicines");
                 }
             }
-
+           // var_dump($this->Stock_model_new->get_medicine_by_id($id));
             $data["medicine"] = $this->Stock_model_new->get_medicine_by_id($id);
+           
             $data["brands"] = $this->Stock_model_new->get_medicine_brands();
 
             $template = get_header_template($logg["role"]);
