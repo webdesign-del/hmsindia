@@ -1915,7 +1915,10 @@ class Stock_model_new extends CI_Model
                 $this->db->where('ccs.center_id', $center_id);
             }
             if (!empty($department)) {
-                $this->db->like('ccs.department',$department);
+                if ($department == 'Embryologist Basant Lok') {
+                    $department = 'Embryology Basant Lok';
+                }
+                $this->db->like('ccs.department', $department);
             }
             $this->db->group_by('m.id, m.max_stock_level');
             $query = $this->db->get();
