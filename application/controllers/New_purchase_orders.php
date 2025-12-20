@@ -345,6 +345,8 @@ class New_purchase_orders extends CI_Controller {
                     $medicine_item = $this->Stock_model_new->get_medicine_by_id($medicine_id);
                     $item['unit'] =$medicine_item->unit;
                     $item['pack_size'] =$medicine_item->pack_size;
+                    $item['min_stock_level'] =$medicine_item->min_stock_level;
+                    $item['max_stock_level'] =$medicine_item->max_stock_level;
                     $item['current_quantity'] =
                     $this->Stock_model_new->get_center_stock_quantity_for_po(
                         $center_id,
