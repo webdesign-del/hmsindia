@@ -156,7 +156,8 @@
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Payment Method</label>
                                         <div class="col-sm-8">
-                                            <select name="payment_method" class="form-control">
+                                            <select name="payment_method" class="form-control" required>
+                                                <option value="" >Select Payment Method</option>
                                                 <option value="CASH" <?php echo set_select('payment_method', 'CASH'); ?>>Cash</option>
                                                 <option value="CARD" <?php echo set_select('payment_method', 'CARD'); ?>>Card</option>
                                                 <option value="UPI" <?php echo set_select('payment_method', 'UPI'); ?>>UPI</option>
@@ -170,7 +171,8 @@
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Payment Status</label>
                                         <div class="col-sm-8">
-                                            <select name="payment_status" class="form-control">
+                                            <select name="payment_status" class="form-control" required>
+                                                <option value="" >Select Payment Status</option>
                                                 <option value="PENDING" <?php echo set_select('payment_status', 'PENDING'); ?>>Pending</option>
                                                 <option value="PAID" <?php echo set_select('payment_status', 'PAID'); ?>>Paid</option>
                                                 <option value="PARTIAL" <?php echo set_select('payment_status', 'PARTIAL'); ?>>Partial</option>
