@@ -135,7 +135,7 @@
                                 <div class="form-group">
                                     <label for="approval_remarks"><strong>Remarks / Reason:</strong> <span class="text-danger">*</span></label>
                                     <textarea name="remarks" id="approval_remarks" class="form-control" rows="3" 
-                                              placeholder="Enter your reason for this decision (required)" required></textarea>
+                                              placeholder="Enter your reason for this decision (required)" ></textarea>
                                 </div>
                                 
                                 <div class="form-group text-right">
