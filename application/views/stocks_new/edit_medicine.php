@@ -116,6 +116,7 @@
                                                 <option value="SACHET" <?php echo set_select('unit', 'SACHET', ($medicine->unit == 'SACHET')); ?>>SACHET</option>
                                                 <option value="PATCH" <?php echo set_select('unit', 'PATCH', ($medicine->unit == 'PATCH')); ?>>PATCH</option>
                                                 <option value="INJECTION" <?php echo set_select('unit', 'INJECTION', ($medicine->unit == 'INJECTION')); ?>>INJECTION</option>
+                                                <option value="ML" <?php echo set_select('unit', 'ML', ($medicine->unit == 'ML')); ?>>ML</option>
                                             </select>
                                         </div>
                                     </div>

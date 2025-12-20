@@ -140,6 +140,7 @@
                                                 <option value="SACHET" <?php echo set_select('unit', 'SACHET'); ?>>SACHET</option>
                                                 <option value="PATCH" <?php echo set_select('unit', 'PATCH'); ?>>PATCH</option>
                                                 <option value="INJECTION" <?php echo set_select('unit', 'INJECTION'); ?>>INJECTION</option>
+                                                <option value="ML" <?php echo set_select('unit', 'ML'); ?>>ML</option>
                                             </select>
                                         </div>
                                     </div>

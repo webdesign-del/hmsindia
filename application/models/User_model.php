@@ -37,7 +37,7 @@ class User_model extends CI_Model
 				}
 				if($role == 'accountant'){
 					$center = $this->get_center($affected_rows[0]['username']);
-					$_SESSION['logged_accountant'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => isset($center['center_number']) ? $center['center_number'] : 0, 'center_type' => isset($center['type']) ? $center['type'] : '');
+					$_SESSION['logged_accountant'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => isset($center['center_number']) ? $center['center_number'] : 0, 'center_type' => isset($center['type']) ? $center['type'] : '', 'department' => $affected_rows[0]['department']);
 				}
 				if($role == 'stock_manager'){
 					$center = $this->get_center($affected_rows[0]['username']);
@@ -49,36 +49,36 @@ class User_model extends CI_Model
 				}
 				if($role == 'telecaller'){
 					$center = $this->get_center($affected_rows[0]['username']); 
-					$_SESSION['logged_telecaller'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => isset($center['center_number']) ? $center['center_number'] : 0, 'center_type' => isset($center['type']) ? $center['type'] : '');
+					$_SESSION['logged_telecaller'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => isset($center['center_number']) ? $center['center_number'] : 0, 'center_type' => isset($center['type']) ? $center['type'] : '', 'department' => $affected_rows[0]['department']);
 				}
 				if($role == 'central_stock_manager'){
 					$center = $this->get_center($affected_rows[0]['username']);
-					$_SESSION['logged_central_stock_manager'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => 0);
+					$_SESSION['logged_central_stock_manager'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => 0, 'department' => $affected_rows[0]['department']);
 				}
 				
 				if($role == 'investigator_manager'){
 					$center = $this->get_center($affected_rows[0]['username']);
-					$_SESSION['logged_investigation_manager'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => 0);
+					$_SESSION['logged_investigation_manager'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => 0, 'department' => $affected_rows[0]['department']);
 				}
 				if($role == 'counselor'){
 					$center = $this->get_center($affected_rows[0]['username']);
-					$_SESSION['logged_counselor'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => isset($center['center_number']) ? $center['center_number'] : 0);
+					$_SESSION['logged_counselor'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => isset($center['center_number']) ? $center['center_number'] : 0, 'department' => $affected_rows[0]['department']);
 				}
 				if($role == 'embryologist'){
 					$center = $this->get_center($affected_rows[0]['username']);
-					$_SESSION['logged_embryologist'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => isset($center['center_number']) ? $center['center_number'] : 0);
+					$_SESSION['logged_embryologist'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => isset($center['center_number']) ? $center['center_number'] : 0, 'department' => $affected_rows[0]['department']);
 				}
 				if($role == 'liason'){
 					$center = $this->get_center($affected_rows[0]['username']);
-					$_SESSION['logged_liason'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => 0);
+					$_SESSION['logged_liason'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => 0, 'department' => $affected_rows[0]['department']);
 				}
 				if($role == 'mrd'){
 					$center = $this->get_center($affected_rows[0]['username']);
-					$_SESSION['logged_mrd'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => 0);
+					$_SESSION['logged_mrd'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => 0, 'department' => $affected_rows[0]['department']);
 				}
 				if($role == 'viewer'){
 					$center = $this->get_center($affected_rows[0]['username']);
-					$_SESSION['logged_viewer'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => 0);
+					$_SESSION['logged_viewer'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => 0, 'department' => $affected_rows[0]['department']);
 				}
 				$result = array('status' => 1);
             	return $result;	
