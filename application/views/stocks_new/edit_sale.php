@@ -175,13 +175,6 @@
                         alert('Please select an action (Approve, Disapprove, or Cancel)');
                         return false;
                     }
-                    
-                    if (!remarks) {
-                        alert('Please provide a reason for your decision');
-                        $('#approval_remarks').focus();
-                        return false;
-                    }
-                    
                     // Confirm for disapprove/cancel
                     if (action == 'DISAPPROVED' || action == 'CANCELLED') {
                         if (!confirm('This will restore the stock to inventory. Are you sure?')) {
