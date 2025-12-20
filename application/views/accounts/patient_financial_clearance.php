@@ -174,11 +174,7 @@
 <?php }else{ ?>
                     <?php echo $vl['procedure_date']; } ?>
 </td>
-<?php if (
-    !empty($_SESSION['logged_doctor']['name']) ||
-    !empty($_SESSION['logged_embryologist']['name']) ||
-    !empty($_SESSION['logged_counselor']['name'])
-) { ?>
+<?php if (!empty($_SESSION['logged_counselor']['name'])) { ?>
 <td>
     <label><input type="checkbox" value="director@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">director@indiaivf.in</label><br>
     <label><input type="checkbox" value="dranu.singh@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">dranu.singh@indiaivf.in</label><br>
