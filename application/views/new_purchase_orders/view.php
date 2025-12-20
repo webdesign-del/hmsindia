@@ -166,9 +166,10 @@
                                     <th>Sr.</th>
                                     <th>Item Name</th>
                                     <th>Item Number</th>
-                                    <th>Quantity Order</th>
+                                    <th>Unit</th>
+                                    <th>Quantity Order(Pack)</th>
                                     <th>Quantity Received</th>
-                                    <th>Current Quantity</th>
+                                    <th>Current Quantity(Pack)</th>
                                     <th>Batch</th>
                                     <th>Price</th>
                                     <th>Vendor Price</th>
@@ -187,9 +188,10 @@
                                        <td><?php echo $index + 1; ?></td>
                                        <td><?php echo $item['item_name']; ?></td>
                                        <td><?php echo $item['item_number']; ?></td>
+                                       <td><?php echo $item['unit']; ?></td>
                                        <td><?php echo $item['quantity']; ?></td>
                                        <td><?php echo $item['quantity_received']; ?></td>
-                                       <td><?php echo isset($item['current_quantity']) ? $item['current_quantity'] : '0'; ?> units</td>
+                                       <td><?php echo isset($item['current_quantity']) && is_numeric($item['current_quantity']) ? number_format($item['current_quantity'] / $item['pack_size'], 2) : '0.00'; ?> </td>
                                        <td><?php echo $item['batch_number']; ?></td>
                                        <td>₹<?php echo number_format($item['price'], 2); ?></td>
                                        <td>₹<?php echo number_format($item['vendor_price'], 2); ?></td>

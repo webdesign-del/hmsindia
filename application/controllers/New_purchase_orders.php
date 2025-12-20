@@ -335,25 +335,16 @@ class New_purchase_orders extends CI_Controller {
                 $this->session->set_flashdata('error', 'Purchase order not found!');
                 redirect('new_purchase_orders');
             }
-
             // Get current stock levels for each PO item
             if (!empty($data['purchase_order_items'])) {
                 $po_center = isset($data['purchase_order']['ship_to']) ? $data['purchase_order']['ship_to'] : null;
                 $center_id=$this->get_center_id_from_number($po_center);
                 $po_department = isset($data['purchase_order']['department']) ? $data['purchase_order']['department'] : null;
-
                 foreach ($data['purchase_order_items'] as &$item) {
-                    // Get medicine_id from medicine name first
                     $medicine_id = $item['item_number'];
-                    // $this->db->select('id');
-                    // $this->db->from('medicines');
-                    // $this->db->where('id', $item['item_number']);
-                    // $this->db->where('status', 'active');
-                    // $medicine_query = $this->db->get();
-                    // $medicine_info = $medicine_query->row();
-                    // if (!empty($medicine_info)) {
-                    //     $medicine_id = $medicine_info->id;
-                    // }
+                    $medicine_item = $this->Stock_model_new->get_medicine_by_id($medicine_id);
+                    $item['unit'] =$medicine_item->unit;
+                    $item['pack_size'] =$medicine_item->pack_size;
                     $item['current_quantity'] =
                     $this->Stock_model_new->get_center_stock_quantity_for_po(
                         $center_id,
@@ -361,16 +352,6 @@ class New_purchase_orders extends CI_Controller {
                         'ACTIVE',
                         $po_department
                     );
-
-                    // $current_stock = $this->Stock_model_new->get_center_stocks_for_po($center_id, $medicine_id, null, 'ACTIVE', $po_department);
-                    // $item['current_quantity'] = 0;
-                    // if (!empty($current_stock)) {
-                    //     foreach ($current_stock as $stock) {
-                    //         if (isset($stock->quantity)) {
-                    //             $item['current_quantity'] += $stock->quantity;
-                    //         }
-                    //     }
-                    // }
                 }
             }
 
