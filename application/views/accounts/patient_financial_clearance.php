@@ -88,7 +88,7 @@
 				    <th>Procedure</th>
                     <th>Code</th>
                     <th>Category</th>
-                   <?php if ( !empty($_SESSION['logged_doctor']['name']) || !empty($_SESSION['logged_embryologist']['name'])) { ?>
+                   <?php if ( !empty($_SESSION['logged_doctor']['name']) || !empty($_SESSION['logged_embryologist']['name']) || !empty($_SESSION['logged_counselor']['name'])) { ?>
                      <th>Email</th>
                      <?php } ?>
                    <th>Procedure Date</th>
@@ -163,7 +163,7 @@
     <label><input type="checkbox" value="mohd.ovais@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">mohd.ovais@indiaivf.in</label><br>
     <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="accounts@indiaivf.in">accounts@indiaivf.in</label><br>
     <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="pan.singh@indiaivf.in">pan.singh@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="deepa.mishra@indiaivf.in">rahulghaziabad@indiaivf.in</label><br>
+    <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="deepa.mishra@indiaivf.in">deepa.mishra@indiaivf.in</label><br>
     <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="webdesign@indiaivf.in">webdesign@indiaivf.in</label>
     </td><?php } ?>
                 <td>
@@ -173,7 +173,8 @@
                     <button type="button" onclick="updateProcedureDate('<?php echo $vl['ID']; ?>')">Save</button>
                     <?php }else{ ?>
                     <?php echo $vl['procedure_date']; } ?></td>
-                    <td><?php echo $all_method->get_doctor_name($vl['doctor_id']); ?></td>
+                    <td class="<?php echo $all_method->get_doctor_name($vl['doctor_id']); ?>"> <?php echo $all_method->get_doctor_name($vl['doctor_id']); ?></td>
+
 				    
  <td><?php 
 if (!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') {
@@ -211,7 +212,7 @@ if (!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') {
 ?>
 
                     </td>
-                     <td><?php echo $all_method->get_employee_name($vl['counselor_id']); ?> (<?php echo $vl['clearance_date']; ?>)</td>
+                     <td class="<?php echo $all_method->get_employee_name($vl['counselor_id']); ?>"><?php echo $all_method->get_employee_name($vl['counselor_id']); ?> (<?php echo $vl['clearance_date']; ?>)</td>
                   <td><?php
 if ($vl['clearance'] == 'Yes') {
 
@@ -302,7 +303,7 @@ if ($vl['consultant'] === 'Done') {
 ?>
 
                 </td>
-                 <td><?php echo $all_method->get_employee_name($vl['accountant_id']); ?> (<?php echo $vl['accclearance_date']; ?>)</td>
+                 <td class="<?php echo $all_method->get_employee_name($vl['accountant_id']); ?>"><?php echo $all_method->get_employee_name($vl['accountant_id']); ?> (<?php echo $vl['accclearance_date']; ?>)</td>
                 </tr>
               <?php $count++;} ?>
                <tr>
@@ -562,6 +563,9 @@ function updateProcedureDate(id) {
     left: -9999px;
     opacity: 1;
     /* display: block; */
+}
+td.Array {
+    opacity: 0;
 }
 </style>
 <script>
