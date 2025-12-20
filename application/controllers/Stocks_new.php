@@ -10063,6 +10063,9 @@ class Stocks_new extends CI_Controller
                 }
                 redirect("stocks_new/add_billing_item");
             } else {
+                if($department == 'Embryologist Basant Lok'){
+                    $department = 'Embryology Basant Lok';
+                }
                 $template = get_header_template($logg['role']);
                 $data['consumables'] = $this->Stock_model_new->get_batches_for_billing_form('OT DCI', $center_id, $department);
                 $data['injections'] = $this->Stock_model_new->get_batches_for_billing_form('Package injections', $center_id, $department);
