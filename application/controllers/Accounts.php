@@ -2354,15 +2354,15 @@ public function export_consultation_csv() {
 
 public function clearance_procedure()
 {
-    $id     = $this->input->post('id');
-    $emails = $this->input->post('emails'); // ARRAY
+    $id           = $this->input->post('id', true);
+    $counselor_id = $this->input->post('counselor_id', true);
+    $emails       = $this->input->post('emails');
 
-    if (empty($id) || empty($emails)) {
+    if (empty($id) || empty($emails) || empty($counselor_id)) {
         echo 'invalid_request';
         return;
     }
 
-    // Fetch row
     $row = $this->db->where('ID', $id)
                     ->get('hms_patient_procedure')
                     ->row_array();
@@ -2372,22 +2372,24 @@ public function clearance_procedure()
         return;
     }
 
-    // Prevent duplicate clearance
     if ($row['clearance'] === 'Yes') {
         echo 'already_done';
         return;
     }
 
-    // Update clearance
-    $this->db->where('ID', $id)
-             ->update('hms_patient_procedure', ['clearance' => 'Yes']);
+    // ✅ CORRECT UPDATE
+    $this->db->where('ID', $id)->update('hms_patient_procedure', [
+        'clearance'       => 'Yes',
+        'counselor_id'    => $counselor_id,
+        'clearance_date'  => date('Y-m-d H:i:s')
+    ]);
 
-    // ---------- SEND EMAIL ----------
+    // ================= EMAIL =================
     $this->load->library('email');
     $this->email->set_mailtype('html');
 
-    $this->email->from('noreply@indiaivf.in', 'India IVF Procedure Financial Clearance');
-    $this->email->to($emails); // ✅ SELECTED EMAILS ONLY
+    $this->email->from('noreply@indiaivf.in', 'India IVF');
+    $this->email->to($emails);
 
     $this->email->subject(
         'Financial Clearance Done - Patient ID: ' . $row['patient_id']
@@ -2395,18 +2397,17 @@ public function clearance_procedure()
 
     $message = "
         <h3>Financial Clearance Completed</h3>
-
-        <table border='1' cellpadding='6' cellspacing='0' width='100%'>
+        <table border='1' cellpadding='6' width='100%'>
             <tr>
                 <th>Patient ID</th>
                 <th>Receipt No</th>
                 <th>Billing Date</th>
-                <th>Package Amount</th>
+                <th>Package</th>
                 <th>Discount</th>
-                <th>Received Amount</th>
+                <th>Received</th>
                 <th>Procedure</th>
                 <th>Category</th>
-                <th>Clearance By</th>
+                <th>Cleared By</th>
             </tr>
             <tr>
                 <td>{$row['patient_id']}</td>
@@ -2420,19 +2421,14 @@ public function clearance_procedure()
                 <td>{$row['councellor']}</td>
             </tr>
         </table>
-
-        <br>
         <p>India IVF System</p>
     ";
 
     $this->email->message($message);
 
-    if ($this->email->send()) {
-        echo 'success';
-    } else {
-        echo $this->email->print_debugger();
-    }
+    echo $this->email->send() ? 'success' : $this->email->print_debugger();
 }
+
 
 
 public function consultant_procedure()
@@ -2514,16 +2510,18 @@ public function consultant_procedure()
 
 public function update_procedure_date()
 {
-    $id             = $this->input->post('id');
-    $procedure_date = $this->input->post('procedure_date');
-    $emails         = $this->input->post('emails'); // array
+    $id             = $this->input->post('id', true);
+    $doctor_id      = $this->input->post('doctor_id', true);
+    $procedure_date = $this->input->post('procedure_date', true);
+    $emails         = $this->input->post('emails');
 
-    if (empty($id) || empty($procedure_date) || empty($emails)) {
+    // ================= VALIDATION =================
+    if (empty($id) || empty($procedure_date) || empty($doctor_id) || empty($emails)) {
         echo 'invalid_request';
         return;
     }
 
-    // Fetch record
+    // ================= FETCH RECORD =================
     $row = $this->db->where('ID', $id)
                     ->get('hms_patient_procedure')
                     ->row_array();
@@ -2533,39 +2531,70 @@ public function update_procedure_date()
         return;
     }
 
-    // Update date
-    $this->db->where('ID', $id)->update('hms_patient_procedure', [
-        'procedure_date' => $procedure_date
-    ]);
+    // ================= UPDATE DATA =================
+    $update_data = [
+        'procedure_date'     => $procedure_date,              // DATE from input
+        'doctor_id'          => $doctor_id,
+        'procedure_datetime' => date('Y-m-d H:i:s')           // DB SAFE FORMAT
+    ];
 
-    // ---------- SEND EMAIL ----------
+    $this->db->where('ID', $id)->update('hms_patient_procedure', $update_data);
+
+    // ================= SEND EMAIL =================
     $this->load->library('email');
     $this->email->set_mailtype('html');
 
-    $this->email->from('noreply@indiaivf.in', 'India IVF Procedure Date');
-    $this->email->to($emails); // SEND ONLY TO CHECKED EMAILS
+    $this->email->from('noreply@indiaivf.in', 'India IVF');
+    $this->email->to($emails); // ARRAY IS OK
 
     $this->email->subject(
-        'Procedure Date - Patient ID: ' . $row['patient_id']
+        'Procedure Date Updated - Patient ID: ' . $row['patient_id']
     );
 
-    $this->email->message("
-        <h3>Procedure  Details</h3>
-        <table border='1' cellpadding='6' cellspacing='0'>
-            <tr><th>Patient ID</th><th>Receipt number</th><th>Billing Date & Time</th><th>Package Amount</th><th>Discount Amount</th><th>Discounted Package</th><th>Received Amount</th><th>Procedure</th><th>Code</th><th>Category</th><th>FC / CH Clearance</th><th>Procedure Date:</th></tr>
-            <tr><td>{$row['patient_id']}</td><td>{$row['receipt_number']}</td><td>{$row['on_date']}</td><td>{$row['totalpackage']}</td><td>{$row['discount_amount']}</td><td>{$row['fees']}</td><td>{$row['fees']}</td><td>{$row['procedure_name']}</td><td>{$row['code']}</td><td>{$row['category']}</td><td>{$row['councellor']}</td><td><b>{$procedure_date}</b></td></tr>
-			
+    $message = "
+        <h3>Procedure Details</h3>
+        <table border='1' cellpadding='6' cellspacing='0' width='100%'>
+            <tr>
+                <th>Patient ID</th>
+                <th>Receipt No</th>
+                <th>Billing Date</th>
+                <th>Package Amount</th>
+                <th>Discount</th>
+                <th>Final Amount</th>
+                <th>Procedure</th>
+                <th>Code</th>
+                <th>Category</th>
+                <th>Clearance</th>
+                <th>Procedure Date</th>
+            </tr>
+            <tr>
+                <td>{$row['patient_id']}</td>
+                <td>{$row['receipt_number']}</td>
+                <td>{$row['on_date']}</td>
+                <td>{$row['totalpackage']}</td>
+                <td>{$row['discount_amount']}</td>
+                <td>{$row['fees']}</td>
+                <td>{$row['procedure_name']}</td>
+                <td>{$row['code']}</td>
+                <td>{$row['category']}</td>
+                <td>{$row['councellor']}</td>
+                <td><strong>{$procedure_date}</strong></td>
+            </tr>
         </table>
         <br>
         <p>India IVF System</p>
-    ");
+    ";
 
+    $this->email->message($message);
+
+    // ================= RESPONSE =================
     if ($this->email->send()) {
         echo 'success';
     } else {
         echo $this->email->print_debugger();
     }
 }
+
 
 	function nonclearance_procedure($ID){
 		$approved = $this->accounts_model->nonclearance_procedure($ID);
@@ -2578,16 +2607,38 @@ public function update_procedure_date()
 		}
 	}
 
-	function accclearance_procedure($ID){
-		$approved = $this->accounts_model->accclearance_procedure($ID);
-		if($approved > 0){
-			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure Clearance!').'&t='.base64_encode('success'));
-			die();
-		}else{
-			header("location:" .base_url(). "accounts/patient_financial_clearance?m=".base64_encode('Procedure went wrong !').'&t='.base64_encode('error'));
-			die();
-		}
-	}
+	public function accclearance_procedure()
+{
+    $id            = $this->input->post('id', true);
+    $accountant_id = $this->input->post('accountant_id', true);
+
+    if (empty($id) || empty($accountant_id)) {
+        echo 'invalid_request';
+        return;
+    }
+
+    $row = $this->db->where('ID', $id)
+                    ->get('hms_patient_procedure')
+                    ->row_array();
+
+    if (!$row) {
+        echo 'record_not_found';
+        return;
+    }
+
+    if ($row['accclearance'] === 'Yes') {
+        echo 'already_done';
+        return;
+    }
+
+    $this->db->where('ID', $id)->update('hms_patient_procedure', [
+        'accclearance'       => 'Yes',
+        'accclearance_date'  => date('Y-m-d H:i:s'),
+        'accountant_id'      => $accountant_id
+    ]);
+
+    echo 'success';
+}
 
 	function accnonclearance_procedure($ID){
 		$approved = $this->accounts_model->accnonclearance_procedure($ID);

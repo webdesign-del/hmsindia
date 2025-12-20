@@ -1002,40 +1002,15 @@ class Accounts_model extends CI_Model
 		return $result;
 	}
 	
-	/*function approve_payment($id){
-		$sql = "";
-		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_payments` SET `status`='1' WHERE ID='".$id."'";
-        $this->db->query($sql);
-		return $this->db->affected_rows();
-	} */
-	
 	function approve_medicine($ID){
 		$sql = "";
 		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_medicine` SET `status`='approved', `modified_on`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
         $this->db->query($sql);
         return $this->db->affected_rows();
 	}
-/*
-	function clearance_procedure($ID){
-		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `clearance`='Yes', `clearance_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
-        $this->db->query($sql);
-        return $this->db->affected_rows();
-	}
-*/
+
 	function nonclearance_procedure($ID){
 		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `clearance`='No', `clearance_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
-        $this->db->query($sql);
-        return $this->db->affected_rows();
-	}
-/*
-	function consultant_procedure($ID){
-		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `consultant`='Done', `consultant_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
-        $this->db->query($sql);
-        return $this->db->affected_rows();
-	}
-*/	
-	function accclearance_procedure($ID){
-		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `accclearance`='Yes', `accclearance_date`='" . date_default_timezone_set('Asia/Kolkata') . date('Y-m-d H:i:s') . "' WHERE ID='".$ID."'";
         $this->db->query($sql);
         return $this->db->affected_rows();
 	}

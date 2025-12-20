@@ -92,12 +92,12 @@
                      <th>Email</th>
                      <?php } ?>
                    <th>Procedure Date</th>
-                      <?php if (!empty($_SESSION['logged_counselor']['name'])) { ?>
-                     <th>Email</th>
-                     <?php } ?>
-				    <th><strong>FC / CH Clearance</strong></th>
+                   <th>Doctor Name</td>
+                    <th><strong>FC / CH Clearance</strong></th>
+                     <th>Apporved By</th>
                     <th>User / Doctor /  Embryologist</th>
                     <th>Account</th>
+                    <th>Apporved By</th>
                 </tr>
               </thead>
               <tbody id="procedure_result">
@@ -127,55 +127,24 @@
                     $patient_name = $all_method->get_patient_name($vl['patient_id']);
                     echo strtoupper($patient_name); ?>
                     </td>
-                    <?php   if (!empty($_SESSION['logged_counselor']['name']) 
-    || !empty($_SESSION['logged_accountant']['name'])) { ?>
+                    <?php   if (!empty($_SESSION['logged_counselor']['name']) || !empty($_SESSION['logged_accountant']['name'])) { ?>
                     <td><a href="<?php echo base_url().'accounts/financial_clearance_details';?>/<?php echo $vl['receipt_number']?>"><?php echo $vl['receipt_number']; ?></a></td>
-                    
                     <td><?php echo $vl['on_date']?></td>
                     <td><?php echo $vl['totalpackage']?></td>
                     <td><?php echo $vl['discount_amount']?></td>
 				    <td><?php echo $vl['fees']?></td>
 				    <td><?php echo number_format($sum_result->total_paid + $vl['payment_done'], 2);   ?></td>
-                    <td><?php echo number_format($balance, 2); ?>
-</td>
+                    <td><?php echo number_format($balance, 2); ?></td>
                     <?php }else{ ?>
                     <td><?php echo $vl['receipt_number']?></td>
                     <?php } ?>
                     <td><?php echo $all_method->get_center_name($vl['billing_at']); ?></td>
 				    <td><?php echo $all_method->get_center_name($vl['origins']); ?></td>
-				    <td><?php echo $vl['procedure_name']; ?></td>
+                    <td><?php echo $vl['procedure_name']; ?></td>
                     <td><?php echo $vl['code']; ?></td>
                     <td><?php echo $vl['category']; ?></td>
-                    <?php if (!empty($_SESSION['logged_doctor']['name'])) { ?>
+                    <?php if ( !empty($_SESSION['logged_doctor']['name']) || !empty($_SESSION['logged_counselor']['name'])) { ?>
                     <td>
-    <label><input type="checkbox" class="mail_check" value="director@indiaivf.in" id="mail_1_<?php echo $vl['ID']; ?>">director@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="dranu.singh@indiaivf.in" id="mail_2_<?php echo $vl['ID']; ?>">dranu.singh@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="rdrdivya.pandey@indiaivf.in" id="mail_3_<?php echo $vl['ID']; ?>">rahulghaziabad@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="drshavya.aggarwal@indiaivf.in" id="mail_4_<?php echo $vl['ID']; ?>">drshavya.aggarwal@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="dreshna.gupta@indiaivf.in" id="mail_5_<?php echo $vl['ID']; ?>">dreshna.gupta@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="drmanjote.kour@indiaivf.in" id="mail_6_<?php echo $vl['ID']; ?>">drmanjote.kour@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="drsheeba.farooq@indiaivf.in" id="mail_7_<?php echo $vl['ID']; ?>">drsheeba.farooq@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="gaurav.kumar@indiaivf.in" id="mail_8_<?php echo $vl['ID']; ?>">gaurav.kumar@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="ethan.rinngheta@indiaivf.in" id="mail_9_<?php echo $vl['ID']; ?>">ethan.rinngheta@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="sangeeth.samuel@indiaivf.in" id="mail_10_<?php echo $vl['ID']; ?>">sangeeth.samuel@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="harsh.sharma@indiaivf.in" id="mail_11_<?php echo $vl['ID']; ?>">harsh.sharma@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="tajinder.kaur@indiaivf.in" id="mail_12_<?php echo $vl['ID']; ?>">tajinder.kaur@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="ishver.singh@indiaivf.in" id="mail_13_<?php echo $vl['ID']; ?>">ishver.singh@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="drbabita.singh@indiaivf.in" id="mail_14_<?php echo $vl['ID']; ?>">drbabita.singh@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="anjali.sodhi@indiaivf.in" id="mail_15_<?php echo $vl['ID']; ?>">anjali.sodhi@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="mohd.ovais@indiaivf.in" id="mail_16_<?php echo $vl['ID']; ?>">mohd.ovais@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check" value="webdesign@indiaivf.in" id="mail_5_<?php echo $vl['ID']; ?>">webdesign@indiaivf.in</label><br>
-
-    
-</td><?php } ?>
-
-                   <td><?php if (!empty($_SESSION['logged_doctor']['name'])) { ?>
-                    <input type="date" id="procedure_date_<?php echo $vl['ID']; ?>" value="<?php echo $vl['procedure_date']; ?>" onchange="updateProcedureDate('<?php echo $vl['ID']; ?>', this.value)">
-<?php }else{ ?>
-                    <?php echo $vl['procedure_date']; } ?>
-</td>
-<?php if (!empty($_SESSION['logged_counselor']['name'])) { ?>
-<td>
     <label><input type="checkbox" value="director@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">director@indiaivf.in</label><br>
     <label><input type="checkbox" value="dranu.singh@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">dranu.singh@indiaivf.in</label><br>
     <label><input type="checkbox" value="rdrdivya.pandey@indiaivf.in" class="mail_check_<?php echo $vl['ID']; ?>">rahulghaziabad@indiaivf.in</label><br>
@@ -195,45 +164,54 @@
     <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="accounts@indiaivf.in">accounts@indiaivf.in</label><br>
     <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="pan.singh@indiaivf.in">pan.singh@indiaivf.in</label><br>
     <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="deepa.mishra@indiaivf.in">rahulghaziabad@indiaivf.in</label><br>
-    <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="webdesign@indiaivf.in">webdesign@indiaivf.in</label></td>
-<?php } ?>
+    <label><input type="checkbox" class="mail_check_<?php echo $vl['ID']; ?>" value="webdesign@indiaivf.in">webdesign@indiaivf.in</label>
+    </td><?php } ?>
+                <td>
+                    <?php if (!empty($_SESSION['logged_doctor']['name'])) { ?>
+                    <input type="date" id="procedure_date_<?php echo $vl['ID']; ?>" value="<?php echo $vl['procedure_date']; ?>">
+                    <input type="hidden" id="doctor_id_<?php echo $vl['ID']; ?>" value="<?php echo $_SESSION['logged_doctor']['doctor_id']; ?>">
+                    <button type="button" onclick="updateProcedureDate('<?php echo $vl['ID']; ?>')">Save</button>
+                    <?php }else{ ?>
+                    <?php echo $vl['procedure_date']; } ?></td>
+                    <td><?php echo $all_method->get_doctor_name($vl['doctor_id']); ?></td>
+				    
  <td><?php 
-// 1. Check if Counselor is logged in AND Status is pending (empty)
-if(!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') { 
-    
-    // --- LOGIC START: Check Balance ---
-    // We use <= 0 to account for 0.00 or negative numbers (overpaid)
-    if($balance <= 0) { 
-        ?> 
-        <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="ClearanceProcedure('<?php echo $vl['ID']; ?>')">
+if (!empty($_SESSION['logged_counselor']['name']) && $vl['clearance'] == '') {
+
+    if ($balance <= 0) { 
+?>
+        <a href="javascript:void(0);" 
+           class="btn btn-success btn-sm"
+           onclick="ClearanceProcedure('<?php echo $vl['ID']; ?>')">
             Clearance
         </a>
-        <?php 
-    } else {
-        ?>
-        <button class="btn btn-secondary btn-sm" disabled title="Balance must be 0">
+
+        <input type="hidden"
+               id="counselor_id_<?php echo $vl['ID']; ?>"
+               value="<?php echo $_SESSION['logged_counselor']['employee_number']; ?>">
+
+<?php } else { ?>
+        <button class="btn btn-secondary btn-sm" disabled>
             Due: <?php echo number_format($balance, 2); ?>
         </button>
-        <?php
-    }
-    // --- LOGIC END ---
-    ?>
+<?php } ?>
 
-    <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="NonClearanceProcedure('<?php echo $vl['ID']; ?>')">
-        Non Clearance
-    </a>
+        <a href="javascript:void(0);" 
+           class="btn btn-danger btn-sm"
+           onclick="NonClearanceProcedure('<?php echo $vl['ID']; ?>')">
+            Non Clearance
+        </a>
 
-<?php 
-} else { 
-    // 2. SHOW TEXT (If not counselor OR status is already decided)
-    if($vl['clearance'] == '') {
-        echo '<span class="text-warning">Pending</span>'; 
-    } else {
-        echo ucwords($vl['clearance']);
-    }
-} 
+<?php
+} else {
+    echo ($vl['clearance'] == '') 
+        ? '<span class="text-warning">Pending</span>' 
+        : ucwords($vl['clearance']);
+}
 ?>
+
                     </td>
+                     <td><?php echo $all_method->get_employee_name($vl['counselor_id']); ?> (<?php echo $vl['clearance_date']; ?>)</td>
                   <td><?php
 if ($vl['clearance'] == 'Yes') {
 
@@ -289,53 +267,42 @@ if ($vl['clearance'] == 'Yes') {
 ?>
 </td>
                    <td><?php
-// Note: This is a reconstructed complete block, assuming it's part of a loop
-// processing individual items (e.g., in a table row).
+// Show only if Consultant is Done
+if ($vl['consultant'] === 'Done') {
 
-// Outer condition: Only proceed if the current item is marked as a consultant entry.
-if ($vl['consultant'] == 'Done') {
-
-    // 1. If Accountant is logged in AND Status is empty -> Show Buttons
-    // This block is for the Accountant to take action on a pending item.
+    // Accountant action allowed only if clearance is pending
     if (!empty($_SESSION['logged_accountant']['name']) && $vl['accclearance'] == '') {
-        ?>
-        
-        <a href="javascript:void(0);" class="btn btn-success btn-sm" onclick="accClearanceProcedure('<?php echo $vl['ID']; ?>')">
+?>
+        <a href="javascript:void(0);"
+           class="btn btn-success btn-sm"
+           onclick="accClearanceProcedure('<?php echo $vl['ID']; ?>')">
             <i class="fas fa-check"></i> Clearance
         </a>
-        <a href="javascript:void(0);" class="btn btn-danger btn-sm" onclick="accNonClearanceProcedure('<?php echo $vl['ID']; ?>')">
+
+        <input type="hidden"
+               id="accountant_id_<?php echo $vl['ID']; ?>"
+               value="<?php echo $_SESSION['logged_accountant']['employee_number']; ?>">
+
+        <a href="javascript:void(0);"
+           class="btn btn-danger btn-sm"
+           onclick="accNonClearanceProcedure('<?php echo $vl['ID']; ?>')">
             <i class="fas fa-times"></i> Non Clearance
         </a>
-
-        <?php
-    }
-    
-    // 2. Otherwise (User is not accountant OR Status is already updated) -> Show Text
-    // This block is for displaying the current status (for all users).
-    else {
+<?php
+    } else {
+        // Status display
         if ($vl['accclearance'] == '') {
-            // Case A: Status is pending (Accountant not logged in, or viewing status cell)
-            echo '<span class="text-warning">Pending</span>'; 
+            echo '<span class="text-warning">Pending</span>';
         } else {
-            // Case B: Status is already set
-            
-            // Determine the appropriate CSS class for color coding
-            $color_class = ($vl['accclearance'] == 'Clearance') ? 'text-success' : 'text-danger';
-            
-            // Display the color-coded status text
-            echo '<span class="'.$color_class.'">'.ucwords($vl['accclearance']).'</span>';
+            $cls = ($vl['accclearance'] === 'Yes') ? 'text-success' : 'text-danger';
+            echo '<span class="'.$cls.'">'.ucwords($vl['accclearance']).'</span>';
         }
     }
-} 
-// If the outer condition is NOT met (e.g., $vl['consultant'] != 'Yes'), 
-// you might add an 'else' here to handle non-consultant entries, e.g.:
-/*
-else {
-    echo '<span class="text-muted">N/A</span>';
 }
-*/
 ?>
+
                 </td>
+                 <td><?php echo $all_method->get_employee_name($vl['accountant_id']); ?> (<?php echo $vl['accclearance_date']; ?>)</td>
                 </tr>
               <?php $count++;} ?>
                <tr>
@@ -352,13 +319,14 @@ else {
      <script>
 function ClearanceProcedure(ID) {
 
+    let counselor_id = $('#counselor_id_' + ID).val();
     let emails = [];
 
     $('.mail_check_' + ID + ':checked').each(function () {
         emails.push($(this).val());
     });
 
-    if (emails.length === 0) {
+    if (!emails.length) {
         alert('Please select at least one email');
         return;
     }
@@ -372,19 +340,23 @@ function ClearanceProcedure(ID) {
         type: 'POST',
         data: {
             id: ID,
+            counselor_id: counselor_id,
             emails: emails
         },
         success: function (response) {
 
+            response = response.trim();
+
             if (response === 'success') {
                 alert('Clearance approved and mail sent successfully.');
                 location.reload();
-            } else if (response === 'already_done') {
+            } 
+            else if (response === 'already_done') {
                 alert('Clearance already completed.');
-            } else {
+            } 
+            else {
                 alert(response);
             }
-
         },
         error: function (xhr) {
             alert('Something went wrong.');
@@ -393,6 +365,7 @@ function ClearanceProcedure(ID) {
     });
 }
 </script>
+
 
   <script>
     // 1. Function for CLEARANCE
@@ -463,31 +436,43 @@ function consultantProcedure(ID) {
     });
 }
 </script>
+<script>
+function accClearanceProcedure(ID) {
 
- <script>
-  
-    // 2. Function for NON-CLEARANCE
-    function accClearanceProcedure(ID) {
-        if (confirm('Are you sure you want to mark this as Non-Clearance?')) {
-            $.ajax({
-                // Assuming you have a similar controller function for Non-Clearance
-                url: '<?php echo base_url("accounts/accclearance_procedure/"); ?>' + ID, 
-                type: 'POST',
-                success: function(response) {
-                    alert('Marked as Clearance successfully!');
-                    
-                    // --- THIS COMMAND RELOADS THE PAGE ---
-                    location.reload(); 
-                },
-                error: function(xhr, status, error) {
-                    alert('Something went wrong. Please try again.');
-                    console.log(xhr.responseText);
-                }
-            });
-        }
+    let accountant_id = $('#accountant_id_' + ID).val();
+
+    if (!confirm('Are you sure you want to approve this Clearance?')) {
+        return;
     }
 
-     // 2. Function for NON-CLEARANCE
+    $.ajax({
+        url: '<?php echo base_url("accounts/accclearance_procedure"); ?>',
+        type: 'POST',
+        data: {
+            id: ID,
+            accountant_id: accountant_id
+        },
+        success: function (response) {
+            response = response.trim();
+
+            if (response === 'success') {
+                alert('Accountant Clearance approved successfully.');
+                location.reload();
+            } else if (response === 'already_done') {
+                alert('Clearance already completed.');
+            } else {
+                alert(response);
+            }
+        },
+        error: function (xhr) {
+            alert('Something went wrong.');
+            console.log(xhr.responseText);
+        }
+    });
+}
+</script>
+
+ <script>
     function accNonClearanceProcedure(ID) {
         if (confirm('Are you sure you want to mark this as Non-Clearance?')) {
             $.ajax({
@@ -512,6 +497,7 @@ function consultantProcedure(ID) {
 function updateProcedureDate(id) {
 
     let date = $('#procedure_date_' + id).val();
+    let doctor_id = $('#doctor_id_' + id).val();
 
     if (!date) {
         alert('Please select procedure date');
@@ -519,10 +505,9 @@ function updateProcedureDate(id) {
     }
 
     let emails = [];
-    $('#mail_1_' + id + ':checked, #mail_2_' + id + ':checked, #mail_3_' + id + ':checked, #mail_4_' + id + ':checked, #mail_5_' + id + ':checked, #mail_6_' + id + ':checked, #mail_7_' + id + ':checked, #mail_8_' + id + ':checked, #mail_9_' + id + ':checked, #mail_10_' + id + ':checked, #mail_11_' + id + ':checked, #mail_12_' + id + ':checked, #mail_13_' + id + ':checked, #mail_14_' + id + ':checked, #mail_15_' + id + ':checked, #mail_16_' + id + ':checked')
-        .each(function () {
-            emails.push($(this).val());
-        });
+    $('.mail_check_' + id + ':checked').each(function () {
+        emails.push($(this).val());
+    });
 
     if (emails.length === 0) {
         alert('Please select at least one email');
@@ -534,19 +519,25 @@ function updateProcedureDate(id) {
         type: 'POST',
         data: {
             id: id,
+            doctor_id: doctor_id,
             procedure_date: date,
             emails: emails
         },
-        success: function(response) {
-            if (response === 'success') {
+        success: function (response) {
+            if (response.trim() === 'success') {
                 alert('Date saved and email sent successfully.');
             } else {
                 alert(response);
             }
+        },
+        error: function (xhr) {
+            alert('Something went wrong');
+            console.log(xhr.responseText);
         }
     });
 }
 </script>
+
 
 
 
