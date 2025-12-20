@@ -6538,7 +6538,7 @@ public function dashboard_medicine_reports_list_patination($center, $start_date,
     );
 
     // 4. Final SQL
-   echo $sql = "
+    $sql = "
         SELECT * FROM sales
         WHERE accountant_approval_status IN ('PENDING','APPROVED')
         AND status='CONFIRMED' AND center_id = ?

@@ -88,12 +88,11 @@
 				    <th>Procedure</th>
                     <th>Code</th>
                     <th>Category</th>
-                    <th>Procedure Date</th>
-                    <?php if (
-    !empty($_SESSION['logged_doctor']['name']) ||
-    !empty($_SESSION['logged_embryologist']['name']) ||
-    !empty($_SESSION['logged_counselor']['name'])
-) { ?>
+                   <?php if ( !empty($_SESSION['logged_doctor']['name']) || !empty($_SESSION['logged_embryologist']['name'])) { ?>
+                     <th>Email</th>
+                     <?php } ?>
+                   <th>Procedure Date</th>
+                      <?php if (!empty($_SESSION['logged_counselor']['name'])) { ?>
                      <th>Email</th>
                      <?php } ?>
 				    <th><strong>FC / CH Clearance</strong></th>

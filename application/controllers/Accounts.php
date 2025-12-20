@@ -2386,7 +2386,7 @@ public function clearance_procedure()
     $this->load->library('email');
     $this->email->set_mailtype('html');
 
-    $this->email->from('digital@indiaivf.in', 'India IVF Procedure Financial Clearance');
+    $this->email->from('noreply@indiaivf.in', 'India IVF Procedure Financial Clearance');
     $this->email->to($emails); // ✅ SELECTED EMAILS ONLY
 
     $this->email->subject(
@@ -2469,7 +2469,7 @@ public function consultant_procedure()
     $this->load->library('email');
     $this->email->set_mailtype('html');
 
-    $this->email->from('digital@indiaivf.in', 'India IVF Procedure Financial Clearance');
+    $this->email->from('noreply@indiaivf.in', 'India IVF Procedure Financial Clearance');
     $this->email->to($emails); // ✅ ONLY SELECTED EMAILS
 
     $this->email->subject(
@@ -2542,7 +2542,7 @@ public function update_procedure_date()
     $this->load->library('email');
     $this->email->set_mailtype('html');
 
-    $this->email->from('digital@indiaivf.in', 'India IVF Procedure Date');
+    $this->email->from('noreply@indiaivf.in', 'India IVF Procedure Date');
     $this->email->to($emails); // SEND ONLY TO CHECKED EMAILS
 
     $this->email->subject(
