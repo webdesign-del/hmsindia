@@ -6376,16 +6376,19 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date)
 
 	//var_dump($center_id);
 
-    $sql = "
-        SELECT 
-            COALESCE(COUNT(DISTINCT patient_id), 0) AS total_patients,
-            COALESCE(SUM(total_amount), 0) AS total_payment
-        FROM sales
-        WHERE accountant_approval_status IN ('PENDING','APPROVED')
-        AND status='CONFIRMED' AND center_id = ?
-        AND sale_date >= CONCAT(CURDATE(), ' 00:00:00')
-        AND sale_date <= CONCAT(CURDATE(), ' 23:59:59')
-    ";
+    $sql = "SELECT COALESCE(SUM(s.total_amount), 0) AS total_payment
+FROM sales s 
+WHERE s.center_id = ?
+AND EXISTS (
+    SELECT 1 FROM stock_movements sm 
+    WHERE sm.reference_id = s.id 
+    AND sm.movement_type = 'SALE' 
+    AND sm.to_location_type = 'SALE'
+) 
+AND DATE(s.created_at) = CURDATE()
+
+
+        ";
 
     $q = $this->db->query($sql, [(int)$center_id]);
     return $q->row_array();
@@ -6513,12 +6516,15 @@ public function dashboard_medicine_reports_list_patination($center, $start_date,
     );
 
     // 4. Final SQL
-    $sql = "
-        SELECT * FROM sales
-        WHERE accountant_approval_status IN ('PENDING','APPROVED')
-        AND status='CONFIRMED' AND center_id = ?
-        AND sale_date >= CONCAT(CURDATE(), ' 00:00:00')
-        AND sale_date <= CONCAT(CURDATE(), ' 23:59:59')
+    $sql = "SELECT * FROM sales s 
+        WHERE s.center_id = ? 
+        AND EXISTS (
+            SELECT 1 FROM stock_movements sm 
+            WHERE sm.reference_id = s.id 
+            AND sm.movement_type = 'SALE' 
+            AND sm.to_location_type = 'SALE'
+        ) 
+        AND DATE(s.created_at) = CURDATE()		
     ";
 
 
