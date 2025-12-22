@@ -3266,6 +3266,135 @@ public function consultation_tally() {
     echo json_encode(["Sales_Details" => $sales_data], JSON_PRETTY_PRINT);
 }
 
+
+public function registration_send_tally() {
+
+    $payment_ids = $this->input->post('payment_ids');
+
+    if (empty($payment_ids)) {
+        echo json_encode(['success' => false, 'message' => 'No IDs received.']);
+        return;
+    }
+
+    $success_count = 0;
+    $error_count = 0;
+    $already_sent_count = 0; // Track how many were skipped
+
+    foreach ($payment_ids as $id) {
+
+        // 1. Get the current status of THIS specific ID
+        // We select only tally_status to be efficient
+        $this->db->select('tally_status');
+        $this->db->where('ID', $id);
+        $q = $this->db->get('hms_registation');
+        
+        $row = $q->row_array();
+
+        // 2. CHECK: If row exists AND tally_status is already 1, skip it
+        if (!empty($row) && $row['tally_status'] == '1') {
+            $already_sent_count++;
+            continue; // specific keyword to skip to the next ID in the loop
+        }
+
+        // --- Tally Logic Here ---
+        // Put your actual code to send data to Tally API here.
+        // For now, we assume it is successful.
+        $result = true; 
+
+        if ($result) {
+            $success_count++;
+            // Update the status to 1 so it isn't sent again next time
+            $this->db->where('ID', $id)->update('hms_registation', ['tally_status' => 1]);
+        } else {
+            $error_count++;
+        }
+    }
+
+    // 3. Build the response message
+    if ($success_count > 0 || $already_sent_count > 0) {
+        
+        $msg = "";
+        
+        if ($success_count > 0) {
+            $msg .= "$success_count records sent successfully. ";
+        }
+        
+        if ($already_sent_count > 0) {
+            $msg .= "($already_sent_count records were already sent). ";
+        }
+
+        if ($error_count > 0) {
+            $msg .= "($error_count failed).";
+        }
+
+        echo json_encode(['success' => true, 'message' => trim($msg)]);
+
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to send records to Tally.']);
+    }
+}
+
+public function registration_tally() {
+    
+    $q = $this->db->query("SELECT * FROM hms_registation WHERE status IN ('approved', 'adjust') AND tally_status='1' ORDER BY modified_on DESC LIMIT 20");
+	$payment_rows = $q->result_array();
+
+	$sales_data = []; 
+
+    // 2. Loop through the database results
+    foreach ($payment_rows as $payment_row) {
+        
+       $id = $payment_row['ID'];
+
+        // A. Fetch PROCEDURE details linked to this receipt
+        $receipt_no = $payment_row['receipt_number'];
+
+		$pt_q = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$payment_row['patient_id']]);
+        $patient = $pt_q->row_array() ?? [];
+
+		$appointments_q = $this->db->query("SELECT * FROM hms_appointments WHERE paitent_id = ? AND paitent_type = ?",[$payment_row['patient_id'], 'new_patient']);
+		$appointments = $appointments_q->row_array() ?? [];
+
+		$org_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["origins"]]);
+        $origin = $org_q->row_array() ?? [];
+
+        $bill_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]);
+        $bill_center = $bill_q->row_array() ?? [];
+
+        $book_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]); 
+        $book_center = $book_q->row_array() ?? [];
+
+        $emp_q = $this->db->query("SELECT * FROM hms_employees WHERE employee_number = ?", [$payment_row["biller_id"]]);
+        $employee = $emp_q->row_array() ?? [];
+
+		$doctors_q = $this->db->query("SELECT * FROM hms_doctors WHERE ID = ?", [$payment_row["doctor_id"]]);
+        $doctors = $doctors_q->row_array() ?? [];
+        
+        // C. Build the Record
+        $sales_data[] = [
+            "patient_id"      => $payment_row['patient_id'],
+			"crm_id"      => $appointments['crm_id'] ?? '',
+			"patient_name"    => ($patient['wife_name'] ?? '') . ' W/O ' . ($patient['husband_name'] ?? ''),
+			"billing_id" => $payment_row['billing_id'],
+			"payment_done"  => $payment_row['payment_done'],
+            "billing_center"  => $bill_center['center_name'] ?? 'N/A',
+            "booking_center"  => $book_center['center_name'] ?? 'N/A',
+            "origin_center"   => $origin['center_name'] ?? 'N/A',
+			"doctor_name"   => $doctors['name'] ?? 'N/A',
+            "on_date"         => !empty($payment_row["on_date"]) ? date("d-m-Y h:m:s", strtotime($payment_row["on_date"])) : '',
+            "receipt_number"  => $payment_row["receipt_number"] ?? '',
+            "biller_name"     => $employee['name'] ?? 'N/A',
+            "payment_method"  => $payment_row['payment_method'],
+           	"status" => $payment_row['status']
+		];
+
+    }
+
+    // 3. Return JSON Response
+    header('Content-Type: application/json');
+    echo json_encode(["Sales_Details" => $sales_data], JSON_PRETTY_PRINT);
+}
+
 	public function front_approve($request = NULL){
 			$data = array();
 			$type = $_GET['t'];

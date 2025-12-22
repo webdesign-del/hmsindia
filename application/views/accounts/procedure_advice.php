@@ -34,7 +34,7 @@
                                     <tr>
                                         <th style="width: 300px; padding: 10px;">Billed Procedure Name</th>
                                         <th style="width: 150px; padding: 10px;">Package MRP</th>
-                                        <th style="width: 150px; padding: 10px;">Discounted Package</th>
+                                        <th style="width: 150px; padding: 10px;">Discount Amount</th>
                                         <th style="width: 150px; padding: 10px;">Total Paid Amount</th>
                                         <th style="width: 150px; padding: 10px;">Pending Amount</th>
                                     </tr>

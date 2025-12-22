@@ -612,7 +612,7 @@ if (!empty($medicine_daily_result)) {
                     <td><?php echo $vl['payment_done']; ?></td>
                     <td><?php echo $vl['on_date']; ?></td>
                     <td><?php echo $vl['receipt_number']; ?></td>
-                     <td><?php echo $vl['transaction_img']; ?></td>
+                    <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a><</td>
                 </tr>
                 <?php } ?>
                 <?php 
@@ -631,7 +631,7 @@ if (!empty($medicine_daily_result)) {
                     <td><?php echo $vl['payment_done']; ?></td>
                     <td><?php echo $vl['on_date']; ?></td>
                     <td><?php echo $vl['refrence_number']; ?></td>
-                     <td><?php echo $vl['transaction_img']; ?></td>
+                     <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a><</td>
                 </tr>
                 <?php } ?>
                 <?php 
@@ -674,7 +674,7 @@ if (!empty($medicine_daily_result)) {
                     <td><?php echo $vl['payment_done']; ?></td>
                     <td><?php echo $vl['on_date']; ?></td>
                     <td><?php echo $vl['receipt_number']; ?></td>
-                     <td><?php echo $vl['transaction_img']; ?></td>
+                     <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a><</td>
                 </tr>
                 <?php } ?>
                   

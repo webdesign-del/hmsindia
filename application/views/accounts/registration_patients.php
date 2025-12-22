@@ -6,7 +6,7 @@
       <div class="clearfix"></div>
 	    <form action="<?php echo base_url().'accounts/registration_patients'; ?>" method="get">
 		   <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
-            	<label>Filter by billing at</label>
+            	<label>Filter by billing ata</label>
                 <select class="form-control" id="billing_at" name="billing_at">
                 	<option value=''>--Select From--</option>
                     <?php $all_centers = $all_method->get_all_centers();
@@ -52,10 +52,16 @@
 	    <div class="card">
         <div class="card-content">
           <div class="table-responsive">
+			<div class="action-buttons">
+            <button id="selectAllBtn" class="btn btn-default">Select All</button>
+            <button id="deselectAllBtn" class="btn btn-default">Deselect All</button>
+            <button id="sendToTallyBtn" class="btn btn-primary">Send Selected to Tally</button>
+        </div>
             <table class="table table-sriped table-bordered table-hover" id="consultation_billing_list">
               <thead>
                 <tr>
                   <th>S.No.</th>
+				  <th></th>
                   <th>IIC ID</th>
                   <th>Patient name</th>
                   <th>Receipt number</th>
@@ -76,16 +82,17 @@
 			   ?>
                 <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
-                  <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
-                  <td><?php $patient_name = $all_method->get_patient_name($vl['patient_id']); echo strtoupper($patient_name); ?></td>
-                  <td><a href="<?php echo base_url(); ?>accounts/details/<?php echo $vl['receipt_number']?>?t=registation"><?php echo $vl['receipt_number']?></a></td>
-                  <td><?php echo $vl['on_date']?></td>
-                  <td><?php echo $currency.$vl['totalpackage']?></td>
-                  <td><?php echo $currency.$vl['discount_amount']?></td>
-                  <td><?php echo $currency.$vl['fees']?></td>
-                  <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
-                  <td><?php echo ucwords($vl['status']); ?></td>
-                  <td><?php if($all_method->discount_applied($vl['receipt_number']) > 0 && $vl['status'] !="disapproved"){
+				<td><?php if($vl['status'] == 'approved') { ?><input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>"><?php } ?></td>
+                <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
+                <td><?php $patient_name = $all_method->get_patient_name($vl['patient_id']); echo strtoupper($patient_name); ?></td>
+                <td><a href="<?php echo base_url(); ?>accounts/details/<?php echo $vl['receipt_number']?>?t=registation"><?php echo $vl['receipt_number']?></a></td>
+                <td><?php echo $vl['on_date']?></td>
+                <td><?php echo $currency.$vl['totalpackage']?></td>
+                <td><?php echo $currency.$vl['discount_amount']?></td>
+                <td><?php echo $currency.$vl['fees']?></td>
+                <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
+                <td><?php echo ucwords($vl['status']); ?></td>
+                <td><?php if($all_method->discount_applied($vl['receipt_number']) > 0 && $vl['status'] !="disapproved"){
                                 $discont_stats = $all_method->discount_applied_status($vl['receipt_number']);
                   				if($discont_stats == 1){
 				  				    echo '<p><i title="Discount Approved" class="fa fa-exclamation-circle" aria-hidden="true"></i></p>';
@@ -303,6 +310,11 @@
 		a.now_cancle.btn.btn-large {
 			margin: 10px 0px;
 		}
+		 [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+      position: static;
+      left: -9999px;
+      opacity: 1;
+    }
 	</style>
      <script>
     $(document).on('click','a.xyx',function(){
@@ -413,6 +425,73 @@
         });
     });
 </script>
+<script type="text/javascript">
+$(document).ready(function() {
+
+    // 1. Logic for "Select All"
+    $('#selectAllBtn').click(function() {
+        $('.rowCheckbox').prop('checked', true);
+    });
+
+    // 2. Logic for "Deselect All"
+    $('#deselectAllBtn').click(function() {
+        $('.rowCheckbox').prop('checked', false);
+    });
+
+    // 3. Logic for "Send to Tally"
+    $('#sendToTallyBtn').click(function() {
+        var btn = $(this);
+        var selectedIds = [];
+
+        // Gather all checked checkboxes
+        $('.rowCheckbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+
+        // Validation: Check if anything is selected
+        if(selectedIds.length === 0) {
+            alert('Please select at least one record to send to Tally.');
+            return;
+        }
+
+        if(!confirm('Are you sure you want to send ' + selectedIds.length + ' records to Tally?')) {
+            return;
+        }
+
+        // Change button state to indicate loading
+        var originalText = btn.html();
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Sending...');
+
+        // 4. AJAX Request to your specific URL
+        $.ajax({
+            url: '<?php echo base_url("accounts/registration_send_tally"); ?>', // Maps to your URL
+            type: 'POST',
+            data: {
+                payment_ids: selectedIds // Sending the array of IDs
+            },
+            dataType: 'json', // Expecting JSON response from controller
+            success: function(response) {
+                if(response.success) {
+                    alert('Success: ' + response.message);
+                    // Optional: Reload page to update status
+                    // location.reload(); 
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Server Error: Failed to connect to Tally endpoint.');
+                console.error(xhr.responseText);
+            },
+            complete: function() {
+                // Reset button
+                btn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+});
+</script>
+
 <style >
 .custom-pagination{
   padding:8px;
