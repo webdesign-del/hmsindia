@@ -649,7 +649,14 @@ if (!empty($medicine_daily_result)) {
                     <td><?php echo $vl['total_amount']; ?></td>
                     <td><?php echo $vl['sale_date']; ?></td>
                     <td><?php echo $vl['sale_number']; ?></td>
-                     <td><a href="https://indiaivf.website/assets/<?php echo $vl['payment_image']; ?>" target="_blank">https://indiaivf.website/assets/<?php echo $vl['payment_image']; ?></a></td>
+                     <td><?php if (!empty($vl['payment_image'])) { ?>
+    <a href="https://indiaivf.website/assets/<?php echo $vl['payment_image']; ?>" target="_blank">
+        https://indiaivf.website/assets/<?php echo $vl['payment_image']; ?>
+    </a>
+<?php } else { ?>
+    <?php echo $vl['payment_image']; ?>
+<?php } ?>
+</td>
                 </tr>
                 <?php } ?>
                  <?php 
@@ -686,7 +693,7 @@ if (!empty($medicine_daily_result)) {
                     <td><?php echo $vl['payment_done']; ?></td>
                     <td><?php echo $vl['on_date']; ?></td>
                     <td><?php echo $vl['receipt_number']; ?></td>
-                     <td><?php echo $vl['transaction_img']; ?></td>
+                    <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a></td>
                 </tr>
                 <?php } ?>
                  
