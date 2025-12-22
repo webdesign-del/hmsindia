@@ -670,24 +670,7 @@ if (!empty($medicine_daily_result)) {
                      <td><?php echo $vl['transaction_img']; ?></td>
                 </tr>
                 <?php } ?>
-                  <?php 
-               foreach($patient_diagnostic_daily_result as $ky => $vl){
-            ?>
-                <tr>
-                    <td><?php echo $vl['']; ?></td>
-                    <td><?php echo $vl['patient_id']; ?></td>
-                    <td><?php echo $patient_name = $all_method->get_patient_name($vl['patient_id']); ?></td>
-                    <td>DIAGNOSTIC</td>
-                    <td></td>
-                    <td></td>
-                    <td>Sale Receipts</td>
-                    <td><?php echo $vl['payment_method']; ?></td>
-                    <td><?php echo $vl['payment_done']; ?></td>
-                    <td><?php echo $vl['on_date']; ?></td>
-                    <td><?php echo $vl['receipt_number']; ?></td>
-                     <td><?php echo $vl['transaction_img']; ?></td>
-                </tr>
-                <?php } ?>
+                  
                   <?php 
                foreach($patient_consultation_daily_result as $ky => $vl){
             ?>
