@@ -104,65 +104,25 @@
             </div>
          </div>
 
-         <!-- Action Buttons -->
-         <div class="row">
-            <div class="col-md-12 text-center">
-               <?php if ($purchase_order['status'] == 'pending'): ?>
-                  <a href="<?php echo base_url('new_purchase_orders/approve/' . $purchase_order['id']); ?>" 
-                     class="btn btn-success btn-lg" 
-                     onclick="return confirm('Are you sure you want to approve this purchase order?')">
-                     <i class="fa fa-check"></i> Approve
-                  </a>
-                  <a href="<?php echo base_url('new_purchase_orders/reject/' . $purchase_order['id']); ?>" 
-                     class="btn btn-danger btn-lg" 
-                     onclick="return confirm('Are you sure you want to reject this purchase order?')">
-                     <i class="fa fa-times"></i> Reject
-                  </a>
-               <?php endif; ?>
-               
-               <?php if ($purchase_order['status'] == 'approved'): ?>
-                  <a href="<?php echo base_url('new_purchase_orders/complete/' . $purchase_order['id']); ?>" 
-                     class="btn btn-info btn-lg" 
-                     onclick="return confirm('Are you sure you want to mark this purchase order as completed?')">
-                     <i class="fa fa-flag-checkered"></i> Mark Complete
-                  </a>
-               <?php endif; ?>
-               
-               
-               <!-- <?php if ($purchase_order['status'] == 'completed'): ?>
-                  <a href="<?php echo base_url('new_purchase_orders/new_add_stock/' . $purchase_order['id']); ?>" 
-                     class="btn btn-success btn-lg">
-                     <i class="fa fa-plus"></i> Add Stock
-                  </a>
-               <?php endif; ?> -->
-               
-               <?php if ($purchase_order['status'] == 'pending' || $purchase_order['status'] == 'rejected'): ?>
-                  <a href="<?php echo base_url('new_purchase_orders/edit/' . $purchase_order['id']); ?>" 
-                     class="btn btn-warning btn-lg">
-                     <i class="fa fa-edit"></i> Edit
-                  </a>
-               <?php endif; ?>
-               <a href="<?php echo base_url('new_purchase_orders'); ?>" class="btn btn-default btn-lg">
-                  <i class="fa fa-arrow-left"></i> Back to List
-               </a>
-            </div>
-         </div>
-
-         <hr>
 
          <!-- Items Section -->
-         <div class="row">
-            <div class="col-md-12">
-               <div class="panel panel-primary">
-                  <div class="panel-heading">
-                     <h4><i class="fa fa-list"></i> Purchase Order Items</h4>
-                  </div>
-                  <div class="panel-body">
+         <form id="approvalForm" action="<?php echo base_url('new_purchase_orders/selective_approve/' . $purchase_order['id']); ?>" method="post">
+            <div class="row">
+               <div class="col-md-12">
+                  <div class="panel panel-primary">
+                     <div class="panel-heading">
+                        <h4><i class="fa fa-list"></i> Purchase Order Items</h4>
+                     </div>
+                     <div class="panel-body">
                      <?php if (!empty($purchase_order_items)): ?>
                         <div class="table-responsive">
                            <table class="table table-striped table-bordered table-hover">
                               <thead>
                                  <tr>
+                                    <th width="50">
+                                       <input type="checkbox" id="selectAllItems" checked>
+                                       <label for="selectAllItems" style="margin-left: 5px;">All</label>
+                                    </th>
                                     <th>Sr.</th>
                                     <th>Item Name</th>
                                     <th>Item Number</th>
@@ -187,6 +147,9 @@
                               <tbody>
                                  <?php foreach ($purchase_order_items as $index => $item): ?>
                                     <tr>
+                                       <td>
+                                          <input type="checkbox" name="selected_items[]" value="<?php echo $item['id']; ?>" checked class="item-checkbox"  style="opacity:1 !important;left:0px !important;position:relative !important">
+                                       </td>
                                        <td><?php echo $index + 1; ?></td>
                                        <td><?php echo $item['item_name']; ?></td>
                                        <td><?php echo $item['item_number']; ?></td>
@@ -221,6 +184,47 @@
                </div>
             </div>
          </div>
+
+         <!-- Action Buttons -->
+         <div class="row">
+            <div class="col-md-12 text-center">
+               <?php if ($purchase_order['status'] == 'pending'): ?>
+                  <button type="button" class="btn btn-success btn-lg" onclick="submitSelectiveApproval()">
+                     <i class="fa fa-check"></i> Approve Selected Items
+                  </button>
+                  <a href="<?php echo base_url('new_purchase_orders/approve/' . $purchase_order['id']); ?>"
+                     class="btn btn-success btn-lg"
+                     onclick="return confirm('Are you sure you want to approve ALL items in this purchase order?')">
+                     <i class="fa fa-check-circle"></i> Approve All
+                  </a>
+                  <a href="<?php echo base_url('new_purchase_orders/reject/' . $purchase_order['id']); ?>"
+                     class="btn btn-danger btn-lg"
+                     onclick="return confirm('Are you sure you want to reject this purchase order?')">
+                     <i class="fa fa-times"></i> Reject
+                  </a>
+               <?php endif; ?>
+
+               <?php if ($purchase_order['status'] == 'approved'): ?>
+                  <a href="<?php echo base_url('new_purchase_orders/complete/' . $purchase_order['id']); ?>"
+                     class="btn btn-info btn-lg"
+                     onclick="return confirm('Are you sure you want to mark this purchase order as completed?')">
+                     <i class="fa fa-flag-checkered"></i> Mark Complete
+                  </a>
+               <?php endif; ?>
+
+
+               <?php if ($purchase_order['status'] == 'pending' || $purchase_order['status'] == 'rejected'): ?>
+                  <a href="<?php echo base_url('new_purchase_orders/edit/' . $purchase_order['id']); ?>"
+                     class="btn btn-warning btn-lg">
+                     <i class="fa fa-edit"></i> Edit
+                  </a>
+               <?php endif; ?>
+               <a href="<?php echo base_url('new_purchase_orders'); ?>" class="btn btn-default btn-lg">
+                  <i class="fa fa-arrow-left"></i> Back to List
+               </a>
+            </div>
+         </div>
+         </form>
 
          <!-- Approval History -->
          <?php if ($purchase_order['status'] != 'pending'): ?>
@@ -277,3 +281,48 @@
       </div>
    </div>
 </div>
+
+<script>
+$(document).ready(function() {
+    // Handle select all checkbox
+    $('#selectAllItems').change(function() {
+        $('.item-checkbox').prop('checked', $(this).prop('checked'));
+    });
+
+    // Handle individual checkbox changes
+    $('.item-checkbox').change(function() {
+        if (!$(this).prop('checked')) {
+            $('#selectAllItems').prop('checked', false);
+        } else {
+            // Check if all checkboxes are checked
+            if ($('.item-checkbox:checked').length === $('.item-checkbox').length) {
+                $('#selectAllItems').prop('checked', true);
+            }
+        }
+    });
+});
+
+// Submit selective approval after confirmation
+function submitSelectiveApproval() {
+    var selectedItems = $('.item-checkbox:checked');
+    var totalItems = $('.item-checkbox').length;
+
+    if (selectedItems.length === 0) {
+        alert('Please select at least one item to approve.');
+        return;
+    }
+
+    var confirmed = false;
+    if (selectedItems.length === totalItems) {
+        confirmed = confirm('Are you sure you want to approve ALL items in this purchase order?');
+    } else {
+        var deselectedCount = totalItems - selectedItems.length;
+        confirmed = confirm('Are you sure you want to approve ' + selectedItems.length + ' selected item(s)? ' + deselectedCount + ' deselected item(s) will be removed from the purchase order.');
+    }
+
+    if (confirmed) {
+        // Submit the form
+        document.getElementById('approvalForm').submit();
+    }
+}
+</script>

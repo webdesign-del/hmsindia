@@ -263,13 +263,13 @@
                                  <?php endif; ?>
                                  
                                  <!-- Complete button -->
-                                 <?php if ($status == 'approved'): ?>
+                                 <!-- <?php if ($status == 'approved'): ?>
                                     <a href="<?php echo base_url('new_purchase_orders/complete/' . (!empty($po['id']) ? $po['id'] : '0')); ?>" 
                                        class="btn btn-xs btn-info" title="Mark Complete"
                                        onclick="return confirm('Are you sure you want to mark this purchase order as completed?')">
                                        <i class="fa fa-flag-checkered"></i>
                                     </a>
-                                 <?php endif; ?>
+                                 <?php endif; ?> -->
                                  
                                  <!-- <a href="<?php echo base_url('new_purchase_orders/delete/' . $po['id']); ?>" 
                                     class="btn btn-xs btn-danger" title="Delete"

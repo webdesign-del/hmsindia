@@ -131,6 +131,12 @@ class New_purchase_order_model extends CI_Model {
         return $this->db->delete('hms_new_purchase_order_items');
     }
 
+    // Delete single purchase order item by item ID
+    public function delete_purchase_order_item($item_id) {
+        $this->db->where('id', $item_id);
+        return $this->db->delete('hms_new_purchase_order_items');
+    }
+
     // Delete purchase order
     public function delete_purchase_order($id) {
         // First delete items, then delete order
@@ -569,22 +575,19 @@ class New_purchase_order_model extends CI_Model {
     }
     public function is_po_fully_received($po_id)
     {
-        // try {
-            // We select the sum of all remaining quantities
-            $this->db->select('SUM(quantity - quantity_received) as total_remaining');
-            $this->db->from('hms_new_purchase_order_items');
-            $this->db->where('po_id', $po_id);
-            $query = $this->db->get();
-            $result = $query->row();
-            if ($result && $result->total_remaining <= 0) {
-                return true;
-            } else {
-                return false;
+        $this->db->select('SUM(quantity - quantity_received) as total_remaining');
+        $this->db->from('hms_new_purchase_order_items');
+        $this->db->where('po_id', $po_id);
+        $query = $this->db->get();
+        $result = $query->row();
+        if ($result && $result->total_remaining <= 0) {
+            if ($result->total_remaining <= 0 && !$this->db->where('id', $po_id)->where('status', 'completed')->get('hms_new_purchase_orders')->row()) {
+                $this->db->where('id', $po_id)->update('hms_new_purchase_orders', ['status' => 'completed']);
             }
-        // } catch (Exception $e) {
-        //     log_message('error', 'Error in is_po_fully_received: ' . $e->getMessage());
-        //     return false; // Fail safe: assume it's not received if error occurs
-        // }
+            return true;
+        } else {
+            return false;
+        }
     }
     public function get_received_stock_report($filters = []) {
         // try {

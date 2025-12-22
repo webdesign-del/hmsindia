@@ -87,7 +87,7 @@
                 <div class="col-md-6">
                       <div class="form-group">
                          <label for="department">Department <span class="text-danger">*</span></label>
-                         	<select name="department" id="department" class="form-control">
+                         	<select name="department" id="department" class="form-control" required>
                                 <option value="">Select Department</option>
                                 <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
                                 <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>

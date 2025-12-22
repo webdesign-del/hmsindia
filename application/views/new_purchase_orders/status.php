@@ -394,16 +394,22 @@ $all_method->load->model('center_model');
                 <div class="card-body">
                     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 200px; text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px; border: 2px solid #ffeaa7;">
-                            <h3 style="margin: 0; color: #856404; font-size: 2em;"><?php echo isset($pending_count) ? $pending_count : 0; ?></h3>
-                            <p style="margin: 5px 0 0 0; color: #856404; font-weight: 600;">Pending Orders</p>
+                                <a href="<?php echo base_url('new_purchase_orders?status=pending'); ?>">
+                                <h3 style="margin: 0; color: #856404; font-size: 2em;"><?php echo isset($pending_count) ? $pending_count : 0; ?></h3>
+                                <p style="margin: 5px 0 0 0; color: #856404; font-weight: 600;">Pending Orders</p>
+                            </a>
                         </div>
                         <div style="flex: 1; min-width: 200px; text-align: center; padding: 20px; background: #d4edda; border-radius: 8px; border: 2px solid #c3e6cb;">
-                            <h3 style="margin: 0; color: #155724; font-size: 2em;"><?php echo isset($approved_count) ? $approved_count : 0; ?></h3>
-                            <p style="margin: 5px 0 0 0; color: #155724; font-weight: 600;">Approved Orders</p>
+                            <a href="<?php echo base_url('new_purchase_orders?status=approved'); ?>">
+                                <h3 style="margin: 0; color: #155724; font-size: 2em;"><?php echo isset($approved_count) ? $approved_count : 0; ?></h3>
+                                <p style="margin: 5px 0 0 0; color: #155724; font-weight: 600;">Approved Orders</p>
+                            </a>
                         </div>
                         <div style="flex: 1; min-width: 200px; text-align: center; padding: 20px; background: #f8d7da; border-radius: 8px; border: 2px solid #f5c6cb;">
-                            <h3 style="margin: 0; color: #721c24; font-size: 2em;"><?php echo isset($rejected_count) ? $rejected_count : 0; ?></h3>
-                            <p style="margin: 5px 0 0 0; color: #721c24; font-weight: 600;">Rejected Orders</p>
+                                <a href="<?php echo base_url('new_purchase_orders?status=rejected'); ?>">
+                                <h3 style="margin: 0; color: #721c24; font-size: 2em;"><?php echo isset($rejected_count) ? $rejected_count : 0; ?></h3>
+                                <p style="margin: 5px 0 0 0; color: #721c24; font-weight: 600;">Rejected Orders</p>
+                            </a>
                         </div>
                     </div>
                 </div>

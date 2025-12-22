@@ -409,6 +409,54 @@ class New_purchase_orders extends CI_Controller {
         }
     }
 
+    // Selective approve purchase order - approve only selected items
+    public function selective_approve($id) {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            if ($logg['role'] != 'administrator') {
+                $this->session->set_flashdata('error', 'Only administrators can approve purchase orders!');
+                redirect('new_purchase_orders/view/' . $id);
+                return;
+            }
+            $selected_items = $this->input->post('selected_items');
+
+            if (empty($selected_items)) {
+                $this->session->set_flashdata('error', 'Please select at least one item to approve!');
+                redirect('new_purchase_orders/view/' . $id);
+                return;
+            }
+            $all_items = $this->New_purchase_order_model->get_purchase_order_items($id);
+            $all_item_ids = array_column($all_items, 'id');
+            $deselected_items = array_diff($all_item_ids, $selected_items);
+            if (!empty($deselected_items)) {
+                foreach ($deselected_items as $item_id) {
+                    $this->New_purchase_order_model->delete_purchase_order_item($item_id);
+                }
+            }
+            $approved_by = $this->session->userdata('user_id');
+            if ($this->New_purchase_order_model->update_purchase_order_status($id, 'approved', $approved_by)) {
+                $this->New_purchase_order_model->update_total_amount($id);
+                $selected_count = count($selected_items);
+                $deselected_count = count($deselected_items);
+                $message = 'Purchase order approved successfully!';
+                if ($selected_count > 0) {
+                    $message .= ' ' . $selected_count . ' item(s) approved.';
+                }
+                if ($deselected_count > 0) {
+                    $message .= ' ' . $deselected_count . ' deselected item(s) removed.';
+                }
+
+                $this->session->set_flashdata('success', $message);
+            } else {
+                $this->session->set_flashdata('error', 'Failed to approve purchase order!');
+            }
+            redirect('new_purchase_orders/view/' . $id);
+        } else {
+            header("location:" .base_url(). "");
+            die;
+        }
+    }
+
     // Reject purchase order
     public function reject($id) {
         $logg = checklogin();

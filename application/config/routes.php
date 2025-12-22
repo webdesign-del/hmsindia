@@ -386,6 +386,7 @@ $route['new_purchase_orders/update/(:any)'] = 'new_purchase_orders/update/$1';
 $route['new_purchase_orders/view/(:any)'] = 'new_purchase_orders/view/$1';
 $route['new_purchase_orders/delete/(:any)'] = 'new_purchase_orders/delete/$1';
 $route['new_purchase_orders/approve/(:any)'] = 'new_purchase_orders/approve/$1';
+$route['new_purchase_orders/selective_approve/(:any)'] = 'new_purchase_orders/selective_approve/$1';
 $route['new_purchase_orders/reject/(:any)'] = 'new_purchase_orders/reject/$1';
 $route['new_purchase_orders/complete/(:any)'] = 'new_purchase_orders/complete/$1';
 
