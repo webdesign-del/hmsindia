@@ -3400,6 +3400,25 @@ class Stock_model_new extends CI_Model
         $this->db->join("medicine_brands mb2", "m.brand_id = mb2.id");
         $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
         $this->db->where("ccs.center_id", $center_id);
+        // Filter by department if available
+        if(!empty($_SESSION['logged_stock_manager']['employee_number'])) {
+            $department = $_SESSION['logged_stock_manager']['department'] ?? null;
+        } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
+            $department = $_SESSION['billing_manager']['department'] ?? null;
+        }elseif (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
+            $department = $_SESSION['logged_billing_manager']['department'] ?? null;
+        }
+        if ($department !== null && $department !== '') {
+            if ($department == 'billing') {
+                $this->db->like('ccs.department', 'CASH MEDICINE');
+            }elseif($department == 'Embryologist Basant Lok')
+            {
+                $this->db->like('ccs.department', 'Embryology Basant Lok');
+            }else {
+                $this->db->like('ccs.department', $department);
+            }
+        }
+
         $this->db->where("ccs.quantity >", 0);
         $this->db->where("mb.batch_status", "ACTIVE");
         $this->db->where("m.status", "active");
