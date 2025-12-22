@@ -6901,7 +6901,7 @@ function assessment_form_insert_payment($patient_id, $data) {
 		else if (empty($start_date) && !empty($end_date)){
 			$conditions .= " and on_date='$end_date'";
 		}
-		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where fees > 0 and 1".$conditions." order by on_date desc limit ". $limit." OFFSET ".$offset."";
+		$procedure_sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where fees > 0 and 1".$conditions." order by clearance_date desc limit ". $limit." OFFSET ".$offset."";
 		$procedure_q = $this->db->query($procedure_sql);
 		$procedure_result = $procedure_q->result_array();
 		return $procedure_result;
