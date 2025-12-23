@@ -1038,19 +1038,37 @@ class Stock_model_new extends CI_Model
         return $this->db->update("medicines", $data);
     }
 
+    // public function get_medicine_by_id($id)
+    // {
+    //     $this->db->select("m.*, mb.brand_name as brand_name");
+    //     $this->db->from("medicines m");
+    //     $this->db->join(
+    //         "medicine_brands mb",
+    //         "m.brand_id = mb.ID",
+    //     );
+    //     // $this->db->join(
+    //     //     $this->config->item("db_prefix") . "brands mb",
+    //     //     "m.brand_id = mb.ID",
+    //     // );
+    //     $this->db->where("m.id", $id);
+    //     return $this->db->get()->row();
+    // }
     public function get_medicine_by_id($id, $center_id = null, $po_department = null)
     {
-        $this->db->select("m.*");
-        $this->db->from("medicine_center_stocks m");
-        $this->db->where("m.medicine_id", $id);
+        $this->db->select("mcs.*, med.unit,med.pack_size");
+        $this->db->from("medicine_center_stocks mcs");
+        $this->db->join("medicines med", "med.id = mcs.medicine_id", "left");
+        $this->db->where("mcs.medicine_id", $id);
         if (!empty($center_id)) {
-            $this->db->where("m.center_id", $center_id);
+            $this->db->where("mcs.center_id", $center_id);
         }
         if (!empty($po_department)) {
-            $this->db->where("m.department", $po_department);
+            $this->db->where("mcs.department", $po_department);
         }
+
         return $this->db->get()->row();
     }
+
 
     // ===============================================
     // BATCHES FUNCTIONS
