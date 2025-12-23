@@ -469,10 +469,10 @@
                                 <span class="badge badge-success">Sale confirmed and stock reduced using FEFO</span>
                             <?php endif; ?>
                             
-                            <a href="<?php echo base_url('stocks_new/print_sale/' . $sale->id); ?>" target="_blank" class="btn btn-info">
+                            <!-- <a href="<?php echo base_url('stocks_new/print_sale/' . $sale->id); ?>" target="_blank" class="btn btn-info">
                                 <i class="fa fa-print"></i> Print Bill
                             </a>
-                            
+                             -->
                             <a href="<?php echo base_url('stocks_new/sales'); ?>" class="btn btn-default">
                                 <i class="fa fa-arrow-left"></i> Back to Sales
                             </a>
