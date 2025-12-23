@@ -3177,15 +3177,18 @@ class Stock_model_new extends CI_Model
             $this->db->join('medicines m', 'm.id = mb.medicine_id', 'left');
 
             /* -------------------------------------------------
-            *  STOCK MOVEMENT EXISTS (NO DUPLICATION)
+            *  STOCK MOVEMENT EXISTS OR DRAFT SALES
             * -------------------------------------------------*/
             $this->db->where("
-                EXISTS (
-                    SELECT 1
-                    FROM stock_movements sm
-                    WHERE sm.reference_id = s.id
-                    AND sm.movement_type = 'SALE'
-                    AND sm.to_location_type = 'SALE'
+                (
+                    EXISTS (
+                        SELECT 1
+                        FROM stock_movements sm
+                        WHERE sm.reference_id = s.id
+                        AND sm.movement_type = 'SALE'
+                        AND sm.to_location_type = 'SALE'
+                    )
+                    OR s.status = 'DRAFT'
                 )
             ", null, false);
 
