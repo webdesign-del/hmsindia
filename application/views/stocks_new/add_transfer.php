@@ -40,7 +40,7 @@
                             </div>
                         <?php endif; ?>
                         
-                        <form action="<?php echo base_url('stocks_new/add_transfer'); ?>" method="post" class="form-horizontal">
+                        <form action="<?php echo base_url('stocks_new/add_transfer'); ?>" method="post" class="form-horizontal" novalidate>
                             <input type="hidden" name="action" value="add_transfer">
                             
                             <!-- Transfer Details -->
@@ -53,7 +53,7 @@
                                                 <option value="">Select Transfer Type</option>
                                                 <option value="CENTRAL_TO_CENTER" <?php echo set_select('transfer_type', 'CENTRAL_TO_CENTER'); ?>>Central to Center</option>
                                                 <option value="CENTER_TO_CENTER" <?php echo set_select('transfer_type', 'CENTER_TO_CENTER'); ?>>Center to Center</option>
-                                                <!-- <option value="CENTER_TO_CENTRAL" <?php echo set_select('transfer_type', 'CENTER_TO_CENTRAL'); ?>>Center to Central</option> -->
+                                                <option value="CENTER_TO_CENTRAL" <?php echo set_select('transfer_type', 'CENTER_TO_CENTRAL'); ?>>Center to Central</option>
                                             </select>
                                         </div>
                                     </div>
@@ -83,7 +83,7 @@
                                                     </option>
                                                 <?php endforeach; ?>
                                             </select> -->
-                                                <select name="from_department" id="from_department" class="form-control" >
+                                                <select name="from_department" id="from_department_select" class="form-control" >
                                                     <option value="">Select Department</option>
                                                     <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
                                                     <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
@@ -110,7 +110,7 @@
                                     <!-- <div class="form-group" id="from_employee_group" style="display: none;">
                                         <label class="col-sm-4 control-label">From Employee *</label>
                                         <div class="col-sm-8">
-                                            <select name="from_employee_number" class="form-control" >
+                                            <select name="from_employee_number" id="from_employee_select" class="form-control" >
                                                 <option value="">Select Employee</option>
                                                 <?php foreach($all_employees as $employee): ?>
                                                     <option value="<?php echo $employee['employee_number']; ?>" <?php echo set_select('from_employee_number', $employee['employee_number']); ?>>
@@ -120,11 +120,11 @@
                                             </select>
                                         </div>
                                     </div> -->
-                                    
-                                    <div class="form-group">
+
+                                    <div class="form-group" id="to_center_group">
                                         <label class="col-sm-4 control-label">To Center *</label>
                                         <div class="col-sm-8">
-                                            <select name="to_center_id" class="form-control" required onchange="loadToDepartments()">
+                                            <select name="to_center_id" id="to_center_select" class="form-control" onchange="loadToDepartments()">
                                                 <option value="">Select Destination Center</option>
                                                 <?php foreach($centers as $center): ?>
                                                     <option value="<?php echo $center->ID; ?>" <?php echo set_select('to_center_id', $center->ID); ?>>
@@ -134,8 +134,8 @@
                                             </select>
                                         </div>
                                     </div>
-                                    
-                                    <div class="form-group">
+
+                                    <div class="form-group" id="to_department_group">
                                         <label class="col-sm-4 control-label">To Department *</label>
                                         <div class="col-sm-8">
                                             <!-- <select name="to_department" class="form-control" >
@@ -144,7 +144,7 @@
                                                     <option value="<?php echo $dept['department']; ?>"><?php echo $dept['department']; ?></option>
                                                 <?php endforeach; ?>
                                             </select> -->
-                                            <select name="to_department" id="to_department" class="form-control" required>
+                                            <select name="to_department" id="to_department_select" class="form-control">
                                                 <option value="">Select Department</option>
                                                     <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
                                                     <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
@@ -167,11 +167,11 @@
                                             </select>
                                         </div>
                                     </div>
-<!--                                     
-                                    <div class="form-group">
+<!--
+                                    <div class="form-group" id="to_employee_group" style="display: none;">
                                         <label class="col-sm-4 control-label">To Employee *</label>
                                         <div class="col-sm-8">
-                                            <select name="to_employee_number" class="form-control" >
+                                            <select name="to_employee_number" id="to_employee_select" class="form-control" >
                                                 <option value="">Select Employee</option>
                                                 <?php foreach($all_employees as $employee): ?>
                                                     <option value="<?php echo $employee['employee_number']; ?>"><?php echo $employee['name']; ?> (<?php echo $employee['employee_number']; ?>)</option>
@@ -322,25 +322,73 @@ function updateCenterOptions() {
     var transferType = $('select[name="transfer_type"]').val();
     var fromCenterGroup = $('#from_center_group');
     var fromDepartmentGroup = $('#from_department_group');
-    var fromEmployeeGroup = $('#from_employee_group');
+    // var fromEmployeeGroup = $('#from_employee_group'); // Not used
+    var toCenterGroup = $('#to_center_group');
+    var toDepartmentGroup = $('#to_department_group');
+    var toEmployeeGroup = $('#to_employee_group');
     var fromCenterSelect = $('#from_center_select');
     var fromDepartmentSelect = $('#from_department_select');
-    var fromEmployeeSelect = $('#from_employee_select');
-    
+    // var fromEmployeeSelect = $('#from_employee_select'); // Not used
+    var toCenterSelect = $('#to_center_select');
+    var toDepartmentSelect = $('#to_department_select');
+    var toEmployeeSelect = $('#to_employee_select');
+
     if (transferType === 'CENTRAL_TO_CENTER') {
+        // Central to Center: Hide from fields, show to fields
         fromCenterGroup.hide();
         fromDepartmentGroup.hide();
-        fromEmployeeGroup.hide();
+        // fromEmployeeGroup.hide(); // Not used
+        toCenterGroup.show();
+        toDepartmentGroup.show();
+        toEmployeeGroup.show();
         fromCenterSelect.prop('required', false);
         fromDepartmentSelect.prop('required', false);
-        fromEmployeeSelect.prop('required', false);
-    } else {
+        // fromEmployeeSelect.prop('required', false); // Not used
+        toCenterSelect.prop('required', true).prop('disabled', false);
+        toDepartmentSelect.prop('required', true).prop('disabled', false);
+        toEmployeeSelect.prop('required', true).prop('disabled', false);
+    } else if (transferType === 'CENTER_TO_CENTRAL') {
+        // Center to Central: Show from center/department, hide to fields
         fromCenterGroup.show();
         fromDepartmentGroup.show();
-        fromEmployeeGroup.show();
+        // fromEmployeeGroup.hide(); // Not used
+        toCenterGroup.hide();
+        toDepartmentGroup.hide();
+        toEmployeeGroup.hide();
         fromCenterSelect.prop('required', true);
         fromDepartmentSelect.prop('required', true);
-        fromEmployeeSelect.prop('required', true);
+        // fromEmployeeSelect.prop('required', false); // Not used
+        toCenterSelect.prop('required', false).prop('disabled', true);
+        toDepartmentSelect.prop('required', false).prop('disabled', true);
+        toEmployeeSelect.prop('required', false).prop('disabled', true);
+    } else if (transferType === 'CENTER_TO_CENTER') {
+        // Center to Center: Show all fields
+        fromCenterGroup.show();
+        fromDepartmentGroup.show();
+        // fromEmployeeGroup.show(); // Not used
+        toCenterGroup.show();
+        toDepartmentGroup.show();
+        toEmployeeGroup.show();
+        fromCenterSelect.prop('required', true);
+        fromDepartmentSelect.prop('required', true);
+        // fromEmployeeSelect.prop('required', true); // Not used
+        toCenterSelect.prop('required', true).prop('disabled', false);
+        toDepartmentSelect.prop('required', true).prop('disabled', false);
+        toEmployeeSelect.prop('required', true).prop('disabled', false);
+    } else {
+        // Default: Hide all optional fields
+        fromCenterGroup.hide();
+        fromDepartmentGroup.hide();
+        // fromEmployeeGroup.hide(); // Not used
+        toCenterGroup.hide();
+        toDepartmentGroup.hide();
+        toEmployeeGroup.hide();
+        fromCenterSelect.prop('required', false);
+        fromDepartmentSelect.prop('required', false);
+        // fromEmployeeSelect.prop('required', false); // Not used
+        toCenterSelect.prop('required', false).prop('disabled', true);
+        toDepartmentSelect.prop('required', false).prop('disabled', true);
+        toEmployeeSelect.prop('required', false).prop('disabled', true);
     }
 }
 
@@ -371,6 +419,19 @@ function loadFromEmployees() {
 $(document).ready(function() {
     // Initialize center options based on current selection
     updateCenterOptions();
+
+    // Handle form submission for CENTER_TO_CENTRAL transfers
+    $('form').on('submit', function(e) {
+        var transferType = $('select[name="transfer_type"]').val();
+        console.log('Form submit - Transfer Type:', transferType);
+        if (transferType === 'CENTER_TO_CENTRAL') {
+            // Clear and disable destination fields to prevent validation
+            $('#to_center_select').val('').prop('disabled', true);
+            $('#to_department_select').val('').prop('disabled', true);
+            console.log('CENTER_TO_CENTRAL: Cleared and disabled destination fields');
+            // Don't prevent default - let form submit normally
+        }
+    });
     
     // Set expected delivery date to tomorrow by default
     var tomorrow = new Date();

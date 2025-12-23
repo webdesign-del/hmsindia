@@ -103,6 +103,7 @@
                      <li> <a href="<?php echo base_url(); ?>stocks_new/batches"> Batches</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/add_batch"> Add Batch</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/stock_levels"> Stock Levels</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/stock_levels_management"> Stock Levels Management</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/central_stocks"> Central Stocks</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/center_stocks"> Center Stocks</a> </li>
                   </ul>

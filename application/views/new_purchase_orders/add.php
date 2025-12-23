@@ -450,6 +450,25 @@ function checkStockLevel(rowId) {
     });
 }
 
+// Re-check stock levels for all existing rows when center/department changes
+function recheckAllStockLevels() {
+    $('.consumable-row').each(function() {
+        var rowId = $(this).attr('id').replace('row_', '');
+        var medicineId = $('#consumables_name_' + rowId).val();
+        var quantity = parseInt($('#consumables_quantity_' + rowId).val()) || 0;
+
+        // Only check if medicine is selected and quantity > 0
+        if (medicineId && quantity > 0) {
+            checkStockLevel(rowId);
+        } else {
+            // Clear any previous error/info messages if no medicine selected
+            $('#row_' + rowId).removeClass('has-error');
+            $('#stock_error_' + rowId).remove();
+            $('#stock_info_' + rowId).remove();
+        }
+    });
+}
+
 function updateTotal(rowId) {
     // This function is just a trigger. The real work is in calculateTotal().
     // We could calculate the row total here, but calculateTotal() already loops through all rows.
@@ -486,11 +505,29 @@ $(document).ready(function() {
             $('#department').closest('.form-group').hide();
             $('#department').removeAttr('required');
             $('#dept_required').hide();
+            // Clear department value for central warehouse
+            $('#department').val('');
         } else {
             // Show and make department required
             $('#department').closest('.form-group').show();
             $('#department').attr('required', 'required');
             $('#dept_required').show();
+        }
+
+        // Re-check stock levels for all existing rows when center changes
+        setTimeout(function() {
+            recheckAllStockLevels();
+        }, 100);
+    });
+
+    // Handle Department change - re-check stock levels for all rows
+    $('#department').on('change', function() {
+        // Only re-check if center is selected and not central warehouse
+        var shipTo = $('#ship_to').val();
+        if (shipTo && shipTo !== 'CENTRAL_WAREHOUSE_NOIDA') {
+            setTimeout(function() {
+                recheckAllStockLevels();
+            }, 100);
         }
     });
 

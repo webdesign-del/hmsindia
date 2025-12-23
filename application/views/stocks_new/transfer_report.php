@@ -55,7 +55,7 @@
                                     <option value="">All Centers</option>
                                     <?php if(isset($centers) && !empty($centers)): ?>
                                         <?php foreach($centers as $center): ?>
-                                            <option value="<?php echo isset($center->id) ? $center->id : ''; ?>" <?php echo (isset($selected_from_center) && $selected_from_center == $center->id) ? 'selected' : ''; ?>>
+                                            <option value="<?php echo isset($center->ID) ? $center->ID : ''; ?>" <?php echo (isset($selected_from_center) && $selected_from_center == $center->ID) ? 'selected' : ''; ?>>
                                                 <?php echo isset($center->center_name) ? htmlspecialchars($center->center_name) : 'N/A'; ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -68,7 +68,7 @@
                                     <option value="">All Centers</option>
                                     <?php if(isset($centers) && !empty($centers)): ?>
                                         <?php foreach($centers as $center): ?>
-                                            <option value="<?php echo isset($center->id) ? $center->id : ''; ?>" <?php echo (isset($selected_to_center) && $selected_to_center == $center->id) ? 'selected' : ''; ?>>
+                                            <option value="<?php echo isset($center->ID) ? $center->ID : ''; ?>" <?php echo (isset($selected_to_center) && $selected_to_center == $center->ID) ? 'selected' : ''; ?>>
                                                 <?php echo isset($center->center_name) ? htmlspecialchars($center->center_name) : 'N/A'; ?>
                                             </option>
                                         <?php endforeach; ?>

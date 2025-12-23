@@ -613,73 +613,171 @@ class New_purchase_orders extends CI_Controller {
     /**
      * AJAX endpoint to check if adding quantity to PO would exceed max stock level
      */
-    public function check_stock_level() {
+    public function check_stock_level()
+    {
         $logg = checklogin();
-        if ($logg['status'] != true) {
-            return $this->output->set_content_type('application/json')
+        if ($logg['status'] !== true) {
+            return $this->output
+                ->set_content_type('application/json')
                 ->set_status_header(401)
-                ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => 'Unauthorized'
+                ]));
         }
 
-        $medicine_id = $this->input->get('medicine_id');
-        $quantity = (int) $this->input->get('quantity');
-        $ship_to_center_id = $this->input->get('ship_to_center_id');
-        $center_data =$this->get_center_by_id($ship_to_center_id);
-        $center_id =$center_data->ID;
-        $department = $this->input->get('department');
+        $medicine_id       = (int) $this->input->get('medicine_id');
+        $quantity          = (int) $this->input->get('quantity');
+        $ship_to_center_id = (int) $this->input->get('ship_to_center_id');
+        $department        = strtoupper(trim($this->input->get('department')));
 
-        if (empty($medicine_id) || $quantity <= 0) {
-            return $this->output->set_content_type('application/json')
+        if (empty($medicine_id) || $quantity <= 0 || empty($ship_to_center_id) || empty($department)) {
+            return $this->output
+                ->set_content_type('application/json')
                 ->set_status_header(400)
-                ->set_output(json_encode(['status' => 'error', 'message' => 'medicine_id and quantity are required']));
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => 'medicine_id, quantity, center and department are required'
+                ]));
         }
 
-        $stock_info = $this->Stock_model_new->get_medicine_stock_info($medicine_id, $center_id, $department);
-        
+        $center_data = $this->get_center_by_id($ship_to_center_id);
+        if (!$center_data) {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(400)
+                ->set_output(json_encode([
+                    'status' => 'error',
+                    'message' => 'Invalid center'
+                ]));
+        }
+
+        $center_id = (int) $center_data->ID;
+
+        $stock_info = $this->Stock_model_new
+            ->get_medicine_stock_info($medicine_id, $center_id, $department);
         if (!$stock_info) {
-            return $this->output->set_content_type('application/json')
+            return $this->output
+                ->set_content_type('application/json')
                 ->set_status_header(200)
                 ->set_output(json_encode([
                     'status' => 'success',
                     'can_order' => true,
-                    'message' => 'Stock information not available'
+                    'message' => 'Stock configuration not found for this center/department'
                 ]));
         }
-        
         $current_stock = (int) $stock_info->current_stock;
-        $max_stock = (int) $stock_info->max_stock_level;
+        $min_stock     = (int) $stock_info->min_stock_level;
+        $max_stock     = (int) $stock_info->max_stock_level;
+        $reorder_level = (int) $stock_info->reorder_level;
         $total_after_po = $current_stock + $quantity;
-        
-        // If max_stock_level is 0 or null, allow ordering (no limit set)
+        // No max limit set
         if ($max_stock <= 0) {
-            return $this->output->set_content_type('application/json')
+            return $this->output
+                ->set_content_type('application/json')
                 ->set_status_header(200)
                 ->set_output(json_encode([
                     'status' => 'success',
                     'can_order' => true,
                     'current_stock' => $current_stock,
+                    'min_stock' => $min_stock,
                     'max_stock' => $max_stock,
+                    'reorder_level' => $reorder_level,
                     'message' => 'No max stock limit set'
                 ]));
         }
-        
-        $can_order = $total_after_po <= $max_stock;
-        $message = $can_order 
-            ? "OK - Stock after PO: {$total_after_po} (Max: {$max_stock})"
+
+        $can_order = ($total_after_po <= $max_stock);
+
+        $message = $can_order
+            ? "OK – Stock after PO: {$total_after_po} (Max: {$max_stock})"
             : "Max stock exceeded! Current: {$current_stock}, Max: {$max_stock}, After PO: {$total_after_po}";
-        
-        return $this->output->set_content_type('application/json')
+
+        return $this->output
+            ->set_content_type('application/json')
             ->set_status_header(200)
             ->set_output(json_encode([
                 'status' => 'success',
                 'can_order' => $can_order,
                 'current_stock' => $current_stock,
+                'min_stock' => $min_stock,
                 'max_stock' => $max_stock,
+                'reorder_level' => $reorder_level,
                 'po_quantity' => $quantity,
                 'total_after_po' => $total_after_po,
+                'reorder_warning' => ($reorder_level > 0 && $current_stock <= $reorder_level),
+                'critical_min_warning' => ($min_stock > 0 && $current_stock < $min_stock),
                 'message' => $message
             ]));
     }
+
+    // public function check_stock_level() {
+    //     $logg = checklogin();
+    //     if ($logg['status'] != true) {
+    //         return $this->output->set_content_type('application/json')
+    //             ->set_status_header(401)
+    //             ->set_output(json_encode(['status' => 'error', 'message' => 'Unauthorized']));
+    //     }
+
+    //     $medicine_id = $this->input->get('medicine_id');
+    //     $quantity = (int) $this->input->get('quantity');
+    //     $ship_to_center_id = $this->input->get('ship_to_center_id');
+    //     $center_data =$this->get_center_by_id($ship_to_center_id);
+    //     $center_id =$center_data->ID;
+    //     $department = $this->input->get('department');
+
+    //     if (empty($medicine_id) || $quantity <= 0) {
+    //         return $this->output->set_content_type('application/json')
+    //             ->set_status_header(400)
+    //             ->set_output(json_encode(['status' => 'error', 'message' => 'medicine_id and quantity are required']));
+    //     }
+
+    //     $stock_info = $this->Stock_model_new->get_medicine_stock_info($medicine_id, $center_id, $department);
+        
+    //     if (!$stock_info) {
+    //         return $this->output->set_content_type('application/json')
+    //             ->set_status_header(200)
+    //             ->set_output(json_encode([
+    //                 'status' => 'success',
+    //                 'can_order' => true,
+    //                 'message' => 'Stock information not available'
+    //             ]));
+    //     }
+        
+    //     $current_stock = (int) $stock_info->current_stock;
+    //     $max_stock = (int) $stock_info->max_stock_level;
+    //     $total_after_po = $current_stock + $quantity;
+        
+    //     // If max_stock_level is 0 or null, allow ordering (no limit set)
+    //     if ($max_stock <= 0) {
+    //         return $this->output->set_content_type('application/json')
+    //             ->set_status_header(200)
+    //             ->set_output(json_encode([
+    //                 'status' => 'success',
+    //                 'can_order' => true,
+    //                 'current_stock' => $current_stock,
+    //                 'max_stock' => $max_stock,
+    //                 'message' => 'No max stock limit set'
+    //             ]));
+    //     }
+        
+    //     $can_order = $total_after_po <= $max_stock;
+    //     $message = $can_order 
+    //         ? "OK - Stock after PO: {$total_after_po} (Max: {$max_stock})"
+    //         : "Max stock exceeded! Current: {$current_stock}, Max: {$max_stock}, After PO: {$total_after_po}";
+        
+    //     return $this->output->set_content_type('application/json')
+    //         ->set_status_header(200)
+    //         ->set_output(json_encode([
+    //             'status' => 'success',
+    //             'can_order' => $can_order,
+    //             'current_stock' => $current_stock,
+    //             'max_stock' => $max_stock,
+    //             'po_quantity' => $quantity,
+    //             'total_after_po' => $total_after_po,
+    //             'message' => $message
+    //         ]));
+    // }
 
     public function items_by_vendor()
     {
