@@ -75,12 +75,12 @@
                     <td><?php echo $report_data['package_amount']; ?></td>
                     <td class="numeric"><?php echo $report_data['partial_amount']; ?></td>
                 </tr>
-                <tr>
-                    <td>Medicine</td>
-                    <td><?php echo $report_data['medicine_customer_count']; ?></td>
-                    <td class="numeric"><?php echo $report_data['medicine_amount']; ?></td>
-                    <td><?php echo $report_data['medicine_bill_count']; ?></td>
-                </tr>
+               <tr>
+    <td>Medicine</td>
+    <td><?php echo $report_data['medicine_customer_count'] ?? 0; ?></td> 
+    <td class="numeric"><?php echo $report_data['medicine_amount'] ?? 0; ?></td>
+    <td><?php echo $report_data['medicine_bill_count'] ?? 0; ?></td>
+</tr>
                 <tr>
                     <td>Diagnosis</td>
                     <td><?php echo $report_data['diagnosis_customer_count']; ?></td>
