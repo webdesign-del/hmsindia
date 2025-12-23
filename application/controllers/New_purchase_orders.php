@@ -342,7 +342,7 @@ class New_purchase_orders extends CI_Controller {
                 $po_department = isset($data['purchase_order']['department']) ? $data['purchase_order']['department'] : null;
                 foreach ($data['purchase_order_items'] as &$item) {
                     $medicine_id = $item['item_number'];
-                    $medicine_item = $this->Stock_model_new->get_medicine_by_id($medicine_id,$center_id = null,$po_department=null);
+                    $medicine_item = $this->Stock_model_new->get_medicine_by_id($medicine_id,$center_id,$po_department);
                     $item['unit'] =$medicine_item->unit;
                     $item['pack_size'] =$medicine_item->pack_size;
                     $item['min_stock_level'] =$medicine_item->min_stock_level;
