@@ -26,6 +26,9 @@
                         <a href="<?php echo base_url('stocks_new/stock_levels'); ?>" class="btn btn-info">
                             <i class="fa fa-building-o"></i> View Stock Levels
                         </a>
+                        <a href="<?php echo base_url('stocks_new/export_batches?' . http_build_query($this->input->get())); ?>" class="btn btn-success">
+                            <i class="fa fa-download"></i> Export Batches
+                        </a>
                     </div>
                 </div>
             </div>

@@ -1898,39 +1898,210 @@ class Stock_model_new extends CI_Model
      * @param int $medicine_id
      * @return object|null Returns object with current_stock and max_stock_level
      */
-    public function get_medicine_stock_info($medicine_id, $center_id = null, $department = null) {
-        // try {
-            $this->db->select('
-                m.id as medicine_id,
-                m.max_stock_level,
-                COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0) as current_stock
-            ');
-            $this->db->from('medicines m');
-            $this->db->join('medicine_batches mb', 'm.id = mb.medicine_id', 'left');
-            // $this->db->join('central_stocks cs', 'mb.id = cs.batch_id AND (cs.status = "ACTIVE" OR cs.status IS NULL)', 'left');
-            $this->db->join('center_stocks ccs', 'mb.id = ccs.batch_id AND (ccs.status = "ACTIVE" OR ccs.status IS NULL)', 'left');
-            $this->db->where('m.id', $medicine_id);
-            $this->db->where('(mb.batch_status = "ACTIVE" OR mb.batch_status IS NULL)');
-            if (!empty($center_id)) {
-                $this->db->where('ccs.center_id', $center_id);
-            }
-            if (!empty($department)) {
-                if ($department == 'Embryologist Basant Lok') {
-                    $department = 'Embryology Basant Lok';
-                }
-                $this->db->like('ccs.department', $department);
-            }
-            $this->db->group_by('m.id, m.max_stock_level');
-            $query = $this->db->get();
+    // public function get_medicine_stock_info($medicine_id, $center_id = null, $department = null) {
+    //     // try {
+    //         $this->db->select('
+    //             m.id as medicine_id,
+    //             m.max_stock_level,
+    //             COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0) as current_stock
+    //         ');
+    //         $this->db->from('medicines m');
+    //         $this->db->join('medicine_batches mb', 'm.id = mb.medicine_id', 'left');
+    //         // $this->db->join('central_stocks cs', 'mb.id = cs.batch_id AND (cs.status = "ACTIVE" OR cs.status IS NULL)', 'left');
+    //         $this->db->join('center_stocks ccs', 'mb.id = ccs.batch_id AND (ccs.status = "ACTIVE" OR ccs.status IS NULL)', 'left');
+    //         $this->db->where('m.id', $medicine_id);
+    //         $this->db->where('(mb.batch_status = "ACTIVE" OR mb.batch_status IS NULL)');
+    //         if (!empty($center_id)) {
+    //             $this->db->where('ccs.center_id', $center_id);
+    //         }
+    //         if (!empty($department)) {
+    //             if ($department == 'Embryologist Basant Lok') {
+    //                 $department = 'Embryology Basant Lok';
+    //             }
+    //             $this->db->like('ccs.department', $department);
+    //         }
+    //         $this->db->group_by('m.id, m.max_stock_level');
+    //         $query = $this->db->get();
             
-            if ($query->num_rows() > 0) {
-                return $query->row();
+    //         if ($query->num_rows() > 0) {
+    //             return $query->row();
+    //         }
+    //         return null;
+    //     // } catch (Exception $e) {
+    //     //     log_message('error', 'Error in get_medicine_stock_info: ' . $e->getMessage());
+    //     //     return null;
+    //     // }
+    // }
+
+    public function get_medicine_stock_info($medicine_id, $center_id, $department)
+    {
+        $department = strtoupper(trim($department));
+        $this->db->select('
+            mcs.min_stock_level,
+            mcs.max_stock_level,
+            mcs.reorder_level,
+            COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0) AS current_stock
+        ');
+        $this->db->from('medicine_center_stocks mcs');
+        $this->db->join(
+            'medicine_batches mb',
+            'mb.medicine_id = mcs.medicine_id
+            AND (mb.batch_status = "ACTIVE" OR mb.batch_status IS NULL)',
+            'left'
+        );
+        $this->db->join(
+            'center_stocks ccs',
+            'ccs.batch_id = mb.id
+            AND ccs.center_id = mcs.center_id
+            AND ccs.department = mcs.department
+            AND (ccs.status = "ACTIVE" OR ccs.status IS NULL)',
+            'left'
+        );
+        $this->db->where('mcs.medicine_id', $medicine_id);
+        $this->db->where('mcs.center_id', $center_id);
+        $this->db->where('mcs.department', $department);
+        $this->db->group_by('
+            mcs.medicine_id,
+            mcs.center_id,
+            mcs.department,
+            mcs.min_stock_level,
+            mcs.max_stock_level,
+            mcs.reorder_level
+        ');
+        $query = $this->db->get();
+        if ($query->num_rows() > 0) {
+            return $query->row();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get medicine center stock configuration
+     * @param int $center_id
+     * @param int $medicine_id
+     * @param string $department
+     * @return object|null
+     */
+    public function get_medicine_center_stock_config($center_id, $medicine_id, $department = null) {
+        $this->db->select('*');
+        $this->db->from('medicine_center_stocks');
+        $this->db->where('center_id', $center_id);
+        $this->db->where('medicine_id', $medicine_id);
+        if (!empty($department)) {
+            $this->db->where('department', $department);
+        }
+        $query = $this->db->get();
+        return $query->row();
+    }
+
+    /**
+     * Insert or update medicine center stock configuration
+     * @param array $data
+     * @return bool
+     */
+    public function save_medicine_center_stock_config($data) {
+        try {
+            // Check if record exists
+            $existing = $this->get_medicine_center_stock_config(
+                $data['center_id'],
+                $data['medicine_id'],
+                isset($data['department']) ? $data['department'] : null
+            );
+
+            if ($existing) {
+                // Update existing record
+                $this->db->where('id', $existing->id);
+                return $this->db->update('medicine_center_stocks', $data);
+            } else {
+                // Insert new record
+                return $this->db->insert('medicine_center_stocks', $data);
             }
-            return null;
-        // } catch (Exception $e) {
-        //     log_message('error', 'Error in get_medicine_stock_info: ' . $e->getMessage());
-        //     return null;
-        // }
+        } catch (Exception $e) {
+            log_message('error', 'Error saving medicine center stock config: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Update medicine center stock levels
+     * @param int $center_id
+     * @param int $medicine_id
+     * @param string $department
+     * @param array $levels (min_stock_level, max_stock_level, reorder_level)
+     * @return bool
+     */
+    public function update_medicine_center_stock_levels($center_id, $medicine_id, $department, $levels) {
+        try {
+            $this->db->where('center_id', $center_id);
+            $this->db->where('medicine_id', $medicine_id);
+            $this->db->where('department', $department);
+            return $this->db->update('medicine_center_stocks', $levels);
+        } catch (Exception $e) {
+            log_message('error', 'Error updating medicine center stock levels: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get medicine center stock levels for management interface
+     * @param int|null $center_id
+     * @param int|null $medicine_id
+     * @param string|null $department
+     * @return array
+     */
+    public function get_medicine_center_stock_levels($center_id = null, $medicine_id = null, $department = null) {
+        $this->db->select('
+            mcs.id,
+            mcs.center_id,
+            mcs.medicine_id,
+            mcs.department,
+            mcs.min_stock_level,
+            mcs.max_stock_level,
+            mcs.reorder_level,
+            mcs.created_at,
+            mcs.updated_at,
+            m.medicine_name,
+            m.medicine_code,
+            c.center_name,
+            COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0) as current_stock
+        ');
+        $this->db->from('medicine_center_stocks mcs');
+        $this->db->join('medicines m', 'mcs.medicine_id = m.id', 'left');
+        $this->db->join('hms_centers c', 'mcs.center_id = c.ID', 'left');
+        $this->db->join('medicine_batches mb', 'mb.medicine_id = mcs.medicine_id', 'left');
+        $this->db->join('center_stocks ccs', 'ccs.batch_id = mb.id AND ccs.center_id = mcs.center_id AND ccs.department = mcs.department AND (ccs.status = "ACTIVE" OR ccs.status IS NULL)', 'left');
+
+        // Apply filters
+        if (!empty($center_id)) {
+            $this->db->where('mcs.center_id', $center_id);
+        }
+        if (!empty($medicine_id)) {
+            $this->db->where('mcs.medicine_id', $medicine_id);
+        }
+        if (!empty($department)) {
+            $this->db->where('mcs.department', $department);
+        }
+
+        $this->db->group_by('mcs.id, mcs.center_id, mcs.medicine_id, mcs.department, mcs.min_stock_level, mcs.max_stock_level, mcs.reorder_level, mcs.created_at, mcs.updated_at, m.medicine_name, m.medicine_code, c.center_name');
+        $this->db->order_by('c.center_name, m.medicine_name, mcs.department');
+
+        return $this->db->get()->result();
+    }
+
+    /**
+     * Delete medicine center stock configuration
+     * @param int $config_id
+     * @return bool
+     */
+    public function delete_medicine_center_stock_config($config_id) {
+        try {
+            $this->db->where('id', $config_id);
+            return $this->db->delete('medicine_center_stocks');
+        } catch (Exception $e) {
+            log_message('error', 'Error deleting medicine center stock config: ' . $e->getMessage());
+            return false;
+        }
     }
 
     // ===============================================
@@ -2142,33 +2313,56 @@ class Stock_model_new extends CI_Model
             }
 
             // Add to destination location
-            $this->db->where("batch_id", $item->batch_id);
-            $this->db->where("center_id", $transfer->to_center_id);
-            if (!empty($transfer->to_department)) {
-                $this->db->where("department", $transfer->to_department);
-            }
-            $existing = $this->db->get("center_stocks")->row();
+            if ($transfer->transfer_type == "CENTER_TO_CENTRAL") {
+                // Destination is central warehouse
+                $this->db->where("batch_id", $item->batch_id);
+                $existing = $this->db->get("central_stocks")->row();
 
-            if ($existing) {
+                if ($existing) {
+                    $this->db->where("batch_id", $item->batch_id);
+                    $this->db->set(
+                        "quantity",
+                        "quantity + " . $item->quantity_transferred,
+                        false,
+                    );
+                    $this->db->update("central_stocks");
+                } else {
+                    $this->db->insert("central_stocks", [
+                        "batch_id" => $item->batch_id,
+                        "quantity" => $item->quantity_transferred,
+                        "last_movement_date" => date("Y-m-d H:i:s"),
+                    ]);
+                }
+            } else {
+                // Destination is a center
                 $this->db->where("batch_id", $item->batch_id);
                 $this->db->where("center_id", $transfer->to_center_id);
                 if (!empty($transfer->to_department)) {
                     $this->db->where("department", $transfer->to_department);
                 }
-                $this->db->set(
-                    "quantity",
-                    "quantity + " . $item->quantity_transferred,
-                    false,
-                );
-                $this->db->update("center_stocks");
-            } else {
-                $this->db->insert("center_stocks", [
-                    "batch_id" => $item->batch_id,
-                    "center_id" => $transfer->to_center_id,
-                    "department" => $transfer->to_department,
-                    "quantity" => $item->quantity_transferred,
-                    "last_movement_date" => date("Y-m-d H:i:s"),
-                ]);
+                $existing = $this->db->get("center_stocks")->row();
+
+                if ($existing) {
+                    $this->db->where("batch_id", $item->batch_id);
+                    $this->db->where("center_id", $transfer->to_center_id);
+                    if (!empty($transfer->to_department)) {
+                        $this->db->where("department", $transfer->to_department);
+                    }
+                    $this->db->set(
+                        "quantity",
+                        "quantity + " . $item->quantity_transferred,
+                        false,
+                    );
+                    $this->db->update("center_stocks");
+                } else {
+                    $this->db->insert("center_stocks", [
+                        "batch_id" => $item->batch_id,
+                        "center_id" => $transfer->to_center_id,
+                        "department" => $transfer->to_department,
+                        "quantity" => $item->quantity_transferred,
+                        "last_movement_date" => date("Y-m-d H:i:s"),
+                    ]);
+                }
             }
 
             // Log stock movement
@@ -2180,7 +2374,10 @@ class Stock_model_new extends CI_Model
                         ? "CENTRAL"
                         : "CENTER",
                 "from_location_id" => $transfer->from_center_id,
-                "to_location_type" => "CENTER",
+                "to_location_type" =>
+                    $transfer->transfer_type == "CENTER_TO_CENTRAL"
+                        ? "CENTRAL"
+                        : "CENTER",
                 "to_location_id" => $transfer->to_center_id,
                 "quantity_change" => -$item->quantity_transferred,
                 "unit_price" => $item->unit_price,
@@ -5323,6 +5520,79 @@ class Stock_model_new extends CI_Model
                 exit;
             }
         }
+
+        public function export_batches($filters = [])
+        {
+            try {
+                // Get filtered batches data
+                $batches = $this->get_all_batches(
+                    isset($filters['medicine_id']) ? $filters['medicine_id'] : null,
+                    isset($filters['vendor_id']) ? $filters['vendor_id'] : null,
+                    isset($filters['batch_number']) ? $filters['batch_number'] : null,
+                    isset($filters['batch_status']) ? $filters['batch_status'] : null
+                );
+
+                // Set headers for CSV download
+                header("Content-Type: text/csv");
+                header(
+                    'Content-Disposition: attachment; filename="batches_report_' .
+                        date("Y-m-d") .
+                        '.csv"',
+                );
+
+                $output = fopen("php://output", "w");
+
+                // CSV headers
+                fputcsv($output, [
+                    "Batch Number",
+                    "Medicine Name",
+                    "Medicine Code",
+                    "Brand Name",
+                    "Vendor Name",
+                    "Purchase Price",
+                    "Selling Price (MRP)",
+                    "Quantity Purchased",
+                    "Quantity Remaining",
+                    "Expiry Date",
+                    "Days Left",
+                    "Batch Status",
+                    "Quality Status",
+                    "Invoice Number",
+                    "Created Date",
+                ]);
+
+                // CSV data
+                foreach ($batches as $batch) {
+                    fputcsv($output, [
+                        isset($batch->batch_number) ? $batch->batch_number : '',
+                        isset($batch->medicine_name) ? $batch->medicine_name : '',
+                        isset($batch->medicine_code) ? $batch->medicine_code : '',
+                        isset($batch->brand_name) ? $batch->brand_name : '',
+                        isset($batch->vendor_name) ? $batch->vendor_name : '',
+                        isset($batch->purchase_price) ? number_format($batch->purchase_price, 2) : '0.00',
+                        isset($batch->selling_price) ? number_format($batch->selling_price, 2) : '0.00',
+                        isset($batch->quantity_purchased) ? number_format($batch->quantity_purchased) : '0',
+                        isset($batch->quantity_remaining) ? number_format($batch->quantity_remaining) : '0',
+                        isset($batch->expiry_date) ? date('M d, Y', strtotime($batch->expiry_date)) : '',
+                        isset($batch->expiry_days) ? $batch->expiry_days : '',
+                        isset($batch->batch_status) ? $batch->batch_status : '',
+                        isset($batch->quality_status) ? $batch->quality_status : '',
+                        isset($batch->invoice_number) ? $batch->invoice_number : '',
+                        isset($batch->created_at) ? date('M d, Y H:i:s', strtotime($batch->created_at)) : '',
+                    ]);
+                }
+
+                fclose($output);
+                exit; // --- CRITICAL FIX --- Add exit; here to prevent corrupting the file
+
+            } catch (Exception $e) {
+                // Can't set headers if they are already sent
+                log_message('error', "Error exporting batches report: " . $e->getMessage());
+                echo "Error exporting batches report: " . $e->getMessage();
+                exit;
+            }
+        }
+
         // public function process_medicine_return($return_data, $return_items)
         // {
         //     // 1. Check for empty items

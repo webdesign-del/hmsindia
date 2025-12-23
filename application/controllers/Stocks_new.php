@@ -997,6 +997,24 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    public function export_batches()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $filters = array(
+                'medicine_id' => $this->input->get("medicine_id"),
+                'vendor_id' => $this->input->get("vendor_id"),
+                'batch_number' => $this->input->get("batch_number"),
+                'batch_status' => $this->input->get("batch_status")
+            );
+
+            $this->Stock_model_new->export_batches($filters);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
     // public function add_batch()
     // {
     //     $logg = checklogin();
@@ -2660,6 +2678,181 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    /**
+     * Edit medicine center stock levels (min/max/reorder)
+     */
+    public function edit_medicine_center_stock_levels()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == false) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $center_id = $this->input->post('center_id');
+        $medicine_id = $this->input->post('medicine_id');
+        $department = $this->input->post('department');
+        $min_stock_level = $this->input->post('min_stock_level');
+        $max_stock_level = $this->input->post('max_stock_level');
+        $reorder_level = $this->input->post('reorder_level');
+
+        if (empty($center_id) || empty($medicine_id) || empty($department)) {
+            echo json_encode(['success' => false, 'message' => 'Center, medicine and department are required']);
+            return;
+        }
+
+        // Validate numeric inputs
+        if (!is_numeric($min_stock_level) || $min_stock_level < 0) {
+            echo json_encode(['success' => false, 'message' => 'Min stock level must be a positive number']);
+            return;
+        }
+
+        if (!is_numeric($max_stock_level) || $max_stock_level < 0) {
+            echo json_encode(['success' => false, 'message' => 'Max stock level must be a positive number']);
+            return;
+        }
+
+        if ($max_stock_level > 0 && $min_stock_level > $max_stock_level) {
+            echo json_encode(['success' => false, 'message' => 'Min stock level cannot be greater than max stock level']);
+            return;
+        }
+
+        if (!is_numeric($reorder_level) || $reorder_level < 0) {
+            echo json_encode(['success' => false, 'message' => 'Reorder level must be a positive number']);
+            return;
+        }
+
+        $data = [
+            'center_id' => $center_id,
+            'medicine_id' => $medicine_id,
+            'department' => $department,
+            'min_stock_level' => $min_stock_level,
+            'max_stock_level' => $max_stock_level,
+            'reorder_level' => $reorder_level,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        $result = $this->Stock_model_new->save_medicine_center_stock_config($data);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Stock levels updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update stock levels']);
+        }
+    }
+
+    /**
+     * Get medicine center stock levels for editing
+     */
+    public function get_medicine_center_stock_levels()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == false) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $center_id = $this->input->post('center_id');
+        $medicine_id = $this->input->post('medicine_id');
+        $department = $this->input->post('department');
+
+        if (empty($center_id) || empty($medicine_id) || empty($department)) {
+            echo json_encode(['success' => false, 'message' => 'Center, medicine and department are required']);
+            return;
+        }
+
+        $config = $this->Stock_model_new->get_medicine_center_stock_config($center_id, $medicine_id, $department);
+
+        if ($config) {
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'min_stock_level' => $config->min_stock_level,
+                    'max_stock_level' => $config->max_stock_level,
+                    'reorder_level' => $config->reorder_level
+                ]
+            ]);
+        } else {
+            // Return default values if no config exists
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'min_stock_level' => 0,
+                    'max_stock_level' => 0,
+                    'reorder_level' => 0
+                ]
+            ]);
+        }
+    }
+
+    /**
+     * Stock Levels Management - Dedicated module for managing medicine center stock levels
+     */
+    public function stock_levels_management()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $center_id = $this->input->get("center_id");
+            $medicine_id = $this->input->get("medicine_id");
+            $department = $this->input->get("department");
+
+            // Get all centers
+            $data["centers"] = $this->Stock_model_new->get_all_centers();
+            log_message('debug', 'Centers loaded: ' . count($data["centers"]));
+
+            // Get all medicines
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines();
+            log_message('debug', 'Medicines loaded: ' . count($data["medicines"]));
+
+            // Get medicine center stock configurations
+            $data["stock_levels"] = $this->Stock_model_new->get_medicine_center_stock_levels(
+                $center_id,
+                $medicine_id,
+                $department
+            );
+
+            // Store selected filters for form repopulation
+            $data["selected_center_id"] = $center_id;
+            $data["selected_medicine_id"] = $medicine_id;
+            $data["selected_department"] = $department;
+
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/stock_levels_management", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die;
+        }
+    }
+
+    /**
+     * Delete medicine center stock configuration
+     */
+    public function delete_medicine_center_stock_config()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == false) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            return;
+        }
+
+        $config_id = $this->input->post('config_id');
+
+        if (empty($config_id)) {
+            echo json_encode(['success' => false, 'message' => 'Configuration ID is required']);
+            return;
+        }
+
+        $result = $this->Stock_model_new->delete_medicine_center_stock_config($config_id);
+
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Configuration deleted successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to delete configuration']);
+        }
+    }
+
     public function delete_center_stock()
     {
         $logg = checklogin();
@@ -2806,16 +2999,22 @@ class Stocks_new extends CI_Controller
         $logg = checklogin();
         if ($logg["status"] == true) {
             if ($this->input->post("action") == "add_transfer") {
+                $transfer_type = $this->input->post("transfer_type");
+
                 $this->form_validation->set_rules(
                     "transfer_type",
                     "Transfer Type",
                     "required",
                 );
-                $this->form_validation->set_rules(
-                    "to_center_id",
-                    "Destination Center",
-                    "required",
-                );
+
+                // Only require to_center_id for transfers that need a destination center
+                if ($transfer_type === 'CENTER_TO_CENTER' || $transfer_type === 'CENTRAL_TO_CENTER') {
+                    $this->form_validation->set_rules(
+                        "to_center_id",
+                        "Destination Center",
+                        "required",
+                    );
+                }
                 $this->form_validation->set_rules(
                     "transfer_date",
                     "Transfer Date",
@@ -2824,10 +3023,8 @@ class Stocks_new extends CI_Controller
                 if ($this->form_validation->run() == true) {
                     $transfer_data = [
                         "transfer_type" => $this->input->post("transfer_type"),
-                        "from_center_id" => $this->input->post(
-                            "from_center_id",
-                        ),
-                        "to_center_id" => $this->input->post("to_center_id"),
+                        "from_center_id" => $transfer_type === 'CENTRAL_TO_CENTER' ? null : $this->input->post("from_center_id"),
+                        "to_center_id" => $transfer_type === 'CENTER_TO_CENTRAL' ? null : $this->input->post("to_center_id"),
                         "transfer_date" => $this->input->post("transfer_date"),
                         "from_department" => $this->input->post(
                             "from_department",
@@ -7928,16 +8125,36 @@ class Stocks_new extends CI_Controller
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
-            $this->form_validation->set_rules(
-                "from_center_id",
-                "From Center",
-                "required",
-            );
-            $this->form_validation->set_rules(
-                "to_center_id",
-                "To Center",
-                "required",
-            );
+            $transfer_type = $this->input->post("transfer_type");
+            var_dump($transfer_type);
+            die;
+
+            // Set validation rules based on transfer type
+            if ($transfer_type !== 'CENTRAL_TO_CENTER') {
+                $this->form_validation->set_rules(
+                    "from_center_id",
+                    "From Center",
+                    "required",
+                );
+            }
+
+            // Only require to_center_id for transfers that need a destination center
+            if ($transfer_type === 'CENTER_TO_CENTER') {
+                $this->form_validation->set_rules(
+                    "to_center_id",
+                    "To Center",
+                    "required",
+                );
+            }
+
+            if ($transfer_type === 'CENTRAL_TO_CENTER') {
+                $this->form_validation->set_rules(
+                    "to_center_id",
+                    "To Center",
+                    "required",
+                );
+            }
+
             $this->form_validation->set_rules(
                 "transfer_date",
                 "Transfer Date",
@@ -7945,14 +8162,16 @@ class Stocks_new extends CI_Controller
             );
 
             if ($this->form_validation->run() == true) {
+                $transfer_type = $this->input->post("transfer_type");
+
                 $transfer_data = [
                     "transfer_number" =>
                         "TRF" .
                         date("Ymd") .
                         str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT),
-                    "transfer_type" => $this->input->post("transfer_type"),
-                    "from_center_id" => $this->input->post("from_center_id"),
-                    "to_center_id" => $this->input->post("to_center_id"),
+                    "transfer_type" => $transfer_type,
+                    "from_center_id" => $transfer_type === 'CENTRAL_TO_CENTER' ? null : $this->input->post("from_center_id"),
+                    "to_center_id" => $transfer_type === 'CENTER_TO_CENTRAL' ? null : $this->input->post("to_center_id"),
                     "transfer_date" => $this->input->post("transfer_date"),
                     "expected_delivery_date" => $this->input->post(
                         "expected_delivery_date",
