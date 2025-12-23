@@ -1038,13 +1038,17 @@ class Stock_model_new extends CI_Model
         return $this->db->update("medicines", $data);
     }
 
-    public function get_medicine_by_id($id,$center_id = null,$po_department=null)
+    public function get_medicine_by_id($id, $center_id = null, $po_department = null)
     {
-        $this->db->select("m.*, mb.brand_name as brand_name");
+        $this->db->select("m.*");
         $this->db->from("medicine_center_stocks m");
         $this->db->where("m.medicine_id", $id);
-        $this->db->where("m.center_id", $center_id);
-        $this->db->where("m.department", $po_department);
+        if (!empty($center_id)) {
+            $this->db->where("m.center_id", $center_id);
+        }
+        if (!empty($po_department)) {
+            $this->db->where("m.department", $po_department);
+        }
         return $this->db->get()->row();
     }
 
