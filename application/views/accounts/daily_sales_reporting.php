@@ -444,16 +444,17 @@ if (!empty($medicine_daily_result)) {
             <?php
             // Initialize totals for each payment method
             $paymentTotals = [
-                'Card' => 0,
-                'upi' => 0,
-                'Cash' => 0,
-                'Check' => 0,
-                'IIC-Wallet' => 0,
-                'Advance' => 0,
-                'NEFT' => 0,
-                'Loan' => 0,
-                'Other' => 0
-            ];
+    'Card' => 0,
+    'Upi' => 0,
+    'Cash' => 0,
+    'Check' => 0,
+    'Iic-wallet' => 0,
+    'Advance' => 0,
+    'Neft' => 0,
+    'Loan' => 0,
+    'Other' => 0
+];
+
             
             // Collect all data in one array
             $allData = [];
@@ -479,14 +480,22 @@ if (!empty($medicine_daily_result)) {
             }
             
             // Process medicine payments
-            foreach($patient_medicine_daily_result as $vl) {
-                $method = ucfirst(strtolower($vl['payment_method']));
-                $paymentTotals[$method] += floatval($vl['payment_done']);
-                $allData[] = [
-                    'type' => 'OPD Medicines',
-                    'data' => $vl
-                ];
-            }
+           // Process medicine payments
+foreach($patient_medicine_daily_result as $vl) {
+    $method = ucfirst(strtolower($vl['payment_method']));
+
+    if (!isset($paymentTotals[$method])) {
+        $paymentTotals[$method] = 0;
+    }
+
+    $paymentTotals[$method] += floatval($vl['total_amount']); // FIX HERE
+
+    $allData[] = [
+        'type' => 'OPD Medicines',
+        'data' => $vl
+    ];
+}
+
             
             // Process diagnostic payments
             foreach($patient_diagnostic_daily_result as $vl) {
@@ -531,16 +540,17 @@ if (!empty($medicine_daily_result)) {
                 <tbody>
                     <tr>
                         <td>Card Receipts</td>
-                        <td><?php echo number_format($paymentTotals['Card'], 2); ?></td>
+                        <td><?= number_format($paymentTotals['Card'], 2); ?></td>
                     </tr>
                     <tr>
                         <td>UPI Receipts</td>
-                        <td><?php echo number_format($paymentTotals['Upi'], 2); ?></td>
+                        <td><?= number_format($paymentTotals['Upi'], 2); ?></td>
                     </tr>
                     <tr>
                         <td>Cash Receipts</td>
-                        <td><?php echo number_format($paymentTotals['Cash'], 2); ?></td>
+                        <td><?= number_format($paymentTotals['Cash'], 2); ?></td>
                     </tr>
+
                     <tr>
                         <td>Check Receipts</td>
                         <td><?php echo number_format($paymentTotals['Check'], 2); ?></td>
@@ -569,6 +579,7 @@ if (!empty($medicine_daily_result)) {
                         <td><strong>Total Receipts</strong></td>
                         <td><strong><?php echo number_format($grandTotal, 2); ?></strong></td>
                     </tr>
+                    
                 </tbody>
             </table>
         </div>
@@ -638,26 +649,26 @@ if (!empty($medicine_daily_result)) {
         foreach($patient_medicine_daily_result as $ky => $vl){
         ?>
                 <tr>
-                    <td><?php echo $vl['']; ?></td>
-                    <td><?php echo $vl['patient_id']; ?></td>
-                    <td><?php echo $vl['patient_name']; ?></td>
-                    <td>OPD Medicines</td>
-                    <td></td>
-                    <td></td>
-                    <td>Sale Receipts</td>
-                    <td><?php echo $vl['payment_method']; ?></td>
-                    <td><?php echo $vl['total_amount']; ?></td>
-                    <td><?php echo $vl['sale_date']; ?></td>
-                    <td><?php echo $vl['sale_number']; ?></td>
-                     <td><?php if (!empty($vl['payment_image'])) { ?>
-    <a href="https://indiaivf.website/assets/<?php echo $vl['payment_image']; ?>" target="_blank">
-        https://indiaivf.website/assets/<?php echo $vl['payment_image']; ?>
-    </a>
-<?php } else { ?>
-    <?php echo $vl['payment_image']; ?>
-<?php } ?>
-</td>
-                </tr>
+    <td></td>
+    <td><?php echo $vl['patient_id']; ?></td>
+    <td><?php echo $vl['patient_name']; ?></td>
+    <td>OPD Medicines</td>
+    <td></td>
+    <td></td>
+    <td>Sale Receipts</td>
+    <td><?php echo ucfirst(strtolower($vl['payment_method'])); ?></td>
+    <td><?php echo number_format($vl['total_amount'], 2); ?></td>
+    <td><?php echo date('d/m/Y', strtotime($vl['sale_date'])); ?></td>
+    <td><?php echo $vl['sale_number']; ?></td>
+    <td>
+        <?php if (!empty($vl['payment_image'])) { ?>
+            <a href="https://indiaivf.website/assets/<?php echo $vl['payment_image']; ?>" target="_blank">
+                View Receipt
+            </a>
+        <?php } ?>
+    </td>
+</tr>
+
                 <?php } ?>
                  <?php 
         foreach($patient_diagnostic_daily_result as $ky => $vl){
