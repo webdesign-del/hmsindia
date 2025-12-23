@@ -326,11 +326,11 @@
                                                                     <i class="fa fa-check"></i> Confirm Sale
                                                                 </a></li>
                                                             <?php endif; ?>
-                                                            <!-- <?php if(isset($sale->status) && $sale->status == 'CONFIRMED'): ?> -->
+                                                            <?php if(isset($sale->status) && $sale->status == 'CONFIRMED'): ?>
                                                             <li><a href="<?php echo base_url('stocks_new/print_sale/' . (isset($sale->id) ? $sale->id : '')); ?>" target="_blank">
                                                                 <i class="fa fa-print"></i> Print Bill
                                                             </a></li>
-                                                            <!-- <?php endif; ?> -->
+                                                            <?php endif; ?>
                                                             
                                                             <!-- *** NEW: Change Payment Status Button *** -->
                                                             <li class="divider mt-5"></li>
