@@ -20,7 +20,7 @@
 </div>
 
 <!-- Debug Section -->
-<div class="row" style="margin: 10px 0;">
+<!-- <div class="row" style="margin: 10px 0;">
     <div class="col-md-12">
         <div style="background: #f0f0f0; padding: 10px; border: 1px solid #ccc;">
             <strong>Debug Info:</strong><br>
@@ -29,10 +29,10 @@
             Stock Levels: <?php echo count($stock_levels ?? []); ?> found<br>
             <button onclick="testDropdowns()" class="btn btn-sm btn-info">Test Dropdowns</button>
             <button onclick="openModal()" class="btn btn-sm btn-success">Open Modal</button><br>
-            <small><strong>Note:</strong> Medicine and Department dropdowns now have search functionality. Select2 errors have been fixed.</small>
+            <small><strong>Note:</strong> Medicine and Department dropdowns have search functionality. Type to filter options.</small>
         </div>
     </div>
-</div>
+</div> -->
 
 <!-- Filters -->
 <div class="row">
@@ -352,88 +352,68 @@ function openModal() {
     console.log('Medicine options:', $('#simple_medicine_id option').length);
     console.log('Department options:', $('#simple_department option').length);
 
-    // Force Select2 to refresh with search enabled
+    // Force Select2 to refresh safely
     setTimeout(function() {
         try {
             if (typeof $.fn.select2 !== 'undefined') {
-                // Helper function to safely destroy and reinitialize Select2
-                function safeSelect2Reinit(selector, config) {
+                // Helper function to safely initialize Select2
+                function safeSelect2Init(selector, config) {
+                    var $element = $(selector);
+                    if ($element.length === 0) return;
+
                     try {
-                        // Check if Select2 is already initialized
-                        if ($(selector).hasClass('select2-hidden-accessible')) {
-                            $(selector).select2('destroy');
+                        // Check if already has Select2 by looking for container
+                        if ($element.next('.select2-container').length > 0) {
+                            $element.select2('destroy');
                         }
-                        $(selector).select2(config);
+                        $element.select2(config);
                     } catch (e) {
-                        console.warn('Select2 reinit failed for', selector, e);
-                        // Try to initialize without destroying
-                        try {
-                            $(selector).select2(config);
-                        } catch (e2) {
-                            console.error('Select2 init also failed for', selector, e2);
-                        }
+                        console.warn('Select2 init failed for', selector, ':', e.message);
                     }
                 }
 
                 // Medicine dropdown with search
-                safeSelect2Reinit('#simple_medicine_id', {
+                safeSelect2Init('#simple_medicine_id', {
                     width: '100%',
                     placeholder: 'Search and select medicine...',
                     allowClear: true,
                     minimumInputLength: 0,
                     matcher: function(params, data) {
-                        // Custom matcher for better search
-                        if ($.trim(params.term) === '') {
-                            return data;
-                        }
-                        if (typeof data.text === 'undefined') {
-                            return null;
-                        }
-                        // Search in medicine name and code
+                        if ($.trim(params.term) === '') return data;
+                        if (typeof data.text === 'undefined') return null;
                         var searchTerm = params.term.toLowerCase();
                         var text = data.text.toLowerCase();
-                        if (text.indexOf(searchTerm) > -1) {
-                            return data;
-                        }
-                        return null;
+                        return text.indexOf(searchTerm) > -1 ? data : null;
                     }
                 });
 
                 // Department dropdown with search
-                safeSelect2Reinit('#simple_department', {
+                safeSelect2Init('#simple_department', {
                     width: '100%',
                     placeholder: 'Search and select department...',
                     allowClear: true,
                     minimumInputLength: 0,
                     matcher: function(params, data) {
-                        // Custom matcher for department search
-                        if ($.trim(params.term) === '') {
-                            return data;
-                        }
-                        if (typeof data.text === 'undefined') {
-                            return null;
-                        }
+                        if ($.trim(params.term) === '') return data;
+                        if (typeof data.text === 'undefined') return null;
                         var searchTerm = params.term.toLowerCase();
                         var text = data.text.toLowerCase();
-                        if (text.indexOf(searchTerm) > -1) {
-                            return data;
-                        }
-                        return null;
+                        return text.indexOf(searchTerm) > -1 ? data : null;
                     }
                 });
 
                 // Center dropdown (keep simple)
-                safeSelect2Reinit('#simple_center_id', {
+                safeSelect2Init('#simple_center_id', {
                     width: '100%',
                     placeholder: 'Select center...'
                 });
 
-                console.log('Select2 reinitialized successfully with search');
+                console.log('Select2 initialized successfully with search');
             } else {
                 console.warn('Select2 not available, using regular select');
             }
         } catch (e) {
-            console.error('Select2 initialization failed:', e);
+            console.error('Select2 setup failed:', e);
         }
     }, 100);
 }
@@ -447,17 +427,18 @@ function testDropdowns() {
     console.log('Department options count:', $('#simple_department option').length);
 
     // Check Select2 initialization status
-    console.log('Center has Select2:', $('#simple_center_id').hasClass('select2-hidden-accessible'));
-    console.log('Medicine has Select2:', $('#simple_medicine_id').hasClass('select2-hidden-accessible'));
-    console.log('Department has Select2:', $('#simple_department').hasClass('select2-hidden-accessible'));
+    console.log('Center has Select2:', $('#simple_center_id').next('.select2-container').length > 0);
+    console.log('Medicine has Select2:', $('#simple_medicine_id').next('.select2-container').length > 0);
+    console.log('Department has Select2:', $('#simple_department').next('.select2-container').length > 0);
 
     // Try to manually trigger Select2
     if (typeof $.fn.select2 !== 'undefined') {
         console.log('Select2 is available');
         try {
-            if ($('#simple_medicine_id').hasClass('select2-hidden-accessible')) {
+            // Check by looking for Select2 container instead of class
+            if ($('#simple_medicine_id').next('.select2-container').length > 0) {
                 $('#simple_medicine_id').select2('open');
-                console.log('Opened medicine dropdown');
+                console.log('Opened medicine dropdown for testing search');
             } else {
                 console.log('Medicine dropdown not initialized with Select2');
             }
@@ -582,6 +563,63 @@ $('#stockLevelForm').on('submit', function(e) {
             }
         },
         error: function(xhr, status, error) {
+            // Restore button state
+            $saveBtn.prop('disabled', false).text(originalText);
+            alert('Error saving configuration: ' + error);
+        }
+    });
+});
+
+// Simple form submission
+$('#simpleStockLevelForm').on('submit', function(e) {
+    e.preventDefault();
+    console.log('Form submitted');
+
+    // Basic client-side validation
+    var centerId = $('#simple_center_id').val();
+    var medicineId = $('#simple_medicine_id').val();
+    var department = $('#simple_department').val();
+
+    console.log('Form values:', { centerId, medicineId, department });
+
+    if (!centerId || !medicineId || !department) {
+        alert('Please fill in all required fields');
+        return false;
+    }
+
+    // Show loading state
+    var $saveBtn = $('#simpleSaveBtn');
+    var originalText = $saveBtn.text();
+    $saveBtn.prop('disabled', true).text('Saving...');
+
+    var formData = new FormData(this);
+    console.log('Form data created, sending AJAX request...');
+
+    $.ajax({
+        url: '<?php echo base_url("stocks_new/edit_medicine_center_stock_levels"); ?>',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(response) {
+            console.log('AJAX success:', response);
+            // Restore button state
+            $saveBtn.prop('disabled', false).text(originalText);
+
+            if (response.success) {
+                alert('Stock level configuration saved successfully!');
+                closeModal();
+                // Reload page after modal closes
+                setTimeout(function() {
+                    location.reload();
+                }, 300);
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX error:', xhr, status, error);
             // Restore button state
             $saveBtn.prop('disabled', false).text(originalText);
             alert('Error saving configuration: ' + error);
