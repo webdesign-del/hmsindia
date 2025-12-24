@@ -940,7 +940,7 @@
                <div class="row">
                   <div class="form-group col-sm-6 col-xs-12 role" style="display:none;">
                      <label for="statuss">Billing source (Required)</label>
-                     <input type="hidden" value="16249589462327" class="required_value" name="billing_from" id="billing_from"  />
+                     <!-- <input type="hidden" value="16249589462327" class="required_value" name="billing_from" id="billing_from"  /> -->
                   </div>
                   <div class="form-group col-sm-6 col-xs-12 hospital_id_section role">
                      <label for="item_name">Center Source</label>
