@@ -19,6 +19,20 @@
     </div>
 </div>
 
+<!-- Debug Section -->
+<div class="row" style="margin: 10px 0;">
+    <div class="col-md-12">
+        <div style="background: #f0f0f0; padding: 10px; border: 1px solid #ccc;">
+            <strong>Debug Info:</strong><br>
+            Centers: <?php echo count($centers ?? []); ?> found<br>
+            Medicines: <?php echo count($medicines ?? []); ?> found<br>
+            Stock Levels: <?php echo count($stock_levels ?? []); ?> found<br>
+            <button onclick="testDropdowns()" class="btn btn-sm btn-info">Test Dropdowns</button>
+            <button onclick="openModal()" class="btn btn-sm btn-success">Open Modal</button>
+        </div>
+    </div>
+</div>
+
 <!-- Filters -->
 <div class="row">
     <div class="col-md-12">
@@ -92,7 +106,7 @@
 <!-- Add New Configuration Button -->
 <div class="row">
     <div class="col-md-12">
-        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addStockLevelModal">
+        <button type="button" class="btn btn-success" onclick="openModal()">
             <i class="fa fa-plus"></i> Add New Stock Level Configuration
         </button>
     </div>
@@ -172,7 +186,7 @@
                                         <td><?php echo date('d/m/Y H:i', strtotime($level->updated_at)); ?></td>
                                         <td>
                                             <div class="btn-group">
-                                                <button type="button" class="btn btn-xs btn-primary" onclick="editStockLevel(<?php echo $level->id; ?>, <?php echo $level->center_id; ?>, <?php echo $level->medicine_id; ?>, '<?php echo addslashes($level->department); ?>')">
+                                                <button type="button" class="btn btn-xs btn-primary" onclick="openEditModal(<?php echo $level->id; ?>, <?php echo $level->center_id; ?>, <?php echo $level->medicine_id; ?>, '<?php echo addslashes($level->department); ?>')">
                                                     <i class="fa fa-edit"></i> Edit
                                                 </button>
                                                 <button type="button" class="btn btn-xs btn-danger" onclick="deleteStockLevel(<?php echo $level->id; ?>)">
@@ -188,7 +202,7 @@
                 <?php else: ?>
                     <div class="alert alert-info">
                         <i class="fa fa-info-circle"></i> No stock level configurations found matching your criteria.
-                        <a href="#" data-toggle="modal" data-target="#addStockLevelModal" class="alert-link">Click here to add a new configuration.</a>
+                        <a href="#" onclick="openModal()" class="alert-link">Click here to add a new configuration.</a>
                     </div>
                 <?php endif; ?>
             </div>
@@ -196,93 +210,107 @@
     </div>
 </div>
 
-<!-- Add/Edit Stock Level Modal -->
-<div class="modal fade" id="addStockLevelModal" tabindex="-1" role="dialog" aria-labelledby="addStockLevelModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close modal-close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="addStockLevelModalLabel">Add Stock Level Configuration</h4>
-            </div>
-            <form id="stockLevelForm">
-                <div class="modal-body">
-                    <input type="hidden" id="config_id" name="config_id" value="">
-
+<!-- Simple Modal Overlay -->
+<div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:10000;">
+    <div id="simpleModal" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:5px; max-width:600px; width:90%; max-height:80%; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h4 id="simpleModalTitle">Stock Level Configuration</h4>
+            <span style="cursor:pointer; font-size:24px;" onclick="closeModal()">&times;</span>
+        </div>
+        <style>
+            /* Ensure Select2 dropdown appears above modal */
+            .select2-container--open .select2-dropdown {
+                z-index: 10002 !important;
+            }
+            .select2-container {
+                z-index: 10001 !important;
+            }
+            /* Fix modal overlay covering dropdowns */
+            #modalOverlay {
+                z-index: 9999;
+            }
+            #simpleModal {
+                z-index: 10000;
+            }
+        </style>
+        <form id="simpleStockLevelForm">
+            <input type="hidden" id="simple_config_id" name="config_id" value="">
+            <div class="row">
+                <div class="col-md-6">
                     <div class="form-group">
-                        <label for="modal_center_id">Center <span class="text-danger">*</span></label>
-                        <select class="form-control" id="modal_center_id" name="center_id" required>
+                        <label for="simple_center_id">Center <span class="text-danger">*</span></label>
+                        <select class="form-control" id="simple_center_id" name="center_id" required>
                             <option value="">Select Center</option>
                             <?php foreach($centers as $center): ?>
                                 <option value="<?php echo $center->ID; ?>"><?php echo $center->center_name; ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-
+                </div>
+                <div class="col-md-6">
                     <div class="form-group">
-                        <label for="modal_medicine_id">Medicine <span class="text-danger">*</span></label>
-                        <select class="form-control" id="modal_medicine_id" name="medicine_id" required>
+                        <label for="simple_medicine_id">Medicine <span class="text-danger">*</span></label>
+                        <select class="form-control" id="simple_medicine_id" name="medicine_id" required>
                             <option value="">Select Medicine</option>
                             <?php foreach($medicines as $medicine): ?>
                                 <option value="<?php echo $medicine->id; ?>"><?php echo $medicine->medicine_name; ?> (<?php echo $medicine->medicine_code; ?>)</option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="simple_department">Department <span class="text-danger">*</span></label>
+                <select class="form-control" id="simple_department" name="department" required>
+                    <option value="">Select Department</option>
+                    <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
+                    <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
+                    <option value="CASH MEDICINE BASANT LOK">CASH MEDICINE BASANT LOK</option>
+                    <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
+                    <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
+                    <option value="CASH MEDICINE ROHINI">CASH MEDICINE ROHINI</option>
+                    <option value="HORMONAL ROHINI">HORMONAL ROHINI</option>
+                    <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
+                    <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
+                    <option value="Hormonal Basant Lok">Hormonal Basant Lok</option>
+                    <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
+                    <option value="Hormonal Noida">Hormonal Noida</option>
+                    <option value="Embryologist Noida">Embryologist Noida</option>
+                    <option value="OT Noida">OT Noida</option>
+                    <option value="OT Basant Lok">OT Basant Lok</option>
+                    <option value="Embryology Basant Lok">Embryology Basant Lok</option>
+                    <option value="Embryology Srinagar">Embryology Srinagar</option>
+                    <option value="OT Srinagar">OT Srinagar</option>
+                </select>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
                     <div class="form-group">
-                        <label for="modal_department">Department <span class="text-danger">*</span></label>
-                        <select class="form-control" id="modal_department" name="department" required>
-                            <option value="">Select Department</option>
-                            <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
-                            <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
-                            <option value="CASH MEDICINE BASANT LOK">CASH MEDICINE BASANT LOK</option>
-                            <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
-                            <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
-                            <option value="CASH MEDICINE ROHINI">CASH MEDICINE ROHINI</option>
-                            <option value="HORMONAL ROHINI">HORMONAL ROHINI</option>
-                            <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
-                            <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
-                            <option value="Hormonal Basant Lok">Hormonal Basant Lok</option>
-                            <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
-                            <option value="Hormonal Noida">Hormonal Noida</option>
-                            <option value="Embryologist Noida">Embryologist Noida</option>
-                            <option value="OT Noida">OT Noida</option>
-                            <option value="OT Basant Lok">OT Basant Lok</option>
-                            <option value="Embryology Basant Lok">Embryology Basant Lok</option>
-                            <option value="Embryology Srinagar">Embryology Srinagar</option>
-                            <option value="OT Srinagar">OT Srinagar</option>
-                            <option value="ot noida">ot
-                        </select>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="modal_min_stock_level">Min Stock Level</label>
-                                <input type="number" class="form-control" id="modal_min_stock_level" name="min_stock_level" min="0" value="0">
-                                <small class="help-block">Alert when stock falls below this level</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="modal_max_stock_level">Max Stock Level</label>
-                                <input type="number" class="form-control" id="modal_max_stock_level" name="max_stock_level" min="0" value="0">
-                                <small class="help-block">Prevent ordering above this level</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="modal_reorder_level">Reorder Level</label>
-                                <input type="number" class="form-control" id="modal_reorder_level" name="reorder_level" min="0" value="0">
-                                <small class="help-block">Suggest reordering at this level</small>
-                            </div>
-                        </div>
+                        <label for="simple_min_stock_level">Min Stock Level</label>
+                        <input type="number" class="form-control" id="simple_min_stock_level" name="min_stock_level" min="0" value="0">
+                        <small class="help-block">Alert when stock falls below this level</small>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default modal-close">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="saveBtn">Save Configuration</button>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="simple_max_stock_level">Max Stock Level</label>
+                        <input type="number" class="form-control" id="simple_max_stock_level" name="max_stock_level" min="0" value="0">
+                        <small class="help-block">Prevent ordering above this level</small>
+                    </div>
                 </div>
-            </form>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="simple_reorder_level">Reorder Level</label>
+                        <input type="number" class="form-control" id="simple_reorder_level" name="reorder_level" min="0" value="0">
+                        <small class="help-block">Suggest reordering at this level</small>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align:right; margin-top:20px;">
+                <button type="button" class="btn btn-default" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="simpleSaveBtn">Save Configuration</button>
+            </div>
+        </form>
         </div>
     </div>
 </div>
@@ -305,62 +333,76 @@ $(document).ready(function() {
     });
     <?php endif; ?>
 
-    // Initialize Select2 for better dropdown experience
-    $('#modal_center_id, #modal_medicine_id, #modal_department').select2({
-        dropdownParent: $('#addStockLevelModal'),
-        width: '100%'
-    });
-
-    // Initialize Materialize modal after Materialize JS is loaded
-    initializeModal();
+    // Initialize Select2 for better dropdown experience (moved to modal open function)
+    // Select2 will be initialized when modal opens to avoid conflicts
 });
 
-function initializeModal() {
-    // Check if Materialize is loaded
-    if (typeof M !== 'undefined' && M.Modal) {
-        var modalElement = document.getElementById('addStockLevelModal');
-        if (modalElement) {
-            var modalInstance = M.Modal.init(modalElement, {
-                dismissible: true,
-                opacity: 0.5,
-                inDuration: 300,
-                outDuration: 200,
-                complete: function() {
-                    // Reset modal when closed
-                    $('#stockLevelForm')[0].reset();
-                    $('#config_id').val('');
-                    $('#addStockLevelModalLabel').text('Add Stock Level Configuration');
+// Simple modal functions
+function openModal() {
+    console.log('Opening modal...');
+    $('#modalOverlay').fadeIn();
+    $('#simple_config_id').val('');
+    $('#simpleModalTitle').text('Add Stock Level Configuration');
+    $('#simpleStockLevelForm')[0].reset();
+    $('#simple_center_id, #simple_medicine_id, #simple_department').val('');
 
-                    // Properly reset Select2 elements
-                    $('#modal_center_id').val('').trigger('change.select2');
-                    $('#modal_medicine_id').val('').trigger('change.select2');
-                    $('#modal_department').val('').trigger('change.select2');
+    // Debug: Check if dropdowns have options
+    console.log('Center options:', $('#simple_center_id option').length);
+    console.log('Medicine options:', $('#simple_medicine_id option').length);
+    console.log('Department options:', $('#simple_department option').length);
 
-                    // Clear any validation states
-                    $('.has-error').removeClass('has-error');
-                    $('.text-danger').remove();
-                }
-            });
-            // Make modalInstance available globally for other functions
-            window.stockLevelModal = modalInstance;
+    // Force Select2 to refresh
+    setTimeout(function() {
+        try {
+            if (typeof $.fn.select2 !== 'undefined') {
+                $('#simple_center_id').select2('destroy').select2({ width: '100%' });
+                $('#simple_medicine_id').select2('destroy').select2({ width: '100%' });
+                $('#simple_department').select2('destroy').select2({ width: '100%' });
+                console.log('Select2 reinitialized successfully');
+            } else {
+                console.warn('Select2 not available, using regular select');
+            }
+        } catch (e) {
+            console.error('Select2 initialization failed:', e);
         }
+    }, 100);
+}
+
+function testDropdowns() {
+    console.log('Testing dropdowns...');
+    console.log('Center element:', $('#simple_center_id'));
+    console.log('Center options count:', $('#simple_center_id option').length);
+    console.log('First center option:', $('#simple_center_id option:first').text());
+    console.log('Medicine options count:', $('#simple_medicine_id option').length);
+    console.log('Department options count:', $('#simple_department option').length);
+
+    // Try to manually trigger Select2
+    if (typeof $.fn.select2 !== 'undefined') {
+        console.log('Select2 is available');
+        $('#simple_center_id').select2('open');
     } else {
-        // Retry after a short delay if Materialize isn't loaded yet
-        setTimeout(initializeModal, 100);
+        console.log('Select2 is NOT available');
     }
 }
 
-// Edit stock level configuration
-function editStockLevel(configId, centerId, medicineId, department) {
-    // Set the config ID for editing
-    $('#config_id').val(configId);
+function closeModal() {
+    $('#modalOverlay').fadeOut();
+}
 
-    // Set select values and trigger change for Select2
-    $('#modal_center_id').val(centerId).trigger('change.select2');
-    $('#modal_medicine_id').val(medicineId).trigger('change.select2');
-    $('#modal_department').val(department).trigger('change.select2');
+function openEditModal(configId, centerId, medicineId, department) {
+    console.log('Opening edit modal for config:', configId);
 
-    // Get current values via AJAX
+    // Show modal immediately
+    openModal();
+    $('#simpleModalTitle').text('Edit Stock Level Configuration');
+    $('#simple_config_id').val(configId);
+
+    // Set form values
+    $('#simple_center_id').val(centerId);
+    $('#simple_medicine_id').val(medicineId);
+    $('#simple_department').val(department);
+
+    // Load current values via AJAX
     $.ajax({
         url: '<?php echo base_url("stocks_new/get_medicine_center_stock_levels"); ?>',
         type: 'POST',
@@ -371,14 +413,11 @@ function editStockLevel(configId, centerId, medicineId, department) {
         },
         dataType: 'json',
         success: function(response) {
+            console.log('AJAX Response:', response);
             if (response.success) {
-                $('#modal_min_stock_level').val(response.data.min_stock_level);
-                $('#modal_max_stock_level').val(response.data.max_stock_level);
-                $('#modal_reorder_level').val(response.data.reorder_level);
-                $('#addStockLevelModalLabel').text('Edit Stock Level Configuration');
-                if (window.stockLevelModal) {
-                    window.stockLevelModal.open();
-                }
+                $('#simple_min_stock_level').val(response.data.min_stock_level);
+                $('#simple_max_stock_level').val(response.data.max_stock_level);
+                $('#simple_reorder_level').val(response.data.reorder_level);
             } else {
                 alert('Error loading configuration: ' + response.message);
             }
@@ -466,3 +505,4 @@ $('#stockLevelForm').on('submit', function(e) {
     });
 });
 </script>
+
