@@ -9656,12 +9656,29 @@ public function add_stock_to_location($stock_data)
         $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id', 'inner');
         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
         // Filters
-        $this->db->where('m.category', $category_name);
+        // $this->db->where('m.category', $category_name);
         $this->db->where('ccs.center_id', $center_id);
+        if (!empty($_SESSION['logged_billing_manager']) &&
+            ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+            $center = $_SESSION['logged_billing_manager']['center'];
+            $department = $_SESSION['logged_billing_manager']['department'] ?? null;
+        }
+        if (!empty($_SESSION['logged_stock_manager']) &&
+            ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+            $center = $_SESSION['logged_stock_manager']['center'];
+            $department = $_SESSION['logged_stock_manager']['department'] ?? null;
+        }
+        if ($center !== null) {
+            $this->db->where('ccs.center_id', $this->get_center_id($center));
+        }
         if ($department !== null && $department !== '') {
-                if ($department == 'billing') {
+            if ($department == 'billing') {
                 $this->db->like('ccs.department', 'CASH MEDICINE');
-            } else {
+            }elseif($department == 'Embryologist Basant Lok')
+            {
+                $this->db->like('ccs.department', 'Embryology Basant Lok');
+            }
+            else {
                 $this->db->like('ccs.department', $department);
             }
         }
