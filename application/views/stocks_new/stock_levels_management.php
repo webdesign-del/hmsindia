@@ -28,7 +28,8 @@
             Medicines: <?php echo count($medicines ?? []); ?> found<br>
             Stock Levels: <?php echo count($stock_levels ?? []); ?> found<br>
             <button onclick="testDropdowns()" class="btn btn-sm btn-info">Test Dropdowns</button>
-            <button onclick="openModal()" class="btn btn-sm btn-success">Open Modal</button>
+            <button onclick="openModal()" class="btn btn-sm btn-success">Open Modal</button><br>
+            <small><strong>Note:</strong> Medicine and Department dropdowns now have search functionality. Select2 errors have been fixed.</small>
         </div>
     </div>
 </div>
@@ -351,14 +352,83 @@ function openModal() {
     console.log('Medicine options:', $('#simple_medicine_id option').length);
     console.log('Department options:', $('#simple_department option').length);
 
-    // Force Select2 to refresh
+    // Force Select2 to refresh with search enabled
     setTimeout(function() {
         try {
             if (typeof $.fn.select2 !== 'undefined') {
-                $('#simple_center_id').select2('destroy').select2({ width: '100%' });
-                $('#simple_medicine_id').select2('destroy').select2({ width: '100%' });
-                $('#simple_department').select2('destroy').select2({ width: '100%' });
-                console.log('Select2 reinitialized successfully');
+                // Helper function to safely destroy and reinitialize Select2
+                function safeSelect2Reinit(selector, config) {
+                    try {
+                        // Check if Select2 is already initialized
+                        if ($(selector).hasClass('select2-hidden-accessible')) {
+                            $(selector).select2('destroy');
+                        }
+                        $(selector).select2(config);
+                    } catch (e) {
+                        console.warn('Select2 reinit failed for', selector, e);
+                        // Try to initialize without destroying
+                        try {
+                            $(selector).select2(config);
+                        } catch (e2) {
+                            console.error('Select2 init also failed for', selector, e2);
+                        }
+                    }
+                }
+
+                // Medicine dropdown with search
+                safeSelect2Reinit('#simple_medicine_id', {
+                    width: '100%',
+                    placeholder: 'Search and select medicine...',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    matcher: function(params, data) {
+                        // Custom matcher for better search
+                        if ($.trim(params.term) === '') {
+                            return data;
+                        }
+                        if (typeof data.text === 'undefined') {
+                            return null;
+                        }
+                        // Search in medicine name and code
+                        var searchTerm = params.term.toLowerCase();
+                        var text = data.text.toLowerCase();
+                        if (text.indexOf(searchTerm) > -1) {
+                            return data;
+                        }
+                        return null;
+                    }
+                });
+
+                // Department dropdown with search
+                safeSelect2Reinit('#simple_department', {
+                    width: '100%',
+                    placeholder: 'Search and select department...',
+                    allowClear: true,
+                    minimumInputLength: 0,
+                    matcher: function(params, data) {
+                        // Custom matcher for department search
+                        if ($.trim(params.term) === '') {
+                            return data;
+                        }
+                        if (typeof data.text === 'undefined') {
+                            return null;
+                        }
+                        var searchTerm = params.term.toLowerCase();
+                        var text = data.text.toLowerCase();
+                        if (text.indexOf(searchTerm) > -1) {
+                            return data;
+                        }
+                        return null;
+                    }
+                });
+
+                // Center dropdown (keep simple)
+                safeSelect2Reinit('#simple_center_id', {
+                    width: '100%',
+                    placeholder: 'Select center...'
+                });
+
+                console.log('Select2 reinitialized successfully with search');
             } else {
                 console.warn('Select2 not available, using regular select');
             }
@@ -376,10 +446,24 @@ function testDropdowns() {
     console.log('Medicine options count:', $('#simple_medicine_id option').length);
     console.log('Department options count:', $('#simple_department option').length);
 
+    // Check Select2 initialization status
+    console.log('Center has Select2:', $('#simple_center_id').hasClass('select2-hidden-accessible'));
+    console.log('Medicine has Select2:', $('#simple_medicine_id').hasClass('select2-hidden-accessible'));
+    console.log('Department has Select2:', $('#simple_department').hasClass('select2-hidden-accessible'));
+
     // Try to manually trigger Select2
     if (typeof $.fn.select2 !== 'undefined') {
         console.log('Select2 is available');
-        $('#simple_center_id').select2('open');
+        try {
+            if ($('#simple_medicine_id').hasClass('select2-hidden-accessible')) {
+                $('#simple_medicine_id').select2('open');
+                console.log('Opened medicine dropdown');
+            } else {
+                console.log('Medicine dropdown not initialized with Select2');
+            }
+        } catch (e) {
+            console.error('Failed to open medicine dropdown:', e);
+        }
     } else {
         console.log('Select2 is NOT available');
     }
