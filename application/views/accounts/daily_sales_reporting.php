@@ -347,20 +347,20 @@ $medicine_total   = 0;
 $medicine_discount = 0;
 
 if (!empty($medicine_daily_result)) {
-
+    // Assuming 'total_patients' is the count and 'total_payment' is the money
     $medicine_net      = round($medicine_daily_result['total_patients'], 2);
     $medicine_receive = round($medicine_daily_result['total_payment'], 2);
 ?>
 <tr>
     <td>Medicine</td>
     <td>
-        <input type="text" value="<?php echo $medicine_net; ?>">
+        <input type="text" id="medicine_customer_count" name="medicine_customer_count" value="<?php echo $medicine_net; ?>">
     </td>
     <td>
-        <input type="text" value="<?php echo $medicine_net; ?>">
+        <input type="text" id="medicine_bill_count" name="medicine_bill_count" value="<?php echo $medicine_net; ?>">
     </td>
     <td>
-        <input type="text" value="<?php echo $medicine_receive; ?>">
+        <input type="text" id="medicine_amount" name="medicine_amount" value="<?php echo $medicine_receive; ?>">
     </td>
 </tr>
 <?php } ?>
@@ -623,7 +623,7 @@ foreach($patient_medicine_daily_result as $vl) {
                     <td><?php echo $vl['payment_done']; ?></td>
                     <td><?php echo $vl['on_date']; ?></td>
                     <td><?php echo $vl['receipt_number']; ?></td>
-                    <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a><</td>
+                    <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a></td>
                 </tr>
                 <?php } ?>
                 <?php 

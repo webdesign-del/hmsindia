@@ -51,18 +51,25 @@
     <thead>
         <tr>
             <th>YEAR</th>
-            <th>TOTAL CONSULTATION</th>
-            <th>TOTAL STEM CELL PROCEDURES</th>
-			<th>TOTAL TESTICULAR STEM CELL PROCEDURES</th>
-			<th>Ovarian PRP</th>
-			<th>TOTAL OPU</th>
-			
+            <th>CONSULTATION</th>
+            <th>STEM CELL</th>
+			<th>TESTICULAR STEM CELL</th>
+			<th>OVARIAN PRP</th>
+			<th>OPU</th>
+			<th>FRESH CYCLE ET</th>
+			<th>THAWED CYCLE / FET</th>
+			<th>IUI</th>
+			<th>IVF</th>
+			<th>ICSI</th>
+			<th>TESA/MTESE</th>
         </tr>
     </thead>
     <tbody>
 
-<?php
-$center = $_SESSION['logged_doctor']['center'];
+<?php 
+// PHP 7.0+
+// Checks if doctor center exists; if not, checks embryologist center; otherwise sets to null.
+$center = $_SESSION['logged_doctor']['center'] ?? $_SESSION['logged_embryologist']['center'] ?? null;
 
 /* ===============================
    1. FETCH CONSULTATION YEAR-WISE
@@ -93,8 +100,11 @@ $sql_stem = "
     GROUP BY YEAR(date_of_procedure)
 ";
 
-
 $stem_data = $this->db->query($sql_stem, [$center])->result_array();
+
+/* ===============================
+   3. FETCH Testicular Stem Cell YEAR-WISE
+=================================*/
 
 $sql_testi = "
     SELECT 
@@ -109,6 +119,10 @@ $sql_testi = "
 
 $testi_data = $this->db->query($sql_testi, [$center])->result_array();
 
+/* ===============================
+   4. FETCH ovum PRPpickup YEAR-WISE
+=================================*/
+
 $sql_ovum_pickup = "
     SELECT 
         YEAR(date_of_procedure) AS year,
@@ -118,11 +132,10 @@ $sql_ovum_pickup = "
     AND date_of_procedure IS NOT NULL
     GROUP BY YEAR(date_of_procedure)
 ";
-
 $ovum_pickup_data = $this->db->query($sql_ovum_pickup, [$center])->result_array();
 
 /* ===============================
-   2. FETCH STEM CELL YEAR-WISE
+   5. FETCH OPU YEAR-WISE
 =================================*/
  $sql_ovarian_prp = "
     SELECT 
@@ -135,8 +148,100 @@ $ovum_pickup_data = $this->db->query($sql_ovum_pickup, [$center])->result_array(
     GROUP BY YEAR(date_of_procedure)
 ";
 
-
 $ovarian_prp_data = $this->db->query($sql_ovarian_prp, [$center])->result_array();
+
+/* ===============================
+   6. FETCH Embryo Transfer YEAR-WISE
+=================================*/
+ $sql_embryo_transfer = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_embryo_transfer
+    FROM embryology_discharge_summary
+    WHERE Embryo_Transfer = 'Yes'
+    AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$embryo_transfer_data = $this->db->query($sql_embryo_transfer, [$center])->result_array();
+
+/* ===============================
+   7. FETCH FET YEAR-WISE
+=================================*/
+ $sql_fet = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_fet
+    FROM embryology_discharge_summary
+    WHERE FET = 'Yes'
+    AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$fet_data = $this->db->query($sql_fet, [$center])->result_array();
+
+/* ===============================
+   8. FETCH IUI YEAR-WISE
+=================================*/
+ $sql_iui = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_iui
+    FROM iui_discharge_summary
+    WHERE center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$iui_data = $this->db->query($sql_iui, [$center])->result_array();
+
+/* ===============================
+   9. FETCH IVF YEAR-WISE
+=================================*/
+ $sql_ivf = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_ivf
+    FROM ovum_discharge_summary
+    WHERE IVF='Yes' AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$ivf_data = $this->db->query($sql_ivf, [$center])->result_array();
+
+/* ===============================
+   9. FETCH IVF YEAR-WISE
+=================================*/
+ $sql_icsi = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_icsi
+    FROM ovum_discharge_summary
+    WHERE ICSI='Yes' AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$icsi_data = $this->db->query($sql_icsi, [$center])->result_array();
+
+/* ===============================
+   10. FETCH Tesa Tese YEAR-WISE
+=================================*/
+$sql_tesatese = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_tesatese
+    FROM pesa_tesatesemicro_tese_discharge_summary
+    WHERE procedures IN ('TESA', 'TESe')  
+    AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$tesatese_data = $this->db->query($sql_tesatese, [$center])->result_array();
 
 /* ===============================
    3. INDEX STEM DATA BY YEAR
@@ -160,6 +265,36 @@ $ovarian_prp_by_year = [];
 foreach ($ovarian_prp_data as $s) {
     $ovarian_prp_by_year[$s['year']] = $s['total_ovarian_prp'];
 }
+
+$embryo_transfer_by_year = [];
+foreach ($embryo_transfer_data as $s) {
+    $embryo_transfer_by_year[$s['year']] = $s['total_embryo_transfer'];
+}
+
+$fet_by_year = [];
+foreach ($fet_data as $s) {
+    $fet_by_year[$s['year']] = $s['total_fet'];
+}
+
+$iui_by_year = [];
+foreach ($iui_data as $s) {
+    $iui_by_year[$s['year']] = $s['total_iui'];
+}
+
+$ifv_by_year = [];
+foreach ($ivf_data as $s) {
+    $ivf_by_year[$s['year']] = $s['total_ivf'];
+}
+
+$icsi_by_year = [];
+foreach ($icsi_data as $s) {
+    $icsi_by_year[$s['year']] = $s['total_icsi'];
+}
+
+$tesatese_by_year = [];
+foreach ($tesatese_data as $s) {
+    $tesatese_by_year[$s['year']] = $s['total_tesatese'];
+}
 /* ===============================
    4. MERGE & DISPLAY
 =================================*/
@@ -172,6 +307,12 @@ if (!empty($consult_data)) {
 		$testi_count = isset($testi_by_year[$year]) ? $testi_by_year[$year] : 0;
 		$ovum_pickup_count = isset($ovum_pickup_by_year[$year]) ? $ovum_pickup_by_year[$year] : 0;
 		$varian_prp_count = isset($ovarian_prp_by_year[$year]) ? $ovarian_prp_by_year[$year] : 0;
+		$embryo_transfer_count = isset($embryo_transfer_by_year[$year]) ? $embryo_transfer_by_year[$year] : 0;
+		$fet_count = isset($fet_by_year[$year]) ? $fet_by_year[$year] : 0;
+		$iui_count = isset($iui_by_year[$year]) ? $iui_by_year[$year] : 0;
+		$ivf_count = isset($ivf_by_year[$year]) ? $ivf_by_year[$year] : 0;
+		$icsi_count = isset($icsi_by_year[$year]) ? $icsi_by_year[$year] : 0;
+		$tesatese_count = isset($tesatese_by_year[$year]) ? $tesatese_by_year[$year] : 0;
         ?>
         <tr>
             <td>
@@ -184,7 +325,12 @@ if (!empty($consult_data)) {
 			<td><?php echo $testi_count; ?></td>
 			<td><?php echo $varian_prp_count; ?></td>
 			<td><?php echo $ovum_pickup_count; ?></td>
-			
+			<td><?php echo $embryo_transfer_count; ?></td>
+			<td><?php echo $fet_count; ?></td>
+			<td><?php echo $iui_count; ?></td>
+			<td><?php echo $ivf_count; ?></td>
+			<td><?php echo $icsi_count; ?></td>
+			<td><?php echo $tesatese_count; ?></td>
         </tr>
         <?php
     }

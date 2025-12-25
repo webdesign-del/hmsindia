@@ -7060,6 +7060,54 @@ public function monthly_ovum_pickup($center, $year)
 
     return $this->db->query($sql, $params)->result_array();
 }
+
+public function monthly_embryo_transfer($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM embryology_discharge_summary
+    WHERE Embryo_Transfer = 'Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function monthly_fet($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM embryology_discharge_summary
+    WHERE FET = 'Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
     
 
 }
