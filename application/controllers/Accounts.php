@@ -170,9 +170,6 @@ class Accounts extends CI_Controller {
 	   $data = $this->accounts_model->get_patient_data_by($search_this, $search_by);
 	   	$medicine_result = $data['medicine_result'];
 		$sales_result = $data['sales_result'];
-		var_dump($medicine_result);
-		var_dump($sales_result);
-		die;
 	if(!empty($data)){
 		$patient_id = $data['patient_result']['patient_id'];
 		$patient_data = get_patient_detail($patient_id);
