@@ -320,7 +320,7 @@ class Accounts extends CI_Controller {
 					$html .= '<td>'.$currency.$val->total_amount.'</td>';
 					$html .= '<td>'.$currency.$val->total_amount.'</td>';
 					$html .= '<td>'.$currency.'0.00</td>';
-					$html .= '<td>Pharmacy Sales</td>';
+					$html .= '<td>Medicine</td>';
 					$html .= '<td>'.ucwords($val->status).'</td>';
 					$html .= '</tr>';
 				}
