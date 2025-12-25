@@ -10048,7 +10048,11 @@ function assessment_form($patient_id = 0){ // Keep the = 0 fix from before
 
     $data['testi_monthly'] = $this->accounts_model->monthly_testicular_stem($center, $year);
 
-	$data['ovum_pickup_monthly'] = $this->accounts_model->monthly_ovum_pickup($center, $year);	
+	$data['ovum_pickup_monthly'] = $this->accounts_model->monthly_ovum_pickup($center, $year);
+	
+	$data['embryo_transfer_monthly'] = $this->accounts_model->monthly_embryo_transfer($center, $year);
+
+	$data['fet_monthly'] = $this->accounts_model->monthly_fet($center, $year);
 	$template = get_header_template($logg['role']);
 	$this->load->view($template['header']);
     $this->load->view('accounts/yearly_monthly_details', $data);

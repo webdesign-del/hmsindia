@@ -7,11 +7,13 @@
     <thead>
         <tr>
             <th>Month</th>
-            <th>Total Consultations</th>
-            <th>Ovarian Stem Cell</th>
-            <th>Testicular Stem Cell</th>
-            <th>Ovarian PRP</th>
+            <th>CONSULTATION</th>
+            <th>STEM CELL</th>
+            <th>TESTICULAR STEM CELL</th>
+            <th>OVARIAN PRP</th>
             <th>OPU</th>
+            <th>FRESH CYCLE ET</th>
+            <th>THAWED CYCLE / FET</th>
         </tr>
     </thead>
     <tbody>
@@ -28,7 +30,9 @@ for ($m = 1; $m <= 12; $m++) {
         'stem'    => 0,
         'testi'   => 0,
         'ovarian_prp'   => 0,
-        'ovum_pickup'   => 0
+        'ovum_pickup'   => 0,
+        'embryo_transfer'   => 0,
+        'fet'   => 0
     ];
 }
 
@@ -68,6 +72,20 @@ foreach ($ovum_pickup_monthly as $t) {
 }
 
 /* ==================================
+   MERGE Embryo Transfer DATA
+================================== */
+foreach ($embryo_transfer_monthly as $t) {
+    $months[$t['month']]['embryo_transfer'] = (int)$t['total'];
+}
+
+/* ==================================
+   MERGE FET DATA
+================================== */
+foreach ($fet_monthly as $t) {
+    $months[$t['month']]['fet'] = (int)$t['total'];
+}
+
+/* ==================================
    DISPLAY TABLE
 ================================== */
 foreach ($months as $m) {
@@ -79,6 +97,8 @@ foreach ($months as $m) {
     <td><?php echo $m['testi']; ?></td>
     <td><?php echo $m['ovarian_prp']; ?></td>
     <td><?php echo $m['ovum_pickup']; ?></td>
+    <td><?php echo $m['embryo_transfer']; ?></td>
+    <td><?php echo $m['fet']; ?></td>
 </tr>
 <?php } ?>
 
