@@ -6376,19 +6376,19 @@ function dashboard_medicine_daily_sales($center, $start_date, $end_date)
 
 	//var_dump($center_id);
 
-    $sql = "SELECT COALESCE(SUM(s.total_amount), 0) AS total_payment
+    $sql = "SELECT 
+    COALESCE(SUM(s.total_amount), 0) AS total_payment,
+    COUNT(DISTINCT s.patient_id) AS total_patients
 FROM sales s 
-WHERE s.center_id = ?
-AND EXISTS (
-    SELECT 1 FROM stock_movements sm 
+WHERE s.center_id = ? 
+AND EXISTS ( 
+    SELECT 1 
+    FROM stock_movements sm 
     WHERE sm.reference_id = s.id 
     AND sm.movement_type = 'SALE' 
-    AND sm.to_location_type = 'SALE'
+    AND sm.to_location_type = 'SALE' 
 ) 
-AND DATE(s.created_at) = CURDATE()
-
-
-        ";
+AND DATE(s.created_at) = CURDATE()";
 
     $q = $this->db->query($sql, [(int)$center_id]);
     return $q->row_array();
