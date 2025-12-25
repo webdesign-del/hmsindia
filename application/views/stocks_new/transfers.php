@@ -158,8 +158,8 @@
                                                 </td>
                                                 <td><?php echo isset($transfer->from_center) && !empty($transfer->from_center) ? htmlspecialchars($transfer->from_center) : 'Central Warehouse'; ?></td>
                                                 <td><?php echo isset($transfer->to_center) ? htmlspecialchars($transfer->to_center) : 'N/A'; ?></td>
-                                                <td><?php echo isset($transfer->to_department) && !empty($transfer->to_department) ? htmlspecialchars($transfer->to_department) : 'N/A'; ?></td>
-                                                <td><?php echo isset($transfer->transfer_date) && !empty($transfer->transfer_date) ? date('M d, Y', strtotime($transfer->transfer_date)) : 'N/A'; ?></td>
+                                                <td><?php echo isset($transfer->to_department) && !empty($transfer->to_department) ? htmlspecialchars($transfer->to_department) : 'Central Warehouse'; ?></td>
+                                                <td><?php echo isset($transfer->transfer_date) && !empty($transfer->transfer_date) ? date('M d, Y', strtotime($transfer->transfer_date)) : 'Central Warehouse'; ?></td>
                                                 <td><?php echo isset($transfer->total_items) && is_numeric($transfer->total_items) ? number_format($transfer->total_items) : '0'; ?></td>
                                                 <td><?php echo isset($transfer->total_quantity) && is_numeric($transfer->total_quantity) ? number_format($transfer->total_quantity) : '0'; ?></td>
                                                 <td>₹<?php echo isset($transfer->total_value) && is_numeric($transfer->total_value) ? number_format($transfer->total_value, 2) : '0.00'; ?></td>

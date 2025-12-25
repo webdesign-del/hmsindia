@@ -5,7 +5,6 @@ class Accounts_model extends CI_Model
 {
 
 	function get_patient_data_by($search_this, $search_by){
-
 		$response = array();
 		if($search_by == 'patient'){
 			$sql_condition = " patient_id='".$search_this."'";
@@ -14,7 +13,7 @@ class Accounts_model extends CI_Model
 		}else{
 			return $response;
 		}	
-		$consultation_result = $investigate_result = $procedure_result = $procedure_can_result = $medicine_result = $refund_amount_result = $consultation =  $investigate =  $procedure = $medicine = $refund_amount = $patient_result = $payment_result = $payments = array();
+		$consultation_result = $investigate_result = $procedure_result = $procedure_can_result = $medicine_result = $refund_amount_result = $consultation =  $investigate =  $procedure = $medicine = $refund_amount = $patient_result = $payment_result = $payments = $sales = array();
 		
 		$patient_sql = "Select * from ".$this->config->item('db_prefix')."patients where $sql_condition";
         $patient_q = $this->db->query($patient_sql);
@@ -58,14 +57,24 @@ class Accounts_model extends CI_Model
 			}
 
             $medicine_sql = "Select * from ".$this->config->item('db_prefix')."patient_medicine where patient_id='".$patient_id."'";
+
 			$medicine_q = $this->db->query($medicine_sql);
 			$medicine_result = $medicine_q->result_array();
 			if (!empty($medicine_result))
 			{
 				$medicine['data'] =  $medicine_result;
 				$medicine['type'] = 'medicine';
-			}	
-			
+			}
+
+			// Load Stock_model_new to get sales data
+			$this->load->model('Stock_model_new');
+			$sales_result = $this->Stock_model_new->get_sales(array('patient_id' => $patient_id));
+			if (!empty($sales_result))
+			{
+				$sales['data'] =  $sales_result;
+				$sales['type'] = 'sales';
+			}
+
 			$refund_amount_sql = "Select * from ".$this->config->item('db_prefix')."refund_amount where patient_id='".$patient_id."'";
 			$refund_amount_q = $this->db->query($refund_amount_sql);
 			$refund_amount_result = $refund_amount_q->result_array();
@@ -89,7 +98,7 @@ class Accounts_model extends CI_Model
 				$patient_result = $patient_result[0];
 			}
 			$response = array();
-			$response = array('consultation_result' => $consultation, 'investigate_result' => $investigate, 'procedure_result' => $procedure, 'procedure_can_result' => $procedure_can, 'medicine_result' => $medicine, 'refund_amount_result' => $refund_amount, 'patient_result'=> $patient_result, 'payments'=> $payments);
+			$response = array('consultation_result' => $consultation, 'investigate_result' => $investigate, 'procedure_result' => $procedure, 'procedure_can_result' => $procedure_can, 'medicine_result' => $medicine, 'sales_result' => $sales, 'refund_amount_result' => $refund_amount, 'patient_result'=> $patient_result, 'payments'=> $payments);
 			return $response;
 		}else{
 			$response = array();

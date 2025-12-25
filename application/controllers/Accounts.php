@@ -166,24 +166,26 @@ class Accounts extends CI_Controller {
 			echo json_encode($response);
 			die;	
 		}
-		$consultation_result = $investigate_result = $procedure_result = $procedure_can_result = $patient_result = $medicine_result = $refund_amount_result = array();		
-	$data = $this->accounts_model->get_patient_data_by($search_this, $search_by);
-	
-	
+		$consultation_result = $investigate_result = $procedure_result = $procedure_can_result = $patient_result = $medicine_result = $sales_result = $refund_amount_result = array();		
+	   $data = $this->accounts_model->get_patient_data_by($search_this, $search_by);
+	   	$medicine_result = $data['medicine_result'];
+		$sales_result = $data['sales_result'];
+		var_dump($medicine_result);
+		var_dump($sales_result);
+		die;
 	if(!empty($data)){
 		$patient_id = $data['patient_result']['patient_id'];
 		$patient_data = get_patient_detail($patient_id);
 		$currency = '';
-	
 		$consultation_result = $data['consultation_result'];
 		$investigate_result = $data['investigate_result'];
 		$procedure_result = $data['procedure_result'];
 		$procedure_can_result = $data['procedure_can_result'];
 		$patient_result = $data['patient_result'];
 		$medicine_result = $data['medicine_result'];
+		$sales_result = $data['sales_result'];
 		$refund_amount_result = $data['refund_amount_result'];
 		$payments = $data['payments'];	
-		
 		$response = array();
 		if (!empty($patient_result))
         {
@@ -290,13 +292,13 @@ class Accounts extends CI_Controller {
 			
 			if(count($medicine_result) > 0){
 				$type = $medicine_result['type'];
-				foreach($medicine_result['data'] as $key => $val){					 		
+				foreach($medicine_result['data'] as $key => $val){
 					$html .= '<tr>';
 					$html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=medicine">'.$val['receipt_number'].'</a></td>';
 					$html .= '<td>'.dateformat($val['on_date']).'</td>';
 					$html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
 					if($val['billing_from'] == 'IndiaIVF'){ $html .= '<td>'.$val['billing_from'].'</td>'; }
-					else{$html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
+					else{$html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}
 					$html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';
 					$html .= '<td>'.$currency.$val['totalpackage'].'</td>';
 					$html .= '<td>'.$currency.$val['fees'].'</td>';
@@ -304,6 +306,25 @@ class Accounts extends CI_Controller {
 					$html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
 					$html .= '<td>Medicine</td>';
 					$html .= '<td>'.ucwords($val['status']).'</td>';
+					$html .= '</tr>';
+				}
+			}
+
+			if(count($sales_result) > 0){
+				$type = $sales_result['type'];
+				foreach($sales_result['data'] as $key => $val){
+					$html .= '<tr>';
+					$html .= '<td><a class="btn btn-large" href="'.base_url().'stock/sales/view/'.$val->id.'?t=sales">SALE-'.$val->id.'</a></td>';
+					$html .= '<td>'.dateformat($val->sale_date).'</td>';
+					$html .= '<td>'.$val->center_name.'</td>';
+					$html .= '<td>'.$val->center_name.'</td>';
+					$html .= '<td>'.$val->salesperson_name.'</td>';
+					$html .= '<td>'.$currency.$val->subtotal.'</td>';
+					$html .= '<td>'.$currency.$val->total_amount.'</td>';
+					$html .= '<td>'.$currency.$val->total_amount.'</td>';
+					$html .= '<td>'.$currency.'0.00</td>';
+					$html .= '<td>Pharmacy Sales</td>';
+					$html .= '<td>'.ucwords($val->status).'</td>';
 					$html .= '</tr>';
 				}
 			}
