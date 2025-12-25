@@ -182,6 +182,7 @@ $consumables = $consumables ?? [];
                                             <?php foreach($medicine as $key => $val){ ?>
                                                 <option value="<?php echo $val['item_number']; ?>"
                                                         data-id="<?php echo $val['ID']; ?>"
+                                                        data-medicine_id="<?php echo $val['medicine_id']; ?>"
                                                         data-batch="<?php echo $val['batch_number']; ?>"
                                                         data-quantity="<?php echo $val['quantity']; ?>"
                                                         data-price="<?php echo $val['price']; ?>"
@@ -195,6 +196,7 @@ $consumables = $consumables ?? [];
                                     <td>
                                         <input disabled value="" id="medicine_quantity_1" class="form-control medicine-quantity" name="medicine_quantity_1" type="number" min="0" data-index="1">
                                         <input type="hidden" id="medicine_ID_1" name="medicine_ID_1">
+                                        <input type="hidden" id="medicine_medicine_id_1" name="medicine_medicine_id_1">
                                         <input type="hidden" id="medicine_batch_1" name="medicine_batch_1">
                                         <input type="hidden" id="medicine_price_1" name="medicine_price_1">
                                         <input type="hidden" id="medicine_gst_1" name="medicine_gst_1">
@@ -239,6 +241,7 @@ $consumables = $consumables ?? [];
                                             <?php foreach($injections as $key => $val){ ?>
                                                 <option value="<?php echo $val['item_number']; ?>"
                                                         data-id="<?php echo $val['ID']; ?>"
+                                                        data-medicine_id="<?php echo $val['medicine_id']; ?>"
                                                         data-batch="<?php echo $val['batch_number']; ?>"
                                                         data-quantity="<?php echo $val['quantity']; ?>"
                                                         data-price="<?php echo $val['price']; ?>"
@@ -252,6 +255,7 @@ $consumables = $consumables ?? [];
                                     <td>
                                         <input disabled value="" id="injections_quantity_1" class="form-control injections-quantity" name="injections_quantity_1" type="number" min="0" data-index="1">
                                         <input type="hidden" id="injections_ID_1" name="injections_ID_1">
+                                        <input type="hidden" id="injections_medicine_id_1" name="injections_medicine_id_1">
                                         <input type="hidden" id="injections_batch_1" name="injections_batch_1">
                                         <input type="hidden" id="injections_price_1" name="injections_price_1">
                                         <input type="hidden" id="injections_gst_1" name="injections_gst_1">
@@ -296,6 +300,7 @@ $consumables = $consumables ?? [];
                                             <?php foreach($consumables as $key => $val){ ?>
                                                 <option value="<?php echo $val['item_number']; ?>"
                                                         data-id="<?php echo $val['ID']; ?>"
+                                                        data-medicine_id="<?php echo $val['medicine_id']; ?>"
                                                         data-batch="<?php echo $val['batch_number']; ?>"
                                                         data-quantity="<?php echo $val['quantity']; ?>"
                                                         data-price="<?php echo $val['price']; ?>"
@@ -309,6 +314,7 @@ $consumables = $consumables ?? [];
                                     <td>
                                         <input disabled value="" id="consumables_quantity_1" class="form-control consumables-quantity" name="consumables_quantity_1" type="number" min="0" data-index="1">
                                         <input type="hidden" id="consumables_ID_1" name="consumables_ID_1">
+                                        <input type="hidden" id="consumables_medicine_id_1" name="consumables_medicine_id_1">
                                         <input type="hidden" id="consumables_batch_1" name="consumables_batch_1">
                                         <input type="hidden" id="consumables_price_1" name="consumables_price_1">
                                         <input type="hidden" id="consumables_gst_1" name="consumables_gst_1">
@@ -415,6 +421,7 @@ $(document).ready(function() {
             // Clear fields if "Select..." is chosen
             $('#' + type + '_serial_' + index).val('');
             $('#' + type + '_ID_' + index).val('');
+            $('#' + type + '_medicine_id_' + index).val('');
             $('#' + type + '_batch_' + index).val('');
             $('#' + type + '_batch_number_' + index).val('');
             $('#' + type + '_stock_' + index).val('');
@@ -429,6 +436,7 @@ $(document).ready(function() {
         // Populate all fields from data attributes
         $('#' + type + '_serial_' + index).val($select.val());
         $('#' + type + '_ID_' + index).val(data.id);
+        $('#' + type + '_medicine_id_' + index).val(data.medicine_id);
         $('#' + type + '_batch_' + index).val(data.batch);
         $('#' + type + '_batch_number_' + index).val(data.batch);
         $('#' + type + '_stock_' + index).val(data.quantity);
@@ -515,6 +523,7 @@ $(document).ready(function() {
                 <td>
                     <input disabled value="" id="medicine_quantity_${medicineCounter}" class="form-control medicine-quantity" name="medicine_quantity_${medicineCounter}" type="number" min="0" data-index="${medicineCounter}">
                     <input type="hidden" id="medicine_ID_${medicineCounter}" name="medicine_ID_${medicineCounter}">
+                    <input type="hidden" id="medicine_medicine_id_${medicineCounter}" name="medicine_medicine_id_${medicineCounter}">
                     <input type="hidden" id="medicine_batch_${medicineCounter}" name="medicine_batch_${medicineCounter}">
                     <input type="hidden" id="medicine_price_${medicineCounter}" name="medicine_price_${medicineCounter}">
                     <input type="hidden" id="medicine_gst_${medicineCounter}" name="medicine_gst_${medicineCounter}">
@@ -544,6 +553,7 @@ $(document).ready(function() {
                 <td>
                     <input disabled value="" id="injections_quantity_${injectionsCounter}" class="form-control injections-quantity" name="injections_quantity_${injectionsCounter}" type="number" min="0" data-index="${injectionsCounter}">
                     <input type="hidden" id="injections_ID_${injectionsCounter}" name="injections_ID_${injectionsCounter}">
+                    <input type="hidden" id="injections_medicine_id_${injectionsCounter}" name="injections_medicine_id_${injectionsCounter}">
                     <input type="hidden" id="injections_batch_${injectionsCounter}" name="injections_batch_${injectionsCounter}">
                     <input type="hidden" id="injections_price_${injectionsCounter}" name="injections_price_${injectionsCounter}">
                     <input type="hidden" id="injections_gst_${injectionsCounter}" name="injections_gst_${injectionsCounter}">
@@ -573,6 +583,7 @@ $(document).ready(function() {
                 <td>
                     <input disabled value="" id="consumables_quantity_${consumablesCounter}" class="form-control consumables-quantity" name="consumables_quantity_${consumablesCounter}" type="number" min="0" data-index="${consumablesCounter}">
                     <input type="hidden" id="consumables_ID_${consumablesCounter}" name="consumables_ID_${consumablesCounter}">
+                    <input type="hidden" id="consumables_medicine_id_${consumablesCounter}" name="consumables_medicine_id_${consumablesCounter}">
                     <input type="hidden" id="consumables_batch_${consumablesCounter}" name="consumables_batch_${consumablesCounter}">
                     <input type="hidden" id="consumables_price_${consumablesCounter}" name="consumables_price_${consumablesCounter}">
                     <input type="hidden" id="consumables_gst_${consumablesCounter}" name="consumables_gst_${consumablesCounter}">

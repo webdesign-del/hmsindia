@@ -10134,6 +10134,9 @@ class Stocks_new extends CI_Controller
                             continue;
                         }
 
+                        // Get medicine_id from form data
+                        $medicine_id = (int)$_POST['consumables_medicine_id_' . $ccounte];
+
                         // Process the item
                         $item_data = [
                             'batch_id'    => $batch_id,
@@ -10142,6 +10145,7 @@ class Stocks_new extends CI_Controller
                             'quantity'    => $quantity,
                             'patient_id'  => $this->input->post('patient_id'),
                             'patient_name'=> $this->input->post('patient_name'),
+                            'medicine_id' => $medicine_id,
                         ];
                         $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id);
                         if ($result['status'] == 'success') {
@@ -10192,6 +10196,9 @@ class Stocks_new extends CI_Controller
                             continue;
                         }
 
+                        // Get medicine_id from form data
+                        $medicine_id = (int)$_POST['injections_medicine_id_' . $icounte];
+
                         // Process the item
                         $item_data = [
                             'batch_id'    => $batch_id,
@@ -10200,6 +10207,7 @@ class Stocks_new extends CI_Controller
                             'quantity'    => $quantity,
                             'patient_id'  => $this->input->post('patient_id'),
                             'patient_name'=> $this->input->post('patient_name'),
+                            'medicine_id' => $medicine_id,
                         ];
                         $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id);
                         if ($result['status'] == 'success') {
@@ -10250,6 +10258,9 @@ class Stocks_new extends CI_Controller
                             continue;
                         }
 
+                        // Get medicine_id from form data
+                        $medicine_id = (int)$_POST['consumables_medicine_id_' . $ccounte];
+
                         // Process the item
                         $item_data = [
                             'batch_id'    => $batch_id,
@@ -10258,6 +10269,7 @@ class Stocks_new extends CI_Controller
                             'quantity'    => $quantity,
                             'patient_id'  => $this->input->post('patient_id'),
                             'patient_name'=> $this->input->post('patient_name'),
+                            'medicine_id' => $medicine_id,
                         ];
                         $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id);
                         if ($result['status'] == 'success') {
