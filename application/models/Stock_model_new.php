@@ -9692,7 +9692,7 @@ public function add_stock_to_location($stock_data)
         $this->db->order_by('mb.expiry_date', 'ASC');
         return $this->db->get()->result_array();
     }
-    public function check_medicine_in_stocks($medicine_id, $center_id)
+    public function check_medicine_in_stocks($medicine_id, $center_id, $department = null)
     {
         $this->db->select('COUNT(*) as stock_count, SUM(ccs.quantity) as total_quantity');
         $this->db->from('center_stocks ccs');
@@ -9703,6 +9703,9 @@ public function add_stock_to_location($stock_data)
         $this->db->where('ccs.quantity >', 0);
         $this->db->where('mb.batch_status', 'ACTIVE');
         $this->db->where('mb.expiry_date >', date('Y-m-d'));
+        if ($department !== null && $department !== '') {
+            $this->db->like('ccs.department', $department);
+        }
         $result = $this->db->get()->row();
 
         return [
@@ -9712,7 +9715,7 @@ public function add_stock_to_location($stock_data)
         ];
     }
 
-    public function process_sale_item($sale_id, $item_data, $created_by_id)
+    public function process_sale_item($sale_id, $item_data, $created_by_id,$department)
     {
         $this->db->trans_start();
         // try {
@@ -9722,16 +9725,36 @@ public function add_stock_to_location($stock_data)
             $quantity = $item_data['quantity'];
             $expected_medicine_id = isset($item_data['medicine_id']) ? $item_data['medicine_id'] : null;
 
-            // 0. Check if medicine exists in center stocks
+                // 0. Validate batch belongs to expected medicine
             if ($expected_medicine_id) {
-                $medicine_stock_check = $this->check_medicine_in_stocks($expected_medicine_id, $center_id);
-                if (!$medicine_stock_check['available']) {
+                $this->db->select('mb.id, mb.medicine_id, m.medicine_name');
+                $this->db->from('medicine_batches mb');
+                $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+                $this->db->where('mb.id', $batch_id);
+                $batch_medicine_check = $this->db->get()->row();
+
+                if (!$batch_medicine_check) {
                     $this->db->trans_rollback();
-                    return ['status' => 'error', 'message' => "Medicine ID {$expected_medicine_id} is not available in center stocks."];
+                    return ['status' => 'error', 'message' => "Batch ID {$batch_id} does not exist."];
+                }
+
+                if ($batch_medicine_check->medicine_id != $expected_medicine_id) {
+                    $this->db->trans_rollback();
+                    return ['status' => 'error', 'message' => "Batch ID {$batch_id} belongs to '{$batch_medicine_check->medicine_name}' but expected medicine ID {$expected_medicine_id}."];
                 }
             }
 
-            // 1. Get Batch & Stock Details (and lock the rows)
+            // 1. Check if medicine exists in center stocks
+            if ($expected_medicine_id) {
+                $medicine_stock_check = $this->check_medicine_in_stocks($expected_medicine_id, $center_id, $department);
+                if (!$medicine_stock_check['available']) {
+                    $this->db->trans_rollback();
+                    return ['status' => 'error', 'message' => "Medicine ID {$expected_medicine_id} is not available in {$department} department stocks."];
+                }
+            }
+
+            // 2. Get Batch & Stock Details (and lock the rows)
+            // 2. Get Batch & Stock Details (and lock the rows)
             // IMPORTANT: Explicitly select ccs.id as center_stock_id to avoid column name conflicts
             $this->db->select('
                 ccs.id as center_stock_id,
@@ -9749,17 +9772,12 @@ public function add_stock_to_location($stock_data)
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
             $this->db->where('ccs.batch_id', $batch_id);
             $this->db->where('ccs.center_id', $center_id);
+            if ($department !== null && $department !== '') {
+                $this->db->like('ccs.department', $department);
+            }
             $this->db->where('ccs.status','ACTIVE');
-            $this->db->where('ccs.quantity >', 0);  
+            $this->db->where('ccs.quantity >', 0);
             $this->db->order_by('ccs.quantity', 'DESC');
-            // if ($department !== null && $department !== '') {
-            //         if ($department == 'billing') {
-            //         $this->db->like('ccs.department', 'CASH MEDICINE');
-            //     } else {
-            //         $this->db->like('ccs.department', $department);
-            //     }
-            // }
-            // $this->db->where('ccs.department', $department);
             $this->db->limit(1);
             $stock_record = $this->db->get()->row();
             if (!$stock_record) {
@@ -9767,23 +9785,6 @@ public function add_stock_to_location($stock_data)
                 return ['status' => 'error', 'message' => "Batch ID {$batch_id} not found in {$department}."];
             }
 
-            // Get the actual medicine_id from the batch
-            $this->db->select('mb.medicine_id, m.medicine_name');
-            $this->db->from('medicine_batches mb');
-            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
-            $this->db->where('mb.id', $batch_id);
-            $medicine_check = $this->db->get()->row();
-
-            if (!$medicine_check) {
-                $this->db->trans_rollback();
-                return ['status' => 'error', 'message' => "Medicine information not found for batch ID {$batch_id}."];
-            }
-
-            // Check if the medicine matches what's expected
-            if ($expected_medicine_id && $medicine_check->medicine_id != $expected_medicine_id) {
-                $this->db->trans_rollback();
-                return ['status' => 'error', 'message' => "Batch ID {$batch_id} belongs to '{$medicine_check->medicine_name}' but expected a different medicine."];
-            }
             $quantity_before = $stock_record->quantity;
             $unit_price = $stock_record->selling_price; // This is the MRP
             $gst_rate = $stock_record->gst_rate;

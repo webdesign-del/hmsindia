@@ -10034,6 +10034,9 @@ class Stocks_new extends CI_Controller
                 $center_number = $_SESSION['billing_manager']['center'];
                 $department = $_SESSION['billing_manager']['department'];
             }
+            if($department == 'Embryologist Basant Lok'){
+                $department = 'Embryology Basant Lok';
+            }
             // $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
             // $center_number = $_SESSION['logged_stock_manager']['center'];
             // $department = $_SESSION['logged_stock_manager']['department'];
@@ -10117,6 +10120,7 @@ class Stocks_new extends CI_Controller
                         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
                         $this->db->where('ccs.batch_id', $batch_id);
                         $this->db->where('ccs.center_id', $center_id);
+                        $this->db->like('ccs.department',$department);
                         $this->db->where('ccs.status', 'ACTIVE');
                         $this->db->where('mb.batch_status', 'ACTIVE');
                         $this->db->where('mb.expiry_date >', date('Y-m-d'));
@@ -10147,7 +10151,7 @@ class Stocks_new extends CI_Controller
                             'patient_name'=> $this->input->post('patient_name'),
                             'medicine_id' => $medicine_id,
                         ];
-                        $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id);
+                        $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id,$department);
                         if ($result['status'] == 'success') {
                             $items_processed++;
                             $total_amount += $result['total_price'];
@@ -10179,11 +10183,11 @@ class Stocks_new extends CI_Controller
                         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
                         $this->db->where('ccs.batch_id', $batch_id);
                         $this->db->where('ccs.center_id', $center_id);
+                        $this->db->like('ccs.department',$department);
                         $this->db->where('ccs.status', 'ACTIVE');
                         $this->db->where('mb.batch_status', 'ACTIVE');
                         $this->db->where('mb.expiry_date >', date('Y-m-d'));
                         $stock_check = $this->db->get()->row();
-
                         if (!$stock_check) {
                             $items_failed++;
                             $error_messages[] = "Injection: Batch ID {$batch_id} not found or inactive.";
@@ -10209,7 +10213,7 @@ class Stocks_new extends CI_Controller
                             'patient_name'=> $this->input->post('patient_name'),
                             'medicine_id' => $medicine_id,
                         ];
-                        $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id);
+                        $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id,$department);
                         if ($result['status'] == 'success') {
                             $items_processed++;
                             $total_amount += $result['total_price'];
@@ -10241,6 +10245,7 @@ class Stocks_new extends CI_Controller
                         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
                         $this->db->where('ccs.batch_id', $batch_id);
                         $this->db->where('ccs.center_id', $center_id);
+                        $this->db->like('ccs.department',$department);
                         $this->db->where('ccs.status', 'ACTIVE');
                         $this->db->where('mb.batch_status', 'ACTIVE');
                         $this->db->where('mb.expiry_date >', date('Y-m-d'));
@@ -10271,7 +10276,7 @@ class Stocks_new extends CI_Controller
                             'patient_name'=> $this->input->post('patient_name'),
                             'medicine_id' => $medicine_id,
                         ];
-                        $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id);
+                        $result = $this->Stock_model_new->process_sale_item($sale_id, $item_data, $created_by_id,$department);
                         if ($result['status'] == 'success') {
                             $items_processed++;
                             $total_amount += $result['total_price'];
