@@ -208,11 +208,6 @@
                                     </td>
                                     <?php
                                     $mrp_value= round($item->quantity_sold * ($item->unit_price + $item->tax_amount/$item->quantity_sold),1);
-                                    var_dump('quantity_sold',$item->quantity_sold);
-                                    var_dump('unit_price',$item->unit_price);
-                                    var_dump('tax_amount',$item->tax_amount);
-                                    var_dump('total',($item->unit_price + $item->tax_amount/$item->quantity_sold));
-                                    var_dump('mrp',$mrp_value);
                                     $mrp = $item->quantity_sold *
                                         ($item->unit_price + ($item->tax_amount / $item->quantity_sold));
                                     $discountPercentage = $item->discount_percentage;
