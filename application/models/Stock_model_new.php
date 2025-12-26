@@ -3560,16 +3560,16 @@ class Stock_model_new extends CI_Model
              // Get current stock quantity for the log
             $stock_before = $this->db->select('quantity')->from('center_stocks')->where('batch_id', $item->batch_id)->where('center_id', $sale->center_id)->get()->row();
             $quantity_before = $stock_before ? (int)$stock_before->quantity : 0;
-            $quantity_after = $quantity_before - (int)$item->quantity_sold;
+            $quantity_after = $quantity_before - (float)$item->quantity_sold;
             // Reduce center stock
             $this->db->where("batch_id", $item->batch_id);
             $this->db->where("center_id", $sale->center_id);
-            $this->db->set("quantity", "GREATEST(0, quantity - " . (int)$item->quantity_sold . ")", false);
+            $this->db->set("quantity", "GREATEST(0, quantity - " . (float)$item->quantity_sold . ")", false);
             $this->db->set("last_movement_date", "NOW()", false);
             $this->db->update("center_stocks");
             // Reduce master batch stock
             $this->db->where("id", $item->batch_id);
-            $this->db->set("quantity_remaining", "GREATEST(0, quantity_remaining - " . (int)$item->quantity_sold . ")", false);
+            $this->db->set("quantity_remaining", "GREATEST(0, quantity_remaining - " . (float)$item->quantity_sold . ")", false);
             $this->db->update("medicine_batches");
             // Log stock movement
             $movement_data = [
@@ -9813,12 +9813,12 @@ public function add_stock_to_location($stock_data)
             $this->db->insert('sale_items', $sale_item_data);
             // 5. Deduct from 'center_stocks' - use center_stock_id (not id) to avoid column conflicts
             $this->db->where('id', $stock_record->center_stock_id);
-            $this->db->set('quantity', 'quantity - ' . (int)$quantity, FALSE);
+            $this->db->set('quantity', 'quantity - ' . (float)$quantity, FALSE);
             $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
             $this->db->update('center_stocks');
             // 6. Deduct from 'medicine_batches'
             $this->db->where('id', $batch_id);
-            $this->db->set('quantity_remaining', 'quantity_remaining - ' . (int)$quantity, FALSE);
+            $this->db->set('quantity_remaining', 'quantity_remaining - ' . (float)$quantity, FALSE);
             $this->db->update('medicine_batches');
             // 7. Log in 'stock_movements'
             $movement_data = [
@@ -9829,8 +9829,8 @@ public function add_stock_to_location($stock_data)
                 "to_location_type"   => "SALE_CONSUMPTION_BILLING",
                 "to_location_id"     => $sale_id,
                 "quantity_before"    => $quantity_before,
-                "quantity_change"    => - (int)$quantity,
-                "quantity_after"     => $quantity_before - (int)$quantity,
+                "quantity_change"    => - (float)$quantity,
+                "quantity_after"     => $quantity_before - (float)$quantity,
                 "unit_price"         => $unit_price,
                 "total_value"        => $total_price,
                 "reference_type"     => "SALES_BILL",

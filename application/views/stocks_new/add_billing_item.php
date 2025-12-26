@@ -194,7 +194,7 @@ $consumables = $consumables ?? [];
                                         </select>
                                     </td>
                                     <td>
-                                        <input disabled value="" id="medicine_quantity_1" class="form-control medicine-quantity" name="medicine_quantity_1" type="number" min="0" data-index="1">
+                                        <input step="0.01" disabled value="" id="medicine_quantity_1" class="form-control medicine-quantity" name="medicine_quantity_1" type="number" min="0" data-index="1">
                                         <input type="hidden" id="medicine_ID_1" name="medicine_ID_1">
                                         <input type="hidden" id="medicine_medicine_id_1" name="medicine_medicine_id_1">
                                         <input type="hidden" id="medicine_batch_1" name="medicine_batch_1">
@@ -253,7 +253,7 @@ $consumables = $consumables ?? [];
                                         </select>
                                     </td>
                                     <td>
-                                        <input disabled value="" id="injections_quantity_1" class="form-control injections-quantity" name="injections_quantity_1" type="number" min="0" data-index="1">
+                                        <input step="0.01" disabled value="" id="injections_quantity_1" class="form-control injections-quantity" name="injections_quantity_1" type="number" min="0" data-index="1">
                                         <input type="hidden" id="injections_ID_1" name="injections_ID_1">
                                         <input type="hidden" id="injections_medicine_id_1" name="injections_medicine_id_1">
                                         <input type="hidden" id="injections_batch_1" name="injections_batch_1">
@@ -312,7 +312,7 @@ $consumables = $consumables ?? [];
                                         </select>
                                     </td>
                                     <td>
-                                        <input disabled value="" id="consumables_quantity_1" class="form-control consumables-quantity" name="consumables_quantity_1" type="number" min="0" data-index="1">
+                                        <input step="0.01" disabled value="" id="consumables_quantity_1" class="form-control consumables-quantity" name="consumables_quantity_1" type="number" min="0" data-index="1">
                                         <input type="hidden" id="consumables_ID_1" name="consumables_ID_1">
                                         <input type="hidden" id="consumables_medicine_id_1" name="consumables_medicine_id_1">
                                         <input type="hidden" id="consumables_batch_1" name="consumables_batch_1">
@@ -521,7 +521,7 @@ $(document).ready(function() {
                     </select>
                 </td>
                 <td>
-                    <input disabled value="" id="medicine_quantity_${medicineCounter}" class="form-control medicine-quantity" name="medicine_quantity_${medicineCounter}" type="number" min="0" data-index="${medicineCounter}">
+                    <input step="0.01" disabled value="" id="medicine_quantity_${medicineCounter}" class="form-control medicine-quantity" name="medicine_quantity_${medicineCounter}" type="number" min="0" data-index="${medicineCounter}">
                     <input type="hidden" id="medicine_ID_${medicineCounter}" name="medicine_ID_${medicineCounter}">
                     <input type="hidden" id="medicine_medicine_id_${medicineCounter}" name="medicine_medicine_id_${medicineCounter}">
                     <input type="hidden" id="medicine_batch_${medicineCounter}" name="medicine_batch_${medicineCounter}">
@@ -551,7 +551,7 @@ $(document).ready(function() {
                     </select>
                 </td>
                 <td>
-                    <input disabled value="" id="injections_quantity_${injectionsCounter}" class="form-control injections-quantity" name="injections_quantity_${injectionsCounter}" type="number" min="0" data-index="${injectionsCounter}">
+                    <input step="0.01" disabled value="" id="injections_quantity_${injectionsCounter}" class="form-control injections-quantity" name="injections_quantity_${injectionsCounter}" type="number" min="0" data-index="${injectionsCounter}">
                     <input type="hidden" id="injections_ID_${injectionsCounter}" name="injections_ID_${injectionsCounter}">
                     <input type="hidden" id="injections_medicine_id_${injectionsCounter}" name="injections_medicine_id_${injectionsCounter}">
                     <input type="hidden" id="injections_batch_${injectionsCounter}" name="injections_batch_${injectionsCounter}">
@@ -581,7 +581,7 @@ $(document).ready(function() {
                     </select>
                 </td>
                 <td>
-                    <input disabled value="" id="consumables_quantity_${consumablesCounter}" class="form-control consumables-quantity" name="consumables_quantity_${consumablesCounter}" type="number" min="0" data-index="${consumablesCounter}">
+                    <input step="0.01" disabled value="" id="consumables_quantity_${consumablesCounter}" class="form-control consumables-quantity" name="consumables_quantity_${consumablesCounter}" type="number" min="0" data-index="${consumablesCounter}">
                     <input type="hidden" id="consumables_ID_${consumablesCounter}" name="consumables_ID_${consumablesCounter}">
                     <input type="hidden" id="consumables_medicine_id_${consumablesCounter}" name="consumables_medicine_id_${consumablesCounter}">
                     <input type="hidden" id="consumables_batch_${consumablesCounter}" name="consumables_batch_${consumablesCounter}">

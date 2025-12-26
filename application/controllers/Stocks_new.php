@@ -10102,9 +10102,9 @@ class Stocks_new extends CI_Controller
 
                 // Process all medicine rows
                 foreach ($m_counter as $mcounte) {
-                    if (!empty($_POST['medicine_name_' . $mcounte]) && (int)$_POST['medicine_quantity_' . $mcounte] > 0) {
+                    if (!empty($_POST['medicine_name_' . $mcounte]) && (float)$_POST['medicine_quantity_' . $mcounte] > 0) {
                         $batch_id = (int)$_POST['medicine_ID_' . $mcounte];
-                        $quantity = (int)$_POST['medicine_quantity_' . $mcounte];
+                        $quantity = (float)$_POST['medicine_quantity_' . $mcounte];
 
                         // Skip if this batch was already processed
                         if (in_array($batch_id, $processed_batches)) {
@@ -10165,9 +10165,9 @@ class Stocks_new extends CI_Controller
 
                 // Process all injection rows
                 foreach ($i_counter as $icounte) {
-                    if (!empty($_POST['injections_name_' . $icounte]) && (int)$_POST['injections_quantity_' . $icounte] > 0) {
+                    if (!empty($_POST['injections_name_' . $icounte]) && (float)$_POST['injections_quantity_' . $icounte] > 0) {
                         $batch_id = (int)$_POST['injections_ID_' . $icounte];
-                        $quantity = (int)$_POST['injections_quantity_' . $icounte];
+                        $quantity = (float)$_POST['injections_quantity_' . $icounte];
 
                         // Skip if this batch was already processed
                         if (in_array($batch_id, $processed_batches)) {
@@ -10227,9 +10227,9 @@ class Stocks_new extends CI_Controller
 
                 // Process all consumable rows
                 foreach ($c_counter as $ccounte) {
-                    if (!empty($_POST['consumables_name_' . $ccounte]) && (int)$_POST['consumables_quantity_' . $ccounte] > 0) {
+                    if (!empty($_POST['consumables_name_' . $ccounte]) && (float)$_POST['consumables_quantity_' . $ccounte] > 0) {
                         $batch_id = (int)$_POST['consumables_ID_' . $ccounte];
-                        $quantity = (int)$_POST['consumables_quantity_' . $ccounte];
+                        $quantity = (float)$_POST['consumables_quantity_' . $ccounte];
 
                         // Skip if this batch was already processed
                         if (in_array($batch_id, $processed_batches)) {
