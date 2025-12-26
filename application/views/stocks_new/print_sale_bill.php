@@ -363,10 +363,10 @@
                     <td class="total-value">₹<?php echo number_format($total_gst / 2,1); ?></td>
                 </tr> -->
 
-                <tr>
+                <!-- <tr>
                     <td class="total-label">Discount</td>
                     <td class="total-value">- ₹<?php echo number_format($total_discount,1); ?></td>
-                </tr>
+                </tr> -->
 
                 <tr class="grand-total">
                     <td class="total-label">Grand Total</td>
