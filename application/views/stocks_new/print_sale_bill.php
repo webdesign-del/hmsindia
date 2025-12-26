@@ -200,6 +200,7 @@
                     <tbody>
                         <?php if (!empty($sale_items)): $i = 1; ?>
                             <?php foreach ($sale_items as $item): ?>
+                                <?php var_dump($item); ?>
                                 <tr>
                                     <td><?php echo $i++; ?></td>
                                     <td>
@@ -212,6 +213,9 @@
                                         ($item->unit_price + ($item->tax_amount / $item->quantity_sold));
                                     $discountPercentage = $item->discount_percentage;
                                     $discountAmount = ($mrp * $discountPercentage) / 100;
+                                    if(empty($item->discount_percentage)){
+                                        $discountAmount =$item->discount_amount;
+                                    }
                                     $mrpAfterDiscount = $mrp - number_format($discountAmount,1);
                                     $total_value = number_format(
                                         round((float)$mrp_value) - (float)$discountAmount,
@@ -262,6 +266,9 @@
                                     $gstRate = $item->gst_rate / 100;
                                     $mrp = $qty * (number_format($item->unit_price,1) + number_format($item->tax_amount / $qty,1));
                                     $discount = ($mrp * $item->discount_percentage) / 100;
+                                    if(empty($item->discount_percentage)){
+                                        $discount =$item->discount_amount;
+                                    }
                                     $mrpAfterDiscount = $mrp - $discount;
                                     $taxable = $mrpAfterDiscount / (1 + $gstRate);
                                     $gstAmount = $mrpAfterDiscount - $taxable;
@@ -346,6 +353,9 @@
                         $gstRate = $item->gst_rate / 100;
                         $mrp = $qty * (number_format($item->unit_price,1) + number_format($item->tax_amount / $qty,1));
                         $discount = ($mrp * $item->discount_percentage) / 100;
+                        if(empty($item->discount_percentage)){
+                            $discount =$item->discount_amount;
+                        }
                         $mrpAfterDiscount = $mrp - $discount;
                         $taxable = $mrpAfterDiscount / (1 + $gstRate);
                         $gstAmount = $mrpAfterDiscount - $taxable;
