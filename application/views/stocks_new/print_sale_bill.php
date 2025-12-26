@@ -325,7 +325,9 @@
                 $grand_total = 0;
 
                 if (!empty($sale_items)) {
+                    $mrp_value_total = 0;
                     foreach ($sale_items as $item) {
+                        $mrp_value_total += number_format($item->quantity_sold * ($item->unit_price + $item->tax_amount / $item->quantity_sold), 1);
                         $qty = $item->quantity_sold;
                         $gstRate = $item->gst_rate / 100;
                         $mrp = $qty * (number_format($item->unit_price,1) + number_format($item->tax_amount / $qty,1));
@@ -333,11 +335,11 @@
                         $mrpAfterDiscount = $mrp - $discount;
                         $taxable = $mrpAfterDiscount / (1 + $gstRate);
                         $gstAmount = $mrpAfterDiscount - $taxable;
-                        $total_quantity += $qty;
-                        $total_mrp += $mrp;
+                        // $total_quantity += $qty;
+                        // $total_mrp += $mrp;
                         $total_discount += $discount;
-                        $total_taxable += $taxable;
-                        $total_gst += $gstAmount;
+                        // $total_taxable += $taxable;
+                        // $total_gst += $gstAmount;
                         $grand_total += $mrpAfterDiscount;
                     }
                 }
@@ -349,24 +351,24 @@
                 </tr> -->
 
                 <tr>
-                    <td class="total-label">Taxable Value</td>
-                    <td class="total-value">₹<?php echo number_format($total_taxable,1); ?></td>
+                    <td class="total-label">MRP Value</td>
+                    <td class="total-value">₹<?php echo number_format($mrp_value_total,1); ?></td>
                 </tr>
 
-                <tr>
+                <!-- <tr>
                     <td class="total-label">GST</td>
                     <td class="total-value">₹<?php echo number_format($total_gst,1); ?></td>
-                </tr>
+                </tr> -->
 
                 <!-- <tr>
                     <td class="total-label">SGST</td>
                     <td class="total-value">₹<?php echo number_format($total_gst / 2,1); ?></td>
                 </tr> -->
 
-                <!-- <tr>
+                <tr>
                     <td class="total-label">Discount</td>
                     <td class="total-value">- ₹<?php echo number_format($total_discount,1); ?></td>
-                </tr> -->
+                </tr>
 
                 <tr class="grand-total">
                     <td class="total-label">Grand Total</td>
