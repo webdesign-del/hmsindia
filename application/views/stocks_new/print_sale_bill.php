@@ -200,7 +200,6 @@
                     <tbody>
                         <?php if (!empty($sale_items)): $i = 1; ?>
                             <?php foreach ($sale_items as $item): ?>
-                                <?php var_dump($item); ?>
                                 <tr>
                                     <td><?php echo $i++; ?></td>
                                     <td>
