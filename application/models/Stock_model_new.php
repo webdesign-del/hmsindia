@@ -3617,6 +3617,7 @@ class Stock_model_new extends CI_Model
         $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
         $this->db->where("ccs.center_id", $center_id);
         // Filter by department if available
+        $department =null;
         if(!empty($_SESSION['logged_stock_manager']['employee_number'])) {
             $department = $_SESSION['logged_stock_manager']['department'] ?? null;
         } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
@@ -9222,6 +9223,7 @@ public function add_stock_to_location($stock_data)
                 'si.*', // Selects all columns from sale_items (id, sale_id, batch_id, quantity_sold, unit_price, subtotal, discount_amount, tax_amount, total)
                 'm.medicine_name',
                 'm.medicine_code',
+                'm.gst_rate',
                 'm.hsn_code',      // Added HSN code for the print view
                 'b.brand_name',    // From medicine_brands
                 'mb.batch_number',
@@ -9307,7 +9309,38 @@ public function add_stock_to_location($stock_data)
         // This returns true if the update was successful, and false if not.
         return $this->db->affected_rows() > 0;
     }
-    
+
+    /**
+     * Update Payment Method for a sale
+     * @param int $sale_id The sale ID to update
+     * @param string $payment_method The new payment method
+     * @param int $updated_by Employee ID who updated it
+     * @param string $updated_by_name Name of the employee who updated it
+     * @return bool True if update was successful, false otherwise
+     */
+    public function update_payment_method($sale_id, $payment_method, $updated_by = null, $updated_by_name = null)
+    {
+        // Data to update
+        $data = [
+            'payment_method' => $payment_method,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        // Add tracking info if provided
+        if (!empty($updated_by)) {
+            $data['payment_method_updated_by'] = $updated_by;
+            $data['payment_method_updated_by_name'] = $updated_by_name;
+            $data['payment_method_updated_at'] = date('Y-m-d H:i:s');
+        }
+
+        // Update the sale record
+        $this->db->where('id', $sale_id);
+        $this->db->update('sales', $data);
+
+        // Return true if any rows were affected
+        return $this->db->affected_rows() > 0;
+    }
+
     /**
      * Restore stock when a sale payment is CANCELLED or REJECTED
      * This returns the sold items back to inventory

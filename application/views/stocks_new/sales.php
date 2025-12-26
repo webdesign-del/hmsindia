@@ -177,6 +177,7 @@
                                         <th>Total Amt</th>
                                         <th>Payment</th>
                                         <th>Payment Mode</th>
+                                        <th>Payment Method</th>
                                         <th>Remarks</th>
                                         <th>Status</th>
                                         <th>Approval</th>
@@ -234,6 +235,17 @@
                                                         </a>
                                                     <?php endif; ?>
                                                     <?php endif; ?>
+                                                </td>
+                                                <td id="payment-method-cell-<?php echo $sale->id; ?>" style="width:140px !important">
+                                                    <select class="form-control payment-method-select" data-sale-id="<?php echo $sale->id; ?>" style="width: 100%; padding: 2px 5px; font-size: 12px; border: 1px solid #ddd; border-radius: 3px;">
+                                                        <option value="">Select Method</option>
+                                                        <option value="CASH" <?php echo (isset($sale->payment_method) && $sale->payment_method == 'CASH') ? 'selected' : ''; ?>>Cash</option>
+                                                        <option value="CARD" <?php echo (isset($sale->payment_method) && $sale->payment_method == 'CARD') ? 'selected' : ''; ?>>Card</option>
+                                                        <option value="UPI" <?php echo (isset($sale->payment_method) && $sale->payment_method == 'UPI') ? 'selected' : ''; ?>>UPI</option>
+                                                        <option value="CHEQUE" <?php echo (isset($sale->payment_method) && $sale->payment_method == 'CHEQUE') ? 'selected' : ''; ?>>Cheque</option>
+                                                        <option value="INSURANCE" <?php echo (isset($sale->payment_method) && $sale->payment_method == 'INSURANCE') ? 'selected' : ''; ?>>Insurance</option>
+                                                        <option value="CREDIT" <?php echo (isset($sale->payment_method) && $sale->payment_method == 'CREDIT') ? 'selected' : ''; ?>>Credit</option>
+                                                    </select>
                                                 </td>
                                                 <td><?php echo isset($sale->payment_method) ? htmlspecialchars($sale->payment_method) : 'N/A'; ?></td>
                                                 <td><?php echo isset($sale->remarks) ? htmlspecialchars($sale->remarks) : 'N/A'; ?></td>
@@ -363,7 +375,7 @@
                                     
                                     <?php if(empty($sales) || !is_array($sales) || count(array_filter($sales, function($s) { return isset($s->sale_number) && !empty($s->sale_number); })) == 0): ?>
                                         <tr>
-                                            <td colspan="17" class="text-center text-muted">
+                                            <td colspan="18" class="text-center text-muted">
                                                 <i class="fa fa-info-circle fa-2x"></i><br>
                                                 No sales found. The database table 'sales' may not exist. <a href="<?php echo base_url('stocks_new/add_sale'); ?>">Create your first sale</a>
                                             </td>
@@ -609,7 +621,7 @@ $(document).ready(function() {
     var rows = tbody.find('tr');
     var validRows = rows.filter(function() {
         // Check if row has proper number of cells and is not the "no data" row
-        return $(this).find('td').length === 19 && !$(this).find('td[colspan]').length;
+        return $(this).find('td').length === 20 && !$(this).find('td[colspan]').length;
     });
     
     console.log('Total rows:', rows.length);
@@ -621,7 +633,7 @@ $(document).ready(function() {
                 "pageLength": 25,
                 "order": [[ 5, "desc" ]], // Sort by date descending
                 "columnDefs": [
-                    { "orderable": false, "targets": [16, 17, 18] } // Approval, Approved By, Actions columns
+                    { "orderable": false, "targets": [18, 19] } // Approved By, Actions columns
                 ],
                 "responsive": true,
                 "autoWidth": false,
@@ -1028,6 +1040,95 @@ $(document).ready(function() {
             }
         });
     });
+
+    // Payment Method Change Handler
+    $(document).on('change', '.payment-method-select', function() {
+        var $select = $(this);
+        var saleId = $select.data('sale-id');
+        var newPaymentMethod = $select.val();
+        var $cell = $('#payment-method-cell-' + saleId);
+
+        // Show loading state
+        $select.prop('disabled', true);
+        $cell.css('opacity', '0.6');
+
+        // AJAX call to update payment method
+        $.ajax({
+            url: "<?php echo base_url('stocks_new/update_payment_method'); ?>",
+            type: 'POST',
+            data: {
+                sale_id: saleId,
+                payment_method: newPaymentMethod
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Update the read-only Payment Method column instantly
+                    var $row = $cell.closest('tr');
+                    var $paymentMethodCell = $row.find('td').eq(14); // Payment Method column (0-indexed)
+                    $paymentMethodCell.text(newPaymentMethod || 'N/A');
+
+                    // Show success indication
+                    $cell.css('background-color', '#d4edda');
+                    setTimeout(function() {
+                        $cell.css('background-color', '');
+                    }, 1000);
+
+                    // Show success message
+                    $('#alert-container').html(
+                        '<div class="alert alert-success alert-dismissible" style="margin-top: 15px;">' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+                        '<h4><i class="icon fa fa-check"></i> Success!</h4>' +
+                        'Payment method updated successfully.' +
+                        '</div>'
+                    );
+
+                    // Auto-hide alert after 3 seconds
+                    setTimeout(function() {
+                        $('.alert').fadeOut();
+                    }, 3000);
+                } else {
+                    // Show error message
+                    $('#alert-container').html(
+                        '<div class="alert alert-danger alert-dismissible" style="margin-top: 15px;">' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+                        '<h4><i class="icon fa fa-ban"></i> Error!</h4>' +
+                        response.message +
+                        '</div>'
+                    );
+
+                    // Reset the select to previous value if there was an error
+                    // Note: We can't easily restore the previous value without storing it
+                    // The server should handle validation and return error if needed
+                }
+            },
+            error: function(xhr, status, error) {
+                // Show error message
+                $('#alert-container').html(
+                    '<div class="alert alert-danger alert-dismissible" style="margin-top: 15px;">' +
+                    '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>' +
+                    '<h4><i class="icon fa fa-ban"></i> Error!</h4>' +
+                    'Failed to update payment method. Please try again.' +
+                    '</div>'
+                );
+
+                // Reset on error
+                $select.val($select.data('original-value') || '');
+            },
+            complete: function() {
+                // Restore normal state
+                $select.prop('disabled', false);
+                $cell.css('opacity', '1');
+            }
+        });
+    });
+
+    // Store original value when select gains focus
+    $(document).on('focus', '.payment-method-select', function() {
+        var $select = $(this);
+        $select.data('original-value', $select.val());
+    });
+
     // --- *** END OF NEW SCRIPT *** ---
     document.getElementById('modal_payment_status').addEventListener('change', function() {
         const badge = document.getElementById('payment_status_badge');

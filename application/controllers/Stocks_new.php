@@ -4202,14 +4202,15 @@ class Stocks_new extends CI_Controller
                 if ($this->form_validation->run() == true) {
                     // --- This is the correct logic for your controller ---
                     $quantity = (float)$this->input->post("quantity_sold");
+
                     $unit_price = (float)$this->input->post("unit_price");
                     $discount_percent = (float)$this->input->post("discount_percent");
                     $gst_rate = (float)$this->input->post("gst_rate");
                     $subtotal = $quantity * $unit_price;
                     $discount_amount = $subtotal * ($discount_percent / 100);
-                    $taxable_amount = $subtotal - $discount_amount;
-                    $tax_amount = $taxable_amount * ($gst_rate / 100);
-                    $total = $taxable_amount + $tax_amount;
+                    // Calculate tax on the original subtotal (before discount)
+                    $tax_amount = $subtotal * ($gst_rate / 100);
+                    $total = $subtotal - $discount_amount + $tax_amount;
                     $item_data = [
                         'sale_id'         => $id,
                         'batch_id'        => $this->input->post('batch_id'),
@@ -4217,6 +4218,7 @@ class Stocks_new extends CI_Controller
                         'unit_price'      => $unit_price,       // This is the price Excl. Tax
                         'subtotal'        => $subtotal,         // (Qty * Unit Price)
                         'discount_amount' => $discount_amount,  // This is the calculated discount
+                        'discount_percentage' => $discount_percent,  // This is the calculated discount
                         'tax_amount'      => $tax_amount,       // This is the calculated tax
                         'total'           => $total,            // This is the final total
                         'remarks'         => $this->input->post('remarks')
@@ -9064,6 +9066,19 @@ class Stocks_new extends CI_Controller
         /**
      * Loads a print-friendly invoice page for a specific sale.
      */
+    public function get_medicine_details_by_name($medicine_name,$medicine_code)
+    {
+        $this->db->select([
+            'm.id',
+            'm.gst_rate',
+        ]);
+        $this->db->from('medicines m');
+        $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+        $this->db->where('m.medicine_name', $medicine_name);
+        $this->db->where('m.medicine_code', $medicine_code);
+        $this->db->where('m.status', 'active');
+        return $this->db->get()->row(); // Return one row
+    }
     public function print_sale($id)
     {
         $logg = checklogin();
@@ -9073,7 +9088,6 @@ class Stocks_new extends CI_Controller
         }
         $this->load->model('Stock_model_new');
         $data = [];
-        // 1. Get the main sale details (which recalculates totals)
         $data['sale'] = $this->Stock_model_new->get_sale_by_id($id);
         if (!$data['sale']) {
             $this->session->set_flashdata('error', 'Sale not found.');
@@ -9221,6 +9235,90 @@ class Stocks_new extends CI_Controller
         }
         
         // 7. Send the JSON response back to the JavaScript
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response, JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
+    /**
+     * Update Payment Method for a sale
+     * Accessible by all authenticated users
+     */
+    public function update_payment_method()
+    {
+        // Clean any output buffers to prevent extra characters
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+
+        // Get the data from the AJAX POST request
+        $sale_id = $this->input->post('sale_id');
+        $payment_method = $this->input->post('payment_method');
+        $response = [];
+
+        // Get the current user info for tracking
+        $updated_by = null;
+        $updated_by_name = null;
+
+        if (isset($_SESSION['logged_accountant'])) {
+            $updated_by = $_SESSION['logged_accountant']['employee_number'] ?? null;
+            $updated_by_name = $_SESSION['logged_accountant']['name'] ?? 'Accountant';
+        } elseif (isset($_SESSION['logged_administrator'])) {
+            $updated_by = $_SESSION['logged_administrator']['employee_number'] ?? null;
+            $updated_by_name = $_SESSION['logged_administrator']['name'] ?? 'Administrator';
+        } elseif (isset($_SESSION['logged_billing_manager'])) {
+            $updated_by = $_SESSION['logged_billing_manager']['employee_number'] ?? null;
+            $updated_by_name = $_SESSION['logged_billing_manager']['name'] ?? 'Billing Manager';
+        } else {
+            $updated_by = $this->session->userdata('employee_number');
+            $updated_by_name = $this->session->userdata('name') ?? 'User';
+        }
+
+        // Basic validation
+        if (!$sale_id) {
+            $response = [
+                'success' => false,
+                'message' => 'Sale ID is required.'
+            ];
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($response, JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+
+        // Validate payment method
+        $valid_methods = ['CASH', 'CARD', 'UPI', 'CHEQUE', 'INSURANCE', 'CREDIT'];
+        if (!in_array($payment_method, $valid_methods)) {
+            $response = [
+                'success' => false,
+                'message' => 'Invalid payment method selected.'
+            ];
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode($response, JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+
+        // Call the model to update the payment method
+        $success = $this->Stock_model_new->update_payment_method(
+            $sale_id,
+            $payment_method,
+            $updated_by,
+            $updated_by_name
+        );
+
+        // Prepare the JSON response
+        if ($success) {
+            $response = [
+                'success' => true,
+                'message' => 'Payment method updated to ' . $payment_method . ' successfully.'
+            ];
+        } else {
+            $response = [
+                'success' => false,
+                'message' => 'Failed to update payment method. Please try again.'
+            ];
+        }
+
+        // Send the JSON response back to the JavaScript
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($response, JSON_UNESCAPED_SLASHES);
         exit;

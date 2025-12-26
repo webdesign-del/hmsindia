@@ -531,12 +531,12 @@
             discountPercent = 100;
         }
         discountAmount = subtotal * (discountPercent / 100);
-        var finalTaxableAmount = subtotal - discountAmount;
+        // Calculate tax on the original subtotal (before discount)
         var taxAmount = 0;
         if (gstRate > 0) {
-            taxAmount = finalTaxableAmount * (gstRate / 100);
+            taxAmount = subtotal * (gstRate / 100);
         }
-        var finalTotal = finalTaxableAmount + taxAmount;
+        var finalTotal = subtotal - discountAmount + taxAmount;
         $('input[name="subtotal"]').val(subtotal.toFixed(2));
         $('input[name="tax_amount"]').val(taxAmount.toFixed(2)); // Now readonly
         $('input[name="total"]').val(finalTotal.toFixed(2));
