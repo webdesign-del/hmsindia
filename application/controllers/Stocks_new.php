@@ -4204,23 +4204,25 @@ class Stocks_new extends CI_Controller
                     $quantity = (float)$this->input->post("quantity_sold");
 
                     $unit_price = (float)$this->input->post("unit_price");
+                    $unit_price_one = (float)$this->input->post("unit_price_one");
                     $discount_percent = (float)$this->input->post("discount_percent");
                     $gst_rate = (float)$this->input->post("gst_rate");
-                    $subtotal = $quantity * $unit_price;
+                    $subtotal = $quantity * $unit_price_one;
                     $discount_amount = $subtotal * ($discount_percent / 100);
-                    // Calculate tax on the original subtotal (before discount)
-                    $tax_amount = $subtotal * ($gst_rate / 100);
-                    $total = $subtotal - $discount_amount + $tax_amount;
+                    $total = $subtotal - $discount_amount;
+                    $taxable_Value = $total/(1+ ($gst_rate/100) );
+                    $tax_amount = $taxable_Value*($gst_rate/100);
                     $item_data = [
                         'sale_id'         => $id,
                         'batch_id'        => $this->input->post('batch_id'),
                         'quantity_sold'   => $quantity,
-                        'unit_price'      => $unit_price,       // This is the price Excl. Tax
-                        'subtotal'        => $subtotal,         // (Qty * Unit Price)
-                        'discount_amount' => $discount_amount,  // This is the calculated discount
-                        'discount_percentage' => $discount_percent,  // This is the calculated discount
-                        'tax_amount'      => $tax_amount,       // This is the calculated tax
-                        'total'           => $total,            // This is the final total
+                        'unit_price'      => $unit_price_one, 
+                        'subtotal'        => $subtotal,        
+                        'discount_amount' => $discount_amount, 
+                        'discount_percentage' =>$discount_percent,  
+                        'taxable_Value'    =>$taxable_Value,
+                        'tax_amount'      => $tax_amount,      
+                        'total'           => $total,       
                         'remarks'         => $this->input->post('remarks')
                     ];
                     $result = $this->Stock_model_new->add_sale_item($item_data);
