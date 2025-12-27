@@ -394,6 +394,7 @@
                     <td class="total-value">₹<?php echo number_format($total_mrp, 2); ?></td>
                 </tr>
 
+                
                 <tr>
                     <td class="total-label">Discount</td>
                     <td class="total-value">- ₹<?php echo number_format($total_discount, 2); ?></td>
