@@ -4,6 +4,7 @@
  *
  * @test-module AJAX
  */
+
 var AJAX = {
   /**
    * @var {boolean} active Whether we are busy
