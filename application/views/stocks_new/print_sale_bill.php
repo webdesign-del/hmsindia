@@ -213,7 +213,7 @@
                                     $gstRateDecimal = $gstRate / 100;
                                     $perUnitTax = $totalTax / $qty;
                                     $perUnitMRP = $unitPrice + $perUnitTax;
-                                    $mrp_value = round($qty * $perUnitMRP, 4);
+                                    $mrp_value = round($qty * $perUnitMRP, 2);
                                     if (!empty($item->discount_percentage)) {
                                         $discountAmount = round(($mrp_value * $item->discount_percentage) / 100, 4);
                                     } else {
