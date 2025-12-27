@@ -207,3 +207,4 @@ assets/mpdf/*
 !assets/mpdf/.gitkeep
 
 uploads/
+assets/investigation_reports/*
