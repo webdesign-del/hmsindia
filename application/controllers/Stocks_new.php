@@ -29,6 +29,7 @@ class Stocks_new extends CI_Controller
 
     public function dashboard()
     {
+        var_dump('working');
         $logg = checklogin();
         if ($logg["status"] == true) {
             // Get dashboard summary data
