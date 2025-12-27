@@ -229,22 +229,22 @@
                                     <td><?php echo htmlspecialchars($item->batch_number ?? 'N/A'); ?></td>
                                     <td><?php echo date('m/y', strtotime($item->expiry_date)); ?></td>
                                     <td class="text-right"><?php echo number_format($item->quantity_sold, 1); ?></td>
-                                    <td class="text-right">₹<?php echo sprintf('%.2f', $perUnitMRP); ?></td>
-                                    <td class="text-right">₹<?php echo number_format($mrp_value, 2); ?></td>
+                                    <td class="text-right">₹<?php echo number_format($item->unit_price, 1);; ?></td>
+                                    <td class="text-right">₹<?php echo number_format($item->subtotal, 2); ?></td>
                                     <td class="text-right">
                                         <?php echo !empty($item->discount_percentage)
                                             ? number_format($item->discount_percentage, 2) . '%'
                                             : '—'; ?>
                                     </td>
-                                    <td class="text-right">₹<?php echo number_format($discountAmount, 2); ?></td>
-                                    <td class="text-right">₹<?php echo number_format($taxableValue, 2); ?></td>
+                                    <td class="text-right">₹<?php echo number_format($item->discount_amount, 2); ?></td>
+                                    <td class="text-right">₹<?php echo number_format($item->taxable_Value, 2); ?></td>
                                     <td class="text-right"><?php echo number_format($item->gst_rate, 1); ?>%</td>
-                                    <td class="text-right">₹<?php echo number_format($gstAmount, 2); ?></td>
+                                    <td class="text-right">₹<?php echo number_format($item->tax_amount, 2); ?></td>
                                     <td class="text-right">₹ 0.0</td>
-                                    <td class="text-right">₹ <?php echo number_format($gstAmount / 2, 2); ?></td>
-                                    <td class="text-right">₹ <?php echo number_format($gstAmount / 2, 2); ?></td>
+                                    <td class="text-right">₹ <?php echo number_format($item->tax_amount / 2, 2); ?></td>
+                                    <td class="text-right">₹ <?php echo number_format($item->tax_amount / 2, 2); ?></td>
                                     <td class="text-right">
-                                        ₹ <?php echo number_format($total_value, 2); ?>
+                                        ₹ <?php echo number_format($item->total, 2); ?>
                                     </td>
 
                                 </tr>
@@ -262,51 +262,29 @@
 
                                 if (!empty($sale_items)) {
                                     foreach ($sale_items as $item) {
+                                        $qty =  $item->quantity_sold;
+                                        $unitPrice =  $item->unit_price;
+                                        $totalTax =  $item->tax_amount;
+                                        $gstRate =  $item->gst_rate / 100;
+                                        $total = $item->total;
+                                        $subtotal= $item->subtotal;
+                                        $discount= $item->discount_amount;
+                                        $taxable=$item->taxable_Value;
 
-                                        $qty       = (float) $item->quantity_sold;
-                                        $unitPrice = (float) $item->unit_price;
-                                        $totalTax  = (float) $item->tax_amount;
-                                        $gstRate   = (float) $item->gst_rate / 100;
-
-                                        // 🔹 Per unit tax (NO ROUND)
-                                        $perUnitTax = $totalTax / $qty;
-
-                                        // 🔹 Per unit MRP (NO ROUND)
-                                        $perUnitMRP = $unitPrice + $perUnitTax;
-
-                                        // 🔹 Item MRP (ROUND TO 1 DECIMAL)
-                                        $mrp = round($qty * $perUnitMRP, 4);
-
-                                        // 🔹 Discount (ROUND TO 1 DECIMAL)
-                                        if (!empty($item->discount_percentage)) {
-                                            $discount = round(($mrp * $item->discount_percentage) / 100, 4);
-                                        } else {
-                                            $discount = round((float)$item->discount_amount, 4);
-                                        }
-
-                                        // 🔹 After discount
-                                        $mrpAfterDiscount = round($mrp - $discount, 4);
-
-                                        // 🔹 Taxable & GST (ROUND TO 1 DECIMAL)
-                                        $taxable   = round($mrpAfterDiscount / (1 + $gstRate), 4);
-                                        $gstAmount = round($mrpAfterDiscount - $taxable, 4);
-
-                                        // 🔹 Accumulate subtotals
                                         $total_quantity += $qty;
-                                        $total_mrp      += $mrp;
+                                        $total_mrp += $subtotal;
                                         $total_discount += $discount;
-                                        $total_taxable  += $taxable;
-                                        $total_gst      += $gstAmount;
-                                        $grand_total    += $mrpAfterDiscount;
+                                        $total_taxable += $taxable;
+                                        $total_gst += $totalTax;
+                                        $grand_total += $total;
                                     }
 
-                                    // 🔹 Final rounding for subtotal row
                                     $total_quantity = round($total_quantity, 4);
-                                    $total_mrp      = round($total_mrp, 4);
+                                    $total_mrp = round($total_mrp, 4);
                                     $total_discount = round($total_discount, 4);
-                                    $total_taxable  = round($total_taxable, 4);
-                                    $total_gst      = round($total_gst, 4);
-                                    $grand_total    = round($grand_total, 4);
+                                    $total_taxable = round($total_taxable, 4);
+                                    $total_gst = round($total_gst, 4);
+                                    $grand_total = round($grand_total, 4);
                                 }
                             ?>
                             <td class="text-right"><strong><?php echo number_format($total_quantity, 1); ?></strong></td>
@@ -322,7 +300,6 @@
                             <td class="text-right"><strong>₹<?php echo number_format($total_gst / 2, 2); ?></strong></td>
                             <td class="text-right"><strong>₹<?php echo number_format($grand_total, 2); ?></strong></td>
                         </tr>
-
                         <?php else: ?>
                             <tr>
                                 <td colspan="11" class="text-center">No items found for this sale.</td>
@@ -348,44 +325,25 @@
                 if (!empty($sale_items)) {
                     foreach ($sale_items as $item) {
 
-                        $qty       = (float) $item->quantity_sold;
-                        $unitPrice = (float) $item->unit_price;
-                        $totalTax  = (float) $item->tax_amount;
-                        $gstRate   = (float) $item->gst_rate / 100;
+                        $subtotal     = $item->subtotal;
+                        $discount     = $item->discount_amount;
+                        $total     = $item->total;
+                        // $unitPrice = (float) $item->total;
+                        // $totalTax  = (float) $item->tax_amount;
+                        // $gstRate   = (float) $item->gst_rate / 100;
 
-                        // SAME LOGIC AS ITEM ROW
-                        $perUnitTax = $totalTax / $qty;
-                        $perUnitMRP = $unitPrice + $perUnitTax;
-
-                        $mrp_value = round($qty * $perUnitMRP, 4);
-
-                        if (!empty($item->discount_percentage)) {
-                            $discount = round(($mrp_value * $item->discount_percentage) / 100, 4);
-                        } else {
-                            $discount = round((float)$item->discount_amount, 4);
-                        }
-
-                        $total_value = round($mrp_value - $discount, 4);
-
-                        $taxable = round($total_value / (1 + $gstRate), 4);
-                        $gstAmount = round($total_value - $taxable, 4);
-
-                        // ACCUMULATE TOTALS (SUM OF ROWS)
-                        $total_quantity += $qty;
-                        $total_mrp      += $mrp_value;
+                        // // ACCUMULATE TOTALS (SUM OF ROWS)
+                        // $total_quantity += $qty;
+                        // $total_mrp      += $mrp_value;
                         $total_discount += $discount;
-                        $total_taxable  += $taxable;
-                        $total_gst      += $gstAmount;
-                        $grand_total    += $total_value;
+                        // $total_taxable  += $taxable;
+                        // $total_gst      += $gstAmount;
+                        $total_mrp    += $subtotal;
+                        $grand_total  +=$total;
                     }
-
-                    // FINAL ROUND (SAFETY)
-                    $total_quantity = round($total_quantity, 4);
-                    $total_mrp      = round($total_mrp, 4);
-                    $total_discount = round($total_discount, 4);
-                    $total_taxable  = round($total_taxable, 4);
-                    $total_gst      = round($total_gst, 4);
-                    $grand_total    = round($grand_total, 4);
+                    $total_mrp = round($total_mrp, 3);
+                    $total_discount    = round($total_discount, 3);
+                    $grand_total    = round($grand_total, 3);
                 }
                 ?>
 
