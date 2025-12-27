@@ -296,7 +296,7 @@
                                         <div class="form-group">
                                             <label class="col-sm-4 control-label">Unit Price (Excl. Tax) *</label>
                                             <div class="col-sm-8">
-                                                <input type="number" name="unit_price" class="form-control" placeholder="Unit price" step="0.0001" min="0" required>
+                                                <input type="number" name="unit_price" class="form-control" placeholder="Unit price" step="0.01" min="0" required>
                                             </div>
                                         </div>
                                         
@@ -307,12 +307,17 @@
                                             </div>
                                         </div>
                                         
-                                   
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Discount (%)</label>
+                                            <div class="col-sm-8">
+                                                <input type="number" name="discount_percent" class="form-control" placeholder="0.00" step="0.01" min="0" max="100">
+                                            </div>
+                                        </div>
                                         
                                         <div class="form-group">
                                             <label class="col-sm-4 control-label">Tax Amount (₹)</label>
                                             <div class="col-sm-8">
-                                                <input type="number" name="tax_amount" class="form-control" placeholder="0.00" step="0.0001" min="0" readonly>
+                                                <input type="number" name="tax_amount" class="form-control" placeholder="0.00" step="0.01" min="0" readonly>
                                             </div>
                                         </div>
 
@@ -320,12 +325,6 @@
                                             <label class="col-sm-4 control-label">Total</label>
                                             <div class="col-sm-8">
                                                 <input type="number" name="total" class="form-control" readonly>
-                                            </div>
-                                        </div>
-                                             <div class="form-group">
-                                            <label class="col-sm-4 control-label">Discount (%)</label>
-                                            <div class="col-sm-8">
-                                                <input type="number" name="discount_percent" class="form-control" placeholder="0.00" step="0.0001" min="0" max="100">
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -392,12 +391,12 @@
                                                     <td><?php echo number_format($item->quantity_sold); ?></td>
                                                     
                                                     <!-- This Unit Price in the table is now the (Subtotal / Qty) -->
-                                                    <td>₹<?php echo number_format($item->subtotal / $item->quantity_sold, 4); ?></td>
+                                                    <td>₹<?php echo number_format($item->subtotal / $item->quantity_sold, 2); ?></td>
                                                     
-                                                    <td>₹<?php echo number_format($item->subtotal, 4); ?></td>
-                                                    <td>₹<?php echo number_format($item->discount_amount, 4); ?></td>
-                                                    <td>₹<?php echo number_format($item->tax_amount,4); ?></td>
-                                                    <td>₹<?php echo number_format($item->total, 4); ?></td>
+                                                    <td>₹<?php echo number_format($item->subtotal, 2); ?></td>
+                                                    <td>₹<?php echo number_format($item->discount_amount, 2); ?></td>
+                                                    <td>₹<?php echo number_format($item->tax_amount, 2); ?></td>
+                                                    <td>₹<?php echo number_format($item->total, 2); ?></td>
                                                     
                                                     <?php if($sale->status == 'DRAFT'): ?>
                                                         <td>
@@ -414,22 +413,22 @@
                                         <tfoot>
                                             <tr class="info">
                                                 <th colspan="9" style="text-align:right;">Subtotal</th>
-                                                <th>₹<?php echo number_format($sale->subtotal, 4); ?></th>
+                                                <th>₹<?php echo number_format($sale->subtotal, 2); ?></th>
                                                 <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
                                             </tr>
                                             <tr class="info">
                                                 <th colspan="9" style="text-align:right;">Total Discount</th>
-                                                <th>- ₹<?php echo number_format($sale->discount_amount, 4); ?></th>
+                                                <th>- ₹<?php echo number_format($sale->discount_amount, 2); ?></th>
                                                 <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
                                             </tr>
                                             <tr class="info">
                                                 <th colspan="9" style="text-align:right;">Total Tax</th>
-                                                <th>+ ₹<?php echo number_format($sale->tax_amount, 4); ?></th>
+                                                <th>+ ₹<?php echo number_format($sale->tax_amount, 2); ?></th>
                                                 <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
                                             </tr>
                                             <tr class="info" style="font-weight:bold; font-size: 1.1em;">
                                                 <th colspan="9" style="text-align:right;">Grand Total</th>
-                                                <th>₹<?php echo number_format($sale->total_amount, 4); ?></th>
+                                                <th>₹<?php echo number_format($sale->total_amount, 2); ?></th>
                                                 <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
                                             </tr>
                                         </tfoot>
@@ -472,8 +471,8 @@
                             
                             <!-- <a href="<?php echo base_url('stocks_new/print_sale/' . $sale->id); ?>" target="_blank" class="btn btn-info">
                                 <i class="fa fa-print"></i> Print Bill
-                            </a>
-                             -->
+                            </a> -->
+                            
                             <a href="<?php echo base_url('stocks_new/sales'); ?>" class="btn btn-default">
                                 <i class="fa fa-arrow-left"></i> Back to Sales
                             </a>
@@ -516,9 +515,7 @@
     function calculateTotals() {
         var quantity = parseFloat($('input[name="quantity_sold"]').val()) || 0;
         var unitPrice = parseFloat($('input[name="unit_price"]').val()) || 0;
-        
         var discountPercent = parseFloat($('input[name="discount_percent"]').val()) || 0;
-        
         var gstRate = parseFloat($('#gst_rate').val()) || 0;
         var maxAvailable = parseInt($('input[name="quantity_sold"]').attr('max')) || 0;
         if (quantity > maxAvailable && maxAvailable > 0) {
@@ -526,21 +523,20 @@
             $('input[name="quantity_sold"]').val(maxAvailable);
             quantity = maxAvailable;
         }
-        console.log(unitPrice);
         var subtotal = quantity * unitPrice;
-        console.log('subtotal',subtotal);
         var discountAmount = 0;
         if (discountPercent > 100) {
             alert('Discount cannot be greater than 100%.');
             $('input[name="discount_percent"]').val(100);
             discountPercent = 100;
         }
+        discountAmount = subtotal * (discountPercent / 100);
+        var finalTaxableAmount = subtotal - discountAmount;
         var taxAmount = 0;
         if (gstRate > 0) {
-            taxAmount = Math.round(subtotal * (gstRate / 100) * 100) / 100;
+            taxAmount = finalTaxableAmount * (gstRate / 100);
         }
-        discountAmount = (taxAmount+subtotal) * (discountPercent / 100);
-        var finalTotal = (taxAmount+subtotal) - discountAmount ;
+        var finalTotal = finalTaxableAmount + taxAmount;
         $('input[name="subtotal"]').val(subtotal.toFixed(2));
         $('input[name="tax_amount"]').val(taxAmount.toFixed(2)); // Now readonly
         $('input[name="total"]').val(finalTotal.toFixed(2));
@@ -564,9 +560,9 @@
             $('#expiry_date').text(selectedOption.data('expiry'));
             $('#available_qty').text(selectedOption.data('available'));
             $('#gst_rate_display').text(gstRate + '%'); 
-            $('#taxable_amount_display').text('₹' + taxableAmount.toFixed(4)); 
+            $('#taxable_amount_display').text('₹' + taxableAmount.toFixed(2)); 
             $('#medicine_details').show();
-            $('input[name="unit_price"]').val(taxableAmount.toFixed(4));
+            $('input[name="unit_price"]').val(taxableAmount.toFixed(2));
             $('input[name="quantity_sold"]').attr('max', selectedOption.data('available'));
             $('input[name="quantity_sold"]').val(1); // Default to 1
             $('input[name="discount_percent"]').val(''); // Clear discount
