@@ -1,3 +1,4 @@
+
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 
             <div class="row">
@@ -296,7 +297,8 @@
                                         <div class="form-group">
                                             <label class="col-sm-4 control-label">Unit Price (Excl. Tax) *</label>
                                             <div class="col-sm-8">
-                                                <input type="number" name="unit_price" class="form-control" placeholder="Unit price" step="0.01" min="0" required>
+                                                <input type="number" name="unit_price" class="form-control" placeholder="Unit price" step="0.0001" min="0" required>
+                                                <input type="hidden" name="unit_price_one" class="form-control" placeholder="Unit price" step="0.0001" min="0" required>
                                             </div>
                                         </div>
                                         
@@ -307,17 +309,12 @@
                                             </div>
                                         </div>
                                         
-                                        <div class="form-group">
-                                            <label class="col-sm-4 control-label">Discount (%)</label>
-                                            <div class="col-sm-8">
-                                                <input type="number" name="discount_percent" class="form-control" placeholder="0.00" step="0.01" min="0" max="100">
-                                            </div>
-                                        </div>
+                               
                                         
                                         <div class="form-group">
                                             <label class="col-sm-4 control-label">Tax Amount (₹)</label>
                                             <div class="col-sm-8">
-                                                <input type="number" name="tax_amount" class="form-control" placeholder="0.00" step="0.01" min="0" readonly>
+                                                <input type="number" name="tax_amount" class="form-control" placeholder="0.00" step="0.0001" min="0" readonly>
                                             </div>
                                         </div>
 
@@ -325,6 +322,12 @@
                                             <label class="col-sm-4 control-label">Total</label>
                                             <div class="col-sm-8">
                                                 <input type="number" name="total" class="form-control" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="col-sm-4 control-label">Discount (%)</label>
+                                            <div class="col-sm-8">
+                                                <input type="number" name="discount_percent" class="form-control" placeholder="0.00" step="0.01" min="0" max="100">
                                             </div>
                                         </div>
                                         <div class="form-group">
@@ -374,7 +377,9 @@
                                                 <th>Expiry Date</th>
                                                 <th>Quantity</th>
                                                 <th>Unit Price</th>
-                                                <th>Subtotal</th>
+                                                <th>Mrp Value</th>
+                                                <th>Taxable Value</th>
+                                                <th>Discount Percentage</th>
                                                 <th>Discount</th> <th>Tax</th>     <th>Total</th>
                                                 <?php if($sale->status == 'DRAFT'): ?>
                                                     <th>Actions</th>
@@ -394,6 +399,8 @@
                                                     <td>₹<?php echo number_format($item->subtotal / $item->quantity_sold, 2); ?></td>
                                                     
                                                     <td>₹<?php echo number_format($item->subtotal, 2); ?></td>
+                                                    <td>₹<?php echo number_format($item->taxable_Value, 2); ?></td>
+                                                    <td><?php echo number_format($item->discount_percentage); ?>%</td>
                                                     <td>₹<?php echo number_format($item->discount_amount, 2); ?></td>
                                                     <td>₹<?php echo number_format($item->tax_amount, 2); ?></td>
                                                     <td>₹<?php echo number_format($item->total, 2); ?></td>
@@ -412,22 +419,22 @@
                                         </tbody>
                                         <tfoot>
                                             <tr class="info">
-                                                <th colspan="9" style="text-align:right;">Subtotal</th>
+                                                <th colspan="11" style="text-align:right;">Subtotal</th>
                                                 <th>₹<?php echo number_format($sale->subtotal, 2); ?></th>
                                                 <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
                                             </tr>
                                             <tr class="info">
-                                                <th colspan="9" style="text-align:right;">Total Discount</th>
+                                                <th colspan="11" style="text-align:right;">Total Discount</th>
                                                 <th>- ₹<?php echo number_format($sale->discount_amount, 2); ?></th>
                                                 <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
                                             </tr>
-                                            <tr class="info">
+                                            <!-- <tr class="info">
                                                 <th colspan="9" style="text-align:right;">Total Tax</th>
                                                 <th>+ ₹<?php echo number_format($sale->tax_amount, 2); ?></th>
                                                 <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
-                                            </tr>
+                                            </tr> -->
                                             <tr class="info" style="font-weight:bold; font-size: 1.1em;">
-                                                <th colspan="9" style="text-align:right;">Grand Total</th>
+                                                <th colspan="11" style="text-align:right;">Grand Total</th>
                                                 <th>₹<?php echo number_format($sale->total_amount, 2); ?></th>
                                                 <?php if($sale->status == 'DRAFT'): ?> <th></th> <?php endif; ?>
                                             </tr>
@@ -538,7 +545,7 @@
         }
         var finalTotal = finalTaxableAmount + taxAmount;
         $('input[name="subtotal"]').val(subtotal.toFixed(2));
-        $('input[name="tax_amount"]').val(taxAmount.toFixed(2)); // Now readonly
+        $('input[name="tax_amount"]').val(taxAmount.toFixed(4)); // Now readonly
         $('input[name="total"]').val(finalTotal.toFixed(2));
     }
     function loadBatchDetails() {
@@ -555,6 +562,7 @@
             } else {
                 taxableAmount = unitPrice_MRP;
             }
+            console.log(unitPrice_MRP);
             $('#medicine_name').text(selectedOption.data('medicine'));
             $('#brand_name').text(selectedOption.data('brand'));
             $('#expiry_date').text(selectedOption.data('expiry'));
@@ -562,7 +570,8 @@
             $('#gst_rate_display').text(gstRate + '%'); 
             $('#taxable_amount_display').text('₹' + taxableAmount.toFixed(2)); 
             $('#medicine_details').show();
-            $('input[name="unit_price"]').val(taxableAmount.toFixed(2));
+            $('input[name="unit_price"]').val(taxableAmount.toFixed(4));
+            $('input[name="unit_price_one"]').val(unitPrice_MRP.toFixed(2));
             $('input[name="quantity_sold"]').attr('max', selectedOption.data('available'));
             $('input[name="quantity_sold"]').val(1); // Default to 1
             $('input[name="discount_percent"]').val(''); // Clear discount
@@ -572,6 +581,7 @@
             // Clear all fields
             $('#medicine_details').hide();
             $('input[name="unit_price"]').val('');
+            $('input[name="unit_price_one"]').val('');
             $('input[name="quantity_sold"]').val('').removeAttr('max');
             $('input[name="discount_percent"]').val('');
             $('input[name="tax_amount"]').val('');
