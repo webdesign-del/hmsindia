@@ -3090,6 +3090,7 @@ class Stock_model_new extends CI_Model
                 s.doctor_name,
                 s.sale_date,
                 s.sale_time,
+                s.tally_status,
                 s.payment_method,
                 s.payment_status,
                 s.utr_transaction_id,

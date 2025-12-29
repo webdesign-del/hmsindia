@@ -274,9 +274,18 @@
                                                                      ($approval_status == 'APPROVED');
                                                     ?>
                                                     
-                                                    <?php if($show_approval): ?>
+                                                    <?php if($show_approval):  ?>
                                                         <?php if($approval_status == 'APPROVED'): ?>
-                                                            <span class="badge badge-success"><i class="fa fa-check"></i> APPROVED</span>
+                                                            <span class="badge badge-success"><i class="fa fa-check"></i>APPROVED</span>
+                                                            <?php if($sale->tally_status == 'APPROVED_TALLY'): ?>
+                                                            <span class="badge badge-success"><i class="fa fa-check"></i>  <?php echo htmlspecialchars($sale->tally_status); ?></span>
+                                                            <?php endif; ?>
+                                                            <?php if($sale->tally_status == 'PENDING_TALLY' || $sale->tally_status == null): ?>
+                                                            <a href="<?php echo base_url('stocks_new/send_to_tally/' . $sale->id); ?>" 
+                                                               class="btn btn-xs btn-info" style="margin-top: 5px;">
+                                                                <i class="fa fa-calculator"></i> Send to Tally
+                                                            </a>
+                                                            <?php endif; ?>
                                                             <?php if(isset($sale->accountant_approved_by_name) && !empty($sale->accountant_approved_by_name)): ?>
                                                                 <br><small class="text-success">By: <?php echo htmlspecialchars($sale->accountant_approved_by_name); ?></small>
                                                             <?php endif; ?>
