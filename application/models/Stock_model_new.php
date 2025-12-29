@@ -1055,6 +1055,9 @@ class Stock_model_new extends CI_Model
     // }
     public function get_medicine_by_id($id, $center_id = null, $po_department = null)
     {
+        if($po_department == 'Embryologist Basant Lok'){
+            $po_department = 'Embryology Basant Lok';
+        }
         $this->db->select("mcs.*, med.unit,med.pack_size");
         $this->db->from("medicine_center_stocks mcs");
         $this->db->join("medicines med", "med.id = mcs.medicine_id", "left");
@@ -1062,9 +1065,14 @@ class Stock_model_new extends CI_Model
         if (!empty($center_id)) {
             $this->db->where("mcs.center_id", $center_id);
         }
-        if (!empty($po_department)) {
-            $this->db->where("mcs.department", $po_department);
+        
+        if ($po_department) {
+            $this->db->like('mcs.department', $po_department);
         }
+
+        // if (!empty($po_department)) {
+        //     $this->db->where("mcs.department", $po_department);
+        // }
 
         return $this->db->get()->row();
     }
