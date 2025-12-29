@@ -950,7 +950,7 @@ class Stocks_new extends CI_Controller
                 }
             }
            // var_dump($this->Stock_model_new->get_medicine_by_id($id));
-            $data["medicine"] = $this->Stock_model_new->get_medicine_by_id($id);
+            $data["medicine"] = $this->Stock_model_new->get_medicine_by_id_data($id);
            
             $data["brands"] = $this->Stock_model_new->get_medicine_brands();
 

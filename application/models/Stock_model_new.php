@@ -1038,21 +1038,21 @@ class Stock_model_new extends CI_Model
         return $this->db->update("medicines", $data);
     }
 
-    // public function get_medicine_by_id($id)
-    // {
-    //     $this->db->select("m.*, mb.brand_name as brand_name");
-    //     $this->db->from("medicines m");
-    //     $this->db->join(
-    //         "medicine_brands mb",
-    //         "m.brand_id = mb.ID",
-    //     );
-    //     // $this->db->join(
-    //     //     $this->config->item("db_prefix") . "brands mb",
-    //     //     "m.brand_id = mb.ID",
-    //     // );
-    //     $this->db->where("m.id", $id);
-    //     return $this->db->get()->row();
-    // }
+    public function get_medicine_by_id_data($id)
+    {
+        $this->db->select("m.*, mb.brand_name as brand_name");
+        $this->db->from("medicines m");
+        $this->db->join(
+            "medicine_brands mb",
+            "m.brand_id = mb.ID",
+        );
+        // $this->db->join(
+        //     $this->config->item("db_prefix") . "brands mb",
+        //     "m.brand_id = mb.ID",
+        // );
+        $this->db->where("m.id", $id);
+        return $this->db->get()->row();
+    }
     public function get_medicine_by_id($id, $center_id = null, $po_department = null)
     {
         if($po_department == 'Embryologist Basant Lok'){
