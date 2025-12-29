@@ -653,9 +653,7 @@ class New_purchase_orders extends CI_Controller {
         }
 
         $center_id = (int) $center_data->ID;
-
-        $stock_info = $this->Stock_model_new
-            ->get_medicine_stock_info($medicine_id, $center_id, $department);
+        $stock_info = $this->Stock_model_new->get_medicine_stock_info($medicine_id, $center_id, $department);
         if (!$stock_info) {
             return $this->output
                 ->set_content_type('application/json')
