@@ -128,11 +128,11 @@
                                     <th>Item Number</th>
                                     <th>Pack Size</th>
                                     <th>Unit</th>
-                                    <th>Quantity Order(Pack)</th>
+                                    <th>Quantity Order(In Pack)</th>
                                     <th>Quantity Received</th>
-                                    <th>Current Quantity(Pack)</th>
-                                    <th>Min Stock Level</th>
-                                    <th>Max Stock Level</th>
+                                    <th>Current Quantity(In Pack)</th>
+                                    <th>Min Stock Level(In Quentity)</th>
+                                    <th>Max Stock Level(In Quentity)</th>
                                     <th>Batch</th>
                                     <th>Price</th>
                                     <th>Vendor Price</th>

@@ -950,7 +950,7 @@ class Stocks_new extends CI_Controller
                 }
             }
            // var_dump($this->Stock_model_new->get_medicine_by_id($id));
-            $data["medicine"] = $this->Stock_model_new->get_medicine_by_id($id);
+            $data["medicine"] = $this->Stock_model_new->get_medicine_by_id_data($id);
            
             $data["brands"] = $this->Stock_model_new->get_medicine_brands();
 
@@ -10419,5 +10419,34 @@ class Stocks_new extends CI_Controller
             die();
         }
     }
+
+    public function send_to_tally($id)
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+        
+        if (!$id || !is_numeric($id)) {
+            $this->session->set_flashdata('error', 'Invalid sale ID');
+            redirect('stocks_new/sales');
+            return;
+        }
+        
+        $this->db->where('id', $id)
+            ->update('sales', [
+                'tally_status' => 'APPROVED_TALLY'
+            ]);
+        
+        if ($this->db->affected_rows() > 0) {
+            $this->session->set_flashdata('success', 'Sale approved for Tally successfully');
+        } else {
+            $this->session->set_flashdata('error', 'Failed to approve sale or sale not found');
+        }
+        
+        redirect('stocks_new/sales');
+    }
+
 
 }
