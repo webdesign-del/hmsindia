@@ -403,6 +403,8 @@
                   <select id="consultation_id" name="consultation_id" class="form-control">
                     <option value="">Select Consultation ID</option>
                     <?php echo $all_method->get_code('consultation');?>
+
+                    INT00
                   </select>
                 </div>
               </div>
@@ -883,4 +885,33 @@ function printDiv()
   newWin.close();
 
 }
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#consultation_id').change(function() {
+            // Get the text and value of the selected option
+            var selectedText = $(this).find("option:selected").text();
+            var selectedValue = $(this).val();
+            
+            // Get the default price stored in the HTML (2000)
+            var defaultPrice = $('#after_discount').data('default-price');
+
+            // CHECK: Does the selection contain "INT00"?
+            // We check both the visible text and the value just to be safe
+            if (selectedValue === "PiHC0001" || selectedText.includes("PiHC0001")) {
+                
+                // Set Price to 10000
+                $('#fees').val(20000);           // Hidden input
+                $('#after_discount').val(20000); // Visible input
+                
+            } else {
+                
+                // Revert to Default Price (2000)
+                $('#fees').val(defaultPrice);
+                $('#after_discount').val(defaultPrice);
+            }
+        });
+    });
 </script>

@@ -7117,6 +7117,125 @@ public function monthly_fet($center, $year)
 
     return $this->db->query($sql, $params)->result_array();
 }
+
+public function iui_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM iui_discharge_summary
+    WHERE YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function ivf_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM ovum_discharge_summary
+    WHERE IVF='Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function icsi_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM ovum_discharge_summary
+    WHERE ICSI='Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function tesa_mtesa_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+        SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM pesa_tesatesemicro_tese_discharge_summary
+    WHERE procedures IN ('TESA', 'TESE')
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function testicular_prp_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM testicular_prp_discharge_summary
+    WHERE procedures = 'Testicular PRP (TPRP)'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
     
 
 }
