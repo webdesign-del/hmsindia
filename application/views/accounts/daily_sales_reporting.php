@@ -86,7 +86,7 @@ if($start_date == $end_date) {
                         <input type="text" id="recipient_email" name="recipient_email" 
                                class="form-control" required 
                                placeholder="user1@example.com, user2@example.com"
-                               value="deepa.mishra@indiaivf.in, accounts@indiaivf.in, shanky.malhotra@indiaivf.in, pan.singh@indiaivf.in">
+                               value="deepa.mishra@indiaivf.in, accounts@indiaivf.in, shanky.malhotra@indiaivf.in, pan.singh@indiaivf.in, ceo@indiaivf.in, director@indiaivf.in">
                         <small class="text-muted">
                             You can enter multiple emails, separated by a comma.
                         </small>
@@ -98,7 +98,7 @@ if($start_date == $end_date) {
                         <!-- UPDATED: Uses the dynamic $date_label we created at the top -->
                         <input type="text" id="email_subject" name="email_subject" 
                                class="form-control" 
-                               value="Sales Report (<?php echo $date_label; ?>) - <?php echo $all_method->get_center_name($_SESSION['logged_billing_manager']['center']); ?>">
+                               value="(<?php echo $all_method->get_center_name($_SESSION['logged_billing_manager']['center']); ?> Sales Report - <?php echo $date_label; ?>)">
                     </div>
                 </div>
             </div>

@@ -62,6 +62,7 @@
 			<th>IVF</th>
 			<th>ICSI</th>
 			<th>TESA/MTESE</th>
+			<th>TESTICULAR/PRP</th>
         </tr>
     </thead>
     <tbody>
@@ -235,13 +236,30 @@ $sql_tesatese = "
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_tesatese
     FROM pesa_tesatesemicro_tese_discharge_summary
-    WHERE procedures IN ('TESA', 'TESe')  
+    WHERE procedures IN ('TESA', 'TESE')  
     AND center = ?
     AND date_of_procedure IS NOT NULL
     GROUP BY YEAR(date_of_procedure)
 ";
 
 $tesatese_data = $this->db->query($sql_tesatese, [$center])->result_array();
+
+/* ===============================
+   11. FETCH Testicular Stem Cell YEAR-WISE
+=================================*/
+
+    $sql_testicular_prp = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_testicular_prp
+    FROM testicular_prp_discharge_summary
+    WHERE procedures = 'Testicular PRP (TPRP)'
+    AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$testicular_prp_data = $this->db->query($sql_testicular_prp, [$center])->result_array();
 
 /* ===============================
    3. INDEX STEM DATA BY YEAR
@@ -295,6 +313,11 @@ $tesatese_by_year = [];
 foreach ($tesatese_data as $s) {
     $tesatese_by_year[$s['year']] = $s['total_tesatese'];
 }
+
+$testicular_prp_by_year = [];
+foreach ($testicular_prp_data as $s) {
+    $testicular_prp_by_year[$s['year']] = $s['total_testicular_prp'];
+}
 /* ===============================
    4. MERGE & DISPLAY
 =================================*/
@@ -313,6 +336,7 @@ if (!empty($consult_data)) {
 		$ivf_count = isset($ivf_by_year[$year]) ? $ivf_by_year[$year] : 0;
 		$icsi_count = isset($icsi_by_year[$year]) ? $icsi_by_year[$year] : 0;
 		$tesatese_count = isset($tesatese_by_year[$year]) ? $tesatese_by_year[$year] : 0;
+		$testicular_prp_count = isset($testicular_prp_by_year[$year]) ? $testicular_prp_by_year[$year] : 0;
         ?>
         <tr>
             <td>
@@ -331,6 +355,7 @@ if (!empty($consult_data)) {
 			<td><?php echo $ivf_count; ?></td>
 			<td><?php echo $icsi_count; ?></td>
 			<td><?php echo $tesatese_count; ?></td>
+			<td><?php echo $testicular_prp_count; ?></td>
         </tr>
         <?php
     }
