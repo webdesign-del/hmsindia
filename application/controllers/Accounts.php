@@ -3413,6 +3413,133 @@ public function registration_tally() {
     echo json_encode(["Sales_Details" => $sales_data], JSON_PRETTY_PRINT);
 }
 
+public function medicine_tally()
+{
+    $sql = "
+        SELECT 
+            s.id AS sale_id,
+            s.patient_id,
+            s.patient_name,
+            c.center_name,
+            s.sale_number,
+            s.sale_date,
+            s.payment_method,
+            s.payment_status,
+            s.payment_approved_by_name,
+            m.medicine_name,
+            mb.batch_number,
+			mb.expiry_date,
+            m.hsn_code,
+            m.gst_rate,
+            m.pack_size,
+            mb.mrp,
+            sm.quantity_change,
+            sm.total_value
+
+        FROM sales s
+        INNER JOIN hms_centers c ON s.center_id = c.id
+        INNER JOIN stock_movements sm ON s.id = sm.reference_id
+        INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
+        INNER JOIN medicines m ON mb.medicine_id = m.id
+
+        WHERE sm.movement_type = 'SALE'
+        AND sm.to_location_type = 'SALE'
+
+        ORDER BY s.updated_at DESC
+        LIMIT 50
+    ";
+
+    $query = $this->db->query($sql);
+    $results = $query->result_array();
+
+    $sales = [];
+    $recordCount = 0;
+
+    foreach ($results as $row) {
+        $saleId = $row['sale_id'];
+
+		$qty       = abs((int) $row['quantity_change']);
+		$mrpUnit = $row['mrp'] / $row['pack_size'];
+
+         // MRP IS PER UNIT
+		$gstRate  = (float) $row['gst_rate'];
+		$total    = (float) $row['total_value'];
+
+// MRP value
+$mrpValue = number_format($mrpUnit, 2, '.', '') * $qty;
+
+// Taxable value (GST INCLUDED)
+$taxableValue = ($total * 100) / (100 + $gstRate);
+
+// GST amount
+$gstAmount = $total - $taxableValue;
+
+// Discount amount
+$discountAmount = $mrpValue - $total;
+
+// Discount %
+$discountPercent = $mrpValue > 0
+    ? ($discountAmount / $mrpValue) * 100
+    : 0;
+
+// CGST / SGST
+$cgst = $gstAmount / 2;
+$sgst = $gstAmount / 2;
+
+
+        // Create sale record if not exists
+        if (!isset($sales[$saleId])) {
+            $sales[$saleId] = [
+                'patient_id' => $row['patient_id'],
+                'patient_name' => $row['patient_name'],
+                'billing_center' => $row['center_name'],
+                'receipt_number' => $row['sale_number'],
+                'on_date' => $row['sale_date'],
+                'payment_method' => $row['payment_method'],
+                'status' => $row['payment_status'],
+                'payment_approved_by' => $row['payment_approved_by_name'],
+                'patient_medicine' => []
+            ];
+            $recordCount++;
+        }
+
+        // Append medicine details
+        $sales[$saleId]['patient_medicine'][] = [
+    'medicine_name'    => $row['medicine_name'],
+    'hsn_code'         => $row['hsn_code'],
+    'pack_size'        => $row['pack_size'],
+    'batch_number'     => $row['batch_number'],
+    'expiry'           => $row['expiry_date'],
+    'quantity'         => $qty,
+
+    'mrp per unit'     => number_format($mrpUnit, 2, '.', ''),
+    'discount %'       => number_format($discountPercent, 0, '.', ''),
+    'mrp value'        => number_format($mrpValue, 2, '.', ''),
+    'discount_amount'  => number_format($discountAmount, 2, '.', ''),
+    'taxable_value'    => number_format($taxableValue, 2, '.', ''),
+    'gst_rate'         => number_format($gstRate, 2, '.', ''),
+    'gst_amount'       => number_format($gstAmount, 2, '.', ''),
+    'igst'             => '',
+    'cgst'             => number_format($cgst, 2, '.', ''),
+    'sgst'             => number_format($sgst, 2, '.', ''),
+    'total_value'      => number_format($total, 2, '.', '')
+];
+
+    }
+
+    // Final JSON output
+    $output = [
+        'export_date' => date('Y-m-d H:i:s'),
+        'record_count' => $recordCount,
+        'Sales_Details' => array_values($sales)
+    ];
+
+    header('Content-Type: application/json');
+    echo json_encode($output, JSON_PRETTY_PRINT);
+    exit;
+}
+
+
 	public function front_approve($request = NULL){
 			$data = array();
 			$type = $_GET['t'];
@@ -10071,6 +10198,16 @@ function assessment_form($patient_id = 0){ // Keep the = 0 fix from before
 	$data['embryo_transfer_monthly'] = $this->accounts_model->monthly_embryo_transfer($center, $year);
 
 	$data['fet_monthly'] = $this->accounts_model->monthly_fet($center, $year);
+
+	$data['iui_monthly'] = $this->accounts_model->iui_monthly($center, $year);
+
+	$data['ivf_monthly'] = $this->accounts_model->ivf_monthly($center, $year);
+
+	$data['icsi_monthly'] = $this->accounts_model->icsi_monthly($center, $year);
+
+	$data['tesa_mtesa_monthly'] = $this->accounts_model->tesa_mtesa_monthly($center, $year);
+
+	$data['testicular_prp_monthly'] = $this->accounts_model->testicular_prp_monthly($center, $year);
 	$template = get_header_template($logg['role']);
 	$this->load->view($template['header']);
     $this->load->view('accounts/yearly_monthly_details', $data);
