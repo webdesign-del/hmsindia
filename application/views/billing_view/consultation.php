@@ -240,7 +240,8 @@
                   <span class="input-group-addon" style="background-color: #ecf0f1; border-color: #bdc3c7;">
                     <i class="fa fa-rupee"></i>
                   </span>
-                  <input value="0" placeholder="Enter discount amount" id="discount_amount" name="discount_amount" type="text" class="form-control">
+               <input value="0" type="number" placeholder="Enter discount amount" id="discount_amount" name="discount_amount" class="form-control" min="0" max="5000"
+>
                 </div>
                 <input value="<?php echo $_SESSION['logged_billing_manager']['allow_discount_rs']; ?>" id="allow_discount" type="hidden" required>
                 <div id="show_disc_app" class="alert alert-warning" style="display:none; margin-top: 10px;">
@@ -263,7 +264,12 @@
                     <span class="input-group-addon" style="background-color: #ecf0f1; border-color: #bdc3c7;">
                       <i class="fa fa-edit"></i>
                     </span>
-                    <input value="" placeholder="Enter reason for discount" id="reason_of_discount" name="reason_of_discount" type="text" class="form-control">
+                     <select name="reason_of_discount" id="reason_of_discount" class="form-control" required>
+                    <option value="">Select Payment Method</option>
+                      <option value="First Visit" mode="First Visit">First Visit</option>
+                      <option value="FOLLOW UP VISIT" mode="FOLLOW UP VISIT">FOLLOW UP VISIT</option>
+                      <option value="Personalized At‑Home IVF Advisory" mode="Personalized At‑Home IVF Advisory">Personalized At‑Home IVF Advisory</option>
+                  </select>
                   </div>
                 </div>
               </div>
@@ -914,4 +920,21 @@ function printDiv()
             }
         });
     });
+
+    document.getElementById('discount_amount').addEventListener('input', function () {
+    var maxLimit = 5000;
+    
+    // Agar value 5000 se zyada hai
+    if (this.value > maxLimit) {
+        this.value = maxLimit; // Value wapas 5000 set kar dega
+        
+        // Optional: Error dikhane ke liye
+        // alert("Discount cannot be more than 5000"); 
+    }
+    
+    // Agar negative value hai toh 0 kar de
+    if (this.value < 0) {
+        this.value = 0;
+    }
+});
 </script>

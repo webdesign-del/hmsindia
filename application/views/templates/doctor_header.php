@@ -116,6 +116,11 @@ ul.nav.nav-second-level.collapse.in li {
               <li> <a href="<?php echo base_url(); ?>doctors/consent_form_for_withdrawal">Consent Form For Withdrawal</a> </li>
               <li> <a href="<?php echo base_url(); ?>doctors/screening_of_the_surrogate">Screening Of The Surrogate</a> </li>
               <li> <a href="<?php echo base_url(); ?>doctors/acknowledgment">Acknowledgment</a> </li>
+            </ul>
+          </li>
+
+           <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Affidavit Form<span class="fa arrow"></span></a>
+            <ul class="nav nav-third-level">
               <li> <a href="<?php echo base_url(); ?>doctors/new_ed_affidavit">New Ed affidavit</a> </li>
               <li> <a href="<?php echo base_url(); ?>doctors/od_affidavit">OD affidavit</a> </li>
               <li> <a href="<?php echo base_url(); ?>doctors/donor_sperm_affidavit">Donor Sperm Affidavit</a> </li>
