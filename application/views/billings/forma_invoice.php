@@ -569,23 +569,26 @@ which the package will automatically stand cancelled without prior notification.
 
 
 
-        <table width="100%" class="" style="margin-top:20px; border-collapse:collapse;" border="1">
-            <tbody>
-                <tr><td colspan="6"><strong>Payment Details:</strong></td></tr>
-                <tr>
-                    <td width="50%" colspan="2" style="font-size:12px; padding:5px;">Total Package</td>
-                    <td width="50%" colspan="4" style="padding:5px;">Rs: <?php echo $select_result['total_after_discount']; ?></td>
-                </tr>
-                <tr>
-                    <td width="50%" colspan="2" style="font-size:12px; padding:5px;">Booking Amount (10 %)</td>
-                    <td width="50%" colspan="4" style="padding:5px;">Rs: <span id="print_booking_amount"></span></td>
-                </tr>
-                <tr>
-                    <td width="50%" colspan="2" style="font-size:12px; padding:5px;">Deposit on the start of treatment</td>
-                    <td width="50%" colspan="4" style="padding:5px;">Rs: __________________</td>
-                </tr>
-            </tbody>
-        </table>
+         <table width="100%" class="">
+                  <tbody>
+                     <tr><td colspan="6"><strong>Payment Details: </strong></td></tr>
+                     <tr>
+                        <td colspan="2" style="font-size:12px;">Total Package</td>
+                        <td colspan="2">Rs: <?php echo $select_result['total_after_discount']; ?><input type="text" id="total_after_discount" name="total_after_discount" value="<?php echo $select_result['total_after_discount']; ?>" style="border:0px;" readonly></td>
+                        <td colspan="2">Date: <input type="date" name="package_date" value="<?php echo $select_result['package_date']; ?>" style="border:0px;" required></td>
+                     </tr>
+                     <tr>
+                        <td colspan="2" style="font-size:12px;">Booking Amount (10 %)</td>
+                        <td colspan="2">Rs: <input type="text" name="booking_amount" value="<?php echo $select_result['booking_amount']; ?>" style="border:0px;" required></td>
+                        <td colspan="2">Date: <input type="date" name="booking_date" value="<?php echo $select_result['booking_date']; ?>" required style="border:0px;"></td>
+                     </tr>
+                     <tr>
+                        <td colspan="2" style="font-size:12px;">Deposit on start of treatment</td>
+                        <td colspan="2">Rs: <input type="text" style="border:0px;"></td>
+                        <td colspan="2">Date: <input type="date" style="border:0px;"></td>
+                     </tr>
+                  </tbody>
+               </table>
         
         <table style="width:100%; margin-top:30px;" border="1">
             <tbody>
