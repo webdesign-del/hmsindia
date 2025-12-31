@@ -263,12 +263,7 @@
                     <span class="input-group-addon" style="background-color: #ecf0f1; border-color: #bdc3c7;">
                       <i class="fa fa-edit"></i>
                     </span>
-                     <select name="reason_of_discount" id="reason_of_discount" class="form-control" required>
-                    <option value="">Select Payment Method</option>
-                      <option value="First Visit" mode="First Visit">First Visit</option>
-                      <option value="FOLLOW UP VISIT" mode="FOLLOW UP VISIT">FOLLOW UP VISIT</option>
-                      <option value="Personalized At‑Home IVF Advisory" mode="Personalized At‑Home IVF Advisory">Personalized At‑Home IVF Advisory</option>
-                  </select>
+                    <input value="" placeholder="Enter reason for discount" id="reason_of_discount" name="reason_of_discount" type="text" class="form-control">
                   </div>
                 </div>
               </div>
