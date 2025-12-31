@@ -6661,7 +6661,7 @@ class Stocks_new extends CI_Controller
             // Calculate taxable amount
             $subtotal = $sale->subtotal ?? 0;
             $discount = $sale->discount_amount ?? 0;
-            $taxable_amount = $subtotal - $discount;
+            $taxable_amount = $sale->total_amount - $sale->tax_amount;
             
             $row = [
                 $sale->sale_number ?? 'N/A',
