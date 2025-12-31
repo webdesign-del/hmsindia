@@ -628,8 +628,18 @@ class New_purchase_orders extends CI_Controller {
 
         $medicine_id       = (int) $this->input->get('medicine_id');
         $quantity          = (int) $this->input->get('quantity');
-        $ship_to_center_id = (int) $this->input->get('ship_to_center_id');
+        $ship_to_center_id = $this->input->get('ship_to_center_id');
         $department        = strtoupper(trim($this->input->get('department')));
+        if ($ship_to_center_id === 'CENTRAL_WAREHOUSE_NOIDA') {
+            return $this->output
+                ->set_content_type('application/json')
+                ->set_status_header(200)
+                ->set_output(json_encode([
+                    'status' => 'success',
+                    'can_order' => true,
+                    'message' => 'Central warehouse – stock check skipped'
+                ]));
+        }
 
         if (empty($medicine_id) || $quantity <= 0 || empty($ship_to_center_id) || empty($department)) {
             return $this->output
@@ -640,7 +650,6 @@ class New_purchase_orders extends CI_Controller {
                     'message' => 'medicine_id, quantity, center and department are required'
                 ]));
         }
-
         $center_data = $this->get_center_by_id($ship_to_center_id);
         if (!$center_data) {
             return $this->output
@@ -651,7 +660,6 @@ class New_purchase_orders extends CI_Controller {
                     'message' => 'Invalid center'
                 ]));
         }
-
         $center_id = (int) $center_data->ID;
         $stock_info = $this->Stock_model_new->get_medicine_stock_info($medicine_id, $center_id, $department);
         if (!$stock_info) {
