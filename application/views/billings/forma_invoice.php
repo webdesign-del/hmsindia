@@ -598,6 +598,25 @@ which the package will automatically stand cancelled without prior notification.
 <td colspan="2" style="font-size:14px;">Counsellor Signature: <input type="text" name="" id="" value="<?php echo $select_result['counsellor_signature']; ?>" style="width:200px;border-top:0px;border-left:0px;border-right:0px;"></td>
 
 </tr>
+<tr>
+
+<td colspan="2" style="font-size:14px;width:40%">Husband Signature: <input type="text" id="name29" value="" style="width:200px;border-top:0px;border-left:0px;border-right:0px;" ></td>
+
+<td colspan="2" style="font-size:14px;">Wife Signature: <input type="text" id="name29" value=""style="width:200px;border-top:0px;border-left:0px;border-right:0px;" ></td>
+
+<td colspan="2" style="font-size:14px;">Counsellor Signature: <input type="text" name="" id="" value="<?php echo $select_result['counsellor_signature']; ?>" style="width:200px;border-top:0px;border-left:0px;border-right:0px;"></td>
+
+</tr>
+
+<tr>
+
+<td colspan="2" style="font-size:14px;width:40%">Coordinator Signature : <input type="text" id="coordinator_signature" name="coordinator_signature" value="<?php echo $select_result['coordinator_signature']; ?>" style="width:100px;border-top:0px;border-left:0px;border-right:0px;"></td>
+
+<td colspan="2">Date: <input type="date" id="name29" value="" style="width:200px;border-top:0px;border-left:0px;border-right:0px;"></td>
+
+<td colspan="2">Time: <input type="time" id="name30" value="" style="width:200px;border-top:0px;border-left:0px;border-right:0px;"></td>
+
+</tr>
             </tbody>
         </table>
     </div>
