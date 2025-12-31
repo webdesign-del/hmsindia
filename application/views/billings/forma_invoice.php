@@ -306,7 +306,7 @@ which the package will automatically stand cancelled without prior notification.
                      <tr><td colspan="6"><strong>Payment Details: </strong></td></tr>
                      <tr>
                         <td colspan="2" style="font-size:12px;">Total Package</td>
-                        <td colspan="2">Rs: <input type="text" id="total_after_discount" name="total_after_discount" value="<?php echo $select_result['total_after_discount']; ?>" style="border:0px;" readonly></td>
+                        <td colspan="2">Rs: <?php echo $select_result['total_after_discount']; ?><input type="text" id="total_after_discount" name="total_after_discount" value="<?php echo $select_result['total_after_discount']; ?>" style="border:0px;" readonly></td>
                         <td colspan="2">Date: <input type="date" name="package_date" value="<?php echo $select_result['package_date']; ?>" style="border:0px;" required></td>
                      </tr>
                      <tr>
@@ -574,7 +574,7 @@ which the package will automatically stand cancelled without prior notification.
                 <tr><td colspan="6"><strong>Payment Details:</strong></td></tr>
                 <tr>
                     <td width="50%" colspan="2" style="font-size:12px; padding:5px;">Total Package</td>
-                    <td width="50%" colspan="4" style="padding:5px;">Rs: <span id="print_total_package"></span></td>
+                    <td width="50%" colspan="4" style="padding:5px;">Rs: <?php echo $select_result['total_after_discount']; ?></td>
                 </tr>
                 <tr>
                     <td width="50%" colspan="2" style="font-size:12px; padding:5px;">Booking Amount (10 %)</td>
@@ -590,10 +590,14 @@ which the package will automatically stand cancelled without prior notification.
         <table style="width:100%; margin-top:30px;" border="1">
             <tbody>
                 <tr>
-                    <td style="height:50px; vertical-align:bottom; padding:5px;">Husband Signature</td>
-                    <td style="height:50px; vertical-align:bottom; padding:5px;">Wife Signature</td>
-                    <td style="height:50px; vertical-align:bottom; padding:5px;">Counsellor Signature</td>
-                </tr>
+
+<td colspan="2" style="font-size:14px;width:40%">Husband Signature: <input type="text" id="name29" value="" style="width:200px;border-top:0px;border-left:0px;border-right:0px;" ></td>
+
+<td colspan="2" style="font-size:14px;">Wife Signature: <input type="text" id="name29" value=""style="width:200px;border-top:0px;border-left:0px;border-right:0px;" ></td>
+
+<td colspan="2" style="font-size:14px;">Counsellor Signature: <input type="text" name="" id="" value="<?php echo $select_result['counsellor_signature']; ?>" style="width:200px;border-top:0px;border-left:0px;border-right:0px;"></td>
+
+</tr>
             </tbody>
         </table>
     </div>
