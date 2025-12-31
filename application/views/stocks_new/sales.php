@@ -201,8 +201,7 @@
                                                 <td><?php echo isset($sale->total_items) && is_numeric($sale->total_items) ? number_format($sale->total_items) : '0'; ?></td>
                                                 <td><?php echo isset($sale->total_quantity) && is_numeric($sale->total_quantity) ? number_format($sale->total_quantity) : '0'; ?></td>
                                                 <td>₹<?php 
-                                                    // Taxable Amount = Subtotal - Discount
-                                                    $taxable_amount = (isset($sale->subtotal) ? $sale->subtotal : 0) - (isset($sale->discount_amount) ? $sale->discount_amount : 0);
+                                                    $taxable_amount = $sale->total_amount - $sale->tax_amount;
                                                     echo number_format($taxable_amount, 2); 
                                                 ?></td>
                                                 <td><?php echo isset($sale->gst_rates) && !empty($sale->gst_rates) ? htmlspecialchars($sale->gst_rates) . '%' : 'N/A'; ?></td>
