@@ -574,7 +574,7 @@ which the package will automatically stand cancelled without prior notification.
                      <tr><td colspan="6"><strong>Payment Details: </strong></td></tr>
                      <tr>
                         <td colspan="2" style="font-size:12px;">Total Package</td>
-                        <td colspan="2">Rs: <?php echo $select_result['total_after_discount']; ?><input type="text" id="total_after_discount" name="total_after_discount" value="<?php echo $select_result['total_after_discount']; ?>" style="border:0px;" readonly></td>
+                        <td colspan="2">Rs: <input type="text" id="total_after_discount" name="total_after_discount" value="<?php echo $select_result['total_after_discount']; ?>" style="border:0px;" readonly></td>
                         <td colspan="2">Date: <input type="date" name="package_date" value="<?php echo $select_result['package_date']; ?>" style="border:0px;" required></td>
                      </tr>
                      <tr>
