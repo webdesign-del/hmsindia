@@ -888,30 +888,53 @@ function printDiv()
 </script>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
 <script>
     $(document).ready(function() {
+
+        // 1. LOGIC FOR DROPDOWN CHANGE (PiHC0001)
         $('#consultation_id').change(function() {
-            // Get the text and value of the selected option
             var selectedText = $(this).find("option:selected").text();
             var selectedValue = $(this).val();
-            
-            // Get the default price stored in the HTML (2000)
             var defaultPrice = $('#after_discount').data('default-price');
 
-            // CHECK: Does the selection contain "INT00"?
-            // We check both the visible text and the value just to be safe
+            // CHECK: Is it "PiHC0001"?
             if (selectedValue === "PiHC0001" || selectedText.includes("PiHC0001")) {
                 
-                // Set Price to 10000
-                $('#fees').val(20000);           // Hidden input
-                $('#after_discount').val(20000); // Visible input
-                
+                var specialPrice = 20000;
+
+                // Set Fees to 20,000
+                $('#fees').val(specialPrice);
+                $('#after_discount').val(specialPrice);
+
+                // Set Full Payment Automatically
+                $('#payment_done').val(specialPrice); 
+
+                // Reset Discount to 0 (Since it's full payment)
+                $('#discount_amount').val(0);
+
             } else {
-                
-                // Revert to Default Price (2000)
+                // Revert to Default Price
                 $('#fees').val(defaultPrice);
                 $('#after_discount').val(defaultPrice);
+                
+                // Clear the payment field or set to default
+                $('#payment_done').val(''); 
             }
         });
+
+        // 2. LOGIC TO RESTRICT MAX DISCOUNT TO 5000
+        $('#discount_amount').on('input', function() {
+            var maxLimit = 5000;
+            var currentVal = parseFloat($(this).val());
+
+            if (currentVal > maxLimit) {
+                alert("Maximum discount allowed is " + maxLimit);
+                $(this).val(maxLimit); // Reset to 5000
+            }
+        });
+
     });
 </script>
