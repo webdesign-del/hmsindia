@@ -1046,22 +1046,32 @@ class Stock_model_new extends CI_Model
             "medicine_brands mb",
             "m.brand_id = mb.ID",
         );
-        // $this->db->join(
-        //     $this->config->item("db_prefix") . "brands mb",
-        //     "m.brand_id = mb.ID",
-        // );
         $this->db->where("m.id", $id);
         return $this->db->get()->row();
     }
-    public function get_medicine_by_id($id, $center_id = null, $po_department = null)
+    public function get_medicine_by_id($medicine_id, $center_id = null, $po_department = null,$po_center)
     {
+        if ($po_center === 'CENTRAL_WAREHOUSE_NOIDA') {
+                $this->db->select('COALESCE(SUM(cs.available_quantity), 0) AS current_stock');
+                $this->db->from('central_stocks AS cs');
+                $this->db->join(
+                        'medicine_batches AS mb',
+                        'cs.batch_id = mb.id
+                        AND mb.medicine_id = ' . (int)$medicine_id,
+                        'LEFT'   
+                );
+                $this->db->where('cs.status', 'ACTIVE');
+                $this->db->where_in('mb.batch_status', ['ACTIVE', 'EXPIRED']);
+                $stock_result = $this->db->get()->row();
+                return $stock_result;
+        }
         if($po_department == 'Embryologist Basant Lok'){
             $po_department = 'Embryology Basant Lok';
         }
         $this->db->select("mcs.*, med.unit,med.pack_size");
         $this->db->from("medicine_center_stocks mcs");
         $this->db->join("medicines med", "med.id = mcs.medicine_id", "left");
-        $this->db->where("mcs.medicine_id", $id);
+        $this->db->where("mcs.medicine_id", $medicine_id);
         if (!empty($center_id)) {
             $this->db->where("mcs.center_id", $center_id);
         }
@@ -1069,11 +1079,6 @@ class Stock_model_new extends CI_Model
         if ($po_department) {
             $this->db->like('mcs.department', $po_department);
         }
-
-        // if (!empty($po_department)) {
-        //     $this->db->where("mcs.department", $po_department);
-        // }
-
         return $this->db->get()->row();
     }
 
@@ -2040,46 +2045,46 @@ class Stock_model_new extends CI_Model
     //     return $result;
     // }
     public function get_medicine_stock_info($medicine_id, $center_id, $department)
-{
-    $department = strtoupper(trim($department));
+    {
+        $department = strtoupper(trim($department));
 
-    // 1️⃣ Stock configuration
-    $this->db->select('min_stock_level, max_stock_level, reorder_level');
-    $this->db->from('medicine_center_stocks');
-    $this->db->where([
-        'medicine_id' => $medicine_id,
-        'center_id'   => $center_id,
-        'department'  => $department
-    ]);
-    $mcs_config = $this->db->get()->row();
+        // 1️⃣ Stock configuration
+        $this->db->select('min_stock_level, max_stock_level, reorder_level');
+        $this->db->from('medicine_center_stocks');
+        $this->db->where([
+            'medicine_id' => $medicine_id,
+            'center_id'   => $center_id,
+            'department'  => $department
+        ]);
+        $mcs_config = $this->db->get()->row();
 
-    // 2️⃣ Actual stock calculation
-    $this->db->select('COALESCE(SUM(ccs.available_quantity), 0) AS current_stock');
-    $this->db->from('center_stocks AS ccs');
+        // 2️⃣ Actual stock calculation
+        $this->db->select('COALESCE(SUM(ccs.available_quantity), 0) AS current_stock');
+        $this->db->from('center_stocks AS ccs');
 
-    $this->db->join(
-        'medicine_batches AS mb',
-        'ccs.batch_id = mb.id
-         AND mb.medicine_id = ' . (int)$medicine_id,
-        'LEFT'   // 🔥 IMPORTANT
-    );
+        $this->db->join(
+            'medicine_batches AS mb',
+            'ccs.batch_id = mb.id
+            AND mb.medicine_id = ' . (int)$medicine_id,
+            'LEFT'   // 🔥 IMPORTANT
+        );
 
-    $this->db->where('ccs.center_id', $center_id);
-    $this->db->where('UPPER(ccs.department)', $department);
-    $this->db->where('ccs.status', 'ACTIVE');
-    $this->db->where_in('mb.batch_status', ['ACTIVE', 'EXPIRED']); // optional safety
+        $this->db->where('ccs.center_id', $center_id);
+        $this->db->where('UPPER(ccs.department)', $department);
+        $this->db->where('ccs.status', 'ACTIVE');
+        $this->db->where_in('mb.batch_status', ['ACTIVE', 'EXPIRED']); // optional safety
 
-    $stock_result = $this->db->get()->row();
+        $stock_result = $this->db->get()->row();
 
-    // 3️⃣ Final object
-    $result = new stdClass();
-    $result->current_stock = (int) ($stock_result->current_stock ?? 0);
-    $result->min_stock_level = (int) ($mcs_config->min_stock_level ?? 0);
-    $result->max_stock_level = (int) ($mcs_config->max_stock_level ?? 0);
-    $result->reorder_level   = (int) ($mcs_config->reorder_level ?? 0);
+        // 3️⃣ Final object
+        $result = new stdClass();
+            $result->current_stock = (int) ($stock_result->current_stock ?? 0);
+            $result->min_stock_level = (int) ($mcs_config->min_stock_level ?? 0);
+            $result->max_stock_level = (int) ($mcs_config->max_stock_level ?? 0);
+            $result->reorder_level   = (int) ($mcs_config->reorder_level ?? 0);
 
-    return $result;
-}
+        return $result;
+    }
 
 
 
