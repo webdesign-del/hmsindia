@@ -10133,7 +10133,6 @@ class Stocks_new extends CI_Controller
             redirect(base_url());
             die();
         }
-        // ** NEW: Get filters from URL **
         $filters = [
             'start_date' => $this->input->get('start_date'),
             'end_date'   => $this->input->get('end_date'),
@@ -10142,19 +10141,43 @@ class Stocks_new extends CI_Controller
         $data = [
             'consumption_summary' => [],
             'selected_patient' => null,
-            'filters' => $filters // Pass filters to the view
+            'filters' => $filters
         ];
         $patient_id = $filters['patient_id'];
         if (!empty($patient_id)) {
-            // ** NEW: Pass filters to the model **
             $data['consumption_summary'] = $this->Stock_model_new->get_patient_consumption_summary($patient_id, $filters);
-            // Get the patient's details to display in the search box
             $data['selected_patient'] = $this->Stock_model_new->get_patient_details($patient_id);
         }
         $template = get_header_template($logg["role"]);
         $this->load->view($template["header"]);
-        // Load the view file
         $this->load->view("stocks_new/patient_consumption_summary", $data); 
+        $this->load->view($template["footer"]);
+    }
+
+    public function medicine_package(){
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+            redirect(base_url());
+            die();
+        }
+        $filters = [
+            'start_date' => $this->input->get('start_date'),
+            'end_date'   => $this->input->get('end_date'),
+            'patient_id' => $this->input->get('patient_id'),
+        ];
+        $data = [
+            'consumption_medicine_package' => [],
+            'selected_patient' => null,
+            'filters' => $filters
+        ];
+        $patient_id = $filters['patient_id'];
+        if (!empty($patient_id)) {
+            $data['consumption_medicine_package'] = $this->Stock_model_new->consumption_medicine_package($patient_id, $filters);
+            $data['selected_patient'] = $this->Stock_model_new->get_patient_details($patient_id);
+        }
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/medicine_package", $data); 
         $this->load->view($template["footer"]);
     }
 
@@ -10697,16 +10720,14 @@ class Stocks_new extends CI_Controller
                     if (!empty($_POST['packages_name_' . $pcounte]) && (int)$_POST['packages_quantity_' . $pcounte] > 0) {
                         $package_id = (int)$_POST['packages_name_' . $pcounte];
                         $quantity = (int)$_POST['packages_quantity_' . $pcounte];
-
-                        // Check if package has sufficient quantity in package_stocks
                         $package_stock = $this->Stock_model_new->get_package_stock($package_id, $center_id, $department);
+                  
                         if (!$package_stock || $package_stock->quantity < $quantity) {
                             $items_failed++;
                             $error_messages[] = "Package: Insufficient stock for package ID {$package_id}. Available: " . ($package_stock ? $package_stock->quantity : 0) . ", Requested: {$quantity}.";
                             continue;
                         }
-
-                        // Process the package consumption
+                    
                         $package_data = [
                             'package_id' => $package_id,
                             'center_id' => $center_id,
@@ -10725,7 +10746,6 @@ class Stocks_new extends CI_Controller
                         }
                     }
                 }
-
                 // Process all consumable rows
                 foreach ($c_counter as $ccounte) {
                     if (!empty($_POST['consumables_name_' . $ccounte]) && (float)$_POST['consumables_quantity_' . $ccounte] > 0) {

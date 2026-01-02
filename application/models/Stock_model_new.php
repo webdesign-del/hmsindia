@@ -2008,6 +2008,7 @@ class Stock_model_new extends CI_Model
     //         if (!empty($center_id)) {
     //             $this->db->where('ccs.center_id', $center_id);
     //         }
+    
     //         if (!empty($department)) {
     //             if ($department == 'Embryologist Basant Lok') {
     //                 $department = 'Embryology Basant Lok';
@@ -10056,7 +10057,6 @@ public function add_stock_to_location($stock_data)
         if ($department !== null && $department !== '') {
             $this->db->where('ps.department', $department);
         } else {
-            // If no department specified, look for records with empty/null department
             $this->db->group_start();
             $this->db->where('ps.department IS NULL');
             $this->db->or_where('ps.department', '');
@@ -10133,8 +10133,6 @@ public function add_stock_to_location($stock_data)
         $quantity = $transfer_data['quantity'];
         $to_department = $transfer_data['to_department'] ?? null;
         $source_stock = $this->get_package_stock($package_id);
-        var_dump($source_stock);
-        die;
         if (!$source_stock || $source_stock->quantity < $quantity) {
             $this->db->trans_rollback();
             return ['status' => 'error', 'message' => 'Not enough package stock available for transfer.'];
@@ -10151,8 +10149,6 @@ public function add_stock_to_location($stock_data)
         $this->db->set('last_movement_date', date('Y-m-d H:i:s'));
         $this->db->update('package_stocks');
         $dest_stock = $this->get_package_stock($package_id, $to_center_id, $to_department);
-        var_dump($dest_stock);
-        die;
         $dest_quantity_before = $dest_stock ? $dest_stock->quantity : 0;
         if ($dest_stock) {
             $this->db->where('id', $dest_stock->id);
@@ -10239,27 +10235,21 @@ public function add_stock_to_location($stock_data)
     public function process_package_consumption($sale_id, $package_data, $created_by_id)
     {
         $this->db->trans_start();
-
         $package_id = $package_data['package_id'];
         $center_id = $package_data['center_id'];
         $department = $package_data['department'];
         $quantity = $package_data['quantity'];
-
-        // Get package details
         $package = $this->get_package_by_id($package_id);
         if (!$package) {
             $this->db->trans_rollback();
             return ['status' => 'error', 'message' => 'Package not found.'];
         }
-
-        // Check stock availability
         $package_stock = $this->get_package_stock($package_id, $center_id, $department);
+
         if (!$package_stock || $package_stock->quantity < $quantity) {
             $this->db->trans_rollback();
             return ['status' => 'error', 'message' => 'Not enough package stock available.'];
         }
-
-        // Calculate pricing (no GST for consumption)
         $total_price = $package->selling_price * $quantity;
 
         // Create sale item entry for the package
@@ -10274,8 +10264,8 @@ public function add_stock_to_location($stock_data)
             'total' => $total_price,
             'remarks' => "Package Consumption: {$package->package_name} - Contains " . count($this->get_package_items($package_id)) . " medicines"
         ];
+       
         $this->db->insert('sale_items', $sale_item_data);
-
         // Deduct package stock
         $this->db->where('package_id', $package_id);
         $this->db->where('center_id', $center_id);
@@ -10283,7 +10273,6 @@ public function add_stock_to_location($stock_data)
         if ($department !== null && $department !== '') {
             $this->db->where('department', $department);
         } else {
-            // If no department specified, update records with empty/null department
             $this->db->group_start();
             $this->db->where('department IS NULL');
             $this->db->or_where('department', '');
@@ -10292,7 +10281,10 @@ public function add_stock_to_location($stock_data)
         $this->db->set('quantity', 'quantity - ' . (int)$quantity, FALSE);
         $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
         $this->db->update('package_stocks');
-
+        $this->db->where('id', $sale_id);
+        $this->db->set('payment_status', 'PAID');
+        $this->db->set('status', 'PACKAGE');                
+        $this->db->update('sales');
         // Log package stock movement
         $this->db->insert('package_stock_movements', [
             'package_id' => $package_id,
@@ -10312,13 +10304,10 @@ public function add_stock_to_location($stock_data)
             'patient_name' => $package_data['patient_name'],
             'created_by' => $created_by_id
         ]);
-
         $this->db->trans_complete();
-
         if ($this->db->trans_status() === FALSE) {
             return ['status' => 'error', 'message' => 'Package consumption failed due to database error.'];
         }
-
         return [
             'status' => 'success',
             'message' => 'Package consumed successfully!',
@@ -10947,10 +10936,8 @@ public function add_stock_to_location($stock_data)
             $this->db->from('stock_movements sm');
             $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'inner');
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
-            
             $this->db->where('sm.movement_type', 'SALE');
             $this->db->where('sm.patient_id', $patient_id);
-
             // ** NEW: Apply Date Filters **
             if (!empty($filters['start_date'])) {
                 $this->db->where('DATE(sm.created_at) >=', $filters['start_date']);
@@ -10958,7 +10945,6 @@ public function add_stock_to_location($stock_data)
             if (!empty($filters['end_date'])) {
                 $this->db->where('DATE(sm.created_at) <=', $filters['end_date']);
             }
-            
             // ** NEW: Group by Date as well **
             $this->db->group_by('DATE(sm.created_at), m.category');
             $this->db->order_by('consumption_date', 'DESC');
@@ -10968,6 +10954,49 @@ public function add_stock_to_location($stock_data)
 
         } catch (Exception $e) {
             log_message('error', 'Error in get_patient_consumption_summary: ' . $e->getMessage());
+            return [];
+        }
+    }
+    public function consumption_medicine_package($patient_id, $filters = [])
+    {
+        try {
+            $this->db->select('
+                DATE(psm.created_at) as consumption_date,
+                psm.created_at as consumption_datetime,
+                psm.quantity_change as quantity_consumed,
+                psm.unit_price,
+                psm.total_value,
+                psm.reference_id as sale_number,
+                mp.package_name,
+                mp.package_code,
+                psm.movement_type,
+                psm.from_location_type,
+                psm.to_location_type
+            ');
+            $this->db->from('package_stock_movements psm');
+            $this->db->join('medicine_packages mp', 'psm.package_id = mp.id', 'inner');
+            // $this->db->join('hms_centers c', 'psm.from_location_id = c.ID AND psm.from_location_type = "CENTER"', 'left');
+            // $this->db->join('hms_employees e', 'psm.created_by = e.ID', 'left');
+            $this->db->where('psm.patient_id', $patient_id);
+            if (!empty($filters['start_date'])) {
+                $this->db->where('DATE(psm.created_at) >=', $filters['start_date']);
+            }
+            if (!empty($filters['end_date'])) {
+                $this->db->where('DATE(psm.created_at) <=', $filters['end_date']);
+            }
+            if (!empty($filters['center_id'])) {
+                $this->db->where('psm.from_location_id', $filters['center_id']);
+            }
+            if (!empty($filters['package_id'])) {
+                $this->db->where('psm.package_id', $filters['package_id']);
+            }
+
+            $this->db->order_by('psm.created_at', 'DESC');
+
+            return $this->db->get()->result();
+
+        } catch (Exception $e) {
+            log_message('error', 'Error in consumption_medicine_package: ' . $e->getMessage());
             return [];
         }
     }

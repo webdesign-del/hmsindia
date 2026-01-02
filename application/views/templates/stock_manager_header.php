@@ -103,6 +103,7 @@
                      <li> <a href="<?php echo base_url(); ?>stocks_new/add_billing_item">Add Consumptions</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_report">Patient Consumption Report</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/patient_consumption_summary">Patient Consumption Summary</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/medicine_package">Patient Medicine Package</a> </li>
                      <li> <a href="<?php echo base_url(); ?>stocks_new/all_consumption_report">All Consumption Report</a> </li>
                   </ul>
                </li>
