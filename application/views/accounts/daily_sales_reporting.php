@@ -3,8 +3,8 @@ $all_method =&get_instance();
 
 // --- 1. INITIALIZE DATE VARIABLES ---
 // Check if dates are in the URL (e.g. ?start_date=2023-01-01). If not, use today.
-$start_date = $this->input->get('start_date') ? $this->input->get('start_date') : date('Y-m-d');
-$end_date   = $this->input->get('end_date') ? $this->input->get('end_date') : date('Y-m-d');
+$start_date = $this->input->get('start_date') ? $this->input->get('start_date') : date('d-m-Y');
+$end_date   = $this->input->get('end_date') ? $this->input->get('end_date') : date('d-m-Y');
 
 // Create a readable date string for the Subject line (e.g. "2023-11-18 to 2023-11-19")
 if($start_date == $end_date) {
@@ -98,7 +98,10 @@ if($start_date == $end_date) {
                         <!-- UPDATED: Uses the dynamic $date_label we created at the top -->
                         <input type="text" id="email_subject" name="email_subject" 
                                class="form-control" 
-                               value="(<?php echo $all_method->get_center_name($_SESSION['logged_billing_manager']['center']); ?> Sales Report - <?php echo $date_label; ?>)">
+                               value="(<?php 
+$full_center_name = $all_method->get_center_name($_SESSION['logged_billing_manager']['center']);
+echo trim(str_replace("India IVF Fertility", "", $full_center_name)); 
+?> Daily Sales Report (DSR)- <?php echo $date_label; ?>)">
                     </div>
                 </div>
             </div>
@@ -565,7 +568,7 @@ foreach($patient_medicine_daily_result as $vl) {
                     </tr>
                     <tr>
                         <td>NEFT Receipts</td>
-                        <td><?php echo number_format($paymentTotals['NEFT'], 2); ?></td>
+                        <td><?php echo number_format($paymentTotals['Neft'], 2); ?></td>
                     </tr>
                     <tr>
                         <td>Loan Receipts</td>
@@ -621,7 +624,7 @@ foreach($patient_medicine_daily_result as $vl) {
                     <td>Booking</td>
                     <td><?php echo $vl['payment_method']; ?></td>
                     <td><?php echo $vl['payment_done']; ?></td>
-                    <td><?php echo $vl['on_date']; ?></td>
+                    <td><?php echo date('d-m-y h:i:s', strtotime($vl['on_date'])); ?></td>
                     <td><?php echo $vl['receipt_number']; ?></td>
                     <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a></td>
                 </tr>
@@ -640,9 +643,9 @@ foreach($patient_medicine_daily_result as $vl) {
                     <td>Booking</td>
                     <td><?php echo $vl['payment_method']; ?></td>
                     <td><?php echo $vl['payment_done']; ?></td>
-                    <td><?php echo $vl['on_date']; ?></td>
+                    <td><?php echo date('d-m-y h:i:s', strtotime($vl['on_date'])); ?></td>
                     <td><?php echo $vl['refrence_number']; ?></td>
-                     <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a><</td>
+                     <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a></td>
                 </tr>
                 <?php } ?>
                 <?php 
@@ -683,9 +686,9 @@ foreach($patient_medicine_daily_result as $vl) {
                     <td>Sale Receipts</td>
                     <td><?php echo $vl['payment_method']; ?></td>
                     <td><?php echo $vl['payment_done']; ?></td>
-                    <td><?php echo $vl['on_date']; ?></td>
+                    <td><?php echo date('d-m-y h:i:s', strtotime($vl['on_date'])); ?></td>
                     <td><?php echo $vl['receipt_number']; ?></td>
-                     <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a><</td>
+                     <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank">View Receipt</a></td>
                 </tr>
                 <?php } ?>
                   
@@ -702,9 +705,9 @@ foreach($patient_medicine_daily_result as $vl) {
                     <td>Sale Receipts</td>
                     <td><?php echo $vl['payment_method']; ?></td>
                     <td><?php echo $vl['payment_done']; ?></td>
-                    <td><?php echo $vl['on_date']; ?></td>
+                    <td><?php echo date('d-m-y h:i:s', strtotime($vl['on_date'])); ?></td>
                     <td><?php echo $vl['receipt_number']; ?></td>
-                    <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a></td>
+                    <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank">View Receipt</a></td>
                 </tr>
                 <?php } ?>
                  

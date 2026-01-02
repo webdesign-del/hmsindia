@@ -106,6 +106,7 @@
                                     <th class="text-center" style="width: 150px;">Male Investigation</th>
                                     <th class="text-center" style="width: 150px;">Female Investigation</th>
                                     <th class="text-center" style="width: 120px;">Procedure</th>
+                                    <th class="text-center" style="width: 120px;">Procedure Updated By FC</th>
                                     <th class="text-center" style="width: 120px;">Male Medicine</th>
                                     <th class="text-center" style="width: 120px;">Female Medicine</th>
                                     <th class="text-center" style="width: 120px;">Next Follow Up</th>
@@ -310,6 +311,23 @@
                                                 $female_result = run_select_query($sql2);
                                                 echo '<span class="label label-info">' . $female_result['procedure_name'] . '</span> ';
                                             } ?>
+                                        </div>
+                                    </td>
+                                     <td>
+                                        <div class="procedure-list">
+                                            <?php // 1. Get the serialized string
+$serializedStringfemale = $vl['procedure'];
+
+// 2. Convert it back into a PHP Array
+$data = unserialize($serializedStringfemale);
+
+// 3. Check if 'consumables' exists and loop through them
+if (isset($data['consumables']) && is_array($data['consumables'])) {
+    foreach ($data['consumables'] as $item) {
+        // 4. Print the procedure name
+        echo '<span class="label label-info">' . $item['procedure_name'] . '</span> ';
+    }
+} ?>
                                         </div>
                                     </td>
                                     <td>
