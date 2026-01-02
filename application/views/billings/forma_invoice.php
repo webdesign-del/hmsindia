@@ -93,19 +93,24 @@
                                         $saved_after = isset($procedureData['consumables'][$sub_procedure_counter-1]['after_discount']) ? $procedureData['consumables'][$sub_procedure_counter-1]['after_discount'] : $femalemed_result['price'];
                                         ?>
                                         <tr id="row_<?= $sub_procedure_counter ?>">
-                                            <td colspan="2" style="border:1px solid #000;">
-                                                <select name="procedure_ID_<?= $sub_procedure_counter ?>" id="procedure_ID_<?= $sub_procedure_counter ?>" class="form-control" onchange="getProcedureDetails(<?= $sub_procedure_counter ?>)">
-                                                    <option value="">Select Procedure</option>
-                                                    <?php foreach($procedure_list as $proc) { 
-                                                        $selected = ($proc['ID'] == $femalemed_result['ID']) ? 'selected' : '';
-                                                    ?>
-                                                        <option value="<?= $proc['ID'] ?>" data-code="<?= $proc['code'] ?>" data-price="<?= $proc['price'] ?>" <?= $selected ?>>
-                                                            <?= $proc['procedure_name'] ?>
-                                                        </option>
-                                                    <?php } ?>
-                                                </select>
-                                                <input type="hidden" id="procedure_name_<?= $sub_procedure_counter ?>" name="procedure_name_<?= $sub_procedure_counter ?>" value="<?= $femalemed_result['procedure_name']; ?>">
-                                            </td>
+                                           <td colspan="2" style="border:1px solid #000;">
+    <select 
+        name="procedure_ID_<?= $sub_procedure_counter ?>" 
+        id="procedure_ID_<?= $sub_procedure_counter ?>" 
+        class="form-control select2-dropdown" 
+        onchange="getProcedureDetails(<?= $sub_procedure_counter ?>)"
+    >
+        <option value="">Select Procedure</option>
+        <?php foreach($procedure_list as $proc) { 
+            $selected = ($proc['ID'] == $femalemed_result['ID']) ? 'selected' : '';
+        ?>
+            <option value="<?= $proc['ID'] ?>" data-code="<?= $proc['code'] ?>" data-price="<?= $proc['price'] ?>" <?= $selected ?>>
+                <?= $proc['procedure_name'] ?>
+            </option>
+        <?php } ?>
+    </select>
+    <input type="hidden" id="procedure_name_<?= $sub_procedure_counter ?>" name="procedure_name_<?= $sub_procedure_counter ?>" value="<?= $femalemed_result['procedure_name']; ?>">
+</td>
                                             <td style="border:1px solid #000;">
                                                 <input type="text" style="width:100%" id="code_<?= $sub_procedure_counter ?>" name="code_<?= $sub_procedure_counter ?>" value="<?= $femalemed_result['code']; ?>" readonly>
                                             </td>
@@ -671,37 +676,45 @@ which the package will automatically stand cancelled without prior notification.
     var procedureOptions = `<?php echo $js_options; ?>`;
 
     function addNewRow() {
-        var counterInput = document.getElementById('last_counter_value');
-        var newCount = parseInt(counterInput.value) + 1;
-        counterInput.value = newCount;
+    var counterInput = document.getElementById('last_counter_value');
+    var newCount = parseInt(counterInput.value) + 1;
+    counterInput.value = newCount;
 
-        var html = `
-            <tr id="row_${newCount}">
-                <td colspan="2" style="border:1px solid #000;">
-                    <select name="procedure_ID_${newCount}" id="procedure_ID_${newCount}" class="form-control" onchange="getProcedureDetails(${newCount})">
-                        ${procedureOptions}
-                    </select>
-                    <input type="hidden" id="procedure_name_${newCount}" name="procedure_name_${newCount}" value="">
-                </td>
-                <td style="border:1px solid #000;">
-                    <input type="text" style="width:100%" id="code_${newCount}" name="code_${newCount}" readonly>
-                </td>
-                <td style="border:1px solid #000;">
-                    <input type="number" style="width:100%" id="price_${newCount}" name="price_${newCount}" readonly oninput="calculateRow(${newCount})">
-                </td>
-                <td style="border:1px solid #000;">
-                    <input type="number" style="width:100%" id="discount_${newCount}" name="discount_${newCount}" placeholder="0" oninput="calculateRow(${newCount})">
-                </td>
-                <td style="border:1px solid #000;">
-                    <input type="text" style="width:100%" id="after_discount_${newCount}" name="after_discount_${newCount}" readonly>
-                </td>
-                <td style="border:1px solid #000; text-align:center;">
-                    <button type="button" onclick="removeRow(${newCount})" style="color:red; font-weight:bold; cursor:pointer; border:none; background:none;">X</button>
-                </td>
-            </tr>`;
+    var html = `
+        <tr id="row_${newCount}">
+            <td colspan="2" style="border:1px solid #000;">
+                <select name="procedure_ID_${newCount}" id="procedure_ID_${newCount}" class="form-control select2-dropdown" onchange="getProcedureDetails(${newCount})">
+                    ${procedureOptions}
+                </select>
+                <input type="hidden" id="procedure_name_${newCount}" name="procedure_name_${newCount}" value="">
+            </td>
+            <td style="border:1px solid #000;">
+                <input type="text" style="width:100%" id="code_${newCount}" name="code_${newCount}" readonly>
+            </td>
+            <td style="border:1px solid #000;">
+                <input type="number" style="width:100%" id="price_${newCount}" name="price_${newCount}" readonly oninput="calculateRow(${newCount})">
+            </td>
+            <td style="border:1px solid #000;">
+                <input type="number" style="width:100%" id="discount_${newCount}" name="discount_${newCount}" placeholder="0" oninput="calculateRow(${newCount})">
+            </td>
+            <td style="border:1px solid #000;">
+                <input type="text" style="width:100%" id="after_discount_${newCount}" name="after_discount_${newCount}" readonly>
+            </td>
+            <td style="border:1px solid #000; text-align:center;">
+                <button type="button" onclick="removeRow(${newCount})" style="color:red; font-weight:bold; cursor:pointer; border:none; background:none;">X</button>
+            </td>
+        </tr>`;
 
-        document.getElementById('procedure_body').insertAdjacentHTML('beforeend', html);
-    }
+    // 1. Add the HTML to the page
+    document.getElementById('procedure_body').insertAdjacentHTML('beforeend', html);
+
+    // 2. IMPORTANT: Turn on the search box for this SPECIFIC new row
+    $('#procedure_ID_' + newCount).select2({
+        placeholder: "Select Procedure",
+        allowClear: true,
+        width: '100%'
+    });
+}
 
     function removeRow(id) {
         var row = document.getElementById('row_' + id);
@@ -791,4 +804,20 @@ which the package will automatically stand cancelled without prior notification.
     document.addEventListener("DOMContentLoaded", function () {
         calculateTotal();
     });
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // This turns any dropdown with class 'select2-dropdown' into a searchable box
+    $('.select2-dropdown').select2({
+        placeholder: "Select Procedure",
+        allowClear: true,
+        width: '100%' // Ensures it fits inside the table cell
+    });
+});
 </script>
