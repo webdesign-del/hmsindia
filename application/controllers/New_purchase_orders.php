@@ -342,18 +342,22 @@ class New_purchase_orders extends CI_Controller {
                 $po_department = isset($data['purchase_order']['department']) ? $data['purchase_order']['department'] : null;
                 foreach ($data['purchase_order_items'] as &$item) {
                     $medicine_id = $item['item_number'];
-                    $medicine_item = $this->Stock_model_new->get_medicine_by_id($medicine_id,$center_id,$po_department);
+                    $medicine_item = $this->Stock_model_new->get_medicine_by_id($medicine_id,$center_id,$po_department,$po_center);
                     $item['unit'] =$medicine_item->unit ?? null;
                     $item['pack_size'] =$medicine_item->pack_size ?? 1;
                     $item['min_stock_level'] =$medicine_item->min_stock_level ?? null;
                     $item['max_stock_level'] =$medicine_item->max_stock_level ?? null;
-                    $item['current_quantity'] =
-                    $this->Stock_model_new->get_center_stock_quantity_for_po(
-                        $center_id,
-                        $medicine_id,
-                        'ACTIVE',
-                        $po_department
-                    );
+                    if (is_null($center_id)) {
+                        $item['current_quantity'] = $medicine_item->current_stock;
+                    } else {
+                        $item['current_quantity'] =
+                            $this->Stock_model_new->get_center_stock_quantity_for_po(
+                                $center_id,
+                                $medicine_id,
+                                'ACTIVE',
+                                $po_department
+                            ) ?? $medicine_item->current_stock;
+                    }
                 }
             }
 
@@ -625,19 +629,33 @@ class New_purchase_orders extends CI_Controller {
                     'message' => 'Unauthorized'
                 ]));
         }
-
         $medicine_id       = (int) $this->input->get('medicine_id');
         $quantity          = (int) $this->input->get('quantity');
         $ship_to_center_id = $this->input->get('ship_to_center_id');
         $department        = strtoupper(trim($this->input->get('department')));
         if ($ship_to_center_id === 'CENTRAL_WAREHOUSE_NOIDA') {
-            return $this->output
+                $this->db->select('COALESCE(SUM(cs.available_quantity), 0) AS current_stock');
+                $this->db->from('central_stocks AS cs');
+                $this->db->join(
+                        'medicine_batches AS mb',
+                        'cs.batch_id = mb.id
+                        AND mb.medicine_id = ' . (int)$medicine_id,
+                        'LEFT'   
+                );
+                $this->db->where('cs.status', 'ACTIVE');
+                $this->db->where_in('mb.batch_status', ['ACTIVE', 'EXPIRED']);
+                $stock_result = $this->db->get()->row();
+                return $this->output
                 ->set_content_type('application/json')
                 ->set_status_header(200)
                 ->set_output(json_encode([
                     'status' => 'success',
                     'can_order' => true,
-                    'message' => 'Central warehouse – stock check skipped'
+                    'current_stock' => $stock_result->current_stock,
+                    'min_stock' => 100,
+                    'max_stock' => 1000,
+                    'reorder_level' => 500,
+                    'message' => 'No max stock limit set'
                 ]));
         }
 
