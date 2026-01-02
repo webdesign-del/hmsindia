@@ -986,7 +986,76 @@ class Stock_model_new extends CI_Model
 
         return $this->db->get()->result();
     }
+    
+     public function get_all_medicines_package($medicine_name = null, $generic_name = null, $brand_id = null, $category = null, $selected_medicine_id = null)
+    {
+        $this->db->reset_query();
+        $this->db->select("
+            m.*,
+            mb.brand_name as brand_name,
+            COALESCE(latest_batch.selling_price, 0) as selling_price,
+            COALESCE(latest_batch.mrp, 0) as mrp,
+            COALESCE(latest_batch.purchase_price, 0) as purchase_price
+        ");
+        $this->db->from("medicines m");
+        $this->db->join("medicine_brands mb", "m.brand_id = mb.id", "left");
 
+        // Join with latest batch to get pricing information
+        $this->db->join("(
+            SELECT
+                mb_inner.medicine_id,
+                mb_inner.selling_price,
+                mb_inner.mrp,
+                mb_inner.purchase_price
+            FROM medicine_batches mb_inner
+            INNER JOIN (
+                SELECT medicine_id, MAX(created_at) as latest_date
+                FROM medicine_batches
+                GROUP BY medicine_id
+            ) latest ON mb_inner.medicine_id = latest.medicine_id
+                     AND mb_inner.created_at = latest.latest_date
+        ) latest_batch", "m.id = latest_batch.medicine_id", "left");
+
+        $this->db->where("m.status", "active");
+
+        if (!empty($selected_medicine_id)) {
+            $this->db->where("m.ID", $selected_medicine_id);
+        }
+
+        // --- APPLY FILTERS ---
+        if (!empty($medicine_name)) {
+            $this->db->like("m.medicine_name", $medicine_name);
+        }
+        if (!empty($generic_name)) {
+            $this->db->like("m.generic_name", $generic_name);
+        }
+        if (!empty($brand_id)) {
+            $this->db->where("m.brand_id", $brand_id);
+        }
+        if (!empty($category)) {
+            $this->db->like("m.category", $category);
+        }
+        // --- END FILTERS ---
+
+        $this->db->order_by("m.medicine_name", "ASC");
+
+        $result = $this->db->get()->result();
+
+        // Ensure all objects have pricing properties
+        foreach ($result as $medicine) {
+            if (!isset($medicine->selling_price) || $medicine->selling_price === null) {
+                $medicine->selling_price = 0;
+            }
+            if (!isset($medicine->mrp) || $medicine->mrp === null) {
+                $medicine->mrp = 0;
+            }
+            if (!isset($medicine->purchase_price) || $medicine->purchase_price === null) {
+                $medicine->purchase_price = 0;
+            }
+        }
+
+        return $result;
+    }
 
     public function search_medicines($search_term = "")
     {
@@ -2040,46 +2109,46 @@ class Stock_model_new extends CI_Model
     //     return $result;
     // }
     public function get_medicine_stock_info($medicine_id, $center_id, $department)
-{
-    $department = strtoupper(trim($department));
+    {
+        $department = strtoupper(trim($department));
 
-    // 1️⃣ Stock configuration
-    $this->db->select('min_stock_level, max_stock_level, reorder_level');
-    $this->db->from('medicine_center_stocks');
-    $this->db->where([
-        'medicine_id' => $medicine_id,
-        'center_id'   => $center_id,
-        'department'  => $department
-    ]);
-    $mcs_config = $this->db->get()->row();
+        // 1️⃣ Stock configuration
+        $this->db->select('min_stock_level, max_stock_level, reorder_level');
+        $this->db->from('medicine_center_stocks');
+        $this->db->where([
+            'medicine_id' => $medicine_id,
+            'center_id'   => $center_id,
+            'department'  => $department
+        ]);
+        $mcs_config = $this->db->get()->row();
 
-    // 2️⃣ Actual stock calculation
-    $this->db->select('COALESCE(SUM(ccs.available_quantity), 0) AS current_stock');
-    $this->db->from('center_stocks AS ccs');
+        // 2️⃣ Actual stock calculation
+        $this->db->select('COALESCE(SUM(ccs.available_quantity), 0) AS current_stock');
+        $this->db->from('center_stocks AS ccs');
 
-    $this->db->join(
-        'medicine_batches AS mb',
-        'ccs.batch_id = mb.id
-         AND mb.medicine_id = ' . (int)$medicine_id,
-        'LEFT'   // 🔥 IMPORTANT
-    );
+        $this->db->join(
+            'medicine_batches AS mb',
+            'ccs.batch_id = mb.id
+            AND mb.medicine_id = ' . (int)$medicine_id,
+            'LEFT'   // 🔥 IMPORTANT
+        );
 
-    $this->db->where('ccs.center_id', $center_id);
-    $this->db->where('UPPER(ccs.department)', $department);
-    $this->db->where('ccs.status', 'ACTIVE');
-    $this->db->where_in('mb.batch_status', ['ACTIVE', 'EXPIRED']); // optional safety
+        $this->db->where('ccs.center_id', $center_id);
+        $this->db->where('UPPER(ccs.department)', $department);
+        $this->db->where('ccs.status', 'ACTIVE');
+        $this->db->where_in('mb.batch_status', ['ACTIVE', 'EXPIRED']); // optional safety
 
-    $stock_result = $this->db->get()->row();
+        $stock_result = $this->db->get()->row();
 
-    // 3️⃣ Final object
-    $result = new stdClass();
-    $result->current_stock = (int) ($stock_result->current_stock ?? 0);
-    $result->min_stock_level = (int) ($mcs_config->min_stock_level ?? 0);
-    $result->max_stock_level = (int) ($mcs_config->max_stock_level ?? 0);
-    $result->reorder_level   = (int) ($mcs_config->reorder_level ?? 0);
+        // 3️⃣ Final object
+        $result = new stdClass();
+        $result->current_stock = (int) ($stock_result->current_stock ?? 0);
+        $result->min_stock_level = (int) ($mcs_config->min_stock_level ?? 0);
+        $result->max_stock_level = (int) ($mcs_config->max_stock_level ?? 0);
+        $result->reorder_level   = (int) ($mcs_config->reorder_level ?? 0);
 
-    return $result;
-}
+        return $result;
+    }
 
 
 
@@ -9622,7 +9691,766 @@ public function add_stock_to_location($stock_data)
     // --- You also need these functions (which you already have) ---
     // public function get_employee_id_from_number($number) { ... }
     // public function add_batch($batch_data) { ... }
-     public function get_stock_additions_report($filters = []) {
+     // ===============================================
+    // MEDICINE PACKAGE MANAGEMENT
+    // ===============================================
+
+    public function create_medicine_package($package_data, $package_items)
+    {
+        $this->db->trans_start();
+
+        // Calculate package price from latest medicine batch prices
+        $total_selling_price = 0;
+        $total_mrp = 0;
+
+        foreach ($package_items as $item) {
+            // Get latest batch pricing for this medicine
+            $latest_batch = $this->db->select('selling_price, mrp')
+                                    ->from('medicine_batches')
+                                    ->where('medicine_id', $item['medicine_id'])
+                                    ->order_by('created_at', 'DESC')
+                                    ->limit(1)
+                                    ->get()->row();
+
+            if ($latest_batch && isset($latest_batch->selling_price) && $latest_batch->selling_price > 0) {
+                $total_selling_price += ($latest_batch->selling_price * $item['quantity']);
+                $total_mrp += ($latest_batch->mrp * $item['quantity']);
+            } else {
+                // Fallback: try to get from medicines table if no batches exist
+                $medicine = $this->db->select('selling_price, mrp')
+                                    ->from('medicines')
+                                    ->where('id', $item['medicine_id'])
+                                    ->get()->row();
+
+                if ($medicine && isset($medicine->selling_price)) {
+                    $total_selling_price += ($medicine->selling_price * $item['quantity']);
+                    $total_mrp += ($medicine->mrp * $item['quantity']);
+                }
+                // If no pricing found, prices remain 0
+            }
+        }
+
+        // Override package prices with calculated values
+        $package_data['selling_price'] = $total_selling_price;
+        $package_data['mrp'] = $total_mrp;
+
+        // Insert package
+        $this->db->insert('medicine_packages', $package_data);
+        $package_id = $this->db->insert_id();
+
+        // Insert package items
+        foreach ($package_items as $item) {
+            $item['package_id'] = $package_id;
+            $this->db->insert('package_items', $item);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            return false;
+        }
+
+        return $package_id;
+    }
+
+    public function get_all_packages($status = 'active')
+    {
+        $this->db->select('mp.*, COUNT(pi.id) as total_items');
+        $this->db->from('medicine_packages mp');
+        $this->db->join('package_items pi', 'mp.id = pi.package_id', 'left');
+        $this->db->where('mp.status', $status);
+        $this->db->group_by('mp.id');
+        $this->db->order_by('mp.package_name', 'ASC');
+        return $this->db->get()->result();
+    }
+
+    public function get_package_by_id($package_id)
+    {
+        $this->db->select('mp.*');
+        $this->db->from('medicine_packages mp');
+        $this->db->where('mp.id', $package_id);
+        return $this->db->get()->row();
+    }
+
+    public function get_package_items($package_id)
+    {
+        $this->db->select('pi.*, m.medicine_name, m.medicine_code, mb.brand_name');
+        $this->db->from('package_items pi');
+        $this->db->join('medicines m', 'pi.medicine_id = m.id', 'inner');
+        $this->db->join('medicine_brands mb', 'm.brand_id = mb.id', 'left');
+        $this->db->where('pi.package_id', $package_id);
+        return $this->db->get()->result();
+    }
+
+    public function update_medicine_package($package_id, $package_data, $package_items = null)
+    {
+        $this->db->trans_start();
+
+        // If package items are being updated, recalculate prices
+        if ($package_items !== null) {
+            $total_selling_price = 0;
+            $total_mrp = 0;
+
+            foreach ($package_items as $item) {
+                // Get latest batch pricing for this medicine
+                $latest_batch = $this->db->select('selling_price, mrp')
+                                        ->from('medicine_batches')
+                                        ->where('medicine_id', $item['medicine_id'])
+                                        ->order_by('created_at', 'DESC')
+                                        ->limit(1)
+                                        ->get()->row();
+
+                if ($latest_batch && isset($latest_batch->selling_price) && $latest_batch->selling_price > 0) {
+                    $total_selling_price += ($latest_batch->selling_price * $item['quantity']);
+                    $total_mrp += ($latest_batch->mrp * $item['quantity']);
+                } else {
+                    // Fallback: try to get from medicines table if no batches exist
+                    $medicine = $this->db->select('selling_price, mrp')
+                                        ->from('medicines')
+                                        ->where('id', $item['medicine_id'])
+                                        ->get()->row();
+
+                    if ($medicine && isset($medicine->selling_price)) {
+                        $total_selling_price += ($medicine->selling_price * $item['quantity']);
+                        $total_mrp += ($medicine->mrp * $item['quantity']);
+                    }
+                    // If no pricing found, prices remain 0
+                }
+            }
+
+            // Override package prices with recalculated values
+            $package_data['selling_price'] = $total_selling_price;
+            $package_data['mrp'] = $total_mrp;
+        }
+
+        // Update package
+        $this->db->where('id', $package_id);
+        $this->db->update('medicine_packages', $package_data);
+
+        // Update package items if provided
+        if ($package_items !== null) {
+            // Delete existing items
+            $this->db->where('package_id', $package_id);
+            $this->db->delete('package_items');
+
+            // Insert new items
+            foreach ($package_items as $item) {
+                $item['package_id'] = $package_id;
+                $this->db->insert('package_items', $item);
+            }
+        }
+
+        $this->db->trans_complete();
+
+        return $this->db->trans_status();
+    }
+
+    public function delete_medicine_package($package_id)
+    {
+        $this->db->trans_start();
+
+        // Delete package items first (cascade will handle this, but let's be explicit)
+        $this->db->where('package_id', $package_id);
+        $this->db->delete('package_items');
+
+        // Delete package
+        $this->db->where('id', $package_id);
+        $this->db->delete('medicine_packages');
+
+        $this->db->trans_complete();
+
+        return $this->db->trans_status();
+    }
+
+    // ===============================================
+    // PACKAGE STOCK MANAGEMENT
+    // ===============================================
+
+    public function add_package_stock($package_id, $center_id, $quantity, $department = null, $created_by = null)
+    {
+        $this->db->trans_start();
+        $package = $this->get_package_by_id($package_id);
+        if (!$package) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Package not found.'];
+        }
+        $package_items = $this->get_package_items($package_id);
+        if (empty($package_items)) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Package has no items defined.'];
+        }
+        foreach ($package_items as $item) {
+            $medicine_quantity_needed = $item->quantity * $quantity;
+            $this->db->select('SUM(cs.quantity) as total_available');
+            $this->db->from('central_stocks cs');
+            $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
+            $this->db->where('mb.medicine_id', $item->medicine_id);
+            $this->db->where('cs.status', 'ACTIVE');
+            $this->db->where('cs.quantity >', 0);
+            $available_stock = $this->db->get()->row();
+            if (!$available_stock || $available_stock->total_available < $medicine_quantity_needed) {
+                $this->db->trans_rollback();
+                return ['status' => 'error', 'message' => "Not enough stock for {$item->medicine_name}. Required: {$medicine_quantity_needed}, Available: " . ($available_stock->total_available ?? 0)];
+            }
+        }
+        foreach ($package_items as $item) {
+            $medicine_quantity_needed = $item->quantity * $quantity;
+            $remaining_quantity = $medicine_quantity_needed;
+            $this->db->select('cs.id as central_stock_id, cs.batch_id, cs.quantity, mb.batch_number, mb.expiry_date');
+            $this->db->from('central_stocks cs');
+            $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
+            $this->db->where('mb.medicine_id', $item->medicine_id);
+            $this->db->where('cs.status', 'ACTIVE');
+            $this->db->where('cs.quantity >', 0);
+            $this->db->order_by('mb.expiry_date', 'ASC');
+            $this->db->order_by('cs.last_movement_date', 'ASC');
+            $batches = $this->db->get()->result();
+            foreach ($batches as $batch) {
+                if ($remaining_quantity <= 0) break;
+                $deduct_quantity = min($remaining_quantity, $batch->quantity);
+                $this->db->where('id', $batch->central_stock_id);
+                $this->db->set('quantity', 'quantity - ' . (float)$deduct_quantity, FALSE);
+                $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
+                $this->db->update('central_stocks');
+                $this->db->where('id', $batch->batch_id);
+                $this->db->set('quantity_remaining', 'quantity_remaining - ' . (float)$deduct_quantity, FALSE);
+                $this->db->update('medicine_batches');
+                $batch_details = $this->db->select('mb.selling_price, mb.purchase_price, m.gst_rate')
+                                        ->from('medicine_batches mb')
+                                        ->join('medicines m', 'mb.medicine_id = m.id', 'inner')
+                                        ->where('mb.id', $batch->batch_id)
+                                        ->get()->row();
+                $this->db->insert("stock_movements", [
+                    "batch_id" => $batch->batch_id,
+                    "movement_type" => "PACKAGE_ASSEMBLY",
+                    "from_location_type" => "CENTRAL",
+                    "from_location_id" => 0, 
+                    "to_location_type" => "PACKAGE_ASSEMBLY",
+                    "to_location_id" => $package_id,
+                    "quantity_before" => $batch->quantity,
+                    "quantity_change" => - (float)$deduct_quantity,
+                    "quantity_after" => $batch->quantity - $deduct_quantity,
+                    "unit_price" => $batch_details->selling_price,
+                    "total_value" => $batch_details->selling_price * $deduct_quantity,
+                    "reference_type" => "PACKAGE_ASSEMBLY",
+                    "reference_id" => $package_id,
+                    "created_by" => NULL, 
+                ]);
+                $remaining_quantity -= $deduct_quantity;
+            }
+        }
+        $this->db->select('id, quantity');
+        $this->db->from('package_stocks');
+        $this->db->where('package_id', $package_id);
+        $existing_stock = $this->db->get()->row();
+        if ($existing_stock) {
+            $new_quantity = $existing_stock->quantity + $quantity;
+            $this->db->where('id', $existing_stock->id);
+            $this->db->update('package_stocks', [
+                'quantity' => $new_quantity,
+                'center_id'=> $center_id,
+                'department'=> $department,
+                'last_movement_date' => date('Y-m-d H:i:s')
+            ]);
+            $quantity_before = $existing_stock->quantity;
+        } else {
+            $this->db->insert('package_stocks', [
+                'package_id' => $package_id,
+                'quantity' => $quantity,
+                'center_id'=> $center_id,
+                'department'=> $department,
+                'last_movement_date' => date('Y-m-d H:i:s')
+            ]);
+            $quantity_before = 0;
+        }
+        $this->db->insert('package_stock_movements', [
+            'package_id' => $package_id,
+            'movement_type' => 'PURCHASE',
+            'to_location_type' => 'central',
+            'to_location_id' => 'central',
+            'quantity_before' => $quantity_before,
+            'quantity_change' => $quantity,
+            'quantity_after' => $quantity_before + $quantity,
+            'unit_price' => $package->selling_price,
+            'total_value' => $package->selling_price * $quantity,
+            'reference_type' => 'PACKAGE_ASSEMBLY',
+            'reference_id' => $package_id,
+            'created_by' => $created_by
+        ]);
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === FALSE) {
+            return ['status' => 'error', 'message' => 'Database transaction failed'];
+        }
+        return ['status' => 'success', 'message' => 'Package stock added successfully. Medicines have been deducted from central stocks.'];
+    }
+
+    // ===============================================
+    // PACKAGE DISASSEMBLY (Break down packages back to medicines)
+    // ===============================================
+
+    public function disassemble_package_stock($package_id, $center_id, $quantity, $department = null, $created_by = null)
+    {
+        $this->db->trans_start();
+        $package_stock = $this->get_package_stock($package_id, $center_id, $department);
+        if (!$package_stock || $package_stock->quantity < $quantity) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Not enough package stock available for disassembly.'];
+        }
+        $package_items = $this->get_package_items($package_id);
+        $package = $this->get_package_by_id($package_id);
+        foreach ($package_items as $item) {
+            $medicine_quantity_to_add = $item->quantity * $quantity;
+        }
+
+        // Deduct package stock
+        $this->db->where('package_id', $package_id);
+        $this->db->where('center_id', $center_id);
+        if ($department) {
+            $this->db->where('department', $department);
+        } else {
+            $this->db->where('department IS NULL');
+        }
+        $this->db->set('quantity', 'quantity - ' . (int)$quantity, FALSE);
+        $this->db->set('last_movement_date', date('Y-m-d H:i:s'));
+        $this->db->update('package_stocks');
+
+        // Log package disassembly
+        $this->db->insert('package_stock_movements', [
+            'package_id' => $package_id,
+            'movement_type' => 'ADJUSTMENT', // Or create PACKAGE_DISASSEMBLY type
+            'from_location_type' => 'CENTER',
+            'from_location_id' => $center_id,
+            'to_location_type' => 'CENTER',
+            'to_location_id' => $center_id,
+            'quantity_before' => $package_stock->quantity,
+            'quantity_change' => - (int)$quantity,
+            'quantity_after' => $package_stock->quantity - $quantity,
+            'unit_price' => $package->selling_price,
+            'total_value' => $package->selling_price * $quantity,
+            'reference_type' => 'ADJUSTMENT',
+            'reference_id' => $package_id,
+            'created_by' => $created_by
+        ]);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            return ['status' => 'error', 'message' => 'Database transaction failed'];
+        }
+
+        return ['status' => 'success', 'message' => 'Package disassembled successfully. Medicines returned to central stocks.'];
+    }
+
+    public function get_package_stock($package_id, $center_id = null, $department = null)
+    {
+        $this->db->select('ps.*, mp.package_name, mp.package_code');
+        $this->db->from('package_stocks ps');
+        $this->db->join('medicine_packages mp', 'ps.package_id = mp.id', 'inner');
+        $this->db->where('ps.package_id', $package_id);
+        $this->db->where('ps.status', 'ACTIVE');
+
+        if ($center_id !== null) {
+            $this->db->where('ps.center_id', $center_id);
+        }
+
+        if ($department !== null && $department !== '') {
+            $this->db->where('ps.department', $department);
+        } else {
+            // If no department specified, look for records with empty/null department
+            $this->db->group_start();
+            $this->db->where('ps.department IS NULL');
+            $this->db->or_where('ps.department', '');
+            $this->db->group_end();
+        }
+
+        $this->db->limit(1);
+        return $this->db->get()->row();
+    }
+
+
+    public function get_package_stock_report()
+    {
+        $this->db->select('
+            mp.package_name,
+            mp.package_code,
+            c.center_name,
+            ps.quantity,
+            ps.department,
+            ps.last_movement_date
+        ');
+        $this->db->from('package_stocks ps');
+        $this->db->join('medicine_packages mp', 'ps.package_id = mp.id', 'inner');
+        $this->db->join('hms_centers c', 'ps.center_id = c.id', 'inner');
+        $this->db->where('ps.status', 'ACTIVE');
+        $this->db->where('ps.quantity >', 0);
+        $this->db->where('mp.status', 'active');
+        $this->db->order_by('mp.package_name, c.center_name, ps.department');
+        return $this->db->get()->result();
+    }
+
+    public function get_package_transfer_history($limit = 50)
+    {
+        $this->db->select('
+            psm.*,
+            mp.package_name,
+            mp.package_code,
+            fc.center_name as from_center,
+            tc.center_name as to_center
+        ');
+        $this->db->from('package_stock_movements psm');
+        $this->db->join('medicine_packages mp', 'psm.package_id = mp.id', 'inner');
+        $this->db->join('centers fc', 'psm.from_location_id = fc.id', 'left');
+        $this->db->join('centers tc', 'psm.to_location_id = tc.id', 'left');
+        $this->db->where_in('psm.movement_type', ['TRANSFER_OUT', 'TRANSFER_IN']);
+        $this->db->order_by('psm.created_at', 'DESC');
+        $this->db->limit($limit);
+        return $this->db->get()->result();
+    }
+
+    public function get_available_packages_for_sale($center_id, $department = null)
+    {
+        $this->db->select('mp.*, ps.quantity as available_quantity, c.center_name');
+        $this->db->from('medicine_packages mp');
+        $this->db->join('package_stocks ps', 'mp.id = ps.package_id', 'inner');
+        $this->db->join('hms_centers c', 'ps.center_id = c.id', 'inner');
+        $this->db->where('ps.center_id', $center_id);
+        $this->db->where('ps.quantity >', 0);
+        $this->db->where('ps.status', 'ACTIVE');
+        $this->db->where('mp.status', 'active');
+        $this->db->order_by('mp.package_name', 'ASC');
+        return $this->db->get()->result();
+    }
+
+    // ===============================================
+    // PACKAGE TRANSFER
+    // ===============================================
+
+    public function transfer_package_stock($transfer_data, $created_by = null)
+    {
+        $this->db->trans_start();
+        $package_id = $transfer_data['package_id'];
+        $to_center_id = $transfer_data['to_center_id'];
+        $quantity = $transfer_data['quantity'];
+        $to_department = $transfer_data['to_department'] ?? null;
+        $source_stock = $this->get_package_stock($package_id);
+        var_dump($source_stock);
+        die;
+        if (!$source_stock || $source_stock->quantity < $quantity) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Not enough package stock available for transfer.'];
+        }
+        // Deduct from source
+        $this->db->where('package_id', $package_id);
+        // $this->db->where('center_id', $from_center_id);
+        // if ($from_department) {
+        //     $this->db->where('department', $from_department);
+        // } else {
+        //     $this->db->where('department IS NULL');
+        // }
+        $this->db->set('quantity', 'quantity - ' . (int)$quantity, FALSE);
+        $this->db->set('last_movement_date', date('Y-m-d H:i:s'));
+        $this->db->update('package_stocks');
+        $dest_stock = $this->get_package_stock($package_id, $to_center_id, $to_department);
+        var_dump($dest_stock);
+        die;
+        $dest_quantity_before = $dest_stock ? $dest_stock->quantity : 0;
+        if ($dest_stock) {
+            $this->db->where('id', $dest_stock->id);
+            $this->db->set('quantity', 'quantity + ' . (int)$quantity, FALSE);
+            $this->db->set('last_movement_date', date('Y-m-d H:i:s'));
+            $this->db->update('package_stocks');
+        } else {
+            $this->db->insert('package_stocks', [
+                'package_id' => $package_id,
+                'center_id' => $to_center_id,
+                'department' => $to_department,
+                'quantity' => $quantity,
+                'last_movement_date' => date('Y-m-d H:i:s')
+            ]);
+        }
+        $package = $this->get_package_by_id($package_id);
+        $this->db->insert('package_stock_movements', [
+            'package_id' => $package_id,
+            'movement_type' => 'TRANSFER_OUT',
+            'from_location_type' => 'CENTER',
+            'from_location_id' => $from_center_id,
+            'to_location_type' => 'CENTER',
+            'to_location_id' => $to_center_id,
+            'quantity_before' => $source_stock->quantity,
+            'quantity_change' => - (int)$quantity,
+            'quantity_after' => $source_stock->quantity - $quantity,
+            'unit_price' => $package->selling_price,
+            'total_value' => $package->selling_price * $quantity,
+            'reference_type' => 'TRANSFER',
+            'created_by' => $created_by
+        ]);
+
+        // Incoming movement
+        $this->db->insert('package_stock_movements', [
+            'package_id' => $package_id,
+            'movement_type' => 'TRANSFER_IN',
+            'from_location_type' => 'CENTER',
+            'from_location_id' => $from_center_id,
+            'to_location_type' => 'CENTER',
+            'to_location_id' => $to_center_id,
+            'quantity_before' => $dest_quantity_before,
+            'quantity_change' => (int)$quantity,
+            'quantity_after' => $dest_quantity_before + $quantity,
+            'unit_price' => $package->selling_price,
+            'total_value' => $package->selling_price * $quantity,
+            'reference_type' => 'TRANSFER',
+            'created_by' => $created_by
+        ]);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            return ['status' => 'error', 'message' => 'Database transaction failed'];
+        }
+
+        return ['status' => 'success', 'message' => 'Package transferred successfully.'];
+    }
+
+    // ===============================================
+    // PACKAGE SALES
+    // ===============================================
+
+    public function get_available_packages_for_center($center_id, $department = null)
+    {
+        $this->db->select('mp.id, mp.package_name, mp.selling_price, mp.mrp, COALESCE(ps.quantity, 0) as stock');
+        $this->db->from('medicine_packages mp');
+        $this->db->join('package_stocks ps', 'mp.id = ps.package_id', 'left');
+        $this->db->where('mp.status', 'active');
+        $this->db->where('ps.center_id', $center_id); // Filter by center_id
+        if ($department) {
+            // Match either exact department or empty/null department
+            $this->db->group_start();
+            $this->db->where('ps.department', $department);
+            $this->db->or_where('ps.department IS NULL');
+            $this->db->or_where('ps.department', '');
+            $this->db->group_end();
+        }
+        $this->db->having('stock >', 0); // Only show packages with stock > 0
+        $this->db->order_by('mp.package_name', 'ASC');
+
+        return $this->db->get()->result();
+    }
+
+    public function process_package_consumption($sale_id, $package_data, $created_by_id)
+    {
+        $this->db->trans_start();
+
+        $package_id = $package_data['package_id'];
+        $center_id = $package_data['center_id'];
+        $department = $package_data['department'];
+        $quantity = $package_data['quantity'];
+
+        // Get package details
+        $package = $this->get_package_by_id($package_id);
+        if (!$package) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Package not found.'];
+        }
+
+        // Check stock availability
+        $package_stock = $this->get_package_stock($package_id, $center_id, $department);
+        if (!$package_stock || $package_stock->quantity < $quantity) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Not enough package stock available.'];
+        }
+
+        // Calculate pricing (no GST for consumption)
+        $total_price = $package->selling_price * $quantity;
+
+        // Create sale item entry for the package
+        $sale_item_data = [
+            'sale_id' => $sale_id,
+            'batch_id' => NULL, // Package sales don't have a medicine batch
+            'quantity_sold' => $quantity,
+            'unit_price' => $package->selling_price,
+            'subtotal' => $total_price,
+            'discount_amount' => 0,
+            'tax_amount' => 0, // No tax for consumption
+            'total' => $total_price,
+            'remarks' => "Package Consumption: {$package->package_name} - Contains " . count($this->get_package_items($package_id)) . " medicines"
+        ];
+        $this->db->insert('sale_items', $sale_item_data);
+
+        // Deduct package stock
+        $this->db->where('package_id', $package_id);
+        $this->db->where('center_id', $center_id);
+        $this->db->where('status', 'ACTIVE');
+        if ($department !== null && $department !== '') {
+            $this->db->where('department', $department);
+        } else {
+            // If no department specified, update records with empty/null department
+            $this->db->group_start();
+            $this->db->where('department IS NULL');
+            $this->db->or_where('department', '');
+            $this->db->group_end();
+        }
+        $this->db->set('quantity', 'quantity - ' . (int)$quantity, FALSE);
+        $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
+        $this->db->update('package_stocks');
+
+        // Log package stock movement
+        $this->db->insert('package_stock_movements', [
+            'package_id' => $package_id,
+            'movement_type' => 'CONSUMPTION',
+            'from_location_type' => 'CENTER',
+            'from_location_id' => $center_id,
+            'to_location_type' => 'PATIENT_CONSUMPTION',
+            'to_location_id' => $sale_id,
+            'quantity_before' => $package_stock->quantity,
+            'quantity_change' => - (int)$quantity,
+            'quantity_after' => $package_stock->quantity - $quantity,
+            'unit_price' => $package->selling_price,
+            'total_value' => $total_price,
+            'reference_type' => 'PATIENT_CONSUMPTION_BILL',
+            'reference_id' => $sale_id,
+            'patient_id' => $package_data['patient_id'],
+            'patient_name' => $package_data['patient_name'],
+            'created_by' => $created_by_id
+        ]);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            return ['status' => 'error', 'message' => 'Package consumption failed due to database error.'];
+        }
+
+        return [
+            'status' => 'success',
+            'message' => 'Package consumed successfully!',
+            'total_price' => $total_price
+        ];
+    }
+
+    public function process_package_sale($sale_id, $package_data, $created_by_id)
+    {
+        $this->db->trans_start();
+        $package_id = $package_data['package_id'];
+        $center_id = $package_data['center_id'];
+        $department = $package_data['department'];
+        $quantity = $package_data['quantity'];
+        $package = $this->get_package_by_id($package_id);
+        if (!$package) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Package not found.'];
+        }
+        $package_stock = $this->get_package_stock($package_id, $center_id, $department);
+        if (!$package_stock || $package_stock->quantity < $quantity) {
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Not enough package stock available.'];
+        }
+        $package_items = $this->get_package_items($package_id);
+        $taxable_unit_price = $package->selling_price / (1 + ($package->gst_rate / 100));
+        $subtotal = $taxable_unit_price * $quantity;
+        $tax_amount = $subtotal * ($package->gst_rate / 100);
+        $total_price = $subtotal + $tax_amount;
+        $sale_item_data = [
+            'sale_id' => $sale_id,
+            'batch_id' => NULL, // Package sales don't have a medicine batch
+            'quantity_sold' => $quantity,
+            'unit_price' => $package->selling_price,
+            'subtotal' => $subtotal,
+            'discount_amount' => 0,
+            'tax_amount' => $tax_amount,
+            'total' => $total_price,
+            'remarks' => "Package: {$package->package_name} - Contains " . count($package_items) . " medicines"
+        ];
+        $this->db->insert('sale_items', $sale_item_data);
+   
+        // $this->db->insert("stock_movements", [
+        //     "batch_id" => NULL, // Package level movement
+        //     "movement_type" => "PACKAGE_SALE",
+        //     "from_location_type" => "CENTER",
+        //     "from_location_id" => $center_id,
+        //     "to_location_type" => "SALE_CONSUMPTION_BILLING",
+        //     "to_location_id" => $sale_id,
+        //     "quantity_before" => $package_stock->quantity,
+        //     "quantity_change" => - (int)$quantity,
+        //     "quantity_after" => $package_stock->quantity - $quantity,
+        //     "unit_price" => $package->selling_price,
+        //     "total_value" => $total_price,
+        //     "reference_type" => "PACKAGE_SALES_BILL",
+        //     "reference_id" => $sale_id,
+        //     "patient_id" => $package_data['patient_id'],
+        //     "patient_name" => $package_data['patient_name'],
+        //     "created_by" => NULL, // Package operations use NULL to avoid FK constraint issues
+        // ]);
+        $this->db->where('package_id', $package_id);
+        $this->db->where('center_id', $center_id);
+        // if ($department) {
+        //     $this->db->where('department', $department);
+        // }
+        $this->db->set('quantity', 'quantity - ' . (int)$quantity, FALSE);
+        $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
+        $this->db->update('package_stocks');
+        $this->db->insert('package_stock_movements', [
+            'package_id' => $package_id,
+            'movement_type' => 'SALE',
+            'from_location_type' => 'CENTER',
+            'from_location_id' => $center_id,
+            'to_location_type' => 'SALE_CONSUMPTION',
+            'to_location_id' => $sale_id,
+            'quantity_before' => $package_stock->quantity,
+            'quantity_change' => - (int)$quantity,
+            'quantity_after' => $package_stock->quantity - $quantity,
+            'unit_price' => $package->selling_price,
+            'total_value' => $package->selling_price * $quantity,
+            'reference_type' => 'PACKAGE_SALES_BILL',
+            'reference_id' => $sale_id,
+            'patient_id' => $package_data['patient_id'],
+            'patient_name' => $package_data['patient_name'],
+            'created_by' => $created_by_id
+        ]);
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === FALSE) {
+            return ['status' => 'error', 'message' => 'Database transaction failed'];
+        }
+        return ['status' => 'success', 'total_price' => $total_price];
+    }
+
+    private function get_available_batches_for_medicine_sale($medicine_id, $center_id, $department, $required_quantity)
+    {
+        $this->db->select('
+            cs.batch_id,
+            cs.quantity as available_quantity,
+            mb.batch_number,
+            mb.expiry_date
+        ');
+        $this->db->from('center_stocks cs');
+        $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id', 'inner');
+        $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+        $this->db->where('m.id', $medicine_id);
+        $this->db->where('cs.center_id', $center_id);
+        $this->db->where('cs.status', 'ACTIVE');
+        $this->db->where('cs.quantity >', 0);
+
+        if ($department) {
+            $this->db->like('cs.department', $department);
+        }
+
+        $this->db->order_by('mb.expiry_date', 'ASC'); // FIFO by expiry
+        $this->db->order_by('cs.last_movement_date', 'ASC'); // Then by last movement
+
+        $batches = $this->db->get()->result();
+
+        // Filter batches to meet required quantity
+        $selected_batches = [];
+        $total_available = 0;
+
+        foreach ($batches as $batch) {
+            if ($total_available >= $required_quantity) break;
+            $selected_batches[] = $batch;
+            $total_available += $batch->available_quantity;
+        }
+
+        return $selected_batches;
+    }
+
+    public function get_stock_additions_report($filters = []) {
         try {
             $this->db->select("
                 sm.*, 
@@ -9784,6 +10612,9 @@ public function add_stock_to_location($stock_data)
         // Filters
         // $this->db->where('m.category', $category_name);
         $this->db->where('ccs.center_id', $center_id);
+
+        // Check session overrides (but don't override the passed center_id)
+        $center = null; // Initialize to avoid undefined variable error
         if (!empty($_SESSION['logged_billing_manager']) &&
             ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
             $center = $_SESSION['logged_billing_manager']['center'];
@@ -9794,8 +10625,13 @@ public function add_stock_to_location($stock_data)
             $center = $_SESSION['logged_stock_manager']['center'];
             $department = $_SESSION['logged_stock_manager']['department'] ?? null;
         }
+
+        // If session center is different from passed center_id, use session center
         if ($center !== null) {
-            $this->db->where('ccs.center_id', $this->get_center_id($center));
+            $session_center_id = $this->get_center_id($center);
+            if ($session_center_id && $session_center_id != $center_id) {
+                $this->db->where('ccs.center_id', $session_center_id);
+            }
         }
         if ($department !== null && $department !== '') {
             if ($department == 'billing') {
@@ -10003,36 +10839,57 @@ public function add_stock_to_location($stock_data)
     }
      public function get_patient_consumption($patient_id)
     {
-        // try {
-            $this->db->select('
+        // Get individual medicine consumption
+        $medicine_query = $this->db->select('
                 sm.created_at as received_date,
                 sm.quantity_change,
                 sm.unit_price,
                 sm.total_value,
                 sm.reference_number as sale_number,
                 c.center_name,
-                m.medicine_name,
-                m.medicine_code,
+                m.medicine_name as item_name,
+                m.medicine_code as item_code,
                 mb.batch_number,
-                e.name as user_name
-            ');
-            $this->db->from('stock_movements sm');
-            // This is the main logic for your report
-            $this->db->where('sm.to_location_type', 'SALE_CONSUMPTION_BILLING');
-            $this->db->where('sm.patient_id', $patient_id);
-            // Joins to get the details
-            $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
-            $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
-            $this->db->join('hms_centers c', 'sm.from_location_id = c.ID AND sm.from_location_type = "CENTER"', 'left');
-            $this->db->join('hms_employees e', 'sm.created_by = e.ID', 'left');
+                e.name as user_name,
+                "medicine" as item_type
+            ')
+            ->from('stock_movements sm')
+            ->where('sm.to_location_type', 'SALE_CONSUMPTION_BILLING')
+            ->where('sm.patient_id', $patient_id)
+            ->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left')
+            ->join('medicines m', 'mb.medicine_id = m.id', 'left')
+            ->join('hms_centers c', 'sm.from_location_id = c.ID AND sm.from_location_type = "CENTER"', 'left')
+            ->join('hms_employees e', 'sm.created_by = e.ID', 'left')
+            ->order_by('sm.created_at', 'DESC')
+            ->get_compiled_select();
 
-            $this->db->order_by('sm.created_at', 'DESC');
-            return $this->db->get()->result();
+        // Get package consumption
+        $package_query = $this->db->select('
+                psm.created_at as received_date,
+                psm.quantity_change,
+                psm.unit_price,
+                psm.total_value,
+                psm.reference_id as sale_number,
+                c.center_name,
+                mp.package_name as item_name,
+                mp.package_code as item_code,
+                "" as batch_number,
+                e.name as user_name,
+                "package" as item_type
+            ')
+            ->from('package_stock_movements psm')
+            ->where('psm.movement_type', 'CONSUMPTION')
+            ->where('psm.patient_id', $patient_id)
+            ->join('medicine_packages mp', 'psm.package_id = mp.id', 'left')
+            ->join('hms_centers c', 'psm.from_location_id = c.ID AND psm.from_location_type = "CENTER"', 'left')
+            ->join('hms_employees e', 'psm.created_by = e.ID', 'left')
+            ->order_by('psm.created_at', 'DESC')
+            ->get_compiled_select();
 
-        // } catch (Exception $e) {
-        //     log_message('error', 'Error in get_patient_consumption: ' . $e->getMessage());
-        //     return [];
-        // }
+        // Combine both queries with UNION ALL
+        $combined_query = "($medicine_query) UNION ALL ($package_query) ORDER BY received_date DESC";
+
+        return $this->db->query($combined_query)->result();
     }
 
     /**
@@ -10755,4 +11612,4 @@ public function add_stock_to_location($stock_data)
 //     }
 
 
-// } // End of Model class
+// } // End of Model class  

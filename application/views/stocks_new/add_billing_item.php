@@ -216,6 +216,7 @@ $consumables = $consumables ?? [];
                     <h4 class="heading">Patient Injections</h4>
                     <div class="clearfix"></div>
                     <input type="button" class="add-injections-row btn btn-success" value="Add Injection">
+                    <input type="button" class="add-packages-row btn btn-info" value="Add Package">
                     <input type="button" class="delete-injections-row btn btn-danger pull-right" value="Delete Selected">
                     <div class="table-responsive">
                         <table class="table">
@@ -268,8 +269,56 @@ $consumables = $consumables ?? [];
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Packages Section within Injections -->
+                    <h5 class="heading" style="margin-top: 30px;">Medicine Packages</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th width="5%"></th>
+                                    <th width="15%">Serial Number</th>
+                                    <th width="30%">Package</th>
+                                    <th width="10%">Quantity</th>
+                                    <th width="15%">Stock</th>
+                                    <th width="10%">Price (₹)</th>
+                                    <th width="15%">Total (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="packages_table_body">
+                                <tr class="packages_row_1" data-index="1">
+                                    <td><input type="checkbox" class="active-status" data-type="packages" data-index="1" style="position: relative;left: 0px !important;opacity: 1 !important;"></td>
+                                    <td><input value="" readonly id="packages_serial_1" class="form-control" name="packages_serial_1" type="text"></td>
+                                    <td>
+                                        <select disabled name="packages_name_1" class="form-control packages-select" id="packages_name_1" data-index="1" style="width: 100%;">
+                                            <option value="">Select Package</option>
+                                            <?php if(isset($packages) && !empty($packages)) { ?>
+                                                <?php foreach($packages as $key => $val){ ?>
+                                                    <option value="<?php echo $val->id; ?>"
+                                                            data-id="<?php echo $val->id; ?>"
+                                                            data-name="<?php echo $val->package_name; ?>"
+                                                            data-price="<?php echo $val->selling_price; ?>"
+                                                            data-stock="<?php echo $val->stock; ?>">
+                                                        <?php echo $val->package_name; ?> (₹<?php echo $val->selling_price; ?>)
+                                                    </option>
+                                                <?php } ?>
+                                            <?php } ?>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input step="1" disabled value="" id="packages_quantity_1" class="form-control packages-quantity" name="packages_quantity_1" type="number" min="1" data-index="1">
+                                        <input type="hidden" id="packages_ID_1" name="packages_ID_1">
+                                        <input type="hidden" id="packages_price_1" name="packages_price_1">
+                                    </td>
+                                    <td><input value="" readonly id="packages_stock_1" class="form-control" name="packages_stock_1" type="text"></td>
+                                    <td><input value="" readonly id="packages_price_display_1" class="form-control" type="text"></td>
+                                    <td><input value="" readonly id="packages_total_1" class="form-control" name="packages_total_1" type="text"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </section>
-                
+
                 <!-- Consumables Section -->
                 <section class="col-sm-12 col-xs-12 consumables_section">
                     <h4 class="heading">OT Consumables</h4>
@@ -353,12 +402,14 @@ $(document).ready(function() {
     // --- Counters ---
     let medicineCounter = 1;
     let injectionsCounter = 1;
+    let packagesCounter = 1;
     let consumablesCounter = 1;
-    
+
     // --- Initialize All Select2 ---
     $('#procedure_name').select2({ placeholder: "Select Procedure", width: '100%' });
     $('.medicine-select').select2({ placeholder: "Select Medicine", width: '100%' });
     $('.injections-select').select2({ placeholder: "Select Injection", width: '100%' });
+    $('.packages-select').select2({ placeholder: "Select Package", width: '100%' });
     $('.consumables-select').select2({ placeholder: "Select Consumable", width: '100%' });
     
     // --- Patient ID Lookup ---
@@ -421,13 +472,15 @@ $(document).ready(function() {
             // Clear fields if "Select..." is chosen
             $('#' + type + '_serial_' + index).val('');
             $('#' + type + '_ID_' + index).val('');
-            $('#' + type + '_medicine_id_' + index).val('');
-            $('#' + type + '_batch_' + index).val('');
-            $('#' + type + '_batch_number_' + index).val('');
+            if (type !== 'packages') {
+                $('#' + type + '_medicine_id_' + index).val('');
+                $('#' + type + '_batch_' + index).val('');
+                $('#' + type + '_batch_number_' + index).val('');
+                $('#' + type + '_gst_' + index).val('');
+            }
             $('#' + type + '_stock_' + index).val('');
             $('#' + type + '_price_' + index).val('');
             $('#' + type + '_price_display_' + index).val('');
-            $('#' + type + '_gst_' + index).val('');
             $('#' + type + '_quantity_' + index).val('').attr('max', 0);
             $('#' + type + '_total_' + index).val('');
             return;
@@ -436,14 +489,24 @@ $(document).ready(function() {
         // Populate all fields from data attributes
         $('#' + type + '_serial_' + index).val($select.val());
         $('#' + type + '_ID_' + index).val(data.id);
-        $('#' + type + '_medicine_id_' + index).val(data.medicine_id);
-        $('#' + type + '_batch_' + index).val(data.batch);
-        $('#' + type + '_batch_number_' + index).val(data.batch);
-        $('#' + type + '_stock_' + index).val(data.quantity);
-        $('#' + type + '_price_' + index).val(data.price);
-        $('#' + type + '_price_display_' + index).val(data.price);
-        $('#' + type + '_gst_' + index).val(data.gst);
-        $('#' + type + '_quantity_' + index).attr('max', data.quantity).val(1); // Default to 1
+
+        if (type === 'packages') {
+            // Packages have different data structure
+            $('#' + type + '_stock_' + index).val(data.stock);
+            $('#' + type + '_price_' + index).val(data.price);
+            $('#' + type + '_price_display_' + index).val(data.price);
+            $('#' + type + '_quantity_' + index).attr('max', data.stock).val(1); // Default to 1
+        } else {
+            // Regular medicines/injections/consumables
+            $('#' + type + '_medicine_id_' + index).val(data.medicine_id);
+            $('#' + type + '_batch_' + index).val(data.batch);
+            $('#' + type + '_batch_number_' + index).val(data.batch);
+            $('#' + type + '_stock_' + index).val(data.quantity);
+            $('#' + type + '_price_' + index).val(data.price);
+            $('#' + type + '_price_display_' + index).val(data.price);
+            $('#' + type + '_gst_' + index).val(data.gst);
+            $('#' + type + '_quantity_' + index).attr('max', data.quantity).val(1); // Default to 1
+        }
         
         // Trigger calculation
         calculateRowTotal($select);
@@ -461,6 +524,8 @@ $(document).ready(function() {
             type = 'medicine';
         } else if ($el.hasClass('injections-quantity') || $el.hasClass('injections-select')) {
             type = 'injections';
+        } else if ($el.hasClass('packages-quantity') || $el.hasClass('packages-select')) {
+            type = 'packages';
         } else if ($el.hasClass('consumables-quantity') || $el.hasClass('consumables-select')) {
             type = 'consumables';
         } else {
@@ -483,8 +548,8 @@ $(document).ready(function() {
     }
 
     // --- Event Handlers using Delegation ---
-    $(document).on('change', '.medicine-select, .injections-select, .consumables-select', handleItemSelect);
-    $(document).on('input', '.medicine-quantity, .injections-quantity, .consumables-quantity', function() {
+    $(document).on('change', '.medicine-select, .injections-select, .packages-select, .consumables-select', handleItemSelect);
+    $(document).on('input', '.medicine-quantity, .injections-quantity, .packages-quantity, .consumables-quantity', function() {
         calculateRowTotal(this);
     });
 
@@ -568,6 +633,32 @@ $(document).ready(function() {
         initializeNewRow($newRowEl, 'injections', injectionsCounter); // Initialize the new row
     });
 
+    $('.add-packages-row').click(function() {
+        packagesCounter++;
+        var optionsHtml = $('#packages_name_1').html();
+        var newRow = `
+            <tr class="packages_row_${packagesCounter}" data-index="${packagesCounter}">
+                <td><input type="checkbox" class="active-status" data-type="packages" data-index="${packagesCounter}" style="position: relative;left: 0px !important;opacity: 1 !important;"></td>
+                <td><input value="" readonly id="packages_serial_${packagesCounter}" class="form-control" name="packages_serial_${packagesCounter}" type="text"></td>
+                <td>
+                    <select disabled name="packages_name_${packagesCounter}" class="form-control packages-select" id="packages_name_${packagesCounter}" data-index="${packagesCounter}" style="width: 100%;">
+                        ${optionsHtml}
+                    </select>
+                </td>
+                <td>
+                    <input step="1" disabled value="" id="packages_quantity_${packagesCounter}" class="form-control packages-quantity" name="packages_quantity_${packagesCounter}" type="number" min="1" data-index="${packagesCounter}">
+                    <input type="hidden" id="packages_ID_${packagesCounter}" name="packages_ID_${packagesCounter}">
+                    <input type="hidden" id="packages_price_${packagesCounter}" name="packages_price_${packagesCounter}">
+                </td>
+                <td><input value="" readonly id="packages_stock_${packagesCounter}" class="form-control" name="packages_stock_${packagesCounter}" type="text"></td>
+                <td><input value="" readonly id="packages_price_display_${packagesCounter}" class="form-control" type="text"></td>
+                <td><input value="" readonly id="packages_total_${packagesCounter}" class="form-control" name="packages_total_${packagesCounter}" type="text"></td>
+            </tr>`;
+        var $newRowEl = $(newRow);
+        $('#packages_table_body').append($newRowEl);
+        initializeNewRow($newRowEl, 'packages', packagesCounter); // Initialize the new row
+    });
+
     $('.add-consumables-row').click(function() {
         consumablesCounter++;
         var optionsHtml = $('#consumables_name_1').html();
@@ -642,6 +733,7 @@ $(document).ready(function() {
         // 2. Check for items
         if ($('.medicine-select:enabled option:selected[value!=""]').length > 0 ||
             $('.injections-select:enabled option:selected[value!=""]').length > 0 ||
+            $('.packages-select:enabled option:selected[value!=""]').length > 0 ||
             $('.consumables-select:enabled option:selected[value!=""]').length > 0) {
             hasItems = true;
         }

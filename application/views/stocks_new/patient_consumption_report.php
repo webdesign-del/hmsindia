@@ -22,6 +22,22 @@
                 <i class="fa fa-search"></i> Search Patient
             </div>
             <div class="panel-body">
+                <?php if (!empty($selected_patient)): ?>
+                <!-- Filter Tabs -->
+                <ul class="nav nav-tabs" id="consumptionTabs" role="tablist">
+                    <li class="nav-item active">
+                        <a class="nav-link active" id="all-tab" data-toggle="tab" href="#all" role="tab">All Items</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="medicines-tab" data-toggle="tab" href="#medicines" role="tab">Medicines</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="packages-tab" data-toggle="tab" href="#packages" role="tab">Packages</a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="consumptionTabContent">
+                    <!-- All Items Tab -->
+                    <div class="tab-pane fade in active" id="all" role="tabpanel">
                 <form action="<?php echo base_url('stocks_new/patient_consumption_report'); ?>" method="get" class="form-inline">
                     <div class="form-group" style="min-width: 400px;">
                         <label>Select Patient:</label>
@@ -51,10 +67,36 @@
                     </a>
                     <!-- *** END NEW BUTTON *** -->
                 </form>
+
+                <!-- Filter Tabs -->
+                <div class="row" style="margin-top: 20px;">
+                    <div class="col-md-12">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="active"><a href="#all-items" data-toggle="tab">All Items</a></li>
+                            <li><a href="#medicines-only" data-toggle="tab">Medicines Only</a></li>
+                            <li><a href="#packages-only" data-toggle="tab">Packages Only</a></li>
+                        </ul>
+                        <div class="tab-content" style="margin-top: 20px;">
+                            <!-- All Items Tab -->
+                            <div class="tab-pane active" id="all-items">
+                                Shows all medicines and packages consumed by the patient.
+                            </div>
+                            <!-- Medicines Only Tab -->
+                            <div class="tab-pane" id="medicines-only">
+                                Shows only individual medicine consumption.
+                            </div>
+                            <!-- Packages Only Tab -->
+                            <div class="tab-pane" id="packages-only">
+                                Shows only package consumption.
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Consumption Table -->
 <div class="row">
@@ -73,7 +115,8 @@
                             <tr>
                                 <th>Date</th>
                                 <th>Sale # / Ref</th>
-                                <th>Medicine</th>
+                                <th>Type</th>
+                                <th>Item</th>
                                 <th>Batch #</th>
                                 <th>Qty</th>
                                 <th>Unit Price</th>
@@ -85,12 +128,19 @@
                         <tbody>
                             <?php if(!empty($consumption_data)): ?>
                                 <?php foreach($consumption_data as $item): ?>
-                                    <tr>
+                                    <tr class="consumption-row" data-type="<?php echo $item->item_type; ?>">
                                         <td><?php echo date('d-m-Y H:i', strtotime($item->received_date)); ?></td>
                                         <td><strong><?php echo htmlspecialchars($item->sale_number); ?></strong></td>
                                         <td>
-                                            <?php echo htmlspecialchars($item->medicine_name); ?><br>
-                                            <small class="text-muted"><?php echo htmlspecialchars($item->medicine_code); ?></small>
+                                            <?php if($item->item_type == 'package'): ?>
+                                                <span class="badge badge-info">Package</span>
+                                            <?php else: ?>
+                                                <span class="badge badge-primary">Medicine</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <?php echo htmlspecialchars($item->item_name); ?><br>
+                                            <small class="text-muted"><?php echo htmlspecialchars($item->item_code); ?></small>
                                         </td>
                                         <td><?php echo htmlspecialchars($item->batch_number); ?></td>
                                         <td><strong class="text-danger"><?php echo abs($item->quantity_change); ?></strong></td>
@@ -101,8 +151,8 @@
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr>
-                                    <td colspan="9" class="text-center text-muted">
+                                <tr id="noDataRow">
+                                    <td colspan="10" class="text-center text-muted">
                                         <?php if (!empty($selected_patient)): ?>
                                             <i class="fa fa-info-circle"></i> No consumption data found for this patient.
                                         <?php else: ?>
@@ -162,5 +212,38 @@ $(document).ready(function() {
         "paging": false
     });
     <?php endif; ?>
+
+    // Tab filtering functionality
+    $('.nav-tabs a').on('shown.bs.tab', function (e) {
+        var target = $(e.target).attr('href');
+        var filterType = '';
+
+        if (target === '#medicines-only') {
+            filterType = 'medicine';
+        } else if (target === '#packages-only') {
+            filterType = 'package';
+        }
+
+        // Show/hide rows based on filter
+        $('.consumption-row').each(function() {
+            if (filterType === '') {
+                $(this).show();
+            } else {
+                if ($(this).data('type') === filterType) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            }
+        });
+
+        // Handle no data row
+        var visibleRows = $('.consumption-row:visible').length;
+        if (visibleRows === 0 && $('#noDataRow').length === 0) {
+            $('#consumptionTableBody').append('<tr id="noDataRow"><td colspan="10" class="text-center text-muted"><i class="fa fa-info-circle"></i> No items found for this category.</td></tr>');
+        } else if (visibleRows > 0) {
+            $('#noDataRow').remove();
+        }
+    });
 });
 </script>
