@@ -6742,46 +6742,27 @@ class Stock_model_new extends CI_Model
         public function process_stock_audit($audit_header, $audit_items, $selected_department = null)
         {
             $this->db->trans_start(); // Start transaction
-
-            // 1. Create Audit Report Header
             $audit_header['audit_number'] = "AUD-" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-            
-            // Determine location type from the center_id passed by the form
             $audit_location_key = $audit_header['center_id'];
             $is_central_audit = (strtolower($audit_location_key) == 'central' || $audit_location_key == '0');
             $location_type = $is_central_audit ? 'CENTRAL' : 'CENTER';
-            // Use NULL for location_id if central, otherwise use the integer ID
             $location_id = $is_central_audit ? null : (int)$audit_location_key;
-            // The audit_reports.center_id column should store the integer ID or NULL for central warehouse
-            // Using NULL instead of 0 to satisfy foreign key constraint
             $audit_report_center_id = $is_central_audit ? null : (int)$audit_location_key;
-            
-            // Replace the 'center_id' key with the correct integer ID for the database (or NULL for central)
             $audit_header['center_id'] = $audit_report_center_id;
-
             $this->db->insert('audit_reports', $audit_header);
             $audit_id = $this->db->insert_id();
-
             if (!$audit_id) {
                 $this->db->trans_rollback();
                 return ['status' => 'error', 'message' => 'Failed to create audit report header.'];
             }
-
             $total_items_audited = 0;
             $discrepancies_found = 0;
-
-            // 2. Loop through submitted audit items
             foreach ($audit_items as $item) {
                 $batch_id = (int)($item['batch_id'] ?? 0);
                 $physical_quantity = (int)($item['physical_quantity'] ?? 0);
-
                 if ($batch_id <= 0) continue; // Skip empty/invalid rows
-
-                // Determine department for this item
-                // If a department filter was applied, use it; otherwise, get it from the batch
                 $item_department = $selected_department;
                 if (empty($item_department) && !$is_central_audit) {
-                    // Look up department from center_stocks for this batch
                     $stock_record = $this->db->select('department')
                         ->from('center_stocks')
                         ->where('batch_id', $batch_id)
@@ -6793,22 +6774,14 @@ class Stock_model_new extends CI_Model
                         $item_department = $stock_record->department;
                     }
                 }
-
-                // 3. Get system quantity at the time of audit
                 $system_quantity = $this->get_stock_quantity_for_batch($batch_id, $location_type, $location_id, $item_department);
-                
                 $variance = $physical_quantity - $system_quantity;
                 $total_items_audited++;
-
-                // 4. If there is a variance, create an adjustment
                 if ($variance != 0) {
                     $discrepancies_found++;
-                    
                     $unit_cost = $this->get_batch_purchase_price($batch_id);
                     $adjustment_value = $variance * $unit_cost; // Can be positive or negative
                     $new_system_quantity = $system_quantity + $variance;
-
-                    // 4a. Update Stock Location (center_stocks or central_stocks)
                     $this->db->set('quantity', $new_system_quantity);
                     $this->db->set('last_movement_date', 'NOW()', FALSE);
                     $this->db->set('updated_at', 'NOW()', FALSE);
@@ -6817,20 +6790,15 @@ class Stock_model_new extends CI_Model
                         $this->db->update('central_stocks');
                     } else {
                         $this->db->where('center_id', $location_id);
-                        // Filter by department - use item_department which may be from filter or lookup
                         if (!empty($item_department)) {
                             $this->db->where('department', $item_department);
                         }
                         $this->db->update('center_stocks');
                     }
-                    
-                    // 4b. Update Master Batch Record (medicine_batches)
                     $this->db->set('quantity_remaining', 'quantity_remaining + ' . $variance, FALSE);
                     $this->db->set('updated_at', 'NOW()', FALSE);
                     $this->db->where('id', $batch_id);
                     $this->db->update('medicine_batches');
-
-                    // 4c. Log in Stock Movements
                     $movement_data = [
                         'batch_id' => $batch_id,
                         'movement_type' => $variance > 0 ? 'ADJUSTMENT_IN' : 'ADJUSTMENT_OUT',
@@ -6853,27 +6821,22 @@ class Stock_model_new extends CI_Model
                     $this->db->insert('stock_movements', $movement_data);
                 }
             } // End foreach
-
-            // 5. Update Audit Report Header with final counts
             $this->db->where('id', $audit_id);
             $this->db->update('audit_reports', [
                 'total_items_audited' => $total_items_audited,
+                'department'=>$selected_department,
                 'discrepancies_found' => $discrepancies_found,
                 'status' => 'COMPLETED'
             ]);
-
-            // 6. Complete Transaction
             $this->db->trans_complete();
-            
             if ($this->db->trans_status() === FALSE) {
                 log_message('error', 'Stock Audit Transaction Failed. Rolling back.');
                 return ['status' => 'error', 'message' => 'Database transaction failed.'];
             }
-
             return ['status' => 'success', 'discrepancies' => $discrepancies_found];
         }
-          public function get_audit_report_by_id($id)
-    {
+        public function get_audit_report_by_id($id)
+        {
         try {
             $this->db->select([
                 'ar.*', // Select all columns from audit_reports
@@ -6885,12 +6848,9 @@ class Stock_model_new extends CI_Model
             $this->db->join('hms_employees e', 'ar.created_by = e.ID', 'left');
             $this->db->where('ar.id', $id);
             $result = $this->db->get()->row();
-
-            // Handle central warehouse display
             if ($result && ($result->center_id == 0 || $result->center_id === null)) {
                 $result->center_name = 'Central Warehouse';
             }
-
             return $result; // Return a single row object
         } catch (Exception $e) {
             log_message('error', "Error in get_audit_report_by_id: " . $e->getMessage());
@@ -6904,16 +6864,16 @@ class Stock_model_new extends CI_Model
      */
     public function get_audit_items_from_log($audit_id)
     {
-        try {
+        // try {
             $this->db->select([
                 'sm.id as movement_id',
-                'sm.quantity_change', // This will be positive or negative
+                'sm.quantity_change',
                 'sm.quantity_before',
                 'sm.movement_type',
                 'sm.quantity_after',
-                'sm.unit_price',      // This is the purchase_price used
-                'sm.total_value',     // Calculated value of the adjustment
-                'sm.remarks as movement_remarks', // Get the log remark
+                'sm.unit_price',      
+                'sm.total_value',    
+                'sm.remarks as movement_remarks', 
                 'sm.created_at as log_created_at',
                 'mb.batch_number',
                 'mb.expiry_date',
@@ -6925,19 +6885,14 @@ class Stock_model_new extends CI_Model
             $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
-            
-            // Filter specifically for this audit report's log entries
             $this->db->where('sm.reference_id', $audit_id);
             $this->db->where('sm.reference_type', 'AUDIT_REPORT');
-            
-            $this->db->order_by('sm.created_at', 'ASC'); // Order by log entry time
-            
-            return $this->db->get()->result(); // Return an array of item objects
-            
-        } catch (Exception $e) {
-            log_message('error', "Error in get_audit_items_from_log: " . $e->getMessage());
-            return []; // Return empty array on error
-        }
+            $this->db->order_by('sm.created_at', 'ASC'); 
+            return $this->db->get()->result(); 
+        // } catch (Exception $e) {
+        //     log_message('error', "Error in get_audit_items_from_log: " . $e->getMessage());
+        //     return []; // Return empty array on error
+        // }
     }
 
         // public function process_stock_audit($audit_data, $audit_items)

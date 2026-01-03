@@ -94,6 +94,7 @@
                                         <tr>
                                             <th>Audit Number</th>
                                             <th>Center</th>
+                                            <th>Department</th>
                                             <th>Audit Date</th>
                                             <th>Audit Type</th>
                                             <th>Auditor</th>
@@ -108,6 +109,7 @@
                                             <tr>
                                                 <td><?php echo $report->audit_number; ?></td>
                                                 <td><?php echo isset($report->center_name) ? $report->center_name : 'N/A'; ?></td>
+                                                <td><?php echo isset($report->department) ? $report->department : 'N/A'; ?></td>
                                                 <td><?php echo date('d-m-Y', strtotime($report->audit_date)); ?></td>
                                                 <td><?php echo $report->audit_type; ?></td>
                                                 <td><?php echo $report->auditor_name; ?></td>
