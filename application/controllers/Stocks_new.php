@@ -353,7 +353,7 @@ class Stocks_new extends CI_Controller
                     $result = $this->Stock_model_new->add_package_stock(
                         $this->input->post("package_id"),
                         $this->input->post("center_id"),
-                        $this->input->port("department"),
+                        $this->input->post("department"),
                         $this->input->post("quantity"),
                         $this->get_current_user_id()
                     );
