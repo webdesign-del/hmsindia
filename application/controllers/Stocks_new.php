@@ -10502,6 +10502,7 @@ class Stocks_new extends CI_Controller
             'si.quantity_sold',
             'si.unit_price',
             'si.subtotal',
+            'si.taxable_Value',
             'si.tax_amount',
             'si.total as item_total',
             's.payment_status',
@@ -10513,6 +10514,16 @@ class Stocks_new extends CI_Controller
         $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
         $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
+
+        // Only include sales that have stock movements (same as regular sales list)
+        $this->db->where("
+            EXISTS (
+                SELECT 1 FROM stock_movements sm
+                WHERE sm.reference_id = s.id
+                AND sm.movement_type = 'SALE'
+                AND sm.to_location_type = 'SALE'
+            )
+        ", null, false);
 
         // Apply same filters as the list view
         // Default to only confirmed sales
@@ -10561,8 +10572,9 @@ class Stocks_new extends CI_Controller
             'Medicine Name',
             'Batch Number',
             'Quantity Sold',
-            'Unit Price (₹)',
-            'Subtotal (₹)',
+            'Mrp Price (₹)',
+            'Total Mrp Price (₹)',
+            'Taxable Value  (₹)',
             'Tax Amount (₹)',
             'Item Total (₹)',
             'Payment Status',
@@ -10584,6 +10596,7 @@ class Stocks_new extends CI_Controller
                 $item['quantity_sold'] ?? 0,
                 number_format($item['unit_price'] ?? 0, 2),
                 number_format($item['subtotal'] ?? 0, 2),
+                number_format($item['taxable_Value'] ?? 0, 2),
                 number_format($item['tax_amount'] ?? 0, 2),
                 number_format($item['item_total'] ?? 0, 2),
                 $item['payment_status'] ?? 'N/A',
