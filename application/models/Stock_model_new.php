@@ -9422,13 +9422,12 @@ public function add_stock_to_location($stock_data)
             'payment_method' => $payment_method,
             'updated_at' => date('Y-m-d H:i:s')
         ];
-
         // Add tracking info if provided
-        if (!empty($updated_by)) {
-            $data['payment_method_updated_by'] = $updated_by;
-            $data['payment_method_updated_by_name'] = $updated_by_name;
-            $data['payment_method_updated_at'] = date('Y-m-d H:i:s');
-        }
+        // if (!empty($updated_by)) {
+        //     $data['payment_method_updated_by'] = $updated_by ?? null;
+        //     $data['payment_method_updated_by_name'] = $updated_by_name;
+        //     $data['payment_method_updated_at'] = date('Y-m-d H:i:s');
+        // }
 
         // Update the sale record
         $this->db->where('id', $sale_id);
