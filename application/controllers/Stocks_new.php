@@ -10448,5 +10448,170 @@ class Stocks_new extends CI_Controller
         redirect('stocks_new/sales');
     }
 
+    public function get_detailed_sales_for_export()
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+
+        $format = $this->input->get('format') ?: 'excel'; // Default to excel if not specified
+        $filters = [
+            'center_id' => $this->input->get('center_id'),
+            'patient_id' => $this->input->get('patient_id'),
+            'patient_name' => $this->input->get('patient_name'),
+            'status' => $this->input->get('status'),
+            'approval_status' => $this->input->get('approval_status'),
+            'date_from' => $this->input->get('date_from'),
+            'date_to' => $this->input->get('date_to')
+        ];
+
+        // Get detailed sales data
+        $detailed_sales = $this->get_detailed_sales_data($filters);
+
+        if (empty($detailed_sales)) {
+            $this->session->set_flashdata('error', 'No detailed sales data found to export.');
+            redirect('stocks_new/sales');
+            return;
+        }
+
+        if ($format == 'excel') {
+            $this->export_detailed_sales_excel($detailed_sales, $filters);
+        } elseif ($format == 'pdf') {
+            $this->export_detailed_sales_pdf($detailed_sales, $filters);
+        } else {
+            $this->session->set_flashdata('error', 'Invalid export format.');
+            redirect('stocks_new/sales');
+        }
+    }
+
+    /**
+     * Get detailed sales data for export
+     */
+    private function get_detailed_sales_data($filters = [])
+    {
+        $this->db->select([
+            's.sale_number',
+            's.sale_date',
+            's.patient_id',
+            's.patient_name',
+            'c.center_name',
+            'm.medicine_name',
+            'mb.batch_number',
+            'si.quantity_sold',
+            'si.unit_price',
+            'si.subtotal',
+            'si.tax_amount',
+            'si.total as item_total',
+            's.payment_status',
+            's.status as sale_status',
+            's.remarks'
+        ]);
+        $this->db->from('sales s');
+        $this->db->join('sale_items si', 's.id = si.sale_id', 'inner');
+        $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
+        $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+        $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
+
+        // Apply same filters as the list view
+        // Default to only confirmed sales
+        if(empty($filters['status'])) {
+            $this->db->where('s.status', 'CONFIRMED');
+        } elseif(!empty($filters['status'])) {
+            $this->db->where('s.status', $filters['status']);
+        }
+
+        if(!empty($filters['center_id'])) $this->db->where('s.center_id', $filters['center_id']);
+        if(!empty($filters['patient_id'])) $this->db->like('s.patient_id', $filters['patient_id']);
+        if(!empty($filters['patient_name'])) $this->db->like('s.patient_name', $filters['patient_name']);
+        if(!empty($filters['approval_status'])) $this->db->where('s.accountant_approval_status', $filters['approval_status']);
+        if(!empty($filters['date_from'])) $this->db->where('s.sale_date >=', $filters['date_from']);
+        if(!empty($filters['date_to'])) $this->db->where('s.sale_date <=', $filters['date_to']);
+
+        $this->db->order_by('s.sale_date', 'DESC');
+        $this->db->order_by('s.id', 'DESC');
+
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Export detailed sales (line items) to Excel
+     */
+    private function export_detailed_sales_excel($detailed_sales, $filters)
+    {
+        // Set headers for Excel download
+        $filename = 'Detailed_Sales_Export_' . date('Y-m-d_H-i-s') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+
+        // Create file pointer
+        $output = fopen('php://output', 'w');
+
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Add headers
+        $headers = [
+            'Sale Number',
+            'Sale Date',
+            'Patient ID',
+            'Patient Name',
+            'Center Name',
+            'Medicine Name',
+            'Batch Number',
+            'Quantity Sold',
+            'Unit Price (₹)',
+            'Subtotal (₹)',
+            'Tax Amount (₹)',
+            'Item Total (₹)',
+            'Payment Status',
+            'Sale Status',
+            'Remarks'
+        ];
+        fputcsv($output, $headers);
+
+        // Add data rows
+        foreach ($detailed_sales as $item) {
+            $row = [
+                $item['sale_number'] ?? 'N/A',
+                isset($item['sale_date']) ? date('d-m-Y', strtotime($item['sale_date'])) : 'N/A',
+                $item['patient_id'] ?? 'N/A',
+                $item['patient_name'] ?? 'N/A',
+                $item['center_name'] ?? 'N/A',
+                $item['medicine_name'] ?? 'N/A',
+                $item['batch_number'] ?? 'N/A',
+                $item['quantity_sold'] ?? 0,
+                number_format($item['unit_price'] ?? 0, 2),
+                number_format($item['subtotal'] ?? 0, 2),
+                number_format($item['tax_amount'] ?? 0, 2),
+                number_format($item['item_total'] ?? 0, 2),
+                $item['payment_status'] ?? 'N/A',
+                $item['sale_status'] ?? 'N/A',
+                $item['remarks'] ?? 'N/A'
+            ];
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit();
+    }
+
+    /**
+     * Export detailed sales (line items) to PDF
+     */
+    private function export_detailed_sales_pdf($detailed_sales, $filters)
+    {
+        // Create a print-friendly HTML page that can be printed as PDF
+        $data = [
+            'detailed_sales' => $detailed_sales,
+            'filters' => $filters,
+            'generated_date' => date('M d, Y H:i A')
+        ];
+
+        // Load the print view
+        $this->load->view('stocks_new/print_detailed_sales', $data);
+    }
+
 
 }
