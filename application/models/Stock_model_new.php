@@ -10054,14 +10054,7 @@ public function add_stock_to_location($stock_data)
             $this->db->where('ps.center_id', $center_id);
         }
 
-        if ($department !== null && $department !== '') {
-            $this->db->where('ps.department', $department);
-        } else {
-            $this->db->group_start();
-            $this->db->where('ps.department IS NULL');
-            $this->db->or_where('ps.department', '');
-            $this->db->group_end();
-        }
+        $this->db->like('ps.department', $department);
 
         $this->db->limit(1);
         return $this->db->get()->row();
@@ -10219,12 +10212,7 @@ public function add_stock_to_location($stock_data)
         $this->db->where('mp.status', 'active');
         $this->db->where('ps.center_id', $center_id); // Filter by center_id
         if ($department) {
-            // Match either exact department or empty/null department
-            $this->db->group_start();
-            $this->db->where('ps.department', $department);
-            $this->db->or_where('ps.department IS NULL');
-            $this->db->or_where('ps.department', '');
-            $this->db->group_end();
+            $this->db->like('ps.department', $department);
         }
         $this->db->having('stock >', 0); // Only show packages with stock > 0
         $this->db->order_by('mp.package_name', 'ASC');

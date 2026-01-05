@@ -76,8 +76,8 @@
                             <div class="form-group">
                                 <label class="col-sm-4 control-label">To Department</label>
                                 <div class="col-sm-8">
-                                        <select name="to_department" id="to_department" class="form-control">
-                                            <option value="">Select Department (Optional)</option>
+                                        <select name="department" id="department" class="form-control">
+                                            <option value="">Select Department</option>
                                             <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
                                             <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
                                             <option value="CASH MEDICINE BASANT LOK">CASH MEDICINE BASANT LOK</option>
