@@ -61858,3 +61858,1797 @@
 27-12-2025 10:27:37-------------{"wife_name":"Manisha","husband_name":"","wife_phone":"7417749793","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2025-12-27","appoitmented_slot":"16:25-16:30","status":"in_clinic"}
 
 27-12-2025 10:27:38======Patient Exists======
+
+28-12-2025 03:34:05-------------{"wife_name":"Vibha Yadav","husband_name":"Tulsi Yadav","wife_phone":"9306433804","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2025-12-28","appoitmented_slot":"09:05-09:10","status":"rescheduled"}
+
+28-12-2025 03:34:06======New Patient======
+
+28-12-25 03:34:06-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919306433804","messageId":"15f90ec1-cd15-498f-bca8-afe4241c1089"}]}
+
+28-12-25 03:35:22-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919306433804","messageId":"e82dfdce-b5a9-461a-a674-3247177aa751"}]}
+
+28-12-2025 04:07:00-------------{"wife_name":"Anupma Goyal","husband_name":"","wife_phone":"8826987375","appoitment_for":"16267558222750","appoitmented_doctor":"76","appoitmented_date":"2025-12-28","appoitmented_slot":"09:50-09:55","status":"rescheduled"}
+
+28-12-2025 04:07:02======Patient Exists======
+
+28-12-2025 04:08:41-------------{"wife_name":"Manisha","husband_name":"","wife_phone":"7417749793","appoitment_for":"16267558222750","appoitmented_doctor":"76","appoitmented_date":"2025-12-28","appoitmented_slot":"09:45-09:50","status":"in_clinic"}
+
+28-12-2025 04:08:41======Patient Exists======
+
+28-12-2025 04:40:53-------------{"wife_name":"Bhuvneshwari Nitesh Khune","husband_name":"","wife_phone":"9834564384","appoitment_for":"16249589462327","appoitmented_doctor":"90","appoitmented_date":"2025-12-28","appoitmented_slot":"10:10-10:15","status":"in_clinic"}
+
+28-12-2025 04:40:54======Patient Exists======
+
+28-12-2025 04:42:59-------------{"wife_name":"Sachita devi","husband_name":"","wife_phone":"9599653244","appoitment_for":"16249589462327","appoitmented_doctor":"90","appoitmented_date":"2025-12-28","appoitmented_slot":"10:00-10:05","status":"in_clinic"}
+
+28-12-2025 04:43:01======Patient Exists======
+
+28-12-2025 04:44:42-------------{"wife_name":"Sachita devi","husband_name":"","wife_phone":"9599653244","appoitment_for":"16249589462327","appoitmented_doctor":"90","appoitmented_date":"2025-12-28","appoitmented_slot":"10:20-10:25","status":"in_clinic"}
+
+28-12-2025 04:44:44======Patient Exists======
+
+28-12-2025 04:56:07-------------{"wife_name":"Shyamindra Gupta","husband_name":"","wife_phone":"9910613269","appoitment_for":"16249589462327","appoitmented_doctor":"90","appoitmented_date":"2025-12-28","appoitmented_slot":"10:30-10:35","status":"in_clinic"}
+
+28-12-2025 04:56:08======Patient Exists======
+
+28-12-2025 05:00:33-------------{"wife_name":"VAISHALI GOYAL","husband_name":"","wife_phone":"9560105407","appoitment_for":"16249589462327","appoitmented_doctor":"90","appoitmented_date":"2025-12-28","appoitmented_slot":"10:25-10:30","status":"in_clinic"}
+
+28-12-2025 05:00:34======Patient Exists======
+
+28-12-2025 05:00:43-------------{"wife_name":"Afroza","husband_name":"","wife_phone":"7006153884","appoitment_for":"16133769691598","appoitmented_doctor":"84","appoitmented_date":"2025-12-28","appoitmented_slot":"10:30-10:35","status":"in_clinic"}
+
+28-12-2025 05:00:44======Patient Exists======
+
+28-12-2025 05:12:26-------------{"wife_name":"Swati Mishra ","husband_name":"","wife_phone":"8447505754","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-28","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+28-12-2025 05:12:27======Patient Exists======
+
+28-12-2025 05:15:48-------------{"wife_name":"pooja devi","husband_name":"Suresh","wife_phone":"8210287016","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2025-12-28","appoitmented_slot":"10:40-10:45","status":"rescheduled"}
+
+28-12-2025 05:15:50======New Patient======
+
+28-12-25 05:15:50-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918210287016","messageId":"7b61ee9f-9a71-4565-9ad4-da632b2f8869"}]}
+
+28-12-25 05:16:29-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918210287016","messageId":"31ba3f57-e1e1-4009-8bb3-6ed311757ed8"}]}
+
+28-12-2025 05:20:19-------------{"wife_name":"Swati Mishra ","husband_name":"","wife_phone":"8447505754","appoitment_for":"16249589462327","appoitmented_doctor":"90","appoitmented_date":"","appoitmented_slot":"09:50-09:55","status":"in_clinic"}
+
+28-12-2025 05:20:20======Patient Exists======
+
+28-12-2025 05:20:27-------------{"wife_name":"Swati Mishra ","husband_name":"","wife_phone":"8447505754","appoitment_for":"16249589462327","appoitmented_doctor":"90","appoitmented_date":"2025-12-28","appoitmented_slot":"09:40-09:45","status":"in_clinic"}
+
+28-12-2025 05:20:28======Patient Exists======
+
+28-12-2025 05:32:13-------------{"wife_name":"Manisha","husband_name":"","wife_phone":"7417749793","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2025-12-28","appoitmented_slot":"09:25-09:30","status":"in_clinic"}
+
+28-12-2025 05:32:14======Patient Exists======
+
+28-12-2025 05:33:51-------------{"wife_name":"Gudiya","husband_name":"","wife_phone":"9310021804","appoitment_for":"16267558222750","appoitmented_doctor":"76","appoitmented_date":"2025-12-28","appoitmented_slot":"09:35-09:40","status":"in_clinic"}
+
+28-12-2025 05:33:52======Patient Exists======
+
+28-12-2025 05:37:35-------------{"wife_name":"Ragini Mishra","husband_name":"ashutosh","wife_phone":"9718482609","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2025-12-28","appoitmented_slot":"09:45-09:50","status":"rescheduled"}
+
+28-12-2025 05:37:36======Patient Exists======
+
+28-12-25 05:38:47-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006322216","messageId":"bada21f3-df37-4ce4-8ba5-1c0d9ddc7885"}]}
+
+28-12-25 05:42:57-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917780882180","messageId":"03fb4a72-7eb9-41e6-9c18-fe45fd1eb432"}]}
+
+28-12-2025 05:57:32-------------{"wife_name":"Ruksana","husband_name":"","wife_phone":"7889656585","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"11:20-11:25","status":"in_clinic"}
+
+28-12-2025 05:57:33======Patient Exists======
+
+28-12-25 05:59:10-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919971163293","messageId":"12e9dac2-e37f-438b-b7c1-fdd8e647e6b6"}]}
+
+28-12-25 06:23:32-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917277789572","messageId":"d01c7a1b-c886-43e2-8e83-613e48df98dd"}]}
+
+28-12-2025 06:29:50-------------{"wife_name":"Shyamindra Gupta","husband_name":"","wife_phone":"9910613269","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-28","appoitmented_slot":"09:55-10:00","status":"in_clinic"}
+
+28-12-2025 06:29:51======Patient Exists======
+
+28-12-25 06:30:11-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919992606124","messageId":"4c8c9ebe-460d-4759-8689-c592c909cf94"}]}
+
+28-12-25 06:38:11-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919622723829","messageId":"b4a08394-803f-4045-9d75-3da6dc7c46b3"}]}
+
+28-12-25 06:46:33-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006692656","messageId":"90a2f99a-0fe1-460c-a48f-44f3d87ac940"}]}
+
+28-12-25 06:47:24-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006692656","messageId":"c2b5fd89-d1a5-4c15-9bcf-1eee2ec24bf8"}]}
+
+28-12-2025 06:52:45-------------{"wife_name":"Sangita Kumari","husband_name":"","wife_phone":"9163959491","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2025-12-28","appoitmented_slot":"09:20-09:25","status":"in_clinic"}
+
+28-12-2025 06:52:46======Patient Exists======
+
+28-12-2025 07:02:01-------------{"wife_name":"asifa","husband_name":"","wife_phone":"9419418338","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"09:00-09:05","status":"in_clinic"}
+
+28-12-2025 07:02:02======Patient Exists======
+
+28-12-2025 07:02:02-------------{"wife_name":"asifa","husband_name":"","wife_phone":"9419418338","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"09:00-09:05","status":"in_clinic"}
+
+28-12-2025 07:02:02======Patient Exists======
+
+28-12-2025 07:05:20-------------{"wife_name":"Neeraj","husband_name":"Neeraj","wife_phone":"9811326237","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-28","appoitmented_slot":"09:45-09:50","status":"in_clinic"}
+
+28-12-2025 07:05:21======New Patient======
+
+28-12-25 07:05:21-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919811326237","messageId":"806944d2-3600-4d0d-be9a-911be60f9bbe"}]}
+
+28-12-25 07:05:50-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919811326237","messageId":"9d36570a-ce42-4080-85f1-3165f340f611"}]}
+
+28-12-2025 07:13:18-------------{"wife_name":"Shahzada bano","husband_name":"","wife_phone":"9622572729","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"12:40-12:45","status":"in_clinic"}
+
+28-12-2025 07:13:18======Patient Exists======
+
+28-12-25 07:14:12-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919821146995","messageId":"5c0a2f93-590a-418b-8644-fc863533a079"}]}
+
+28-12-25 07:14:57-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919205510739","messageId":"242dc707-0188-4dbc-8bcd-b9402388082b"}]}
+
+28-12-2025 07:23:49-------------{"wife_name":"Birjesh","husband_name":"Shri Bhagwan ","wife_phone":"7456831194","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2025-12-28","appoitmented_slot":"14:35-14:40","status":"rescheduled"}
+
+28-12-2025 07:23:53======Patient Exists======
+
+28-12-2025 07:24:22-------------{"wife_name":"Parvaiza","husband_name":"","wife_phone":"7780958524","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"12:45-12:50","status":"in_clinic"}
+
+28-12-2025 07:24:23======Patient Exists======
+
+28-12-2025 07:46:10-------------{"wife_name":"Khushbu Pandey","husband_name":"","wife_phone":"9468088522","appoitment_for":"16266778858144","appoitmented_doctor":"59","appoitmented_date":"2025-12-28","appoitmented_slot":"15:35-15:40","status":"in_clinic"}
+
+28-12-2025 07:46:12======Patient Exists======
+
+28-12-25 07:47:26-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918273172146","messageId":"641e5ae5-728a-413b-b9e6-ee2e83756624"}]}
+
+28-12-2025 07:52:08-------------{"wife_name":"SONI","husband_name":"SANTUSHA","wife_phone":"9315599206","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2025-12-28","appoitmented_slot":"13:15-13:20","status":"rescheduled"}
+
+28-12-2025 07:52:09======New Patient======
+
+28-12-25 07:52:09-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919315599206","messageId":"6439d9d4-206d-4bc9-a3c7-0585f06e54ea"}]}
+
+28-12-25 07:52:44-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917835020003","messageId":"9e6ca50c-0182-4642-a855-6062c3212404"}]}
+
+28-12-25 07:53:15-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918273172146","messageId":"9a80279e-c7fa-4cf3-9fed-1f70696b6f79"}]}
+
+28-12-25 07:55:57-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919315599206","messageId":"acc7e375-42a1-44e3-a315-1e685c01bd74"}]}
+
+28-12-25 07:58:48-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006702220","messageId":"607c927a-4675-4aa7-855b-635762d30160"}]}
+
+28-12-2025 08:10:50-------------{"wife_name":"Mumtaz","husband_name":"","wife_phone":"9634789191","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-28","appoitmented_slot":"11:25-11:30","status":"in_clinic"}
+
+28-12-2025 08:10:51======Patient Exists======
+
+28-12-2025 08:37:59-------------{"wife_name":"SONEY JAN","husband_name":"","wife_phone":"9622723829","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+28-12-2025 08:38:00======Patient Exists======
+
+28-12-25 08:39:16-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919711607977","messageId":"8fe3fd89-ba1a-4370-82f8-f8e43c7d877a"}]}
+
+28-12-2025 08:40:30-------------{"wife_name":"Anju devi","husband_name":"Shyam Narayan Mishra","wife_phone":"9818348564","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2025-12-28","appoitmented_slot":"09:55-10:00","status":"rescheduled"}
+
+28-12-2025 08:40:31======New Patient======
+
+28-12-25 08:40:31-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919818348564","messageId":"70d121a6-fd22-4b6f-8f4d-221c28a2556e"}]}
+
+28-12-25 08:41:28-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919818348564","messageId":"3666da69-b814-4d73-868b-c1851622f337"}]}
+
+28-12-25 08:42:08-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919810050672","messageId":"ecf07241-5095-4e3a-9d59-67fc5c7906d4"}]}
+
+28-12-25 08:43:04-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919810050672","messageId":"a2480537-ab75-4198-8a1d-229ebdf051f9"}]}
+
+28-12-2025 08:45:58-------------{"wife_name":"Amreen","husband_name":"","wife_phone":"8130874364","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2025-12-28","appoitmented_slot":"09:25-09:30","status":"rescheduled"}
+
+28-12-2025 08:46:00======Patient Exists======
+
+28-12-2025 08:57:25-------------{"wife_name":"Chinki","husband_name":"Amit kumar","wife_phone":"7011794769","appoitment_for":"16249589462327","appoitmented_doctor":"76","appoitmented_date":"2025-12-28","appoitmented_slot":"10:45-10:50","status":"in_clinic"}
+
+28-12-2025 08:57:26======New Patient======
+
+28-12-25 08:57:26-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917011794769","messageId":"e5d80a95-eec3-4b38-960a-1b0e70a809fe"}]}
+
+28-12-25 08:57:53-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919682377067","messageId":"52a5f039-8b3b-4d88-bd4e-964fe476ec6d"}]}
+
+28-12-25 08:58:16-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917011794769","messageId":"e361fb47-1591-4c42-bbe1-4ee7de10762b"}]}
+
+28-12-2025 08:59:54-------------{"wife_name":"neha gour","husband_name":"","wife_phone":"9716907866","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-28","appoitmented_slot":"12:20-12:25","status":"in_clinic"}
+
+28-12-2025 08:59:54======Patient Exists======
+
+28-12-2025 09:06:28-------------{"wife_name":"BILQUEES AKHTER","husband_name":"","wife_phone":"7006259575","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"14:00-14:05","status":"in_clinic"}
+
+28-12-2025 09:06:29======Patient Exists======
+
+28-12-25 09:07:07-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918076321233","messageId":"24f6d17f-ec92-49dd-8e80-038227285e91"}]}
+
+28-12-25 09:07:46-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918287967699","messageId":"7d0cc87c-d8e6-4883-b6e1-ec3f4a5e8ab1"}]}
+
+28-12-2025 09:08:16-------------{"wife_name":"Asmat","husband_name":"","wife_phone":"7780882180","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"14:05-14:10","status":"in_clinic"}
+
+28-12-2025 09:08:17======Patient Exists======
+
+28-12-2025 09:10:24-------------{"wife_name":"Sakeena","husband_name":"intiyaz husen","wife_phone":"9682120692","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"14:10-14:15","status":"in_clinic"}
+
+28-12-2025 09:10:24======New Patient======
+
+28-12-25 09:10:24-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919682120692","messageId":"3ce93a7f-f959-4966-bdab-406dc077cef4"}]}
+
+28-12-25 09:12:01-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919797813854","messageId":"9ccee978-1238-448d-8c42-2a5f1fa3795a"}]}
+
+28-12-25 09:22:07-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919682120692","messageId":"829bdc01-97c5-4263-82a6-714b0e979ff0"}]}
+
+28-12-25 09:32:47-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919821632321","messageId":"bcf1a475-fda5-409e-9b0e-41bcf16d56cd"}]}
+
+28-12-25 09:36:09-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919821632321","messageId":"2c5512ab-d68b-48db-9326-4da78c8ce400"}]}
+
+28-12-2025 09:48:35-------------{"wife_name":"WAFA SHOWKAT","husband_name":"","wife_phone":"7006692656","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"10:20-10:25","status":"in_clinic"}
+
+28-12-2025 09:48:36======Patient Exists======
+
+28-12-2025 10:06:39-------------{"wife_name":"Aayesha","husband_name":"","wife_phone":"8595857213","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-28","appoitmented_slot":"10:00-10:05","status":"in_clinic"}
+
+28-12-2025 10:06:39======Patient Exists======
+
+28-12-25 10:18:21-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006264883","messageId":"d18ab8bd-c9f2-452d-9cad-81e08ef2599c"}]}
+
+28-12-2025 10:35:31-------------{"wife_name":"afroza","husband_name":"afroza","wife_phone":"9149570033","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"15:05-15:10","status":"in_clinic"}
+
+28-12-2025 10:35:33======New Patient======
+
+28-12-25 10:35:33-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919149570033","messageId":"7db129c7-144c-4d5f-a1ab-66c95bc83128"}]}
+
+28-12-25 10:35:49-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919149570033","messageId":"dbd9ca85-675d-457c-a9b5-5523cc5cf89d"}]}
+
+28-12-25 10:40:26-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918899951430","messageId":"36e54d5b-aa66-4e69-8a2d-6f117430a690"}]}
+
+28-12-25 10:41:53-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918899951430","messageId":"3893dab0-00d7-42ef-855f-132525057da2"}]}
+
+28-12-25 10:45:18-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919650931808","messageId":"9bf44942-8b60-4fd5-ab70-8280459c0918"}]}
+
+28-12-2025 10:47:03-------------{"wife_name":"Anju devi","husband_name":"","wife_phone":"9818348564","appoitment_for":"16267558222750","appoitmented_doctor":"66","appoitmented_date":"2025-12-28","appoitmented_slot":"10:05-10:10","status":"in_clinic"}
+
+28-12-2025 10:47:03======Patient Exists======
+
+28-12-2025 10:58:13-------------{"wife_name":"Anju devi","husband_name":"","wife_phone":"9818348564","appoitment_for":"16267558222750","appoitmented_doctor":"66","appoitmented_date":"2025-12-28","appoitmented_slot":"09:55-10:00","status":"in_clinic"}
+
+28-12-2025 10:58:15======Patient Exists======
+
+28-12-2025 11:06:47-------------{"wife_name":"Rajni Bhardwaj","husband_name":"","wife_phone":"7068907986","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-28","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+28-12-2025 11:06:49======Patient Exists======
+
+28-12-2025 11:18:57-------------{"wife_name":"Amreen","husband_name":"","wife_phone":"8130874364","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2025-12-28","appoitmented_slot":"16:50-16:55","status":"rescheduled"}
+
+28-12-2025 11:18:58======Patient Exists======
+
+28-12-25 11:25:08-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917703917797","messageId":"bf06133d-588c-480d-9ab5-2ff20f1bb26b"}]}
+
+28-12-2025 11:38:53-------------{"wife_name":"Sangita Kumari","husband_name":"","wife_phone":"9163959491","appoitment_for":"16267558222750","appoitmented_doctor":"76","appoitmented_date":"2025-12-28","appoitmented_slot":"10:40-10:45","status":"in_clinic"}
+
+28-12-2025 11:38:54======Patient Exists======
+
+28-12-2025 11:52:57-------------{"wife_name":"Shyamindra Gupta","husband_name":"","wife_phone":"9910613269","appoitment_for":"16249589462327","appoitmented_doctor":"90","appoitmented_date":"2025-12-28","appoitmented_slot":"13:55-14:00","status":"in_clinic"}
+
+28-12-2025 11:52:58======Patient Exists======
+
+28-12-2025 12:09:06-------------{"wife_name":"Roufa Nazir ","husband_name":"","wife_phone":"7006322216","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"16:50-16:55","status":"in_clinic"}
+
+28-12-2025 12:09:07======Patient Exists======
+
+28-12-2025 12:13:53-------------{"wife_name":"Roufa Nazir ","husband_name":"","wife_phone":"7006322216","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"09:25-09:30","status":"in_clinic"}
+
+28-12-2025 12:13:54======Patient Exists======
+
+28-12-2025 12:21:13-------------{"wife_name":"Roufa Nazir ","husband_name":"","wife_phone":"7006322216","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"09:40-09:45","status":"in_clinic"}
+
+28-12-2025 12:21:14======Patient Exists======
+
+28-12-2025 12:37:50-------------{"wife_name":"Roufa Nazir ","husband_name":"","wife_phone":"7006322216","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-28","appoitmented_slot":"09:45-09:50","status":"in_clinic"}
+
+28-12-2025 12:37:50======Patient Exists======
+
+29-12-2025 03:19:44-------------{"wife_name":"AROUSHA ","husband_name":"","wife_phone":"9797761205","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+29-12-2025 03:19:45======Patient Exists======
+
+29-12-2025 03:35:57-------------{"wife_name":"SHAGUFTA","husband_name":"","wife_phone":"7006773784","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"09:00-09:05","status":"in_clinic"}
+
+29-12-2025 03:35:58======Patient Exists======
+
+29-12-2025 03:37:10-------------{"wife_name":"Sumaya Begum","husband_name":"","wife_phone":"9469519194","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+29-12-2025 03:37:12======Patient Exists======
+
+29-12-2025 03:38:16-------------{"wife_name":"SAIMA","husband_name":"","wife_phone":"9149755004","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"09:15-09:20","status":"in_clinic"}
+
+29-12-2025 03:38:17======Patient Exists======
+
+29-12-2025 03:44:24-------------{"wife_name":"Nighat ali","husband_name":"","wife_phone":"9149494577","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"09:20-09:25","status":"in_clinic"}
+
+29-12-2025 03:44:25======Patient Exists======
+
+29-12-2025 03:45:30-------------{"wife_name":"Asifa","husband_name":"","wife_phone":"7006470078","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"09:25-09:30","status":"in_clinic"}
+
+29-12-2025 03:45:30======Patient Exists======
+
+29-12-2025 03:46:52-------------{"wife_name":"Sami","husband_name":"","wife_phone":"9682617051","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"09:30-09:35","status":"in_clinic"}
+
+29-12-2025 03:46:53======Patient Exists======
+
+29-12-2025 03:48:12-------------{"wife_name":"RAZIA","husband_name":"","wife_phone":"9682664802","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"09:35-09:40","status":"in_clinic"}
+
+29-12-2025 03:48:13======Patient Exists======
+
+29-12-2025 03:49:56-------------{"wife_name":"WAFA SHOWKAT","husband_name":"","wife_phone":"7006692656","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"09:40-09:45","status":"in_clinic"}
+
+29-12-2025 03:49:57======Patient Exists======
+
+29-12-2025 03:51:16-------------{"wife_name":"KULSUMA","husband_name":"","wife_phone":"9149713174","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"10:05-10:10","status":"in_clinic"}
+
+29-12-2025 03:51:17======Patient Exists======
+
+29-12-2025 04:05:40-------------{"wife_name":"Sahina","husband_name":"","wife_phone":"7006258995","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"10:25-10:30","status":"in_clinic"}
+
+29-12-2025 04:05:42======Patient Exists======
+
+29-12-2025 04:57:35-------------{"wife_name":"Sabreena","husband_name":"","wife_phone":"9682377067","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"10:30-10:35","status":"in_clinic"}
+
+29-12-2025 04:57:36======Patient Exists======
+
+29-12-2025 05:11:05-------------{"wife_name":"Swati Mishra ","husband_name":"","wife_phone":"8447505754","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-29","appoitmented_slot":"09:15-09:20","status":"rescheduled"}
+
+29-12-2025 05:11:06======Patient Exists======
+
+29-12-2025 05:14:09-------------{"wife_name":"Tara bohara","husband_name":"","wife_phone":"7836053121","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-29","appoitmented_slot":"09:20-09:25","status":"rescheduled"}
+
+29-12-2025 05:14:10======Patient Exists======
+
+29-12-25 05:17:28-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919149685635","messageId":"52cd49bd-ede7-4163-9f50-a7f833973657"}]}
+
+29-12-2025 05:33:33-------------{"wife_name":"Guddi Gautam ","husband_name":"DEEPAK","wife_phone":"8700307388","appoitment_for":"1581157290","appoitmented_doctor":"47","appoitmented_date":"2026-12-29","appoitmented_slot":"11:00-11:20","status":"rescheduled"}
+
+29-12-2025 05:33:33======Patient Exists======
+
+29-12-2025 05:34:32-------------{"wife_name":"Guddi Gautam ","husband_name":"DEEPAK","wife_phone":"8700307388","appoitment_for":"1581157290","appoitmented_doctor":"47","appoitmented_date":"2026-12-29","appoitmented_slot":"11:20-11:40","status":"rescheduled"}
+
+29-12-2025 05:34:33======Patient Exists======
+
+29-12-2025 05:35:38-------------{"wife_name":"Guddi Gautam ","husband_name":"Deepak Gautam ","wife_phone":"8700307388","appoitment_for":"1581157290","appoitmented_doctor":"47","appoitmented_date":"2026-12-29","appoitmented_slot":"10:20-10:40","status":"rescheduled"}
+
+29-12-2025 05:35:38======Patient Exists======
+
+29-12-2025 05:36:24-------------{"wife_name":"Samreen Begum","husband_name":"","wife_phone":"9654470726","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-29","appoitmented_slot":"09:25-09:30","status":"rescheduled"}
+
+29-12-2025 05:36:24======Patient Exists======
+
+29-12-2025 06:00:09-------------{"wife_name":"Tara bohara","husband_name":"","wife_phone":"7836053121","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-29","appoitmented_slot":"09:30-09:35","status":"rescheduled"}
+
+29-12-2025 06:00:10======Patient Exists======
+
+29-12-2025 06:02:09-------------{"wife_name":"Samreen Begum","husband_name":"","wife_phone":"9654470726","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-29","appoitmented_slot":"09:35-09:40","status":"rescheduled"}
+
+29-12-2025 06:02:10======Patient Exists======
+
+29-12-25 06:03:37-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"916006339261","messageId":"8c857667-b68a-4c70-ad29-bb3bf5b9a210"}]}
+
+29-12-2025 06:07:44-------------{"wife_name":"SONI KUMARI","husband_name":"","wife_phone":"9871941337","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-03","appoitmented_slot":"13:00-13:05","status":"rescheduled"}
+
+29-12-2025 06:07:46======Patient Exists======
+
+29-12-2025 06:19:49-------------{"wife_name":"Rubeena","husband_name":"","wife_phone":"7780849140","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"10:40-10:45","status":"in_clinic"}
+
+29-12-2025 06:19:49======Patient Exists======
+
+29-12-2025 06:22:51-------------{"wife_name":"ishrat jan","husband_name":"","wife_phone":"7889325850","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"11:30-11:35","status":"in_clinic"}
+
+29-12-2025 06:22:51======Patient Exists======
+
+29-12-25 06:23:37-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917835848713","messageId":"adf0dd51-541b-4bb7-8e5b-5cdb22104059"}]}
+
+29-12-2025 06:47:48-------------{"wife_name":"NUSRAT","husband_name":"","wife_phone":"9622789929","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"09:45-09:50","status":"in_clinic"}
+
+29-12-2025 06:47:48======Patient Exists======
+
+29-12-2025 06:50:12-------------{"wife_name":"Azra","husband_name":"","wife_phone":"7006523310","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"10:50-10:55","status":"in_clinic"}
+
+29-12-2025 06:50:14======Patient Exists======
+
+29-12-25 06:54:06-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006114432","messageId":"3702e8c1-f862-474f-a603-4c558ce54364"}]}
+
+29-12-25 06:55:37-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006114432","messageId":"52c1ae49-6a5a-4eae-8fc5-6eae86763b72"}]}
+
+29-12-2025 06:57:13-------------{"wife_name":"Manju Rani","husband_name":"","wife_phone":"9810050672","appoitment_for":"16249589462327","appoitmented_doctor":"90","appoitmented_date":"2025-12-29","appoitmented_slot":"09:00-09:05","status":"rescheduled"}
+
+29-12-2025 06:57:14======Patient Exists======
+
+29-12-2025 07:03:25-------------{"wife_name":"sureena malhi","husband_name":"","wife_phone":"7417549286","appoitment_for":"16249589462327","appoitmented_doctor":"3","appoitmented_date":"2025-12-29","appoitmented_slot":"08:00-08:20","status":"rescheduled"}
+
+29-12-2025 07:03:25======Patient Exists======
+
+29-12-2025 07:10:16-------------{"wife_name":"Kanchan","husband_name":"","wife_phone":"9899581024","appoitment_for":"16267558222750","appoitmented_doctor":"66","appoitmented_date":"2025-12-29","appoitmented_slot":"12:40-13:00","status":"in_clinic"}
+
+29-12-2025 07:10:16======Patient Exists======
+
+29-12-25 07:16:24-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006856285","messageId":"15b80370-8c34-4494-9092-ec2c7a363abf"}]}
+
+29-12-2025 07:17:42-------------{"wife_name":"Ruksana","husband_name":"","wife_phone":"7889656585","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"12:35-12:40","status":"in_clinic"}
+
+29-12-2025 07:17:42======Patient Exists======
+
+29-12-2025 07:30:47-------------{"wife_name":"neha gour","husband_name":"","wife_phone":"9716907866","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-29","appoitmented_slot":"09:40-09:45","status":"rescheduled"}
+
+29-12-2025 07:30:48======Patient Exists======
+
+29-12-2025 07:55:25-------------{"wife_name":"Aayesha","husband_name":"","wife_phone":"8595857213","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-29","appoitmented_slot":"09:45-09:50","status":"rescheduled"}
+
+29-12-2025 07:55:27======Patient Exists======
+
+29-12-2025 08:08:59-------------{"wife_name":"Hameeda Begum","husband_name":"","wife_phone":"6005757437","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"12:55-13:00","status":"in_clinic"}
+
+29-12-2025 08:09:01======Patient Exists======
+
+29-12-25 08:11:45-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"916005354066","messageId":"6063f747-d175-4a4e-b69d-d98d199fe231"}]}
+
+29-12-25 08:28:08-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919625607286","messageId":"9d29873b-c559-44ac-b1f8-779761111c57"}]}
+
+29-12-25 08:34:44-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919625607286","messageId":"c407f410-3766-4bfd-b55f-e523fbb06a66"}]}
+
+29-12-25 08:36:26-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919119034676","messageId":"bf3db0c2-d310-442e-a226-80bdbcb78f58"}]}
+
+29-12-2025 08:55:08-------------{"wife_name":"SURAYA ","husband_name":"","wife_phone":"7006114432","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"11:20-11:25","status":"in_clinic"}
+
+29-12-2025 08:55:11======Patient Exists======
+
+29-12-2025 09:03:32-------------{"wife_name":"neha gour","husband_name":"","wife_phone":"9716907866","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-29","appoitmented_slot":"09:55-10:00","status":"rescheduled"}
+
+29-12-2025 09:03:33======Patient Exists======
+
+29-12-2025 09:11:50-------------{"wife_name":"Gulshan","husband_name":"","wife_phone":"9622684747","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"11:10-11:15","status":"in_clinic"}
+
+29-12-2025 09:11:52======Patient Exists======
+
+29-12-25 09:31:17-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919411055978","messageId":"4cd1c76c-ef4c-44e1-8f6c-cf5e72357a8f"}]}
+
+29-12-2025 09:35:31-------------{"wife_name":"ISHRAT ","husband_name":"","wife_phone":"7889964247","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"11:05-11:10","status":"in_clinic"}
+
+29-12-2025 09:35:31======Patient Exists======
+
+29-12-25 09:35:53-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919999449350","messageId":"7e44b8b7-307a-4162-b17a-ed8b8509f7fd"}]}
+
+29-12-25 10:00:50-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918803223344","messageId":"db73e5fb-a11f-4e94-9d01-650cac0ccbba"}]}
+
+29-12-2025 10:19:21-------------{"wife_name":"Nidhi Goyal","husband_name":"","wife_phone":"9654548763","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2025-12-29","appoitmented_slot":"14:40-15:00","status":"in_clinic"}
+
+29-12-2025 10:19:22======Patient Exists======
+
+29-12-2025 10:31:21-------------{"wife_name":"Kanchan","husband_name":"","wife_phone":"9899581024","appoitment_for":"16267558222750","appoitmented_doctor":"66","appoitmented_date":"2025-12-29","appoitmented_slot":"12:20-12:40","status":"rescheduled"}
+
+29-12-2025 10:31:22======Patient Exists======
+
+29-12-2025 11:33:27-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"66","appoitmented_date":"2025-12-29","appoitmented_slot":"14:00-14:20","status":"in_clinic"}
+
+29-12-2025 11:33:28======Patient Exists======
+
+29-12-2025 11:33:28-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"66","appoitmented_date":"2025-12-29","appoitmented_slot":"14:00-14:20","status":"in_clinic"}
+
+29-12-2025 11:33:29======Patient Exists======
+
+29-12-25 11:48:23-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918218715498","messageId":"81c09962-8a8e-430f-9210-acf38631d5c4"}]}
+
+29-12-25 11:52:27-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918433200954","messageId":"a6f412d4-2cbd-41ee-9c08-3fbc036ed5f8"}]}
+
+29-12-2025 11:58:17-------------{"wife_name":"RUKHSANA BANO","husband_name":"","wife_phone":"7051404050","appoitment_for":"16133769691598","appoitmented_doctor":"84","appoitmented_date":"2025-12-29","appoitmented_slot":"09:00-09:20","status":"in_clinic"}
+
+29-12-2025 11:58:19======Patient Exists======
+
+29-12-25 12:01:27-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919622419292","messageId":"d6cf2f6c-f3b3-401e-90ac-57d8a0f9d3f1"}]}
+
+29-12-25 12:02:57-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919622419292","messageId":"2563f3f3-a542-46b2-8f3a-949e3494efb0"}]}
+
+29-12-2025 12:29:02-------------{"wife_name":"Hameeda Begum","husband_name":"","wife_phone":"6005757437","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"11:40-11:45","status":"in_clinic"}
+
+29-12-2025 12:29:02======Patient Exists======
+
+29-12-2025 12:30:00-------------{"wife_name":"SURAYA ","husband_name":"","wife_phone":"7006114432","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"11:15-11:20","status":"in_clinic"}
+
+29-12-2025 12:30:01======Patient Exists======
+
+29-12-2025 12:30:59-------------{"wife_name":"Zahida","husband_name":"","wife_phone":"6005354066","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"14:30-14:35","status":"in_clinic"}
+
+29-12-2025 12:30:59======Patient Exists======
+
+29-12-2025 13:52:50-------------{"wife_name":"HUMAIRA","husband_name":"","wife_phone":"9622419292","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-29","appoitmented_slot":"16:45-16:50","status":"in_clinic"}
+
+29-12-2025 13:52:52======Patient Exists======
+
+30-12-2025 04:57:30-------------{"wife_name":"Shivani","husband_name":"","wife_phone":"7217818840","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2025-12-30","appoitmented_slot":"10:40-11:00","status":"rescheduled"}
+
+30-12-2025 04:57:31======Patient Exists======
+
+30-12-2025 04:59:30-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2025-12-30","appoitmented_slot":"10:20-10:25","status":"rescheduled"}
+
+30-12-2025 04:59:30======Patient Exists======
+
+30-12-2025 05:05:17-------------{"wife_name":"SITA DEVI","husband_name":"","wife_phone":"7835848713","appoitment_for":"16266778858144","appoitmented_doctor":"19","appoitmented_date":"2025-12-30","appoitmented_slot":"10:00-10:20","status":"cancelled"}
+
+30-12-2025 05:05:19======Patient Exists======
+
+30-12-2025 05:21:42-------------{"wife_name":"PRAJNA KUMARI","husband_name":"","wife_phone":"9759697934","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2025-12-30","appoitmented_slot":"10:20-10:40","status":"in_clinic"}
+
+30-12-2025 05:21:44======Patient Exists======
+
+30-12-25 05:24:29-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919570532172","messageId":"e88aa0c7-db52-4ab0-8557-8f9b1bd33430"}]}
+
+30-12-25 05:31:04-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918494068217","messageId":"69fe3f36-9c99-41b9-b76a-e2aa0292bfb0"}]}
+
+30-12-2025 05:43:29-------------{"wife_name":"Masarat Majid","husband_name":"","wife_phone":"9797724468","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-30","appoitmented_slot":"09:20-09:25","status":"in_clinic"}
+
+30-12-2025 05:43:29======Patient Exists======
+
+30-12-2025 05:46:17-------------{"wife_name":"Haleema","husband_name":"","wife_phone":"9622923461","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-30","appoitmented_slot":"10:25-10:30","status":"in_clinic"}
+
+30-12-2025 05:46:18======Patient Exists======
+
+30-12-25 06:13:24-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"916006267051","messageId":"91dee547-5b7e-4680-8846-340f372b65e0"}]}
+
+30-12-25 06:21:52-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919906767038","messageId":"39bcd10e-1ca9-45c6-acb0-e446d7536f98"}]}
+
+30-12-2025 06:25:52-------------{"wife_name":"ishrat jan","husband_name":"","wife_phone":"7889325850","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-30","appoitmented_slot":"11:50-11:55","status":"in_clinic"}
+
+30-12-2025 06:25:53======Patient Exists======
+
+30-12-2025 06:39:22-------------{"wife_name":"Rajni","husband_name":"","wife_phone":"9119034696","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-30","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+30-12-2025 06:39:23======Patient Exists======
+
+30-12-2025 07:05:29-------------{"wife_name":"FAHMEEDA BANO","husband_name":"","wife_phone":"6005757437","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-30","appoitmented_slot":"09:15-09:20","status":"in_clinic"}
+
+30-12-2025 07:05:29======Patient Exists======
+
+30-12-2025 07:40:21-------------{"wife_name":"Diksha Sokhal","husband_name":"","wife_phone":"8952973411","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2025-12-30","appoitmented_slot":"13:15-13:20","status":"in_clinic"}
+
+30-12-2025 07:40:21======Patient Exists======
+
+30-12-25 07:46:00-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918860949248","messageId":"c194375a-a2ce-49fd-90e1-867bd1edb2b6"}]}
+
+30-12-25 07:47:01-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918860949248","messageId":"6288e956-1a30-4243-a17f-1d967a5f307c"}]}
+
+30-12-2025 08:00:56-------------{"wife_name":"tahina","husband_name":"","wife_phone":"7006883660","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-30","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+30-12-2025 08:00:58======Patient Exists======
+
+30-12-2025 08:18:04-------------{"wife_name":"LAKHO DEVI","husband_name":"","wife_phone":"8742996649","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2025-12-30","appoitmented_slot":"13:20-13:40","status":"in_clinic"}
+
+30-12-2025 08:18:06======Patient Exists======
+
+30-12-25 08:18:51-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918860748620","messageId":"615d2a8e-92fd-46ca-ba0e-0b815c56c9bf"}]}
+
+30-12-2025 08:46:31-------------{"wife_name":"Nilofer","husband_name":"","wife_phone":"8494068217","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-30","appoitmented_slot":"12:40-12:45","status":"in_clinic"}
+
+30-12-2025 08:46:32======Patient Exists======
+
+30-12-2025 08:57:59-------------{"wife_name":"Nilofer","husband_name":"","wife_phone":"8494068217","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-30","appoitmented_slot":"09:30-09:35","status":"in_clinic"}
+
+30-12-2025 08:58:01======Patient Exists======
+
+30-12-25 09:11:20-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"916395947048","messageId":"29d489fc-17e1-48fa-9c83-8cfdcd0548ed"}]}
+
+30-12-2025 09:31:49-------------{"wife_name":"NASREENA","husband_name":"","wife_phone":"6005336647","appoitment_for":"16133769691598","appoitmented_doctor":"49","appoitmented_date":"2025-12-30","appoitmented_slot":"09:20-09:40","status":"in_clinic"}
+
+30-12-2025 09:31:50======Patient Exists======
+
+30-12-2025 09:32:36-------------{"wife_name":"Mudassar Rasool","husband_name":"","wife_phone":"9149561559","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-30","appoitmented_slot":"09:45-09:50","status":"in_clinic"}
+
+30-12-2025 09:32:36======Patient Exists======
+
+30-12-25 09:44:12-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919518172900","messageId":"268b4919-6868-4c08-b0be-26f5516c74e8"}]}
+
+30-12-2025 10:24:17-------------{"wife_name":"Geetika Garg","husband_name":"","wife_phone":"8126832778","appoitment_for":"16249589462327","appoitmented_doctor":"3","appoitmented_date":"2025-12-30","appoitmented_slot":"12:20-12:40","status":"in_clinic"}
+
+30-12-2025 10:24:22======Patient Exists======
+
+30-12-2025 10:24:36-------------{"wife_name":"Geetika Garg","husband_name":"","wife_phone":"8126832778","appoitment_for":"16249589462327","appoitmented_doctor":"3","appoitmented_date":"2025-12-30","appoitmented_slot":"12:00-12:20","status":"in_clinic"}
+
+30-12-2025 10:24:37======Patient Exists======
+
+30-12-2025 11:04:28-------------{"wife_name":"FATEMA BIBI","husband_name":"","wife_phone":"9037309266","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-01","appoitmented_slot":"10:00-10:20","status":"rescheduled"}
+
+30-12-2025 11:04:29======Patient Exists======
+
+30-12-2025 11:14:19-------------{"wife_name":"Priya","husband_name":"","wife_phone":"9900000556","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2025-12-30","appoitmented_slot":"16:00-16:20","status":"in_clinic"}
+
+30-12-2025 11:14:20======Patient Exists======
+
+31-12-2025 03:26:20-------------{"wife_name":"ISHITA VERMA","husband_name":"","wife_phone":"9910910891","appoitment_for":"16249589462327","appoitmented_doctor":"49","appoitmented_date":"2025-12-31","appoitmented_slot":"09:00-09:20","status":"rescheduled"}
+
+31-12-2025 03:26:21======Patient Exists======
+
+31-12-2025 03:28:36-------------{"wife_name":"ISHITA VERMA","husband_name":"","wife_phone":"9910910891","appoitment_for":"16249589462327","appoitmented_doctor":"49","appoitmented_date":"2025-12-31","appoitmented_slot":"09:40-10:00","status":"rescheduled"}
+
+31-12-2025 03:28:37======Patient Exists======
+
+31-12-2025 03:31:45-------------{"wife_name":"ISHITA VERMA","husband_name":"","wife_phone":"9910910891","appoitment_for":"16249589462327","appoitmented_doctor":"3","appoitmented_date":"2025-12-31","appoitmented_slot":"08:00-08:20","status":"in_clinic"}
+
+31-12-2025 03:31:46======Patient Exists======
+
+31-12-2025 05:34:33-------------{"wife_name":"Saleema bano","husband_name":"","wife_phone":"7889435395","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-31","appoitmented_slot":"09:00-09:05","status":"in_clinic"}
+
+31-12-2025 05:34:35======Patient Exists======
+
+31-12-2025 06:17:45-------------{"wife_name":"Nisha ali","husband_name":"","wife_phone":"7780943326","appoitment_for":"16133769691598","appoitmented_doctor":"84","appoitmented_date":"2025-12-31","appoitmented_slot":"09:40-10:00","status":"in_clinic"}
+
+31-12-2025 06:17:47======Patient Exists======
+
+31-12-25 06:30:53-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919682121487","messageId":"601b2224-ecd5-4bc3-a006-6cef0dadb5bb"}]}
+
+31-12-2025 06:35:47-------------{"wife_name":"Asmat","husband_name":"","wife_phone":"7780882180","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-31","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+31-12-2025 06:35:49======Patient Exists======
+
+31-12-2025 06:59:30-------------{"wife_name":"SIMRAN CHOUHAN","husband_name":"","wife_phone":"8130018354","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2025-12-31","appoitmented_slot":"10:45-10:50","status":"in_clinic"}
+
+31-12-2025 06:59:31======Patient Exists======
+
+31-12-2025 07:11:27-------------{"wife_name":"Ouma Kaltoum","husband_name":"","wife_phone":"0796973731","appoitment_for":"16249589462327","appoitmented_doctor":"28","appoitmented_date":"2025-12-31","appoitmented_slot":"09:00-09:20","status":"in_clinic"}
+
+31-12-2025 07:11:27======Patient Exists======
+
+31-12-2025 07:28:36-------------{"wife_name":"JYOTI RANA","husband_name":"","wife_phone":"9718247794","appoitment_for":"16249589462327","appoitmented_doctor":"3","appoitmented_date":"2025-12-31","appoitmented_slot":"08:20-08:40","status":"in_clinic"}
+
+31-12-2025 07:28:38======Patient Exists======
+
+31-12-25 07:41:48-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919896882444","messageId":"c53f4d87-75a1-4dab-8168-2bc0b1efc87b"}]}
+
+31-12-2025 07:55:24-------------{"wife_name":"shaheena","husband_name":"","wife_phone":"9596494272","appoitment_for":"16133769691598","appoitmented_doctor":"84","appoitmented_date":"2025-12-31","appoitmented_slot":"10:00-10:20","status":"in_clinic"}
+
+31-12-2025 07:55:25======Patient Exists======
+
+31-12-25 07:58:46-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919467672353","messageId":"a4ccec9e-a4e1-4977-9f06-fc006e0a2531"}]}
+
+31-12-25 08:00:06-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919467672353","messageId":"98521eff-34e7-400a-a9aa-e93b84284a91"}]}
+
+31-12-2025 08:03:34-------------{"wife_name":"Anupma Goyal","husband_name":"","wife_phone":"8826987375","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2025-12-31","appoitmented_slot":"12:05-12:10","status":"in_clinic"}
+
+31-12-2025 08:03:35======Patient Exists======
+
+31-12-25 08:09:27-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006901974","messageId":"0167c20f-b390-4fb4-b920-108dd81fa160"}]}
+
+31-12-25 08:23:59-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919149942735","messageId":"13f7dab7-4b74-42ad-955a-3113c78d186a"}]}
+
+31-12-2025 08:26:56-------------{"wife_name":"Yasmeena","husband_name":"","wife_phone":"7006564692","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-31","appoitmented_slot":"11:05-11:10","status":"in_clinic"}
+
+31-12-2025 08:26:57======Patient Exists======
+
+31-12-2025 08:45:14-------------{"wife_name":"SWATI AGARWAL ","husband_name":"","wife_phone":"9873360520","appoitment_for":"16249589462327","appoitmented_doctor":"24","appoitmented_date":"2026-12-01","appoitmented_slot":"09:20-09:40","status":"rescheduled"}
+
+31-12-2025 08:45:16======Patient Exists======
+
+31-12-25 08:45:55-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919667868205","messageId":"336f6ad5-1296-4ff1-b159-ad19c8d39b26"}]}
+
+31-12-2025 09:02:23-------------{"wife_name":"Archana Chauhan","husband_name":"","wife_phone":"9870212284","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-31","appoitmented_slot":"09:55-10:00","status":"in_clinic"}
+
+31-12-2025 09:02:24======Patient Exists======
+
+31-12-2025 09:23:14-------------{"wife_name":"Sangita Kumari","husband_name":"","wife_phone":"9163959491","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2025-12-31","appoitmented_slot":"14:35-14:40","status":"in_clinic"}
+
+31-12-2025 09:23:14======Patient Exists======
+
+31-12-2025 09:24:26-------------{"wife_name":"Sangita Kumari","husband_name":"","wife_phone":"9163959491","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2025-12-31","appoitmented_slot":"15:55-16:00","status":"in_clinic"}
+
+31-12-2025 09:24:27======Patient Exists======
+
+31-12-2025 09:27:07-------------{"wife_name":"Sangita Kumari","husband_name":"","wife_phone":"9163959491","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2025-12-31","appoitmented_slot":"15:45-15:50","status":"in_clinic"}
+
+31-12-2025 09:27:08======Patient Exists======
+
+31-12-2025 09:51:53-------------{"wife_name":"Gulshan","husband_name":"","wife_phone":"9622684747","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-31","appoitmented_slot":"09:25-09:30","status":"in_clinic"}
+
+31-12-2025 09:51:54======Patient Exists======
+
+31-12-2025 10:14:22-------------{"wife_name":"Sangita Kumari","husband_name":"","wife_phone":"9163959491","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2025-12-31","appoitmented_slot":"14:25-14:30","status":"in_clinic"}
+
+31-12-2025 10:14:23======Patient Exists======
+
+31-12-2025 10:21:45-------------{"wife_name":"Nujhat Parveen ","husband_name":"","wife_phone":"8826430079","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2025-12-31","appoitmented_slot":"09:20-09:25","status":"in_clinic"}
+
+31-12-2025 10:21:46======Patient Exists======
+
+31-12-2025 11:14:34-------------{"wife_name":"RUKHSANA BANO","husband_name":"","wife_phone":"7051404050","appoitment_for":"16133769691598","appoitmented_doctor":"84","appoitmented_date":"2025-12-31","appoitmented_slot":"09:20-09:40","status":"in_clinic"}
+
+31-12-2025 11:14:35======Patient Exists======
+
+31-12-2025 11:16:20-------------{"wife_name":"WAFA SHOWKAT","husband_name":"","wife_phone":"7006692656","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2025-12-31","appoitmented_slot":"09:30-09:35","status":"in_clinic"}
+
+31-12-2025 11:16:21======Patient Exists======
+
+01-01-2026 03:34:34-------------{"wife_name":"Nelofar RASHID","husband_name":"","wife_phone":"7006560469","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-01","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+01-01-2026 03:34:35======Patient Exists======
+
+01-01-2026 03:37:15-------------{"wife_name":"  shahzada hassan","husband_name":"","wife_phone":"6006823505","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-01","appoitmented_slot":"09:00-09:05","status":"in_clinic"}
+
+01-01-2026 03:37:16======Patient Exists======
+
+01-01-2026 03:55:01-------------{"wife_name":"GAYTARI ","husband_name":"","wife_phone":"9643503294","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-01","appoitmented_slot":"09:20-09:40","status":"in_clinic"}
+
+01-01-2026 03:55:03======Patient Exists======
+
+01-01-2026 04:18:13-------------{"wife_name":"GAYTARI ","husband_name":"","wife_phone":"9643503294","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-01","appoitmented_slot":"09:40-10:00","status":"in_clinic"}
+
+01-01-2026 04:18:14======Patient Exists======
+
+01-01-2026 04:40:05-------------{"wife_name":"VAISHALI GOYAL","husband_name":"","wife_phone":"9560105407","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-01","appoitmented_slot":"09:25-09:30","status":"rescheduled"}
+
+01-01-2026 04:40:06======Patient Exists======
+
+01-01-2026 04:43:36-------------{"wife_name":"Nujhat Parveen ","husband_name":"","wife_phone":"8826430079","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-01","appoitmented_slot":"09:30-09:35","status":"rescheduled"}
+
+01-01-2026 04:43:38======Patient Exists======
+
+01-01-2026 04:45:13-------------{"wife_name":"Madhubala","husband_name":"","wife_phone":"8285398968","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-01","appoitmented_slot":"09:35-09:40","status":"rescheduled"}
+
+01-01-2026 04:45:14======Patient Exists======
+
+01-01-2026 04:48:17-------------{"wife_name":"FAHMEEDA BANO","husband_name":"","wife_phone":"6005757437","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-01","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+01-01-2026 04:48:19======Patient Exists======
+
+01-01-2026 04:49:07-------------{"wife_name":"Sahnaza","husband_name":"","wife_phone":"6006377206","appoitment_for":"16133769691598","appoitmented_doctor":"84","appoitmented_date":"2026-01-01","appoitmented_slot":"09:40-10:00","status":"in_clinic"}
+
+01-01-2026 04:49:07======Patient Exists======
+
+01-01-2026 04:53:51-------------{"wife_name":"Deepti Mishra","husband_name":"","wife_phone":"8770013106","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-01","appoitmented_slot":"09:40-09:45","status":"rescheduled"}
+
+01-01-2026 04:53:51======Patient Exists======
+
+01-01-2026 05:12:23-------------{"wife_name":"Zahida","husband_name":"","wife_phone":"6005354066","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-01","appoitmented_slot":"09:40-09:45","status":"in_clinic"}
+
+01-01-2026 05:12:24======Patient Exists======
+
+01-01-2026 05:46:24-------------{"wife_name":"RACHNA ","husband_name":"","wife_phone":"9718716580","appoitment_for":"17519672203755","appoitmented_doctor":"88","appoitmented_date":"2026-01-01","appoitmented_slot":"12:00-12:20","status":"rescheduled"}
+
+01-01-2026 05:46:24======Patient Exists======
+
+01-01-2026 05:56:28-------------{"wife_name":"SARASWATI DEVI","husband_name":"","wife_phone":"9729572698","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-01","appoitmented_slot":"10:20-10:40","status":"in_clinic"}
+
+01-01-2026 05:56:29======Patient Exists======
+
+01-01-2026 05:57:50-------------{"wife_name":"KALPNA BATHAM","husband_name":"","wife_phone":"7068758696","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-01","appoitmented_slot":"10:40-11:00","status":"in_clinic"}
+
+01-01-2026 05:57:51======Patient Exists======
+
+01-01-2026 06:06:17-------------{"wife_name":"SARASWATI DEVI","husband_name":"","wife_phone":"9729572698","appoitment_for":"16266778858144","appoitmented_doctor":"48","appoitmented_date":"2026-01-01","appoitmented_slot":"08:20-08:40","status":"cancelled"}
+
+01-01-2026 06:06:21======Patient Exists======
+
+01-01-2026 06:12:53-------------{"wife_name":"SAMEENA","husband_name":"","wife_phone":"9797276826","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-01","appoitmented_slot":"11:25-11:30","status":"in_clinic"}
+
+01-01-2026 06:12:53======Patient Exists======
+
+01-01-2026 06:26:12-------------{"wife_name":"Shagufta jabeen","husband_name":"","wife_phone":"8899440079","appoitment_for":"16133769691598","appoitmented_doctor":"84","appoitmented_date":"2026-01-01","appoitmented_slot":"09:00-09:20","status":"in_clinic"}
+
+01-01-2026 06:26:15======Patient Exists======
+
+01-01-2026 06:34:51-------------{"wife_name":"TAZEEN","husband_name":"","wife_phone":"9018267086","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-01","appoitmented_slot":"10:00-10:05","status":"in_clinic"}
+
+01-01-2026 06:34:53======Patient Exists======
+
+01-01-2026 06:49:16-------------{"wife_name":"Qaynat Zehra","husband_name":"","wife_phone":"9811579878","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"11:00-11:05","status":"rescheduled"}
+
+01-01-2026 06:49:17======Patient Exists======
+
+01-01-2026 06:49:36-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2026-01-01","appoitmented_slot":"12:35-12:40","status":"in_clinic"}
+
+01-01-2026 06:49:37======Patient Exists======
+
+01-01-2026 06:49:58-------------{"wife_name":"Samreen Begum","husband_name":"","wife_phone":"9654470726","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"10:10-10:15","status":"rescheduled"}
+
+01-01-2026 06:50:00======Patient Exists======
+
+01-01-2026 06:50:39-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2026-01-01","appoitmented_slot":"12:50-12:55","status":"in_clinic"}
+
+01-01-2026 06:50:40======Patient Exists======
+
+01-01-2026 06:51:31-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2026-01-01","appoitmented_slot":"12:05-12:10","status":"rescheduled"}
+
+01-01-2026 06:51:31======Patient Exists======
+
+01-01-2026 06:52:46-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"4","appoitmented_date":"2026-01-01","appoitmented_slot":"12:20-12:40","status":"in_clinic"}
+
+01-01-2026 06:52:48======Patient Exists======
+
+01-01-2026 06:54:12-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"4","appoitmented_date":"2026-01-01","appoitmented_slot":"15:20-15:40","status":"in_clinic"}
+
+01-01-2026 06:54:13======Patient Exists======
+
+01-01-2026 06:56:27-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2026-01-01","appoitmented_slot":"12:25-12:30","status":"in_clinic"}
+
+01-01-2026 06:56:28======Patient Exists======
+
+01-01-2026 07:04:52-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"4","appoitmented_date":"2026-01-01","appoitmented_slot":"12:20-12:40","status":"rescheduled"}
+
+01-01-2026 07:04:53======Patient Exists======
+
+01-01-2026 07:09:12-------------{"wife_name":"Mamta DEVI ","husband_name":"","wife_phone":"9896434654","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"","appoitmented_slot":"10:40-11:00","status":"rescheduled"}
+
+01-01-2026 07:09:13======Patient Exists======
+
+01-01-2026 07:11:00-------------{"wife_name":"Mamta DEVI ","husband_name":"","wife_phone":"9896434654","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-01","appoitmented_slot":"10:00-10:20","status":"rescheduled"}
+
+01-01-2026 07:11:00======Patient Exists======
+
+01-01-2026 07:57:20-------------{"wife_name":"Nitu","husband_name":"","wife_phone":"9821575100","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-01","appoitmented_slot":"09:50-09:55","status":"in_clinic"}
+
+01-01-2026 07:57:22======Patient Exists======
+
+01-01-2026 08:53:01-------------{"wife_name":"Jai Shree Rai","husband_name":"","wife_phone":"7905804250","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-01","appoitmented_slot":"11:15-11:20","status":"rescheduled"}
+
+01-01-2026 08:53:01======Patient Exists======
+
+01-01-2026 09:00:42-------------{"wife_name":"Mamta DEVI ","husband_name":"","wife_phone":"9896434654","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-01","appoitmented_slot":"10:40-11:00","status":"rescheduled"}
+
+01-01-2026 09:00:43======Patient Exists======
+
+01-01-2026 09:02:54-------------{"wife_name":"CHINTHA MADURANGI ALAHENDRA SHARMA","husband_name":"","wife_phone":"8448018046","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"09:15-09:20","status":"rescheduled"}
+
+01-01-2026 09:02:54======Patient Exists======
+
+01-01-26 09:48:31-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918700910177","messageId":"f7e7b610-ce5a-48be-a9ac-31b55118fa52"}]}
+
+01-01-2026 10:03:36-------------{"wife_name":"Rekha","husband_name":"","wife_phone":"7982576518","appoitment_for":"17519672203755","appoitmented_doctor":"52","appoitmented_date":"2026-01-01","appoitmented_slot":"14:20-14:40","status":"rescheduled"}
+
+01-01-2026 10:03:36======Patient Exists======
+
+01-01-2026 10:21:03-------------{"wife_name":"Nisha ali","husband_name":"","wife_phone":"7780943326","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-01","appoitmented_slot":"10:30-10:35","status":"in_clinic"}
+
+01-01-2026 10:21:04======Patient Exists======
+
+01-01-2026 10:39:37-------------{"wife_name":"SAROJ DEVI","husband_name":"","wife_phone":"8851554831","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-01","appoitmented_slot":"13:40-14:00","status":"in_clinic"}
+
+01-01-2026 10:39:39======Patient Exists======
+
+01-01-2026 10:56:17-------------{"wife_name":"Archana Chauhan","husband_name":"","wife_phone":"9870212284","appoitment_for":"16249589462327","appoitmented_doctor":"90","appoitmented_date":"2026-01-01","appoitmented_slot":"09:00-09:05","status":"rescheduled"}
+
+01-01-2026 10:56:18======Patient Exists======
+
+01-01-2026 10:58:02-------------{"wife_name":"SANTOSHI DE VI","husband_name":"","wife_phone":"9424316782","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-01","appoitmented_slot":"09:55-10:00","status":"rescheduled"}
+
+01-01-2026 10:58:03======Patient Exists======
+
+02-01-2026 03:45:52-------------{"wife_name":"DIPMALA KUMARI","husband_name":"","wife_phone":"8851523397","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-02","appoitmented_slot":"10:40-11:00","status":"rescheduled"}
+
+02-01-2026 03:45:53======Patient Exists======
+
+02-01-2026 05:04:31-------------{"wife_name":"Manisha","husband_name":"","wife_phone":"7417749793","appoitment_for":"16267558222750","appoitmented_doctor":"58","appoitmented_date":"2026-01-02","appoitmented_slot":"10:30-10:35","status":"in_clinic"}
+
+02-01-2026 05:04:32======Patient Exists======
+
+02-01-2026 05:10:47-------------{"wife_name":"D JAINAB","husband_name":"","wife_phone":"9783911784","appoitment_for":"16266778858144","appoitmented_doctor":"59","appoitmented_date":"2026-01-02","appoitmented_slot":"09:35-09:40","status":"in_clinic"}
+
+02-01-2026 05:10:47======Patient Exists======
+
+02-01-2026 05:13:05-------------{"wife_name":"ANJESH","husband_name":"","wife_phone":"9917090595","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-02","appoitmented_slot":"10:20-10:40","status":"rescheduled"}
+
+02-01-2026 05:13:06======Patient Exists======
+
+02-01-2026 05:16:08-------------{"wife_name":"ANJESH","husband_name":"","wife_phone":"9917090595","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-02","appoitmented_slot":"14:00-14:20","status":"rescheduled"}
+
+02-01-2026 05:16:09======Patient Exists======
+
+02-01-2026 05:41:15-------------{"wife_name":"Nusrat Amin","husband_name":"","wife_phone":"9875940122","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-02","appoitmented_slot":"09:00-09:05","status":"in_clinic"}
+
+02-01-2026 05:41:17======Patient Exists======
+
+02-01-2026 05:51:27-------------{"wife_name":"Neetu","husband_name":"","wife_phone":"9821575100","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"10:55-11:00","status":"in_clinic"}
+
+02-01-2026 05:51:28======Patient Exists======
+
+02-01-2026 05:56:12-------------{"wife_name":"Priya","husband_name":"","wife_phone":"9900000556","appoitment_for":"16249589462327","appoitmented_doctor":"24","appoitmented_date":"2026-01-05","appoitmented_slot":"09:00-09:20","status":"rescheduled"}
+
+02-01-2026 05:56:13======Patient Exists======
+
+02-01-2026 05:57:37-------------{"wife_name":"Shivani","husband_name":"","wife_phone":"7217818840","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-02","appoitmented_slot":"10:20-10:40","status":"rescheduled"}
+
+02-01-2026 05:57:37======Patient Exists======
+
+02-01-2026 06:00:07-------------{"wife_name":"Saher","husband_name":"","wife_phone":"9429408865","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"10:45-10:50","status":"in_clinic"}
+
+02-01-2026 06:00:08======Patient Exists======
+
+02-01-2026 06:00:30-------------{"wife_name":"Sumaira","husband_name":"","wife_phone":"7006038583","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-02","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+02-01-2026 06:00:32======Patient Exists======
+
+02-01-2026 06:08:35-------------{"wife_name":"Pratishtha saini","husband_name":"","wife_phone":"7292025446","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"11:10-11:15","status":"in_clinic"}
+
+02-01-2026 06:08:36======Patient Exists======
+
+02-01-2026 06:11:44-------------{"wife_name":"Udisha Mishra ","husband_name":"","wife_phone":"9354046106","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"09:30-09:35","status":"rescheduled"}
+
+02-01-2026 06:11:45======Patient Exists======
+
+02-01-2026 06:18:29-------------{"wife_name":"Jai Shree Rai","husband_name":"","wife_phone":"7905804250","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"11:05-11:10","status":"in_clinic"}
+
+02-01-2026 06:18:30======Patient Exists======
+
+02-01-2026 06:18:47-------------{"wife_name":"Jai Shree Rai","husband_name":"","wife_phone":"7905804250","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"10:50-10:55","status":"in_clinic"}
+
+02-01-2026 06:18:47======Patient Exists======
+
+02-01-2026 06:45:49-------------{"wife_name":"RAQIYA MAQBOOL","husband_name":"","wife_phone":"7006133379","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-02","appoitmented_slot":"09:35-09:40","status":"in_clinic"}
+
+02-01-2026 06:45:49======Patient Exists======
+
+02-01-2026 07:14:59-------------{"wife_name":"ISHFAQ AHMAD ","husband_name":"","wife_phone":"7006558688","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-02","appoitmented_slot":"09:45-09:50","status":"in_clinic"}
+
+02-01-2026 07:15:00======Patient Exists======
+
+02-01-2026 07:19:01-------------{"wife_name":"Rehana","husband_name":"Ayoub Wani","wife_phone":"6005694698","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-02","appoitmented_slot":"12:45-12:50","status":"in_clinic"}
+
+02-01-2026 07:19:02======New Patient======
+
+02-01-26 07:19:03-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"916005694698","messageId":"3cc4ffcd-6f81-4359-8b0e-14670b1f2add"}]}
+
+02-01-26 07:19:47-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"916005694698","messageId":"2457c470-b03f-4cee-a998-6566dcaa5d8f"}]}
+
+02-01-2026 08:28:08-------------{"wife_name":"Rekha","husband_name":"","wife_phone":"7982576518","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-02","appoitmented_slot":"14:00-14:20","status":"rescheduled"}
+
+02-01-2026 08:28:09======Patient Exists======
+
+02-01-2026 09:58:09-------------{"wife_name":"Neeraj kumar singh","husband_name":"","wife_phone":"9570532172","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"11:05-11:10","status":"in_clinic"}
+
+02-01-2026 09:58:10======Patient Exists======
+
+02-01-2026 11:00:43-------------{"wife_name":"Gudiya","husband_name":"","wife_phone":"9310021804","appoitment_for":"16267558222750","appoitmented_doctor":"76","appoitmented_date":"2026-01-02","appoitmented_slot":"16:20-16:40","status":"in_clinic"}
+
+02-01-2026 11:00:44======Patient Exists======
+
+02-01-2026 11:08:42-------------{"wife_name":"SANTOSHI DE VI","husband_name":"","wife_phone":"9424316782","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-02","appoitmented_slot":"09:35-09:40","status":"rescheduled"}
+
+02-01-2026 11:08:43======Patient Exists======
+
+02-01-2026 11:17:24-------------{"wife_name":"  shahzada hassan","husband_name":"","wife_phone":"6006823505","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-02","appoitmented_slot":"16:15-16:20","status":"in_clinic"}
+
+02-01-2026 11:17:25======Patient Exists======
+
+02-01-26 11:17:52-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919467045831","messageId":"626561c8-d995-4738-89f5-fe521c6dc3bd"}]}
+
+02-01-2026 11:20:09-------------{"wife_name":"Gudiya","husband_name":"","wife_phone":"9310021804","appoitment_for":"16267558222750","appoitmented_doctor":"76","appoitmented_date":"2026-01-02","appoitmented_slot":"16:40-17:00","status":"in_clinic"}
+
+02-01-2026 11:20:10======Patient Exists======
+
+02-01-2026 12:05:10-------------{"wife_name":"FATEMA BIBI","husband_name":"","wife_phone":"9037309266","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-03","appoitmented_slot":"11:30-11:35","status":"rescheduled"}
+
+02-01-2026 12:05:11======Patient Exists======
+
+03-01-2026 04:10:51-------------{"wife_name":"Alka Dagar","husband_name":"","wife_phone":"9953647350","appoitment_for":"16266778858144","appoitmented_doctor":"3","appoitmented_date":"2026-01-03","appoitmented_slot":"13:00-13:20","status":"rescheduled"}
+
+03-01-2026 04:10:52======Patient Exists======
+
+03-01-2026 04:12:17-------------{"wife_name":"Aarti Bathla","husband_name":"","wife_phone":"8130128787","appoitment_for":"16266778858144","appoitmented_doctor":"3","appoitmented_date":"2026-01-03","appoitmented_slot":"13:20-13:40","status":"rescheduled"}
+
+03-01-2026 04:12:18======Patient Exists======
+
+03-01-2026 04:36:18-------------{"wife_name":"Madhu ","husband_name":"","wife_phone":"7296829400","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-03","appoitmented_slot":"10:00-10:05","status":"in_clinic"}
+
+03-01-2026 04:36:19======Patient Exists======
+
+03-01-2026 04:40:48-------------{"wife_name":"MARJINA KHATUN","husband_name":"","wife_phone":"9599013677","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-04","appoitmented_slot":"09:55-10:00","status":""}
+
+03-01-2026 04:40:50======Patient Exists======
+
+03-01-2026 04:42:15-------------{"wife_name":"SANGITA KUMARI","husband_name":"","wife_phone":"9306504543","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-03","appoitmented_slot":"10:20-10:25","status":"rescheduled"}
+
+03-01-2026 04:42:16======Patient Exists======
+
+03-01-2026 04:49:41-------------{"wife_name":"Mamta","husband_name":"","wife_phone":"9953662854","appoitment_for":"16249589462327","appoitmented_doctor":"3","appoitmented_date":"2026-01-03","appoitmented_slot":"10:40-11:00","status":"in_clinic"}
+
+03-01-2026 04:49:43======Patient Exists======
+
+03-01-2026 04:52:11-------------{"wife_name":"RUKHSANA BANO","husband_name":"","wife_phone":"7051404050","appoitment_for":"16133769691598","appoitmented_doctor":"84","appoitmented_date":"2026-01-03","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+03-01-2026 04:52:13======Patient Exists======
+
+03-01-2026 05:06:36-------------{"wife_name":"Firoza","husband_name":"","wife_phone":"9858706190","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"09:50-09:55","status":"in_clinic"}
+
+03-01-2026 05:06:37======Patient Exists======
+
+03-01-2026 05:28:29-------------{"wife_name":"Madhu ","husband_name":"","wife_phone":"7296829400","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-03","appoitmented_slot":"10:55-11:00","status":"in_clinic"}
+
+03-01-2026 05:28:29======Patient Exists======
+
+03-01-2026 05:56:59-------------{"wife_name":"Mamta Verma","husband_name":"","wife_phone":"9871507573","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-03","appoitmented_slot":"11:30-11:35","status":"in_clinic"}
+
+03-01-2026 05:57:00======Patient Exists======
+
+03-01-2026 06:13:21-------------{"wife_name":"Anuradha ","husband_name":"Rajkumar","wife_phone":"9839710421","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"13:30-13:35","status":"rescheduled"}
+
+03-01-2026 06:13:22======Patient Exists======
+
+03-01-2026 06:23:49-------------{"wife_name":"Firoza","husband_name":"","wife_phone":"9858706190","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"09:30-09:35","status":"in_clinic"}
+
+03-01-2026 06:23:51======Patient Exists======
+
+03-01-2026 06:35:28-------------{"wife_name":"POOJA KUMARI SHAH","husband_name":"","wife_phone":"9149025939","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"11:05-11:10","status":"in_clinic"}
+
+03-01-2026 06:35:29======Patient Exists======
+
+03-01-2026 06:39:08-------------{"wife_name":"Vidyawati Gupta","husband_name":"","wife_phone":"8285326735","appoitment_for":"16267558222750","appoitmented_doctor":"76","appoitmented_date":"2026-01-03","appoitmented_slot":"12:10-12:15","status":"in_clinic"}
+
+03-01-2026 06:39:09======Patient Exists======
+
+03-01-2026 06:42:34-------------{"wife_name":"Reena ","husband_name":"","wife_phone":"9810756164","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"11:30-11:35","status":"in_clinic"}
+
+03-01-2026 06:42:36======Patient Exists======
+
+03-01-26 06:51:25-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919682108351","messageId":"d80a4942-a0d6-4916-822c-59e30ebc64c9"}]}
+
+03-01-2026 06:56:19-------------{"wife_name":"SURAYA ","husband_name":"","wife_phone":"7006114432","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"12:25-12:30","status":"in_clinic"}
+
+03-01-2026 06:56:22======Patient Exists======
+
+03-01-2026 07:00:20-------------{"wife_name":"Rajni","husband_name":"","wife_phone":"7827676832","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-03","appoitmented_slot":"12:30-12:35","status":"in_clinic"}
+
+03-01-2026 07:00:21======Patient Exists======
+
+03-01-2026 07:01:48-------------{"wife_name":"Asmat","husband_name":"","wife_phone":"7780882180","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+03-01-2026 07:01:50======Patient Exists======
+
+03-01-2026 07:06:46-------------{"wife_name":"shobha","husband_name":"","wife_phone":"9354249420","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"11:15-11:20","status":"in_clinic"}
+
+03-01-2026 07:06:48======Patient Exists======
+
+03-01-2026 07:15:11-------------{"wife_name":"Sumaira","husband_name":"","wife_phone":"7006038583","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"12:40-12:45","status":"in_clinic"}
+
+03-01-2026 07:15:12======Patient Exists======
+
+03-01-2026 07:22:23-------------{"wife_name":"Aneeta Gautam","husband_name":"Anant Kumar","wife_phone":"9897183804","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2026-01-03","appoitmented_slot":"12:50-12:55","status":"rescheduled"}
+
+03-01-2026 07:22:23======Patient Exists======
+
+03-01-26 07:33:44-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919253606651","messageId":"bc130412-add1-4d90-b7e5-3b794aa479b3"}]}
+
+03-01-2026 07:34:38-------------{"wife_name":"Mamta Verma","husband_name":"","wife_phone":"9871507573","appoitment_for":"16267558222750","appoitmented_doctor":"76","appoitmented_date":"2026-01-03","appoitmented_slot":"13:00-13:05","status":"in_clinic"}
+
+03-01-2026 07:34:39======Patient Exists======
+
+03-01-2026 07:35:56-------------{"wife_name":"Ishrat","husband_name":"","wife_phone":"7006586154","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"09:55-10:00","status":"in_clinic"}
+
+03-01-2026 07:35:57======Patient Exists======
+
+03-01-2026 08:26:12-------------{"wife_name":"Nisha Tiwari","husband_name":"","wife_phone":"8178356602","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-03","appoitmented_slot":"13:50-13:55","status":"in_clinic"}
+
+03-01-2026 08:26:13======Patient Exists======
+
+03-01-2026 08:46:48-------------{"wife_name":"PRIYA SHARMA","husband_name":"","wife_phone":"9971220306","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"11:20-11:25","status":"in_clinic"}
+
+03-01-2026 08:46:49======Patient Exists======
+
+03-01-2026 09:22:17-------------{"wife_name":"Deepti Mishra","husband_name":"satender","wife_phone":"8770013106","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2026-01-03","appoitmented_slot":"14:40-14:45","status":"rescheduled"}
+
+03-01-2026 09:22:18======Patient Exists======
+
+03-01-2026 09:29:39-------------{"wife_name":"Madhur Batra","husband_name":"","wife_phone":"7906552463","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"14:35-14:40","status":"in_clinic"}
+
+03-01-2026 09:29:40======Patient Exists======
+
+03-01-26 09:35:20-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919711239090","messageId":"15cbc7a7-dd14-485e-b4e7-70d03a605680"}]}
+
+03-01-2026 09:42:55-------------{"wife_name":"Seema","husband_name":"","wife_phone":"9253606651","appoitment_for":"16267558222750","appoitmented_doctor":"76","appoitmented_date":"2026-01-03","appoitmented_slot":"15:30-15:35","status":"in_clinic"}
+
+03-01-2026 09:42:56======Patient Exists======
+
+03-01-2026 10:01:21-------------{"wife_name":"Shveta yadav","husband_name":"","wife_phone":"7985536494","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"12:05-12:10","status":"in_clinic"}
+
+03-01-2026 10:01:22======Patient Exists======
+
+03-01-26 10:06:58-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919827982187","messageId":"2e97536c-0454-4f3e-9f95-8fdc6369dc6c"}]}
+
+03-01-26 10:09:41-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"916397786534","messageId":"54aade95-8987-4bb5-a84b-8ceea1764461"}]}
+
+03-01-2026 10:13:18-------------{"wife_name":"asifa","husband_name":"","wife_phone":"9419418338","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+03-01-2026 10:13:20======Patient Exists======
+
+03-01-26 10:15:08-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919827982187","messageId":"b517281b-d901-4b39-811e-7b35f2c3338c"}]}
+
+03-01-2026 10:18:57-------------{"wife_name":"Neha","husband_name":"","wife_phone":"8826247703","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"15:05-15:10","status":"in_clinic"}
+
+03-01-2026 10:18:59======Patient Exists======
+
+03-01-2026 10:19:10-------------{"wife_name":"asifa","husband_name":"","wife_phone":"9419418338","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"10:40-10:45","status":"in_clinic"}
+
+03-01-2026 10:19:10======Patient Exists======
+
+03-01-2026 10:20:53-------------{"wife_name":"Mampi Biswas","husband_name":"","wife_phone":"9434614716","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"11:15-11:20","status":"in_clinic"}
+
+03-01-2026 10:20:55======Patient Exists======
+
+03-01-2026 10:25:44-------------{"wife_name":"NEETU SINGH JADON","husband_name":"","wife_phone":"8860272769","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"11:55-12:00","status":"in_clinic"}
+
+03-01-2026 10:25:47======Patient Exists======
+
+03-01-2026 10:38:58-------------{"wife_name":"Shubeena","husband_name":"","wife_phone":"6005096717","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"09:15-09:20","status":"in_clinic"}
+
+03-01-2026 10:38:59======Patient Exists======
+
+03-01-2026 10:44:14-------------{"wife_name":"Shveta yadav","husband_name":"","wife_phone":"7985536494","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"15:25-15:30","status":"in_clinic"}
+
+03-01-2026 10:44:16======Patient Exists======
+
+03-01-2026 11:03:58-------------{"wife_name":"Shayba","husband_name":"","wife_phone":"7895568875","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"12:10-12:15","status":"in_clinic"}
+
+03-01-2026 11:03:59======Patient Exists======
+
+03-01-2026 11:15:58-------------{"wife_name":"SABIHA KHANAM ","husband_name":"","wife_phone":"9760897585","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"10:00-10:05","status":"rescheduled"}
+
+03-01-2026 11:16:00======Patient Exists======
+
+03-01-2026 11:18:42-------------{"wife_name":"SABIHA KHANAM ","husband_name":"","wife_phone":"9760897585","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"10:20-10:25","status":"in_clinic"}
+
+03-01-2026 11:18:43======Patient Exists======
+
+03-01-2026 11:19:50-------------{"wife_name":"SABIHA KHANAM ","husband_name":"","wife_phone":"9760897585","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-03","appoitmented_slot":"10:00-10:05","status":"rescheduled"}
+
+03-01-2026 11:19:51======Patient Exists======
+
+03-01-2026 11:20:08-------------{"wife_name":"FEHMIDAH","husband_name":"","wife_phone":"7006503943","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-03","appoitmented_slot":"09:25-09:30","status":"in_clinic"}
+
+03-01-2026 11:20:09======Patient Exists======
+
+03-01-2026 11:54:19-------------{"wife_name":"Anu Radha","husband_name":"","wife_phone":"8076321233","appoitment_for":"1581157290","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"13:25-13:30","status":"rescheduled"}
+
+03-01-2026 11:54:20======Patient Exists======
+
+03-01-2026 11:55:45-------------{"wife_name":"Anu Radha","husband_name":"Rajkumar","wife_phone":"8076321233","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"13:20-13:25","status":"rescheduled"}
+
+03-01-2026 11:55:46======Patient Exists======
+
+03-01-2026 11:57:01-------------{"wife_name":"Deepti Mishra","husband_name":"Satyendra Sharma Nirmal","wife_phone":"8770013106","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-05","appoitmented_slot":"10:30-10:35","status":"rescheduled"}
+
+03-01-2026 11:57:03======Patient Exists======
+
+04-01-2026 04:32:45-------------{"wife_name":"MARJINA KHATUN","husband_name":"","wife_phone":"9599013677","appoitment_for":"16266778858144","appoitmented_doctor":"48","appoitmented_date":"2026-01-04","appoitmented_slot":"08:20-08:40","status":"cancelled"}
+
+04-01-2026 04:32:46======Patient Exists======
+
+04-01-2026 05:19:20-------------{"wife_name":"Neeraj kumar singh","husband_name":"","wife_phone":"9570532172","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"12:35-12:40","status":"in_clinic"}
+
+04-01-2026 05:19:21======Patient Exists======
+
+04-01-2026 05:21:05-------------{"wife_name":"RACHNA ","husband_name":"","wife_phone":"9718716580","appoitment_for":"17519672203755","appoitmented_doctor":"88","appoitmented_date":"2026-01-04","appoitmented_slot":"10:10-10:15","status":"rescheduled"}
+
+04-01-2026 05:21:06======Patient Exists======
+
+04-01-2026 05:21:52-------------{"wife_name":"shweta  Khanna","husband_name":"","wife_phone":"9899933280","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-04","appoitmented_slot":"10:00-10:05","status":"in_clinic"}
+
+04-01-2026 05:21:53======Patient Exists======
+
+04-01-26 05:46:56-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919457650557","messageId":"ce227e8b-bdd2-4d92-829a-7593c261670d"}]}
+
+04-01-2026 05:51:40-------------{"wife_name":"sureena malhi","husband_name":"","wife_phone":"7417549286","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"10:00-10:05","status":"in_clinic"}
+
+04-01-2026 05:51:40======Patient Exists======
+
+04-01-2026 05:51:47-------------{"wife_name":"Tabasum firdous","husband_name":"","wife_phone":"7780935693","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-04","appoitmented_slot":"09:30-09:35","status":"in_clinic"}
+
+04-01-2026 05:51:48======Patient Exists======
+
+04-01-2026 05:53:12-------------{"wife_name":"RACHNA ","husband_name":"","wife_phone":"9718716580","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-04","appoitmented_slot":"09:25-09:30","status":"rescheduled"}
+
+04-01-2026 05:53:13======Patient Exists======
+
+04-01-2026 06:00:52-------------{"wife_name":"SALEEMA KARIM ","husband_name":"","wife_phone":"6005644988","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-04","appoitmented_slot":"09:25-09:30","status":"in_clinic"}
+
+04-01-2026 06:00:55======Patient Exists======
+
+04-01-26 06:02:19-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918447462359","messageId":"e13fb798-23aa-403c-975b-fa0d39775678"}]}
+
+04-01-26 06:09:39-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917889462562","messageId":"a775c8bf-c0c4-4ee8-a320-8f0eab4784a0"}]}
+
+04-01-2026 06:18:45-------------{"wife_name":"Deepika","husband_name":"Ravi Sharma","wife_phone":"7011848386","appoitment_for":"17519672203755","appoitmented_doctor":"88","appoitmented_date":"2026-01-04","appoitmented_slot":"09:15-09:20","status":"rescheduled"}
+
+04-01-2026 06:18:45======New Patient======
+
+04-01-26 06:18:46-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917011848386","messageId":"b429b401-78bb-40b9-ace5-cea087f9d339"}]}
+
+04-01-2026 06:18:56-------------{"wife_name":"SHAFEE ","husband_name":"","wife_phone":"9596434773","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-04","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+04-01-2026 06:18:56======Patient Exists======
+
+04-01-2026 06:19:07-------------{"wife_name":"Pratima Singh","husband_name":"","wife_phone":"9891981718","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+04-01-2026 06:19:09======Patient Exists======
+
+04-01-26 06:21:18-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917011848386","messageId":"c945aa46-1b04-487a-82e4-ee78574ac54c"}]}
+
+04-01-26 06:23:26-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919906775503","messageId":"11eebd1d-2e59-4d1e-83c5-25e975e99761"}]}
+
+04-01-26 06:30:01-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919871745947","messageId":"c85ab84c-5542-4fba-b9ee-5f1e625db109"}]}
+
+04-01-2026 06:41:41-------------{"wife_name":"NASREENA","husband_name":"","wife_phone":"6005336647","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-04","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+04-01-2026 06:41:43======Patient Exists======
+
+04-01-2026 06:44:00-------------{"wife_name":"Preeti sharma","husband_name":"","wife_phone":"8587808003","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-05","appoitmented_slot":"13:00-13:20","status":"rescheduled"}
+
+04-01-2026 06:44:00======Patient Exists======
+
+04-01-2026 06:44:47-------------{"wife_name":"KUMARI KUSUM ","husband_name":"","wife_phone":"9716602823","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-04","appoitmented_slot":"09:15-09:20","status":"rescheduled"}
+
+04-01-2026 06:44:47======Patient Exists======
+
+04-01-2026 06:45:55-------------{"wife_name":"nighat","husband_name":"","wife_phone":"9149679752","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-04","appoitmented_slot":"09:35-09:40","status":"in_clinic"}
+
+04-01-2026 06:45:56======Patient Exists======
+
+04-01-2026 06:58:45-------------{"wife_name":"SAMEENA","husband_name":"","wife_phone":"9797276826","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-04","appoitmented_slot":"10:25-10:30","status":"in_clinic"}
+
+04-01-2026 06:58:46======Patient Exists======
+
+04-01-2026 07:03:58-------------{"wife_name":"Mihsalanlang Shylla","husband_name":"","wife_phone":"8882942456","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-04","appoitmented_slot":"12:35-12:40","status":"rescheduled"}
+
+04-01-2026 07:03:58======Patient Exists======
+
+04-01-26 07:06:09-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919910120857","messageId":"5951781e-b858-412a-8de4-2a9259935896"}]}
+
+04-01-2026 07:08:13-------------{"wife_name":"Birjesh","husband_name":"","wife_phone":"7456831194","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2026-01-04","appoitmented_slot":"12:40-12:45","status":"rescheduled"}
+
+04-01-2026 07:08:13======Patient Exists======
+
+04-01-2026 07:14:32-------------{"wife_name":"Anupma Goyal","husband_name":"","wife_phone":"8826987375","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-04","appoitmented_slot":"09:40-09:45","status":"rescheduled"}
+
+04-01-2026 07:14:33======Patient Exists======
+
+04-01-2026 07:17:51-------------{"wife_name":"D JAINAB","husband_name":"","wife_phone":"9783911784","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-04","appoitmented_slot":"10:30-10:35","status":"in_clinic"}
+
+04-01-2026 07:17:52======Patient Exists======
+
+04-01-2026 07:33:39-------------{"wife_name":"Monti","husband_name":"","wife_phone":"9827982187","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"10:35-10:40","status":"in_clinic"}
+
+04-01-2026 07:33:40======Patient Exists======
+
+04-01-2026 07:41:53-------------{"wife_name":"Monti","husband_name":"","wife_phone":"9827982187","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"10:55-11:00","status":"in_clinic"}
+
+04-01-2026 07:41:54======Patient Exists======
+
+04-01-2026 07:59:04-------------{"wife_name":"POSHA","husband_name":"","wife_phone":"9419185603","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-04","appoitmented_slot":"13:00-13:05","status":"in_clinic"}
+
+04-01-2026 07:59:06======Patient Exists======
+
+04-01-2026 08:08:02-------------{"wife_name":"Poonam Maurya","husband_name":"","wife_phone":"9984787252","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"10:05-10:10","status":"in_clinic"}
+
+04-01-2026 08:08:06======Patient Exists======
+
+04-01-2026 08:31:37-------------{"wife_name":"Kajal","husband_name":"","wife_phone":"8700910177","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-04","appoitmented_slot":"14:55-15:00","status":"rescheduled"}
+
+04-01-2026 08:31:38======Patient Exists======
+
+04-01-2026 08:33:29-------------{"wife_name":"KALPNA BATHAM","husband_name":"","wife_phone":"7068758696","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-04","appoitmented_slot":"10:05-10:10","status":"in_clinic"}
+
+04-01-2026 08:33:30======Patient Exists======
+
+04-01-2026 09:02:22-------------{"wife_name":"Pallabi Barman","husband_name":"","wife_phone":"8800775635","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"14:20-14:25","status":"in_clinic"}
+
+04-01-2026 09:02:23======Patient Exists======
+
+04-01-2026 09:07:09-------------{"wife_name":"Shivani","husband_name":"","wife_phone":"7217818840","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-04","appoitmented_slot":"15:35-15:40","status":"in_clinic"}
+
+04-01-2026 09:07:10======Patient Exists======
+
+04-01-2026 09:31:14-------------{"wife_name":"Kousar Jan","husband_name":"MD Amin Wani","wife_phone":"7006644596","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-04","appoitmented_slot":"12:55-13:00","status":"in_clinic"}
+
+04-01-2026 09:31:15======New Patient======
+
+04-01-26 09:31:15-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006644596","messageId":"cd0c09bb-32bf-4737-ae24-56c562176a43"}]}
+
+04-01-26 09:33:41-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917006644596","messageId":"920f619f-7b33-4d50-9ca9-3ca91a73dfb4"}]}
+
+04-01-26 09:34:49-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919411001115","messageId":"cd096bc6-8af6-46c3-a83f-c9eae18f7e7c"}]}
+
+04-01-26 09:52:58-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919891448018","messageId":"1206c97d-e0ee-49ae-92b5-355782840489"}]}
+
+04-01-2026 10:04:22-------------{"wife_name":"Rekha","husband_name":"","wife_phone":"7982576518","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-04","appoitmented_slot":"09:30-09:35","status":"rescheduled"}
+
+04-01-2026 10:04:22======Patient Exists======
+
+04-01-26 10:12:30-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919810815568","messageId":"a85c4f1f-735f-4d2e-9bf6-3079e6bb3eba"}]}
+
+04-01-26 10:13:13-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919810815568","messageId":"964dd42a-345a-418c-ab80-169be2ed0e8e"}]}
+
+04-01-26 10:15:14-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"916005865329","messageId":"4141d61f-e737-488c-917a-a4be9ee31566"}]}
+
+04-01-2026 10:37:59-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"28","appoitmented_date":"2026-01-04","appoitmented_slot":"15:40-16:00","status":"in_clinic"}
+
+04-01-2026 10:38:00======Patient Exists======
+
+04-01-2026 10:53:47-------------{"wife_name":"Sayema Rahman","husband_name":"RazauRahman","wife_phone":"8527796513","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"14:55-15:00","status":"rescheduled"}
+
+04-01-2026 10:53:48======New Patient======
+
+04-01-26 10:53:48-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918527796513","messageId":"05d74ac0-ab21-4467-932c-338d85e85e8f"}]}
+
+04-01-26 11:00:07-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918527796513","messageId":"2f3472ea-e103-4adc-9e61-b4c77c69dca4"}]}
+
+04-01-2026 11:11:31-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-04","appoitmented_slot":"09:30-09:35","status":"in_clinic"}
+
+04-01-2026 11:11:34======Patient Exists======
+
+04-01-2026 11:14:34-------------{"wife_name":"Rekha","husband_name":"","wife_phone":"7982576518","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-04","appoitmented_slot":"15:25-15:30","status":"rescheduled"}
+
+04-01-2026 11:14:36======Patient Exists======
+
+04-01-2026 11:15:03-------------{"wife_name":"Monti","husband_name":"","wife_phone":"9827982187","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-04","appoitmented_slot":"11:10-11:15","status":"in_clinic"}
+
+04-01-2026 11:15:03======Patient Exists======
+
+04-01-2026 11:16:34-------------{"wife_name":"Diksha Sokhal","husband_name":"","wife_phone":"8952973411","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-05","appoitmented_slot":"09:45-09:50","status":"rescheduled"}
+
+04-01-2026 11:16:35======Patient Exists======
+
+04-01-2026 11:33:29-------------{"wife_name":"Anupma Goyal","husband_name":"","wife_phone":"8826987375","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-04","appoitmented_slot":"16:55-17:00","status":"in_clinic"}
+
+04-01-2026 11:33:29======Patient Exists======
+
+04-01-2026 12:21:59-------------{"wife_name":"Kajal","husband_name":"","wife_phone":"8700910177","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-04","appoitmented_slot":"09:20-09:25","status":"rescheduled"}
+
+04-01-2026 12:22:01======Patient Exists======
+
+05-01-26 04:27:36-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919920054256","messageId":"970fe6bc-4b32-45e2-b7c9-3715594117a2"}]}
+
+05-01-2026 05:02:30-------------{"wife_name":"Harpreet Kaur","husband_name":"","wife_phone":"9041816396","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-05","appoitmented_slot":"09:55-10:00","status":"rescheduled"}
+
+05-01-2026 05:02:30======Patient Exists======
+
+05-01-2026 05:17:26-------------{"wife_name":"Zarina Akhtar","husband_name":"","wife_phone":"9797719562","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+05-01-2026 05:17:28======Patient Exists======
+
+05-01-2026 05:20:33-------------{"wife_name":"Geeta","husband_name":"manoj","wife_phone":"9654571541","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2026-01-05","appoitmented_slot":"10:50-10:55","status":"rescheduled"}
+
+05-01-2026 05:20:35======Patient Exists======
+
+05-01-2026 05:29:45-------------{"wife_name":"Zarina Akhtar","husband_name":"","wife_phone":"9797719562","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"09:15-09:20","status":"in_clinic"}
+
+05-01-2026 05:29:46======Patient Exists======
+
+05-01-2026 05:31:22-------------{"wife_name":"Lalita","husband_name":"","wife_phone":"9219621681","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-05","appoitmented_slot":"12:00-12:20","status":"rescheduled"}
+
+05-01-2026 05:31:23======Patient Exists======
+
+05-01-2026 05:38:55-------------{"wife_name":"nusrat ara","husband_name":"","wife_phone":"6006278353","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"09:00-09:05","status":"in_clinic"}
+
+05-01-2026 05:38:55======Patient Exists======
+
+05-01-2026 05:58:44-------------{"wife_name":"Seema devi","husband_name":"","wife_phone":"9810917925","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-05","appoitmented_slot":"15:20-15:40","status":"rescheduled"}
+
+05-01-2026 05:58:44======Patient Exists======
+
+05-01-2026 05:58:45-------------{"wife_name":"Sahina","husband_name":"","wife_phone":"7006258995","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"09:25-09:30","status":"in_clinic"}
+
+05-01-2026 05:58:45======Patient Exists======
+
+05-01-2026 06:10:26-------------{"wife_name":"BHAGYASHRI ARORA","husband_name":"","wife_phone":"9920054256","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-05","appoitmented_slot":"10:20-10:40","status":"in_clinic"}
+
+05-01-2026 06:10:27======Patient Exists======
+
+05-01-2026 06:16:04-------------{"wife_name":"Deepti Mishra","husband_name":"","wife_phone":"8770013106","appoitment_for":"16249589462327","appoitmented_doctor":"24","appoitmented_date":"2026-01-05","appoitmented_slot":"08:00-08:20","status":"rescheduled"}
+
+05-01-2026 06:16:05======Patient Exists======
+
+05-01-2026 07:12:25-------------{"wife_name":"SHAHER BANO","husband_name":"","wife_phone":"7530878614","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-05","appoitmented_slot":"10:00-10:05","status":"in_clinic"}
+
+05-01-2026 07:12:25======Patient Exists======
+
+05-01-2026 07:32:05-------------{"wife_name":"Rehana ","husband_name":"","wife_phone":"9906755913","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+05-01-2026 07:32:06======Patient Exists======
+
+05-01-2026 07:36:43-------------{"wife_name":"ROOHILA TABASSUM","husband_name":"","wife_phone":"9906626217","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"13:15-13:20","status":"in_clinic"}
+
+05-01-2026 07:36:45======Patient Exists======
+
+05-01-26 07:59:56-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918126186294","messageId":"6fa52403-8d62-452c-a89e-9526cde8c7d0"}]}
+
+05-01-2026 08:10:31-------------{"wife_name":"Geeta","husband_name":"manoj","wife_phone":"9654571541","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2026-01-05","appoitmented_slot":"09:50-09:55","status":"rescheduled"}
+
+05-01-2026 08:10:31======Patient Exists======
+
+05-01-2026 08:10:47-------------{"wife_name":"Shubeena","husband_name":"","wife_phone":"6005096717","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"09:20-09:25","status":"in_clinic"}
+
+05-01-2026 08:10:48======Patient Exists======
+
+05-01-2026 08:12:51-------------{"wife_name":"Geeta","husband_name":"manoj","wife_phone":"9654571541","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2026-01-05","appoitmented_slot":"13:00-13:05","status":"rescheduled"}
+
+05-01-2026 08:12:51======Patient Exists======
+
+05-01-2026 08:13:24-------------{"wife_name":"asifa","husband_name":"","wife_phone":"9419418338","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"09:30-09:35","status":"in_clinic"}
+
+05-01-2026 08:13:26======Patient Exists======
+
+05-01-2026 08:14:36-------------{"wife_name":"Geeta","husband_name":"manoj","wife_phone":"9654571541","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2026-01-05","appoitmented_slot":"14:30-14:35","status":"rescheduled"}
+
+05-01-2026 08:14:37======Patient Exists======
+
+05-01-2026 08:38:19-------------{"wife_name":"Sahnaza","husband_name":"","wife_phone":"6006377206","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"09:40-09:45","status":"in_clinic"}
+
+05-01-2026 08:38:20======Patient Exists======
+
+05-01-2026 08:59:04-------------{"wife_name":"Afroza","husband_name":"","wife_phone":"7006153884","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"09:50-09:55","status":"in_clinic"}
+
+05-01-2026 08:59:05======Patient Exists======
+
+05-01-26 09:00:38-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917838868719","messageId":"99e1e95e-d5b7-4475-9dbf-c93511655f1a"}]}
+
+05-01-26 09:01:05-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917838868719","messageId":"24ee7419-60ae-48c0-857e-2539dfba5918"}]}
+
+05-01-2026 09:07:24-------------{"wife_name":"ISHRAT ","husband_name":"","wife_phone":"7889964247","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-05","appoitmented_slot":"09:45-09:50","status":"in_clinic"}
+
+05-01-2026 09:07:25======Patient Exists======
+
+05-01-2026 09:17:04-------------{"wife_name":"SONIA KURIL","husband_name":"","wife_phone":"9810770442","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-05","appoitmented_slot":"13:20-13:40","status":"in_clinic"}
+
+05-01-2026 09:17:06======Patient Exists======
+
+05-01-2026 09:32:21-------------{"wife_name":"Manju","husband_name":"Umesh","wife_phone":"9650363776","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-05","appoitmented_slot":"10:10-10:15","status":"in_clinic"}
+
+05-01-2026 09:32:24======New Patient======
+
+05-01-26 09:32:24-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919650363776","messageId":"47188bc3-201d-4ccb-a334-8bace897135a"}]}
+
+05-01-26 09:32:43-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919650363776","messageId":"5f04c1b7-60e8-4e82-931f-c6f18406efbc"}]}
+
+05-01-2026 09:34:09-------------{"wife_name":"Mihsalanlang Shylla","husband_name":"","wife_phone":"8882942456","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-05","appoitmented_slot":"14:00-14:20","status":"rescheduled"}
+
+05-01-2026 09:34:10======Patient Exists======
+
+05-01-2026 09:35:05-------------{"wife_name":"Anjali","husband_name":"","wife_phone":"9068909577","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-05","appoitmented_slot":"10:20-10:25","status":"in_clinic"}
+
+05-01-2026 09:35:06======Patient Exists======
+
+05-01-26 10:51:29-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918860938796","messageId":"6089ee61-7e1a-4fee-a729-f2064ff2a670"}]}
+
+05-01-26 10:52:04-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918860938796","messageId":"3e5a7b3f-f9d9-4589-85ab-4468942e5f3f"}]}
+
+05-01-2026 11:24:15-------------{"wife_name":"Shyamindra Gupta","husband_name":"","wife_phone":"9910613269","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-05","appoitmented_slot":"10:25-10:30","status":"rescheduled"}
+
+05-01-2026 11:24:15======Patient Exists======
+
+05-01-2026 11:24:33-------------{"wife_name":"Shyamindra Gupta","husband_name":"","wife_phone":"9910613269","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-06","appoitmented_slot":"09:20-09:25","status":"rescheduled"}
+
+05-01-2026 11:24:36======Patient Exists======
+
+06-01-2026 04:47:06-------------{"wife_name":"Madhubala","husband_name":"","wife_phone":"8285398968","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-06","appoitmented_slot":"09:25-09:30","status":"rescheduled"}
+
+06-01-2026 04:47:07======Patient Exists======
+
+06-01-2026 04:47:50-------------{"wife_name":"Madhubala","husband_name":"","wife_phone":"8285398968","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-06","appoitmented_slot":"09:40-09:45","status":"rescheduled"}
+
+06-01-2026 04:47:51======Patient Exists======
+
+06-01-2026 05:02:02-------------{"wife_name":"TASNEEM NAAZ","husband_name":"","wife_phone":"7014273746","appoitment_for":"16266778858144","appoitmented_doctor":"59","appoitmented_date":"2026-01-06","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+06-01-2026 05:02:02======Patient Exists======
+
+06-01-2026 05:04:45-------------{"wife_name":"SNEH YADAV","husband_name":"","wife_phone":"9811790089","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-06","appoitmented_slot":"10:00-10:20","status":"in_clinic"}
+
+06-01-2026 05:04:46======Patient Exists======
+
+06-01-2026 05:18:25-------------{"wife_name":"Janki Chowhan","husband_name":"Subodh Chowhan","wife_phone":"9773651283","appoitment_for":"16267558222750","appoitmented_doctor":"3","appoitmented_date":"2026-01-06","appoitmented_slot":"10:40-11:00","status":"rescheduled"}
+
+06-01-2026 05:18:27======New Patient======
+
+06-01-26 05:18:27-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919773651283","messageId":"5cbc32a1-510f-4b68-ad33-9603a21f2795"}]}
+
+06-01-2026 05:19:35-------------{"wife_name":"NAZAMA","husband_name":"","wife_phone":"7780871565","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-06","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+06-01-2026 05:19:36======Patient Exists======
+
+06-01-26 05:30:36-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919773651283","messageId":"6a61b8e7-e945-478d-b48a-9ccd1c04a36e"}]}
+
+06-01-2026 05:31:16-------------{"wife_name":"Firoza","husband_name":"","wife_phone":"9858706190","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-06","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+06-01-2026 05:31:17======Patient Exists======
+
+06-01-2026 05:36:29-------------{"wife_name":"Geeta","husband_name":"","wife_phone":"9654571541","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2026-01-06","appoitmented_slot":"11:05-11:10","status":"rescheduled"}
+
+06-01-2026 05:36:30======Patient Exists======
+
+06-01-2026 05:37:41-------------{"wife_name":"Wahida","husband_name":"","wife_phone":"9682569205","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-06","appoitmented_slot":"09:20-09:25","status":"in_clinic"}
+
+06-01-2026 05:37:43======Patient Exists======
+
+06-01-2026 05:40:28-------------{"wife_name":"Geeta","husband_name":"manoj","wife_phone":"9654571541","appoitment_for":"1581157290","appoitmented_doctor":"90","appoitmented_date":"2026-01-06","appoitmented_slot":"12:35-12:40","status":"rescheduled"}
+
+06-01-2026 05:40:30======Patient Exists======
+
+06-01-2026 05:43:02-------------{"wife_name":"ISHITA VERMA","husband_name":"","wife_phone":"9910910891","appoitment_for":"16266778858144","appoitmented_doctor":"19","appoitmented_date":"2026-01-06","appoitmented_slot":"09:00-09:20","status":"cancelled"}
+
+06-01-2026 05:43:03======Patient Exists======
+
+06-01-2026 05:44:13-------------{"wife_name":"WAFA SHOWKAT","husband_name":"","wife_phone":"7006692656","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-06","appoitmented_slot":"09:15-09:20","status":"in_clinic"}
+
+06-01-2026 05:44:14======Patient Exists======
+
+06-01-2026 05:47:27-------------{"wife_name":"ISHITA VERMA","husband_name":"","wife_phone":"9910910891","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-06","appoitmented_slot":"09:40-10:00","status":"in_clinic"}
+
+06-01-2026 05:47:28======Patient Exists======
+
+06-01-2026 05:49:45-------------{"wife_name":"Shivani","husband_name":"","wife_phone":"7217818840","appoitment_for":"17519672203755","appoitmented_doctor":"88","appoitmented_date":"2026-01-06","appoitmented_slot":"11:20-11:40","status":"rescheduled"}
+
+06-01-2026 05:49:46======Patient Exists======
+
+06-01-26 06:02:17-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917289887298","messageId":"b3133410-c1ea-4913-abdf-0c15d5a42bbf"}]}
+
+06-01-2026 06:06:15-------------{"wife_name":"SANTOSHI DE VI","husband_name":"","wife_phone":"9424316782","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-06","appoitmented_slot":"09:25-09:30","status":"rescheduled"}
+
+06-01-2026 06:06:16======Patient Exists======
+
+06-01-2026 06:06:17-------------{"wife_name":"Sheela","husband_name":"","wife_phone":"8595869381","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-06","appoitmented_slot":"12:00-12:20","status":"rescheduled"}
+
+06-01-2026 06:06:17======Patient Exists======
+
+06-01-26 06:11:39-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918527838825","messageId":"1008e386-c038-41e0-8894-900ea6be86a8"}]}
+
+06-01-2026 06:11:50-------------{"wife_name":"Muskan","husband_name":"","wife_phone":"7838868719","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-06","appoitmented_slot":"09:45-09:50","status":"rescheduled"}
+
+06-01-2026 06:11:50======Patient Exists======
+
+06-01-2026 06:13:22-------------{"wife_name":"Pratima kumari","husband_name":"","wife_phone":"7053888710","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-06","appoitmented_slot":"09:50-09:55","status":"rescheduled"}
+
+06-01-2026 06:13:23======Patient Exists======
+
+06-01-2026 06:16:10-------------{"wife_name":"Asima","husband_name":"","wife_phone":"9622475980","appoitment_for":"16267558222750","appoitmented_doctor":"26","appoitmented_date":"2026-01-06","appoitmented_slot":"10:00-10:20","status":"rescheduled"}
+
+06-01-2026 06:16:11======Patient Exists======
+
+06-01-2026 06:29:29-------------{"wife_name":"ishrat jan","husband_name":"","wife_phone":"7889325850","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-06","appoitmented_slot":"09:25-09:30","status":"in_clinic"}
+
+06-01-2026 06:29:30======Patient Exists======
+
+06-01-2026 06:55:00-------------{"wife_name":"Nisha Jha","husband_name":"Nisha Jha","wife_phone":"8920680054","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-06","appoitmented_slot":"12:20-12:40","status":"rescheduled"}
+
+06-01-2026 06:55:01======New Patient======
+
+06-01-26 06:55:02-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918920680054","messageId":"dbcff6ac-ae01-4475-823d-e1a239e93ca3"}]}
+
+06-01-2026 06:55:02-------------{"wife_name":"Iqra","husband_name":"","wife_phone":"9796721819","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-06","appoitmented_slot":"09:30-09:35","status":"in_clinic"}
+
+06-01-2026 06:55:03======Patient Exists======
+
+06-01-26 06:56:35-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"918920680054","messageId":"4b668ead-7500-44c9-919f-f6b77a5bc2e7"}]}
+
+06-01-2026 07:04:45-------------{"wife_name":"Seema devi","husband_name":"","wife_phone":"9810917925","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-06","appoitmented_slot":"15:20-15:40","status":"rescheduled"}
+
+06-01-2026 07:04:49======Patient Exists======
+
+06-01-2026 07:30:01-------------{"wife_name":"Sheraza","husband_name":"","wife_phone":"9622526491","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-06","appoitmented_slot":"09:35-09:40","status":"in_clinic"}
+
+06-01-2026 07:30:01======Patient Exists======
+
+06-01-2026 07:35:57-------------{"wife_name":"Asima","husband_name":"","wife_phone":"9622475980","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-06","appoitmented_slot":"10:40-11:00","status":"rescheduled"}
+
+06-01-2026 07:35:58======Patient Exists======
+
+06-01-2026 07:47:29-------------{"wife_name":"Sheela","husband_name":"","wife_phone":"8527838825","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-06","appoitmented_slot":"10:20-10:40","status":"in_clinic"}
+
+06-01-2026 07:47:29======Patient Exists======
+
+06-01-2026 08:03:12-------------{"wife_name":"asifa","husband_name":"","wife_phone":"9419418338","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-06","appoitmented_slot":"09:40-09:45","status":"in_clinic"}
+
+06-01-2026 08:03:13======Patient Exists======
+
+06-01-26 08:19:02-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919220190476","messageId":"d1516b23-063b-4c5b-9991-82866111a97c"}]}
+
+06-01-2026 08:54:59-------------{"wife_name":"Sheraza","husband_name":"","wife_phone":"9622526491","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-06","appoitmented_slot":"09:45-09:50","status":"in_clinic"}
+
+06-01-2026 08:55:01======Patient Exists======
+
+06-01-26 09:12:19-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"916396867290","messageId":"542d3d2f-5ec6-4806-ac65-b3f3844cc717"}]}
+
+06-01-2026 09:20:10-------------{"wife_name":"DIVYA SHRIVASTAVA","husband_name":"","wife_phone":"9891010864","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-06","appoitmented_slot":"09:55-10:00","status":"rescheduled"}
+
+06-01-2026 09:20:11======Patient Exists======
+
+06-01-26 09:24:23-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917780923775","messageId":"e06e0874-84b4-4c30-896c-f8ca33a56757"}]}
+
+06-01-2026 09:24:44-------------{"wife_name":"Neha","husband_name":"","wife_phone":"8826247703","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-06","appoitmented_slot":"10:00-10:05","status":"rescheduled"}
+
+06-01-2026 09:24:45======Patient Exists======
+
+06-01-26 09:25:20-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"917780923775","messageId":"072ffab8-98b0-4fd7-b97f-87e7275f7117"}]}
+
+06-01-26 09:28:47-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"916396867290","messageId":"610d50b9-c187-4685-a912-397b970adfb4"}]}
+
+06-01-2026 09:40:47-------------{"wife_name":"Shalu Choudhary","husband_name":"","wife_phone":"9582816659","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-06","appoitmented_slot":"10:10-10:15","status":"rescheduled"}
+
+06-01-2026 09:40:49======Patient Exists======
+
+06-01-26 09:52:49-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919560718868","messageId":"1c2b6da4-756d-460c-b618-5e895cf2c28f"}]}
+
+06-01-2026 10:23:17-------------{"wife_name":"KAUSHILA KHADKA","husband_name":"","wife_phone":"8527838825","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-06","appoitmented_slot":"14:20-14:40","status":"in_clinic"}
+
+06-01-2026 10:23:18======Patient Exists======
+
+06-01-2026 10:27:27-------------{"wife_name":"Khushbu Pandey","husband_name":"","wife_phone":"9468088522","appoitment_for":"16266778858144","appoitmented_doctor":"52","appoitmented_date":"2026-01-06","appoitmented_slot":"13:40-14:00","status":"in_clinic"}
+
+06-01-2026 10:27:27======Patient Exists======
+
+06-01-2026 10:28:05-------------{"wife_name":"Priyanka chaudhary","husband_name":"","wife_phone":"6396867290","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-06","appoitmented_slot":"10:15-10:20","status":"rescheduled"}
+
+06-01-2026 10:28:06======Patient Exists======
+
+06-01-2026 10:36:38-------------{"wife_name":"Jyoti","husband_name":"","wife_phone":"6395290558","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-06","appoitmented_slot":"12:20-12:40","status":"rescheduled"}
+
+06-01-2026 10:36:39======Patient Exists======
+
+06-01-2026 10:41:02-------------{"wife_name":"Madhu ","husband_name":"","wife_phone":"7296829400","appoitment_for":"16267558222750","appoitmented_doctor":"75","appoitmented_date":"2026-01-06","appoitmented_slot":"12:40-13:00","status":"rescheduled"}
+
+06-01-2026 10:41:04======Patient Exists======
+
+06-01-2026 10:50:19-------------{"wife_name":"afroza","husband_name":"","wife_phone":"9149570033","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-06","appoitmented_slot":"09:50-09:55","status":"in_clinic"}
+
+06-01-2026 10:50:20======Patient Exists======
+
+06-01-2026 12:10:34-------------{"wife_name":"Amreen","husband_name":"","wife_phone":"8130874364","appoitment_for":"17519672203755","appoitmented_doctor":"76","appoitmented_date":"2026-01-06","appoitmented_slot":"16:40-17:00","status":"rescheduled"}
+
+06-01-2026 12:10:35======Patient Exists======
+
+07-01-2026 04:19:27-------------{"wife_name":"Ishrat","husband_name":"","wife_phone":"7006586154","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"09:35-09:40","status":"in_clinic"}
+
+07-01-2026 04:19:28======Patient Exists======
+
+07-01-2026 04:22:59-------------{"wife_name":"Kanchan","husband_name":"","wife_phone":"9899581024","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-07","appoitmented_slot":"13:00-13:05","status":"rescheduled"}
+
+07-01-2026 04:23:00======Patient Exists======
+
+07-01-2026 04:24:50-------------{"wife_name":"Zahida","husband_name":"","wife_phone":"6005354066","appoitment_for":"16133769691598","appoitmented_doctor":"6","appoitmented_date":"2026-01-07","appoitmented_slot":"09:20-09:40","status":"in_clinic"}
+
+07-01-2026 04:24:51======Patient Exists======
+
+07-01-2026 04:38:41-------------{"wife_name":"Simran","husband_name":"","wife_phone":"9999949937","appoitment_for":"16267558222750","appoitmented_doctor":"4","appoitmented_date":"2026-01-07","appoitmented_slot":"09:40-10:00","status":"rescheduled"}
+
+07-01-2026 04:38:42======Patient Exists======
+
+07-01-2026 04:39:21-------------{"wife_name":"Amina","husband_name":"Firoz Ahmad","wife_phone":"9541057077","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"10:10-10:15","status":"in_clinic"}
+
+07-01-2026 04:39:22======New Patient======
+
+07-01-26 04:39:22-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919541057077","messageId":"40e61dd3-717d-4541-b368-5a581fb7f04c"}]}
+
+07-01-26 04:41:55-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919541057077","messageId":"914c3e87-37a3-4e56-9dab-6ac424709d5e"}]}
+
+07-01-2026 04:44:33-------------{"wife_name":"Zarina Akhtar","husband_name":"","wife_phone":"9797719562","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"09:05-09:10","status":"in_clinic"}
+
+07-01-2026 04:44:34======Patient Exists======
+
+07-01-2026 04:44:45-------------{"wife_name":"KOSAR ","husband_name":"","wife_phone":"9891701287","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-07","appoitmented_slot":"09:40-09:45","status":"in_clinic"}
+
+07-01-2026 04:44:47======Patient Exists======
+
+07-01-2026 05:11:17-------------{"wife_name":"Ishrat","husband_name":"","wife_phone":"7006586154","appoitment_for":"16133769691598","appoitmented_doctor":"84","appoitmented_date":"2026-01-07","appoitmented_slot":"12:20-12:40","status":"in_clinic"}
+
+07-01-2026 05:11:18======Patient Exists======
+
+07-01-2026 05:29:04-------------{"wife_name":"Ruquiya","husband_name":"","wife_phone":"7889953972","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"09:40-09:45","status":"in_clinic"}
+
+07-01-2026 05:29:04======Patient Exists======
+
+07-01-2026 05:29:41-------------{"wife_name":"Anju devi","husband_name":"","wife_phone":"9818348564","appoitment_for":"16267558222750","appoitmented_doctor":"6","appoitmented_date":"2026-01-07","appoitmented_slot":"09:40-10:00","status":"rescheduled"}
+
+07-01-2026 05:29:41======Patient Exists======
+
+07-01-2026 05:35:16-------------{"wife_name":"NEETU SINGH JADON","husband_name":"","wife_phone":"8860272769","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-07","appoitmented_slot":"10:00-10:05","status":"in_clinic"}
+
+07-01-2026 05:35:17======Patient Exists======
+
+07-01-26 05:36:35-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919469829921","messageId":"74bd06b4-5cf1-4c88-8b71-1c457c1b74e0"}]}
+
+07-01-2026 06:16:02-------------{"wife_name":"Wahida","husband_name":"","wife_phone":"9682569205","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"09:10-09:15","status":"in_clinic"}
+
+07-01-2026 06:16:04======Patient Exists======
+
+07-01-26 06:25:02-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919149503509","messageId":"9b99f50e-cd30-48d4-a2a5-3d7ba02a4ebf"}]}
+
+07-01-2026 06:27:24-------------{"wife_name":"Anju devi","husband_name":"","wife_phone":"9818348564","appoitment_for":"16267558222750","appoitmented_doctor":"6","appoitmented_date":"2026-01-07","appoitmented_slot":"11:40-12:00","status":"in_clinic"}
+
+07-01-2026 06:27:25======Patient Exists======
+
+07-01-2026 06:28:36-------------{"wife_name":"Anju devi","husband_name":"","wife_phone":"9818348564","appoitment_for":"16267558222750","appoitmented_doctor":"6","appoitmented_date":"2026-01-07","appoitmented_slot":"12:00-12:20","status":"in_clinic"}
+
+07-01-2026 06:28:37======Patient Exists======
+
+07-01-2026 06:32:46-------------{"wife_name":"Anju devi","husband_name":"","wife_phone":"9818348564","appoitment_for":"16267558222750","appoitmented_doctor":"4","appoitmented_date":"2026-01-07","appoitmented_slot":"09:00-09:20","status":"in_clinic"}
+
+07-01-2026 06:32:48======Patient Exists======
+
+07-01-2026 06:39:23-------------{"wife_name":"Amina","husband_name":"","wife_phone":"9541057077","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"09:55-10:00","status":"in_clinic"}
+
+07-01-2026 06:39:25======Patient Exists======
+
+07-01-2026 06:41:00-------------{"wife_name":"RUKSANA","husband_name":"","wife_phone":"9149721410","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"09:25-09:30","status":"in_clinic"}
+
+07-01-2026 06:41:02======Patient Exists======
+
+07-01-2026 07:01:37-------------{"wife_name":"Geetika Garg","husband_name":"","wife_phone":"8126832778","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-07","appoitmented_slot":"09:35-09:40","status":"rescheduled"}
+
+07-01-2026 07:01:37======Patient Exists======
+
+07-01-2026 07:09:56-------------{"wife_name":"Gaurav Bidhuri","husband_name":"","wife_phone":"9999500035","appoitment_for":"16267558222750","appoitmented_doctor":"6","appoitmented_date":"2026-01-07","appoitmented_slot":"10:00-10:20","status":"rescheduled"}
+
+07-01-2026 07:09:57======New Patient======
+
+07-01-26 07:09:57-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919999500035","messageId":"2e7945bc-9e6c-4044-995a-785b09304d66"}]}
+
+07-01-26 07:10:39-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919999500035","messageId":"9da2ee85-5edb-4cb3-8a78-7f230d6bf6f0"}]}
+
+07-01-26 07:13:44-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919596951706","messageId":"b9d525b4-e086-4126-b627-7dc3674cbf1b"}]}
+
+07-01-2026 07:22:35-------------{"wife_name":"Arfa Parvez","husband_name":"","wife_phone":"8082432637","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"12:45-12:50","status":"in_clinic"}
+
+07-01-2026 07:22:36======Patient Exists======
+
+07-01-2026 07:35:18-------------{"wife_name":"monika bijarniya","husband_name":"Deepak Jakhar","wife_phone":"9319784830","appoitment_for":"16267558222750","appoitmented_doctor":"3","appoitmented_date":"2026-01-07","appoitmented_slot":"12:00-12:20","status":"rescheduled"}
+
+07-01-2026 07:35:19======New Patient======
+
+07-01-26 07:35:19-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919319784830","messageId":"1db6ec62-78b3-47be-a77d-9b698a73c9be"}]}
+
+07-01-26 07:37:36-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919319784830","messageId":"4f30f885-a623-4941-8e5e-bacf83851491"}]}
+
+07-01-26 07:57:16-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919596355221","messageId":"cd465b1b-7a2e-48ed-93ab-f06a814bf93d"}]}
+
+07-01-2026 07:58:41-------------{"wife_name":"Afroza","husband_name":"","wife_phone":"7006956470","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"09:00-09:05","status":"in_clinic"}
+
+07-01-2026 07:58:42======Patient Exists======
+
+07-01-2026 08:03:51-------------{"wife_name":"Shruti chandela","husband_name":"","wife_phone":"9717240901","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-07","appoitmented_slot":"09:45-09:50","status":"rescheduled"}
+
+07-01-2026 08:03:52======Patient Exists======
+
+07-01-2026 08:15:49-------------{"wife_name":"SABIYA BHAT","husband_name":"","wife_phone":"9469829921","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"13:40-13:45","status":"in_clinic"}
+
+07-01-2026 08:15:50======Patient Exists======
+
+07-01-26 08:22:23-----Response--------{"messages":[{"status":"ENQUEUED","recipient":"919053600929","messageId":"62f768de-ea42-4405-a23e-76fa3e3e0deb"}]}
+
+07-01-2026 08:57:36-------------{"wife_name":"Monti","husband_name":"","wife_phone":"9827982187","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-07","appoitmented_slot":"09:50-09:55","status":"rescheduled"}
+
+07-01-2026 08:57:37======Patient Exists======
+
+07-01-2026 09:00:04-------------{"wife_name":"Anju Bala Garg","husband_name":"","wife_phone":"9953211113","appoitment_for":"16249589462327","appoitmented_doctor":"71","appoitmented_date":"2026-01-07","appoitmented_slot":"09:00-09:05","status":"rescheduled"}
+
+07-01-2026 09:00:04======Patient Exists======
+
+07-01-2026 09:34:51-------------{"wife_name":"Aayesha","husband_name":"","wife_phone":"8595857213","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-07","appoitmented_slot":"10:45-10:50","status":"in_clinic"}
+
+07-01-2026 09:34:52======Patient Exists======
+
+07-01-26 09:43:04-----Response--------{"message":["Invalid phone: +910057564607"],"error":"Bad Request","statusCode":400}
+
+07-01-26 09:43:35-----Response--------{"message":["Invalid phone: +910057564607"],"error":"Bad Request","statusCode":400}
+
+07-01-2026 09:45:09-------------{"wife_name":"Anjali Kumari","husband_name":"","wife_phone":"8420215303","appoitment_for":"16267558222750","appoitmented_doctor":"4","appoitmented_date":"2026-01-07","appoitmented_slot":"11:00-11:20","status":"rescheduled"}
+
+07-01-2026 09:45:10======Patient Exists======
+
+07-01-2026 09:52:42-------------{"wife_name":"Madhu ","husband_name":"","wife_phone":"7296829400","appoitment_for":"16267558222750","appoitmented_doctor":"4","appoitmented_date":"2026-01-07","appoitmented_slot":"10:20-10:40","status":"rescheduled"}
+
+07-01-2026 09:52:43======Patient Exists======
+
+07-01-2026 09:57:24-------------{"wife_name":"GUL NOORA","husband_name":"","wife_phone":"9149503509","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"11:20-11:25","status":"in_clinic"}
+
+07-01-2026 09:57:25======Patient Exists======
+
+07-01-2026 10:04:42-------------{"wife_name":"Aayesha","husband_name":"","wife_phone":"8595857213","appoitment_for":"16249589462327","appoitmented_doctor":"72","appoitmented_date":"2026-01-07","appoitmented_slot":"10:30-10:35","status":"in_clinic"}
+
+07-01-2026 10:04:44======Patient Exists======
+
+07-01-2026 10:26:49-------------{"wife_name":"Poonam","husband_name":"Paramjeet","wife_phone":"9053600929","appoitment_for":"16267558222750","appoitmented_doctor":"4","appoitmented_date":"2026-01-07","appoitmented_slot":"15:40-16:00","status":"in_clinic"}
+
+07-01-2026 10:26:50======Patient Exists======
+
+07-01-2026 10:27:37-------------{"wife_name":"Poonam","husband_name":"","wife_phone":"9053600929","appoitment_for":"16267558222750","appoitmented_doctor":"4","appoitmented_date":"","appoitmented_slot":"15:40-16:00","status":"in_clinic"}
+
+07-01-2026 10:27:38======Patient Exists======
+
+07-01-2026 10:56:29-------------{"wife_name":"nighat","husband_name":"","wife_phone":"9149679752","appoitment_for":"16133769691598","appoitmented_doctor":"89","appoitmented_date":"2026-01-07","appoitmented_slot":"14:25-14:30","status":"in_clinic"}
+
+07-01-2026 10:56:29======Patient Exists======

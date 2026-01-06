@@ -4898,36 +4898,75 @@ class Stocks_new extends CI_Controller
     }
 
 
+    // public function get_returnable_items()
+    // {
+    //     $logg = checklogin();
+    //     if($logg['status'] == true) {
+    //         $receipt_number = $this->input->post('receipt_number');
+    //         if (!empty($receipt_number)) {
+    //             $batches = $this->Stock_model_new->get_available_batches_for_return($receipt_number);
+    //             $this->db->select('s.patient_name, s.patient_id, s.sale_date');
+    //             $this->db->from('sales s');
+    //             $this->db->where('s.sale_number', $receipt_number);
+    //             $this->db->where('s.status', 'CONFIRMED');
+    //             $sale_info = $this->db->get()->row();
+    //             echo json_encode([
+    //                 'success' => true,
+    //                 'batches' => $batches,
+    //                 'sale_info' => $sale_info
+    //             ]);
+    //         } else {
+    //             echo json_encode([
+    //                 'success' => false,
+    //                 'message' => 'Receipt number is required'
+    //             ]);
+    //         }
+    //     } else {
+    //         echo json_encode([
+    //             'success' => false,
+    //             'message' => 'Unauthorized access'
+    //         ]);
+    //     }
+    // }
     public function get_returnable_items()
     {
-        $logg = checklogin();
-        if($logg['status'] == true) {
-            $receipt_number = $this->input->post('receipt_number');
-            if (!empty($receipt_number)) {
-                $batches = $this->Stock_model_new->get_available_batches_for_return($receipt_number);
-                $this->db->select('s.patient_name, s.patient_id, s.sale_date');
-                $this->db->from('sales s');
-                $this->db->where('s.sale_number', $receipt_number);
-                $this->db->where('s.status', 'CONFIRMED');
-                $sale_info = $this->db->get()->row();
-                echo json_encode([
-                    'success' => true,
-                    'batches' => $batches,
-                    'sale_info' => $sale_info
-                ]);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Receipt number is required'
-                ]);
-            }
-        } else {
-            echo json_encode([
+        // Force JSON response
+        $this->output->set_content_type('application/json');
+
+        // Auth check
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode([
                 'success' => false,
                 'message' => 'Unauthorized access'
-            ]);
+            ]));
         }
+
+        $receipt_number = $this->input->post('receipt_number');
+
+        if (empty($receipt_number)) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Receipt number is required'
+            ]));
+        }
+
+        // Data
+        $batches = $this->Stock_model_new
+            ->get_available_batches_for_return($receipt_number);
+
+        $this->db->select('patient_name, patient_id, sale_date');
+        $this->db->from('sales');
+        $this->db->where('sale_number', $receipt_number);
+        $this->db->where('status', 'CONFIRMED');
+        $sale_info = $this->db->get()->row();
+
+        return $this->output->set_output(json_encode([
+            'success'   => true,
+            'batches'   => $batches,
+            'sale_info' => $sale_info
+        ]));
     }
+
 
     public function process_return() {
         $logg = checklogin();
