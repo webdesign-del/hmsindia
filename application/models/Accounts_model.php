@@ -6973,6 +6973,30 @@ public function monthly_consultation($center, $year)
     return $this->db->query($sql, $params)->result_array();
 }
 
+public function monthly_first_appointment($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND appoitment_for = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+        SELECT 
+            MONTH(appoitmented_date) AS month,
+            COUNT(*) AS total
+        FROM hms_appointments
+        WHERE reason_of_visit ='First Visit' and status = 'consultation_done'
+        AND YEAR(appoitmented_date) = ?
+        $where
+        GROUP BY MONTH(appoitmented_date)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
 public function monthly_ovarian_stem($center, $year)
 {
     $where = "";
@@ -7236,6 +7260,320 @@ public function testicular_prp_monthly($center, $year)
 
     return $this->db->query($sql, $params)->result_array();
 }
+
+public function Sperm_Mobil_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM ovum_discharge_summary
+    WHERE Sperm_Mobil='Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function Blastocyst_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM embryology_discharge_summary
+    WHERE Blastocyst = 'Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function lah_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM embryology_discharge_summary
+    WHERE Laser_Assisted = 'Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function Embryo_Glue_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM embryology_discharge_summary
+    WHERE Embryo_Glue = 'Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
     
+// 1. Consultations
+  public function get_yearly_consultations($year) {
+    $this->db->select('*'); 
+    $this->db->from('hms_appointments'); 
+    
+    // Filter by Year
+    $this->db->where('YEAR(appoitmented_date)', $year);
+    
+    // Filter by Status (Corrected Syntax)
+    $this->db->where('status', 'consultation_done'); 
+    
+    $this->db->order_by('appoitmented_date', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+// 1. Consultations
+  public function get_yearly_first_visit($year) {
+    $this->db->select('*'); 
+    $this->db->from('hms_appointments'); 
+    
+    // Filter by Year
+    $this->db->where('YEAR(appoitmented_date)', $year);
+    
+    // Filter by Status (Corrected Syntax)
+    $this->db->where('status', 'consultation_done'); 
+
+	// Filter by Status (Corrected Syntax)
+    $this->db->where('reason_of_visit', 'First Visit'); 
+    
+    $this->db->order_by('appoitmented_date', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+    // 2. Ovarian Stem Cell
+  public function get_yearly_ovarian_stem($year) {
+    $this->db->select('*');
+    $this->db->from('ovarian_prp_discharge_summary'); 
+    
+    // Filter by Year
+    $this->db->where('YEAR(date_of_procedure)', $year);
+    
+    // Filter by Procedure Name (Corrected Syntax)
+    $this->db->where('procedure_name', 'STEM CELL'); 
+    
+    $this->db->order_by('updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+  // 3. Testicular Stem Cell
+public function get_yearly_testicular_stem($year) {
+    $this->db->select('*');
+    $this->db->from('testicular_prp_discharge_summary'); 
+    
+    // Filter by Procedure Type
+    $this->db->where('procedures', 'Testicular Stem Cell'); 
+    
+    // Filter by Year
+    $this->db->where('YEAR(date_of_procedure)', $year);
+    
+    $this->db->order_by('updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+    // 4. Ovarian PRP
+    public function get_yearly_ovarian_prp($year) {
+        $this->db->select('*');
+        $this->db->from('ovarian_prp'); // Replace with actual table name
+        $this->db->where('YEAR(created_date)', $year);
+        $this->db->order_by('created_date', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    // 5. OPU (Ovum Pickup)
+    public function get_yearly_ovum_pickup($year) {
+        $this->db->select('*');
+        $this->db->from('ovum_pickup'); // Replace with actual table name
+        $this->db->where('YEAR(created_date)', $year);
+        $this->db->order_by('created_date', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    // 6. Fresh Cycle ET (Embryo Transfer)
+    public function get_yearly_embryo_transfer($year) {
+        $this->db->select('*');
+        $this->db->from('embryo_transfer'); // Replace with actual table name
+        // Ensure you are filtering for "Fresh" cycles if mixed in one table
+        // $this->db->where('cycle_type', 'Fresh'); 
+        $this->db->where('YEAR(created_date)', $year);
+        $this->db->order_by('created_date', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    // 7. FET (Frozen Embryo Transfer)
+    public function get_yearly_fet($year) {
+        $this->db->select('*');
+        $this->db->from('fet_table'); // Replace with actual table name
+        $this->db->where('YEAR(created_date)', $year);
+        $this->db->order_by('created_date', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    // 8. IUI
+    public function get_yearly_iui($year) {
+        $this->db->select('*');
+        $this->db->from('iui_booking'); // Replace with actual table name
+        $this->db->where('YEAR(created_date)', $year);
+        $this->db->order_by('created_date', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    // 9. IVF
+    public function get_yearly_ivf($year) {
+        $this->db->select('*');
+        $this->db->from('ivf_treatment'); // Replace with actual table name
+        $this->db->where('YEAR(created_date)', $year);
+        $this->db->order_by('created_date', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    // 10. ICSI
+    public function get_yearly_icsi($year) {
+        $this->db->select('*');
+        $this->db->from('icsi_treatment'); // Replace with actual table name
+        $this->db->where('YEAR(created_date)', $year);
+        $this->db->order_by('created_date', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    // 11. TESA / MTESE
+    public function get_yearly_tesa_mtesa($year) {
+        $this->db->select('*');
+        $this->db->from('tesa_mtesa'); // Replace with actual table name
+        $this->db->where('YEAR(created_date)', $year);
+        $this->db->order_by('created_date', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+    // 12. Testicular PRP
+    public function get_yearly_testicular_prp($year) {
+        $this->db->select('*');
+        $this->db->from('testicular_prp'); // Replace with actual table name
+        $this->db->where('YEAR(created_date)', $year);
+        $this->db->order_by('created_date', 'DESC');
+        $query = $this->db->get();
+        return $query->result_array();
+    }
+
+	  // 3. Testicular Stem Cell
+	public function get_yearly_sperm_mobil($year) {
+		$this->db->select('*');
+		$this->db->from('ovum_discharge_summary'); 
+		
+		// Filter by Procedure Type
+		$this->db->where('Sperm_Mobil', 'Yes'); 
+		
+		// Filter by Year
+		$this->db->where('YEAR(date_of_procedure)', $year);
+		
+		$this->db->order_by('updated_at', 'DESC');
+		$query = $this->db->get();
+		return $query->result_array();
+	}
+
+	// 1. Consultations
+	public function get_yearly_blastocyst($year) {
+		$this->db->select('*'); 
+		$this->db->from('embryology_discharge_summary'); 
+		// Filter by Status (Corrected Syntax)
+		$this->db->where('Blastocyst', 'Yes'); 
+		
+		// Filter by Year
+		$this->db->where('YEAR(date_of_procedure)', $year);
+		
+		$this->db->order_by('updated_at', 'DESC');
+		$query = $this->db->get();
+		return $query->result_array();
+	}
+
+	// 1. Consultations
+	public function get_yearly_lah($year) {
+		$this->db->select('*'); 
+		$this->db->from('embryology_discharge_summary'); 
+		// Filter by Status (Corrected Syntax)
+		$this->db->where('Laser_Assisted', 'Yes'); 
+		
+		// Filter by Year
+		$this->db->where('YEAR(date_of_procedure)', $year);
+		
+		$this->db->order_by('updated_at', 'DESC');
+		$query = $this->db->get();
+		return $query->result_array();
+	}
+
+	public function get_yearly_embryo_glue($year) {
+		$this->db->select('*'); 
+		$this->db->from('embryology_discharge_summary'); 
+		// Filter by Status (Corrected Syntax)
+		$this->db->where('Embryo_Glue', 'Yes'); 
+		
+		// Filter by Year
+		$this->db->where('YEAR(date_of_procedure)', $year);
+		
+		$this->db->order_by('updated_at', 'DESC');
+		$query = $this->db->get();
+		return $query->result_array();
+	}
 
 }

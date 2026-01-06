@@ -2410,47 +2410,43 @@ public function procedure_billings(){
 						"wife_phone" => $fo_result['wife_phone'],
 						"patient_id" => $post_arr['patient_id'],
 						"appointment_id" => $post_arr['appointment_id'],
-						"ch_fc_name" => $post_arr['counsellor_signature'],
+						"councellor" => $post_arr['counsellor_signature'],
 						"centre_booking" => "",
+						// Implode converts the array to a string like "Procedure 1, Procedure 2"
+						"sub_procedure_suggestion_list" => implode(', ', array_column($c_counte, 'procedure_name')),
 						"lead_id" => $lead_id
 					];
 
-					$urls = [
-					'lead_2' => 'https://staging.flertility.in/lead/consultations/',
-						'lead_1' => 'https://flertility.in/lead/consultations/'
-						
-					];
+					$jsonData = json_encode($data, JSON_UNESCAPED_SLASHES);
+					$url = 'https://flertility.in/lead/consultations/';
 
-					foreach ($urls as $key => $url) {
-						$curl = curl_init();
+					$curl = curl_init();
 
-						curl_setopt_array($curl, array(
-							CURLOPT_URL => $url,
-							CURLOPT_RETURNTRANSFER => true,
-							CURLOPT_ENCODING => '',
-							CURLOPT_MAXREDIRS => 10,
-							CURLOPT_TIMEOUT => 10,
-							CURLOPT_FOLLOWLOCATION => true,
-							CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-							CURLOPT_CUSTOMREQUEST => 'POST',
-							CURLOPT_POSTFIELDS => json_encode($data),
-							CURLOPT_HTTPHEADER => array(
-								'Content-Type: application/json'
-							),
-						));
+					curl_setopt_array($curl, [
+						CURLOPT_URL => $url,
+						CURLOPT_RETURNTRANSFER => true,
+						CURLOPT_TIMEOUT => 15,
+						CURLOPT_FOLLOWLOCATION => true,
+						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+						CURLOPT_POST => true,
+						CURLOPT_POSTFIELDS => $jsonData,
+						CURLOPT_HTTPHEADER => [
+							'Content-Type: application/json',
+							'Content-Length: ' . strlen($jsonData)
+						],
+					]);
 
-						$response = curl_exec($curl);
-						
-						//print_r($response); die();
+					$response = curl_exec($curl);
 
-						if (curl_errno($curl)) {
-							echo "[$key] Error: " . curl_error($curl) . "\n";
-						} else {
-							echo "[$key] Response: " . $response . "\n";
-						}
-
-						curl_close($curl);
+					if ($response === false) {
+						echo 'cURL Error: ' . curl_error($curl);
+					} else {
+						$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+						echo "HTTP Code: $httpCode\n";
+						echo "Response: $response\n";
 					}
+
+					curl_close($curl);
 				
 				$result = $this->billings_model->update_product($post_arr, $ID);
 				if($result > 0){
