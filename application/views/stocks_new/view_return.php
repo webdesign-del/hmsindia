@@ -63,38 +63,67 @@
                         <div class="panel-body">
                             <?php if(!empty($return_items)): ?>
                                 <div class="table-responsive">
-                                    <table class="table table-striped table-bordered table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>Medicine</th>
-                                                <th>Brand</th>
-                                                <th>Batch</th>
-                                                <th>Expiry Date</th>
-                                                <th>Quantity Returned</th>
-                                                <th>Unit Price</th>
-                                                <th>Total Amount</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach($return_items as $item): ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($item->medicine_name); ?></td>
-                                                    <td><?php echo htmlspecialchars($item->brand_name ?? 'N/A'); ?></td>
-                                                    <td><?php echo htmlspecialchars($item->batch_number); ?></td>
-                                                    <td><?php echo date('M d, Y', strtotime($item->expiry_date)); ?></td>
-                                                    <td><?php echo number_format($item->quantity_returned); ?></td>
-                                                    <td>₹<?php echo number_format($item->return_price, 2); ?></td>
-                                                    <td>₹<?php echo number_format($item->total_amount, 2); ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                        <tfoot>
-                                            <tr class="info">
-                                                <th colspan="6" style="text-align: right;">Total Return Amount:</th>
-                                                <th>₹<?php echo number_format($return->total_return_amount ?? 0, 2); ?></th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
+                            <table class="table table-striped table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Medicine</th>
+                                        <th>Brand</th>
+                                        <th>Batch</th>
+                                        <th>Expiry Date</th>
+                                        <th>Quantity Returned</th>
+                                        <th>MRP Price</th>
+                                        <th>MRP Value</th>
+                                        <th>Discount %</th>
+                                        <th>Discount Amount</th>
+                                        <th>Taxable Value</th>
+                                        <th>Tax %</th>
+                                        <th>Tax Amount</th>
+                                        <th>Total Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($return_items as $item): ?>
+                                        <?php
+                                            $qty        = (float) $item->quantity_returned;
+                                            $unit_price = (float) $item->return_price;     // FIXED
+                                            $gst_rate   = (float) $item->gst_rate;
+                                            $total      = (float) $item->total_amount;     // FIXED
+
+                                            // Display-only MRP value
+                                            $mrp_value = $qty * $unit_price;
+
+                                            // Reverse GST calculation (total is GST-inclusive)
+                                            $taxable_value = $total / (1 + ($gst_rate / 100));
+                                            $tax_amount    = $total - $taxable_value;
+                                        ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($item->medicine_name) ?></td>
+                                            <td><?= htmlspecialchars($item->brand_name ?? 'N/A') ?></td>
+                                            <td><?= htmlspecialchars($item->batch_number) ?></td>
+                                            <td><?= date('M d, Y', strtotime($item->expiry_date)) ?></td>
+                                            <td><?= number_format($qty) ?></td>
+
+                                            <td>₹<?= number_format($unit_price, 2) ?></td>
+                                            <td>₹<?= number_format($mrp_value, 2) ?></td>
+
+                                            <td><?= number_format($item->discount_percentage, 2) ?>%</td>
+                                            <td>₹<?= number_format($item->discount_amount, 2) ?></td>
+
+                                            <td>₹<?= number_format($taxable_value, 2) ?></td>
+                                            <td><?= number_format($gst_rate, 2) ?>%</td>
+                                            <td>₹<?= number_format($tax_amount, 2) ?></td>
+
+                                            <td><strong>₹<?= number_format($total, 2) ?></strong></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="info">
+                                        <th colspan="12" style="text-align:right;">Total Return Amount:</th>
+                                        <th>₹<?= number_format($return->total_return_amount ?? 0, 2) ?></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
                                 </div>
                             <?php else: ?>
                                 <div class="text-center text-muted">

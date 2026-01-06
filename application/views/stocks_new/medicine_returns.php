@@ -44,21 +44,23 @@
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Patient ID *</label>
                                         <div class="col-sm-8">
-                                            <input type="text" name="patient_id" class="form-control" placeholder="Enter Patient ID" value="<?php echo set_value('patient_id'); ?>" required>
+                                            <input type="text" name="patient_id" id="patient_id" class="form-control" placeholder="Enter Patient ID" value="<?php echo set_value('patient_id'); ?>" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" id="patient_receipts_section" style="display: none;">
+                                        <label class="col-sm-4 control-label">Select Receipt *</label>
+                                        <div class="col-sm-8">
+                                            <select name="receipt_number" id="receipt_select" class="form-control" required>
+                                                <option value="">Select a receipt</option>
+                                            </select>
                                         </div>
                                     </div>
 
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Patient Name *</label>
                                         <div class="col-sm-8">
-                                            <input type="text" name="patient_name" class="form-control" placeholder="Enter Patient Name" value="<?php echo set_value('patient_name'); ?>" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="col-sm-4 control-label">Receipt Number *</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="receipt_number" class="form-control" placeholder="Enter Receipt Number" value="<?php echo set_value('receipt_number'); ?>" required>
+                                            <input type="text" name="patient_name" id="patient_name" class="form-control" placeholder="Patient name will auto-fill" value="<?php echo set_value('patient_name'); ?>" required readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -164,7 +166,7 @@
                                                     <th>Batch</th>
                                                     <th>Quantity Sold</th>
                                                     <th>Return Quantity</th>
-                                                    <th>Quentity Price</th>
+                                                    <th>Quantity Price</th>
                                                     <th>Return Amount</th>
                                                     <th>Discount (%)</th>
                                                     <th>Discount Amount</th>
@@ -218,9 +220,10 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <button type="button" class="btn btn-success" id="add_return_item">
+                                    <button type="button" class="btn btn-success" id="add_return_item" disabled>
                                         <i class="fa fa-plus"></i> Add Item
                                     </button>
+                                    <small id="add_item_help" class="text-muted">Please select a patient and receipt first</small>
                                 </div>
                             </div>
 
@@ -317,18 +320,56 @@
 <script>
 $(document).ready(function() {
     var rowCount = 1;
+    var currentFilteredBatches = []; // Store current filtered batches
+
+    // Initialize with available batches from server
+    <?php if(isset($available_batches) && !empty($available_batches)): ?>
+        currentFilteredBatches = <?php echo json_encode($available_batches); ?>;
+    <?php endif; ?>
+
+    // Function to update Add Item button state
+    function updateAddItemButton() {
+        var $button = $('#add_return_item');
+        var $help = $('#add_item_help');
+
+        if (currentFilteredBatches && currentFilteredBatches.length > 0) {
+            $button.prop('disabled', false);
+            $help.text('Click to add another medicine to return');
+        } else {
+            $button.prop('disabled', true);
+            $help.text('Please select a patient and receipt first');
+        }
+    }
+
+    // Initialize button state
+    updateAddItemButton();
 
     // Add new return item row
     $('#add_return_item').click(function() {
+        if ($(this).prop('disabled')) {
+            return false;
+        }
+
         var newRow = '<tr>' +
             '<td><select name="return_items[' + rowCount + '][batch_id]" class="form-control batch_select" required>' +
-            '<option value="">Select Medicine</option>' +
-            '<?php if(isset($available_batches) && !empty($available_batches)): ?>' +
-            '<?php foreach($available_batches as $batch): ?>' +
-            '<option value="<?php echo isset($batch->batch_id) ? $batch->batch_id : $batch->id; ?>" data-medicine="<?php echo isset($batch->medicine_name) ? $batch->medicine_name : 'Unknown'; ?>" data-batch-number="<?php echo isset($batch->batch_number) ? $batch->batch_number : 'N/A'; ?>" data-pack-size="<?php echo isset($batch->pack_size) ? $batch->pack_size : 'N/A'; ?>" data-price="<?php echo isset($batch->selling_price) ? $batch->selling_price : 0; ?>" data-sold-qty="<?php echo isset($batch->quantity_sold) ? $batch->quantity_sold : 0; ?>"><?php echo (isset($batch->medicine_name) ? $batch->medicine_name : 'Unknown') . ' - ' . (isset($batch->batch_number) ? $batch->batch_number : 'N/A'); ?></option>' +
-            '<?php endforeach; ?>' +
-            '<?php endif; ?>' +
-            '</select></td>' +
+            '<option value="">Select Medicine</option>';
+
+        // Use current filtered batches instead of server-side PHP
+        if (currentFilteredBatches && currentFilteredBatches.length > 0) {
+            currentFilteredBatches.forEach(function(batch) {
+                var optionText = (batch.medicine_name || 'Unknown') + ' - ' + (batch.batch_number || 'N/A') +
+                               ' (Available: ' + (batch.available_for_return || 0) + ')';
+                newRow += '<option value="' + (batch.batch_id || batch.id) + '" ' +
+                         'data-medicine="' + (batch.medicine_name || 'Unknown') + '" ' +
+                         'data-batch-number="' + (batch.batch_number || 'N/A') + '" ' +
+                         'data-pack-size="' + (batch.pack_size || 1) + '" ' +
+                         'data-price="' + (batch.selling_price || 0) + '" ' +
+                         'data-sold-qty="' + (batch.available_for_return || 0) + '">' +
+                         optionText + '</option>';
+            });
+        }
+
+        newRow += '</select></td>' +
             '<td><span class="batch_number">-</span></td>' +
             '<td><span class="sold_quantity">-</span></td>' +
             '<td><input type="number" name="return_items[' + rowCount + '][return_quantity]" class="form-control return_quantity" min="1" required></td>' +
@@ -363,8 +404,11 @@ $(document).ready(function() {
             row.find('.batch_number').text(selectedOption.data('batch-number'));
             row.find('.sold_quantity').text(soldQty);
             row.find('.unit_price').text('₹' + unitPrice_MRP.toFixed(2));
-            row.find('.hidden_price').val(price);
+            row.find('.hidden_price').val(unitPrice_MRP);
             row.find('.return_quantity').attr('max', soldQty);
+
+            // Store the batch_id for validation
+            row.find('.return_quantity').data('batch-id', selectedOption.val());
             
             // Validate existing return quantity if it exceeds sold quantity
             var currentReturnQty = parseFloat(row.find('.return_quantity').val()) || 0;
@@ -533,6 +577,162 @@ $(document).ready(function() {
         calculateDiscount();
     });
     */
+    // Handle patient ID change to get receipts
+    $('#patient_id').on('blur', function() {
+        var patientId = $(this).val().trim();
+
+        if (patientId) {
+            // Show loading indicator
+            $(this).parent().append('<i class="fa fa-spinner fa-spin" id="patient-loading"></i>');
+
+            $.ajax({
+                url: '<?php echo base_url("stocks_new/get_patient_receipts"); ?>',
+                type: 'POST',
+                data: { patient_id: patientId },
+                dataType: 'json',
+                success: function(response) {
+                    $('#patient-loading').remove();
+
+                    if (response.success && response.receipts.length > 0) {
+                        // Populate patient name
+                        if (response.receipts[0]) {
+                            $('#patient_name').val(response.receipts[0].patient_name || '');
+                        }
+
+                        // Show receipt selection section
+                        $('#patient_receipts_section').show();
+
+                        // Populate receipt dropdown
+                        updateReceiptsDropdown(response.receipts);
+
+                        showMessage('Patient found. Please select a receipt to return medicines from.', 'success');
+                    } else {
+                        // Hide receipt section if no receipts found
+                        $('#patient_receipts_section').hide();
+                        $('#patient_name').val('');
+                        $('#receipt_select').html('<option value="">Select a receipt</option>');
+                        updateAvailableBatches([]);
+
+                        showMessage('No receipts found for this patient in the last 90 days.', 'warning');
+                    }
+                },
+                error: function() {
+                    $('#patient-loading').remove();
+                    $('#patient_receipts_section').hide();
+                    $('#patient_name').val('');
+                    $('#receipt_select').html('<option value="">Select a receipt</option>');
+                    updateAvailableBatches([]);
+                    showMessage('Error finding patient. Please try again.', 'error');
+                }
+            });
+        } else {
+            // Clear everything if patient ID is empty
+            $('#patient_receipts_section').hide();
+            $('#patient_name').val('');
+            $('#receipt_select').html('<option value="">Select a receipt</option>');
+            updateAvailableBatches([]);
+        }
+    });
+
+    // Handle receipt selection change to load medicines
+    $('#receipt_select').on('change', function() {
+        var receiptNumber = $(this).val();
+
+        if (receiptNumber) {
+            // Show loading indicator
+            $(this).parent().append('<i class="fa fa-spinner fa-spin" id="receipt-loading"></i>');
+
+            $.ajax({
+                url: '<?php echo base_url("stocks_new/get_returnable_items"); ?>',
+                type: 'POST',
+                data: { receipt_number: receiptNumber },
+                dataType: 'json',
+                success: function(response) {
+                    $('#receipt-loading').remove();
+
+                    if (response.success) {
+                        // Update available batches for dropdown
+                        updateAvailableBatches(response.batches);
+
+                        showMessage('Medicines loaded successfully. You can now select medicines to return.', 'success');
+                    } else {
+                        updateAvailableBatches([]);
+                        showMessage(response.message || 'Error loading medicines.', 'error');
+                    }
+                },
+                error: function() {
+                    $('#receipt-loading').remove();
+                    updateAvailableBatches([]);
+                    showMessage('Error loading medicines. Please try again.', 'error');
+                }
+            });
+        } else {
+            // Clear medicines if no receipt selected
+            updateAvailableBatches([]);
+        }
+    });
+
+    // Function to update receipts dropdown
+    function updateReceiptsDropdown(receipts) {
+        var $select = $('#receipt_select');
+        $select.html('<option value="">Select a receipt</option>');
+
+        if (receipts && receipts.length > 0) {
+            receipts.forEach(function(receipt) {
+                var optionText = receipt.sale_number + ' - ' +
+                               new Date(receipt.sale_date).toLocaleDateString() + ' - ₹' +
+                               parseFloat(receipt.total_amount).toFixed(2) + ' (' +
+                               receipt.item_count + ' items)';
+                var $option = $('<option></option>')
+                    .val(receipt.sale_number)
+                    .text(optionText);
+                $select.append($option);
+            });
+        }
+    }
+
+    function updateAvailableBatches(batches) {
+        // Store current filtered batches for new row creation
+        currentFilteredBatches = batches || [];
+
+        $('.batch_select').each(function() {
+            var $select = $(this);
+            $select.find('option:not(:first)').remove();
+            if (batches && batches.length > 0) {
+                batches.forEach(function(batch) {
+                    var optionText = (batch.medicine_name || 'Unknown') + ' - ' + (batch.batch_number || 'N/A') +
+                                   ' (Available: ' + (batch.available_for_return || 0) + ')';
+                    var $option = $('<option></option>')
+                        .val(batch.batch_id)
+                        .text(optionText)
+                        .data('medicine', batch.medicine_name || 'Unknown')
+                        .data('batch-number', batch.batch_number || 'N/A')
+                        .data('pack-size', batch.pack_size || 1)
+                        .data('price', batch.selling_price || 0)
+                        .data('sold-qty', batch.available_for_return || 0);
+                    $select.append($option);
+                });
+            }
+        });
+
+        // Update Add Item button state
+        updateAddItemButton();
+    }
+
+    function showMessage(message, type) {
+        var alertClass = type === 'success' ? 'alert-success' :
+                        type === 'warning' ? 'alert-warning' : 'alert-danger';
+        var $alert = $('<div class="alert ' + alertClass + ' alert-dismissable">' +
+                      '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                      message + '</div>');
+        $('.alert').remove();
+        $('.panel-body').prepend($alert);
+        if (type === 'success') {
+            setTimeout(function() {
+                $alert.fadeOut();
+            }, 5000);
+        }
+    }
 });
 </script>
 <!-- medicine_returns`      | Stores the main information about the return event (who returned it, when, why, etc.). This is the "header" record.                        | A **new row is inserted** for every return transaction.                                                                                                     |

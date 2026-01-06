@@ -4766,14 +4766,10 @@ class Stocks_new extends CI_Controller
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
-
             $data["centers"] = $this->Stock_model_new->get_all_centers();
             $data["available_batches"] = $this->Stock_model_new->get_available_batches_for_return();
-            
-            // Auto-select center if user is not central stock manager
             $data["selected_center_id"] = null;
             if (!isset($_SESSION["logged_central_stock_manager"]) || empty($_SESSION["logged_central_stock_manager"])) {
-                // Get center from session (try different session variables)
                 $center_number = null;
                 if (isset($_SESSION['logged_billing_manager']['center']) && !empty($_SESSION['logged_billing_manager']['center'])) {
                     $center_number = $_SESSION['logged_billing_manager']['center'];
@@ -4782,8 +4778,6 @@ class Stocks_new extends CI_Controller
                 } elseif (isset($_SESSION['logged_counselor']['center']) && !empty($_SESSION['logged_counselor']['center'])) {
                     $center_number = $_SESSION['logged_counselor']['center'];
                 }
-                
-                // Convert center number to center ID using model method
                 if ($center_number) {
                     $center_id_result = $this->Stock_model_new->get_center_id($center_number);
                     if ($center_id_result) {
@@ -4791,7 +4785,6 @@ class Stocks_new extends CI_Controller
                     }
                 }
             }
-         
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $data["departments"] = $this->get_departments_by_center();
@@ -4803,10 +4796,76 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    public function get_patient_receipts()
+    {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $patient_id = $this->input->post('patient_id');
+
+            if (!empty($patient_id)) {
+                // Get all confirmed sales for this patient
+                $this->db->select('s.sale_number, s.patient_name, s.sale_date, s.total_amount, COUNT(si.id) as item_count');
+                $this->db->from('sales s');
+                $this->db->join('sale_items si', 's.id = si.sale_id');
+                $this->db->where('s.patient_id', $patient_id);
+                $this->db->where('s.status', 'CONFIRMED');
+                $this->db->where('s.sale_date >=', date('Y-m-d', strtotime('-90 days'))); // Last 90 days
+                $this->db->group_by('s.id');
+                $this->db->order_by('s.sale_date', 'DESC');
+                $receipts = $this->db->get()->result();
+
+                echo json_encode([
+                    'success' => true,
+                    'receipts' => $receipts
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Patient ID is required'
+                ]);
+            }
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ]);
+        }
+    }
+
+    public function get_returnable_items()
+    {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            $receipt_number = $this->input->post('receipt_number');
+            if (!empty($receipt_number)) {
+                $batches = $this->Stock_model_new->get_available_batches_for_return($receipt_number);
+                $this->db->select('s.patient_name, s.patient_id, s.sale_date');
+                $this->db->from('sales s');
+                $this->db->where('s.sale_number', $receipt_number);
+                $this->db->where('s.status', 'CONFIRMED');
+                $sale_info = $this->db->get()->row();
+                echo json_encode([
+                    'success' => true,
+                    'batches' => $batches,
+                    'sale_info' => $sale_info
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Receipt number is required'
+                ]);
+            }
+        } else {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ]);
+        }
+    }
+
     public function process_return() {
         $logg = checklogin();
         if($logg['status'] == true) {
-
             if($this->input->post('action') == 'return_medicine') {
                 $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
                 $this->form_validation->set_rules('patient_name', 'Patient Name', 'required');
@@ -4820,17 +4879,14 @@ class Stocks_new extends CI_Controller
                     if (!empty($_SESSION['logged_central_stock_manager']['employee_number'])) {
                         $employee_number = $_SESSION['logged_central_stock_manager']['employee_number'];
                     }
-                    // Stock manager
                     elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
                         $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
                     }elseif (!empty($_SESSION['logged_billing_manager']['employee_number'])) {
                         $employee_number = $_SESSION['logged_billing_manager']['employee_number'];
                     }
-                    // CodeIgniter session fallback
                     elseif ($this->session->userdata('employee_number')) {
                         $employee_number = $this->session->userdata('employee_number');
                     }
-                    // Get employee ID from number
                     $created_by_id = null;
                     if ($employee_number) {
                         $employee = $this->db
@@ -4841,23 +4897,17 @@ class Stocks_new extends CI_Controller
                             $created_by_id = $employee->ID;
                         }
                     }
-
-                    // Calculate total amounts from per-item discounts
                     $total_return_amount = $this->input->post("total_return_amount");
                     $total_discount_amount = $this->input->post("total_discount_amount");
                     $final_return_amount = $this->input->post("final_return_amount_hidden") ? (float)$this->input->post("final_return_amount_hidden") : 0;
-                    
-                    // Calculate amounts
                     $total_amount = 0;
                     if ($total_return_amount) {
                         $total_amount = (float)str_replace('₹', '', $total_return_amount);
                     }
-                    
                     $total_discount = 0;
                     if ($total_discount_amount) {
                         $total_discount = (float)str_replace('₹', '', $total_discount_amount);
                     }
-                    
                     // If final_return_amount_hidden is not set, calculate it from total and discount
                     if ($final_return_amount == 0 && $total_amount > 0) {
                         $final_return_amount = $total_amount - $total_discount;
@@ -4892,13 +4942,35 @@ class Stocks_new extends CI_Controller
                         "final_return_amount" => $final_return_amount,
                         // COMMENTED OUT: Old total discount percentage (now using per-item discount)
                         // "discount_percentage" => $discount_percentage,
+                        "status" => "PENDING",
                         "remarks" => $this->input->post("remarks"),
                         "created_by" => $created_by_id,
                         "created_at" => date("Y-m-d H:i:s"),
                     ];
-               
-
+                    // Validate that all batch_ids belong to the specified receipt
                     $return_items = $this->input->post("return_items");
+                    $receipt_number = $this->input->post("receipt_number");
+                    if (!empty($return_items)) {
+                        // Get all batch_ids from the return items
+                        $batch_ids = array_column($return_items, 'batch_id');
+                        foreach ($batch_ids as $batch_id) {
+                            if (!empty($batch_id)) {
+                                $this->db->select('si.id');
+                                $this->db->from('sale_items si');
+                                $this->db->join('sales s', 'si.sale_id = s.id');
+                                $this->db->where('si.batch_id', $batch_id);
+                                $this->db->where('s.sale_number', $receipt_number);
+                                $this->db->where('s.status', 'CONFIRMED');
+                                $this->db->where('(si.quantity_sold - COALESCE(si.quantity_returned, 0)) >', 0);
+                                $exists = $this->db->get()->row();
+                                if (!$exists) {
+                                    $this->session->set_flashdata("error", "Invalid medicine selected. The selected medicine does not belong to receipt number: " . $receipt_number);
+                                    redirect("stocks_new/medicine_returns");
+                                    return;
+                                }
+                            }
+                        }
+                    }
                     // Process per-item discounts
                     if (!empty($return_items)) {
                         foreach ($return_items as $key => $item) {
@@ -4907,21 +4979,18 @@ class Stocks_new extends CI_Controller
                             if (isset($item['discount_percentage_hidden'])) {
                                 $item_discount_percentage = (float)$item['discount_percentage_hidden'];
                             }
-                            
                             // Calculate item amounts
                             $item_quantity = isset($item['return_quantity']) ? (int)$item['return_quantity'] : 0;
                             $item_price = isset($item['price']) ? (float)$item['price'] : 0;
                             $item_return_amount = $item_quantity * $item_price;
                             $item_discount_amount = ($item_return_amount * $item_discount_percentage) / 100;
                             $item_final_amount = $item_return_amount - $item_discount_amount;
-                            
                             // Add discount fields to return item
                             $return_items[$key]['discount_percentage'] = $item_discount_percentage;
                             $return_items[$key]['discount_amount'] = $item_discount_amount;
                             $return_items[$key]['final_amount'] = $item_final_amount;
                         }
                     }
-              
                     if (
                         $this->Stock_model_new->process_medicine_return(
                             $return_data,
@@ -4941,9 +5010,34 @@ class Stocks_new extends CI_Controller
                     }
                 }
             }
-
             redirect("stocks_new/medicine_returns");
         }
+    }
+
+    public function approve_return($return_id)
+    {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            if($this->Stock_model_new->approve_medicine_return($return_id)) {
+                $this->session->set_flashdata("success", "Medicine return approved successfully");
+            } else {
+                $this->session->set_flashdata("error", "Failed to approve medicine return");
+            }
+        }
+        redirect("stocks_new/returns");
+    }
+
+    public function disapprove_return($return_id)
+    {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            if($this->Stock_model_new->disapprove_medicine_return($return_id)) {
+                $this->session->set_flashdata("success", "Medicine return disapproved successfully");
+            } else {
+                $this->session->set_flashdata("error", "Failed to disapprove medicine return");
+            }
+        }
+        redirect("stocks_new/returns");
     }
 
     public function returns()
@@ -4991,18 +5085,13 @@ class Stocks_new extends CI_Controller
             redirect(base_url());
             return;
         }
-
         $format = $this->input->get('format'); // 'excel' or 'pdf'
-
-        // Get returns data
         $returns = $this->Stock_model_new->get_medicine_returns();
-
         if (empty($returns)) {
             $this->session->set_flashdata('error', 'No returns found to export.');
             redirect('stocks_new/returns');
             return;
         }
-
         if ($format == 'excel') {
             $this->export_returns_excel($returns);
         } elseif ($format == 'pdf') {
@@ -5022,17 +5111,15 @@ class Stocks_new extends CI_Controller
         $filename = 'Medicine_Returns_' . date('Y-m-d_H-i-s') . '.csv';
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename=' . $filename);
-
         // Create file pointer
         $output = fopen('php://output', 'w');
-
         // Add BOM for UTF-8
         fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-
         // Add headers
         $headers = [
             'Return Number',
             'Patient Name',
+            'Patient ID',
             'Receipt Number',
             'Center',
             'Department',
@@ -5051,6 +5138,7 @@ class Stocks_new extends CI_Controller
             $row = [
                 $return->return_number ?? 'N/A',
                 $return->patient_name ?? 'N/A',
+                $return->patient_id ?? 'N/A',
                 $return->receipt_number ?? 'N/A',
                 $return->center_name ?? 'N/A',
                 $return->department ?? 'N/A',
