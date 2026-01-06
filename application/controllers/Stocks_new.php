@@ -2686,63 +2686,78 @@ class Stocks_new extends CI_Controller
      */
     public function edit_medicine_center_stock_levels()
     {
-        $logg = checklogin();
-        if ($logg["status"] == false) {
-            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-            return;
+        $this->output->set_content_type('application/json');
+
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ]));
         }
 
-        $center_id = $this->input->post('center_id');
-        $medicine_id = $this->input->post('medicine_id');
-        $department = $this->input->post('department');
-        $min_stock_level = $this->input->post('min_stock_level');
-        $max_stock_level = $this->input->post('max_stock_level');
-        $reorder_level = $this->input->post('reorder_level');
+        $center_id        = $this->input->post('center_id');
+        $medicine_id      = $this->input->post('medicine_id');
+        $department       = $this->input->post('department');
+        $min_stock_level  = $this->input->post('min_stock_level');
+        $max_stock_level  = $this->input->post('max_stock_level');
+        $reorder_level    = $this->input->post('reorder_level');
 
-        if (empty($center_id) || empty($medicine_id) || empty($department)) {
-            echo json_encode(['success' => false, 'message' => 'Center, medicine and department are required']);
-            return;
+        if (!$center_id || !$medicine_id || !$department) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Center, medicine and department are required'
+            ]));
         }
 
-        // Validate numeric inputs
         if (!is_numeric($min_stock_level) || $min_stock_level < 0) {
-            echo json_encode(['success' => false, 'message' => 'Min stock level must be a positive number']);
-            return;
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Min stock level must be a positive number'
+            ]));
         }
 
         if (!is_numeric($max_stock_level) || $max_stock_level < 0) {
-            echo json_encode(['success' => false, 'message' => 'Max stock level must be a positive number']);
-            return;
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Max stock level must be a positive number'
+            ]));
         }
 
         if ($max_stock_level > 0 && $min_stock_level > $max_stock_level) {
-            echo json_encode(['success' => false, 'message' => 'Min stock level cannot be greater than max stock level']);
-            return;
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Min stock level cannot be greater than max stock level'
+            ]));
         }
 
         if (!is_numeric($reorder_level) || $reorder_level < 0) {
-            echo json_encode(['success' => false, 'message' => 'Reorder level must be a positive number']);
-            return;
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Reorder level must be a positive number'
+            ]));
         }
 
         $data = [
-            'center_id' => $center_id,
-            'medicine_id' => $medicine_id,
-            'department' => $department,
-            'min_stock_level' => $min_stock_level,
-            'max_stock_level' => $max_stock_level,
-            'reorder_level' => $reorder_level,
-            'updated_at' => date('Y-m-d H:i:s')
+            'center_id'        => $center_id,
+            'medicine_id'      => $medicine_id,
+            'department'       => $department,
+            'min_stock_level'  => (int) $min_stock_level,
+            'max_stock_level'  => (int) $max_stock_level,
+            'reorder_level'    => (int) $reorder_level,
+            'updated_at'       => date('Y-m-d H:i:s')
         ];
 
-        $result = $this->Stock_model_new->save_medicine_center_stock_config($data);
+        $result = $this->Stock_model_new
+            ->save_medicine_center_stock_config($data);
 
-        if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Stock levels updated successfully']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to update stock levels']);
-        }
+        return $this->output->set_output(json_encode([
+            'success' => (bool) $result,
+            'message' => $result
+                ? 'Stock levels updated successfully'
+                : 'Failed to update stock levels'
+        ]));
     }
+
 
     /**
      * Get medicine center stock levels for editing
