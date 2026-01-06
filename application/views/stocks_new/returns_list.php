@@ -136,6 +136,11 @@
                                                     <a href="<?php echo base_url('stocks_new/view_return/' . $return->id); ?>" class="btn btn-info btn-sm">
                                                         <i class="fa fa-eye"></i> View
                                                     </a>
+                                                    <?php 
+                                                    // Check if user is from account team
+                                                    $is_accountant = isset($_SESSION['logged_accountant']) && !empty($_SESSION['logged_accountant']);
+                                                    ?>
+                                                    <?php if($is_accountant): ?>
                                                     <?php if(($return->status ?? 'PENDING') === 'PENDING'): ?>
                                                         <a href="<?php echo base_url('stocks_new/approve_return/' . $return->id); ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve this return? This will add the returned stock back to inventory.')">
                                                             <i class="fa fa-check"></i> Approve
@@ -143,6 +148,7 @@
                                                         <a href="<?php echo base_url('stocks_new/disapprove_return/' . $return->id); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to disapprove this return? This will reject the return request.')">
                                                             <i class="fa fa-times"></i> Disapprove
                                                         </a>
+                                                    <?php endif; ?>
                                                     <?php endif; ?>
                                                 </td>
                                             </tr>
