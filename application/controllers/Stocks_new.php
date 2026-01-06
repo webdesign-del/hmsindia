@@ -2749,44 +2749,47 @@ class Stocks_new extends CI_Controller
      */
     public function get_medicine_center_stock_levels()
     {
-        $logg = checklogin();
-        if ($logg["status"] == false) {
-            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-            return;
+        // Clear all buffers FIRST
+        while (ob_get_level() > 0) {
+            ob_end_clean();
         }
 
-        $center_id = $this->input->post('center_id');
+        // Disable encoding & force JSON
+        $this->output
+            ->set_header('Content-Encoding: identity')
+            ->set_content_type('application/json');
+
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ]));
+        }
+
+        $center_id   = $this->input->post('center_id');
         $medicine_id = $this->input->post('medicine_id');
-        $department = $this->input->post('department');
+        $department  = $this->input->post('department');
 
-        if (empty($center_id) || empty($medicine_id) || empty($department)) {
-            echo json_encode(['success' => false, 'message' => 'Center, medicine and department are required']);
-            return;
+        if (!$center_id || !$medicine_id || !$department) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Center, medicine and department are required'
+            ]));
         }
 
-        $config = $this->Stock_model_new->get_medicine_center_stock_config($center_id, $medicine_id, $department);
+        $config = $this->Stock_model_new
+            ->get_medicine_center_stock_config($center_id, $medicine_id, $department);
 
-        if ($config) {
-            echo json_encode([
-                'success' => true,
-                'data' => [
-                    'min_stock_level' => $config->min_stock_level,
-                    'max_stock_level' => $config->max_stock_level,
-                    'reorder_level' => $config->reorder_level
-                ]
-            ]);
-        } else {
-            // Return default values if no config exists
-            echo json_encode([
-                'success' => true,
-                'data' => [
-                    'min_stock_level' => 0,
-                    'max_stock_level' => 0,
-                    'reorder_level' => 0
-                ]
-            ]);
-        }
+        return $this->output->set_output(json_encode([
+            'success' => true,
+            'data' => [
+                'min_stock_level' => (int) ($config->min_stock_level ?? 0),
+                'max_stock_level' => (int) ($config->max_stock_level ?? 0),
+                'reorder_level'   => (int) ($config->reorder_level ?? 0),
+            ]
+        ]));
     }
+
 
     /**
      * Stock Levels Management - Dedicated module for managing medicine center stock levels
@@ -2798,16 +2801,8 @@ class Stocks_new extends CI_Controller
             $center_id = $this->input->get("center_id");
             $medicine_id = $this->input->get("medicine_id");
             $department = $this->input->get("department");
-
-            // Get all centers
             $data["centers"] = $this->Stock_model_new->get_all_centers();
-            log_message('debug', 'Centers loaded: ' . count($data["centers"]));
-
-            // Get all medicines
             $data["medicines"] = $this->Stock_model_new->get_all_medicines();
-            log_message('debug', 'Medicines loaded: ' . count($data["medicines"]));
-
-            // Get medicine center stock configurations
             $data["stock_levels"] = $this->Stock_model_new->get_medicine_center_stock_levels(
                 $center_id,
                 $medicine_id,
