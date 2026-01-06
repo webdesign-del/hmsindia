@@ -3896,6 +3896,18 @@ class Stock_model_new extends CI_Model
             $this->db->join("sales s", "si.sale_id = s.id", "left");
             $this->db->where("mb.batch_status", "ACTIVE");
             $this->db->where("m.status", "active");
+            $this->db->where("s.status", "CONFIRMED");
+            $this->db->where("
+                (
+                    EXISTS (
+                        SELECT 1
+                        FROM stock_movements sm
+                        WHERE sm.reference_id = s.id
+                        AND sm.movement_type = 'SALE'
+                        AND sm.to_location_type = 'SALE'
+                    )
+                )
+            ", null, false);
             if (!empty($receipt_number)) {
                 $this->db->where("s.sale_number", $receipt_number);
             } else {

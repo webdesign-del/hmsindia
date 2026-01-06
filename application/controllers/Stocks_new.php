@@ -4809,6 +4809,17 @@ class Stocks_new extends CI_Controller
                 $this->db->join('sale_items si', 's.id = si.sale_id');
                 $this->db->where('s.patient_id', $patient_id);
                 $this->db->where('s.status', 'CONFIRMED');
+                $this->db->where("
+                    (
+                        EXISTS (
+                            SELECT 1
+                            FROM stock_movements sm
+                            WHERE sm.reference_id = s.id
+                            AND sm.movement_type = 'SALE'
+                            AND sm.to_location_type = 'SALE'
+                        )
+                    )
+                ", null, false);
                 $this->db->where('s.sale_date >=', date('Y-m-d', strtotime('-90 days'))); // Last 90 days
                 $this->db->group_by('s.id');
                 $this->db->order_by('s.sale_date', 'DESC');
