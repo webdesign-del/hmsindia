@@ -4796,52 +4796,107 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    // public function get_patient_receipts()
+    // {
+    //     $logg = checklogin();
+    //     if($logg['status'] == true) {
+    //         $patient_id = $this->input->post('patient_id');
+
+    //         if (!empty($patient_id)) {
+    //             // Get all confirmed sales for this patient
+    //             $this->db->select('s.sale_number, s.patient_name, s.sale_date, s.total_amount, COUNT(si.id) as item_count');
+    //             $this->db->from('sales s');
+    //             $this->db->join('sale_items si', 's.id = si.sale_id');
+    //             $this->db->where('s.patient_id', $patient_id);
+    //             $this->db->where('s.status', 'CONFIRMED');
+    //             $this->db->where("
+    //                 (
+    //                     EXISTS (
+    //                         SELECT 1
+    //                         FROM stock_movements sm
+    //                         WHERE sm.reference_id = s.id
+    //                         AND sm.movement_type = 'SALE'
+    //                         AND sm.to_location_type = 'SALE'
+    //                     )
+    //                 )
+    //             ", null, false);
+    //             $this->db->where('s.sale_date >=', date('Y-m-d', strtotime('-90 days'))); // Last 90 days
+    //             $this->db->group_by('s.id');
+    //             $this->db->order_by('s.sale_date', 'DESC');
+    //             $receipts = $this->db->get()->result();
+
+    //             echo json_encode([
+    //                 'success' => true,
+    //                 'receipts' => $receipts
+    //             ]);
+    //         } else {
+    //             echo json_encode([
+    //                 'success' => false,
+    //                 'message' => 'Patient ID is required'
+    //             ]);
+    //         }
+    //     } else {
+    //         echo json_encode([
+    //             'success' => false,
+    //             'message' => 'Unauthorized access'
+    //         ]);
+    //     }
+    // }
     public function get_patient_receipts()
     {
-        $logg = checklogin();
-        if($logg['status'] == true) {
-            $patient_id = $this->input->post('patient_id');
+        // Always return JSON
+        $this->output->set_content_type('application/json');
 
-            if (!empty($patient_id)) {
-                // Get all confirmed sales for this patient
-                $this->db->select('s.sale_number, s.patient_name, s.sale_date, s.total_amount, COUNT(si.id) as item_count');
-                $this->db->from('sales s');
-                $this->db->join('sale_items si', 's.id = si.sale_id');
-                $this->db->where('s.patient_id', $patient_id);
-                $this->db->where('s.status', 'CONFIRMED');
-                $this->db->where("
-                    (
-                        EXISTS (
-                            SELECT 1
-                            FROM stock_movements sm
-                            WHERE sm.reference_id = s.id
-                            AND sm.movement_type = 'SALE'
-                            AND sm.to_location_type = 'SALE'
-                        )
-                    )
-                ", null, false);
-                $this->db->where('s.sale_date >=', date('Y-m-d', strtotime('-90 days'))); // Last 90 days
-                $this->db->group_by('s.id');
-                $this->db->order_by('s.sale_date', 'DESC');
-                $receipts = $this->db->get()->result();
-
-                echo json_encode([
-                    'success' => true,
-                    'receipts' => $receipts
-                ]);
-            } else {
-                echo json_encode([
-                    'success' => false,
-                    'message' => 'Patient ID is required'
-                ]);
-            }
-        } else {
-            echo json_encode([
+        // Auth check
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode([
                 'success' => false,
                 'message' => 'Unauthorized access'
-            ]);
+            ]));
         }
+
+        $patient_id = $this->input->post('patient_id');
+
+        if (empty($patient_id)) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Patient ID is required'
+            ]));
+        }
+
+        // Query
+        $this->db->select('
+            s.sale_number,
+            s.patient_name,
+            s.sale_date,
+            s.total_amount,
+            COUNT(si.id) AS item_count
+        ');
+        $this->db->from('sales s');
+        $this->db->join('sale_items si', 's.id = si.sale_id');
+        $this->db->where('s.patient_id', $patient_id);
+        $this->db->where('s.status', 'CONFIRMED');
+        $this->db->where("
+            EXISTS (
+                SELECT 1
+                FROM stock_movements sm
+                WHERE sm.reference_id = s.id
+                AND sm.movement_type = 'SALE'
+                AND sm.to_location_type = 'SALE'
+            )
+        ", null, false);
+        $this->db->where('s.sale_date >=', date('Y-m-d', strtotime('-90 days')));
+        $this->db->group_by('s.id');
+        $this->db->order_by('s.sale_date', 'DESC');
+
+        $receipts = $this->db->get()->result();
+
+        return $this->output->set_output(json_encode([
+            'success'  => true,
+            'receipts' => $receipts
+        ]));
     }
+
 
     public function get_returnable_items()
     {
