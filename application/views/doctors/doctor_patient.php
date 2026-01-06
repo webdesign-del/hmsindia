@@ -105,7 +105,7 @@
                                     <th class="text-center" style="width: 120px;">Purpose</th>
                                     <th class="text-center" style="width: 150px;">Male Investigation</th>
                                     <th class="text-center" style="width: 150px;">Female Investigation</th>
-                                    <th class="text-center" style="width: 120px;">Procedure</th>
+                                    <th class="text-center" style="width: 120px;">Procedure Advice By Doctor </th>
                                     <th class="text-center" style="width: 120px;">Procedure Updated By FC</th>
                                     <th class="text-center" style="width: 120px;">Male Medicine</th>
                                     <th class="text-center" style="width: 120px;">Female Medicine</th>
@@ -215,7 +215,7 @@
                                             // Get investigations from hms_master_investigations table
                                             $serializedString = $vl['male_minvestigation_suggestion_list'];
                                             $unserializedArray = unserialize($serializedString);
-                                            if (is_array($unserializedArray)) {
+                                            if (is_array($unserializedArray)) {  
                                                 foreach ($unserializedArray as $key => $value) {
                                                     $id = (int)$value;
                                                     $sql_male = "SELECT * FROM `hms_master_investigations` WHERE ID = $id";

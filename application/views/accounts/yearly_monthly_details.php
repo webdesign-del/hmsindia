@@ -8,17 +8,38 @@
         <tr>
             <th>Month</th>
             <th>CONSULTATION</th>
-            <th>STEM CELL</th>
-            <th>TESTICULAR STEM CELL</th>
-            <th>OVARIAN PRP</th>
-            <th>OPU</th>
-            <th>FRESH CYCLE ET</th>
-            <th>THAWED CYCLE / FET</th>
-            <th>IUI</th>
-            <th>IVF</th>
-            <th>ICSI</th>
-            <th>TESA/MTESE</th>
-            <th>TESTICULAR/PRP</th>
+
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=first_visit'); ?>">FIRST VISIT</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=stem_cell'); ?>">STEM CELL</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=testicular_stem_cell'); ?>">TESTICULAR STEM CELL</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=ovarian_prp'); ?>">OVARIAN PRP</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=ovum_pickup'); ?>">OPU</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=fresh_cycle_et'); ?>">FRESH CYCLE ET</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=fet'); ?>">THAWED CYCLE / FET</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=iui'); ?>">IUI</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=ivf'); ?>">IVF</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=icsi'); ?>">ICSI</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=tesa_mtesa'); ?>">TESA/MTESE</a></th>
+            
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=testicular_prp'); ?>">TESTICULAR/PRP</a></th>
+
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=sperm_mobil'); ?>">SPERM MOBIL</a></th>
+
+			<th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=blastocyst'); ?>">BLASTOCYST</a></th>
+
+			<th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=lah'); ?>">LAH</a></th>
+
+			<th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=embryo_glue'); ?>">EMBRYO GLUE</a></th>
         </tr>
     </thead>
     <tbody>
@@ -32,6 +53,7 @@ for ($m = 1; $m <= 12; $m++) {
     $months[$m] = [
         'name'    => date('F', mktime(0, 0, 0, $m, 1)),
         'consult' => 0,
+        'first_appointment' => 0,
         'stem'    => 0,
         'testi'   => 0,
         'ovarian_prp'   => 0,
@@ -42,7 +64,11 @@ for ($m = 1; $m <= 12; $m++) {
         'ivf'   => 0,
         'icsi'   => 0,
         'tesa_mtesa'  => 0,
-        'testicular_prp' => 0
+        'testicular_prp' => 0,
+        'Sperm_Mobil' => 0,
+        'Blastocyst' => 0,
+        'lah' => 0,
+        'Embryo_Glue' => 0
     ];
 }
 
@@ -51,6 +77,13 @@ for ($m = 1; $m <= 12; $m++) {
 ================================== */
 foreach ($consult_monthly as $c) {
     $months[$c['month']]['consult'] = (int)$c['total'];
+}
+
+/* ==================================
+   MERGE FIRST APPOINTMENT DATA
+================================== */
+foreach ($first_appointment_monthly as $c) {
+    $months[$c['month']]['first_appointment'] = (int)$c['total'];
 }
 
 /* ==================================
@@ -131,6 +164,34 @@ foreach ($testicular_prp_monthly as $t) {
 }
 
 /* ==================================
+   MERGE FET DATA
+================================== */
+foreach ($Sperm_Mobil_monthly as $t) {
+    $months[$t['month']]['Sperm_Mobil'] = (int)$t['total'];
+}
+
+/* ==================================
+   MERGE FET DATA
+================================== */
+foreach ($Blastocyst_monthly as $t) {
+    $months[$t['month']]['Blastocyst'] = (int)$t['total'];
+}
+
+/* ==================================
+   MERGE FET DATA
+================================== */
+foreach ($lah_monthly as $t) {
+    $months[$t['month']]['lah'] = (int)$t['total'];
+}
+
+/* ==================================
+   MERGE FET DATA
+================================== */
+foreach ($Embryo_Glue_monthly as $t) {
+    $months[$t['month']]['Embryo_Glue'] = (int)$t['total'];
+}
+
+/* ==================================
    DISPLAY TABLE
 ================================== */
 foreach ($months as $m) {
@@ -138,6 +199,7 @@ foreach ($months as $m) {
 <tr>
     <td><?php echo $m['name']; ?></td>
     <td><?php echo $m['consult']; ?></td>
+    <td><?php echo $m['first_appointment']; ?></td>
     <td><?php echo $m['stem']; ?></td>
     <td><?php echo $m['testi']; ?></td>
     <td><?php echo $m['ovarian_prp']; ?></td>
@@ -149,6 +211,10 @@ foreach ($months as $m) {
     <td><?php echo $m['icsi']; ?></td>
     <td><?php echo $m['tesa_mtesa']; ?></td>
     <td><?php echo $m['testicular_prp']; ?></td>
+    <td><?php echo $m['Sperm_Mobil']; ?></td>
+    <td><?php echo $m['Blastocyst']; ?></td>
+    <td><?php echo $m['lah']; ?></td>
+    <td><?php echo $m['Embryo_Glue']; ?></td>
 </tr>
 <?php } ?>
 
