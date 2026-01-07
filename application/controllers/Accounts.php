@@ -10382,9 +10382,19 @@ public function clinical_details() {
         redirect(base_url());
         return;
     }
+
+	$center = null;
+	 if (!empty($_SESSION['logged_doctor']['center'])) {
+        $center = $_SESSION['logged_doctor']['center'];
+    } else {
+        // Admin login → ALL centers
+        $center = null;
+    }
+
 	//$this->load->model('all_method');
     $year = $this->input->get('year');
     $type = $this->input->get('type');
+	$month = $this->input->get('month');
     
     $data['year'] = $year;
     // Replace underscores with spaces and capitalize for the title (e.g. "ovarian_prp" -> "OVARIAN PRP")
@@ -10393,71 +10403,71 @@ public function clinical_details() {
     // Fetch records based on the type selected
     switch ($type) {
         case 'consultation':
-            $data['records'] = $this->accounts_model->get_yearly_consultations($year);
+            $data['records'] = $this->accounts_model->get_yearly_consultations($year, $type, $month, $center);
             break;
 
 		case 'first_visit':
-            $data['records'] = $this->accounts_model->get_yearly_first_visit($year);
+            $data['records'] = $this->accounts_model->get_yearly_first_visit($year, $type, $month, $center);
             break;	
 
         case 'stem_cell':
-            $data['records'] = $this->accounts_model->get_yearly_ovarian_stem($year);
+            $data['records'] = $this->accounts_model->get_yearly_ovarian_stem($year, $type, $month, $center);
             break;
 
         case 'testicular_stem_cell':
-            $data['records'] = $this->accounts_model->get_yearly_testicular_stem($year);
+            $data['records'] = $this->accounts_model->get_yearly_testicular_stem($year, $type, $month, $center);
             break;
 
         case 'ovarian_prp':
-            $data['records'] = $this->accounts_model->get_yearly_ovarian_prp($year);
+            $data['records'] = $this->accounts_model->get_yearly_ovarian_prp($year, $type, $month, $center);
             break;
 
         case 'ovum_pickup':
-            $data['records'] = $this->accounts_model->get_yearly_ovum_pickup($year);
+            $data['records'] = $this->accounts_model->get_yearly_ovum_pickup($year, $type, $month, $center);
             break;
 
         case 'fresh_cycle_et':
-            $data['records'] = $this->accounts_model->get_yearly_embryo_transfer($year);
+            $data['records'] = $this->accounts_model->get_yearly_embryo_transfer($year, $type, $month, $center);
             break;
 
         case 'fet':
-            $data['records'] = $this->accounts_model->get_yearly_fet($year);
+            $data['records'] = $this->accounts_model->get_yearly_fet($year, $type, $month, $center);
             break;
 
         case 'iui':
-            $data['records'] = $this->accounts_model->get_yearly_iui($year);
+            $data['records'] = $this->accounts_model->get_yearly_iui($year, $type, $month, $center);
             break;
 
         case 'ivf':
-            $data['records'] = $this->accounts_model->get_yearly_ivf($year);
+            $data['records'] = $this->accounts_model->get_yearly_ivf($year, $type, $month, $center);
             break;
 
         case 'icsi':
-            $data['records'] = $this->accounts_model->get_yearly_icsi($year);
+            $data['records'] = $this->accounts_model->get_yearly_icsi($year, $type, $month, $center);
             break;
 
         case 'tesa_mtesa':
-            $data['records'] = $this->accounts_model->get_yearly_tesa_mtesa($year);
+            $data['records'] = $this->accounts_model->get_yearly_tesa_mtesa($year, $type, $month, $center);
             break;
 
         case 'testicular_prp':
-            $data['records'] = $this->accounts_model->get_yearly_testicular_prp($year);
+            $data['records'] = $this->accounts_model->get_yearly_testicular_prp($year, $type, $month, $center);
             break;
 
 		case 'sperm_mobil':
-			$data['records'] = $this->accounts_model->get_yearly_sperm_mobil($year);
+			$data['records'] = $this->accounts_model->get_yearly_sperm_mobil($year, $type, $month, $center);
 			break;	
 
 		case 'blastocyst':
-            $data['records'] = $this->accounts_model->get_yearly_blastocyst($year);
+            $data['records'] = $this->accounts_model->get_yearly_blastocyst($year, $type, $month, $center);
             break;
 			
 		case 'lah':
-            $data['records'] = $this->accounts_model->get_yearly_lah($year);
+            $data['records'] = $this->accounts_model->get_yearly_lah($year, $type, $month, $center);
             break;	
 
 		case 'embryo_glue':
-            $data['records'] = $this->accounts_model->get_yearly_embryo_glue($year);
+            $data['records'] = $this->accounts_model->get_yearly_embryo_glue($year, $type, $month, $center);
             break;	
 
         default:

@@ -86,107 +86,62 @@ foreach ($first_appointment_monthly as $c) {
     $months[$c['month']]['first_appointment'] = (int)$c['total'];
 }
 
-/* ==================================
-   MERGE OVARIAN STEM DATA
-================================== */
 foreach ($stem_monthly as $s) {
     $months[$s['month']]['stem'] = (int)$s['total'];
 }
 
-/* ==================================
-   MERGE TESTICULAR STEM DATA
-================================== */
 foreach ($testi_monthly as $t) {
     $months[$t['month']]['testi'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE OVARIAN PRP DATA
-================================== */
 foreach ($ovarian_prp_monthly as $s) {
     $months[$s['month']]['ovarian_prp'] = (int)$s['total'];
 }
 
-/* ==================================
-   MERGE OPU DATA
-================================== */
 foreach ($ovum_pickup_monthly as $t) {
     $months[$t['month']]['ovum_pickup'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE Embryo Transfer DATA
-================================== */
 foreach ($embryo_transfer_monthly as $t) {
     $months[$t['month']]['embryo_transfer'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE FET DATA
-================================== */
 foreach ($fet_monthly as $t) {
     $months[$t['month']]['fet'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE FET DATA
-================================== */
 foreach ($iui_monthly as $t) {
     $months[$t['month']]['iui'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE FET DATA
-================================== */
 foreach ($ivf_monthly as $t) {
     $months[$t['month']]['ivf'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE FET DATA
-================================== */
 foreach ($icsi_monthly as $t) {
     $months[$t['month']]['icsi'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE FET DATA
-================================== */
 foreach ($tesa_mtesa_monthly as $t) {
     $months[$t['month']]['tesa_mtesa'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE FET DATA
-================================== */
 foreach ($testicular_prp_monthly as $t) {
     $months[$t['month']]['testicular_prp'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE FET DATA
-================================== */
 foreach ($Sperm_Mobil_monthly as $t) {
     $months[$t['month']]['Sperm_Mobil'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE FET DATA
-================================== */
 foreach ($Blastocyst_monthly as $t) {
     $months[$t['month']]['Blastocyst'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE FET DATA
-================================== */
 foreach ($lah_monthly as $t) {
     $months[$t['month']]['lah'] = (int)$t['total'];
 }
 
-/* ==================================
-   MERGE FET DATA
-================================== */
 foreach ($Embryo_Glue_monthly as $t) {
     $months[$t['month']]['Embryo_Glue'] = (int)$t['total'];
 }
@@ -194,27 +149,187 @@ foreach ($Embryo_Glue_monthly as $t) {
 /* ==================================
    DISPLAY TABLE
 ================================== */
-foreach ($months as $m) {
+foreach ($months as $month_num => $m) { 
+    $first_appointment_count = isset($m['first_appointment']) ? $m['first_appointment'] : 0;
+    $stem_count = isset($m['stem']) ? $m['stem'] : 0;
+    $testi_count = isset($m['testi']) ? $m['testi'] : 0;
+    $ovarian_prp_count = isset($m['ovarian_prp']) ? $m['ovarian_prp'] : 0;
+    $ovum_pickup_count = isset($m['ovum_pickup']) ? $m['ovum_pickup'] : 0;
+    $embryo_transfer_count = isset($m['embryo_transfer']) ? $m['embryo_transfer'] : 0;
+    $fet_count = isset($m['fet']) ? $m['fet'] : 0;
+    $iui_count = isset($m['iui']) ? $m['iui'] : 0;
+    $ivf_count = isset($m['ivf']) ? $m['ivf'] : 0;
+    $icsi_count = isset($m['icsi']) ? $m['icsi'] : 0;
+    $tesa_mtesa_count = isset($m['tesa_mtesa']) ? $m['tesa_mtesa'] : 0;
+    $testicular_prp_count = isset($m['testicular_prp']) ? $m['testicular_prp'] : 0;
+    $Sperm_Mobil_count = isset($m['Sperm_Mobil']) ? $m['Sperm_Mobil'] : 0;
+    $Blastocyst_count = isset($m['Blastocyst']) ? $m['Blastocyst'] : 0;
+    $lah_count = isset($m['lah']) ? $m['lah'] : 0;
+    $glue_count = isset($m['Embryo_Glue']) ? $m['Embryo_Glue'] : 0;
 ?>
 <tr>
     <td><?php echo $m['name']; ?></td>
     <td><?php echo $m['consult']; ?></td>
-    <td><?php echo $m['first_appointment']; ?></td>
-    <td><?php echo $m['stem']; ?></td>
-    <td><?php echo $m['testi']; ?></td>
-    <td><?php echo $m['ovarian_prp']; ?></td>
-    <td><?php echo $m['ovum_pickup']; ?></td>
-    <td><?php echo $m['embryo_transfer']; ?></td>
-    <td><?php echo $m['fet']; ?></td>
-    <td><?php echo $m['iui']; ?></td>
-    <td><?php echo $m['ivf']; ?></td>
-    <td><?php echo $m['icsi']; ?></td>
-    <td><?php echo $m['tesa_mtesa']; ?></td>
-    <td><?php echo $m['testicular_prp']; ?></td>
-    <td><?php echo $m['Sperm_Mobil']; ?></td>
-    <td><?php echo $m['Blastocyst']; ?></td>
-    <td><?php echo $m['lah']; ?></td>
-    <td><?php echo $m['Embryo_Glue']; ?></td>
+    <td><?php if($first_appointment_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=first_visit'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $first_appointment_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($stem_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=stem_cell'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $stem_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($testi_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=testicular_stem_cell'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $testi_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($ovarian_prp_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=ovarian_prp'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $ovarian_prp_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($ovum_pickup_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=ovum_pickup'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $ovum_pickup_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($embryo_transfer_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=fresh_cycle_et'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $embryo_transfer_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($fet_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=fet'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $fet_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($iui_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=iui'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $iui_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($ivf_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=ivf'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $ivf_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($icsi_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=icsi'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $icsi_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($tesa_mtesa_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=tesa_mtesa'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $tesa_mtesa_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($testicular_prp_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=testicular_prp'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $testicular_prp_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($Sperm_Mobil_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=sperm_mobil'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $Sperm_Mobil_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($Blastocyst_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=blastocyst'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $Blastocyst_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($lah_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=lah'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $lah_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+    <td><?php if($glue_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=embryo_glue'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $glue_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
 </tr>
 <?php } ?>
 

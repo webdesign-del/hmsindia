@@ -451,7 +451,7 @@ if (!empty($medicine_daily_result)) {
     'Upi' => 0,
     'Cash' => 0,
     'Check' => 0,
-    'Iic-wallet' => 0,
+    'Wallet' => 0,
     'Advance' => 0,
     'Neft' => 0,
     'Loan' => 0,
@@ -560,7 +560,7 @@ foreach($patient_medicine_daily_result as $vl) {
                     </tr>
                     <tr>
                         <td>IIC-Wallet Receipts</td>
-                        <td><?php echo number_format($paymentTotals['IIC-Wallet'], 2); ?></td>
+                        <td><?php echo number_format($paymentTotals['Wallet'], 2); ?></td>
                     </tr>
                     <tr>
                         <td>Advance Receipts</td>

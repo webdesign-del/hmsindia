@@ -50,6 +50,7 @@
                                 echo isset($row['date_of_procedure']) ? $row['date_of_procedure'] : (isset($row['date_of_procedure']) ? $row['date_of_procedure'] : '-'); 
                                 ?>
                             </td>
+                            <td><?php echo $all_method->get_center_name($row['center']); ?></td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
