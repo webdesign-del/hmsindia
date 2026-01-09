@@ -10187,6 +10187,8 @@ function assessment_form($patient_id = 0){ // Keep the = 0 fix from before
 
     $data['consult_monthly'] = $this->accounts_model->monthly_consultation($center, $year);
 
+	$data['first_appointment_monthly'] = $this->accounts_model->monthly_first_appointment($center, $year);
+
     $data['stem_monthly'] = $this->accounts_model->monthly_ovarian_stem($center, $year);
 
 	$data['ovarian_prp_monthly'] = $this->accounts_model->monthly_ovarian_prp($center, $year);	
@@ -10208,6 +10210,14 @@ function assessment_form($patient_id = 0){ // Keep the = 0 fix from before
 	$data['tesa_mtesa_monthly'] = $this->accounts_model->tesa_mtesa_monthly($center, $year);
 
 	$data['testicular_prp_monthly'] = $this->accounts_model->testicular_prp_monthly($center, $year);
+
+	$data['Sperm_Mobil_monthly'] = $this->accounts_model->Sperm_Mobil_monthly($center, $year);
+
+	$data['Blastocyst_monthly'] = $this->accounts_model->Blastocyst_monthly($center, $year);
+
+	$data['lah_monthly'] = $this->accounts_model->lah_monthly($center, $year);
+
+	$data['Embryo_Glue_monthly'] = $this->accounts_model->Embryo_Glue_monthly($center, $year);
 	$template = get_header_template($logg['role']);
 	$this->load->view($template['header']);
     $this->load->view('accounts/yearly_monthly_details', $data);
@@ -10366,6 +10376,111 @@ public function yearly_monthly_details_admin()
 	$this->load->view($template['footer']);
 }
 
+public function clinical_details() {
+	 $logg = checklogin();
+    if ($logg['status'] != true) {
+        redirect(base_url());
+        return;
+    }
+
+	$center = null;
+	 if (!empty($_SESSION['logged_doctor']['center'])) {
+        $center = $_SESSION['logged_doctor']['center'];
+    } else {
+        // Admin login → ALL centers
+        $center = null;
+    }
+
+	//$this->load->model('all_method');
+    $year = $this->input->get('year');
+    $type = $this->input->get('type');
+	$month = $this->input->get('month');
+    
+    $data['year'] = $year;
+    // Replace underscores with spaces and capitalize for the title (e.g. "ovarian_prp" -> "OVARIAN PRP")
+    $data['type_title'] = str_replace('_', ' ', strtoupper($type)); 
+
+    // Fetch records based on the type selected
+    switch ($type) {
+        case 'consultation':
+            $data['records'] = $this->accounts_model->get_yearly_consultations($year, $type, $month, $center);
+            break;
+
+		case 'first_visit':
+            $data['records'] = $this->accounts_model->get_yearly_first_visit($year, $type, $month, $center);
+            break;	
+
+        case 'stem_cell':
+            $data['records'] = $this->accounts_model->get_yearly_ovarian_stem($year, $type, $month, $center);
+            break;
+
+        case 'testicular_stem_cell':
+            $data['records'] = $this->accounts_model->get_yearly_testicular_stem($year, $type, $month, $center);
+            break;
+
+        case 'ovarian_prp':
+            $data['records'] = $this->accounts_model->get_yearly_ovarian_prp($year, $type, $month, $center);
+            break;
+
+        case 'ovum_pickup':
+            $data['records'] = $this->accounts_model->get_yearly_ovum_pickup($year, $type, $month, $center);
+            break;
+
+        case 'fresh_cycle_et':
+            $data['records'] = $this->accounts_model->get_yearly_embryo_transfer($year, $type, $month, $center);
+            break;
+
+        case 'fet':
+            $data['records'] = $this->accounts_model->get_yearly_fet($year, $type, $month, $center);
+            break;
+
+        case 'iui':
+            $data['records'] = $this->accounts_model->get_yearly_iui($year, $type, $month, $center);
+            break;
+
+        case 'ivf':
+            $data['records'] = $this->accounts_model->get_yearly_ivf($year, $type, $month, $center);
+            break;
+
+        case 'icsi':
+            $data['records'] = $this->accounts_model->get_yearly_icsi($year, $type, $month, $center);
+            break;
+
+        case 'tesa_mtesa':
+            $data['records'] = $this->accounts_model->get_yearly_tesa_mtesa($year, $type, $month, $center);
+            break;
+
+        case 'testicular_prp':
+            $data['records'] = $this->accounts_model->get_yearly_testicular_prp($year, $type, $month, $center);
+            break;
+
+		case 'sperm_mobil':
+			$data['records'] = $this->accounts_model->get_yearly_sperm_mobil($year, $type, $month, $center);
+			break;	
+
+		case 'blastocyst':
+            $data['records'] = $this->accounts_model->get_yearly_blastocyst($year, $type, $month, $center);
+            break;
+			
+		case 'lah':
+            $data['records'] = $this->accounts_model->get_yearly_lah($year, $type, $month, $center);
+            break;	
+
+		case 'embryo_glue':
+            $data['records'] = $this->accounts_model->get_yearly_embryo_glue($year, $type, $month, $center);
+            break;	
+
+        default:
+            $data['records'] = [];
+            break;
+    }
+	//$data['all_method'] = $this->all_method;
+ 	$template = get_header_template($logg['role']);
+	$this->load->view($template['header']);
+    $this->load->view('accounts/clinical_details_view', $data);
+	$this->load->view($template['footer']);
+    
+}
 
 
 } // End of class - MAKE SURE THIS IS THE LAST LINE

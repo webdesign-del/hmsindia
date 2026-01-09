@@ -52,6 +52,7 @@
         <tr>
             <th>YEAR</th>
             <th>CONSULTATION</th>
+			<th>FIRST VISIT</th>
             <th>STEM CELL</th>
 			<th>TESTICULAR STEM CELL</th>
 			<th>OVARIAN PRP</th>
@@ -63,6 +64,10 @@
 			<th>ICSI</th>
 			<th>TESA/MTESE</th>
 			<th>TESTICULAR/PRP</th>
+			<th>SPERM MOBIL</th>
+			<th>BLASTOCYST</th>
+			<th>LAH</th>
+			<th>EMBRYO GLUE</th>
         </tr>
     </thead>
     <tbody>
@@ -86,6 +91,21 @@ $sql_consult = "
 ";
 
 $consult_data = $this->db->query($sql_consult, [$center])->result_array();
+
+/* ===============================
+   1. FETCH FIRST CONSULTATION YEAR-WISE
+=================================*/
+$sql_appoitmented = "
+    SELECT 
+        YEAR(appoitmented_date) AS year,
+        COUNT(*) AS total_appoitmented
+    FROM hms_appointments
+    WHERE reason_of_visit ='First Visit' and status = 'consultation_done'
+    AND appoitment_for = ?
+    GROUP BY YEAR(appoitmented_date)
+";
+
+$appoitmented_data = $this->db->query($sql_appoitmented, [$center])->result_array();
 
 /* ===============================
    2. FETCH STEM CELL YEAR-WISE
@@ -262,8 +282,76 @@ $tesatese_data = $this->db->query($sql_tesatese, [$center])->result_array();
 $testicular_prp_data = $this->db->query($sql_testicular_prp, [$center])->result_array();
 
 /* ===============================
+   9. FETCH IVF YEAR-WISE
+=================================*/
+ $sql_Sperm_Mobil = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_Sperm_Mobil
+    FROM ovum_discharge_summary
+    WHERE Sperm_Mobil='Yes' AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$Sperm_Mobil_data = $this->db->query($sql_Sperm_Mobil, [$center])->result_array();
+
+/* ===============================
+   7. FETCH Blastocyst YEAR-WISE
+=================================*/
+ $sql_Blastocyst = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_Blastocyst
+    FROM embryology_discharge_summary
+    WHERE Blastocyst = 'Yes'
+    AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$Blastocyst_data = $this->db->query($sql_Blastocyst, [$center])->result_array();
+
+/* ===============================
+   7. FETCH LAH YEAR-WISE
+=================================*/
+ $sql_lah = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_lah
+    FROM embryology_discharge_summary
+    WHERE Laser_Assisted = 'Yes'
+    AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$lah_data = $this->db->query($sql_lah, [$center])->result_array();
+
+/* ===============================
+   7. FETCH LAH YEAR-WISE
+=================================*/
+ $sql_Embryo_Glue = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_Embryo_Glue
+    FROM embryology_discharge_summary
+    WHERE Embryo_Glue = 'Yes'
+    AND center = ?
+    AND date_of_procedure IS NOT NULL
+    GROUP BY YEAR(date_of_procedure)
+";
+
+$Embryo_Glue_data = $this->db->query($sql_Embryo_Glue, [$center])->result_array();
+
+/* ===============================
    3. INDEX STEM DATA BY YEAR
 =================================*/
+$appoitmented_by_year = [];
+foreach ($appoitmented_data as $s) {
+    $appoitmented_by_year[$s['year']] = $s['total_appoitmented'];
+}
+
 $stem_by_year = [];
 foreach ($stem_data as $s) {
     $stem_by_year[$s['year']] = $s['total_stem'];
@@ -318,6 +406,26 @@ $testicular_prp_by_year = [];
 foreach ($testicular_prp_data as $s) {
     $testicular_prp_by_year[$s['year']] = $s['total_testicular_prp'];
 }
+
+$Sperm_Mobil_by_year = [];
+foreach ($Sperm_Mobil_data as $s) {
+    $Sperm_Mobil_by_year[$s['year']] = $s['total_Sperm_Mobil'];
+}
+
+$Blastocyst_by_year = [];
+foreach ($Blastocyst_data as $s) {
+    $Blastocyst_by_year[$s['year']] = $s['total_Blastocyst'];
+}
+
+$lah_by_year = [];
+foreach ($lah_data as $s) {
+    $lah_by_year[$s['year']] = $s['total_lah'];
+}
+
+$Embryo_Glue_by_year = [];
+foreach ($Embryo_Glue_data as $s) {
+    $Embryo_Glue_by_year[$s['year']] = $s['total_Embryo_Glue'];
+}
 /* ===============================
    4. MERGE & DISPLAY
 =================================*/
@@ -326,6 +434,7 @@ if (!empty($consult_data)) {
 
         $year = $row['year'];
         $consult_count = $row['total_consultations'];
+		$appoitmented_count = isset($appoitmented_by_year[$year]) ? $appoitmented_by_year[$year] : 0;
         $stem_count = isset($stem_by_year[$year]) ? $stem_by_year[$year] : 0;
 		$testi_count = isset($testi_by_year[$year]) ? $testi_by_year[$year] : 0;
 		$ovum_pickup_count = isset($ovum_pickup_by_year[$year]) ? $ovum_pickup_by_year[$year] : 0;
@@ -337,6 +446,10 @@ if (!empty($consult_data)) {
 		$icsi_count = isset($icsi_by_year[$year]) ? $icsi_by_year[$year] : 0;
 		$tesatese_count = isset($tesatese_by_year[$year]) ? $tesatese_by_year[$year] : 0;
 		$testicular_prp_count = isset($testicular_prp_by_year[$year]) ? $testicular_prp_by_year[$year] : 0;
+		$Sperm_Mobil_count = isset($Sperm_Mobil_by_year[$year]) ? $Sperm_Mobil_by_year[$year] : 0;
+		$Blastocyst_count = isset($Blastocyst_by_year[$year]) ? $Blastocyst_by_year[$year] : 0;
+		$lah_count = isset($lah_by_year[$year]) ? $lah_by_year[$year] : 0;
+		$Embryo_Glue_count = isset( $Embryo_Glue_by_year[$year]) ?  $Embryo_Glue_by_year[$year] : 0;
         ?>
         <tr>
             <td>
@@ -345,6 +458,7 @@ if (!empty($consult_data)) {
     </a>
 </td>
             <td><?php echo $consult_count; ?></td>
+			<td><?php echo $appoitmented_count; ?></td>
             <td><?php echo $stem_count; ?></td>
 			<td><?php echo $testi_count; ?></td>
 			<td><?php echo $varian_prp_count; ?></td>
@@ -356,6 +470,10 @@ if (!empty($consult_data)) {
 			<td><?php echo $icsi_count; ?></td>
 			<td><?php echo $tesatese_count; ?></td>
 			<td><?php echo $testicular_prp_count; ?></td>
+			<td><?php echo $Sperm_Mobil_count; ?></td>
+			<td><?php echo $Blastocyst_count; ?></td>
+			<td><?php echo $lah_count; ?></td>
+			<td><?php echo $Embryo_Glue_count; ?></td>
         </tr>
         <?php
     }
