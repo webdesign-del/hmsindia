@@ -265,11 +265,11 @@
                                     <label class="col-sm-2 control-label">Stock Location *</label>
                                     <div class="col-sm-10">
                                         <label class="radio-inline">
-                                            <input type="radio" name="stock_location" id="stock_location_central" value="central" checked onchange="toggleCenterFields()">
+                                            <input type="radio" name="stock_location" id="stock_location_central" value="central" checked>
                                             Central Stock
                                         </label>
                                         <label class="radio-inline" style="margin-left: 20px;">
-                                            <input type="radio" name="stock_location" id="stock_location_center" value="center" onchange="toggleCenterFields()">
+                                            <input type="radio" name="stock_location" id="stock_location_center" value="center">
                                             Center Stock
                                         </label>
                                     </div>
@@ -301,8 +301,29 @@
                                 <div class="form-group">
                                     <label class="col-sm-4 control-label">Department</label>
                                     <div class="col-sm-8">
-                                        <input type="text" name="department" id="department" class="form-control" placeholder="Enter department (default: GENERAL)" value="<?php echo set_value('department', 'GENERAL'); ?>">
-                                        <small class="help-block">Leave empty for GENERAL department</small>
+                                        <select name="department" id="department" class="form-control">
+                                            <option value="">Select Department</option>
+                                            <option value="CASH MEDICINE NOIDA">CASH MEDICINE NOIDA</option>
+                                            <option value="CASH MEDICINE GGN">CASH MEDICINE GGN</option>
+                                            <option value="CASH MEDICINE BASANT LOK">CASH MEDICINE BASANT LOK</option>
+                                            <option value="CASH MEDICINE SRINAGAR">CASH MEDICINE SRINAGAR</option>
+                                            <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
+                                            <option value="CASH MEDICINE ROHINI">CASH MEDICINE ROHINI</option>
+                                            <option value="HORMONAL ROHINI">HORMONAL ROHINI</option>
+                                            <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
+                                            <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
+                                            <option value="Hormonal Basant Lok">Hormonal Basant Lok</option>
+                                            <option value="Hormonal Gurgaon">Hormonal Gurgaon</option>
+                                            <option value="Hormonal Noida">Hormonal Noida</option>
+                                            <option value="Embryologist Noida">Embryologist Noida</option>
+                                            <option value="OT Noida">OT Noida</option>
+                                            <option value="OT Basant Lok">OT Basant Lok</option>
+                                            <option value="Embryology Basant Lok">Embryology Basant Lok</option>
+                                            <option value="Embryology Srinagar">Embryology Srinagar</option>
+                                            <option value="OT Srinagar">OT Srinagar</option>
+                                        </select>
+                                        <!-- <input type="text" name="department" id="department" class="form-control" placeholder="Enter department (default: GENERAL)" value="<?php echo set_value('department', 'GENERAL'); ?>"> -->
+                                        <!-- <small class="help-block">Leave empty for GENERAL department</small> -->
                                     </div>
                                 </div>
                             </div>
@@ -508,7 +529,7 @@ $(document).ready(function() {
         var stockLocation = document.querySelector('input[name="stock_location"]:checked').value;
         var centerFields = document.getElementById('center_fields');
         var centerSelect = document.getElementById('center_id');
-        
+
         if (stockLocation === 'center') {
             centerFields.style.display = 'block';
             centerSelect.setAttribute('required', 'required');
@@ -518,7 +539,12 @@ $(document).ready(function() {
             centerSelect.value = '';
         }
     }
-    
+
+    // Add event listeners for stock location radio buttons
+    $('input[name="stock_location"]').on('change', function() {
+        toggleCenterFields();
+    });
+
     // Initialize on page load
     toggleCenterFields();
 });

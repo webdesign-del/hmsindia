@@ -156,6 +156,8 @@
                                                 <option value="OT DCI" <?php echo set_select('category', 'OT DCI'); ?>>OT DCI</option>
                                                 <option value="EMBRYOLOGIST DCI" <?php echo set_select('category', 'EMBRYOLOGIST DCI'); ?>>EMBRYOLOGIST DCI</option>
                                                 <option value="Cash Medicines" <?php echo set_select('category', 'Cash Medicines'); ?>>Cash Medicines</option>
+                                                <option value="house keeping item" <?php echo set_select('category', 'house keeping item'); ?>>house keeping item</option>
+                                                <option value="stationery item" <?php echo set_select('category', 'stationery item'); ?>>stationery item</option>
                                                 <!-- <option value="PPI" <?php echo set_select('category', 'PPI'); ?>>PPI</option>
                                                 <option value="Steroid" <?php echo set_select('category', 'Steroid'); ?>>Steroid</option>
                                                 <option value="Vitamin" <?php echo set_select('category', 'Vitamin'); ?>>Vitamin</option>
