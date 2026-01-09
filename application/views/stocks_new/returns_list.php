@@ -75,8 +75,9 @@
                                 <table class="table table-striped table-bordered table-hover" id="returnsTable">
                                     <thead>
                                         <tr>
-                                            <th>Return #</th>
+                                            <th>Return #</th>   
                                             <th>Patient</th>
+                                            <th>Patient ID</th>
                                             <th>Receipt #</th>
                                             <th>Center</th>
                                             <th>Department</th>
@@ -94,6 +95,7 @@
                                             <tr>
                                                 <td><strong><?php echo htmlspecialchars($return->return_number); ?></strong></td>
                                                 <td><?php echo htmlspecialchars($return->patient_name); ?></td>
+                                                <td><?php echo htmlspecialchars($return->patient_id); ?></td>
                                                 <td><?php echo htmlspecialchars($return->receipt_number); ?></td>
                                                 <td><?php echo htmlspecialchars($return->center_name ?? 'N/A'); ?></td>
                                                 <td><?php echo htmlspecialchars($return->department ?? 'N/A'); ?></td>
@@ -107,12 +109,47 @@
                                                 <td><?php echo $return->total_items ?? '0'; ?></td>
                                                 <td>₹<?php echo number_format($return->total_return_amount ?? 0, 2); ?></td>
                                                 <td>
-                                                    <span class="badge badge-success">COMPLETED</span>
+                                                    <?php
+                                                    $status_class = '';
+                                                    $status_text = '';
+                                                    switch(strtoupper($return->status ?? 'PENDING')) {
+                                                        case 'PENDING':
+                                                            $status_class = 'badge-warning';
+                                                            $status_text = 'PENDING';
+                                                            break;
+                                                        case 'APPROVED':
+                                                            $status_class = 'badge-success';
+                                                            $status_text = 'APPROVED';
+                                                            break;
+                                                        case 'REJECTED':
+                                                            $status_class = 'badge-danger';
+                                                            $status_text = 'REJECTED';
+                                                            break;
+                                                        default:
+                                                            $status_class = 'badge-secondary';
+                                                            $status_text = strtoupper($return->status ?? 'UNKNOWN');
+                                                    }
+                                                    ?>
+                                                    <span class="badge <?php echo $status_class; ?>"><?php echo $status_text; ?></span>
                                                 </td>
                                                 <td>
                                                     <a href="<?php echo base_url('stocks_new/view_return/' . $return->id); ?>" class="btn btn-info btn-sm">
                                                         <i class="fa fa-eye"></i> View
                                                     </a>
+                                                    <?php 
+                                                    // Check if user is from account team
+                                                    $is_accountant = isset($_SESSION['logged_accountant']) && !empty($_SESSION['logged_accountant']);
+                                                    ?>
+                                                    <?php if($is_accountant): ?>
+                                                    <?php if(($return->status ?? 'PENDING') === 'PENDING'): ?>
+                                                        <a href="<?php echo base_url('stocks_new/approve_return/' . $return->id); ?>" class="btn btn-success btn-sm" onclick="return confirm('Are you sure you want to approve this return? This will add the returned stock back to inventory.')">
+                                                            <i class="fa fa-check"></i> Approve
+                                                        </a>
+                                                        <a href="<?php echo base_url('stocks_new/disapprove_return/' . $return->id); ?>" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to disapprove this return? This will reject the return request.')">
+                                                            <i class="fa fa-times"></i> Disapprove
+                                                        </a>
+                                                    <?php endif; ?>
+                                                    <?php endif; ?>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

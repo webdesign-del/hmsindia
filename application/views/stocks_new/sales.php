@@ -120,6 +120,12 @@
                                 <button type="button" class="btn btn-danger" onclick="exportSalesList('pdf')">
                                     <i class="fa fa-file-pdf-o"></i> Export PDF
                                 </button>
+                                <button type="button" class="btn btn-info" onclick="exportDetailedSales('excel')">
+                                    <i class="fa fa-file-excel-o"></i> Export All Items (Excel)
+                                </button>
+                                <button type="button" class="btn btn-warning" onclick="exportDetailedSales('pdf')">
+                                    <i class="fa fa-file-pdf-o"></i> Export All Items (PDF)
+                                </button>
                             </div>
                             <?php endif; ?>
                         </form>
@@ -178,7 +184,7 @@
                                         <th>Payment</th>
                                         <th>Payment Mode</th>
                                         <th>Payment Method</th>
-                                        <th>Remarks</th>
+                                        <!-- <th>Remarks</th> -->
                                         <th>Status</th>
                                         <th>Approval</th>
                                         <th>Approved By</th>
@@ -247,7 +253,7 @@
                                                     </select>
                                                 </td>
                                                 <td><?php echo isset($sale->payment_method) ? htmlspecialchars($sale->payment_method) : 'N/A'; ?></td>
-                                                <td><?php echo isset($sale->remarks) ? htmlspecialchars($sale->remarks) : 'N/A'; ?></td>
+                                                <!-- <td><?php echo isset($sale->remarks) ? htmlspecialchars($sale->remarks) : 'N/A'; ?></td> -->
                                                 <td>
                                                     <?php if(isset($sale->status) && !empty($sale->status)): ?>
                                                     <span class="badge <?php 
@@ -629,7 +635,7 @@ $(document).ready(function() {
     var rows = tbody.find('tr');
     var validRows = rows.filter(function() {
         // Check if row has proper number of cells and is not the "no data" row
-        return $(this).find('td').length === 20 && !$(this).find('td[colspan]').length;
+        return $(this).find('td').length === 19 && !$(this).find('td[colspan]').length;
     });
     
     console.log('Total rows:', rows.length);
@@ -641,7 +647,7 @@ $(document).ready(function() {
                 "pageLength": 25,
                 "order": [[ 5, "desc" ]], // Sort by date descending
                 "columnDefs": [
-                    { "orderable": false, "targets": [18, 19] } // Approved By, Actions columns
+                    { "orderable": false, "targets": [17, 18] } // Approved By, Actions columns
                 ],
                 "responsive": true,
                 "autoWidth": false,
@@ -1182,6 +1188,30 @@ $(document).ready(function() {
         if(dateFrom) url += '&date_from=' + dateFrom;
         if(dateTo) url += '&date_to=' + dateTo;
         
+        // Open in new window for download
+        window.open(url, '_blank');
+    };
+
+    window.exportDetailedSales = function(format) {
+        // Get current filter values
+        var centerId = $('select[name="center_id"]').val() || '';
+        var patientId = $('input[name="patient_id"]').val() || '';
+        var patientName = $('input[name="patient_name"]').val() || '';
+        var status = $('select[name="status"]').val() || '';
+        var approvalStatus = $('select[name="approval_status"]').val() || '';
+        var dateFrom = $('input[name="date_from"]').val() || '';
+        var dateTo = $('input[name="date_to"]').val() || '';
+
+        // Build export URL with filters
+        var url = '<?php echo base_url("stocks_new/get_detailed_sales_for_export"); ?>?format=' + format;
+        if(centerId) url += '&center_id=' + centerId;
+        if(patientId) url += '&patient_id=' + patientId;
+        if(patientName) url += '&patient_name=' + patientName;
+        if(status) url += '&status=' + status;
+        if(approvalStatus) url += '&approval_status=' + approvalStatus;
+        if(dateFrom) url += '&date_from=' + dateFrom;
+        if(dateTo) url += '&date_to=' + dateTo;
+
         // Open in new window for download
         window.open(url, '_blank');
     };

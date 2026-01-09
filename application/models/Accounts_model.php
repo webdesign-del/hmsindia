@@ -6973,6 +6973,30 @@ public function monthly_consultation($center, $year)
     return $this->db->query($sql, $params)->result_array();
 }
 
+public function monthly_first_appointment($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND appoitment_for = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+        SELECT 
+            MONTH(appoitmented_date) AS month,
+            COUNT(*) AS total
+        FROM hms_appointments
+        WHERE reason_of_visit ='First Visit' and status = 'consultation_done'
+        AND YEAR(appoitmented_date) = ?
+        $where
+        GROUP BY MONTH(appoitmented_date)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
 public function monthly_ovarian_stem($center, $year)
 {
     $where = "";
@@ -7236,6 +7260,389 @@ public function testicular_prp_monthly($center, $year)
 
     return $this->db->query($sql, $params)->result_array();
 }
+
+public function Sperm_Mobil_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM ovum_discharge_summary
+    WHERE Sperm_Mobil='Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function Blastocyst_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM embryology_discharge_summary
+    WHERE Blastocyst = 'Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function lah_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM embryology_discharge_summary
+    WHERE Laser_Assisted = 'Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function Embryo_Glue_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM embryology_discharge_summary
+    WHERE Embryo_Glue = 'Yes'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
     
+// 1. Consultations
+  public function get_yearly_consultations($year) {
+    $this->db->select('*'); 
+    $this->db->from('hms_appointments'); 
+    
+    // Filter by Year
+    $this->db->where('YEAR(appoitmented_date)', $year);
+    
+    // Filter by Status (Corrected Syntax)
+    $this->db->where('status', 'consultation_done'); 
+    
+    $this->db->order_by('appoitmented_date', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+// 1. Consultations
+public function get_yearly_first_visit($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name'); 
+    $this->db->from('hms_appointments as t'); 
+    $this->db->join('hms_centers as c', 'c.center_number = t.appoitment_for', 'left');
+    $this->db->where('t.status', 'consultation_done'); 
+    $this->db->where('t.reason_of_visit', 'First Visit'); 
+    $this->db->where('YEAR(t.appoitmented_date)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.appoitmented_date)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.appoitment_for', $center);
+    }
+    $this->db->order_by('t.appoitmented_date', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_ovarian_stem($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('ovarian_prp_discharge_summary as t'); 
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+	$this->db->where('t.procedure_name', 'STEM CELL'); 
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+	if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+	if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_testicular_stem($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('testicular_prp_discharge_summary as t'); 
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('t.procedures', 'Testicular Stem Cell'); 
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_ovarian_prp($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('ovarian_prp_discharge_summary as t'); 
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('t.procedure_name', 'Ovarian PRP'); 
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_ovum_pickup($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('ovum_pickup_discharge_summary as t'); 
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_embryo_transfer($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('embryology_discharge_summary as t'); 
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('t.Embryo_Transfer', 'Yes'); 
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_fet($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('embryology_discharge_summary as t'); 
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('t.FET', 'Yes'); 
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_iui($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('iui_discharge_summary as t');
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_ivf($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('ovum_discharge_summary as t');
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('t.IVF', 'Yes');
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_icsi($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('ovum_discharge_summary as t');
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('t.ICSI', 'Yes');
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_tesa_mtesa($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+	$this->db->from('pesa_tesatesemicro_tese_discharge_summary as t');
+	$this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+	$this->db->where_in('t.procedures', array('TESA', 'TESE')); 
+	$this->db->where('YEAR(t.date_of_procedure)', $year, FALSE);
+	if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+	if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+	$this->db->order_by('t.updated_at', 'DESC');    
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_testicular_prp($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('testicular_prp_discharge_summary as t'); 
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('t.procedures', 'Testicular PRP (TPRP)'); 
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_sperm_mobil($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    $this->db->from('ovum_discharge_summary as t'); 
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('t.Sperm_Mobil', 'Yes'); 
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+	
+public function get_yearly_blastocyst($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name'); 
+    $this->db->from('embryology_discharge_summary as t'); 
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+	$this->db->where('t.Blastocyst', 'Yes'); 
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    $this->db->order_by('t.updated_at', 'DESC');
+    $query = $this->db->get();
+    return $query->result_array();
+}
+
+public function get_yearly_lah($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    if($type == 'lah') {
+        $this->db->from('embryology_discharge_summary as t');
+        $this->db->where('t.Laser_Assisted', 'Yes');
+    }
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+    $this->db->where('YEAR(t.date_of_procedure)', $year);
+    if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+    if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    return $this->db->get()->result_array();
+}
+
+public function get_yearly_embryo_glue($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    if($type == 'embryo_glue') {
+        $this->db->from('embryology_discharge_summary as t');
+        $this->db->where('t.Embryo_Glue', 'Yes');
+    }
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+	$this->db->where('YEAR(t.date_of_procedure)', $year);
+	if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+	if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    return $this->db->get()->result_array();
+}
 
 }

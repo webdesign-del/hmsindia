@@ -44,21 +44,26 @@
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Patient ID *</label>
                                         <div class="col-sm-8">
-                                            <input type="text" name="patient_id" class="form-control" placeholder="Enter Patient ID" value="<?php echo set_value('patient_id'); ?>" required>
+                                            <input type="text" name="patient_id" id="patient_id" class="form-control" placeholder="Enter Patient ID" value="<?php echo set_value('patient_id'); ?>" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" id="patient_receipts_section" style="display: none;">
+                                        <label class="col-sm-4 control-label">Search & Select Receipt *</label>
+                                        <div class="col-sm-8">
+                                            <select name="receipt_number" id="receipt_select" class="form-control receipt-select2" required style="width: 100%;">
+                                                <option value="">Search and select a receipt...</option>
+                                            </select>
+                                            <small class="help-block text-muted">
+                                                <i class="fa fa-search"></i> Search by receipt number, patient name, or date
+                                            </small>
                                         </div>
                                     </div>
 
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Patient Name *</label>
                                         <div class="col-sm-8">
-                                            <input type="text" name="patient_name" class="form-control" placeholder="Enter Patient Name" value="<?php echo set_value('patient_name'); ?>" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label class="col-sm-4 control-label">Receipt Number *</label>
-                                        <div class="col-sm-8">
-                                            <input type="text" name="receipt_number" class="form-control" placeholder="Enter Receipt Number" value="<?php echo set_value('receipt_number'); ?>" required>
+                                            <input type="text" name="patient_name" id="patient_name" class="form-control" placeholder="Patient name will auto-fill" value="<?php echo set_value('patient_name'); ?>" required readonly>
                                         </div>
                                     </div>
                                 </div>
@@ -164,7 +169,7 @@
                                                     <th>Batch</th>
                                                     <th>Quantity Sold</th>
                                                     <th>Return Quantity</th>
-                                                    <th>Quentity Price</th>
+                                                    <th>Quantity Price</th>
                                                     <th>Return Amount</th>
                                                     <th>Discount (%)</th>
                                                     <th>Discount Amount</th>
@@ -175,8 +180,8 @@
                                             <tbody>
                                                 <tr>
                                                     <td>
-                                                        <select name="return_items[0][batch_id]" class="form-control batch_select" required>
-                                                            <option value="">Select Medicine</option>
+                                                        <select name="return_items[0][batch_id]" class="form-control batch_select medicine-select2" required style="width: 100%;">
+                                                            <option value="">Search and select medicine...</option>
                                                             <?php if(isset($available_batches) && !empty($available_batches)): ?>
                                                                 <?php foreach($available_batches as $batch): ?>
                                                                     <option value="<?php echo isset($batch->batch_id) ? $batch->batch_id : $batch->id; ?>"
@@ -218,9 +223,10 @@
                                             </tbody>
                                         </table>
                                     </div>
-                                    <button type="button" class="btn btn-success" id="add_return_item">
+                                    <button type="button" class="btn btn-success" id="add_return_item" disabled>
                                         <i class="fa fa-plus"></i> Add Item
                                     </button>
+                                    <small id="add_item_help" class="text-muted">Please select a patient and receipt first</small>
                                 </div>
                             </div>
 
@@ -314,21 +320,230 @@
     </div>
 </div>
 
+<style>
+.select2-container--default .select2-selection--single {
+    height: 34px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #555;
+    line-height: 32px;
+    padding-left: 12px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #999;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 32px;
+}
+
+.select2-container .select2-selection__clear {
+    color: #999;
+    cursor: pointer;
+    float: right;
+    font-weight: bold;
+    margin-right: 30px;
+}
+
+.receipt-select2 .select2-results__option {
+    padding: 8px 12px;
+}
+
+.receipt-select2 .select2-results__option strong {
+    color: #333;
+}
+
+.receipt-select2 .select2-results__option .text-muted {
+    color: #777;
+    font-size: 0.9em;
+}
+
+.receipt-select2 .select2-results__option .text-success {
+    color: #5cb85c;
+    font-weight: bold;
+}
+
+.receipt-select2 .select2-results__option .badge {
+    background-color: #337ab7;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8em;
+}
+
+/* Medicine Selection Select2 Styling */
+.medicine-select2 .select2-results__option {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.medicine-select2 .select2-results__option strong {
+    color: #333;
+    font-size: 1.1em;
+}
+
+.medicine-select2 .select2-results__option .text-muted {
+    color: #777;
+    font-size: 0.9em;
+}
+
+.medicine-select2 .select2-results__option .batch-info {
+    color: #666;
+    font-size: 0.85em;
+    margin-top: 2px;
+}
+
+.medicine-select2 .select2-results__option .available-qty {
+    color: #5cb85c;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.medicine-select2 .select2-results__option .price-info {
+    color: #337ab7;
+    font-weight: bold;
+    margin-left: 10px;
+}
+</style>
+
 <script>
 $(document).ready(function() {
     var rowCount = 1;
+    var currentFilteredBatches = []; // Store current filtered batches
+
+    // Initialize with available batches from server
+    <?php if(isset($available_batches) && !empty($available_batches)): ?>
+        currentFilteredBatches = <?php echo json_encode($available_batches); ?>;
+    <?php endif; ?>
+
+    // Initialize Select2 for receipt selection
+    $('#receipt_select').select2({
+        placeholder: 'Search and select a receipt...',
+        allowClear: true,
+        width: '100%',
+        escapeMarkup: function (markup) {
+            return markup;
+        },
+        templateResult: function(receipt) {
+            if (!receipt.id) {
+                return receipt.text;
+            }
+            var $element = $(receipt.element);
+            var saleNumber = $element.attr('data-sale-number') || receipt.text.split(' - ')[0];
+            var date = $element.attr('data-sale-date') || receipt.text.split(' - ')[1];
+            var amount = $element.attr('data-total-amount') || receipt.text.split(' - ₹')[1].split(' ')[0];
+            var itemCount = $element.attr('data-item-count') || receipt.text.split('(')[1].split(' ')[0];
+            var patientName = $element.attr('data-patient-name') || '';
+
+            return $('<span>' +
+                '<strong>' + saleNumber + '</strong> - ' +
+                '<span class="text-muted">' + date + '</span> - ' +
+                '<span class="text-success">₹' + amount + '</span> ' +
+                '<span class="badge">' + itemCount + ' items</span>' +
+                (patientName ? '<br><small class="text-info">' + patientName + '</small>' : '') +
+                '</span>');
+        },
+        templateSelection: function(receipt) {
+            if (!receipt.id) {
+                return receipt.text;
+            }
+            var $element = $(receipt.element);
+            var saleNumber = $element.attr('data-sale-number') || receipt.text.split(' - ')[0];
+            return saleNumber;
+        }
+    });
+
+    // Initialize Select2 for medicine/batch selection
+    function initializeMedicineSelect2($select) {
+        $select.select2({
+            placeholder: 'Search and select medicine...',
+            allowClear: true,
+            width: '100%',
+            escapeMarkup: function (markup) {
+                return markup;
+            },
+            templateResult: function(medicine) {
+                if (!medicine.id) {
+                    return medicine.text;
+                }
+                var $element = $(medicine.element);
+                var medicineName = $element.attr('data-medicine') || 'Unknown';
+                var batchNumber = $element.attr('data-batch-number') || 'N/A';
+                var availableQty = $element.attr('data-sold-qty') || 0;
+                var price = $element.attr('data-price') || 0;
+                var packSize = $element.attr('data-pack-size') || 1;
+
+                return $('<span>' +
+                    '<strong>' + medicineName + '</strong><br>' +
+                    '<span class="batch-info">Batch: ' + batchNumber + '</span>' +
+                    '<span class="available-qty">Available: ' + availableQty + '</span>' +
+                    '<span class="price-info">₹' + parseFloat(price).toFixed(2) + (packSize > 1 ? ' (per ' + packSize + ')' : '') + '</span>' +
+                    '</span>');
+            },
+            templateSelection: function(medicine) {
+                if (!medicine.id) {
+                    return medicine.text;
+                }
+                var $element = $(medicine.element);
+                var medicineName = $element.attr('data-medicine') || 'Unknown';
+                var batchNumber = $element.attr('data-batch-number') || 'N/A';
+                return medicineName + ' - ' + batchNumber;
+            }
+        });
+    }
+
+    // Initialize Select2 for existing medicine dropdowns
+    $('.batch_select').each(function() {
+        initializeMedicineSelect2($(this));
+    });
+
+    // Function to update Add Item button state
+    function updateAddItemButton() {
+        var $button = $('#add_return_item');
+        var $help = $('#add_item_help');
+
+        if (currentFilteredBatches && currentFilteredBatches.length > 0) {
+            $button.prop('disabled', false);
+            $help.text('Click to add another medicine to return');
+        } else {
+            $button.prop('disabled', true);
+            $help.text('Please select a patient and receipt first');
+        }
+    }
+
+    // Initialize button state
+    updateAddItemButton();
 
     // Add new return item row
     $('#add_return_item').click(function() {
+        if ($(this).prop('disabled')) {
+            return false;
+        }
+
         var newRow = '<tr>' +
-            '<td><select name="return_items[' + rowCount + '][batch_id]" class="form-control batch_select" required>' +
-            '<option value="">Select Medicine</option>' +
-            '<?php if(isset($available_batches) && !empty($available_batches)): ?>' +
-            '<?php foreach($available_batches as $batch): ?>' +
-            '<option value="<?php echo isset($batch->batch_id) ? $batch->batch_id : $batch->id; ?>" data-medicine="<?php echo isset($batch->medicine_name) ? $batch->medicine_name : 'Unknown'; ?>" data-batch-number="<?php echo isset($batch->batch_number) ? $batch->batch_number : 'N/A'; ?>" data-pack-size="<?php echo isset($batch->pack_size) ? $batch->pack_size : 'N/A'; ?>" data-price="<?php echo isset($batch->selling_price) ? $batch->selling_price : 0; ?>" data-sold-qty="<?php echo isset($batch->quantity_sold) ? $batch->quantity_sold : 0; ?>"><?php echo (isset($batch->medicine_name) ? $batch->medicine_name : 'Unknown') . ' - ' . (isset($batch->batch_number) ? $batch->batch_number : 'N/A'); ?></option>' +
-            '<?php endforeach; ?>' +
-            '<?php endif; ?>' +
-            '</select></td>' +
+            '<td><select name="return_items[' + rowCount + '][batch_id]" class="form-control batch_select medicine-select2" required style="width: 100%;">' +
+            '<option value="">Search and select medicine...</option>';
+
+        // Use current filtered batches instead of server-side PHP
+        if (currentFilteredBatches && currentFilteredBatches.length > 0) {
+            currentFilteredBatches.forEach(function(batch) {
+                var optionText = (batch.medicine_name || 'Unknown') + ' - ' + (batch.batch_number || 'N/A') +
+                               ' (Available: ' + (batch.available_for_return || 0) + ')';
+                newRow += '<option value="' + (batch.batch_id || batch.id) + '" ' +
+                         'data-medicine="' + (batch.medicine_name || 'Unknown') + '" ' +
+                         'data-batch-number="' + (batch.batch_number || 'N/A') + '" ' +
+                         'data-pack-size="' + (batch.pack_size || 1) + '" ' +
+                         'data-price="' + (batch.selling_price || 0) + '" ' +
+                         'data-sold-qty="' + (batch.available_for_return || 0) + '">' +
+                         optionText + '</option>';
+            });
+        }
+
+        newRow += '</select></td>' +
             '<td><span class="batch_number">-</span></td>' +
             '<td><span class="sold_quantity">-</span></td>' +
             '<td><input type="number" name="return_items[' + rowCount + '][return_quantity]" class="form-control return_quantity" min="1" required></td>' +
@@ -341,6 +556,11 @@ $(document).ready(function() {
             '</tr>';
 
         $('#return_items_table tbody').append(newRow);
+
+        // Initialize Select2 for the new medicine dropdown
+        var $newSelect = $('#return_items_table tbody tr:last .batch_select');
+        initializeMedicineSelect2($newSelect);
+
         rowCount++;
     });
 
@@ -363,8 +583,11 @@ $(document).ready(function() {
             row.find('.batch_number').text(selectedOption.data('batch-number'));
             row.find('.sold_quantity').text(soldQty);
             row.find('.unit_price').text('₹' + unitPrice_MRP.toFixed(2));
-            row.find('.hidden_price').val(price);
+            row.find('.hidden_price').val(unitPrice_MRP);
             row.find('.return_quantity').attr('max', soldQty);
+
+            // Store the batch_id for validation
+            row.find('.return_quantity').data('batch-id', selectedOption.val());
             
             // Validate existing return quantity if it exceeds sold quantity
             var currentReturnQty = parseFloat(row.find('.return_quantity').val()) || 0;
@@ -533,6 +756,212 @@ $(document).ready(function() {
         calculateDiscount();
     });
     */
+    // Handle patient ID change to get receipts
+    $('#patient_id').on('blur', function() {
+        var patientId = $(this).val().trim();
+
+        if (patientId) {
+            // Show loading indicator
+            $(this).parent().append('<i class="fa fa-spinner fa-spin" id="patient-loading"></i>');
+
+            $.ajax({
+                url: '<?php echo base_url("stocks_new/get_patient_receipts"); ?>',
+                type: 'POST',
+                data: { patient_id: patientId },
+                dataType: 'json',
+                success: function(response) {
+                    $('#patient-loading').remove();
+
+                    if (response.success && response.receipts.length > 0) {
+                        // Populate patient name
+                        if (response.receipts[0]) {
+                            $('#patient_name').val(response.receipts[0].patient_name || '');
+                        }
+
+                        // Show receipt selection section
+                        $('#patient_receipts_section').show();
+
+                        // Populate receipt dropdown
+                        updateReceiptsDropdown(response.receipts);
+
+                        showMessage('Patient found. Please select a receipt to return medicines from.', 'success');
+                    } else {
+                        // Hide receipt section if no receipts found
+                        $('#patient_receipts_section').hide();
+                        $('#patient_name').val('');
+                        $('#receipt_select').html('<option value="">Select a receipt</option>');
+                        updateAvailableBatches([]);
+
+                        showMessage('No receipts found for this patient in the last 90 days.', 'warning');
+                    }
+                },
+                error: function() {
+                    $('#patient-loading').remove();
+                    $('#patient_receipts_section').hide();
+                    $('#patient_name').val('');
+                    $('#receipt_select').html('<option value="">Select a receipt</option>');
+                    updateAvailableBatches([]);
+                    showMessage('Error finding patient. Please try again.', 'error');
+                }
+            });
+        } else {
+            // Clear everything if patient ID is empty
+            $('#patient_receipts_section').hide();
+            $('#patient_name').val('');
+            $('#receipt_select').html('<option value="">Select a receipt</option>');
+            updateAvailableBatches([]);
+        }
+    });
+
+    // Handle receipt selection change to load medicines
+    $('#receipt_select').on('change', function() {
+        var receiptNumber = $(this).val();
+
+        if (receiptNumber) {
+            // Show loading indicator
+            $(this).closest('.col-sm-8').append('<i class="fa fa-spinner fa-spin" id="receipt-loading" style="margin-left: 10px;"></i>');
+
+            $.ajax({
+                url: '<?php echo base_url("stocks_new/get_returnable_items"); ?>',
+                type: 'POST',
+                data: { receipt_number: receiptNumber },
+                dataType: 'json',
+                success: function(response) {
+                    $('#receipt-loading').remove();
+
+                    if (response.success) {
+                        // Update available batches for dropdown
+                        updateAvailableBatches(response.batches);
+
+                        showMessage('Medicines loaded successfully. You can now select medicines to return.', 'success');
+                    } else {
+                        updateAvailableBatches([]);
+                        showMessage(response.message || 'Error loading medicines.', 'error');
+                    }
+                },
+                error: function() {
+                    $('#receipt-loading').remove();
+                    updateAvailableBatches([]);
+                    showMessage('Error loading medicines. Please try again.', 'error');
+                }
+            });
+        } else {
+            // Clear medicines if no receipt selected
+            updateAvailableBatches([]);
+        }
+    });
+
+    // Function to update receipts dropdown
+    function updateReceiptsDropdown(receipts) {
+        var $select = $('#receipt_select');
+        $select.empty(); // Clear existing options
+
+        // Add placeholder option
+        var $placeholderOption = $('<option></option>')
+            .val('')
+            .text('Search and select a receipt...');
+        $select.append($placeholderOption);
+
+        if (receipts && receipts.length > 0) {
+            receipts.forEach(function(receipt) {
+                var saleDate = new Date(receipt.sale_date);
+                var formattedDate = saleDate.toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+
+                // Create searchable text that includes multiple fields for better search
+                var searchableText = receipt.sale_number + ' ' +
+                                   (receipt.patient_name || '') + ' ' +
+                                   formattedDate + ' ' +
+                                   receipt.total_amount;
+
+                var displayText = receipt.sale_number + ' - ' +
+                                formattedDate + ' - ₹' +
+                                parseFloat(receipt.total_amount).toFixed(2) + ' (' +
+                                receipt.item_count + ' items)';
+
+                var $option = $('<option></option>')
+                    .val(receipt.sale_number)
+                    .text(displayText)
+                    .attr('data-sale-number', receipt.sale_number)
+                    .attr('data-sale-date', formattedDate)
+                    .attr('data-total-amount', parseFloat(receipt.total_amount).toFixed(2))
+                    .attr('data-item-count', receipt.item_count)
+                    .attr('data-patient-name', receipt.patient_name || '');
+
+                $select.append($option);
+            });
+        }
+
+        // Trigger Select2 update
+        $select.trigger('change.select2');
+    }
+
+    function updateAvailableBatches(batches) {
+        // Store current filtered batches for new row creation
+        currentFilteredBatches = batches || [];
+
+        $('.batch_select').each(function() {
+            var $select = $(this);
+            var currentValue = $select.val();
+
+            // Destroy Select2 instance temporarily
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.select2('destroy');
+            }
+
+            // Clear existing options except placeholder
+            $select.find('option:not(:first)').remove();
+
+            if (batches && batches.length > 0) {
+                batches.forEach(function(batch) {
+                    var medicineName = batch.medicine_name || 'Unknown';
+                    var batchNumber = batch.batch_number || 'N/A';
+                    var availableQty = batch.available_for_return || 0;
+                    var displayText = medicineName + ' - ' + batchNumber + ' (Available: ' + availableQty + ')';
+
+                    var $option = $('<option></option>')
+                        .val(batch.batch_id || batch.id)
+                        .text(displayText)
+                        .attr('data-medicine', medicineName)
+                        .attr('data-batch-number', batchNumber)
+                        .attr('data-pack-size', batch.pack_size || 1)
+                        .attr('data-price', batch.selling_price || 0)
+                        .attr('data-sold-qty', availableQty);
+
+                    $select.append($option);
+                });
+            }
+
+            // Re-initialize Select2
+            initializeMedicineSelect2($select);
+
+            // Restore previous selection if it still exists
+            if (currentValue && $select.find('option[value="' + currentValue + '"]').length > 0) {
+                $select.val(currentValue).trigger('change');
+            }
+        });
+
+        // Update Add Item button state
+        updateAddItemButton();
+    }
+
+    function showMessage(message, type) {
+        var alertClass = type === 'success' ? 'alert-success' :
+                        type === 'warning' ? 'alert-warning' : 'alert-danger';
+        var $alert = $('<div class="alert ' + alertClass + ' alert-dismissable">' +
+                      '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                      message + '</div>');
+        $('.alert').remove();
+        $('.panel-body').prepend($alert);
+        if (type === 'success') {
+            setTimeout(function() {
+                $alert.fadeOut();
+            }, 5000);
+        }
+    }
 });
 </script>
 <!-- medicine_returns`      | Stores the main information about the return event (who returned it, when, why, etc.). This is the "header" record.                        | A **new row is inserted** for every return transaction.                                                                                                     |

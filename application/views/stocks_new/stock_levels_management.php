@@ -321,9 +321,11 @@ $(document).ready(function() {
     <?php if(!empty($stock_levels)): ?>
     $('#stockLevelsTable').DataTable({
         "pageLength": 25,
-        "order": [[ 0, "asc" ], [ 1, "asc" ]], // Sort by Center, then Medicine
+        "order": [[ 6, "asc" ]], 
+        "searching": false,
         "columnDefs": [
-            { "orderable": false, "targets": 9 } // Actions column
+            { "orderable": false, "targets": 9 }, // Actions column
+            { "searchable": false, "targets": 0 } // Hide search input
         ],
         "language": {
             "emptyTable": "No stock level configurations found",

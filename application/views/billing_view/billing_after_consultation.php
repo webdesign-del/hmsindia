@@ -456,7 +456,178 @@
                      </tr>
                   </thead>
                  <tbody>
-                    <?php 	
+                  <?php
+
+                $procedure_discount_map = array();
+
+if (!empty($billing_details['procedure'])) {
+    // 1. Unserialize with error suppression
+    $procedureDataFromBilling = @unserialize($billing_details['procedure']);
+
+    // 2. rigorous checks before looping
+    if ($procedureDataFromBilling !== false 
+        && !empty($procedureDataFromBilling['consumables']) 
+        && is_array($procedureDataFromBilling['consumables'])) {
+
+        foreach ($procedureDataFromBilling['consumables'] as $consumableItem) {
+            
+            // 3. SAFETY FIRST: Ensure the item itself is an array
+            if (!is_array($consumableItem)) {
+                continue; // Skip if it's not an array
+            }
+
+            // 4. Extract ID safely
+            $pID = isset($consumableItem['procedure_ID']) ? $consumableItem['procedure_ID'] : null;
+
+            // 5. Check if ID is valid (must be string or number, NOT an array)
+            if ($pID !== null && is_scalar($pID)) {
+                
+                // 6. Safely get discount
+                $discount = isset($consumableItem['discount']) ? $consumableItem['discount'] : '';
+                
+                // 7. Assign to map using the clean ID
+                $procedure_discount_map[$pID] = $discount;
+            }
+        }
+    }
+}
+
+// 1. Initialize an empty array to store the data
+$stored_procedures = []; 
+
+$procData = unserialize($billing_details['procedure']);
+
+if ($procData !== false && !empty($procData['consumables'])) {
+    
+    // 2. Loop through the data
+    foreach ($procData['consumables'] as $item) {
+        // 3. Store the current item into our new array
+        $stored_procedures[] = $item;
+    }
+}
+  $sub_procedure_counter = 1;
+// --- THE LOOP IS NOW CLOSED ---
+// Now you have all the data in $stored_procedures and can use it anywhere below.
+
+// Example: Printing the data OUTSIDE the loop
+if (!empty($stored_procedures)) {
+ 
+    
+    // Or iterate through the stored list again later
+    foreach ($stored_procedures as $saved_item) { 
+
+     $sub_procedure_details = $all_method->get_procedure_details($saved_item['procedure_ID']); 
+
+     
+     ?>
+     <tr>
+                        <td><?php echo $sub_procedure_details['procedure_name']; ?>
+                           <input value="<?php echo $saved_item['procedure_ID']; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                            <input value="<?php echo $sub_procedure_details['procedure_name']; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_name_<?php echo $sub_procedure_counter;?>" class="required_value" name="procedure_name_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                       
+                        </td>
+                        <?php
+                           $login_user_center_id = $_SESSION['logged_billing_manager']['center'];
+                           $center_exit = $all_method->check_procedure_exit_in_center($sub_procedure_details['code'],$login_user_center_id);
+                           if($center_exit) {
+                              $hub_name = $all_method->get_center_name($login_user_center_id);
+                              $spoke_name =$hub_name;
+                              $hub_center_id=$login_user_center_id;
+                              $spoke_center_id=$login_user_center_id;
+                           }else{
+                              $hub_id_of_this_procedure = $all_method->get_hub_center_id_from_spoke($login_user_center_id);
+                              $hub_name = $all_method->get_center_name($hub_id_of_this_procedure);
+                              $spoke_name =$all_method->get_center_name($login_user_center_id);
+                              $hub_center_id=$hub_id_of_this_procedure;
+                              $spoke_center_id=$login_user_center_id;
+                           }
+                        ?>
+                        <td>
+                           <?php echo $hub_name; ?>
+                           <input type="hidden" value="<?php echo $hub_center_id; ?>" name="billing_from" />
+                        </td>
+                        <td>
+                           <?php 
+                           echo !empty($spoke_name) ? $spoke_name : $hub_name; 
+                           ?>
+                           <input type="hidden" value="<?php echo !empty($spoke_name) ? $spoke_center_id : $hub_center_id; ?>"   name="billing_at" 
+                           />
+                        </td>
+                        <td><?php echo $sub_procedure_details['code'];; ?>
+                           <input value="<?php echo $sub_procedure_details['code'];; ?>" readonly="readonly" id="sub_procedures_code_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_code_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['category']; ?>" readonly="readonly" id="sub_procedures_category_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_category_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                           <input value="<?php echo $sub_procedure_details['procedures']; ?>" readonly="readonly" id="procedures_<?php echo $sub_procedure_counter;?>" name="procedures_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
+                           <input value="<?php echo $sub_procedure_details['broad_procedure']; ?>" readonly="readonly" id="broad_procedure_<?php echo $sub_procedure_counter;?>" name="broad_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
+                           <input value="<?php echo $sub_procedure_details['broad_procedure_count']; ?>" readonly="readonly" id="broad_procedure_count_<?php echo $sub_procedure_counter;?>" name="broad_procedure_count_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
+                           <input value="<?php echo $appointments_result['agent']; ?>" readonly="readonly" id="agent_<?php echo $sub_procedure_counter;?>" name="agent_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
+                           <input value="<?php echo $appointments_result['councellor']; ?>" readonly="readonly" id="councellor_<?php echo $sub_procedure_counter;?>" name="councellor_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control">
+                       
+                        </td>
+                        <td><?php $sub_price = 0;
+                           $sub_price = $sub_procedure_details['price']; echo 'Rs.'.$sub_price; ?>
+                           <input value="<?php echo $sub_price; ?>" readonly="readonly" id="sub_procedures_price_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_price_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
+                        </td>
+                        <!-- <td><input value="" placeholder="Discount" id="sub_procedures_discount_<?php echo $sub_procedure_counter;?>" class="sub_procedures_discount required_value" name="sub_procedures_discount_<?php echo $sub_procedure_counter;?>" type="text" class="form-control " required sub_procedures_price="<?php echo $sub_price; ?>" ></td> -->
+                      
+   <td>
+    <input 
+        value="<?php 
+            // 1. Get the ID we want to look up
+            $lookupID = isset($saved_item['procedure_ID']) ? $saved_item['procedure_ID'] : '';
+
+            // 2. Check if that ID exists in our discount map
+            if (is_scalar($lookupID) && isset($procedure_discount_map[$lookupID])) {
+                echo $procedure_discount_map[$lookupID];
+            } else {
+                echo ''; // No discount found
+            }
+        ?>"   
+        placeholder="Discount" 
+        id="sub_procedures_discount_<?php echo $sub_procedure_counter;?>" 
+        class="sub_procedures_discount required_value form-control" 
+        name="sub_procedures_discount_<?php echo $sub_procedure_counter;?>" 
+        type="text" 
+        required 
+        sub_procedures_price="<?php echo $sub_price; ?>" 
+    >
+</td>
+<td><input value="0" placeholder="GST" id="" class="sub_procedures_discount required_value" name="" type="text" class="form-control " required sub_procedures_price="" ></td>
+                        <td><input value="" placeholder="Paid Price" id="sub_procedures_paid_price_<?php echo $sub_procedure_counter;?>" class="sub_procedures_paid_price required_value" name="sub_procedures_paid_price_<?php echo $sub_procedure_counter;?>" type="text" class="form-control " required ></td>
+                        <td>
+                           <select name="payment_method_<?php echo $sub_procedure_counter;?>" id="payment_method_<?php echo $sub_procedure_counter;?>" style="display: block;" required>
+                              <option value="" selected>Select</option>
+                              <?php if($patient_data['nationality'] == 'indian'){?>
+                              <option value="neft" mode="NEFT">NEFT</option>
+                              <option value="rtgs" mode="RTGS">RTGS</option>
+                              <option value="card" mode="Card">Card</option>
+                              <option value="insurance" mode="Insurance">Insurance</option>
+                              <?php }else{ ?>
+                              <option value="international_card" mode="International Card">International Card</option>
+                              <option value="card" mode="Card">Card</option>
+                              <?php } ?>
+                              <option value="cash" mode="Cash">Cash</option>
+                              <option value="cheque" mode="Cheque">Cheque</option>
+                              <option value="upi" mode="UPI">UPI</option>
+                              <option value="wallet" mode="Wallet">Wallet</option>
+                              <option value="Finance" mode="Finance">Finance</option>
+                           </select>
+                        </td>
+                        <td><input value="<?php date_default_timezone_set("America/New_York");$receipt_number = date("YmdHis") . substr(microtime(), 2, 6);echo $receipt_number; ?>" placeholder="Receipt number" readonly="readonly" id="receipt_number_<?php echo $sub_procedure_counter;?>" name="receipt_number_<?php echo $sub_procedure_counter;?>" type="text" class="form-control " required></td>
+                        <td>
+                           <input type="file" 
+                                 name="receipt_image_<?php echo $sub_procedure_counter;?>" 
+                                 id="receipt_image_<?php echo $sub_procedure_counter;?>" 
+                                 class="form-control"
+                                 >
+                        </td>
+                        <td><input type="checkbox" class="statuss" name="record"></td>
+                     </tr>
+
+    <?php
+      $sub_procedure_counter++; 
+    }
+} else { ?>
+     <?php 	
                        // Build a map of procedure_ID => discount from $billing_details['procedure'] if available
                        $procedure_discount_map = array();
                        if (!empty($billing_details['procedure'])) {
@@ -559,6 +730,11 @@
                         <td><input type="checkbox" class="statuss" name="record"></td>
                      </tr>
                      <?php  $grand_total += $sub_price; $sub_procedure_counter++;}}//}}else{ ?>
+                                 
+
+    <?php 
+}
+?>
                      <?php 	
                    /*     //var_dump($parent_procedure_details); die;	
                         $sub_procedure_counter = 1;

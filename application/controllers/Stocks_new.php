@@ -3044,107 +3044,125 @@ class Stocks_new extends CI_Controller
      */
     public function edit_medicine_center_stock_levels()
     {
-        $logg = checklogin();
-        if ($logg["status"] == false) {
-            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-            return;
+        $this->output->set_content_type('application/json');
+
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ]));
         }
 
-        $center_id = $this->input->post('center_id');
-        $medicine_id = $this->input->post('medicine_id');
-        $department = $this->input->post('department');
-        $min_stock_level = $this->input->post('min_stock_level');
-        $max_stock_level = $this->input->post('max_stock_level');
-        $reorder_level = $this->input->post('reorder_level');
+        $center_id        = $this->input->post('center_id');
+        $medicine_id      = $this->input->post('medicine_id');
+        $department       = $this->input->post('department');
+        $min_stock_level  = $this->input->post('min_stock_level');
+        $max_stock_level  = $this->input->post('max_stock_level');
+        $reorder_level    = $this->input->post('reorder_level');
 
-        if (empty($center_id) || empty($medicine_id) || empty($department)) {
-            echo json_encode(['success' => false, 'message' => 'Center, medicine and department are required']);
-            return;
+        if (!$center_id || !$medicine_id || !$department) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Center, medicine and department are required'
+            ]));
         }
 
-        // Validate numeric inputs
         if (!is_numeric($min_stock_level) || $min_stock_level < 0) {
-            echo json_encode(['success' => false, 'message' => 'Min stock level must be a positive number']);
-            return;
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Min stock level must be a positive number'
+            ]));
         }
 
         if (!is_numeric($max_stock_level) || $max_stock_level < 0) {
-            echo json_encode(['success' => false, 'message' => 'Max stock level must be a positive number']);
-            return;
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Max stock level must be a positive number'
+            ]));
         }
 
         if ($max_stock_level > 0 && $min_stock_level > $max_stock_level) {
-            echo json_encode(['success' => false, 'message' => 'Min stock level cannot be greater than max stock level']);
-            return;
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Min stock level cannot be greater than max stock level'
+            ]));
         }
 
         if (!is_numeric($reorder_level) || $reorder_level < 0) {
-            echo json_encode(['success' => false, 'message' => 'Reorder level must be a positive number']);
-            return;
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Reorder level must be a positive number'
+            ]));
         }
 
         $data = [
-            'center_id' => $center_id,
-            'medicine_id' => $medicine_id,
-            'department' => $department,
-            'min_stock_level' => $min_stock_level,
-            'max_stock_level' => $max_stock_level,
-            'reorder_level' => $reorder_level,
-            'updated_at' => date('Y-m-d H:i:s')
+            'center_id'        => $center_id,
+            'medicine_id'      => $medicine_id,
+            'department'       => $department,
+            'min_stock_level'  => (int) $min_stock_level,
+            'max_stock_level'  => (int) $max_stock_level,
+            'reorder_level'    => (int) $reorder_level,
+            'updated_at'       => date('Y-m-d H:i:s')
         ];
 
-        $result = $this->Stock_model_new->save_medicine_center_stock_config($data);
+        $result = $this->Stock_model_new
+            ->save_medicine_center_stock_config($data);
 
-        if ($result) {
-            echo json_encode(['success' => true, 'message' => 'Stock levels updated successfully']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Failed to update stock levels']);
-        }
+        return $this->output->set_output(json_encode([
+            'success' => (bool) $result,
+            'message' => $result
+                ? 'Stock levels updated successfully'
+                : 'Failed to update stock levels'
+        ]));
     }
+
 
     /**
      * Get medicine center stock levels for editing
      */
     public function get_medicine_center_stock_levels()
     {
-        $logg = checklogin();
-        if ($logg["status"] == false) {
-            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-            return;
+        // Clear all buffers FIRST
+        while (ob_get_level() > 0) {
+            ob_end_clean();
         }
 
-        $center_id = $this->input->post('center_id');
+        // Disable encoding & force JSON
+        $this->output
+            ->set_header('Content-Encoding: identity')
+            ->set_content_type('application/json');
+
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ]));
+        }
+
+        $center_id   = $this->input->post('center_id');
         $medicine_id = $this->input->post('medicine_id');
-        $department = $this->input->post('department');
+        $department  = $this->input->post('department');
 
-        if (empty($center_id) || empty($medicine_id) || empty($department)) {
-            echo json_encode(['success' => false, 'message' => 'Center, medicine and department are required']);
-            return;
+        if (!$center_id || !$medicine_id || !$department) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Center, medicine and department are required'
+            ]));
         }
 
-        $config = $this->Stock_model_new->get_medicine_center_stock_config($center_id, $medicine_id, $department);
+        $config = $this->Stock_model_new
+            ->get_medicine_center_stock_config($center_id, $medicine_id, $department);
 
-        if ($config) {
-            echo json_encode([
-                'success' => true,
-                'data' => [
-                    'min_stock_level' => $config->min_stock_level,
-                    'max_stock_level' => $config->max_stock_level,
-                    'reorder_level' => $config->reorder_level
-                ]
-            ]);
-        } else {
-            // Return default values if no config exists
-            echo json_encode([
-                'success' => true,
-                'data' => [
-                    'min_stock_level' => 0,
-                    'max_stock_level' => 0,
-                    'reorder_level' => 0
-                ]
-            ]);
-        }
+        return $this->output->set_output(json_encode([
+            'success' => true,
+            'data' => [
+                'min_stock_level' => (int) ($config->min_stock_level ?? 0),
+                'max_stock_level' => (int) ($config->max_stock_level ?? 0),
+                'reorder_level'   => (int) ($config->reorder_level ?? 0),
+            ]
+        ]));
     }
+
 
     /**
      * Stock Levels Management - Dedicated module for managing medicine center stock levels
@@ -3156,16 +3174,8 @@ class Stocks_new extends CI_Controller
             $center_id = $this->input->get("center_id");
             $medicine_id = $this->input->get("medicine_id");
             $department = $this->input->get("department");
-
-            // Get all centers
             $data["centers"] = $this->Stock_model_new->get_all_centers();
-            log_message('debug', 'Centers loaded: ' . count($data["centers"]));
-
-            // Get all medicines
             $data["medicines"] = $this->Stock_model_new->get_all_medicines();
-            log_message('debug', 'Medicines loaded: ' . count($data["medicines"]));
-
-            // Get medicine center stock configurations
             $data["stock_levels"] = $this->Stock_model_new->get_medicine_center_stock_levels(
                 $center_id,
                 $medicine_id,
@@ -5114,14 +5124,10 @@ class Stocks_new extends CI_Controller
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
-
             $data["centers"] = $this->Stock_model_new->get_all_centers();
             $data["available_batches"] = $this->Stock_model_new->get_available_batches_for_return();
-            
-            // Auto-select center if user is not central stock manager
             $data["selected_center_id"] = null;
             if (!isset($_SESSION["logged_central_stock_manager"]) || empty($_SESSION["logged_central_stock_manager"])) {
-                // Get center from session (try different session variables)
                 $center_number = null;
                 if (isset($_SESSION['logged_billing_manager']['center']) && !empty($_SESSION['logged_billing_manager']['center'])) {
                     $center_number = $_SESSION['logged_billing_manager']['center'];
@@ -5130,8 +5136,6 @@ class Stocks_new extends CI_Controller
                 } elseif (isset($_SESSION['logged_counselor']['center']) && !empty($_SESSION['logged_counselor']['center'])) {
                     $center_number = $_SESSION['logged_counselor']['center'];
                 }
-                
-                // Convert center number to center ID using model method
                 if ($center_number) {
                     $center_id_result = $this->Stock_model_new->get_center_id($center_number);
                     if ($center_id_result) {
@@ -5139,7 +5143,6 @@ class Stocks_new extends CI_Controller
                     }
                 }
             }
-         
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $data["departments"] = $this->get_departments_by_center();
@@ -5151,10 +5154,181 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    // public function get_patient_receipts()
+    // {
+    //     $logg = checklogin();
+    //     if($logg['status'] == true) {
+    //         $patient_id = $this->input->post('patient_id');
+
+    //         if (!empty($patient_id)) {
+    //             // Get all confirmed sales for this patient
+    //             $this->db->select('s.sale_number, s.patient_name, s.sale_date, s.total_amount, COUNT(si.id) as item_count');
+    //             $this->db->from('sales s');
+    //             $this->db->join('sale_items si', 's.id = si.sale_id');
+    //             $this->db->where('s.patient_id', $patient_id);
+    //             $this->db->where('s.status', 'CONFIRMED');
+    //             $this->db->where("
+    //                 (
+    //                     EXISTS (
+    //                         SELECT 1
+    //                         FROM stock_movements sm
+    //                         WHERE sm.reference_id = s.id
+    //                         AND sm.movement_type = 'SALE'
+    //                         AND sm.to_location_type = 'SALE'
+    //                     )
+    //                 )
+    //             ", null, false);
+    //             $this->db->where('s.sale_date >=', date('Y-m-d', strtotime('-90 days'))); // Last 90 days
+    //             $this->db->group_by('s.id');
+    //             $this->db->order_by('s.sale_date', 'DESC');
+    //             $receipts = $this->db->get()->result();
+
+    //             echo json_encode([
+    //                 'success' => true,
+    //                 'receipts' => $receipts
+    //             ]);
+    //         } else {
+    //             echo json_encode([
+    //                 'success' => false,
+    //                 'message' => 'Patient ID is required'
+    //             ]);
+    //         }
+    //     } else {
+    //         echo json_encode([
+    //             'success' => false,
+    //             'message' => 'Unauthorized access'
+    //         ]);
+    //     }
+    // }
+    public function get_patient_receipts()
+    {
+        // Always return JSON
+        $this->output->set_content_type('application/json');
+
+        // Auth check
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ]));
+        }
+
+        $patient_id = $this->input->post('patient_id');
+
+        if (empty($patient_id)) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Patient ID is required'
+            ]));
+        }
+
+        // Query
+        $this->db->select('
+            s.sale_number,
+            s.patient_name,
+            s.sale_date,
+            s.total_amount,
+            COUNT(si.id) AS item_count
+        ');
+        $this->db->from('sales s');
+        $this->db->join('sale_items si', 's.id = si.sale_id');
+        $this->db->where('s.patient_id', $patient_id);
+        $this->db->where('s.status', 'CONFIRMED');
+        $this->db->where("
+            EXISTS (
+                SELECT 1
+                FROM stock_movements sm
+                WHERE sm.reference_id = s.id
+                AND sm.movement_type = 'SALE'
+                AND sm.to_location_type = 'SALE'
+            )
+        ", null, false);
+        $this->db->where('s.sale_date >=', date('Y-m-d', strtotime('-90 days')));
+        $this->db->group_by('s.id');
+        $this->db->order_by('s.sale_date', 'DESC');
+
+        $receipts = $this->db->get()->result();
+
+        return $this->output->set_output(json_encode([
+            'success'  => true,
+            'receipts' => $receipts
+        ]));
+    }
+
+
+    // public function get_returnable_items()
+    // {
+    //     $logg = checklogin();
+    //     if($logg['status'] == true) {
+    //         $receipt_number = $this->input->post('receipt_number');
+    //         if (!empty($receipt_number)) {
+    //             $batches = $this->Stock_model_new->get_available_batches_for_return($receipt_number);
+    //             $this->db->select('s.patient_name, s.patient_id, s.sale_date');
+    //             $this->db->from('sales s');
+    //             $this->db->where('s.sale_number', $receipt_number);
+    //             $this->db->where('s.status', 'CONFIRMED');
+    //             $sale_info = $this->db->get()->row();
+    //             echo json_encode([
+    //                 'success' => true,
+    //                 'batches' => $batches,
+    //                 'sale_info' => $sale_info
+    //             ]);
+    //         } else {
+    //             echo json_encode([
+    //                 'success' => false,
+    //                 'message' => 'Receipt number is required'
+    //             ]);
+    //         }
+    //     } else {
+    //         echo json_encode([
+    //             'success' => false,
+    //             'message' => 'Unauthorized access'
+    //         ]);
+    //     }
+    // }
+    public function get_returnable_items()
+    {
+        // Force JSON response
+        $this->output->set_content_type('application/json');
+
+        // Auth check
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ]));
+        }
+
+        $receipt_number = $this->input->post('receipt_number');
+
+        if (empty($receipt_number)) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Receipt number is required'
+            ]));
+        }
+
+        // Data
+        $batches = $this->Stock_model_new
+            ->get_available_batches_for_return($receipt_number);
+
+        $this->db->select('patient_name, patient_id, sale_date');
+        $this->db->from('sales');
+        $this->db->where('sale_number', $receipt_number);
+        $this->db->where('status', 'CONFIRMED');
+        $sale_info = $this->db->get()->row();
+
+        return $this->output->set_output(json_encode([
+            'success'   => true,
+            'batches'   => $batches,
+            'sale_info' => $sale_info
+        ]));
+    }
+
+
     public function process_return() {
         $logg = checklogin();
         if($logg['status'] == true) {
-
             if($this->input->post('action') == 'return_medicine') {
                 $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
                 $this->form_validation->set_rules('patient_name', 'Patient Name', 'required');
@@ -5168,17 +5342,14 @@ class Stocks_new extends CI_Controller
                     if (!empty($_SESSION['logged_central_stock_manager']['employee_number'])) {
                         $employee_number = $_SESSION['logged_central_stock_manager']['employee_number'];
                     }
-                    // Stock manager
                     elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
                         $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
                     }elseif (!empty($_SESSION['logged_billing_manager']['employee_number'])) {
                         $employee_number = $_SESSION['logged_billing_manager']['employee_number'];
                     }
-                    // CodeIgniter session fallback
                     elseif ($this->session->userdata('employee_number')) {
                         $employee_number = $this->session->userdata('employee_number');
                     }
-                    // Get employee ID from number
                     $created_by_id = null;
                     if ($employee_number) {
                         $employee = $this->db
@@ -5189,23 +5360,17 @@ class Stocks_new extends CI_Controller
                             $created_by_id = $employee->ID;
                         }
                     }
-
-                    // Calculate total amounts from per-item discounts
                     $total_return_amount = $this->input->post("total_return_amount");
                     $total_discount_amount = $this->input->post("total_discount_amount");
                     $final_return_amount = $this->input->post("final_return_amount_hidden") ? (float)$this->input->post("final_return_amount_hidden") : 0;
-                    
-                    // Calculate amounts
                     $total_amount = 0;
                     if ($total_return_amount) {
                         $total_amount = (float)str_replace('₹', '', $total_return_amount);
                     }
-                    
                     $total_discount = 0;
                     if ($total_discount_amount) {
                         $total_discount = (float)str_replace('₹', '', $total_discount_amount);
                     }
-                    
                     // If final_return_amount_hidden is not set, calculate it from total and discount
                     if ($final_return_amount == 0 && $total_amount > 0) {
                         $final_return_amount = $total_amount - $total_discount;
@@ -5240,13 +5405,35 @@ class Stocks_new extends CI_Controller
                         "final_return_amount" => $final_return_amount,
                         // COMMENTED OUT: Old total discount percentage (now using per-item discount)
                         // "discount_percentage" => $discount_percentage,
+                        "status" => "PENDING",
                         "remarks" => $this->input->post("remarks"),
                         "created_by" => $created_by_id,
                         "created_at" => date("Y-m-d H:i:s"),
                     ];
-               
-
+                    // Validate that all batch_ids belong to the specified receipt
                     $return_items = $this->input->post("return_items");
+                    $receipt_number = $this->input->post("receipt_number");
+                    if (!empty($return_items)) {
+                        // Get all batch_ids from the return items
+                        $batch_ids = array_column($return_items, 'batch_id');
+                        foreach ($batch_ids as $batch_id) {
+                            if (!empty($batch_id)) {
+                                $this->db->select('si.id');
+                                $this->db->from('sale_items si');
+                                $this->db->join('sales s', 'si.sale_id = s.id');
+                                $this->db->where('si.batch_id', $batch_id);
+                                $this->db->where('s.sale_number', $receipt_number);
+                                $this->db->where('s.status', 'CONFIRMED');
+                                $this->db->where('(si.quantity_sold - COALESCE(si.quantity_returned, 0)) >', 0);
+                                $exists = $this->db->get()->row();
+                                if (!$exists) {
+                                    $this->session->set_flashdata("error", "Invalid medicine selected. The selected medicine does not belong to receipt number: " . $receipt_number);
+                                    redirect("stocks_new/medicine_returns");
+                                    return;
+                                }
+                            }
+                        }
+                    }
                     // Process per-item discounts
                     if (!empty($return_items)) {
                         foreach ($return_items as $key => $item) {
@@ -5255,21 +5442,18 @@ class Stocks_new extends CI_Controller
                             if (isset($item['discount_percentage_hidden'])) {
                                 $item_discount_percentage = (float)$item['discount_percentage_hidden'];
                             }
-                            
                             // Calculate item amounts
                             $item_quantity = isset($item['return_quantity']) ? (int)$item['return_quantity'] : 0;
                             $item_price = isset($item['price']) ? (float)$item['price'] : 0;
                             $item_return_amount = $item_quantity * $item_price;
                             $item_discount_amount = ($item_return_amount * $item_discount_percentage) / 100;
                             $item_final_amount = $item_return_amount - $item_discount_amount;
-                            
                             // Add discount fields to return item
                             $return_items[$key]['discount_percentage'] = $item_discount_percentage;
                             $return_items[$key]['discount_amount'] = $item_discount_amount;
                             $return_items[$key]['final_amount'] = $item_final_amount;
                         }
                     }
-              
                     if (
                         $this->Stock_model_new->process_medicine_return(
                             $return_data,
@@ -5289,9 +5473,34 @@ class Stocks_new extends CI_Controller
                     }
                 }
             }
-
             redirect("stocks_new/medicine_returns");
         }
+    }
+
+    public function approve_return($return_id)
+    {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            if($this->Stock_model_new->approve_medicine_return($return_id)) {
+                $this->session->set_flashdata("success", "Medicine return approved successfully");
+            } else {
+                $this->session->set_flashdata("error", "Failed to approve medicine return");
+            }
+        }
+        redirect("stocks_new/returns");
+    }
+
+    public function disapprove_return($return_id)
+    {
+        $logg = checklogin();
+        if($logg['status'] == true) {
+            if($this->Stock_model_new->disapprove_medicine_return($return_id)) {
+                $this->session->set_flashdata("success", "Medicine return disapproved successfully");
+            } else {
+                $this->session->set_flashdata("error", "Failed to disapprove medicine return");
+            }
+        }
+        redirect("stocks_new/returns");
     }
 
     public function returns()
@@ -5339,18 +5548,13 @@ class Stocks_new extends CI_Controller
             redirect(base_url());
             return;
         }
-
         $format = $this->input->get('format'); // 'excel' or 'pdf'
-
-        // Get returns data
         $returns = $this->Stock_model_new->get_medicine_returns();
-
         if (empty($returns)) {
             $this->session->set_flashdata('error', 'No returns found to export.');
             redirect('stocks_new/returns');
             return;
         }
-
         if ($format == 'excel') {
             $this->export_returns_excel($returns);
         } elseif ($format == 'pdf') {
@@ -5370,17 +5574,15 @@ class Stocks_new extends CI_Controller
         $filename = 'Medicine_Returns_' . date('Y-m-d_H-i-s') . '.csv';
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename=' . $filename);
-
         // Create file pointer
         $output = fopen('php://output', 'w');
-
         // Add BOM for UTF-8
         fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-
         // Add headers
         $headers = [
             'Return Number',
             'Patient Name',
+            'Patient ID',
             'Receipt Number',
             'Center',
             'Department',
@@ -5399,6 +5601,7 @@ class Stocks_new extends CI_Controller
             $row = [
                 $return->return_number ?? 'N/A',
                 $return->patient_name ?? 'N/A',
+                $return->patient_id ?? 'N/A',
                 $return->receipt_number ?? 'N/A',
                 $return->center_name ?? 'N/A',
                 $return->department ?? 'N/A',
@@ -10867,11 +11070,8 @@ class Stocks_new extends CI_Controller
         redirect('stocks_new/sales');
     }
 
-    // ===============================================
-    // HELPER FUNCTIONS
-    // ===============================================
-
-    private function get_current_user_id() {
+    private function get_current_user_id() 
+    {
         $session_types = [
             'logged_administrator',
             'logged_accountant',
@@ -10902,6 +11102,194 @@ class Stocks_new extends CI_Controller
             return $this->session->userdata('user_id');
         }
         return 1;
+    }
+    public function get_detailed_sales_for_export()
+    {
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            redirect(base_url());
+            return;
+        }
+        $format = $this->input->get('format') ?: 'excel'; // Default to excel if not specified
+        $filters = [
+            'center_id' => $this->input->get('center_id'),
+            'patient_id' => $this->input->get('patient_id'),
+            'patient_name' => $this->input->get('patient_name'),
+            'status' => $this->input->get('status'),
+            'approval_status' => $this->input->get('approval_status'),
+            'date_from' => $this->input->get('date_from'),
+            'date_to' => $this->input->get('date_to')
+        ];
+        $detailed_sales = $this->get_detailed_sales_data($filters);
+        if (empty($detailed_sales)) {
+            $this->session->set_flashdata('error', 'No detailed sales data found to export.');
+            redirect('stocks_new/sales');
+            return;
+        }
+        if ($format == 'excel') {
+            $this->export_detailed_sales_excel($detailed_sales, $filters);
+        } elseif ($format == 'pdf') {
+            $this->export_detailed_sales_pdf($detailed_sales, $filters);
+        } else {
+            $this->session->set_flashdata('error', 'Invalid export format.');
+            redirect('stocks_new/sales');
+        }
+    }
+
+    /**
+     * Get detailed sales data for export
+     */
+    private function get_detailed_sales_data($filters = [])
+    {
+        $this->db->select([
+            's.sale_number',
+            's.sale_date',
+            's.patient_id',
+            's.patient_name',
+            'c.center_name',
+            'm.medicine_name',
+            'm.pack_size',
+            'mb.batch_number',
+            'COALESCE(ccs.quantity, 0) as current_center_stock',
+            'si.quantity_sold',
+            'mb.purchase_price / m.pack_size AS single_unit_vendor_price',
+            'mb.purchase_price as purchase_price',
+            'si.unit_price',
+            'si.subtotal',
+            'si.taxable_Value',
+            'si.discount_amount as discount_amount',
+            'si.tax_amount',
+            'si.total as item_total',
+            's.payment_method',
+            's.accountant_approval_status as Account_approval_status',
+            'm.gst_rate',
+            'm.hsn_code',
+            'mb.mrp',
+            's.remarks'
+        ],FALSE);
+        $this->db->from('sales s');
+        $this->db->join('sale_items si', 's.id = si.sale_id', 'inner');
+        $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
+        $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+        $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
+         // Join center_stocks to show what is left in the specific center NOW
+        $this->db->join('center_stocks ccs', 'ccs.batch_id = si.batch_id AND ccs.center_id = s.center_id', 'left');
+        $this->db->where("
+            EXISTS (
+                SELECT 1 FROM stock_movements sm
+                WHERE sm.reference_id = s.id
+                AND sm.movement_type = 'SALE'
+                AND sm.to_location_type = 'SALE'
+            )
+        ", null, false);
+        if(empty($filters['status'])) {
+            $this->db->where('s.status', 'CONFIRMED');
+        } elseif(!empty($filters['status'])) {
+            $this->db->where('s.status', $filters['status']);
+        }
+        if(!empty($filters['center_id'])) $this->db->where('s.center_id', $filters['center_id']);
+        if(!empty($filters['patient_id'])) $this->db->like('s.patient_id', $filters['patient_id']);
+        if(!empty($filters['patient_name'])) $this->db->like('s.patient_name', $filters['patient_name']);
+        if(!empty($filters['approval_status'])) $this->db->where('s.accountant_approval_status', $filters['approval_status']);
+        if(!empty($filters['date_from'])) $this->db->where('s.sale_date >=', $filters['date_from']);
+        if(!empty($filters['date_to'])) $this->db->where('s.sale_date <=', $filters['date_to']);
+        $this->db->order_by('s.sale_date', 'DESC');
+        $this->db->order_by('s.id', 'DESC');
+        return $this->db->get()->result_array();
+    }
+
+    /**
+     * Export detailed sales (line items) to Excel
+     */
+    private function export_detailed_sales_excel($detailed_sales, $filters)
+    {
+        // Set headers for Excel download
+        $filename = 'Detailed_Sales_Export_' . date('Y-m-d_H-i-s') . '.csv';
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=' . $filename);
+
+        // Create file pointer
+        $output = fopen('php://output', 'w');
+
+        // Add BOM for UTF-8
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Add headers
+        $headers = [
+            'Invoice Number',
+            'Invoice Date',
+            'Patient ID',
+            'Patient Name',
+            'Center Name',
+            'Medicine Name',
+            'Pack Size',
+            'Batch Number',
+            'HSN',
+            'Payment Mode',
+            'Current Quantity In Center',
+            'Quantity Sold',
+            'Vendor Price',
+            'Single Unit Vendor Price',
+            'Mrp Price (₹)',
+            'Total Mrp Price (₹)',
+            'Taxable Value  (₹)',
+            'GST Rate %',
+            'Tax Amount (₹)',
+            'Item Total (₹)',
+            'Payment Method',
+            'Status',
+            'Remarks'
+        ];
+        fputcsv($output, $headers);
+
+        // Add data rows
+        foreach ($detailed_sales as $item) {
+            $row = [
+                $item['sale_number'] ?? 'N/A',
+                isset($item['sale_date']) ? date('d-m-Y', strtotime($item['sale_date'])) : 'N/A',
+                $item['patient_id'] ?? 'N/A',
+                $item['patient_name'] ?? 'N/A',
+                $item['center_name'] ?? 'N/A',
+                $item['medicine_name'] ?? 'N/A',
+                $item['pack_size'] ?? 'N/A',
+                $item['batch_number'] ?? 'N/A',
+                $item['hsn_code'] ?? 'N/A',
+                $item['payment_method'] ?? 'N/A',
+                $item['current_center_stock'] ?? 'N/A',
+                $item['quantity_sold'] ?? 0,
+                $item['purchase_price'] ?? 0,
+                $item['single_unit_vendor_price'] ?? 0,
+                number_format($item['unit_price'] ?? 0, 2),
+                number_format($item['subtotal'] ?? 0, 2),
+                number_format($item['taxable_Value'] ?? 0, 2),
+                number_format($item['gst_rate'] ?? 0, 2),
+                number_format($item['tax_amount'] ?? 0, 2),
+                number_format($item['item_total'] ?? 0, 2),
+                $item['payment_method'] ?? 'N/A',
+                $item['Account_approval_status'] ?? 'N/A',
+                $item['remarks'] ?? 'N/A'
+            ];
+            fputcsv($output, $row);
+        }
+
+        fclose($output);
+        exit();
+    }
+
+    /**
+     * Export detailed sales (line items) to PDF
+     */
+    private function export_detailed_sales_pdf($detailed_sales, $filters)
+    {
+        // Create a print-friendly HTML page that can be printed as PDF
+        $data = [
+            'detailed_sales' => $detailed_sales,
+            'filters' => $filters,
+            'generated_date' => date('M d, Y H:i A')
+        ];
+
+        // Load the print view
+        $this->load->view('stocks_new/print_detailed_sales', $data);
     }
 
 
