@@ -10658,7 +10658,6 @@ class Stocks_new extends CI_Controller
             redirect(base_url());
             return;
         }
-
         $format = $this->input->get('format') ?: 'excel'; // Default to excel if not specified
         $filters = [
             'center_id' => $this->input->get('center_id'),
@@ -10669,16 +10668,12 @@ class Stocks_new extends CI_Controller
             'date_from' => $this->input->get('date_from'),
             'date_to' => $this->input->get('date_to')
         ];
-
-        // Get detailed sales data
         $detailed_sales = $this->get_detailed_sales_data($filters);
-
         if (empty($detailed_sales)) {
             $this->session->set_flashdata('error', 'No detailed sales data found to export.');
             redirect('stocks_new/sales');
             return;
         }
-
         if ($format == 'excel') {
             $this->export_detailed_sales_excel($detailed_sales, $filters);
         } elseif ($format == 'pdf') {
@@ -10701,24 +10696,32 @@ class Stocks_new extends CI_Controller
             's.patient_name',
             'c.center_name',
             'm.medicine_name',
+            'm.pack_size',
             'mb.batch_number',
+            'COALESCE(ccs.quantity, 0) as current_center_stock',
             'si.quantity_sold',
+            'mb.purchase_price / m.pack_size AS single_unit_vendor_price',
+            'mb.purchase_price as purchase_price',
             'si.unit_price',
             'si.subtotal',
             'si.taxable_Value',
+            'si.discount_amount as discount_amount',
             'si.tax_amount',
             'si.total as item_total',
-            's.payment_status',
-            's.status as sale_status',
+            's.payment_method',
+            's.accountant_approval_status as Account_approval_status',
+            'm.gst_rate',
+            'm.hsn_code',
+            'mb.mrp',
             's.remarks'
-        ]);
+        ],FALSE);
         $this->db->from('sales s');
         $this->db->join('sale_items si', 's.id = si.sale_id', 'inner');
         $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
         $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
-
-        // Only include sales that have stock movements (same as regular sales list)
+         // Join center_stocks to show what is left in the specific center NOW
+        $this->db->join('center_stocks ccs', 'ccs.batch_id = si.batch_id AND ccs.center_id = s.center_id', 'left');
         $this->db->where("
             EXISTS (
                 SELECT 1 FROM stock_movements sm
@@ -10727,25 +10730,19 @@ class Stocks_new extends CI_Controller
                 AND sm.to_location_type = 'SALE'
             )
         ", null, false);
-
-        // Apply same filters as the list view
-        // Default to only confirmed sales
         if(empty($filters['status'])) {
             $this->db->where('s.status', 'CONFIRMED');
         } elseif(!empty($filters['status'])) {
             $this->db->where('s.status', $filters['status']);
         }
-
         if(!empty($filters['center_id'])) $this->db->where('s.center_id', $filters['center_id']);
         if(!empty($filters['patient_id'])) $this->db->like('s.patient_id', $filters['patient_id']);
         if(!empty($filters['patient_name'])) $this->db->like('s.patient_name', $filters['patient_name']);
         if(!empty($filters['approval_status'])) $this->db->where('s.accountant_approval_status', $filters['approval_status']);
         if(!empty($filters['date_from'])) $this->db->where('s.sale_date >=', $filters['date_from']);
         if(!empty($filters['date_to'])) $this->db->where('s.sale_date <=', $filters['date_to']);
-
         $this->db->order_by('s.sale_date', 'DESC');
         $this->db->order_by('s.id', 'DESC');
-
         return $this->db->get()->result_array();
     }
 
@@ -10767,21 +10764,28 @@ class Stocks_new extends CI_Controller
 
         // Add headers
         $headers = [
-            'Sale Number',
-            'Sale Date',
+            'Invoice Number',
+            'Invoice Date',
             'Patient ID',
             'Patient Name',
             'Center Name',
             'Medicine Name',
+            'Pack Size',
             'Batch Number',
+            'HSN',
+            'Payment Mode',
+            'Current Quantity In Center',
             'Quantity Sold',
+            'Vendor Price',
+            'Single Unit Vendor Price',
             'Mrp Price (₹)',
             'Total Mrp Price (₹)',
             'Taxable Value  (₹)',
+            'GST Rate %',
             'Tax Amount (₹)',
             'Item Total (₹)',
-            'Payment Status',
-            'Sale Status',
+            'Payment Method',
+            'Status',
             'Remarks'
         ];
         fputcsv($output, $headers);
@@ -10795,15 +10799,22 @@ class Stocks_new extends CI_Controller
                 $item['patient_name'] ?? 'N/A',
                 $item['center_name'] ?? 'N/A',
                 $item['medicine_name'] ?? 'N/A',
+                $item['pack_size'] ?? 'N/A',
                 $item['batch_number'] ?? 'N/A',
+                $item['hsn_code'] ?? 'N/A',
+                $item['payment_method'] ?? 'N/A',
+                $item['current_center_stock'] ?? 'N/A',
                 $item['quantity_sold'] ?? 0,
+                $item['purchase_price'] ?? 0,
+                $item['single_unit_vendor_price'] ?? 0,
                 number_format($item['unit_price'] ?? 0, 2),
                 number_format($item['subtotal'] ?? 0, 2),
                 number_format($item['taxable_Value'] ?? 0, 2),
+                number_format($item['gst_rate'] ?? 0, 2),
                 number_format($item['tax_amount'] ?? 0, 2),
                 number_format($item['item_total'] ?? 0, 2),
-                $item['payment_status'] ?? 'N/A',
-                $item['sale_status'] ?? 'N/A',
+                $item['payment_method'] ?? 'N/A',
+                $item['Account_approval_status'] ?? 'N/A',
                 $item['remarks'] ?? 'N/A'
             ];
             fputcsv($output, $row);
