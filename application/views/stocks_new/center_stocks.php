@@ -134,7 +134,12 @@
                                     <th>Vendor Price With gst</th>
                                     <th>Mrp</th>
                                     <th>Status</th>
-                                    <th>Actions</th>
+                                    <?php 
+                                         $is_accountant = isset($_SESSION['logged_central_stock_manager']) && !empty($_SESSION['logged_central_stock_manager']);
+                                    ?>
+                                    <?php if($is_accountant): ?>
+                                      <th>Actions</th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody>
@@ -180,6 +185,10 @@
                                                 <span class="label label-info"><?php echo $stock->status; ?></span>
                                             <?php endif; ?>
                                         </td>
+                                        <?php 
+                                         $is_accountant = isset($_SESSION['logged_central_stock_manager']) && !empty($_SESSION['logged_central_stock_manager']);
+                                        ?>
+                                        <?php if($is_accountant): ?>
                                         <td>
                                             <div class="btn-group">
                                                 <button type="button" class="btn btn-xs btn-success" onclick="updateCenterStockStatus(<?php echo $stock->id; ?>, 'ACTIVE')">
@@ -196,6 +205,7 @@
                                                 </button> -->
                                             </div>
                                         </td>
+                                        <?php endif; ?>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

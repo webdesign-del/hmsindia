@@ -83,6 +83,364 @@ class Stocks_new extends CI_Controller
     }
 
     // ===============================================
+    // MEDICINE PACKAGE MANAGEMENT
+    // ===============================================
+
+    public function packages()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $data["packages"] = $this->Stock_model_new->get_all_packages();
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines_package();
+
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/packages", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+    public function create_package()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            if ($this->input->post("action") == "create_package") {
+                $this->form_validation->set_rules("package_name", "Package Name", "required");
+                $this->form_validation->set_rules("package_code", "Package Code", "required|is_unique[medicine_packages.package_code]");
+
+                if ($this->form_validation->run() == true) {
+                    // Get current user ID from session
+                    $created_by = $this->get_current_user_id();
+
+                    if (!$created_by) {
+                        $this->session->set_flashdata("error", "User session expired. Please login again.");
+                        redirect("stocks_new/create_package");
+                    }
+
+                    // Additional validation for created_by
+                    if (!is_numeric($created_by) || $created_by <= 0) {
+                        $this->session->set_flashdata("error", "Invalid user session. Please login again.");
+                        redirect("stocks_new/create_package");
+                    }
+
+                    $package_data = [
+                        "package_name" => $this->input->post("package_name"),
+                        "package_code" => $this->input->post("package_code"),
+                        "description" => $this->input->post("description"),
+                        "selling_price" => $this->input->post("selling_price"),
+                        "mrp" => $this->input->post("mrp"),
+                        "gst_rate" => $this->input->post("gst_rate"),
+                        "created_by" => $created_by,
+                        "status" => "active"
+                    ];
+
+                    $medicine_ids = $this->input->post("medicine_ids");
+                    $quantities = $this->input->post("quantities");
+
+                    $package_items = [];
+                    if (!empty($medicine_ids)) {
+                        foreach ($medicine_ids as $index => $medicine_id) {
+                            if (!empty($medicine_id) && isset($quantities[$index]) && $quantities[$index] > 0) {
+                                $package_items[] = [
+                                    "medicine_id" => $medicine_id,
+                                    "quantity" => $quantities[$index]
+                                ];
+                            }
+                        }
+                    }
+
+                    if (empty($package_items)) {
+                        $this->session->set_flashdata("error", "Please add at least one medicine to the package.");
+                        redirect("stocks_new/create_package");
+                    }
+
+                    $package_id = $this->Stock_model_new->create_medicine_package($package_data, $package_items);
+
+                    if ($package_id) {
+                        $this->session->set_flashdata("success", "Package created successfully!");
+                        redirect("stocks_new/packages");
+                    } else {
+                        $this->session->set_flashdata("error", "Failed to create package.");
+                    }
+                }
+            }
+
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines_package();
+
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/create_package", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+    public function edit_package($package_id)
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            if ($this->input->post("action") == "update_package") {
+                $this->form_validation->set_rules("package_name", "Package Name", "required");
+
+                // Check if package_code is unique (excluding current package)
+                $existing_package = $this->Stock_model_new->get_package_by_id($package_id);
+                if ($this->input->post("package_code") != $existing_package->package_code) {
+                    $this->form_validation->set_rules("package_code", "Package Code", "required|is_unique[medicine_packages.package_code]");
+                }
+
+                if ($this->form_validation->run() == true) {
+                    $package_data = [
+                        "package_name" => $this->input->post("package_name"),
+                        "package_code" => $this->input->post("package_code"),
+                        "description" => $this->input->post("description"),
+                        "selling_price" => $this->input->post("selling_price"),
+                        "mrp" => $this->input->post("mrp"),
+                        "gst_rate" => $this->input->post("gst_rate"),
+                        "updated_at" => date('Y-m-d H:i:s')
+                    ];
+
+                    $medicine_ids = $this->input->post("medicine_ids");
+                    $quantities = $this->input->post("quantities");
+
+                    $package_items = [];
+                    if (!empty($medicine_ids)) {
+                        foreach ($medicine_ids as $index => $medicine_id) {
+                            if (!empty($medicine_id) && isset($quantities[$index]) && $quantities[$index] > 0) {
+                                $package_items[] = [
+                                    "medicine_id" => $medicine_id,
+                                    "quantity" => $quantities[$index]
+                                ];
+                            }
+                        }
+                    }
+
+                    if (empty($package_items)) {
+                        $this->session->set_flashdata("error", "Please add at least one medicine to the package.");
+                        redirect("stocks_new/edit_package/" . $package_id);
+                    }
+
+                    $result = $this->Stock_model_new->update_medicine_package($package_id, $package_data, $package_items);
+
+                    if ($result) {
+                        $this->session->set_flashdata("success", "Package updated successfully!");
+                        redirect("stocks_new/packages");
+                    } else {
+                        $this->session->set_flashdata("error", "Failed to update package.");
+                    }
+                }
+            }
+
+            $data["package"] = $this->Stock_model_new->get_package_by_id($package_id);
+            $data["package_items"] = $this->Stock_model_new->get_package_items($package_id);
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines_package();
+
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/edit_package", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+    public function delete_package($package_id)
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $result = $this->Stock_model_new->delete_medicine_package($package_id);
+
+            if ($result) {
+                $this->session->set_flashdata("success", "Package deleted successfully!");
+            } else {
+                $this->session->set_flashdata("error", "Failed to delete package.");
+            }
+
+            redirect("stocks_new/packages");
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+    public function get_package_items($package_id)
+    {
+        // Log for debugging
+        log_message('debug', 'get_package_items called with package_id: ' . $package_id);
+        error_log('get_package_items called with package_id: ' . $package_id);
+        header('Content-Type: text/html; charset=utf-8');
+        $logg = checklogin();
+        if ($logg["status"] != true) {
+            echo '<div class="alert alert-danger">Session expired. Please refresh the page and try again.</div>';
+            return;
+        }
+            try {
+                $package = $this->Stock_model_new->get_package_by_id($package_id);
+                $package_items = $this->Stock_model_new->get_package_items($package_id);
+
+                if (!$package) {
+                    echo '<div class="alert alert-warning">Package not found.</div>';
+                    return;
+                }
+
+                $html = '<div style="max-width: 100%;">';
+                $html .= '<h4 style="margin-top: 0; color: #333;"><strong>' . htmlspecialchars($package->package_name) . '</strong></h4>';
+                $html .= '<p style="color: #666; margin-bottom: 20px;">' . htmlspecialchars($package->package_code) . ' | ' . htmlspecialchars($package->description ?? 'No description') . '</p>';
+
+                if (empty($package_items)) {
+                    $html .= '<div class="alert alert-info" style="margin: 20px 0;">No medicines found in this package.</div>';
+                } else {
+                    $html .= '<table class="table table-striped table-hover" style="margin-bottom: 0;">';
+                    $html .= '<thead style="background-color: #f8f9fa;"><tr>';
+                    $html .= '<th style="width: 60%;">Medicine Details</th>';
+                    $html .= '<th style="width: 40%; text-align: center;">Quantity</th>';
+                    $html .= '</tr></thead>';
+                    $html .= '<tbody>';
+
+                    foreach ($package_items as $item) {
+                        $medicine_name = isset($item->medicine_name) ? $item->medicine_name : 'Unknown';
+                        $medicine_code = isset($item->medicine_code) ? $item->medicine_code : '';
+                        $brand_name = isset($item->brand_name) ? $item->brand_name : '';
+                        $quantity = isset($item->quantity) ? $item->quantity : 0;
+
+                        $html .= '<tr>';
+                        $html .= '<td><strong>' . htmlspecialchars($medicine_name) . '</strong>';
+                        if ($medicine_code) {
+                            $html .= '<br><small class="text-muted">Code: ' . htmlspecialchars($medicine_code) . '</small>';
+                        }
+                        if ($brand_name) {
+                            $html .= '<br><small class="text-muted">' . htmlspecialchars($brand_name) . '</small>';
+                        }
+                        $html .= '</td>';
+                        $html .= '<td style="text-align: center;"><span class="badge" style="background-color: #007bff; font-size: 12px;">' . $quantity . ' units</span></td>';
+                        $html .= '</tr>';
+                    }
+                    $html .= '</tbody></table>';
+                    $html .= '</div>';
+
+                    // Add summary
+                    $total_items = count($package_items);
+                    $total_quantity = 0;
+                    foreach ($package_items as $item) {
+                        $total_quantity += isset($item->quantity) ? $item->quantity : 0;
+                    }
+                    $html .= '<div style="margin-top: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 4px; border-left: 4px solid #007bff;">';
+                    $html .= '<strong>Summary:</strong> ' . $total_items . ' medicine type(s), ' . $total_quantity . ' units total';
+                    $html .= '</div>';
+                }
+                $html .= '</div>';
+                echo $html;
+            } catch (Exception $e) {
+                echo '<div class="alert alert-danger">Error loading package items: ' . htmlspecialchars($e->getMessage()) . '</div>';
+            }
+        
+    }
+
+    public function add_package_stock()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            if ($this->input->post("action") == "add_package_stock") {
+                $this->form_validation->set_rules("package_id", "Package", "required");
+                $this->form_validation->set_rules("center_id", "Center", "required");
+                $this->form_validation->set_rules("quantity", "Quantity", "required|numeric|greater_than[0]");
+                if ($this->form_validation->run() == true) {
+                    $result = $this->Stock_model_new->add_package_stock(
+                        $this->input->post("package_id"),
+                        $this->input->post("center_id"),
+                        $this->input->post("quantity"),
+                        $this->input->post("department"),
+                        $this->get_current_user_id()
+                    );
+                    if ($result['status'] === 'success') {
+                        $this->session->set_flashdata("success", $result['message']);
+                        redirect("stocks_new/packages");
+                    } else {
+                        $this->session->set_flashdata("error", $result['message']);
+                    }
+                }
+            }
+            $data["packages"] = $this->Stock_model_new->get_all_packages();
+            $data["centers"] = $this->Stock_model_new->get_all_centers();
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/add_package_stock", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+    public function transfer_package_stock()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            if ($this->input->post("action") == "transfer_package_stock") {
+                $this->form_validation->set_rules("package_id", "Package", "required");
+                $this->form_validation->set_rules("to_center_id", "To Center", "required");
+                $this->form_validation->set_rules("quantity", "Quantity", "required|numeric|greater_than[0]");
+                if ($this->form_validation->run() == true) {
+                    $transfer_data = [
+                        'package_id' => $this->input->post("package_id"),
+                        'to_center_id' => $this->input->post("to_center_id"),
+                        'quantity' => $this->input->post("quantity"),
+                        'to_department' => $this->input->post("to_department")
+                    ];
+                    $result = $this->Stock_model_new->transfer_package_stock($transfer_data, $this->get_current_user_id());
+                    if ($result['status'] === 'success') {
+                        $this->session->set_flashdata("success", $result['message']);
+                        redirect("stocks_new/packages");
+                    } else {
+                        $this->session->set_flashdata("error", $result['message']);
+                    }
+                }
+            }
+
+            $data["packages"] = $this->Stock_model_new->get_all_packages();
+            $data["centers"] = $this->Stock_model_new->get_all_centers();
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/transfer_package_stock", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+    public function get_package_stock()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            // Get package stock levels across all centers
+            $package_stocks = $this->Stock_model_new->get_package_stock_report();
+
+            // Calculate summary data
+            $data["package_stocks"] = $package_stocks;
+            $data["total_stocks"] = count($package_stocks);
+            $data["total_centers"] = count(array_unique(array_column($package_stocks, 'center_name')));
+            $data["total_units"] = array_sum(array_column($package_stocks, 'quantity'));
+            $data["unique_packages"] = count(array_unique(array_column($package_stocks, 'package_name')));
+            // Get package transfer history
+            // $data["transfer_history"] = $this->Stock_model_new->get_package_transfer_history();
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/package_stock_report", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("Content-Type: application/json");
+            echo json_encode(['error' => 'Unauthorized']);
+            die();
+        }
+    }
+
+    // ===============================================
     // MEDICINE MANAGEMENT
     // ===============================================
 
@@ -4223,7 +4581,7 @@ class Stocks_new extends CI_Controller
                     $subtotal = $quantity * $unit_price_one;
                     $discount_amount = $subtotal * ($discount_percent / 100);
                     $total = $subtotal - $discount_amount;
-                    $taxable_Value = $total/(1+ ($gst_rate/100) );
+                    $taxable_Value = $total/(1+ ($gst_rate/100));
                     $tax_amount = $taxable_Value*($gst_rate/100);
                     $item_data = [
                         'sale_id'         => $id,
@@ -6865,7 +7223,6 @@ class Stocks_new extends CI_Controller
             $subtotal = $sale->subtotal ?? 0;
             $discount = $sale->discount_amount ?? 0;
             $taxable_amount = $sale->total_amount - $sale->tax_amount;
-            
             $row = [
                 $sale->sale_number ?? 'N/A',
                 $sale->patient_id ?? 'N/A',
@@ -8224,7 +8581,7 @@ class Stocks_new extends CI_Controller
                         "maximum_stock_level",
                     ),
                     "status" => "active",
-                    "created_by" => $logg["user_id"],
+                    "created_by" => $this->get_current_user_id(),
                 ];
 
                 if ($this->Stock_model_new->add_medicine($medicine_data)) {
@@ -8308,7 +8665,7 @@ class Stocks_new extends CI_Controller
                     "purchase_date" => $this->input->post("purchase_date"),
                     "invoice_number" => $this->input->post("invoice_number"),
                     "batch_status" => "ACTIVE",
-                    "created_by" => $logg["user_id"],
+                    "created_by" => $this->get_current_user_id(),
                 ];
 
                 if ($this->Stock_model_new->add_batch($batch_data)) {
@@ -8388,7 +8745,7 @@ class Stocks_new extends CI_Controller
                     ),
                     "status" => "DRAFT",
                     "remarks" => $this->input->post("remarks"),
-                    "created_by" => $logg["user_id"],
+                    "created_by" => $this->get_current_user_id(),
                 ];
 
                 if ($this->Stock_model_new->add_transfer($transfer_data)) {
@@ -8451,7 +8808,7 @@ class Stocks_new extends CI_Controller
                     "payment_method" => $this->input->post("payment_method"),
                     "status" => "DRAFT",
                     "remarks" => $this->input->post("remarks"),
-                    "created_by" => $logg["user_id"],
+                    "created_by" => $this->get_current_user_id(),
                 ];
 
                 if ($this->Stock_model_new->add_sale($sale_data)) {
@@ -8506,7 +8863,7 @@ class Stocks_new extends CI_Controller
                     "total_amount" => $this->input->post("total_amount"),
                     "status" => "DRAFT",
                     "remarks" => $this->input->post("remarks"),
-                    "created_by" => $logg["user_id"],
+                    "created_by" => $this->get_current_user_id(),
                 ];
 
                 if ($this->Stock_model_new->add_invoice($invoice_data)) {
@@ -8645,7 +9002,7 @@ class Stocks_new extends CI_Controller
                     "return_reason" => $this->input->post("return_reason"),
                     "status" => "PENDING",
                     "remarks" => $this->input->post("remarks"),
-                    "created_by" => $logg["user_id"],
+                    "created_by" => $this->get_current_user_id(),
                 ];
 
                 if ($this->Stock_model_new->add_vendor_return($return_data)) {
@@ -9910,8 +10267,8 @@ class Stocks_new extends CI_Controller
 
         // Add headers
         $headers = [
-            "Patient ID", "Patient Name", "Received Date", "Sale # / Ref", "Medicine",
-            "Medicine Code", "Batch #", "Qty", "Unit Price", "Total",
+            "Patient ID", "Patient Name", "Received Date", "Sale # / Ref", "Type", "Item",
+            "Item Code", "Batch #", "Qty", "Unit Price", "Total",
             "Consumed At", "Billed By"
         ];
         fputcsv($file, $headers);
@@ -9923,8 +10280,9 @@ class Stocks_new extends CI_Controller
                 $patient->patient_name ?? 'N/A',     // Add patient name
                 date('d-m-Y H:i', strtotime($item->received_date)),
                 $item->sale_number,
-                $item->medicine_name,
-                $item->medicine_code,
+                ucfirst($item->item_type), // Medicine or Package
+                $item->item_name,
+                $item->item_code,
                 $item->batch_number,
                 abs($item->quantity_change),
                 $item->unit_price,
@@ -9978,7 +10336,6 @@ class Stocks_new extends CI_Controller
             redirect(base_url());
             die();
         }
-        // ** NEW: Get filters from URL **
         $filters = [
             'start_date' => $this->input->get('start_date'),
             'end_date'   => $this->input->get('end_date'),
@@ -9987,19 +10344,43 @@ class Stocks_new extends CI_Controller
         $data = [
             'consumption_summary' => [],
             'selected_patient' => null,
-            'filters' => $filters // Pass filters to the view
+            'filters' => $filters
         ];
         $patient_id = $filters['patient_id'];
         if (!empty($patient_id)) {
-            // ** NEW: Pass filters to the model **
             $data['consumption_summary'] = $this->Stock_model_new->get_patient_consumption_summary($patient_id, $filters);
-            // Get the patient's details to display in the search box
             $data['selected_patient'] = $this->Stock_model_new->get_patient_details($patient_id);
         }
         $template = get_header_template($logg["role"]);
         $this->load->view($template["header"]);
-        // Load the view file
         $this->load->view("stocks_new/patient_consumption_summary", $data); 
+        $this->load->view($template["footer"]);
+    }
+
+    public function medicine_package(){
+        $logg = checklogin();
+        if (!$logg["status"] == true) {
+            redirect(base_url());
+            die();
+        }
+        $filters = [
+            'start_date' => $this->input->get('start_date'),
+            'end_date'   => $this->input->get('end_date'),
+            'patient_id' => $this->input->get('patient_id'),
+        ];
+        $data = [
+            'consumption_medicine_package' => [],
+            'selected_patient' => null,
+            'filters' => $filters
+        ];
+        $patient_id = $filters['patient_id'];
+        if (!empty($patient_id)) {
+            $data['consumption_medicine_package'] = $this->Stock_model_new->consumption_medicine_package($patient_id, $filters);
+            $data['selected_patient'] = $this->Stock_model_new->get_patient_details($patient_id);
+        }
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/medicine_package", $data); 
         $this->load->view($template["footer"]);
     }
 
@@ -10352,6 +10733,7 @@ class Stocks_new extends CI_Controller
                 redirect('stocks_new/dashboard');
                 return;
             }
+
             $created_by_id = $this->get_employee_id_from_number($employee_number);
             if (isset($_POST['action']) && $_POST['action'] == 'add_billing_item') {
                 $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
@@ -10390,6 +10772,7 @@ class Stocks_new extends CI_Controller
                 // Collect all item indices from POST data (fixes bug where only row 1 was processed)
                 $m_counter = [];
                 $i_counter = [];
+                $p_counter = [];
                 $c_counter = [];
                 foreach ($_POST as $key => $val) {
                     if (strpos($key, 'medicine_name_') !== false) {
@@ -10399,6 +10782,10 @@ class Stocks_new extends CI_Controller
                     if (strpos($key, 'injections_name_') !== false) {
                         $iid = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
                         if ($iid > 0) $i_counter[] = $iid;
+                    }
+                    if (strpos($key, 'packages_name_') !== false) {
+                        $pid = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
+                        if ($pid > 0) $p_counter[] = $pid;
                     }
                     if (strpos($key, 'consumables_name_') !== false) {
                         $cid = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
@@ -10531,6 +10918,37 @@ class Stocks_new extends CI_Controller
                     }
                 }
 
+                // Process all package rows
+                foreach ($p_counter as $pcounte) {
+                    if (!empty($_POST['packages_name_' . $pcounte]) && (int)$_POST['packages_quantity_' . $pcounte] > 0) {
+                        $package_id = (int)$_POST['packages_name_' . $pcounte];
+                        $quantity = (int)$_POST['packages_quantity_' . $pcounte];
+                        $package_stock = $this->Stock_model_new->get_package_stock($package_id, $center_id, $department);
+                  
+                        if (!$package_stock || $package_stock->quantity < $quantity) {
+                            $items_failed++;
+                            $error_messages[] = "Package: Insufficient stock for package ID {$package_id}. Available: " . ($package_stock ? $package_stock->quantity : 0) . ", Requested: {$quantity}.";
+                            continue;
+                        }
+                    
+                        $package_data = [
+                            'package_id' => $package_id,
+                            'center_id' => $center_id,
+                            'department' => $department,
+                            'quantity' => $quantity,
+                            'patient_id' => $this->input->post('patient_id'),
+                            'patient_name' => $this->input->post('patient_name'),
+                        ];
+                        $result = $this->Stock_model_new->process_package_consumption($sale_id, $package_data, $created_by_id);
+                        if ($result['status'] == 'success') {
+                            $items_processed++;
+                            $total_amount += $result['total_price'];
+                        } else {
+                            $items_failed++;
+                            $error_messages[] = "Package: " . $result['message'];
+                        }
+                    }
+                }
                 // Process all consumable rows
                 foreach ($c_counter as $ccounte) {
                     if (!empty($_POST['consumables_name_' . $ccounte]) && (float)$_POST['consumables_quantity_' . $ccounte] > 0) {
@@ -10612,6 +11030,7 @@ class Stocks_new extends CI_Controller
                 $template = get_header_template($logg['role']);
                 $data['consumables'] = $this->Stock_model_new->get_batches_for_billing_form('OT DCI', $center_id, $department);
                 $data['injections'] = $this->Stock_model_new->get_batches_for_billing_form('Package injections', $center_id, $department);
+                $data['packages'] = $this->Stock_model_new->get_available_packages_for_center($center_id, $department);
                 $data['medicine'] = $this->Stock_model_new->get_batches_for_billing_form('EMBRYOLOGIST DCI', $center_id, $department);
                 $this->load->view($template['header']);
                 $this->load->view('stocks_new/add_billing_item', $data);
@@ -10651,6 +11070,39 @@ class Stocks_new extends CI_Controller
         redirect('stocks_new/sales');
     }
 
+    private function get_current_user_id() 
+    {
+        $session_types = [
+            'logged_administrator',
+            'logged_accountant',
+            'logged_stock_manager',
+            'logged_billing_manager',
+            'logged_telecaller',
+            'logged_central_stock_manager',
+            'logged_doctor',
+            'logged_investigation_manager',
+            'logged_counselor',
+            'logged_liason',
+            'logged_mrd',
+            'logged_embryologist',
+            'logged_viewer'
+        ];
+        foreach ($session_types as $session_type) {
+            if (isset($_SESSION[$session_type]) && isset($_SESSION[$session_type]['id'])) {
+                return $_SESSION[$session_type]['id'];
+            }
+            if (isset($_SESSION[$session_type]) && isset($_SESSION[$session_type]['user_id'])) {
+                return $_SESSION[$session_type]['user_id'];
+            }
+            if (isset($_SESSION[$session_type]) && isset($_SESSION[$session_type]['employee_number'])) {
+                return $_SESSION[$session_type]['employee_number'];
+            }
+        }
+        if ($this->session->userdata('user_id')) {
+            return $this->session->userdata('user_id');
+        }
+        return 1;
+    }
     public function get_detailed_sales_for_export()
     {
         $logg = checklogin();

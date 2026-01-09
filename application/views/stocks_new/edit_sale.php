@@ -221,6 +221,16 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <i class="fa fa-plus"></i> Add Sale Item
+                            <div class="pull-right">
+                                <div class="btn-group" data-toggle="buttons">
+                                    <label class="btn btn-outline-primary active" id="medicine_tab">
+                                        <input type="radio" name="item_type" value="medicine" checked> Medicine
+                                    </label>
+                                    <label class="btn btn-outline-success" id="package_tab">
+                                        <input type="radio" name="item_type" value="package"> Package/Box
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                         <div class="panel-body">
                             <?php if(validation_errors()): ?>
@@ -240,10 +250,13 @@
                                     <?php echo $this->session->flashdata('success'); ?>
                                 </div>
                             <?php endif; ?>
-                            <form action="<?php echo base_url('stocks_new/edit_sale/' . $sale->id); ?>" method="post" class="form-horizontal">
-                                <input type="hidden" name="action" value="add_sale_item">
-                                <!-- Hidden field to store the GST rate -->
-                                <input type="hidden" id="gst_rate" name="gst_rate" value="0">
+                            <!-- Medicine Form -->
+                            <div id="medicine_form">
+                                <form action="<?php echo base_url('stocks_new/edit_sale/' . $sale->id); ?>" method="post" class="form-horizontal">
+                                    <input type="hidden" name="action" value="add_sale_item">
+                                    <input type="hidden" name="item_type" value="medicine">
+                                    <!-- Hidden field to store the GST rate -->
+                                    <input type="hidden" id="gst_rate" name="gst_rate" value="0">
 
                                 <div class="row">
                                     <div class="col-md-6">
@@ -350,7 +363,74 @@
                                         </div>
                                     </div>
                                 </div>
-                            </form>
+                                </form>
+                            </div>
+
+                            <!-- Package Form -->
+                            <div id="package_form" style="display: none;">
+                                <form action="<?php echo base_url('stocks_new/edit_sale/' . $sale->id); ?>" method="post" class="form-horizontal">
+                                    <input type="hidden" name="action" value="add_sale_item">
+                                    <input type="hidden" name="item_type" value="package">
+                                    <input type="hidden" name="center_id" value="<?php echo $sale->center_id; ?>">
+                                    <input type="hidden" name="department" value="">
+                                    <input type="hidden" name="patient_id" value="<?php echo $sale->patient_id; ?>">
+                                    <input type="hidden" name="patient_name" value="<?php echo $sale->patient_name; ?>">
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-sm-4 control-label">Select Package *</label>
+                                                <div class="col-sm-8">
+                                                    <select name="package_id" id="package_id_select" class="form-control" required>
+                                                        <option value="">Select Package/Box</option>
+                                                        <?php foreach($packages as $package): ?>
+                                                            <option value="<?php echo $package->id; ?>"
+                                                                    data-name="<?php echo htmlspecialchars($package->package_name); ?>"
+                                                                    data-price="<?php echo $package->selling_price; ?>"
+                                                                    data-available="<?php echo $package->available_quantity; ?>">
+                                                                <?php echo htmlspecialchars($package->package_name . ' (' . $package->package_code . ') - Available: ' . $package->available_quantity); ?>
+                                                            </option>
+                                                        <?php endforeach; ?>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label class="col-sm-4 control-label">Quantity (Boxes) *</label>
+                                                <div class="col-sm-8">
+                                                    <input type="number" name="package_quantity" id="package_quantity" class="form-control" placeholder="Enter number of boxes" min="1" required>
+                                                    <small class="form-text text-muted">Enter number of boxes/packages to sell</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="col-sm-4 control-label">Package Details</label>
+                                                <div class="col-sm-8">
+                                                    <div id="package_details" class="well" style="display: none;">
+                                                        <p><strong>Package:</strong> <span id="package_name"></span></p>
+                                                        <p><strong>Available:</strong> <span id="package_available"></span></p>
+                                                        <p><strong>Price per Box:</strong> ₹<span id="package_price"></span></p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <div class="col-sm-offset-2 col-sm-10">
+                                                    <button type="submit" class="btn btn-success">
+                                                        <i class="fa fa-plus"></i> Add Package
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -460,7 +540,7 @@
                             <i class="fa fa-cog"></i> Sale Actions
                         </div>
                         <div class="panel-body">
-                            <?php if($sale->status == 'DRAFT'): ?>
+                            <?php if($sale->status == 'DRAFT' || $sale->status == 'PACKAGE'): ?>
                                 <?php if(!empty($sale_items)): ?>
                                     <a href="<?php echo base_url('stocks_new/confirm_sale/' . $sale->id); ?>" 
                                     class="btn btn-success" 
@@ -615,6 +695,39 @@
              alert('Tax is calculated automatically based on the item\'s GST rate.');
         });
         
+        // Handle item type tabs (Medicine vs Package)
+        $('#medicine_tab, #package_tab').on('click', function() {
+            var itemType = $(this).find('input').val();
+
+            if (itemType === 'medicine') {
+                $('#medicine_form').show();
+                $('#package_form').hide();
+                $('#medicine_tab').addClass('active');
+                $('#package_tab').removeClass('active');
+            } else {
+                $('#medicine_form').hide();
+                $('#package_form').show();
+                $('#package_tab').addClass('active');
+                $('#medicine_tab').removeClass('active');
+            }
+        });
+
+        // Handle package selection
+        $('#package_id_select').on('change', function() {
+            var selectedOption = $(this).find('option:selected');
+
+            if (selectedOption.val()) {
+                $('#package_name').text(selectedOption.data('name'));
+                $('#package_available').text(selectedOption.data('available'));
+                $('#package_price').text(selectedOption.data('price'));
+                $('#package_quantity').attr('max', selectedOption.data('available'));
+                $('#package_details').show();
+            } else {
+                $('#package_details').hide();
+                $('#package_quantity').removeAttr('max');
+            }
+        });
+
         // Initial calculation on page load
         calculateTotals();
     });

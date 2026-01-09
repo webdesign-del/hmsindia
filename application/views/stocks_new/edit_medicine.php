@@ -132,6 +132,8 @@
                                                 <option value="OT DCI" <?php echo set_select('category', 'OT DCI', ($medicine->category == 'OT DCI')); ?>>OT DCI</option>
                                                 <option value="EMBRYOLOGIST DCI" <?php echo set_select('category', 'EMBRYOLOGIST DCI', ($medicine->category == 'EMBRYOLOGIST DCI')); ?>>EMBRYOLOGIST DCI</option>
                                                 <option value="Cash Medicines" <?php echo set_select('category', 'Cash Medicines', ($medicine->category == 'Cash Medicines')); ?>>Cash Medicines</option>
+                                                <option value="house keeping item" <?php echo set_select('category', 'house keeping item', ($medicine->category == 'house keeping item')); ?>>house keeping item</option>
+                                                <option value="stationery item" <?php echo set_select('category', 'stationery item', ($medicine->category == 'stationery item')); ?>>stationery item</option>
                                             </select>
                                         </div>
                                     </div>
