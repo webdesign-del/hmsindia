@@ -1,8 +1,9 @@
- <div class="col-md-12">
-      <div class="card">
-	   <div class="card-action"><h3>Clinical Reports Monthly Details – Year <?php echo $year; ?></h3></div>
-       <div class="clearfix"></div>
-
+ <div class="col-md-12 card">
+      <div class="row" style="margin-bottom:20px;">
+      <div class="col-md-12"><h3> Clinical Reports Monthly Details – Year <?php echo $year; ?> </h3></div>
+	  					</div>
+        <div class="card-content">
+          <div class="table-responsive">
 <table class="table table-striped table-bordered table-hover">
     <thead>
         <tr>
@@ -40,6 +41,17 @@
 			<th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=lah'); ?>">LAH</a></th>
 
 			<th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=embryo_glue'); ?>">EMBRYO GLUE</a></th>
+
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=hysteroscopy_diagnostic'); ?>">HYSTEROSCOPY DIAGNOSTIC</a></th>
+
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=laproscopy_hysteroscopy'); ?>">LAPAROSCOPY PLUS HYSTEROSCOPY</a></th>
+
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=semen_freezing'); ?>">SEMEN FREEZING</a></th>
+
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=embryo_freezing'); ?>">EMBRYO FREEZING</a></th>
+
+            <th><a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&type=egg_freezing'); ?>">EGG FREEZING</a></th>
+
         </tr>
     </thead>
     <tbody>
@@ -68,7 +80,12 @@ for ($m = 1; $m <= 12; $m++) {
         'Sperm_Mobil' => 0,
         'Blastocyst' => 0,
         'lah' => 0,
-        'Embryo_Glue' => 0
+        'Embryo_Glue' => 0,
+        'hysteroscopy_diagnostic' => 0,
+        'laproscopy_hysteroscopy' => 0,
+        'semen_freezing' => 0,
+        'embryo_freezing' => 0,
+        'egg_freezing' => 0
     ];
 }
 
@@ -146,6 +163,26 @@ foreach ($Embryo_Glue_monthly as $t) {
     $months[$t['month']]['Embryo_Glue'] = (int)$t['total'];
 }
 
+foreach ($hysteroscopy_diagnostic_monthly as $t) {
+    $months[$t['month']]['hysteroscopy_diagnostic'] = (int)$t['total'];
+}
+
+foreach ($laproscopy_hysteroscopy_monthly as $t) {
+    $months[$t['month']]['laproscopy_hysteroscopy'] = (int)$t['total'];
+}
+
+foreach ($semen_freezing_monthly as $t) {
+    $months[$t['month']]['semen_freezing'] = (int)$t['total'];
+}
+
+foreach ($embryo_freezing_monthly as $t) {
+    $months[$t['month']]['embryo_freezing'] = (int)$t['total'];
+}
+
+foreach ($egg_freezing_monthly as $t) {
+    $months[$t['month']]['egg_freezing'] = (int)$t['total'];
+}
+
 /* ==================================
    DISPLAY TABLE
 ================================== */
@@ -166,6 +203,11 @@ foreach ($months as $month_num => $m) {
     $Blastocyst_count = isset($m['Blastocyst']) ? $m['Blastocyst'] : 0;
     $lah_count = isset($m['lah']) ? $m['lah'] : 0;
     $glue_count = isset($m['Embryo_Glue']) ? $m['Embryo_Glue'] : 0;
+    $hysteroscopy_diagnostic_count = isset($m['hysteroscopy_diagnostic']) ? $m['hysteroscopy_diagnostic'] : 0;
+    $laproscopy_hysteroscopy_count = isset($m['laproscopy_hysteroscopy']) ? $m['laproscopy_hysteroscopy'] : 0;
+    $semen_freezing_count = isset($m['semen_freezing']) ? $m['semen_freezing'] : 0;
+    $embryo_freezing_count = isset($m['embryo_freezing']) ? $m['embryo_freezing'] : 0;
+    $egg_freezing_count = isset($m['egg_freezing']) ? $m['egg_freezing'] : 0;
 ?>
 <tr>
     <td><?php echo $m['name']; ?></td>
@@ -325,6 +367,56 @@ foreach ($months as $month_num => $m) {
                target="_blank" 
                style="font-weight:bold; color:blue;">
                <?php echo $glue_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+     <td><?php if($hysteroscopy_diagnostic_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=hysteroscopy_diagnostic'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $hysteroscopy_diagnostic_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+     <td><?php if($laproscopy_hysteroscopy_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=laproscopy_hysteroscopy'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $laproscopy_hysteroscopy_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+     <td><?php if($semen_freezing_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=semen_freezing'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $semen_freezing_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+     <td><?php if($embryo_freezing_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=embryo_freezing'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $embryo_freezing_count; ?>
+            </a>
+        <?php else: ?>
+            0
+        <?php endif; ?>
+    </td>
+     <td><?php if($egg_freezing_count > 0): ?>
+            <a href="<?php echo base_url('accounts/clinical_details?year='.$year.'&month='.$month_num.'&type=egg_freezing'); ?>" 
+               target="_blank" 
+               style="font-weight:bold; color:blue;">
+               <?php echo $egg_freezing_count; ?>
             </a>
         <?php else: ?>
             0
