@@ -10218,161 +10218,19 @@ function assessment_form($patient_id = 0){ // Keep the = 0 fix from before
 	$data['lah_monthly'] = $this->accounts_model->lah_monthly($center, $year);
 
 	$data['Embryo_Glue_monthly'] = $this->accounts_model->Embryo_Glue_monthly($center, $year);
+
+	$data['hysteroscopy_diagnostic_monthly'] = $this->accounts_model->hysteroscopy_diagnostic_monthly($center, $year);
+
+	$data['laproscopy_hysteroscopy_monthly'] = $this->accounts_model->laproscopy_hysteroscopy_monthly($center, $year);
+
+	$data['semen_freezing_monthly'] = $this->accounts_model->semen_freezing_monthly($center, $year);
+
+	$data['embryo_freezing_monthly'] = $this->accounts_model->embryo_freezing_monthly($center, $year);
+
+	$data['egg_freezing_monthly'] = $this->accounts_model->egg_freezing_monthly($center, $year);
 	$template = get_header_template($logg['role']);
 	$this->load->view($template['header']);
     $this->load->view('accounts/yearly_monthly_details', $data);
-	$this->load->view($template['footer']);
-}
-/*
-public function yearly_monthly_details(){
-    $logg = checklogin();
-    if ($logg['status'] != true) {
-        redirect(base_url());
-        return;
-    }
-
-    $year   = $this->input->get('year');
-    $center = $_SESSION['logged_doctor']['center'] ?? null;
-
-    /* ==========================
-       MONTHLY CONSULTATION
-    ===========================*/
-  /*  $sql_consult = "
-        SELECT 
-            MONTH(a.appoitmented_date) AS month,
-            c.center_name,
-            COUNT(*) AS total
-        FROM hms_appointments a
-        JOIN hms_centers c ON c.center_number = a.appoitment_for
-        WHERE a.status = 'consultation_done'
-        AND YEAR(a.appoitmented_date) = ?
-        " . ($center ? "AND a.appoitment_for = ?" : "") . "
-        GROUP BY MONTH(a.appoitmented_date), c.center_name
-    ";
-
-    $params = [$year];
-    if ($center) $params[] = $center;
-
-    $data['consult_monthly'] = $this->db->query($sql_consult, $params)->result_array();
-
-    /* ==========================
-       OVARIAN STEM CELL
-    ===========================*/
-   /* $sql_stem = "
-        SELECT 
-            MONTH(date_of_procedure) AS month,
-            COUNT(*) AS total
-        FROM ovarian_prp_discharge_summary
-        WHERE procedure_name = 'STEM CELL'
-        AND YEAR(date_of_procedure) = ?
-        " . ($center ? "AND center = ?" : "") . "
-        GROUP BY MONTH(date_of_procedure)
-    ";
-
-    $params = [$year];
-    if ($center) $params[] = $center;
-
-    $data['stem_monthly'] = $this->db->query($sql_stem, $params)->result_array();
-
-    /* ==========================
-       TESTICULAR STEM CELL
-    ===========================*/
-   /* $sql_testi = "
-        SELECT 
-            MONTH(date_of_procedure) AS month,
-            COUNT(*) AS total
-        FROM testicular_prp_discharge_summary
-        WHERE procedures = 'Testicular Stem Cell'
-        AND YEAR(date_of_procedure) = ?
-        " . ($center ? "AND center = ?" : "") . "
-        GROUP BY MONTH(date_of_procedure)
-    ";
-
-    $params = [$year];
-    if ($center) $params[] = $center;
-
-    $data['testi_monthly'] = $this->db->query($sql_testi, $params)->result_array();
-
-    $data['year'] = $year;
-
-    $template = get_header_template($logg['role']);
-	$this->load->view($template['header']);
-    $this->load->view('accounts/yearly_monthly_details', $data);
-	$this->load->view($template['footer']);
-}*/
-
-public function yearly_monthly_details_admin()
-{
-    $logg = checklogin();
-    if ($logg['status'] != true) {
-        redirect(base_url());
-        return;
-    }
-
-    $year = $this->input->get('year');
-
-    /* =========================
-       MONTHLY CONSULTATIONS
-    ==========================*/
-    $sql_consult = "
-        SELECT 
-            MONTH(a.appoitmented_date) AS month,
-            c.center_name,
-            COUNT(*) AS total_consultations
-        FROM hms_appointments a
-        JOIN hms_centers c 
-            ON c.center_number = a.appoitment_for
-        WHERE a.status = 'consultation_done'
-        AND YEAR(a.appoitmented_date) = ?
-        GROUP BY MONTH(a.appoitmented_date), c.center_name
-    ";
-
-    $consult_data = $this->db->query($sql_consult, [$year])->result_array();
-
-    /* =========================
-       OVARIAN STEM CELL
-    ==========================*/
-    $sql_stem = "
-        SELECT 
-            MONTH(o.date_of_procedure) AS month,
-            c.center_name,
-            COUNT(*) AS total_ovarian
-        FROM ovarian_prp_discharge_summary o
-        JOIN hms_centers c 
-            ON c.center_number = o.center
-        WHERE o.procedure_name = 'STEM CELL'
-        AND YEAR(o.date_of_procedure) = ?
-        GROUP BY MONTH(o.date_of_procedure), c.center_name
-    ";
-
-    $stem_data = $this->db->query($sql_stem, [$year])->result_array();
-
-    /* =========================
-       TESTICULAR STEM CELL
-    ==========================*/
-    $sql_testi = "
-        SELECT 
-            MONTH(t.date_of_procedure) AS month,
-            c.center_name,
-            COUNT(*) AS total_testicular
-        FROM testicular_prp_discharge_summary t
-        JOIN hms_centers c 
-            ON c.center_number = t.center
-        WHERE t.procedures = 'Testicular Stem Cell'
-        AND YEAR(t.date_of_procedure) = ?
-        GROUP BY MONTH(t.date_of_procedure), c.center_name
-    ";
-
-    $testi_data = $this->db->query($sql_testi, [$year])->result_array();
-
-    $data['consult'] = $consult_data;
-    $data['stem']    = $stem_data;
-    $data['testi']   = $testi_data;
-    $data['year']    = $year;
-
-    $template = get_header_template($logg['role']);
-	$this->load->view($template['header']);
-    $this->load->view('accounts/yearly_monthly_details_admin', $data);
 	$this->load->view($template['footer']);
 }
 
@@ -10468,6 +10326,26 @@ public function clinical_details() {
 
 		case 'embryo_glue':
             $data['records'] = $this->accounts_model->get_yearly_embryo_glue($year, $type, $month, $center);
+            break;	
+
+		case 'hysteroscopy_diagnostic':
+            $data['records'] = $this->accounts_model->get_yearly_hysteroscopy_diagnostic($year, $type, $month, $center);
+            break;	
+			
+		case 'laproscopy_hysteroscopy':
+            $data['records'] = $this->accounts_model->get_yearly_laproscopy_hysteroscopy($year, $type, $month, $center);
+            break;	
+			
+		case 'semen_freezing':
+            $data['records'] = $this->accounts_model->get_yearly_semen_freezing($year, $type, $month, $center);
+            break;	
+			
+		case 'embryo_freezing':
+            $data['records'] = $this->accounts_model->get_yearly_embryo_freezing($year, $type, $month, $center);
+            break;	
+			
+		case 'egg_freezing':
+            $data['records'] = $this->accounts_model->get_yearly_egg_freezing($year, $type, $month, $center);
             break;	
 
         default:

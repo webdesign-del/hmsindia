@@ -1,9 +1,9 @@
  <?php $all_method =&get_instance(); ?>
 
-    <div class="col-md-12">
-      <div class="card">
-	   <div class="card-action"><h3>Clinical Reports  </h3></div>
-       <div class="clearfix"></div>
+    <div class="col-md-12 card">
+      <div class="row" style="margin-bottom:20px;">
+      <div class="col-md-12"><h3> Clinical Reports </h3></div>
+	   <div class="clearfix"></div>
 	   <?php if($_SESSION['logged_administrator']){ ?>
 	    <form action=""<?php echo base_url().'accounts/clinical_reports'; ?>" method="get">
 		     <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
@@ -45,9 +45,11 @@
             </div>
             </form>  
 	   <?php } ?>
+						</div>
         <div class="clearfix"></div>
-	    <div class="card-content">
-          <div class="table-responsive"><table class="table table-striped table-bordered table-hover" id="procedure_billing_list">
+	     <div class="card-content">
+          <div class="table-responsive">
+			<table class="table table-striped table-bordered table-hover" id="procedure_billing_list">
     <thead>
         <tr>
             <th>YEAR</th>
@@ -68,6 +70,11 @@
 			<th>BLASTOCYST</th>
 			<th>LAH</th>
 			<th>EMBRYO GLUE</th>
+			<th>HYSTEROSCOPY DIAGNOSTIC</th>
+			<th>LAPAROSCOPY PLUS HYSTEROSCOPY</th>
+			<th>SEMEN FREEZING</th>
+			<th>EMBRYO FREEZING</th>
+			<th>EGG FREEZING</th>
         </tr>
     </thead>
     <tbody>
@@ -75,10 +82,22 @@
 <?php 
 // PHP 7.0+
 // Checks if doctor center exists; if not, checks embryologist center; otherwise sets to null.
-$center = $_SESSION['logged_doctor']['center'] ?? $_SESSION['logged_embryologist']['center'] ?? null;
+/* ======================================================
+   1. DETERMINE CENTER ID
+====================================================== */
+$center = $_SESSION['logged_administrator']['center'] 
+          ?? $_SESSION['logged_doctor']['center'] 
+          ?? $_SESSION['logged_embryologist']['center'] 
+          ?? null;
+
+/* ======================================================
+   HELPER LOGIC:
+   We will check this condition for every query:
+   if (!empty($center) && $center != '0') { ... add filter ... }
+====================================================== */
 
 /* ===============================
-   1. FETCH CONSULTATION YEAR-WISE
+   2. CONSULTATIONS (Dynamic)
 =================================*/
 $sql_consult = "
     SELECT 
@@ -86,29 +105,36 @@ $sql_consult = "
         COUNT(*) AS total_consultations
     FROM hms_appointments
     WHERE status = 'consultation_done'
-    AND appoitment_for = ?
-    GROUP BY YEAR(appoitmented_date)
 ";
-
-$consult_data = $this->db->query($sql_consult, [$center])->result_array();
+$params_consult = [];
+if (!empty($center) && $center != '0') {
+    $sql_consult .= " AND appoitment_for = ? ";
+    $params_consult[] = $center;
+}
+$sql_consult .= " GROUP BY YEAR(appoitmented_date) ";
+$consult_data = $this->db->query($sql_consult, $params_consult)->result_array();
 
 /* ===============================
-   1. FETCH FIRST CONSULTATION YEAR-WISE
+   1. FETCH FIRST CONSULTATION (Dynamic)
 =================================*/
 $sql_appoitmented = "
     SELECT 
         YEAR(appoitmented_date) AS year,
         COUNT(*) AS total_appoitmented
     FROM hms_appointments
-    WHERE reason_of_visit ='First Visit' and status = 'consultation_done'
-    AND appoitment_for = ?
-    GROUP BY YEAR(appoitmented_date)
+    WHERE reason_of_visit ='First Visit' 
+    AND status = 'consultation_done'
 ";
-
-$appoitmented_data = $this->db->query($sql_appoitmented, [$center])->result_array();
+$params_app = [];
+if (!empty($center) && $center != '0') {
+    $sql_appoitmented .= " AND appoitment_for = ? ";
+    $params_app[] = $center;
+}
+$sql_appoitmented .= " GROUP BY YEAR(appoitmented_date) ";
+$appoitmented_data = $this->db->query($sql_appoitmented, $params_app)->result_array();
 
 /* ===============================
-   2. FETCH STEM CELL YEAR-WISE
+   2. FETCH STEM CELL (Dynamic)
 =================================*/
 $sql_stem = "
     SELECT 
@@ -116,140 +142,168 @@ $sql_stem = "
         COUNT(*) AS total_stem
     FROM ovarian_prp_discharge_summary
     WHERE procedure_name = 'STEM CELL'
-    AND center = ?
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$stem_data = $this->db->query($sql_stem, [$center])->result_array();
+$params_stem = [];
+if (!empty($center) && $center != '0') {
+    $sql_stem .= " AND center = ? ";
+    $params_stem[] = $center;
+}
+$sql_stem .= " GROUP BY YEAR(date_of_procedure) ";
+$stem_data = $this->db->query($sql_stem, $params_stem)->result_array();
 
 /* ===============================
-   3. FETCH Testicular Stem Cell YEAR-WISE
+   3. FETCH Testicular Stem Cell (Dynamic)
 =================================*/
-
 $sql_testi = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_stem
     FROM testicular_prp_discharge_summary
     WHERE procedures = 'Testicular Stem Cell'
-    AND center = ?
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$testi_data = $this->db->query($sql_testi, [$center])->result_array();
+$params_testi = [];
+if (!empty($center) && $center != '0') {
+    $sql_testi .= " AND center = ? ";
+    $params_testi[] = $center;
+}
+$sql_testi .= " GROUP BY YEAR(date_of_procedure) ";
+$testi_data = $this->db->query($sql_testi, $params_testi)->result_array();
 
 /* ===============================
-   4. FETCH ovum PRPpickup YEAR-WISE
+   4. FETCH ovum PRPpickup (Dynamic)
 =================================*/
-
 $sql_ovum_pickup = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_ovum_pickup
     FROM ovum_pickup_discharge_summary
-    WHERE center = ?
-    AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
+    WHERE date_of_procedure IS NOT NULL
 ";
-$ovum_pickup_data = $this->db->query($sql_ovum_pickup, [$center])->result_array();
+$params_pickup = [];
+if (!empty($center) && $center != '0') {
+    $sql_ovum_pickup .= " AND center = ? ";
+    $params_pickup[] = $center;
+}
+$sql_ovum_pickup .= " GROUP BY YEAR(date_of_procedure) ";
+$ovum_pickup_data = $this->db->query($sql_ovum_pickup, $params_pickup)->result_array();
 
 /* ===============================
-   5. FETCH OPU YEAR-WISE
+   5. FETCH OPU (Ovarian PRP) (Dynamic)
 =================================*/
- $sql_ovarian_prp = "
+$sql_ovarian_prp = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_ovarian_prp
     FROM ovarian_prp_discharge_summary
     WHERE procedure_name = 'Ovarian PRP'
-    AND center = ?
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$ovarian_prp_data = $this->db->query($sql_ovarian_prp, [$center])->result_array();
+$params_oprp = [];
+if (!empty($center) && $center != '0') {
+    $sql_ovarian_prp .= " AND center = ? ";
+    $params_oprp[] = $center;
+}
+$sql_ovarian_prp .= " GROUP BY YEAR(date_of_procedure) ";
+$ovarian_prp_data = $this->db->query($sql_ovarian_prp, $params_oprp)->result_array();
 
 /* ===============================
-   6. FETCH Embryo Transfer YEAR-WISE
+   6. FETCH Embryo Transfer (Dynamic)
 =================================*/
- $sql_embryo_transfer = "
+$sql_embryo_transfer = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_embryo_transfer
     FROM embryology_discharge_summary
     WHERE Embryo_Transfer = 'Yes'
-    AND center = ?
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$embryo_transfer_data = $this->db->query($sql_embryo_transfer, [$center])->result_array();
+$params_et = [];
+if (!empty($center) && $center != '0') {
+    $sql_embryo_transfer .= " AND center = ? ";
+    $params_et[] = $center;
+}
+$sql_embryo_transfer .= " GROUP BY YEAR(date_of_procedure) ";
+$embryo_transfer_data = $this->db->query($sql_embryo_transfer, $params_et)->result_array();
 
 /* ===============================
-   7. FETCH FET YEAR-WISE
+   7. FETCH FET (Dynamic)
 =================================*/
- $sql_fet = "
+$sql_fet = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_fet
     FROM embryology_discharge_summary
     WHERE FET = 'Yes'
-    AND center = ?
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$fet_data = $this->db->query($sql_fet, [$center])->result_array();
+$params_fet = [];
+if (!empty($center) && $center != '0') {
+    $sql_fet .= " AND center = ? ";
+    $params_fet[] = $center;
+}
+$sql_fet .= " GROUP BY YEAR(date_of_procedure) ";
+$fet_data = $this->db->query($sql_fet, $params_fet)->result_array();
 
 /* ===============================
-   8. FETCH IUI YEAR-WISE
+   8. FETCH IUI (Dynamic)
 =================================*/
- $sql_iui = "
+$sql_iui = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_iui
     FROM iui_discharge_summary
-    WHERE center = ?
-    AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
+    WHERE date_of_procedure IS NOT NULL
 ";
-
-$iui_data = $this->db->query($sql_iui, [$center])->result_array();
+$params_iui = [];
+if (!empty($center) && $center != '0') {
+    $sql_iui .= " AND center = ? ";
+    $params_iui[] = $center;
+}
+$sql_iui .= " GROUP BY YEAR(date_of_procedure) ";
+$iui_data = $this->db->query($sql_iui, $params_iui)->result_array();
 
 /* ===============================
-   9. FETCH IVF YEAR-WISE
+   9. FETCH IVF (Dynamic)
 =================================*/
- $sql_ivf = "
+$sql_ivf = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_ivf
     FROM ovum_discharge_summary
-    WHERE IVF='Yes' AND center = ?
+    WHERE IVF='Yes' 
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$ivf_data = $this->db->query($sql_ivf, [$center])->result_array();
+$params_ivf = [];
+if (!empty($center) && $center != '0') {
+    $sql_ivf .= " AND center = ? ";
+    $params_ivf[] = $center;
+}
+$sql_ivf .= " GROUP BY YEAR(date_of_procedure) ";
+$ivf_data = $this->db->query($sql_ivf, $params_ivf)->result_array();
 
 /* ===============================
-   9. FETCH IVF YEAR-WISE
+   9b. FETCH ICSI (Dynamic)
 =================================*/
- $sql_icsi = "
+$sql_icsi = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_icsi
     FROM ovum_discharge_summary
-    WHERE ICSI='Yes' AND center = ?
+    WHERE ICSI='Yes' 
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$icsi_data = $this->db->query($sql_icsi, [$center])->result_array();
+$params_icsi = [];
+if (!empty($center) && $center != '0') {
+    $sql_icsi .= " AND center = ? ";
+    $params_icsi[] = $center;
+}
+$sql_icsi .= " GROUP BY YEAR(date_of_procedure) ";
+$icsi_data = $this->db->query($sql_icsi, $params_icsi)->result_array();
 
 /* ===============================
-   10. FETCH Tesa Tese YEAR-WISE
+   10. FETCH Tesa Tese (Dynamic)
 =================================*/
 $sql_tesatese = "
     SELECT 
@@ -257,92 +311,203 @@ $sql_tesatese = "
         COUNT(*) AS total_tesatese
     FROM pesa_tesatesemicro_tese_discharge_summary
     WHERE procedures IN ('TESA', 'TESE')  
-    AND center = ?
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$tesatese_data = $this->db->query($sql_tesatese, [$center])->result_array();
+$params_tesa = [];
+if (!empty($center) && $center != '0') {
+    $sql_tesatese .= " AND center = ? ";
+    $params_tesa[] = $center;
+}
+$sql_tesatese .= " GROUP BY YEAR(date_of_procedure) ";
+$tesatese_data = $this->db->query($sql_tesatese, $params_tesa)->result_array();
 
 /* ===============================
-   11. FETCH Testicular Stem Cell YEAR-WISE
+   11. FETCH Testicular PRP (Dynamic)
 =================================*/
-
-    $sql_testicular_prp = "
+$sql_testicular_prp = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_testicular_prp
     FROM testicular_prp_discharge_summary
     WHERE procedures = 'Testicular PRP (TPRP)'
-    AND center = ?
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$testicular_prp_data = $this->db->query($sql_testicular_prp, [$center])->result_array();
+$params_tprp = [];
+if (!empty($center) && $center != '0') {
+    $sql_testicular_prp .= " AND center = ? ";
+    $params_tprp[] = $center;
+}
+$sql_testicular_prp .= " GROUP BY YEAR(date_of_procedure) ";
+$testicular_prp_data = $this->db->query($sql_testicular_prp, $params_tprp)->result_array();
 
 /* ===============================
-   9. FETCH IVF YEAR-WISE
+   12. FETCH Sperm Mobil (Dynamic)
 =================================*/
- $sql_Sperm_Mobil = "
+$sql_Sperm_Mobil = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_Sperm_Mobil
     FROM ovum_discharge_summary
-    WHERE Sperm_Mobil='Yes' AND center = ?
+    WHERE Sperm_Mobil='Yes' 
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$Sperm_Mobil_data = $this->db->query($sql_Sperm_Mobil, [$center])->result_array();
+$params_sm = [];
+if (!empty($center) && $center != '0') {
+    $sql_Sperm_Mobil .= " AND center = ? ";
+    $params_sm[] = $center;
+}
+$sql_Sperm_Mobil .= " GROUP BY YEAR(date_of_procedure) ";
+$Sperm_Mobil_data = $this->db->query($sql_Sperm_Mobil, $params_sm)->result_array();
 
 /* ===============================
-   7. FETCH Blastocyst YEAR-WISE
+   13. FETCH Blastocyst (Dynamic)
 =================================*/
- $sql_Blastocyst = "
+$sql_Blastocyst = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_Blastocyst
     FROM embryology_discharge_summary
     WHERE Blastocyst = 'Yes'
-    AND center = ?
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$Blastocyst_data = $this->db->query($sql_Blastocyst, [$center])->result_array();
+$params_blasto = [];
+if (!empty($center) && $center != '0') {
+    $sql_Blastocyst .= " AND center = ? ";
+    $params_blasto[] = $center;
+}
+$sql_Blastocyst .= " GROUP BY YEAR(date_of_procedure) ";
+$Blastocyst_data = $this->db->query($sql_Blastocyst, $params_blasto)->result_array();
 
 /* ===============================
-   7. FETCH LAH YEAR-WISE
+   14. FETCH LAH (Dynamic)
 =================================*/
- $sql_lah = "
+$sql_lah = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_lah
     FROM embryology_discharge_summary
     WHERE Laser_Assisted = 'Yes'
-    AND center = ?
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
-
-$lah_data = $this->db->query($sql_lah, [$center])->result_array();
+$params_lah = [];
+if (!empty($center) && $center != '0') {
+    $sql_lah .= " AND center = ? ";
+    $params_lah[] = $center;
+}
+$sql_lah .= " GROUP BY YEAR(date_of_procedure) ";
+$lah_data = $this->db->query($sql_lah, $params_lah)->result_array();
 
 /* ===============================
-   7. FETCH LAH YEAR-WISE
+   15. FETCH Embryo Glue (Dynamic)
 =================================*/
- $sql_Embryo_Glue = "
+$sql_Embryo_Glue = "
     SELECT 
         YEAR(date_of_procedure) AS year,
         COUNT(*) AS total_Embryo_Glue
     FROM embryology_discharge_summary
     WHERE Embryo_Glue = 'Yes'
-    AND center = ?
     AND date_of_procedure IS NOT NULL
-    GROUP BY YEAR(date_of_procedure)
 ";
+$params_glue = [];
+if (!empty($center) && $center != '0') {
+    $sql_Embryo_Glue .= " AND center = ? ";
+    $params_glue[] = $center;
+}
+$sql_Embryo_Glue .= " GROUP BY YEAR(date_of_procedure) ";
+$Embryo_Glue_data = $this->db->query($sql_Embryo_Glue, $params_glue)->result_array();
 
-$Embryo_Glue_data = $this->db->query($sql_Embryo_Glue, [$center])->result_array();
+/* ===============================
+   16. FETCH Hysteroscopy (Dynamic)
+=================================*/
+$sql_Hysteroscopy = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_Hysteroscopy
+    FROM hysteroscopy_laparoscopy_discharge_summary
+    WHERE procedures = 'Hysteroscopy'
+    AND date_of_procedure IS NOT NULL
+";
+$params_Hysteroscopy = [];
+if (!empty($center) && $center != '0') {
+    $sql_Hysteroscopy .= " AND center = ? ";
+    $params_Hysteroscopy[] = $center;
+}
+$sql_Hysteroscopy .= " GROUP BY YEAR(date_of_procedure) ";
+$Hysteroscopy_data = $this->db->query($sql_Hysteroscopy, $params_Hysteroscopy)->result_array();
+
+/* ===============================
+   17. FETCH Laparoscopy (Dynamic)
+=================================*/
+$sql_Laparoscopy = "
+    SELECT 
+        YEAR(date_of_procedure) AS year,
+        COUNT(*) AS total_Laparoscopy
+    FROM hysteroscopy_laparoscopy_discharge_summary
+    WHERE procedures = 'Laparoscopy'
+    AND date_of_procedure IS NOT NULL
+";
+$params_Laparoscopy = [];
+if (!empty($center) && $center != '0') {
+    $sql_Laparoscopy .= " AND center = ? ";
+    $params_Laparoscopy[] = $center;
+}
+$sql_Laparoscopy .= " GROUP BY YEAR(date_of_procedure) ";
+$Laparoscopy_data = $this->db->query($sql_Laparoscopy, $params_Laparoscopy)->result_array();
+
+/* ===============================
+   18. FETCH Semen Freezing (Dynamic)
+=================================*/
+$sql_semen_freezing = "
+    SELECT 
+        YEAR(date_of_discharge) AS year,
+        COUNT(*) AS total_semen_freezing
+    FROM hms_semen_freezing_discharge
+    WHERE date_of_discharge IS NOT NULL
+";
+$params_semen_freezing = [];
+if (!empty($center) && $center != '0') {
+    $sql_semen_freezing .= " AND center = ? ";
+    $params_semen_freezing[] = $center;
+}
+$sql_semen_freezing .= " GROUP BY YEAR(date_of_discharge) ";
+$semen_freezing_data = $this->db->query($sql_semen_freezing, $params_semen_freezing)->result_array();
+
+/* ===============================
+   19. FETCH Embryo Freezing (Dynamic)
+=================================*/
+$sql_embryo_freezing= "
+    SELECT 
+        YEAR(date_of_discharge) AS year,
+        COUNT(*) AS total_embryo_freezing
+    FROM discharge_summary
+    WHERE date_of_discharge IS NOT NULL
+";
+$params_embryo_freezing = [];
+if (!empty($center) && $center != '0') {
+    $sql_embryo_freezing .= " AND center = ? ";
+    $params_embryo_freezing[] = $center;
+}
+$sql_embryo_freezing .= " GROUP BY YEAR(date_of_discharge) ";
+$embryo_freezing_data = $this->db->query($sql_embryo_freezing, $params_embryo_freezing)->result_array();
+
+/* ===============================
+   20. FETCH Oocyte Freezing (Dynamic)
+=================================*/
+$sql_oocyte_freezing = "
+    SELECT 
+        YEAR(date_of_discharge) AS year,
+        COUNT(*) AS total_oocyte_freezing
+    FROM hms_oocyte_freezing_discharge
+    WHERE date_of_discharge IS NOT NULL
+";
+$params_oocyte_freezing = [];
+if (!empty($center) && $center != '0') {
+    $sql_oocyte_freezing .= " AND center = ? ";
+    $params_oocyte_freezing[] = $center;
+}
+$sql_oocyte_freezing .= " GROUP BY YEAR(date_of_discharge) ";
+$oocyte_freezing_data = $this->db->query($sql_oocyte_freezing, $params_oocyte_freezing)->result_array();
+
 
 /* ===============================
    3. INDEX STEM DATA BY YEAR
@@ -426,6 +591,31 @@ $Embryo_Glue_by_year = [];
 foreach ($Embryo_Glue_data as $s) {
     $Embryo_Glue_by_year[$s['year']] = $s['total_Embryo_Glue'];
 }
+
+$Hysteroscopy_by_year = [];
+foreach ($Hysteroscopy_data as $s) {
+    $Hysteroscopy_by_year[$s['year']] = $s['total_Hysteroscopy'];
+}
+
+$Laparoscopy_by_year = [];
+foreach ($Laparoscopy_data as $s) {
+    $Laparoscopy_by_year[$s['year']] = $s['total_Laparoscopy'];
+}
+
+$semen_freezing_by_year = [];
+foreach ($semen_freezing_data as $s) {
+    $semen_freezing_by_year[$s['year']] = $s['total_semen_freezing'];
+}
+
+$embryo_freezing_by_year = [];
+foreach ($embryo_freezing_data as $s) {
+    $embryo_freezing_by_year[$s['year']] = $s['total_embryo_freezing'];
+}
+
+$oocyte_freezing_by_year = [];
+foreach ($oocyte_freezing_data as $s) {
+    $oocyte_freezing_by_year[$s['year']] = $s['total_oocyte_freezing'];
+}
 /* ===============================
    4. MERGE & DISPLAY
 =================================*/
@@ -450,6 +640,11 @@ if (!empty($consult_data)) {
 		$Blastocyst_count = isset($Blastocyst_by_year[$year]) ? $Blastocyst_by_year[$year] : 0;
 		$lah_count = isset($lah_by_year[$year]) ? $lah_by_year[$year] : 0;
 		$Embryo_Glue_count = isset( $Embryo_Glue_by_year[$year]) ?  $Embryo_Glue_by_year[$year] : 0;
+		$Hysteroscopy_count = isset( $Hysteroscopy_by_year[$year]) ?  $Hysteroscopy_by_year[$year] : 0;
+		$Laparoscopy_count = isset( $Laparoscopy_by_year[$year]) ?  $Laparoscopy_by_year[$year] : 0;
+		$semen_freezing_count = isset( $semen_freezing_by_year[$year]) ?  $semen_freezing_by_year[$year] : 0;
+		$embryo_freezing_count = isset( $embryo_freezing_by_year[$year]) ?  $embryo_freezing_by_year[$year] : 0;
+		$oocyte_freezing_count = isset( $oocyte_freezing_by_year[$year]) ?  $oocyte_freezing_by_year[$year] : 0;
         ?>
         <tr>
             <td>
@@ -474,6 +669,11 @@ if (!empty($consult_data)) {
 			<td><?php echo $Blastocyst_count; ?></td>
 			<td><?php echo $lah_count; ?></td>
 			<td><?php echo $Embryo_Glue_count; ?></td>
+			<td><?php echo $Hysteroscopy_count; ?></td>
+			<td><?php echo $Laparoscopy_count; ?></td>
+			<td><?php echo $semen_freezing_count; ?></td>
+			<td><?php echo $embryo_freezing_count; ?></td>
+			<td><?php echo $oocyte_freezing_count; ?></td>
         </tr>
         <?php
     }
