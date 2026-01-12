@@ -296,7 +296,7 @@
 		</ul>
       </li>
       <li> <a href="<?php echo base_url(); ?>accounts/patient_financial_clearance" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Financial Clearance</a></li>
-     <li> <a href="<?php echo base_url(); ?>accounts/clinical_reports" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Clinical Reports</a></li>
+     
 	</ul>
   </div>
 </nav>

@@ -2671,199 +2671,149 @@ public function update_procedure_date()
 	
 public function tally()
 {
-    // =========================================================================
-    // PART 1: MEDICINE SALES
-    // =========================================================================
-
-    $sql = "
-        SELECT 
-            s.id AS sale_id,
-            s.patient_id,
-            s.patient_name,
-            c.center_name,
-            s.sale_number,
-            s.sale_date,
-            s.payment_method,
-            s.payment_status,
-            s.payment_approved_by_name,
-            m.medicine_name,
-            mb.batch_number,
-            mb.expiry_date,
-            m.hsn_code,
-            m.gst_rate,
-            m.pack_size,
-            mb.mrp,
-            sm.quantity_change,
-            sm.total_value
-        FROM sales s
-        INNER JOIN hms_centers c ON s.center_id = c.id
-        INNER JOIN stock_movements sm ON s.id = sm.reference_id
-        INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
-        INNER JOIN medicines m ON mb.medicine_id = m.id
-        WHERE sm.movement_type = 'SALE'
-        AND sm.to_location_type = 'SALE'
-        ORDER BY s.updated_at DESC
-        LIMIT 50
-    ";
-
-    $query = $this->db->query($sql);
-    $results = $query->result_array();
-
-    $medicine_sales = [];
-    $medicine_count = 0;
-
-    foreach ($results as $row) {
-        $saleId = $row['sale_id'];
-
-        $qty     = abs((int) $row['quantity_change']);
-        $mrpUnit = $row['mrp'] / ($row['pack_size'] > 0 ? $row['pack_size'] : 1); // Avoid division by zero
-
-        $gstRate = (float) $row['gst_rate'];
-        $total   = (float) $row['total_value'];
-
-        // Calculations
-        $mrpValue = number_format($mrpUnit, 2, '.', '') * $qty;
-        
-        // Prevent division by zero if GST is 0
-        $taxableValue = ($total * 100) / (100 + $gstRate);
-        
-        $gstAmount = $total - $taxableValue;
-        $discountAmount = $mrpValue - $total;
-        $discountPercent = $mrpValue > 0 ? ($discountAmount / $mrpValue) * 100 : 0;
-        $cgst = $gstAmount / 2;
-        $sgst = $gstAmount / 2;
-
-        // Grouping by Sale ID
-        if (!isset($medicine_sales[$saleId])) {
-            $medicine_sales[$saleId] = [
-                'type'             => 'Medicine',
-                'patient_id'       => $row['patient_id'],
-                'patient_name'     => $row['patient_name'],
-                'billing_center'   => $row['center_name'],
-                'receipt_number'   => $row['sale_number'],
-                'on_date'          => $row['sale_date'],
-                'payment_method'   => $row['payment_method'],
-                'status'           => $row['payment_status'],
-                'approved_by'      => $row['payment_approved_by_name'],
-                'items'            => []
-            ];
-            $medicine_count++;
-        }
-
-        $medicine_sales[$saleId]['items'][] = [
-            'item_name'       => $row['medicine_name'],
-            'hsn_code'        => $row['hsn_code'],
-            'pack_size'       => $row['pack_size'],
-            'batch_number'    => $row['batch_number'],
-            'expiry'          => $row['expiry_date'],
-            'quantity'        => $qty,
-            'mrp_per_unit'    => number_format($mrpUnit, 2, '.', ''),
-            'discount_perc'   => number_format($discountPercent, 0, '.', ''),
-            'mrp_value'       => number_format($mrpValue, 2, '.', ''),
-            'discount_amt'    => number_format($discountAmount, 2, '.', ''),
-            'taxable_value'   => number_format($taxableValue, 2, '.', ''),
-            'gst_rate'        => number_format($gstRate, 2, '.', ''),
-            'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-            'cgst'            => number_format($cgst, 2, '.', ''),
-            'sgst'            => number_format($sgst, 2, '.', ''),
-            'total_value'     => number_format($total, 2, '.', '')
-        ];
+    $logg = checklogin();
+    
+    // Accept ids from POST or GET
+    $ids = $this->input->post('ids');
+    if (empty($ids)) {
+        $ids = $this->input->get('ids');
     }
 
-    // =========================================================================
-    // PART 2: PROCEDURE SALES
-    // =========================================================================
-    
-    // NOTE: I removed the 'checklogin()' and 'ids' check to ensure it runs for all records 
-    // as per your request. If you need filtering, add it back here.
+    $all_sales = [];
 
-    // Assuming this model function works
-    $procedure_sales_raw = $this->accounts_model->get_all_sales_for_tally(); 
-    $procedure_sales_formatted = [];
+    if (!empty($ids)) {
+        // fetch only selected
+        foreach ($ids as $ID) {
+            $sale = $this->accounts_model->send_procedure_tally($ID);
 
-    if (!empty($procedure_sales_raw)) {
-        foreach ($procedure_sales_raw as $sale) {
+            if ($sale) {
 
-            // Helper queries (Ideally these should be JOINS in the model for performance)
-            $sql_patients = "SELECT * FROM hms_patients WHERE patient_id = ?";
-            $patients_result = $this->db->query($sql_patients, [$sale["patient_id"]])->row_array();
+                // -------------------------
+                // Convert serialized data →
+                // JSON patient_procedures[]
+                // -------------------------
 
-            $sql_centers = "SELECT * FROM hms_centers WHERE center_number = ?";
-            $centers_result = $this->db->query($sql_centers, [$sale["origins"]])->row_array();
+                if (!empty($sale['data'])) {
+                    $unserialized = @unserialize($sale['data']);
 
-            $sql_billing = "SELECT * FROM hms_centers WHERE center_number = ?";
-            $billing_result = $this->db->query($sql_billing, [$sale["billing_at"]])->row_array();
-
-            $sql_employees = "SELECT * FROM hms_employees WHERE employee_number = ?";
-            $employees_result = $this->db->query($sql_employees, [$sale["biller_id"]])->row_array();
-
-            // Handle Embryo Transfer Logic (You had a variable $select_embryo_transfer undefined)
-            // You need to fetch this data here if you want the logic to work.
-            // For now, I'll set defaults to prevent errors.
-            $type = 'New';
-            $formatted_admission_date = null;
-            
-            // Example of fetching the missing data:
-            // $select_embryo_transfer = $this->db->query("SELECT ... WHERE ...")->result_array();
-            // (Keep your original logic here if you define the variable)
-
-            $formatted = [
-                "type"            => "Procedure",
-                "patient_id"      => $sale["patient_id"],
-                "patient_name"    => ($patients_result['wife_name'] ?? '') . ' W/O ' . ($patients_result['husband_name'] ?? ''),
-                "billing_center"  => $billing_result['center_name'] ?? 'N/A',
-                "origin_center"   => $centers_result['center_name'] ?? 'N/A',
-                "on_date"         => date("d-m-Y", strtotime($sale["on_date"])),
-                "receipt_number"  => $sale["receipt_number"],
-                "biller_name"     => $employees_result['name'] ?? 'N/A',
-                "procedure_type"  => $type,
-                "items"           => [],
-                "payment_method"  => $sale["payment_method"] ?? "",
-                "status"          => $sale["status"] ?? ""
-            ];
-
-            // Unserialize Data
-            if (!empty($sale['data'])) {
-                $unserialized = @unserialize($sale['data']);
-
-                if (isset($unserialized['patient_procedures']) && is_array($unserialized['patient_procedures'])) {
-                    foreach($unserialized['patient_procedures'] as $p) {
-                         $formatted["items"][] = [
-                            "item_name"                   => $sale["procedure_name"],
-                            "sub_procedure"               => $p["sub_procedure"] ?? '',
-                            "sub_procedures_code"         => $p["sub_procedures_code"] ?? '',
-                            "sub_procedures_price"        => $p["sub_procedures_price"] ?? 0,
-                            "sub_procedures_discount"     => $p["sub_procedures_discount"] ?? 0,
-                            "sub_procedures_after_discount" => ((float)($p["sub_procedures_price"]??0) - (float)($p["sub_procedures_discount"]??0)),
-                            "sub_procedures_paid_price"   => $p["sub_procedures_paid_price"] ?? 0
-                        ];
+                    if (isset($unserialized['patient_procedures'])) {
+                        $sale['patient_procedures'] = $unserialized['patient_procedures'];
+                    } else {
+                        $sale['patient_procedures'] = [];
                     }
+                } else {
+                    $sale['patient_procedures'] = [];
+                }
+
+                // remove original `data` field from output
+                unset($sale['data']);
+
+                $all_sales[] = $sale;
+            }
+        }
+    } else {
+
+        $sales = $this->accounts_model->get_all_sales_for_tally();
+
+        foreach ($sales as $sale) {
+
+		$sql_patients = "SELECT * FROM hms_patients WHERE patient_id ='".$sale["patient_id"]."'";
+        $patients_result = run_select_query($sql_patients);
+
+		$sql_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["origins"]."'";
+        $centers_result = run_select_query($sql_centers);
+
+		$sql_billing_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["billing_at"]."'";
+        $billing_centers_result = run_select_query($sql_billing_centers);
+
+		$sql_booking_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["billing_at"]."'";
+        $booking_centers_result = run_select_query($sql_booking_centers);
+
+		$sql_employees = "SELECT * FROM hms_employees WHERE employee_number ='".$sale["biller_id"]."'";
+        $employees_result = run_select_query($sql_employees);
+
+		 // FIXED: Properly handle the embryo transfer data
+        $date_of_admission = null;
+        $formatted_admission_date = null;
+        $type = 'New';  // Default
+        
+        if (!empty($select_embryo_transfer)) {
+            // Check if it's a single row or multiple rows
+            if (isset($select_embryo_transfer['date_of_addmission'])) {
+                // Single row result
+                $date_of_admission = $select_embryo_transfer['date_of_addmission'];
+            } elseif (is_array($select_embryo_transfer) && count($select_embryo_transfer) > 0) {
+                // Multiple rows result - get the first one
+                $first_embryo = $select_embryo_transfer[0];
+                $date_of_admission = isset($first_embryo['date_of_addmission']) ? $first_embryo['date_of_addmission'] : null;
+            }
+            
+            if (!empty($date_of_admission)) {
+                $formatted_admission_date = date('Y-m-d', strtotime($date_of_admission));
+                
+                // Determine type based on admission date
+                if (strtotime($date_of_admission) < strtotime($row['on_date'])) {
+                    $type = 'recycle';
                 }
             }
+        }
 
-            $procedure_sales_formatted[] = $formatted;
+    // ---- Parent sale fields ----
+    $formatted = [
+        "patient_id"      => $sale["patient_id"],
+     	"patient_name" => ($patients_result['wife_name'] ?? '') . ' W/O ' . ($patients_result['husband_name'] ?? ''),
+        "billing_center"  => $billing_centers_result['center_name'],
+        "booking_center"  => $booking_centers_result['center_name'],
+        "origin_center"   => $centers_result['center_name'],
+        "on_date"         => date("d-m-Y", strtotime($sale["on_date"])),
+        "receipt_number"  => $sale["receipt_number"],
+        "biller_name"     => $employees_result['name'] ?? 'N/A',
+        "procedure_type"  => $type . ($date_of_admission ? " (Admission: " . $date_of_admission . ")" : ""),
+        "patient_procedures" => [],
+        "payment_method" => $sale["payment_method"] ?? "",
+		"status" => $sale["status"] ?? ""
+    ];
+
+    // ---- Unserialize patient_procedures ----
+    if (!empty($sale['data'])) {
+
+        $unserialized = @unserialize($sale['data']);
+
+        if (isset($unserialized['patient_procedures'][0])) {
+
+            $p = $unserialized['patient_procedures'][0];
+
+            $formatted["patient_procedures"][] = [
+                "procedure_name"              => $sale["procedure_name"],
+                "category"                    => $sale["category"],
+                "sub_procedure"               => $p["sub_procedure"],
+                "sub_procedures_code"         => $p["sub_procedures_code"],
+                "sub_procedures_price"        => $p["sub_procedures_price"],
+                "sub_procedures_discount"     => $p["sub_procedures_discount"],
+                "sub_procedures_after_discount" =>
+                    (float)$p["sub_procedures_price"] - (float)$p["sub_procedures_discount"],
+                "sub_procedures_paid_price"   => $p["sub_procedures_paid_price"]
+            ];
         }
     }
 
-    // =========================================================================
-    // PART 3: FINAL OUTPUT
-    // =========================================================================
+    unset($sale['data']);
 
-    // Combine both arrays or keep them separate keys
-    $final_output = [
-        'export_date' => date('Y-m-d H:i:s'),
-        'counts' => [
-            'medicines' => count($medicine_sales),
-            'procedures' => count($procedure_sales_formatted)
-        ],
-        // Use array_values to ensure JSON array, not object with ID keys
-        'Medicine_Sales' => array_values($medicine_sales), 
-        'Procedure_Sales' => $procedure_sales_formatted
+    $all_sales[] = $formatted;
+}
+
+    }
+
+    $response = [
+        'export_date'   => date('Y-m-d H:i:s'),
+        'selected_ids'  => !empty($ids) ? $ids : [],
+        'record_count'  => count($all_sales),
+        'Sales_Details' => $all_sales
     ];
 
-    header('Content-Type: application/json');
-    echo json_encode($final_output, JSON_PRETTY_PRINT);
-    exit;
+    return $this->output
+        ->set_content_type('application/json')
+        ->set_output(json_encode($response, JSON_PRETTY_PRINT));
 }
 
 public function partial_tally() {
