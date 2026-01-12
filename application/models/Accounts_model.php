@@ -7356,6 +7356,123 @@ public function Embryo_Glue_monthly($center, $year)
 
     return $this->db->query($sql, $params)->result_array();
 }
+
+public function hysteroscopy_diagnostic_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM hysteroscopy_laparoscopy_discharge_summary
+    WHERE procedures = 'Hysteroscopy'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function laproscopy_hysteroscopy_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_procedure) AS month,
+            COUNT(*) AS total
+        FROM hysteroscopy_laparoscopy_discharge_summary
+    WHERE procedures = 'Laparoscopy'
+        AND YEAR(date_of_procedure) = ?
+        $where
+        GROUP BY MONTH(date_of_procedure)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function semen_freezing_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_discharge) AS month,
+            COUNT(*) AS total
+        FROM hms_semen_freezing_discharge
+    WHERE YEAR(date_of_discharge) = ?
+        $where
+        GROUP BY MONTH(date_of_discharge)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function embryo_freezing_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_discharge) AS month,
+            COUNT(*) AS total
+        FROM discharge_summary
+    WHERE YEAR(date_of_discharge) = ?
+        $where
+        GROUP BY MONTH(date_of_discharge)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
+
+public function egg_freezing_monthly($center, $year)
+{
+    $where = "";
+    $params = [$year];
+
+    if (!empty($center)) {
+        $where = " AND center = ?";
+        $params[] = $center;
+    }
+
+    $sql = "
+	SELECT 
+            MONTH(date_of_discharge) AS month,
+            COUNT(*) AS total
+        FROM hms_oocyte_freezing_discharge
+    WHERE YEAR(date_of_discharge) = ?
+        $where
+        GROUP BY MONTH(date_of_discharge)
+    ";
+
+    return $this->db->query($sql, $params)->result_array();
+}
     
 // 1. Consultations
   public function get_yearly_consultations($year) {
@@ -7638,6 +7755,88 @@ public function get_yearly_embryo_glue($year, $type, $month = null, $center = nu
 	$this->db->where('YEAR(t.date_of_procedure)', $year);
 	if (!empty($month)) {
         $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+	if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    return $this->db->get()->result_array();
+}
+
+public function get_yearly_hysteroscopy_diagnostic($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    if($type == 'hysteroscopy_diagnostic') {
+        $this->db->from('hysteroscopy_laparoscopy_discharge_summary as t');
+        $this->db->where('t.procedures', 'Hysteroscopy');
+    }
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+	$this->db->where('YEAR(t.date_of_procedure)', $year);
+	if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+	if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    return $this->db->get()->result_array();
+}
+
+public function get_yearly_laproscopy_hysteroscopy($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    if($type == 'laproscopy_hysteroscopy') {
+        $this->db->from('hysteroscopy_laparoscopy_discharge_summary as t');
+        $this->db->where('t.procedures', 'Laparoscopy');
+    }
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+	$this->db->where('YEAR(t.date_of_procedure)', $year);
+	if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_procedure)', $month);
+    }
+	if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    return $this->db->get()->result_array();
+}
+
+public function get_yearly_semen_freezing($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    if($type == 'semen_freezing') {
+        $this->db->from('hms_semen_freezing_discharge as t');
+    }
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+	$this->db->where('YEAR(t.date_of_discharge)', $year);
+	if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_discharge)', $month);
+    }
+	if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    return $this->db->get()->result_array();
+}
+
+public function get_yearly_embryo_freezing($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    if($type == 'embryo_freezing') {
+        $this->db->from('discharge_summary as t');
+    }
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+	$this->db->where('YEAR(t.date_of_discharge)', $year);
+	if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_discharge)', $month);
+    }
+	if (!empty($center)) {
+        $this->db->where('t.center', $center);
+    }
+    return $this->db->get()->result_array();
+}
+
+public function get_yearly_egg_freezing($year, $type, $month = null, $center = null) {
+    $this->db->select('t.*, c.center_name');
+    if($type == 'egg_freezing') {
+        $this->db->from('hms_oocyte_freezing_discharge as t');
+    }
+    $this->db->join('hms_centers as c', 'c.center_number = t.center', 'left');
+	$this->db->where('YEAR(t.date_of_discharge)', $year);
+	if (!empty($month)) {
+        $this->db->where('MONTH(t.date_of_discharge)', $month);
     }
 	if (!empty($center)) {
         $this->db->where('t.center', $center);
