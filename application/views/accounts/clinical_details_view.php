@@ -9,6 +9,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
+                        <th>Date</th>
                         <th>Patient Name</th>
                         <th>Patient ID</th>
                         <th>Procedure Date</th>
@@ -23,13 +24,20 @@
                             
                             <td>
                                 <?php 
-                                    // Now this will work because we passed $all_method from the controller
-                                    if (isset($row['iic_id'])) {
-                                        echo $all_method->get_patient_name($row['iic_id']);
-                                    } else {
-                                        echo "-";
-                                    }
+                                // Check if 'created_date' exists, otherwise try common alternatives like 'date'
+                                echo isset($row['updated_at']) ? date('d-M-Y', strtotime($row['updated_at'])) : '-'; 
                                 ?>
+                            </td>
+                            
+                            <td>
+                                <?php 
+    // Now this will work because we passed $all_method from the controller
+    if (isset($row['iic_id'])) {
+        echo $all_method->get_patient_name($row['iic_id']);
+    } else {
+        echo "-";
+    }
+    ?>
                             </td>
                             
                             <td>
