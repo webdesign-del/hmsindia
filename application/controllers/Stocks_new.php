@@ -10152,6 +10152,7 @@ class Stocks_new extends CI_Controller
             'Expiry Date',
             'Days Left',
             'Quantity',
+            'Vendor Name',
             'Vendor Price',
             'Single unit price',
             'Total Vendor Price',
@@ -10172,7 +10173,9 @@ class Stocks_new extends CI_Controller
                     $row->batch_number,
                     $row->expiry_date,
                     $row->expiry_days,
-                    $row->quantity, // from ccs.quantity
+                    $row->quantity, 
+                    $row->vendor_name, 
+                    // from ccs.quantity
                     $row->purchase_price,
                     $row->purchase_price/$row->pack_size,
                     ($row->purchase_price/$row->pack_size)*$row->quantity,
