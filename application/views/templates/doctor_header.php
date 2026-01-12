@@ -118,7 +118,7 @@ ul.nav.nav-second-level.collapse.in li {
               <li> <a href="<?php echo base_url(); ?>doctors/acknowledgment">Acknowledgment</a> </li>
             </ul>
           </li>
-
+           <li> <a href="<?php echo base_url(); ?>doctors/ovarian_exosome_therapy"><i class="fa fa-sitemap"></i>Ovarian Exosome Therapy</a> </li>
            <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Affidavit Form<span class="fa arrow"></span></a>
             <ul class="nav nav-third-level">
               <li> <a href="<?php echo base_url(); ?>doctors/new_ed_affidavit">New Ed affidavit</a> </li>

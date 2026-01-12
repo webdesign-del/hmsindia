@@ -497,6 +497,22 @@ class Doctors extends CI_Controller {
 			die();
 		}
 	}
+
+	public function ovarian_exosome_therapy(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$data['data'] = $this->doctors_model->get_junior_doctors();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('doctors/ovarian_exosome_therapy', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
     public function agreement_for_surrogacy(){
 		$logg = checklogin();
 		if($logg['status'] == true){

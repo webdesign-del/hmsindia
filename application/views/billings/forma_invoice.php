@@ -22,7 +22,8 @@
    foreach($procedure_list as $proc) {
        // Escape special characters to prevent JS errors
        $safe_name = addslashes($proc['procedure_name']);
-       $js_options .= '<option value="'.$proc['ID'].'" data-code="'.$proc['code'].'" data-price="'.$proc['price'].'">'.$safe_name.'</option>';
+       $code = addslashes($proc['code']);
+       $js_options .= '<option value="'.$proc['ID'].'" data-code="'.$proc['code'].'" data-price="'.$proc['price'].'">'.$safe_name.',' .$code.'</option>';
    }
 ?>
 
@@ -105,7 +106,7 @@
             $selected = ($proc['ID'] == $femalemed_result['ID']) ? 'selected' : '';
         ?>
             <option value="<?= $proc['ID'] ?>" data-code="<?= $proc['code'] ?>" data-price="<?= $proc['price'] ?>" <?= $selected ?>>
-                <?= $proc['procedure_name'] ?>
+                <?= $proc['procedure_name'] ?> <?= $proc['code'] ?>
             </option>
         <?php } ?>
     </select>
