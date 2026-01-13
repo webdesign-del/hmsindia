@@ -668,24 +668,24 @@ class Accounts_model extends CI_Model
         return 1;
 	}
 
-	public function get_all_sales_for_tally()
+public function get_all_sales_for_tally()
 {
+    $this->db->select('*');
+    $this->db->from('hms_patient_procedure');
+    
+    $this->db->where_in('status', ['approved', 'cancel']);
+    
+    $this->db->where('tally_status', '1'); 
+    
+    $this->db->order_by('modified_on', 'DESC');
+    $this->db->limit(50); // Increased limit to match your other functions
 
-
-	// echo $sql = "SELECT * FROM hms_patient_procedure where `status`='approved' ORDER BY ID DESC limit 10";
-    //$result = run_select_query($sql);
-
-    $this->db->select('*'); // adjust your fields
-    $this->db->from('hms_patient_procedure'); // replace with your actual table
-    $this->db->order_by('id', 'DESC');
-    $this->db->limit(10); // prevent loading thousands at once
-
-   $query = $this->db->get();
+    $query = $this->db->get();
     return $query->result_array();
 }
 
 	
-	function send_procedure_tally($ID) {
+function send_procedure_tally($ID) {
     $sales = [];
     $sql = "SELECT * FROM hms_patient_procedure WHERE ID = " . (int)$ID;
     $result = run_select_query($sql);

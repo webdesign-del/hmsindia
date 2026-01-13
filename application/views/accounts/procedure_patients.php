@@ -421,36 +421,45 @@
 		
     }
 $(document).ready(function() {
-	 // Send to Tally button click
-            $('#sendToTallyBtn').click(function() {
-                var selectedIds = [];
-                $('.rowCheckbox:checked').each(function() {
-                    selectedIds.push($(this).val());
-                });
-                
-                if (selectedIds.length === 0) {
-                    alert('Please select at least one record to send to Tally.');
-                    return;
-                }
-                
-                if (confirm('Are you sure you want to send ' + selectedIds.length + ' record(s) to Tally?')) {
-                    // AJAX call to send data to Tally
-                    $.ajax({
-                        url: '<?php echo base_url(); ?>accounts/tally',
-                        type: 'POST',
-                        data: { ids: selectedIds },
-                        dataType: 'json',
-                        success: function(response) {
-                            alert('Successfully sent ' + selectedIds.length + ' record(s) to Tally.');
-                            console.log('Tally Response:', response);
-                        },
-                        error: function(xhr, status, error) {
-                            alert('Error sending data to Tally: ' + error);
-                        }
-                    });
+    // Send to Tally button click
+    $('#sendToTallyBtn').click(function() {
+        var selectedIds = [];
+        
+        // Collect all checked checkboxes
+        $('.rowCheckbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+        
+        if (selectedIds.length === 0) {
+            alert('Please select at least one record to send to Tally.');
+            return;
+        }
+        
+        if (confirm('Are you sure you want to mark ' + selectedIds.length + ' record(s) as Sent to Tally?')) {
+            // AJAX call to send data to Tally
+            $.ajax({
+                url: '<?php echo base_url(); ?>accounts/procedure_tally',
+                type: 'POST',
+                // This sends the array as $_POST['ids']
+                data: { ids: selectedIds }, 
+                dataType: 'json',
+                success: function(response) {
+                    if(response.success) {
+                        alert(response.message);
+                        // Reload page to show updated status in table
+                        location.reload(); 
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Server Error: ' + error);
+                    console.log(xhr.responseText); // Check console for detailed PHP errors
                 }
             });
-		 });
+        }
+    });
+});
 </script>
 	
 <script>
