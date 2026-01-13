@@ -5735,6 +5735,12 @@ class Stocks_new extends CI_Controller
             redirect(base_url());
             return;
         }
+        if (!empty($_SESSION["logged_central_stock_manager"]["employee_number"])) {
+            $central_stock_manager = true;
+        } else {
+           redirect(base_url());
+           return;
+        }
         $this->load->model('Stock_model_new');
         $data = [];
         $selected_department = 0;
