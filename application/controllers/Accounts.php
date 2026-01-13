@@ -2710,30 +2710,25 @@ public function tally()
     $results = $query->result_array();
 
     $medicine_sales = [];
-    $medicine_count = 0;
 
     foreach ($results as $row) {
         $saleId = $row['sale_id'];
 
         $qty     = abs((int) $row['quantity_change']);
-        $mrpUnit = $row['mrp'] / ($row['pack_size'] > 0 ? $row['pack_size'] : 1); // Avoid division by zero
+        $mrpUnit = $row['mrp'] / ($row['pack_size'] > 0 ? $row['pack_size'] : 1); 
 
         $gstRate = (float) $row['gst_rate'];
         $total   = (float) $row['total_value'];
 
         // Calculations
         $mrpValue = number_format($mrpUnit, 2, '.', '') * $qty;
-        
-        // Prevent division by zero if GST is 0
         $taxableValue = ($total * 100) / (100 + $gstRate);
-        
         $gstAmount = $total - $taxableValue;
         $discountAmount = $mrpValue - $total;
         $discountPercent = $mrpValue > 0 ? ($discountAmount / $mrpValue) * 100 : 0;
         $cgst = $gstAmount / 2;
         $sgst = $gstAmount / 2;
 
-        // Grouping by Sale ID
         if (!isset($medicine_sales[$saleId])) {
             $medicine_sales[$saleId] = [
                 'type'             => 'Medicine',
@@ -2747,7 +2742,6 @@ public function tally()
                 'approved_by'      => $row['payment_approved_by_name'],
                 'items'            => []
             ];
-            $medicine_count++;
         }
 
         $medicine_sales[$saleId]['items'][] = [
@@ -2774,17 +2768,11 @@ public function tally()
     // PART 2: PROCEDURE SALES
     // =========================================================================
     
-    // NOTE: I removed the 'checklogin()' and 'ids' check to ensure it runs for all records 
-    // as per your request. If you need filtering, add it back here.
-
-    // Assuming this model function works
     $procedure_sales_raw = $this->accounts_model->get_all_sales_for_tally(); 
     $procedure_sales_formatted = [];
 
     if (!empty($procedure_sales_raw)) {
         foreach ($procedure_sales_raw as $sale) {
-
-            // Helper queries (Ideally these should be JOINS in the model for performance)
             $sql_patients = "SELECT * FROM hms_patients WHERE patient_id = ?";
             $patients_result = $this->db->query($sql_patients, [$sale["patient_id"]])->row_array();
 
@@ -2797,16 +2785,6 @@ public function tally()
             $sql_employees = "SELECT * FROM hms_employees WHERE employee_number = ?";
             $employees_result = $this->db->query($sql_employees, [$sale["biller_id"]])->row_array();
 
-            // Handle Embryo Transfer Logic (You had a variable $select_embryo_transfer undefined)
-            // You need to fetch this data here if you want the logic to work.
-            // For now, I'll set defaults to prevent errors.
-            $type = 'New';
-            $formatted_admission_date = null;
-            
-            // Example of fetching the missing data:
-            // $select_embryo_transfer = $this->db->query("SELECT ... WHERE ...")->result_array();
-            // (Keep your original logic here if you define the variable)
-
             $formatted = [
                 "type"            => "Procedure",
                 "patient_id"      => $sale["patient_id"],
@@ -2816,16 +2794,13 @@ public function tally()
                 "on_date"         => date("d-m-Y", strtotime($sale["on_date"])),
                 "receipt_number"  => $sale["receipt_number"],
                 "biller_name"     => $employees_result['name'] ?? 'N/A',
-                "procedure_type"  => $type,
                 "items"           => [],
                 "payment_method"  => $sale["payment_method"] ?? "",
                 "status"          => $sale["status"] ?? ""
             ];
 
-            // Unserialize Data
             if (!empty($sale['data'])) {
                 $unserialized = @unserialize($sale['data']);
-
                 if (isset($unserialized['patient_procedures']) && is_array($unserialized['patient_procedures'])) {
                     foreach($unserialized['patient_procedures'] as $p) {
                          $formatted["items"][] = [
@@ -2840,30 +2815,330 @@ public function tally()
                     }
                 }
             }
-
             $procedure_sales_formatted[] = $formatted;
         }
     }
 
     // =========================================================================
-    // PART 3: FINAL OUTPUT
+    // PART 3: CONSULTATION SALES
     // =========================================================================
 
-    // Combine both arrays or keep them separate keys
+    $q_cons = $this->db->query("SELECT * FROM hms_consultation WHERE status='approved' AND tally_status='1' ORDER BY modified_on DESC LIMIT 20");
+    $consultation_rows = $q_cons->result_array();
+    $consultation_sales = []; 
+
+    foreach ($consultation_rows as $payment_row) {
+        $pt_q = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$payment_row['patient_id']]);
+        $patient = $pt_q->row_array() ?? [];
+
+        $appointments_q = $this->db->query("SELECT * FROM hms_appointments WHERE paitent_id = ? AND paitent_type = ?",[$payment_row['patient_id'], 'new_patient']);
+        $appointments = $appointments_q->row_array() ?? [];
+
+        $org_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["origins"]]);
+        $origin = $org_q->row_array() ?? [];
+
+        $bill_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]);
+        $bill_center = $bill_q->row_array() ?? [];
+
+        $book_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]); 
+        $book_center = $book_q->row_array() ?? [];
+
+        $emp_q = $this->db->query("SELECT * FROM hms_employees WHERE employee_number = ?", [$payment_row["biller_id"]]);
+        $employee = $emp_q->row_array() ?? [];
+
+        $doctors_q = $this->db->query("SELECT * FROM hms_doctors WHERE ID = ?", [$payment_row["doctor_id"]]);
+        $doctors = $doctors_q->row_array() ?? [];
+        
+        $consultation_sales[] = [
+            "type"            => "Consultation",
+            "patient_id"      => $payment_row['patient_id'],
+            "crm_id"          => $appointments['crm_id'] ?? '',
+            "patient_name"    => ($patient['wife_name'] ?? '') . ' W/O ' . ($patient['husband_name'] ?? ''),
+            "billing_id"      => $payment_row['billing_id'],
+            "payment_done"    => $payment_row['payment_done'],
+            "billing_center"  => $bill_center['center_name'] ?? 'N/A',
+            "booking_center"  => $book_center['center_name'] ?? 'N/A',
+            "origin_center"   => $origin['center_name'] ?? 'N/A',
+            "doctor_name"     => $doctors['name'] ?? 'N/A',
+            "on_date"         => !empty($payment_row["on_date"]) ? date("d-m-Y H:i:s", strtotime($payment_row["on_date"])) : '',
+            "receipt_number"  => $payment_row["receipt_number"] ?? '',
+            "biller_name"     => $employee['name'] ?? 'N/A',
+            "payment_method"  => $payment_row['payment_method'],
+            "status"          => $payment_row['status']
+        ];
+    }
+    
+    // =========================================================================
+    // PART 4: REGISTRATION SALES (From hms_registation)
+    // =========================================================================
+
+    $q_reg = $this->db->query("SELECT * FROM hms_registation WHERE status IN ('approved', 'adjust') AND tally_status='1' ORDER BY modified_on DESC LIMIT 20");
+    $registration_rows = $q_reg->result_array();
+    $registration_sales = [];
+    
+    foreach ($registration_rows as $payment_row) {
+        $pt_q = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$payment_row['patient_id']]);
+        $patient = $pt_q->row_array() ?? [];
+
+        $appointments_q = $this->db->query("SELECT * FROM hms_appointments WHERE paitent_id = ? AND paitent_type = ?",[$payment_row['patient_id'], 'new_patient']);
+        $appointments = $appointments_q->row_array() ?? [];
+
+        $org_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["origins"]]);
+        $origin = $org_q->row_array() ?? [];
+
+        $bill_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]);
+        $bill_center = $bill_q->row_array() ?? [];
+
+        $book_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]); 
+        $book_center = $book_q->row_array() ?? [];
+
+        $emp_q = $this->db->query("SELECT * FROM hms_employees WHERE employee_number = ?", [$payment_row["biller_id"]]);
+        $employee = $emp_q->row_array() ?? [];
+
+        $doctors_q = $this->db->query("SELECT * FROM hms_doctors WHERE ID = ?", [$payment_row["doctor_id"]]);
+        $doctors = $doctors_q->row_array() ?? [];
+
+        $registration_sales[] = [
+            "type"            => "Registration",
+            "patient_id"      => $payment_row['patient_id'],
+            "crm_id"          => $appointments['crm_id'] ?? '',
+            "patient_name"    => ($patient['wife_name'] ?? '') . ' W/O ' . ($patient['husband_name'] ?? ''),
+            "billing_id"      => $payment_row['billing_id'],
+            "payment_done"    => $payment_row['payment_done'],
+            "billing_center"  => $bill_center['center_name'] ?? 'N/A',
+            "booking_center"  => $book_center['center_name'] ?? 'N/A',
+            "origin_center"   => $origin['center_name'] ?? 'N/A',
+            "doctor_name"     => $doctors['name'] ?? 'N/A',
+            "on_date"         => !empty($payment_row["on_date"]) ? date("d-m-Y H:i:s", strtotime($payment_row["on_date"])) : '',
+            "receipt_number"  => $payment_row["receipt_number"] ?? '',
+            "biller_name"     => $employee['name'] ?? 'N/A',
+            "payment_method"  => $payment_row['payment_method'],
+            "status"          => $payment_row['status']
+        ];
+    }
+
+    // =========================================================================
+    // PART 5: INVESTIGATION SALES (From hms_patient_investigations)
+    // =========================================================================
+
+    $sql_invest = "SELECT * FROM hms_patient_investigations 
+            WHERE `status`='approved' AND `tally_status`='1'
+            ORDER BY ID DESC LIMIT 50";
+    $query_invest = $this->db->query($sql_invest);
+    $investigation_rows = $query_invest->result_array();
+    $investigation_sales = [];
+
+    if (!empty($investigation_rows)) {
+        foreach ($investigation_rows as $sale) {
+            $pt_q = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]]);
+            $patient = $pt_q->row_array() ?? [];
+
+            $org_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["origins"]]);
+            $origin = $org_q->row_array() ?? [];
+
+            $bill_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]]);
+            $bill_center = $bill_q->row_array() ?? [];
+
+            $book_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]]); 
+            $book_center = $book_q->row_array() ?? [];
+
+            $emp_q = $this->db->query("SELECT * FROM hms_employees WHERE employee_number = ?", [$sale["biller_id"]]);
+            $employee = $emp_q->row_array() ?? [];
+
+            $formatted = [
+                "type"            => "Investigation",
+                "patient_id"      => $sale["patient_id"],
+                "patient_name"    => ($patient['wife_name'] ?? '') . ' W/O ' . ($patient['husband_name'] ?? ''),
+                "billing_center"  => $bill_center['center_name'] ?? 'N/A',
+                "booking_center"  => $book_center['center_name'] ?? 'N/A',
+                "origin_center"   => $origin['center_name'] ?? 'N/A',
+                "on_date"         => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
+                "receipt_number"  => $sale["receipt_number"] ?? '',
+                "biller_name"     => $employee['name'] ?? 'N/A',
+                "items"           => [], 
+                "payment_method"  => $sale["payment_method"] ?? "",
+                "status"          => $sale["status"] ?? ""
+            ];
+
+            if (!empty($sale['investigations'])) {
+                $unserialized = @unserialize($sale['investigations']);
+                if ($unserialized && is_array($unserialized)) {
+                    $groups = [
+                        'female_investigation' => ['name' => 'female_investigation_name', 'code' => 'female_investigation_code', 'price'=> 'female_investigation_price', 'disc' => 'female_investigation_discount'],
+                        'male_investigation' => ['name' => 'male_investigation_name', 'code' => 'male_investigation_code', 'price'=> 'male_investigation_price', 'disc' => 'male_investigation_discount']
+                    ];
+                    foreach ($groups as $group_key => $keys) {
+                        if (!empty($unserialized[$group_key]) && is_array($unserialized[$group_key])) {
+                            foreach ($unserialized[$group_key] as $item) {
+                                if (!is_array($item)) continue;
+                                $price   = isset($item[$keys['price']]) ? (float)$item[$keys['price']] : 0;
+                                $percent = isset($item[$keys['disc']])  ? (float)$item[$keys['disc']]  : 0;
+
+                                $investigation_q = $this->db->query("SELECT * FROM hms_investigation WHERE ID = " . (int)$item[$keys['name']]);
+                                $investigation = $investigation_q->row_array() ?? [];
+                                $m_investigation_q = $this->db->query("SELECT * FROM hms_master_investigations WHERE ID = " . (int)$investigation['master_id']);
+                                $m_investigation = $m_investigation_q->row_array() ?? [];
+
+                                $discount_amount = ($price * $percent) / 100; 
+                                $formatted["items"][] = [
+                                    "item_name"                   => $m_investigation['investigation_name'] ?? 'Unknown',
+                                    "item_code"                   => $m_investigation['code'] ?? '',
+                                    "item_price"                  => $price,
+                                    "discount_percent"            => $percent . '%', 
+                                    "discount_amount"             => $discount_amount,
+                                    "paid_price"                  => $price - $discount_amount
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+            $investigation_sales[] = $formatted;
+        }
+    }
+
+    // =========================================================================
+    // PART 6: FELLOWSHIP / TRAINING SALES (From hms_fellowship_training)
+    // =========================================================================
+
+    // =========================================================================
+    // PART 6: FELLOWSHIP / TRAINING SALES
+    // =========================================================================
+
+    $q_fellow = $this->db->query("SELECT `ID`, `studentid`, `name`, `voucherCode`, `fname`, `course`, `code`, `hsn`, `price`, `discount_amount`, `payment_done`, `gst_amount`, `remaining_amount`, `gst`, `payment_method`, `address`, `place_of_supply`, `gst_number`, `on_date`, `cancel_date`, `receipt`, `invoice_no`, `receipt_url`, `status` FROM `hms_fellowship_training` WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 20");
+    
+    $fellowship_rows = $q_fellow->result_array();
+    $fellowship_sales = [];
+    
+    foreach ($fellowship_rows as $row) {
+        
+        // Logic to convert Status ID to Text
+        $status_text = $row['status']; // Default
+        if ($row['status'] == '1') {
+            $status_text = 'Approved';
+        } elseif ($row['status'] == '3') {
+            $status_text = 'Cancel';
+        }
+
+        $fellowship_sales[] = [
+            "type"            => "Fellowship",
+            "student_id"      => $row['studentid'],
+            "name"            => $row['name'],
+            "father_name"     => $row['fname'],
+            "course_name"     => $row['course'],
+            "hsn_code"        => $row['hsn'],
+            
+            // Financials
+            "price"           => $row['price'],
+            "payment_done"    => $row['payment_done'],
+            "gst_amount"      => $row['gst_amount'],
+            "discount"        => $row['discount_amount'],
+            
+            // Billing Info
+            "invoice_no"      => $row['invoice_no'],
+            "receipt_number"  => $row['receipt'],
+            "gst_number"      => $row['gst_number'],      
+            "address"         => $row['address'],
+            
+            // Standard Fields
+            "on_date"         => !empty($row["on_date"]) ? date("d-m-Y H:i:s", strtotime($row["on_date"])) : '',
+            "payment_method"  => $row['payment_method'],
+            
+            // USE THE CONVERTED STATUS HERE
+            "status"          => $status_text
+        ];
+    }
+
+    // =========================================================================
+    // PART 7: FINAL OUTPUT
+    // =========================================================================
+
     $final_output = [
         'export_date' => date('Y-m-d H:i:s'),
         'counts' => [
             'medicines' => count($medicine_sales),
-            'procedures' => count($procedure_sales_formatted)
+            'procedures' => count($procedure_sales_formatted),
+            'consultations' => count($consultation_sales),
+            'registrations' => count($registration_sales),
+            'investigations' => count($investigation_sales),
+            'fellowships' => count($fellowship_sales)
         ],
-        // Use array_values to ensure JSON array, not object with ID keys
         'Medicine_Sales' => array_values($medicine_sales), 
-        'Procedure_Sales' => $procedure_sales_formatted
+        'Procedure_Sales' => $procedure_sales_formatted,
+        'Consultation_Sales' => $consultation_sales,
+        'Registration_Sales' => $registration_sales,
+        'Investigation_Sales' => $investigation_sales,
+        'Fellowship_Sales' => $fellowship_sales
     ];
 
     header('Content-Type: application/json');
     echo json_encode($final_output, JSON_PRETTY_PRINT);
     exit;
+}
+
+public function procedure_tally() {
+
+    // 1. FIX: Receive 'ids' (matching the JS data key), not 'payment_ids'
+    $ids = $this->input->post('ids');
+
+    if (empty($ids)) {
+        echo json_encode(['success' => false, 'message' => 'No IDs received.']);
+        return;
+    }
+
+    $success_count = 0;
+    $error_count = 0;
+    $already_sent_count = 0;
+
+    foreach ($ids as $id) {
+
+        // 2. Get current status for this ID
+        $this->db->select('tally_status');
+        $this->db->where('id', $id); // Make sure column name is 'id' or 'ID' matches your DB
+        $q = $this->db->get('hms_patient_procedure');
+        
+        $row = $q->row_array();
+
+        // 3. CHECK: If already sent (status 1), skip it
+        if (!empty($row) && $row['tally_status'] == '1') {
+            $already_sent_count++;
+            continue; 
+        }
+
+        // 4. MARK AS SENT
+        // Update tally_status to 1 (Sent)
+        $this->db->where('id', $id);
+        $update = $this->db->update('hms_patient_procedure', ['tally_status' => 1]);
+
+        if ($update) {
+            $success_count++;
+        } else {
+            $error_count++;
+        }
+    }
+
+    // 5. Build Response
+    if ($success_count > 0 || $already_sent_count > 0) {
+        
+        $msg = "";
+        
+        if ($success_count > 0) {
+            $msg .= "$success_count records marked as Sent. ";
+        }
+        
+        if ($already_sent_count > 0) {
+            $msg .= "($already_sent_count were already sent previously). ";
+        }
+
+        if ($error_count > 0) {
+            $msg .= "($error_count failed).";
+        }
+
+        echo json_encode(['success' => true, 'message' => trim($msg)]);
+
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to update records.']);
+    }
 }
 
 public function partial_tally() {
