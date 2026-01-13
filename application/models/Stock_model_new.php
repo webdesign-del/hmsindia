@@ -3929,9 +3929,6 @@ class Stock_model_new extends CI_Model
 
     public function get_available_batches_for_return($receipt_number = null)
     {
-        // try {
-            // Get medicines that have been SOLD (from sale_items table)
-            // This ensures we only show medicines that can actually be returned
             $this->db->select('
                 si.batch_id,
                 mb.batch_number,
@@ -3985,9 +3982,6 @@ class Stock_model_new extends CI_Model
                     date("Y-m-d", strtotime("-30 days")),
                 );
             }
-            // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
-            //     $this->db->where('s.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
-            // }
             $center = null;
             if (!empty($_SESSION['logged_billing_manager']) &&
                 ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
@@ -4008,41 +4002,6 @@ class Stock_model_new extends CI_Model
 
             $result = $this->db->get()->result();
             return $result;
-        // } catch (Exception $e) {
-        //     // If the complex query fails, try a simpler one
-        //     error_log(
-        //         "Error in get_available_batches_for_return: " .
-        //             $e->getMessage(),
-        //     );
-
-        //     try {
-        //         // Simple fallback - get medicines that have been sold
-        //         $this->db->select(
-        //             "DISTINCT si.batch_id, mb.batch_number, m.medicine_name, m.medicine_code, si.quantity_sold",
-        //         );
-        //         $this->db->from("sale_items si");
-        //         $this->db->join(
-        //             "medicine_batches mb",
-        //             "si.batch_id = mb.id",
-        //             "left",
-        //         );
-        //         $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
-        //         $this->db->join("sales s", "si.sale_id = s.id", "left");
-        //         $this->db->where(
-        //             "s.sale_date >=",
-        //             date("Y-m-d", strtotime("-30 days")),
-        //         );
-        //         $this->db->where("s.status", "CONFIRMED");
-        //         $this->db->order_by("m.medicine_name", "ASC");
-
-        //         $result = $this->db->get()->result();
-
-        //         return $result;
-        //     } catch (Exception $e2) {
-        //         error_log("Error in fallback query: " . $e2->getMessage());
-        //         return [];
-        //     }
-        // }
     }
 
     // public function get_available_batches_for_audit()
@@ -6142,8 +6101,34 @@ class Stock_model_new extends CI_Model
         //     $this->db->trans_complete();
         //     return $this->db->trans_status();
         // }
+        public function get_all_active_batches()
+        {
+            $this->db->select('
+                mb.id as batch_id,
+                mb.batch_number,
+                mb.expiry_date,
+                mb.quantity_remaining as available_for_return,
+                mb.selling_price,
+                m.pack_size,
+                m.medicine_name,
+                m.medicine_code,
+                COALESCE(b.brand_name, "Unknown Brand") as brand_name
+            ');
+            $this->db->from("medicine_batches mb");
+            $this->db->join("medicines m", "mb.medicine_id = m.id", "inner");
+            $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+            // Sirf wahi batches jo expire nahi hue aur active hain
+            $this->db->where("mb.batch_status", "ACTIVE");
+            $this->db->where("m.status", "active");
+            $this->db->where("mb.expiry_date >", date('Y-m-d'));
+            // Order by Medicine Name and Expiry (FEFO)
+            $this->db->order_by("m.medicine_name", "ASC");
+            $this->db->order_by("mb.expiry_date", "ASC");
 
-        public function process_medicine_return($return_data, $return_items)
+            $result = $this->db->get()->result();
+            return $result;
+        }
+        public function process_medicine_return($return_data, $return_items,$is_old = false)
         {
             if (empty($return_items)) {
                 return false;
@@ -6152,7 +6137,10 @@ class Stock_model_new extends CI_Model
             $this->db->trans_start();
             // 1. Generate Return Number and Insert Header
             // Format: RET + YYYYMMDD + Unique ID
-            $return_data["return_number"] = "RET" . date("Ymd") . str_pad($this->db->count_all_results('medicine_returns') + 1, 4, "0", STR_PAD_LEFT);
+            $prefix = $is_old ? "ORET" : "RET";
+            $next_id = $this->db->count_all_results('medicine_returns') + 1;
+            $return_data["return_number"] = $prefix . date("Ymd") . str_pad($next_id, 4, "0", STR_PAD_LEFT);
+            // $return_data["return_number"] = "RET" . date("Ymd") . str_pad($this->db->count_all_results('medicine_returns') + 1, 4, "0", STR_PAD_LEFT);
             $return_data["status"] = "PENDING"; 
             $this->db->insert("medicine_returns", $return_data);
             $return_id = $this->db->insert_id();
@@ -6162,7 +6150,7 @@ class Stock_model_new extends CI_Model
             }
             // 2. Resolve Sale ID from Receipt Number
             $sale_id = null;
-            if (!empty($return_data['receipt_number'])) {
+            if (!$is_old && !empty($return_data['receipt_number'])) {
                 $sale = $this->db->get_where('sales', ['sale_number' => $return_data['receipt_number']])->row();
                 if ($sale) {
                     $sale_id = $sale->id;
@@ -6194,7 +6182,7 @@ class Stock_model_new extends CI_Model
                 $this->db->insert("medicine_return_items", $item_entry);
                 // 4. Update sale_items IMMEDIATELY
                 // This ensures that "Available for Return" = (Sold - Returned) works in real-time
-                if ($sale_id) {
+                if (!$is_old && $sale_id) {
                     $this->db->set('quantity_returned', 'COALESCE(quantity_returned, 0) + ' . $quantity, FALSE);
                     $this->db->set('updated_at', date('Y-m-d H:i:s'));
                     $this->db->where(['sale_id' => $sale_id, 'batch_id' => $batch_id]);
@@ -6220,6 +6208,7 @@ class Stock_model_new extends CI_Model
             }
             // 2. Get Return Items
             $items = $this->db->where('return_id', $return_id)->get('medicine_return_items')->result();
+            $is_old = (strpos($return->return_number, 'ORET') === 0);
             foreach ($items as $item) {
                 $qty = (float)$item->quantity_returned;
                 $batch_id = $item->batch_id;
@@ -6273,7 +6262,7 @@ class Stock_model_new extends CI_Model
                     "reference_number" => $return->return_number,
                     "patient_id" => $return->patient_id,
                     "patient_name" => $return->patient_name,
-                    "remarks" => "Medicine return approved and stock restored",
+                    "remarks" => $is_old ? "Manual restoration of old medicine stock" : "Stock restored from validated sale return",
                     "created_at" => date("Y-m-d H:i:s"),
                     "created_by" => $return->created_by // Tracking who initiated
                 ];
@@ -6300,18 +6289,22 @@ class Stock_model_new extends CI_Model
 
             // 1. Get items to reverse the 'quantity_returned' count in sale_items
             $items = $this->db->where('return_id', $return_id)->get('medicine_return_items')->result();
-            
+            $is_old = (strpos($return->return_number, 'ORET') === 0);
             $sale = $this->db->get_where('sales', ['sale_number' => $return->receipt_number])->row();
             $sale_id = $sale ? $sale->id : null;
 
-            if ($sale_id) {
-                foreach ($items as $item) {
-                    $this->db->set('quantity_returned', 'quantity_returned - ' . (float)$item->quantity_returned, FALSE);
-                    $this->db->where(['sale_id' => $sale_id, 'batch_id' => $item->batch_id]);
-                    $this->db->update('sale_items');
+            if (!$is_old) {
+                $items = $this->db->where('return_id', $return_id)->get('medicine_return_items')->result();
+                $sale = $this->db->get_where('sales', ['sale_number' => $return->receipt_number])->row();
+                
+                if ($sale) {
+                    foreach ($items as $item) {
+                        $this->db->set('quantity_returned', 'quantity_returned - ' . (float)$item->quantity_returned, FALSE);
+                        $this->db->where(['sale_id' => $sale->id, 'batch_id' => $item->batch_id]);
+                        $this->db->update('sale_items');
+                    }
                 }
             }
-
             // 2. Set status to REJECTED
             $this->db->where('id', $return_id)->update('medicine_returns', [
                 'status' => 'REJECTED', 
@@ -9892,59 +9885,55 @@ public function add_stock_to_location($stock_data)
     public function create_medicine_package($package_data, $package_items)
     {
         $this->db->trans_start();
-
-        // Calculate package price from latest medicine batch prices
         $total_selling_price = 0;
         $total_mrp = 0;
-
         foreach ($package_items as $item) {
-            // Get latest batch pricing for this medicine
-            $latest_batch = $this->db->select('selling_price, mrp')
-                                    ->from('medicine_batches')
-                                    ->where('medicine_id', $item['medicine_id'])
-                                    ->order_by('created_at', 'DESC')
+            // 1. Modified Query: Fetch pack_size along with prices
+            $latest_batch = $this->db->select('b.selling_price, b.mrp, m.pack_size')
+                                    ->from('medicine_batches b')
+                                    ->join('medicines m', 'm.id = b.medicine_id')
+                                    ->where('b.medicine_id', $item['medicine_id'])
+                                    ->order_by('b.created_at', 'DESC')
                                     ->limit(1)
                                     ->get()->row();
-
-            if ($latest_batch && isset($latest_batch->selling_price) && $latest_batch->selling_price > 0) {
-                $total_selling_price += ($latest_batch->selling_price * $item['quantity']);
-                $total_mrp += ($latest_batch->mrp * $item['quantity']);
+            if ($latest_batch && $latest_batch->selling_price > 0) {
+                // Ensure pack_size is at least 1 to avoid division by zero
+                $pack_size = ($latest_batch->pack_size > 0) ? $latest_batch->pack_size : 1;
+                // DIVIDE BY PACK SIZE HERE
+                $unit_selling_price = $latest_batch->selling_price / $pack_size;
+                $unit_mrp = $latest_batch->mrp / $pack_size;
+                $total_selling_price += ($unit_selling_price * $item['quantity']);
+                $total_mrp += ($unit_mrp * $item['quantity']);
             } else {
-                // Fallback: try to get from medicines table if no batches exist
-                $medicine = $this->db->select('selling_price, mrp')
+                // Fallback: get from medicines table
+                $medicine = $this->db->select('selling_price, mrp, pack_size')
                                     ->from('medicines')
                                     ->where('id', $item['medicine_id'])
                                     ->get()->row();
-
                 if ($medicine && isset($medicine->selling_price)) {
-                    $total_selling_price += ($medicine->selling_price * $item['quantity']);
-                    $total_mrp += ($medicine->mrp * $item['quantity']);
+                    $pack_size = ($medicine->pack_size > 0) ? $medicine->pack_size : 1;
+                    // DIVIDE BY PACK SIZE HERE
+                    $unit_selling_price = $medicine->selling_price / $pack_size;
+                    $unit_mrp = $medicine->mrp / $pack_size;
+                    $total_selling_price += ($unit_selling_price * $item['quantity']);
+                    $total_mrp += ($unit_mrp * $item['quantity']);
                 }
-                // If no pricing found, prices remain 0
             }
         }
-
         // Override package prices with calculated values
-        $package_data['selling_price'] = $total_selling_price;
-        $package_data['mrp'] = $total_mrp;
+        $package_data['selling_price'] = round($total_selling_price, 2);
+        $package_data['mrp'] = round($total_mrp, 2);
 
-        // Insert package
         $this->db->insert('medicine_packages', $package_data);
         $package_id = $this->db->insert_id();
 
-        // Insert package items
         foreach ($package_items as $item) {
             $item['package_id'] = $package_id;
             $this->db->insert('package_items', $item);
         }
 
         $this->db->trans_complete();
-
-        if ($this->db->trans_status() === FALSE) {
-            return false;
-        }
-
-        return $package_id;
+        return ($this->db->trans_status() === FALSE) ? false : $package_id;
     }
 
     public function get_all_packages($status = 'active')
@@ -11225,601 +11214,3 @@ public function add_stock_to_location($stock_data)
         // }
     }
 }
-
-// comment these new function using procedure 
-// <?php
-// defined('BASEPATH') OR exit('No direct script access allowed');
-
-// class Stock_model_new extends CI_Model {
-
-//     public function __construct() {
-//         parent::__construct();
-//         $this->load->database();
-//     }
-
-//     // ===============================================
-//     // HELPER FUNCTIONS
-//     // ===============================================
-
-//     /**
-//      * Calculates days until expiry from a given date.
-//      */
-//     public function calculate_expiry_days($expiry_date)
-//     {
-//         try {
-//             $expiry = new DateTime($expiry_date);
-//             $today = new DateTime();
-//             $diff = $today->diff($expiry);
-//             return $expiry >= $today ? $diff->days : -$diff->days; // Return negative if already expired
-//         } catch (Exception $e) {
-//             return null; // Return null on error
-//         }
-//     }
-
-//     /**
-//      * Updates the expiry_days column in medicine_batches table.
-//      * Should be run periodically (e.g., via a cron job).
-//      */
-//     public function update_expiry_days()
-//     {
-//         try {
-//             $this->db->query("
-//                 UPDATE medicine_batches
-//                 SET expiry_days = DATEDIFF(expiry_date, CURDATE())
-//                 WHERE batch_status = 'ACTIVE' OR batch_status = 'QUARANTINE'
-//             ");
-//             return true;
-//         } catch (Exception $e) {
-//             // Log error if needed
-//             return false;
-//         }
-//     }
-
-//     /**
-//      * Fetches all active centers.
-//      */
-//     public function get_all_centers()
-//     {
-//         try {
-//             return $this->db->get_where('hms_centers', ['status' => 1])->result();
-//         } catch (Exception $e) {
-//             return [];
-//         }
-//     }
-
-//      /**
-//      * Fetches all active vendors.
-//      */
-//     public function get_all_vendors() {
-//         try {
-//             return $this->db->get_where('hms_vendors', ['status' => 1])->result();
-//         } catch (Exception $e) {
-//             return [];
-//         }
-//     }
-
-//     /**
-//      * Gets batches that were sold (eligible for patient return).
-//      */
-//     public function get_available_batches_for_return() {
-//         try {
-//             $this->db->select([
-//                 'si.batch_id',
-//                 'mb.batch_number',
-//                 'm.medicine_name',
-//                 'si.unit_price as selling_price', // Price at which it was sold
-//                 'SUM(si.quantity_sold) as quantity_sold' // Total sold for this batch from sale_items
-//             ]);
-//             $this->db->from('sale_items si');
-//             $this->db->join('medicine_batches mb', 'si.batch_id = mb.id');
-//             $this->db->join('medicines m', 'mb.medicine_id = m.id');
-//             $this->db->join('sales s', 'si.sale_id = s.id'); // Join sales to filter by date if needed
-//             // Optional: Filter by sales within a return period (e.g., 30 days)
-//             // $this->db->where('s.sale_date >=', date('Y-m-d', strtotime('-30 days')));
-//             $this->db->group_by(['si.batch_id', 'm.medicine_name', 'mb.batch_number', 'si.unit_price']);
-//             $this->db->order_by('m.medicine_name', 'asc');
-//             return $this->db->get()->result();
-//         } catch (Exception $e) {
-//             return [];
-//         }
-//     }
-
-//     /**
-//      * Gets all batches that currently have stock in any center.
-//      * Used for Disposal and Vendor Return forms.
-//      */
-    // public function get_all_stock_batches()
-    // {
-    //    try {
-    //         $this->db->select([
-    //             'cs.batch_id',
-    //             'cs.center_id',
-    //             'c.center_name',
-    //             'cs.quantity as available_quantity', // Stock at the specific center
-    //             'm.medicine_name',
-    //             'mb.batch_number',
-    //             'mb.purchase_price' // Needed for disposal/vendor return value
-    //         ]);
-    //         $this->db->from('center_stocks cs');
-    //         $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id');
-    //         $this->db->join('medicines m', 'mb.medicine_id = m.id');
-    //         $this->db->join('hms_centers c', 'cs.center_id = c.ID');
-    //         $this->db->where('cs.quantity >', 0); // Only batches with stock
-    //         $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
-    //         $this->db->order_by('c.center_name', 'ASC');
-    //         $this->db->order_by('m.medicine_name', 'ASC');
-    //         return $this->db->get()->result();
-    //     } catch (Exception $e) {
-    //         return [];
-    //     }
-    // }
-
-//     // ===============================================
-//     // DASHBOARD FUNCTIONS (CORRECTED)
-//     // ===============================================
-
-//     public function get_dashboard_summary()
-//     {
-//         // Using the view you created is more efficient if it exists
-//         if ($this->db->table_exists('v_stock_dashboard_summary')) {
-//              $query = $this->db->get('v_stock_dashboard_summary');
-//              if ($query && $query->num_rows() > 0) {
-//                  return $query->row();
-//              }
-//         }
-
-//         // Fallback if view doesn't exist or fails (less efficient)
-//         try {
-//             $total_medicines = $this->db->where("status", "active")->count_all_results("medicines");
-//             $total_batches = $this->db->where("batch_status", "ACTIVE")
-//                                       ->where("quantity_remaining >", 0)
-//                                       ->count_all_results("medicine_batches");
-//              $low_stock_query = $this->db->query("
-//                 SELECT COUNT(*) as low_stock_count
-//                 FROM (
-//                     SELECT m.id
-//                     FROM medicines m
-//                     LEFT JOIN medicine_batches mb ON m.id = mb.medicine_id AND mb.batch_status = 'ACTIVE' AND mb.quantity_remaining > 0
-//                     WHERE m.status = 'active' AND m.min_stock_level > 0
-//                     GROUP BY m.id, m.min_stock_level
-//                     HAVING COALESCE(SUM(mb.quantity_remaining), 0) <= m.min_stock_level
-//                 ) as low_stock_medicines
-//             ");
-//             $low_stock = $low_stock_query ? $low_stock_query->row() : null;
-
-//             $expiring_soon_count = $this->db->where("batch_status", "ACTIVE")
-//                                            ->where("quantity_remaining >", 0)
-//                                            ->where("DATEDIFF(expiry_date, CURDATE()) <=", 30)
-//                                            ->where("DATEDIFF(expiry_date, CURDATE()) >=", 0)
-//                                            ->count_all_results("medicine_batches");
-//             $expired_count = $this->db->where("batch_status", "ACTIVE")
-//                                     ->where("quantity_remaining >", 0)
-//                                     ->where("DATEDIFF(expiry_date, CURDATE()) <", 0)
-//                                     ->count_all_results("medicine_batches");
-//             $this->db->select_sum('quantity_remaining * selling_price', 'total_stock_value');
-//             $this->db->where("batch_status", "ACTIVE")->where("quantity_remaining >", 0);
-//             $stock_value_result = $this->db->get('medicine_batches')->row();
-//             $total_stock_value = $stock_value_result ? $stock_value_result->total_stock_value : 0;
-
-//             return (object) [
-//                 "total_medicines" => $total_medicines ?? 0,
-//                 "total_batches" => $total_batches ?? 0,
-//                 "total_centers" => $this->db->where('status', 1)->count_all_results('hms_centers') ?? 0,
-//                 "total_vendors" => $this->db->where('status', 1)->count_all_results('hms_vendors') ?? 0,
-//                 "total_stock_quantity" => $this->db->select_sum('quantity_remaining')->where('batch_status','ACTIVE')->get('medicine_batches')->row()->quantity_remaining ?? 0,
-//                 "low_stock_count" => $low_stock ? $low_stock->low_stock_count : 0,
-//                 "expiring_soon_count" => $expiring_soon_count ?? 0,
-//                 "expired_count" => $expired_count ?? 0,
-//                 "total_stock_value" => $total_stock_value ?? 0,
-//             ];
-//         } catch (Exception $e) {
-//              return (object) array_fill_keys(["total_medicines", "total_batches", "total_centers", "total_vendors", "total_stock_quantity", "low_stock_count", "expiring_soon_count", "expired_count", "total_stock_value"], 0);
-//         }
-//     }
-
-
-//     public function get_low_stock_alerts()
-//     {
-//         try {
-//             $query = $this->db->query("CALL sp_get_low_stock_alerts()");
-//             if ($query) {
-//                  $result = $query->result();
-//                  // Manually close connection for procedure results if needed (depends on driver/version)
-//                  // $query->conn_id->close(); // Example, might not be needed
-//                  return $result;
-//             }
-//         } catch (Exception $e) {
-//              // Optionally log the error $e->getMessage();
-//         }
-//         return [];
-//     }
-
-//     public function get_expiry_alerts()
-//     {
-//          try {
-//              $query = $this->db->query("CALL sp_get_expiry_alerts()");
-//              if ($query) {
-//                  $result = $query->result();
-//                  // Manually close connection for procedure results if needed
-//                  // $query->conn_id->close();
-//                  return $result;
-//              }
-//          } catch (Exception $e) {
-//              // Optionally log the error $e->getMessage();
-//          }
-//          return [];
-//     }
-
-//     public function get_recent_sales($limit = 10)
-//     {
-//         try {
-//             $this->db->select("s.*, c.center_name");
-//             $this->db->from("sales s");
-//             $this->db->join("hms_centers c", "s.center_id = c.ID", "left");
-//             $this->db->where("s.status", "CONFIRMED");
-//             $this->db->order_by("s.created_at", "DESC");
-//             $this->db->limit($limit);
-//             return $this->db->get()->result();
-//         } catch (Exception $e) {
-//             return [];
-//         }
-//     }
-
-//     public function get_recent_transfers($limit = 10)
-//     {
-//         try {
-//             $this->db->select("st.*, fc.center_name as from_center, tc.center_name as to_center");
-//             $this->db->from("stock_transfers st");
-//             $this->db->join("hms_centers fc", "st.from_center_id = fc.ID", "left");
-//             $this->db->join("hms_centers tc", "st.to_center_id = tc.ID", "left");
-//             $this->db->order_by("st.created_at", "DESC");
-//             $this->db->limit($limit);
-//             return $this->db->get()->result();
-//         } catch (Exception $e) {
-//             return [];
-//         }
-//     }
-
-//     public function get_sales_analytics($days = 30)
-//     {
-//         try {
-//             $query = $this->db->query("CALL sp_get_sales_analytics(?)", [$days]);
-//             if ($query) {
-//                  $result = $query->result();
-//                  // Manually close connection for procedure results if needed
-//                  // $query->conn_id->close();
-//                  return $result;
-//             }
-//         } catch (Exception $e) {
-//              // Optionally log the error $e->getMessage();
-//         }
-//         return [];
-//     }
-
-//     public function get_transfer_analytics($days = 30)
-//     {
-//          try {
-//              $query = $this->db->query("CALL sp_get_transfer_analytics(?)", [$days]);
-//              if ($query) {
-//                  $result = $query->result();
-//                  // Manually close connection for procedure results if needed
-//                  // $query->conn_id->close();
-//                  return $result;
-//              }
-//          } catch (Exception $e) {
-//              // Optionally log the error $e->getMessage();
-//          }
-//          return [];
-//     }
-
-//     public function get_top_selling_medicines($limit = 10)
-//     {
-//         try {
-//             $this->db->select(
-//                 "m.medicine_name, b.brand_name, SUM(si.quantity_sold) as total_sold, SUM(si.total) as total_revenue"
-//             );
-//             $this->db->from("sale_items si");
-//             $this->db->join("medicine_batches mb", "si.batch_id = mb.id");
-//             $this->db->join("medicines m", "mb.medicine_id = m.id");
-//             $this->db->join("medicine_brands b", "m.brand_id = b.id", "left"); // Corrected table
-//             $this->db->join("sales s", "si.sale_id = s.id");
-//             $this->db->where("s.status", "CONFIRMED");
-//             $this->db->group_by("m.id, m.medicine_name, b.brand_name");
-//             $this->db->order_by("total_sold", "DESC");
-//             $this->db->limit($limit);
-//             return $this->db->get()->result();
-//         } catch (Exception $e) {
-//             return [];
-//         }
-//     }
-
-//     public function get_center_stock_summary()
-//     {
-//         try {
-//             $this->db->select(
-//                 "c.center_name, COUNT(DISTINCT ccs.batch_id) as total_batches, SUM(ccs.quantity) as total_quantity"
-//             );
-//             $this->db->from("hms_centers c");
-//             $this->db->join("center_stocks ccs", "c.ID = ccs.center_id", "left");
-//             $this->db->join("medicine_batches mb", "ccs.batch_id = mb.id", "left");
-//             $this->db->where("c.status", 1);
-//             $this->db->where("ccs.quantity >", 0);
-//             $this->db->where("mb.batch_status", "ACTIVE");
-//             $this->db->group_by("c.ID, c.center_name");
-//             $this->db->order_by("c.center_name", "ASC");
-//             return $this->db->get()->result();
-//         } catch (Exception $e) {
-//             return [];
-//         }
-//     }
-
-//     // ===============================================
-//     // SALE PROCESSING
-//     // ===============================================
-
-//     /**
-//      * Executes the stored procedure to process a new sale.
-//      */
-//     public function execute_sale_procedure($center_id, $medicine_id, $quantity, $patient_id, $patient_name, $doctor_id, $created_by, $fifo_type, $remarks)
-//     {
-//         try {
-//             $sql = "CALL sp_process_sale_with_fifo(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-//             $params = [$center_id, $medicine_id, $quantity, $patient_id, $patient_name, $doctor_id, $created_by, $fifo_type, $remarks];
-//             $query = $this->db->query($sql, $params);
-
-//             if ($query) {
-//                 $result = $query->result();
-//                  // Manually close connection for procedure results if needed
-//                  // $query->conn_id->close();
-//                 return $result;
-//             }
-//         } catch (Exception $e) {
-//             // Optionally log the error $e->getMessage();
-//         }
-//         return false; // Return false on error or no result
-//     }
-
-
-//     // ===============================================
-//     // MEDICINE RETURN PROCESSING (Patient)
-//     // ===============================================
-
-//      public function process_medicine_return($return_data, $return_items)
-//      {
-//         if (empty($return_items)) return false;
-//         $this->db->trans_start();
-
-//         $return_data["return_number"] = "RET" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-//         $this->db->insert("medicine_returns", $return_data);
-//         $db_error = $this->db->error();
-//         if ($db_error["code"] != 0) { $this->db->trans_rollback(); return false; }
-//         $return_id = $this->db->insert_id();
-//         if (!$return_id) { $this->db->trans_rollback(); return false; }
-
-//         $sale_id = null;
-//         if (!empty($return_data['receipt_number'])) {
-//             $sale = $this->db->get_where('sales', ['sale_number' => $return_data['receipt_number']])->row();
-//             if ($sale) $sale_id = $sale->id;
-//         }
-
-//         $total_items_processed = 0; $total_value = 0; $total_quantity = 0;
-
-//         foreach ($return_items as $item) {
-//             $quantity = isset($item["return_quantity"]) ? (int)$item["return_quantity"] : 0;
-//             $price = isset($item["price"]) ? (float)$item["price"] : 0;
-//             $batch_id = isset($item["batch_id"]) ? (int)$item["batch_id"] : 0;
-//             if ($batch_id <= 0 || $quantity <= 0) continue;
-
-//             $item_total = $quantity * $price;
-//             $item_data = ["return_id" => $return_id, "batch_id" => $batch_id, "quantity_returned" => $quantity, "return_price" => $price, "total_amount" => $item_total, "created_at" => date("Y-m-d H:i:s")];
-//             $this->db->insert("medicine_return_items", $item_data);
-//             if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-
-//             if ($sale_id) {
-//                 $this->db->set('quantity_returned', 'quantity_returned + ' . $quantity, FALSE)->set('updated_at', 'NOW()', false)->where('sale_id', $sale_id)->where('batch_id', $batch_id)->update('sale_items');
-//                 if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-//             }
-//             $this->db->set("quantity_remaining", "quantity_remaining + " . $quantity, FALSE)->set("updated_at", "NOW()", false)->where("id", $batch_id)->update("medicine_batches");
-//             if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-
-//             $center_stock = $this->db->where("batch_id", $batch_id)->where("center_id", $return_data["center_id"])->get("center_stocks")->row();
-//             $quantity_before = 0;
-//             if ($center_stock) {
-//                 $quantity_before = (int)$center_stock->quantity;
-//                 $this->db->where("id", $center_stock->id)->set("quantity", "quantity + " . $quantity, FALSE)->set("last_movement_date", date("Y-m-d H:i:s"))->set("updated_at", "NOW()", false)->update("center_stocks");
-//             } else {
-//                 $center_stock_data = ["batch_id" => $batch_id, "center_id" => $return_data["center_id"], "quantity" => $quantity, "reserved_quantity" => 0, "status" => "ACTIVE", "last_movement_date" => date("Y-m-d H:i:s"), "created_at" => date("Y-m-d H:i:s"), "updated_at" => date("Y-m-d H:i:s")];
-//                 $this->db->insert("center_stocks", $center_stock_data);
-//             }
-//             $quantity_after = $quantity_before + $quantity;
-//             if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-
-//             if ($this->db->table_exists("stock_movements")) {
-//                 $movement_data = ["batch_id" => $batch_id, "movement_type" => "SALE_RETURN", "from_location_type" => "SALE", "from_location_id" => $sale_id, "to_location_type" => "CENTER", "to_location_id" => $return_data["center_id"], "quantity_before" => $quantity_before, "quantity_change" => $quantity, "quantity_after" => $quantity_after, "unit_price" => $price, "total_value" => $item_total, "reference_type" => "RETURN_VOUCHER", "reference_id" => $return_id, "reference_number" => $return_data["return_number"], "patient_id" => $return_data["patient_id"], "patient_name" => $return_data["patient_name"], "remarks" => "Medicine returned from patient", "created_at" => date("Y-m-d H:i:s"), "created_by" => $return_data["created_by"]];
-//                 $this->db->insert("stock_movements", $movement_data);
-//                 if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-//             }
-//             $total_items_processed++;
-//             $total_quantity += $quantity;
-//             $total_value += $item_total;
-//         }
-
-//         if ($total_items_processed == 0) { $this->db->trans_rollback(); return false; }
-
-//          // Update Header Totals
-//          $this->db->where('id', $return_id);
-//          $this->db->update('medicine_returns', [
-//              'total_items' => $total_items_processed,
-//              'total_quantity' => $total_quantity,
-//              'total_value' => $total_value
-//          ]);
-
-//         $this->db->trans_complete();
-//         return $this->db->trans_status();
-//     }
-
-//     public function get_medicine_returns() {
-//         try {
-//             $this->db->select('mr.*, c.center_name, e.name as created_by_name');
-//             $this->db->from('medicine_returns mr');
-//             $this->db->join('hms_centers c', 'mr.center_id = c.ID', 'left');
-//             $this->db->join('hms_employees e', 'mr.created_by = e.ID', 'left');
-//             $this->db->order_by('mr.return_date', 'DESC');
-//             $this->db->order_by('mr.id', 'DESC');
-//             return $this->db->get()->result();
-//         } catch (Exception $e) { return []; }
-//     }
-
-//     public function get_return_by_id($id) {
-//          try {
-//             $this->db->select('mr.*, c.center_name, e.name as created_by_name');
-//             $this->db->from('medicine_returns mr');
-//             $this->db->join('hms_centers c', 'mr.center_id = c.ID', 'left');
-//             $this->db->join('hms_employees e', 'mr.created_by = e.ID', 'left');
-//             $this->db->where('mr.id', $id);
-//             return $this->db->get()->row();
-//         } catch (Exception $e) { return null; }
-//     }
-
-//     public function get_return_items($return_id) {
-//          try {
-//             $this->db->select('mri.*, m.medicine_name, m.medicine_code, mb.batch_number, mb.expiry_date, b.brand_name');
-//             $this->db->from('medicine_return_items mri');
-//             $this->db->join('medicine_batches mb', 'mri.batch_id = mb.id', 'left');
-//             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
-//             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
-//             $this->db->where('mri.return_id', $return_id);
-//             return $this->db->get()->result();
-//         } catch (Exception $e) { return []; }
-//     }
-
-//     // ===============================================
-//     // MEDICINE DISPOSAL PROCESSING
-//     // ===============================================
-
-//     public function process_medicine_disposal($disposal_data, $disposal_items)
-//     {
-//         if (empty($disposal_items)) return false;
-//         $this->db->trans_start();
-
-//         $disposal_data["disposal_number"] = "DISP" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-//         $this->db->insert("disposal_reports", $disposal_data);
-//         $db_error = $this->db->error();
-//         if ($db_error["code"] != 0) { $this->db->trans_rollback(); return false; }
-//         $disposal_id = $this->db->insert_id();
-//         if (!$disposal_id) { $this->db->trans_rollback(); return false; }
-
-//         $total_cost = 0; $total_items = 0; $total_quantity = 0;
-
-//         foreach ($disposal_items as $item) {
-//             $quantity = isset($item["quantity_disposed"]) ? (int)$item["quantity_disposed"] : 0;
-//             $batch_id = isset($item["batch_id"]) ? (int)$item["batch_id"] : 0;
-//             if ($batch_id <= 0 || $quantity <= 0) continue;
-
-//             $batch_info = $this->db->get_where('medicine_batches', ['id' => $batch_id])->row();
-//             $unit_cost = ($batch_info) ? (float)$batch_info->purchase_price : 0;
-//             $item_total_cost = $unit_cost * $quantity;
-
-//             $item_data = ["disposal_id" => $disposal_id, "batch_id" => $batch_id, "quantity_disposed" => $quantity, "unit_cost" => $unit_cost, "total_cost" => $item_total_cost];
-//             $this->db->insert("disposal_report_items", $item_data);
-//             if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-
-//             $this->db->set("quantity_remaining", "GREATEST(0, quantity_remaining - " . $quantity . ")", FALSE)->set("updated_at", "NOW()", false)->where("id", $batch_id)->update("medicine_batches");
-//              if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-
-//             $center_stock = $this->db->where("batch_id", $batch_id)->where("center_id", $disposal_data["center_id"])->get("center_stocks")->row();
-//             $quantity_before = ($center_stock) ? (int)$center_stock->quantity : 0;
-//             // Prevent stock from going negative
-//              $actual_disposed_qty = min($quantity, $quantity_before);
-//              if ($actual_disposed_qty <= 0) continue; // Nothing to dispose from this center/batch
-
-//             $quantity_after = $quantity_before - $actual_disposed_qty;
-
-//             $this->db->set("quantity", "GREATEST(0, quantity - " . $actual_disposed_qty . ")", FALSE)->set("last_movement_date", "NOW()", false)->set("updated_at", "NOW()", false)->where("batch_id", $batch_id)->where("center_id", $disposal_data["center_id"])->update("center_stocks");
-//             if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-
-//             if ($this->db->table_exists("stock_movements")) {
-//                 $movement_data = ["batch_id" => $batch_id, "movement_type" => "DISPOSAL", "from_location_type" => "CENTER", "from_location_id" => $disposal_data["center_id"], "to_location_type" => "WASTAGE", "to_location_id" => null, "quantity_before" => $quantity_before, "quantity_change" => -$actual_disposed_qty, "quantity_after" => $quantity_after, "unit_price" => $unit_cost, "total_value" => $unit_cost * $actual_disposed_qty, "reference_type" => "DISPOSAL_VOUCHER", "reference_id" => $disposal_id, "reference_number" => $disposal_data["disposal_number"], "remarks" => "Disposal: " . $disposal_data["disposal_reason"], "created_by" => $disposal_data["created_by"]];
-//                 $this->db->insert("stock_movements", $movement_data);
-//                  if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-//             }
-
-//             $total_items++;
-//             $total_quantity += $actual_disposed_qty;
-//             $total_cost += ($unit_cost * $actual_disposed_qty);
-//         }
-
-//         if ($total_items == 0) { $this->db->trans_rollback(); return false; }
-
-//         $this->db->where('id', $disposal_id)->update('disposal_reports', ['total_items_disposed' => $total_items, 'total_quantity_disposed' => $total_quantity, 'total_value_disposed' => $total_cost]);
-
-//         $this->db->trans_complete();
-//         return $this->db->trans_status();
-//     }
-
-
-//     // ===============================================
-//     // VENDOR RETURN PROCESSING
-//     // ===============================================
-
-//      public function process_vendor_return($return_data, $return_items)
-//      {
-//         if (empty($return_items)) return false;
-//         $this->db->trans_start();
-
-//         $return_data["return_number"] = "VRET" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-//         $this->db->insert("vendor_returns", $return_data);
-//         $db_error = $this->db->error();
-//         if ($db_error["code"] != 0) { $this->db->trans_rollback(); return false; }
-//         $return_id = $this->db->insert_id();
-//         if (!$return_id) { $this->db->trans_rollback(); return false; }
-
-//         $total_value = 0; $total_items = 0; $total_quantity = 0;
-
-//         foreach ($return_items as $item) {
-//             $quantity = isset($item["quantity_returned"]) ? (int)$item["quantity_returned"] : 0;
-//             $batch_id = isset($item["batch_id"]) ? (int)$item["batch_id"] : 0;
-//             if ($batch_id <= 0 || $quantity <= 0) continue;
-
-//             $batch_info = $this->db->get_where('medicine_batches', ['id' => $batch_id])->row();
-//             $unit_price = ($batch_info) ? (float)$batch_info->purchase_price : 0;
-//             $item_total_value = $unit_price * $quantity;
-
-//             $item_data = ["return_id" => $return_id, "batch_id" => $batch_id, "quantity_returned" => $quantity, "unit_price" => $unit_price, "total_amount" => $item_total_value];
-//             $this->db->insert("vendor_return_items", $item_data);
-//             if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-
-//             $this->db->set("quantity_remaining", "GREATEST(0, quantity_remaining - " . $quantity . ")", FALSE)->set("updated_at", "NOW()", false)->where("id", $batch_id)->update("medicine_batches");
-//             if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-
-//             $center_stock = $this->db->where("batch_id", $batch_id)->where("center_id", $return_data["center_id"])->get("center_stocks")->row();
-//             $quantity_before = ($center_stock) ? (int)$center_stock->quantity : 0;
-//              // Prevent stock from going negative
-//              $actual_returned_qty = min($quantity, $quantity_before);
-//              if ($actual_returned_qty <= 0) continue; // Nothing to return from this center/batch
-//             $quantity_after = $quantity_before - $actual_returned_qty;
-
-//             $this->db->set("quantity", "GREATEST(0, quantity - " . $actual_returned_qty . ")", FALSE)->set("last_movement_date", "NOW()", false)->set("updated_at", "NOW()", false)->where("batch_id", $batch_id)->where("center_id", $return_data["center_id"])->update("center_stocks");
-//             if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-
-//             if ($this->db->table_exists("stock_movements")) {
-//                 $movement_data = ["batch_id" => $batch_id, "movement_type" => "PURCHASE_RETURN", "from_location_type" => "CENTER", "from_location_id" => $return_data["center_id"], "to_location_type" => "VENDOR", "to_location_id" => $return_data["vendor_id"], "quantity_before" => $quantity_before, "quantity_change" => -$actual_returned_qty, "quantity_after" => $quantity_after, "unit_price" => $unit_price, "total_value" => $unit_price * $actual_returned_qty, "reference_type" => "RETURN_VOUCHER", "reference_id" => $return_id, "reference_number" => $return_data["return_number"], "remarks" => "Return to vendor: " . $return_data["return_reason"], "created_by" => $return_data["created_by"]];
-//                 $this->db->insert("stock_movements", $movement_data);
-//                 if ($this->db->error()["code"] != 0) { $this->db->trans_rollback(); return false; }
-//             }
-
-//             $total_items++;
-//             $total_quantity += $actual_returned_qty;
-//             $total_value += ($unit_price * $actual_returned_qty);
-//         }
-
-//         if ($total_items == 0) { $this->db->trans_rollback(); return false; }
-
-//         $this->db->where('id', $return_id)->update('vendor_returns', ['total_items' => $total_items, 'total_quantity' => $total_quantity, 'total_value' => $total_value]);
-
-//         $this->db->trans_complete();
-//         return $this->db->trans_status();
-//     }
-
-
-// } // End of Model class  

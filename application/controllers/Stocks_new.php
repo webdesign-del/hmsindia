@@ -103,6 +103,15 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    public function get_all_active_batches()
+    {
+        $this->output->set_content_type('application/json');
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode(['success' => false, 'message' => 'Unauthorized']));
+        }
+        $batches = $this->Stock_model_new->get_all_active_batches();
+        return $this->output->set_output(json_encode($batches));
+    }
     public function create_package()
     {
         $logg = checklogin();
@@ -125,6 +134,7 @@ class Stocks_new extends CI_Controller
                         $this->session->set_flashdata("error", "Invalid user session. Please login again.");
                         redirect("stocks_new/create_package");
                     }
+               
 
                     $package_data = [
                         "package_name" => $this->input->post("package_name"),
@@ -136,7 +146,6 @@ class Stocks_new extends CI_Controller
                         "created_by" => $created_by,
                         "status" => "active"
                     ];
-
                     $medicine_ids = $this->input->post("medicine_ids");
                     $quantities = $this->input->post("quantities");
 
@@ -5154,52 +5163,6 @@ class Stocks_new extends CI_Controller
         }
     }
 
-    // public function get_patient_receipts()
-    // {
-    //     $logg = checklogin();
-    //     if($logg['status'] == true) {
-    //         $patient_id = $this->input->post('patient_id');
-
-    //         if (!empty($patient_id)) {
-    //             // Get all confirmed sales for this patient
-    //             $this->db->select('s.sale_number, s.patient_name, s.sale_date, s.total_amount, COUNT(si.id) as item_count');
-    //             $this->db->from('sales s');
-    //             $this->db->join('sale_items si', 's.id = si.sale_id');
-    //             $this->db->where('s.patient_id', $patient_id);
-    //             $this->db->where('s.status', 'CONFIRMED');
-    //             $this->db->where("
-    //                 (
-    //                     EXISTS (
-    //                         SELECT 1
-    //                         FROM stock_movements sm
-    //                         WHERE sm.reference_id = s.id
-    //                         AND sm.movement_type = 'SALE'
-    //                         AND sm.to_location_type = 'SALE'
-    //                     )
-    //                 )
-    //             ", null, false);
-    //             $this->db->where('s.sale_date >=', date('Y-m-d', strtotime('-90 days'))); // Last 90 days
-    //             $this->db->group_by('s.id');
-    //             $this->db->order_by('s.sale_date', 'DESC');
-    //             $receipts = $this->db->get()->result();
-
-    //             echo json_encode([
-    //                 'success' => true,
-    //                 'receipts' => $receipts
-    //             ]);
-    //         } else {
-    //             echo json_encode([
-    //                 'success' => false,
-    //                 'message' => 'Patient ID is required'
-    //             ]);
-    //         }
-    //     } else {
-    //         echo json_encode([
-    //             'success' => false,
-    //             'message' => 'Unauthorized access'
-    //         ]);
-    //     }
-    // }
     public function get_patient_receipts()
     {
         // Always return JSON
@@ -5255,37 +5218,6 @@ class Stocks_new extends CI_Controller
         ]));
     }
 
-
-    // public function get_returnable_items()
-    // {
-    //     $logg = checklogin();
-    //     if($logg['status'] == true) {
-    //         $receipt_number = $this->input->post('receipt_number');
-    //         if (!empty($receipt_number)) {
-    //             $batches = $this->Stock_model_new->get_available_batches_for_return($receipt_number);
-    //             $this->db->select('s.patient_name, s.patient_id, s.sale_date');
-    //             $this->db->from('sales s');
-    //             $this->db->where('s.sale_number', $receipt_number);
-    //             $this->db->where('s.status', 'CONFIRMED');
-    //             $sale_info = $this->db->get()->row();
-    //             echo json_encode([
-    //                 'success' => true,
-    //                 'batches' => $batches,
-    //                 'sale_info' => $sale_info
-    //             ]);
-    //         } else {
-    //             echo json_encode([
-    //                 'success' => false,
-    //                 'message' => 'Receipt number is required'
-    //             ]);
-    //         }
-    //     } else {
-    //         echo json_encode([
-    //             'success' => false,
-    //             'message' => 'Unauthorized access'
-    //         ]);
-    //     }
-    // }
     public function get_returnable_items()
     {
         // Force JSON response
@@ -5324,7 +5256,7 @@ class Stocks_new extends CI_Controller
             'sale_info' => $sale_info
         ]));
     }
-
+    // ALTER TABLE `medicine_returns` ADD `is_old_system` VARCHAR(111) NULL DEFAULT NULL AFTER `total_return_amount`;
 
     public function process_return() {
         $logg = checklogin();
@@ -5332,10 +5264,14 @@ class Stocks_new extends CI_Controller
             if($this->input->post('action') == 'return_medicine') {
                 $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
                 $this->form_validation->set_rules('patient_name', 'Patient Name', 'required');
-                $this->form_validation->set_rules('receipt_number', 'Receipt Number', 'required');
+                // $this->form_validation->set_rules('receipt_number', 'Receipt Number', 'required');
                 $this->form_validation->set_rules('center_id', 'Center', 'required');
                 $this->form_validation->set_rules('department', 'Department', 'required');
                 $this->form_validation->set_rules('return_reason', 'Return Reason', 'required');
+                $return_type = $this->input->post('return_type');
+                $is_old = ($return_type === 'OLD');
+                // Correct receipt source based on type
+                $receipt_number = $is_old ? $this->input->post('receipt_number_manual') : $this->input->post('receipt_number_ajax');
                 if ($this->form_validation->run() == true) {
                     // Get employee ID safely
                     $employee_number = null;
@@ -5393,12 +5329,11 @@ class Stocks_new extends CI_Controller
                     $return_data = [
                         "patient_id" => $this->input->post("patient_id"),
                         "patient_name" => $this->input->post("patient_name"),
-                        "receipt_number" => $this->input->post(
-                            "receipt_number",
-                        ),
+                        "receipt_number" => $receipt_number,
                         "center_id" => $this->input->post("center_id"),
                         "department" => $this->input->post("department"),
                         "return_date" => $this->input->post("return_date"),
+                        "is_old_data"    => $is_old ? 1 : 0,
                         "return_reason" => $this->input->post("return_reason"),
                         "total_return_amount" => $total_amount,
                         "discount_amount" => $total_discount,
@@ -5410,24 +5345,33 @@ class Stocks_new extends CI_Controller
                         "created_by" => $created_by_id,
                         "created_at" => date("Y-m-d H:i:s"),
                     ];
-                    // Validate that all batch_ids belong to the specified receipt
                     $return_items = $this->input->post("return_items");
                     $receipt_number = $this->input->post("receipt_number");
-                    if (!empty($return_items)) {
-                        // Get all batch_ids from the return items
-                        $batch_ids = array_column($return_items, 'batch_id');
-                        foreach ($batch_ids as $batch_id) {
-                            if (!empty($batch_id)) {
-                                $this->db->select('si.id');
-                                $this->db->from('sale_items si');
-                                $this->db->join('sales s', 'si.sale_id = s.id');
-                                $this->db->where('si.batch_id', $batch_id);
-                                $this->db->where('s.sale_number', $receipt_number);
-                                $this->db->where('s.status', 'CONFIRMED');
-                                $this->db->where('(si.quantity_sold - COALESCE(si.quantity_returned, 0)) >', 0);
-                                $exists = $this->db->get()->row();
-                                if (!$exists) {
-                                    $this->session->set_flashdata("error", "Invalid medicine selected. The selected medicine does not belong to receipt number: " . $receipt_number);
+                   if (!empty($return_items)) {
+                        if ($return_type === 'NEW') { 
+                            $batch_ids = array_column($return_items, 'batch_id');
+                            foreach ($batch_ids as $batch_id) {
+                                if (!empty($batch_id)) {
+                                    $this->db->select('si.id');
+                                    $this->db->from('sale_items si');
+                                    $this->db->join('sales s', 'si.sale_id = s.id');
+                                    $this->db->where('si.batch_id', $batch_id);
+                                    $this->db->where('s.sale_number', $receipt_number);
+                                    $this->db->where('s.status', 'CONFIRMED');
+                                    $this->db->where('(si.quantity_sold - COALESCE(si.quantity_returned, 0)) >', 0);
+                                    $exists = $this->db->get()->row();
+
+                                    if (!$exists) {
+                                        $this->session->set_flashdata("error", "Invalid medicine selected. This medicine does not belong to receipt: " . $receipt_number);
+                                        redirect("stocks_new/medicine_returns");
+                                        return;
+                                    }
+                                }
+                            }
+                        } else {
+                            foreach ($return_items as $item) {
+                                if (empty($item['batch_id']) || $item['return_quantity'] <= 0) {
+                                    $this->session->set_flashdata("error", "Please select valid medicines and quantities.");
                                     redirect("stocks_new/medicine_returns");
                                     return;
                                 }
@@ -5458,6 +5402,7 @@ class Stocks_new extends CI_Controller
                         $this->Stock_model_new->process_medicine_return(
                             $return_data,
                             $return_items,
+                            $is_old,
                         )
                     ) {
                         $this->session->set_flashdata(
