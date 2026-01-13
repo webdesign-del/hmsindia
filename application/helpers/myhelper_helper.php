@@ -118,7 +118,7 @@ curl_setopt_array($curl, array(
   ),
 ));  
     
-    $response = curl_exec($curl);
+/*    $response = curl_exec($curl);
     curl_close($curl);
     $result = json_decode($response);
     
@@ -131,6 +131,50 @@ curl_setopt_array($curl, array(
         return array("status" => 1, "message" => "registered");
     }else{
         return array("status" => 0, "message" => isset($result->message)?$result->message:"Something went wrong!");
+    }
+}*/
+
+// Execute Request
+    $response = curl_exec($curl);
+    curl_close($curl);
+    
+    // Decode response
+    $result = json_decode($response);
+    
+    // ==========================================
+    // FIX 1: Prevent Crash & Fix Path
+    // ==========================================
+    // Use the CodeIgniter logs folder so permissions are better handled
+    $log_file = APPPATH . 'logs/whatsapp_debug.txt';
+    
+    $data = "\n".date("d-m-y H:i:s")."-----Response--------".$response."\n";
+    
+    $fp = fopen($log_file, 'a');
+    
+    if ($fp) {
+        // Only write if file opened successfully
+        fwrite($fp, $data);
+        fclose($fp);
+    } else {
+        // If file fails, log to system log instead of crashing
+        log_message('error', 'WhatsApp Helper: Could not write to ' . $log_file);
+    }
+    
+    // ==========================================
+    // FIX 2: Correct Success Logic
+    // ==========================================
+    // The API returns "messages" (with status ENQUEUED), not "success"
+    $is_success = false;
+
+    if (isset($result->messages) || isset($result->success)) {
+        $is_success = true;
+    }
+
+    if ($is_success) {
+        return array("status" => 1, "message" => "registered");
+    } else {
+        $error_msg = isset($result->message) ? $result->message : "Something went wrong!";
+        return array("status" => 0, "message" => $error_msg);
     }
 }
 
