@@ -5346,7 +5346,6 @@ class Stocks_new extends CI_Controller
                         "created_at" => date("Y-m-d H:i:s"),
                     ];
                     $return_items = $this->input->post("return_items");
-                    $receipt_number = $this->input->post("receipt_number");
                    if (!empty($return_items)) {
                         if ($return_type === 'NEW') { 
                             $batch_ids = array_column($return_items, 'batch_id');
