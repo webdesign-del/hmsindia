@@ -110,6 +110,8 @@
                      <li> <a href="<?php echo base_url(); ?>stocks_new/add_package_stock"> Add Package Stock</a> </li>
                      <!-- <li> <a href="<?php echo base_url(); ?>stocks_new/transfer_package_stock"> Transfer Package Stock</a> </li> -->
                      <li> <a href="<?php echo base_url(); ?>stocks_new/get_package_stock"> Package Stock</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/stationary_housekeeping">Central Stationary Housekeeping</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>stocks_new/stationary_housekeeping_center">Center Stationary Housekeeping</a> </li>
                      <li> 
                   </ul>
                </li>

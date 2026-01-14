@@ -89,7 +89,7 @@
                          <label for="department">Department <span class="text-danger">*</span></label>
                          	<select name="department" id="department" class="form-control" required>
                                 <option value="">Select Department</option>
-                                <?php foreach (['CASH MEDICINE NOIDA', 'CASH MEDICINE GGN', 'CASH MEDICINE BASANT LOK', 'CASH MEDICINE SRINAGAR', 'CASH MEDICINE GHAZIABAD', 'CASH MEDICINE ROHINI', 'HORMONAL ROHINI', 'Hormonal Ghaziabad', 'HORMONAL SRINAGAR', 'Hormonal Basant Lok', 'Hormonal Gurgaon', 'Hormonal Noida', 'Embryologist Noida', 'OT Noida', 'OT Basant Lok', 'Embryology Basant Lok', 'Embryology Srinagar', 'OT Srinagar'] as $dept): ?>
+                                <?php foreach (['CASH MEDICINE NOIDA', 'CASH MEDICINE GGN', 'CASH MEDICINE BASANT LOK', 'CASH MEDICINE SRINAGAR', 'CASH MEDICINE GHAZIABAD', 'CASH MEDICINE ROHINI', 'HORMONAL ROHINI', 'Hormonal Ghaziabad', 'HORMONAL SRINAGAR', 'Hormonal Basant Lok', 'Hormonal Gurgaon', 'Hormonal Noida', 'Embryologist Noida', 'OT Noida', 'OT Basant Lok', 'Embryology Basant Lok', 'Embryology Srinagar', 'OT Srinagar','Stationary And HouseKeeping'] as $dept): ?>
                                     <option value="<?php echo $dept; ?>" <?php echo ($dept == $purchase_order['department']) ? 'selected' : ''; ?>><?php echo $dept; ?></option>
                                 <?php endforeach; ?>
                             </select>

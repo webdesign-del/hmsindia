@@ -65,7 +65,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
+                            <div class="form-group" style="display:none">
                                 <label class="col-sm-4 control-label">GST Rate (%)</label>
                                 <div class="col-sm-8">
                                     <input type="number" name="gst_rate" class="form-control" placeholder="0.00" step="0.01" min="0" max="100">
@@ -164,6 +164,7 @@ medicineData[<?php echo $medicine->id; ?>] = {
     code: '<?php echo addslashes($medicine_code); ?>',
     price: <?php echo $selling_price; ?>,
     mrp: <?php echo $mrp; ?>,
+    pack_size: <?php echo (isset($medicine->pack_size) && $medicine->pack_size > 0) ? $medicine->pack_size : 1; ?>,
     brand: '<?php echo addslashes($brand_name); ?>'
 };
 <?php endforeach; ?>
@@ -177,10 +178,16 @@ $(document).ready(function() {
         $('.package-item').each(function() {
             var medicineId = $(this).data('medicine-id');
             var quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
-
+            // if (medicineId && medicineData[medicineId]) {
+            //     totalSellingPrice += medicineData[medicineId].price * quantity;
+            //     totalMRP += medicineData[medicineId].mrp * quantity;
+            // }
             if (medicineId && medicineData[medicineId]) {
-                totalSellingPrice += medicineData[medicineId].price * quantity;
-                totalMRP += medicineData[medicineId].mrp * quantity;
+                var med = medicineData[medicineId];
+                var pricePerUnit = med.price / med.pack_size;
+                var mrpPerUnit = med.mrp / med.pack_size;
+                totalSellingPrice += pricePerUnit * quantity;
+                totalMRP += mrpPerUnit * quantity;
             }
         });
 
@@ -191,6 +198,7 @@ $(document).ready(function() {
     // Function to add medicine to package
     function addMedicineToPackage(medicineId, quantity = 1) {
         var medicine = medicineData[medicineId];
+        var pricePerUnit = (medicine.price / medicine.pack_size).toFixed(2);
         if (!medicine) return;
 
         // Check if medicine already exists in package
@@ -234,11 +242,11 @@ $(document).ready(function() {
                     '</div>' +
                 '</div>' +
                 '<div class="col-md-2">' +
-                    '<span class="text-muted">₹<span class="unit-price">' + medicine.price + '</span></span><br>' +
-                    '<small class="text-muted">per unit</small>' +
+                    '<span class="text-muted">₹<span class="unit-price">' + pricePerUnit + '</span></span><br>' +
+                    '<small class="text-muted">per tablet/unit</small>' +
                 '</div>' +
                 '<div class="col-md-2">' +
-                    '<strong>₹<span class="line-total">' + (medicine.price * quantity) + '</span></strong><br>' +
+                    '<strong>₹<span class="line-total">' + (pricePerUnit * quantity).toFixed(2) + '</span></strong><br>' +
                     '<small class="text-muted">subtotal</small>' +
                 '</div>' +
             '</div>' +
