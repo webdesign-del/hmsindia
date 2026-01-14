@@ -102,20 +102,20 @@ if (isset($ID) && !empty($ID)) {
 						            foreach($all_emplyee as $key => $val){ 
                                     if($test_type == $val['type']){ echo $val['type'];}
                     	             }  ?></th>
-                     <th>Age</th>
-					 <th>Name Of Husband With Age/Father (in case of Unmarried Divorce Female)</th>
-                     <th>Complete Address </th>
-					 <th>Tel No.</th>
-                     <th>Parity Of Woman With Sex of Previous Child</th>
-                     <th>Reason for IVF/ART</th>
-                     <th>Details Of Referring Doctor</th>
-                     <th>Detail Of The Doctor Patient is Further Referred for Dellvery/Management of Pregnancy</th>
-                     <th>Outcome Of the Pregnancy</th>
-                     <th>Any Malformation in Newborn Details</th>
-					 <th>Center</th>
-					 <th>Test Type</th>
-					 <th>Date</th>
-					 <th>Status</th>
+                    <th>Age</th>
+					          <th>Name Of Husband With Age/Father (in case of Unmarried Divorce Female)</th>
+                    <th>Complete Address </th>
+					          <th>Tel No.</th>
+                    <th>Parity Of Woman With Sex of Previous Child</th>
+                    <th>Reason for IVF/ART</th>
+                    <th>Details Of Referring Doctor</th>
+                    <th>Detail Of The Doctor Patient is Further Referred for Dellvery/Management of Pregnancy</th>
+                    <th>Outcome Of the Pregnancy</th>
+                    <th>Any Malformation in Newborn Details</th>
+					          <th>Center</th>
+					          <th>Test Type</th>
+					          <th>Date</th>
+					          <th>Status</th>
                  
                 </tr>
               </thead>
@@ -129,7 +129,7 @@ if (isset($ID) && !empty($ID)) {
               ?>
                 <tr class="odd gradeX">
 				     <td>
-					 <?php if($_SESSION['logged_doctor']['username'] == "drss@indiaivf.in"){?>
+					 <?php if($_SESSION['logged_doctor']['username'] == "trainingdoctor@indiaivf.in" || $_SESSION['logged_doctor']['username'] == "drnoida@indiaivf.in") { ?>
 					 <a href="<?php echo base_url()?>doctors/pcp_ndt_update?ID=<?php echo $vl['ID']; ?>"><?php echo $vl['iic_id']; ?></a></td>
                      <?php }else{ ?>
 					 <?php echo $vl['iic_id']; ?>

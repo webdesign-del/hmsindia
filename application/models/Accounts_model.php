@@ -6558,6 +6558,13 @@ function dashboard_consultation_reports_list_patination($center, $start_date, $e
     return $q->result_array();
 }
 
+function dashboard_registration_daily_result_patination($center, $start_date, $end_date) {
+    $data = $this->_get_common_conditions($center, $start_date, $end_date);
+    $sql = "SELECT * FROM " . $this->config->item('db_prefix') . "registation WHERE 1 " . $data['sql'];
+    $q = $this->db->query($sql, $data['bindings']);
+    return $q->result_array();
+}
+
 function dashboard_advance_reports_list_patination($center, $start_date, $end_date) {
     $data = $this->_get_common_conditions($center, $start_date, $end_date);
     $sql = "SELECT * FROM " . $this->config->item('db_prefix') . "advance_payments WHERE 1 " . $data['sql'];

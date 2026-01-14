@@ -519,6 +519,16 @@ foreach($patient_medicine_daily_result as $vl) {
                     'data' => $vl
                 ];
             }
+
+             // Process Registration payments
+            foreach($patient_registration_daily_result as $vl) {
+                $method = ucfirst(strtolower($vl['payment_method']));
+                $paymentTotals[$method] += floatval($vl['payment_done']);
+                $allData[] = [
+                    'type' => 'OPD Registration',
+                    'data' => $vl
+                ];
+            }
             
             // Calculate grand total
             $grandTotal = array_sum($paymentTotals);
@@ -626,7 +636,7 @@ foreach($patient_medicine_daily_result as $vl) {
                     <td><?php echo $vl['payment_done']; ?></td>
                     <td><?php echo date('d-m-y h:i:s', strtotime($vl['on_date'])); ?></td>
                     <td><?php echo $vl['receipt_number']; ?></td>
-                    <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a></td>
+                    <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"> View Receipt</a></td>
                 </tr>
                 <?php } ?>
                 <?php 
@@ -645,7 +655,7 @@ foreach($patient_medicine_daily_result as $vl) {
                     <td><?php echo $vl['payment_done']; ?></td>
                     <td><?php echo date('d-m-y h:i:s', strtotime($vl['on_date'])); ?></td>
                     <td><?php echo $vl['refrence_number']; ?></td>
-                     <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a></td>
+                     <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"> View Receipt</a></td>
                 </tr>
                 <?php } ?>
                 <?php 
@@ -688,7 +698,7 @@ foreach($patient_medicine_daily_result as $vl) {
                     <td><?php echo $vl['payment_done']; ?></td>
                     <td><?php echo date('d-m-y h:i:s', strtotime($vl['on_date'])); ?></td>
                     <td><?php echo $vl['receipt_number']; ?></td>
-                     <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank">View Receipt</a></td>
+                     <td> <?php if (!empty($vl['transaction_img'])) { ?><a href="<?php echo $vl['transaction_img']; ?>" target="_blank">View Receipt</a><?php } ?></td>
                 </tr>
                 <?php } ?>
                   
@@ -707,7 +717,27 @@ foreach($patient_medicine_daily_result as $vl) {
                     <td><?php echo $vl['payment_done']; ?></td>
                     <td><?php echo date('d-m-y h:i:s', strtotime($vl['on_date'])); ?></td>
                     <td><?php echo $vl['receipt_number']; ?></td>
-                    <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank">View Receipt</a></td>
+                    <td> <?php if (!empty($vl['transaction_img'])) { ?><a href="<?php echo $vl['transaction_img']; ?>" target="_blank">View Receipt</a><?php } ?></td>
+                </tr>
+                <?php } ?>
+
+
+                 <?php 
+               foreach($patient_registration_daily_result as $ky => $vl){
+            ?>
+                <tr>
+                    <td><?php echo $vl['']; ?></td>
+                    <td><?php echo $vl['patient_id']; ?></td>
+                    <td><?php echo $patient_name = $all_method->get_patient_name($vl['patient_id']); ?></td>
+                    <td>OPD Registation</td>
+                    <td></td>
+                    <td></td>
+                    <td>Sale Receipts</td>
+                    <td><?php echo $vl['payment_method']; ?></td>
+                    <td><?php echo $vl['payment_done']; ?></td>
+                    <td><?php echo date('d-m-y h:i:s', strtotime($vl['on_date'])); ?></td>
+                    <td><?php echo $vl['receipt_number']; ?></td>
+                    <td> <?php if (!empty($vl['transaction_img'])) { ?><a href="<?php echo $vl['transaction_img']; ?>" target="_blank">View Receipt</a><?php } ?></td>
                 </tr>
                 <?php } ?>
                  
