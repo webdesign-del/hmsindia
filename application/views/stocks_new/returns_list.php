@@ -31,7 +31,7 @@
                                 <ul class="dropdown-menu">
                                     <li>
                                         <a href="<?php echo base_url('stocks_new/export_returns_list?format=excel'); ?>" target="_blank">
-                                            <i class="fa fa-file-excel-o"></i> Export to Excel (CSV)
+                                            <i class="fa fa-file-excel-o"></i> Export to Excel All Items (CSV)
                                         </a>
                                     </li>
                                     <li>

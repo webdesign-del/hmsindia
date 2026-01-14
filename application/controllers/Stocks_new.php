@@ -5485,84 +5485,121 @@ class Stocks_new extends CI_Controller
     /**
      * Export medicine returns list to Excel or PDF
      */
-    public function export_returns_list()
+      public function export_returns_list()
     {
         $logg = checklogin();
         if ($logg["status"] != true) {
             redirect(base_url());
             return;
         }
+
+        // 1. Get export format and filters
         $format = $this->input->get('format'); // 'excel' or 'pdf'
-        $returns = $this->Stock_model_new->get_medicine_returns();
+        $filters = [
+            'center_id' => $this->input->get('center_id'),
+            'date_from' => $this->input->get('date_from'),
+            'date_to'   => $this->input->get('date_to')
+        ];
+
+        // 2. Fetch Detailed Item Data from the Model
+        $returns = $this->Stock_model_new->get_all_return_items_detailed($filters);
         if (empty($returns)) {
             $this->session->set_flashdata('error', 'No returns found to export.');
-            redirect('stocks_new/returns');
+            redirect('stocks_new/medicine_returns');
             return;
         }
+
+        // 3. Route to specific export helper
         if ($format == 'excel') {
             $this->export_returns_excel($returns);
         } elseif ($format == 'pdf') {
             $this->export_returns_pdf($returns);
         } else {
             $this->session->set_flashdata('error', 'Invalid export format.');
-            redirect('stocks_new/returns');
+            redirect('stocks_new/medicine_returns');
         }
     }
 
     /**
-     * Export medicine returns to Excel
+     * PRIVATE HELPER: export_returns_excel
+     * Generates a detailed item-wise CSV export with financial calculations.
      */
     private function export_returns_excel($returns)
     {
-        // Set headers for Excel download
-        $filename = 'Medicine_Returns_' . date('Y-m-d_H-i-s') . '.csv';
+        
+        $filename = 'Detailed_Medicine_Returns_' . date('Y-m-d_His') . '.csv';
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename=' . $filename);
-        // Create file pointer
         $output = fopen('php://output', 'w');
-        // Add BOM for UTF-8
         fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-        // Add headers
         $headers = [
             'Return Number',
+            'Return Date',
+            'Sale Reference',
             'Patient Name',
             'Patient ID',
-            'Receipt Number',
             'Center',
             'Department',
-            'Medicine Names',
-            'Return Date',
-            'Reason',
-            'Total Items',
+            'Medicine Name',
+            'Item Code',
+            'Brand Name',
+            'Batch Number',
+            'Expiry Date',
+            'Qty Returned',
+            'MRP Price (₹)',
+            'MRP Value (₹)',
+            'Discount %',
+            'Discount Amount (₹)',
+            'Taxable Value (₹)',
+            'Tax %',
+            'Tax Amount (₹)',
             'Total Amount (₹)',
             'Status',
-            'Created Date'
+            'Return Reason',
+            'Current Center Stock'
         ];
         fputcsv($output, $headers);
-
-        // Add data rows
         foreach ($returns as $return) {
+            $qty          = (float) ($return['quantity_returned'] ?? 0);
+            $unit_price   = (float) ($return['unit_price'] ?? 0); // MRP Price
+            $gst_rate     = (float) ($return['gst_rate'] ?? 0);
+            $total_amount = (float) ($return['net_refund'] ?? 0); 
+            $mrp_value = $qty * $unit_price;
+            $taxable_value = $total_amount / (1 + ($gst_rate / 100));
+            $tax_amount    = $total_amount - $taxable_value;
             $row = [
-                $return->return_number ?? 'N/A',
-                $return->patient_name ?? 'N/A',
-                $return->patient_id ?? 'N/A',
-                $return->receipt_number ?? 'N/A',
-                $return->center_name ?? 'N/A',
-                $return->department ?? 'N/A',
-                $return->medicine_names ?? 'N/A',
-                isset($return->return_date) ? date('d-m-Y', strtotime($return->return_date)) : 'N/A',
-                $return->return_reason ?? 'N/A',
-                $return->total_items ?? 0,
-                number_format($return->total_return_amount ?? 0, 2),
-                $return->status ?? 'COMPLETED',
-                isset($return->created_at) ? date('d-m-Y H:i', strtotime($return->created_at)) : 'N/A'
+                $return['return_number'] ?? 'N/A',
+                isset($return['return_date']) ? date('d-m-Y', strtotime($return['return_date'])) : 'N/A',
+                $return['sale_reference'] ?? 'N/A',
+                $return['patient_name'] ?? 'N/A',
+                $return['patient_id'] ?? 'N/A',
+                $return['center_name'] ?? 'N/A',
+                $return['department'] ?? 'N/A',
+                $return['medicine_name'] ?? 'N/A',
+                $return['medicine_code'] ?? 'N/A',
+                $return['brand_name'] ?? 'N/A',
+                $return['batch_number'] ?? 'N/A',
+                isset($return['expiry_date']) ? date('d-m-Y', strtotime($return['expiry_date'])) : 'N/A',
+                $qty,
+                number_format($unit_price, 2),
+                number_format($mrp_value, 2),
+                number_format((float)($return['discount_percentage'] ?? 0), 2) . '%',
+                number_format((float)($return['discount_amount'] ?? 0), 2),
+                number_format($taxable_value, 2),
+                number_format($gst_rate, 2) . '%',
+                number_format($tax_amount, 2),
+                number_format($total_amount, 2),
+                $return['return_status'] ?? 'PENDING',
+                $return['return_reason'] ?? 'N/A',
+                $return['current_center_stock'] ?? 0
             ];
             fputcsv($output, $row);
         }
 
         fclose($output);
-        exit();
+        exit(); 
     }
+
 
     /**
      * Export medicine returns to PDF (HTML print version)

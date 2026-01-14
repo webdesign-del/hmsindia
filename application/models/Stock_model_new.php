@@ -6577,45 +6577,126 @@ class Stock_model_new extends CI_Model
 
         public function get_medicine_returns()
         {
-            try {
-                $this->db->select('mr.*, c.center_name,
-                    COALESCE(COUNT(mri.id), 0) as total_items,
-                    COALESCE(SUM(mri.quantity_returned), 0) as total_quantity,
-                    COALESCE(SUM(mri.total_amount), 0) as total_return_amount,
-                    GROUP_CONCAT(DISTINCT CONCAT(m.medicine_name, IF(b.brand_name IS NOT NULL, CONCAT(" (", b.brand_name, ")"), "")) SEPARATOR ", ") as medicine_names
-                ');
-                $this->db->from("medicine_returns mr");
-                $this->db->join("hms_centers c", "mr.center_id = c.ID", "left");
-                $this->db->join(
-                    "medicine_return_items mri",
-                    "mr.id = mri.return_id",
-                    "left",
-                );
-
-                // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
-                //     $this->db->where('mr.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
-                // }
-                $center = null;
-                if (!empty($_SESSION['logged_billing_manager']) &&
-                    ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
-                    $center = $_SESSION['logged_billing_manager']['center'];
-                }
-                if (!empty($_SESSION['logged_stock_manager']) &&
-                    ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
-                    $center = $_SESSION['logged_stock_manager']['center'];
-                }
-                if ($center !== null) {
-                    $this->db->where('mr.center_id', $this->get_center_id($center));
-                }
-                $this->db->join("medicine_batches mb", "mri.batch_id = mb.id", "left");
-                $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
-                $this->db->join("medicine_brands b", "m.brand_id = b.id", "left");
-                $this->db->group_by("mr.id");
-                $this->db->order_by("mr.created_at", "DESC");
-                return $this->db->get()->result();
-            } catch (Exception $e) {
-                return [];
+            $this->db->select('mr.*, c.center_name,
+                COALESCE(COUNT(mri.id), 0) as total_items,
+                COALESCE(SUM(mri.quantity_returned), 0) as total_quantity,
+                COALESCE(SUM(mri.total_amount), 0) as total_return_amount,
+                GROUP_CONCAT(DISTINCT CONCAT(m.medicine_name, IF(b.brand_name IS NOT NULL, CONCAT(" (", b.brand_name, ")"), "")) SEPARATOR ", ") as medicine_names
+            ');
+            $this->db->from("medicine_returns mr");
+            $this->db->join("hms_centers c", "mr.center_id = c.ID", "left");
+            $this->db->join(
+                "medicine_return_items mri",
+                "mr.id = mri.return_id",
+                "left",
+            );
+            $center = null;
+            if (!empty($_SESSION['logged_billing_manager']) &&
+                ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+                $center = $_SESSION['logged_billing_manager']['center'];
             }
+            if (!empty($_SESSION['logged_stock_manager']) &&
+                ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+                $center = $_SESSION['logged_stock_manager']['center'];
+            }
+            if ($center !== null) {
+                $this->db->where('mr.center_id', $this->get_center_id($center));
+            }
+            $this->db->join("medicine_batches mb", "mri.batch_id = mb.id", "left");
+            $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+            $this->db->join("medicine_brands b", "m.brand_id = b.id", "left");
+            $this->db->group_by("mr.id");
+            $this->db->order_by("mr.created_at", "DESC");
+            return $this->db->get()->result();
+        }
+        //  public function get_medicine_returns_all_items()
+        // {
+        //     $this->db->select('mr.*, c.center_name,
+        //         COALESCE(COUNT(mri.id), 0) as total_items,
+        //         COALESCE(SUM(mri.quantity_returned), 0) as total_quantity,
+        //         COALESCE(SUM(mri.total_amount), 0) as total_return_amount,
+        //         GROUP_CONCAT(DISTINCT CONCAT(m.medicine_name, IF(b.brand_name IS NOT NULL, CONCAT(" (", b.brand_name, ")"), "")) SEPARATOR ", ") as medicine_names
+        //     ');
+        //     $this->db->from("medicine_returns mr");
+        //     $this->db->join("hms_centers c", "mr.center_id = c.ID", "left");
+        //     $this->db->join(
+        //         "medicine_return_items mri",
+        //         "mr.id = mri.return_id",
+        //         "left",
+        //     );
+        //     $center = null;
+        //     if (!empty($_SESSION['logged_billing_manager']) &&
+        //         ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+        //         $center = $_SESSION['logged_billing_manager']['center'];
+        //     }
+        //     if (!empty($_SESSION['logged_stock_manager']) &&
+        //         ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+        //         $center = $_SESSION['logged_stock_manager']['center'];
+        //     }
+        //     if ($center !== null) {
+        //         $this->db->where('mr.center_id', $this->get_center_id($center));
+        //     }
+        //     $this->db->join("medicine_batches mb", "mri.batch_id = mb.id", "left");
+        //     $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+        //     $this->db->join("medicine_brands b", "m.brand_id = b.id", "left");
+        //     $this->db->group_by("mr.id");
+        //     $this->db->order_by("mr.created_at", "DESC");
+        //     return $this->db->get()->result();
+        // }
+        public function get_all_return_items_detailed($filters = [])
+        {
+            $this->db->select('
+                mr.return_number,
+                mr.return_date,
+                mr.receipt_number as sale_reference,
+                mr.patient_name,
+                mr.patient_id,
+                c.center_name,
+                mr.department,
+                m.medicine_name,
+                m.gst_rate,
+                m.medicine_code,
+                b.brand_name,
+                mb.batch_number,
+                mb.expiry_date,
+                mri.discount_percentage,
+                mri.quantity_returned,
+                mri.return_price as unit_price,
+                mri.discount_amount,
+                mri.final_amount as net_refund,
+                mr.status as return_status,
+                mr.return_reason,
+                -- Show live quantity currently in the center for this item
+                (SELECT quantity FROM center_stocks 
+                WHERE batch_id = mri.batch_id 
+                AND center_id = mr.center_id 
+                AND department = mr.department LIMIT 1) as current_center_stock
+            ');
+            $this->db->from("medicine_return_items mri");
+            $this->db->join("medicine_returns mr", "mri.return_id = mr.id", "inner");
+            $this->db->join("hms_centers c", "mr.center_id = c.ID", "left");
+            $this->db->join("medicine_batches mb", "mri.batch_id = mb.id", "left");
+            $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+            $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+
+            // Session Filters
+            $center = null;
+            if (!empty($_SESSION['logged_billing_manager'])) {
+                $center = $_SESSION['logged_billing_manager']['center'];
+            } elseif (!empty($_SESSION['logged_stock_manager'])) {
+                $center = $_SESSION['logged_stock_manager']['center'];
+            }
+            if ($center !== null) {
+                $this->db->where('mr.center_id', $this->get_center_id($center));
+            }
+
+            // URL Filters
+            if (!empty($filters['center_id'])) $this->db->where('mr.center_id', $filters['center_id']);
+            if (!empty($filters['date_from'])) $this->db->where('mr.return_date >=', $filters['date_from']);
+            if (!empty($filters['date_to'])) $this->db->where('mr.return_date <=', $filters['date_to']);
+
+            $this->db->order_by("mr.return_date", "DESC");
+            return $this->db->get()->result_array(); // result_array is easier for CSV/Excel logic
         }
 
         public function get_return_by_id($id)
