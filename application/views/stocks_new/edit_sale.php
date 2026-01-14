@@ -226,9 +226,9 @@
                                     <label class="btn btn-outline-primary active" id="medicine_tab">
                                         <input type="radio" name="item_type" value="medicine" checked> Medicine
                                     </label>
-                                    <label class="btn btn-outline-success" id="package_tab">
+                                    <!-- <label class="btn btn-outline-success" id="package_tab">
                                         <input type="radio" name="item_type" value="package"> Package/Box
-                                    </label>
+                                    </label> -->
                                 </div>
                             </div>
                         </div>

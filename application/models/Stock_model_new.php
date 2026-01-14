@@ -322,7 +322,8 @@ class Stock_model_new extends CI_Model
             $this->db->where("m.status", "active");
             $this->db->where("m.min_stock_level >", 0);
             $this->db->where("(mb.batch_status = \"ACTIVE\" OR mb.batch_status IS NULL)");
-            
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             // Apply filters
             if (!empty($filters['center_id'])) {
                 // Filter by specific center - only show stock for this center
@@ -442,7 +443,7 @@ class Stock_model_new extends CI_Model
     //         return [];
     //     }
     // }
-        public function get_expiry_alerts($filters = [])
+    public function get_expiry_alerts($filters = [])
     {
         try {
             $this->db->select('
@@ -490,7 +491,8 @@ class Stock_model_new extends CI_Model
                 "mb.expiry_date <=",
                 date("Y-m-d", strtotime("+30 days"))
             );
-
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             // Check for quantity in EITHER table
             $this->db->where("( (ccs.quantity IS NOT NULL AND ccs.quantity > 0) OR (cs.quantity IS NOT NULL AND cs.quantity > 0) )", NULL, FALSE);
 
@@ -602,6 +604,8 @@ class Stock_model_new extends CI_Model
         $this->db->join('sale_items si', 's.id = si.sale_id', 'left');
         $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         $this->db->where("
             EXISTS (
                 SELECT 1 FROM stock_movements sm
@@ -610,6 +614,7 @@ class Stock_model_new extends CI_Model
                 AND sm.to_location_type = 'SALE'
             )
         ", null, false);
+        
 
         // $this->db->join("stock_movements sm", "sm.reference_id = s.id AND sm.movement_type = 'SALE' AND sm.to_location_type = 'SALE'", "left");
         
@@ -654,7 +659,7 @@ class Stock_model_new extends CI_Model
 
     public function get_sales_analytics($days = 30)
     {
-        $this->db->reset_query(); // 🔥 Clears any old joins or selects
+        $this->db->reset_query();
         $this->db->select('
             DATE(sale_date) as sale_date,
             COUNT(*) as total_sales,
@@ -710,6 +715,8 @@ class Stock_model_new extends CI_Model
             $this->db->join('medicine_brands mb', 'm.brand_id = mb.id');
             $this->db->join("sales s", "si.sale_id = s.id");
             $this->db->where("s.status", "CONFIRMED");
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->group_by("m.id, m.medicine_name, mb.brand_name");
             $this->db->order_by("total_sold", "DESC");
             $this->db->limit($limit);
@@ -962,6 +969,8 @@ class Stock_model_new extends CI_Model
         //     "m.brand_id = mb.ID"
         // );
         $this->db->where("m.status", "active");
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
 
         if (!empty($selected_medicine_id)) {
             $this->db->where("m.ID", $selected_medicine_id);
@@ -1017,6 +1026,8 @@ class Stock_model_new extends CI_Model
         ) latest_batch", "m.id = latest_batch.medicine_id", "left");
 
         $this->db->where("m.status", "active");
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
 
         if (!empty($selected_medicine_id)) {
             $this->db->where("m.ID", $selected_medicine_id);
@@ -1071,6 +1082,8 @@ class Stock_model_new extends CI_Model
         //     "m.brand_id = mb.ID",
         // );
         $this->db->where("m.status", "active");
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
 
         if (!empty($search_term)) {
             $this->db->group_start();
@@ -1097,6 +1110,8 @@ class Stock_model_new extends CI_Model
         $this->db->join('medicine_brands mb', 'm.brand_id = mb.id');
         $this->db->where('m.medicine_name', $medicine_name);
         $this->db->where('mb.brand_name', $brand_name);
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         $this->db->where('m.status', 'ACTIVE');
         return $this->db->get()->row();
     }
@@ -1116,6 +1131,8 @@ class Stock_model_new extends CI_Model
             "m.brand_id = mb.ID",
         );
         $this->db->where("m.id", $id);
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         return $this->db->get()->row();
     }
     public function get_medicine_by_id($medicine_id, $center_id = null, $po_department = null,$po_center)
@@ -1141,6 +1158,8 @@ class Stock_model_new extends CI_Model
         $this->db->from("medicine_center_stocks mcs");
         $this->db->join("medicines med", "med.id = mcs.medicine_id", "left");
         $this->db->where("mcs.medicine_id", $medicine_id);
+        $this->db->where("med.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("med.medicine_code NOT LIKE 'ST_%'");
         if (!empty($center_id)) {
             $this->db->where("mcs.center_id", $center_id);
         }
@@ -1208,13 +1227,11 @@ class Stock_model_new extends CI_Model
     public function add_batch($data)
     {
         $this->db->trans_start();
-        // Calculate expiry days
         if (isset($data["expiry_date"])) {
             $data["expiry_days"] = $this->calculate_expiry_days(
                 $data["expiry_date"],
             );
         }
-        
         // Extract center_id and department if present (don't insert into medicine_batches)
         $center_id = isset($data["center_id"]) ? $data["center_id"] : null;
         $department = isset($data["department"]) ? $data["department"] : 'GENERAL';
@@ -1436,6 +1453,8 @@ class Stock_model_new extends CI_Model
             $this->config->item("db_prefix") . "vendors v",
             "mb.vendor_id = v.ID",
         );
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         $this->db->where("mb.id", $id);
         return $this->db->get()->row();
     }
@@ -1463,7 +1482,8 @@ class Stock_model_new extends CI_Model
                 $this->config->item("db_prefix") . "vendors v",
                 "mb.vendor_id = v.ID",
             );
-
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             if ($medicine_id && $medicine_id != "") {
                 $this->db->where("mb.medicine_id", $medicine_id);
             }
@@ -1562,6 +1582,8 @@ class Stock_model_new extends CI_Model
             $this->db->from("center_stocks ccs");
             $this->db->join("medicine_batches mb", "ccs.batch_id = mb.id");
             $this->db->join("medicines m", "mb.medicine_id = m.id");
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->join("medicine_brands b",
                 "m.brand_id = b.id",
             );
@@ -1570,7 +1592,8 @@ class Stock_model_new extends CI_Model
                 "mb.vendor_id = v.ID",
             );
             $this->db->join("hms_centers c", "ccs.center_id = c.ID");
-
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             if ($center_id && $center_id != "") {
                 $this->db->where("ccs.center_id", $center_id);
             }
@@ -1888,6 +1911,8 @@ class Stock_model_new extends CI_Model
             $this->db->where(
                 "(COALESCE(cs.quantity, 0) > 0 OR COALESCE(ccs.quantity, 0) > 0)",
             );
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
 
             if ($center_id && $center_id != "") {
                 $this->db->where(
@@ -1965,6 +1990,8 @@ class Stock_model_new extends CI_Model
             );
             $this->db->where("mb.batch_status", "ACTIVE");
             $this->db->where("mb.quantity_remaining >", 0);
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->group_by(
                 "m.id, m.medicine_name, m.medicine_code, m.generic_name, b.brand_name",
             );
@@ -1997,123 +2024,6 @@ class Stock_model_new extends CI_Model
      * @param int $medicine_id
      * @return object|null Returns object with current_stock and max_stock_level
      */
-    // public function get_medicine_stock_info($medicine_id, $center_id = null, $department = null) {
-    //     // try {
-    //         $this->db->select('
-    //             m.id as medicine_id,
-    //             m.max_stock_level,
-    //             COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0) as current_stock
-    //         ');
-    //         $this->db->from('medicines m');
-    //         $this->db->join('medicine_batches mb', 'm.id = mb.medicine_id', 'left');
-    //         // $this->db->join('central_stocks cs', 'mb.id = cs.batch_id AND (cs.status = "ACTIVE" OR cs.status IS NULL)', 'left');
-    //         $this->db->join('center_stocks ccs', 'mb.id = ccs.batch_id AND (ccs.status = "ACTIVE" OR ccs.status IS NULL)', 'left');
-    //         $this->db->where('m.id', $medicine_id);
-    //         $this->db->where('(mb.batch_status = "ACTIVE" OR mb.batch_status IS NULL)');
-    //         if (!empty($center_id)) {
-    //             $this->db->where('ccs.center_id', $center_id);
-    //         }
-    
-    //         if (!empty($department)) {
-    //             if ($department == 'Embryologist Basant Lok') {
-    //                 $department = 'Embryology Basant Lok';
-    //             }
-    //             $this->db->like('ccs.department', $department);
-    //         }
-    //         $this->db->group_by('m.id, m.max_stock_level');
-    //         $query = $this->db->get();
-            
-    //         if ($query->num_rows() > 0) {
-    //             return $query->row();
-    //         }
-    //         return null;
-    //     // } catch (Exception $e) {
-    //     //     log_message('error', 'Error in get_medicine_stock_info: ' . $e->getMessage());
-    //     //     return null;
-    //     // }
-    // }
-
-    // public function get_medicine_stock_info($medicine_id, $center_id, $department)
-    // {
-    //     $department = strtoupper(trim($department));
-    //     $this->db->select('
-    //         mcs.min_stock_level,
-    //         mcs.max_stock_level,
-    //         mcs.reorder_level,
-    //         COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0) AS current_stock
-    //     ');
-    //     $this->db->from('medicine_center_stocks mcs');
-    //     $this->db->join(
-    //         'medicine_batches mb',
-    //         'mb.medicine_id = mcs.medicine_id
-    //         AND (mb.batch_status = "ACTIVE" OR mb.batch_status IS NULL)',
-    //         'left'
-    //     );
-    //     $this->db->join(
-    //         'center_stocks ccs',
-    //         'ccs.batch_id = mb.id
-    //         AND ccs.center_id = mcs.center_id
-    //         AND ccs.department = mcs.department
-    //         AND (ccs.status = "ACTIVE" OR ccs.status IS NULL)',
-    //         'left'
-    //     );
-    //     $this->db->where('mcs.medicine_id', $medicine_id);
-    //     $this->db->where('mcs.center_id', $center_id);
-    //     $this->db->where('mcs.department', $department);
-    //     $this->db->group_by('
-    //         mcs.medicine_id,
-    //         mcs.center_id,
-    //         mcs.department,
-    //         mcs.min_stock_level,
-    //         mcs.max_stock_level,
-    //         mcs.reorder_level
-    //     ');
-    //     $query = $this->db->get();
-    //     if ($query->num_rows() > 0) {
-    //         return $query->row();
-    //     }
-
-    //     return null;
-    // }
-    // public function get_medicine_stock_info($medicine_id, $center_id, $department)
-    // {
-    //     $department = strtoupper(trim($department));
-    //     $this->db->select('min_stock_level, max_stock_level, reorder_level');
-    //     $this->db->from('medicine_center_stocks');
-    //     $this->db->where('medicine_id', $medicine_id);
-    //     $this->db->where('center_id', $center_id);
-    //     $this->db->where('department', $department);
-    //     $mcs_query = $this->db->get();
-    //     $mcs_config = $mcs_query->row();
-    //     $this->db->select('COALESCE(SUM(COALESCE(ccs.quantity, 0)), 0) AS current_stock');
-    //     $this->db->from('center_stocks AS ccs');
-    //     $this->db->join(
-    //         'medicine_batches AS mb',
-    //         'ccs.batch_id = mb.id
-    //         AND mb.medicine_id = ' . $medicine_id . '
-    //         AND (mb.batch_status = "ACTIVE" OR mb.batch_status IS NULL)',
-    //         'INNER'
-    //     );
-    //     $this->db->where('ccs.center_id', $center_id);
-    //     $this->db->where('UPPER(TRIM(ccs.department))', $department);
-    //     $this->db->where('(ccs.status = "ACTIVE" OR ccs.status IS NULL)');
-    //     $stock_query = $this->db->get();
-    //     $stock_result = $stock_query->row();
-    //     $result = new stdClass();
-    //     $result->current_stock = $stock_result ? (int)$stock_result->current_stock : 0;
-    //     if ($mcs_config) {
-    //         $result->min_stock_level = (int)$mcs_config->min_stock_level;
-    //         $result->max_stock_level = (int)$mcs_config->max_stock_level;
-    //         $result->reorder_level = (int)$mcs_config->reorder_level;
-    //     } else {
-    //         // If no config exists, set default values
-    //         $result->min_stock_level = 0;
-    //         $result->max_stock_level = 0;
-    //         $result->reorder_level = 0;
-    //     }
-
-    //     return $result;
-    // }
     public function get_medicine_stock_info($medicine_id, $center_id, $department)
     {
         $department = strtoupper(trim($department));
@@ -2252,7 +2162,8 @@ class Stock_model_new extends CI_Model
         $this->db->join('hms_centers c', 'mcs.center_id = c.ID', 'left');
         $this->db->join('medicine_batches mb', 'mb.medicine_id = mcs.medicine_id', 'left');
         $this->db->join('center_stocks ccs', 'ccs.batch_id = mb.id AND ccs.center_id = mcs.center_id AND ccs.department = mcs.department AND (ccs.status = "ACTIVE" OR ccs.status IS NULL)', 'left');
-
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         // Apply filters
         if (!empty($center_id)) {
             $this->db->where('mcs.center_id', $center_id);
@@ -2387,6 +2298,8 @@ class Stock_model_new extends CI_Model
             "m.brand_id = mb.id",
         );
         $this->db->where("sti.transfer_id", $transfer_id);
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         return $this->db->get()->result();
     }
 
@@ -2636,6 +2549,8 @@ class Stock_model_new extends CI_Model
             $this->db->where("mb.batch_status", "ACTIVE");
             $this->db->where("m.status", "active");
             $this->db->where("ccs.status", "ACTIVE");
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
 
             if ($department) {
                 $this->db->where("mb.department", $department);
@@ -2663,6 +2578,8 @@ class Stock_model_new extends CI_Model
             $this->db->where("mb.batch_status", "ACTIVE");
             $this->db->where("m.status", "active");
             $this->db->where("cs.status", "ACTIVE");
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         }
 
         // Order by FEFO (First Expiry First Out)
@@ -2923,6 +2840,8 @@ class Stock_model_new extends CI_Model
         $this->db->where("mb.employee_number", $employee_number);
         $this->db->where("mb.batch_status", "ACTIVE");
         $this->db->where("mb.available_quantity >", 0);
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         $this->db->order_by("m.medicine_name", "ASC");
         return $this->db->get()->result();
     }
@@ -3050,6 +2969,8 @@ class Stock_model_new extends CI_Model
         $this->db->where("mb.batch_status", "ACTIVE");
         $this->db->where("cs.quantity >", 0);
         $this->db->where("cs.status", "ACTIVE");
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
 
         // Order by FEFO (First Expiry First Out)
         $this->db->order_by("mb.expiry_date", "ASC");
@@ -3265,6 +3186,7 @@ class Stock_model_new extends CI_Model
                 s.created_by,
                 s.created_at,
                 s.updated_at,
+                m.medicine_code,
 
                 c.center_name,
                 e.name AS salesperson_name,
@@ -3358,6 +3280,8 @@ class Stock_model_new extends CI_Model
             $this->db->join('medicine_batches mb', 'mb.id = si.batch_id', 'left');
             $this->db->join('medicines m', 'm.id = mb.medicine_id', 'left');
             $this->db->where('s.status !=', 'package');
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
 
             /* -------------------------------------------------
             *  STOCK MOVEMENT EXISTS OR DRAFT SALES
@@ -3438,149 +3362,6 @@ class Stock_model_new extends CI_Model
             return [];
         }
     }
-
-
-    // public function get_all_sales($filters = [])
-    // {
-    //     try {
-    //         // Build select with safe column references (handles missing columns)
-    //         $select_columns = "
-    //             s.id, s.sale_number, s.center_id, s.patient_id, s.patient_name,
-    //             s.doctor_id, s.doctor_name, s.sale_date, s.sale_time,
-    //             s.payment_method, s.payment_status,s.remarks, s.utr_transaction_id, s.payment_image, 
-    //             s.status, s.remarks, s.created_by, s.created_at, s.updated_at,
-    //             c.center_name,
-    //             e.name as salesperson_name,
-    //             COALESCE(COUNT(si.id), 0) as total_items,
-    //             COALESCE(SUM(si.quantity_sold), 0) as total_quantity,
-    //             COALESCE(SUM(si.subtotal), 0) as subtotal,
-    //             COALESCE(SUM(si.discount_amount), 0) as discount_amount,
-    //             COALESCE(SUM(si.tax_amount), 0) as tax_amount,
-    //             COALESCE(SUM(si.total), 0) as total_amount,
-    //             GROUP_CONCAT(DISTINCT m.gst_rate ORDER BY m.gst_rate SEPARATOR ', ') as gst_rates
-    //         ";
-            
-    //         // Check if new columns exist and add them to select
-    //         $table_fields = $this->db->list_fields('sales');
-            
-    //         // Payment approval columns
-    //         if (in_array('payment_approved_by', $table_fields)) {
-    //             $select_columns .= ", s.payment_approved_by, s.payment_approved_by_name, s.payment_approved_at";
-    //         } else {
-    //             $select_columns .= ", NULL as payment_approved_by, NULL as payment_approved_by_name, NULL as payment_approved_at";
-    //         }
-            
-    //         if (in_array('payment_rejected_by', $table_fields)) {
-    //             $select_columns .= ", s.payment_rejected_by, s.payment_rejected_by_name, s.payment_rejected_at";
-    //         } else {
-    //             $select_columns .= ", NULL as payment_rejected_by, NULL as payment_rejected_by_name, NULL as payment_rejected_at";
-    //         }
-            
-    //         if (in_array('stock_restored', $table_fields)) {
-    //             $select_columns .= ", s.stock_restored, s.stock_restored_at, s.stock_restored_by";
-    //         } else {
-    //             $select_columns .= ", 0 as stock_restored, NULL as stock_restored_at, NULL as stock_restored_by";
-    //         }
-            
-    //         // Accountant approval columns
-    //         if (in_array('accountant_approval_status', $table_fields)) {
-    //             $select_columns .= ", s.accountant_approval_status, s.accountant_approved_by, s.accountant_approved_by_name, s.accountant_approved_at, s.accountant_remarks";
-    //         } else {
-    //             $select_columns .= ", 'PENDING' as accountant_approval_status, NULL as accountant_approved_by, NULL as accountant_approved_by_name, NULL as accountant_approved_at, NULL as accountant_remarks";
-    //         }
-            
-    //         $this->db->select($select_columns, FALSE);
-    //         $this->db->from("sales s");
-    //         $this->db->join("hms_centers c", "s.center_id = c.ID", "left");
-    //         $this->db->join("hms_employees e", "s.created_by = e.ID", "left");
-    //         $this->db->join("sale_items si", "s.id = si.sale_id", "left"); // LEFT JOIN is important
-    //         $this->db->join("medicine_batches mb", "si.batch_id = mb.id", "left");
-    //         $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
-    //         $this->db->join("stock_movements sm", "sm.reference_id = s.id AND sm.movement_type = 'SALE' AND sm.to_location_type = 'SALE'", "left");
-
-    //         // --- Session Filter (Your original logic) ---
-    //         // if (
-    //         //     isset(
-    //         //         $_SESSION['logged_billing_manager']
-    //         //             ['center'],
-    //         //     ) &&
-    //         //     !empty(
-    //         //         $_SESSION['logged_billing_manager']
-    //         //             ['center']
-    //         //     )
-    //         // ) {
-    //         //     $this->db->where("s.center_id", $this->get_center_id($_SESSION['logged_billing_manager']['center']));
-    //         // }
-    //         $center = null;
-    //         if (!empty($_SESSION['logged_billing_manager']) &&
-    //             ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
-    //             $center = $_SESSION['logged_billing_manager']['center'];
-    //         }
-    //         if (!empty($_SESSION['logged_stock_manager']) &&
-    //             ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
-    //             $center = $_SESSION['logged_stock_manager']['center'];
-    //         }
-    //         if ($center !== null) {
-    //             $this->db->where('s.center_id', $this->get_center_id($center));
-    //         }
-    //         // --- End Filter ---
-    //         // Correct GROUP BY for all non-aggregated columns
-    //         $this->db->group_by("s.id, c.center_name, e.name, sm.id"); 
-    //         if(!empty($filters['center_id'])) {
-    //             $this->db->where('s.center_id', $filters['center_id']);
-    //         }
-    //         if(!empty($filters['patient_id'])) {
-    //             $this->db->like('s.patient_id', $filters['patient_id']);
-    //         }
-    //         if(!empty($filters['patient_name'])) {
-    //             $this->db->like('s.patient_name', $filters['patient_name']);
-    //         }
-    //         if (!empty($filters['status'])) {
-    //             $this->db->where('s.status', $filters['status']);
-    //         }
-    //         // Filter by Approval Status (accountant approval)
-    //         if (!empty($filters['approval_status'])) {
-    //             $this->db->where('s.accountant_approval_status', $filters['approval_status']);
-    //         }
-    //         // Filter by Date From (using the 'sale_date' column)
-    //         if (!empty($filters['date_from'])) {
-    //             $this->db->where('s.sale_date >=', $filters['date_from']);
-    //         }
-
-    //         // Filter by Date To (using the 'sale_date' column)
-    //         if (!empty($filters['date_to'])) {
-    //             $this->db->where('s.sale_date <=', $filters['date_to']);
-    //         }
-
-    //         // Filter sales where stock movements exist
-    //         $this->db->where('sm.id IS NOT NULL');
-
-    //         // Correct GROUP BY for all non-aggregated columns
-    //         $this->db->group_by("s.id, c.center_name, e.name, sm.id");
-
-    //         $this->db->order_by("s.created_at", "DESC");
-    //         return $this->db->get()->result();
-            
-    //     } catch (Exception $e) {
-    //         // If tables don't exist or have issues, return empty array
-    //         log_message('error', 'Error in get_all_sales: ' . $e->getMessage());
-    //         return [];
-    //     }
-    // }
-    // public function add_sale($data)
-    // {
-    //     // Generate sale_number if not provided - trigger will handle if still NULL
-    //     if (!isset($data["sale_number"]) || empty($data["sale_number"])) {
-    //         $financial_year = date("Y") . "-" . (date("Y") + 1);
-    //         $data["sale_number"] = "Inv/" . $financial_year . "/" . str_pad((int)date("z"), 3, "0", STR_PAD_LEFT) . "/" . str_pad(rand(1, 999), 3, "0", STR_PAD_LEFT);
-    //     }
-    //     $result = $this->db->insert("sales", $data);
-    //     if ($result) {
-    //         return $this->db->insert_id();
-    //     }
-    //     return false;
-    // }
-
     public function add_sale($data)
     {
         $this->db->trans_start(); 
@@ -3655,6 +3436,8 @@ class Stock_model_new extends CI_Model
         $this->db->join("medicine_brands b", "m.brand_id = b.id", "left"); 
         // --- END CORRECTION ---
         $this->db->where("si.sale_id", $sale_id);
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");   
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         return $this->db->get()->result();
     }
 
@@ -3668,49 +3451,6 @@ class Stock_model_new extends CI_Model
         $this->db->where("id", $id);
         return $this->db->delete("sale_items");
     }
-
-    // public function confirm_sale($id)
-    // {
-    //     $this->db->trans_start();
-    //     $this->db->where("id", $id);
-    //     $this->db->update("sales", ["status" => "CONFIRMED"]);
-    //     // Get sale items
-    //     $items = $this->get_sale_items($id);
-    //     $sale = $this->get_sale_by_id($id);
-    //     // Update stocks and log movements
-    //     foreach ($items as $item) {
-    //         // Reduce center stock using FIFO
-    //         $this->db->where("batch_id", $item->batch_id);
-    //         $this->db->where("center_id", $sale->center_id);
-    //         $this->db->set(
-    //             "quantity",
-    //             "quantity - " . $item->quantity_sold,
-    //             false,
-    //         );
-    //         $this->db->update("center_stocks");
-    //         // Log stock movement
-    //         $movement_data = [
-    //             "batch_id" => $item->batch_id,
-    //             "movement_type" => "SALE",
-    //             "from_location_type" => "CENTER",
-    //             "from_location_id" => $sale->center_id,
-    //             "to_location_type" => "SALE",
-    //             "quantity_change" => -$item->quantity_sold,
-    //             "unit_price" => $item->unit_price,
-    //             "total_value" => $item->total,
-    //             "reference_type" => "SALES_BILL",
-    //             "reference_id" => $id,
-    //             "reference_number" => $sale->sale_number,
-    //             "patient_id" => $sale->patient_id,
-    //             "patient_name" => $sale->patient_name,
-    //             "created_by" => $sale->created_by,
-    //         ];
-    //         $this->db->insert("stock_movements", $movement_data);
-    //     }
-
-    //     $this->db->trans_complete();
-    //     return $this->db->trans_status();
-    // }
 
     public function confirm_sale($id, $user_id = null) // Added user_id
     {
@@ -3841,6 +3581,8 @@ class Stock_model_new extends CI_Model
         $this->db->where("mb.batch_status", "ACTIVE");
         $this->db->where("m.status", "active");
         $this->db->where("ccs.status", "ACTIVE");
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         $center = null;
         // if (!empty($_SESSION['logged_billing_manager']) &&
         //     ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
@@ -3996,6 +3738,8 @@ class Stock_model_new extends CI_Model
             }
             $this->db->where("s.status", "CONFIRMED");
             $this->db->where("(si.quantity_sold - COALESCE(si.quantity_returned, 0)) >", 0); 
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->group_by("si.id");
             $this->db->order_by("mb.expiry_date", "ASC");
             $this->db->order_by("m.medicine_name", "ASC");
@@ -4004,81 +3748,6 @@ class Stock_model_new extends CI_Model
             return $result;
     }
 
-    // public function get_available_batches_for_audit()
-    // {
-    //     try {
-    //         // First try medicine_batches
-    //         $this->db->select('
-    //             mb.id as batch_id,
-    //             mb.batch_number,
-    //             mb.expiry_date,
-    //             DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
-    //             mb.quantity_remaining as available_quantity,
-    //             mb.selling_price,
-    //             m.medicine_name,
-    //             m.medicine_code,
-    //             COALESCE(b.name, "Unknown Brand") as brand_name,
-    //             COALESCE(v.name, "Unknown Vendor") as vendor_name,
-    //             COALESCE(c.center_name, "Unknown Center") as center_name
-    //         ');
-    //         $this->db->from("medicine_batches mb");
-    //         $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
-    //         $this->db->join("hms_brands b", "m.brand_id = b.ID", "left");
-    //         $this->db->join("hms_vendors v", "mb.vendor_id = v.ID", "left");
-    //         $this->db->join("hms_centers c", "mb.center_id = c.ID", "left");
-    //         $this->db->where("mb.batch_status", "ACTIVE");
-    //         $this->db->where("mb.quantity_remaining >", 0);
-    //         $this->db->order_by("mb.expiry_date", "ASC");
-    //         $this->db->order_by("m.medicine_name", "ASC");
-
-    //         $result = $this->db->get()->result();
-
-    //         // If no results, try center_stocks
-    //         if (empty($result)) {
-    //             $this->db->select('
-    //                 cs.id as batch_id,
-    //                 cs.batch_number,
-    //                 cs.expiry_date,
-    //                 DATEDIFF(cs.expiry_date, CURDATE()) as expiry_days,
-    //                 cs.quantity as available_quantity,
-    //                 cs.selling_price,
-    //                 m.medicine_name,
-    //                 m.medicine_code,
-    //                 COALESCE(b.name, "Unknown Brand") as brand_name,
-    //                 COALESCE(v.name, "Unknown Vendor") as vendor_name,
-    //                 COALESCE(c.center_name, "Unknown Center") as center_name
-    //             ');
-    //             $this->db->from("center_stocks cs");
-    //             $this->db->join("medicines m", "cs.medicine_id = m.id", "left");
-    //             $this->db->join(
-    //                 $this->config->item("db_prefix") . "brands b",
-    //                 "m.brand_id = b.ID",
-    //                 "left",
-    //             );
-    //             $this->db->join(
-    //                 $this->config->item("db_prefix") . "vendors v",
-    //                 "cs.vendor_id = v.ID",
-    //                 "left",
-    //             );
-    //             $this->db->join("hms_centers c", "cs.center_id = c.ID", "left");
-    //             $this->db->where("cs.status", "ACTIVE");
-    //             $this->db->where("cs.quantity >", 0);
-    //             $this->db->order_by("cs.expiry_date", "ASC");
-    //             $this->db->order_by("m.medicine_name", "ASC");
-
-    //             $result = $this->db->get()->result();
-    //         }
-
-    //         return $result;
-    //     } catch (Exception $e) {
-    //         // If tables don't exist or have issues, return empty array
-    //         return [];
-    //     }
-    // }
-    /**
-     * Gets all active, in-stock batches from ALL locations (centers AND central warehouse)
-     * for a stock audit.
-     */
     public function get_available_batches_for_audit($location_id= null ,$selected_department = null)
     {
         // try {
@@ -4100,6 +3769,8 @@ class Stock_model_new extends CI_Model
                 $this->db->where('mb.batch_status', 'ACTIVE');
                 $this->db->where('m.status', 'active');
                 $this->db->where('cst.status', 'ACTIVE');
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 $query = $this->db->get();
 
             } else {
@@ -4136,6 +3807,8 @@ class Stock_model_new extends CI_Model
                 $this->db->where('mb.batch_status', 'ACTIVE');
                 $this->db->where('m.status', 'active');
                 $this->db->where('cs.status', 'ACTIVE');
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 $query = $this->db->get();
             }
             return $query->result();
@@ -4155,6 +3828,8 @@ class Stock_model_new extends CI_Model
             $this->db->from('medicine_batches mb');
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
             $this->db->where('mb.batch_status', 'ACTIVE');
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->order_by('m.medicine_name', 'ASC');
             $query = $this->db->get();
             return $query->result();
@@ -4222,6 +3897,8 @@ class Stock_model_new extends CI_Model
             $this->db->where('mb.batch_status', 'ACTIVE');
             $this->db->where('m.status', 'active');
             $this->db->where('cs.status', 'ACTIVE'); 
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             // Optional: You could add filters here, e.g., only show expired batches
             // $this->db->where('mb.expiry_date <', date('Y-m-d')); 
             // --- Ordering ---
@@ -4240,6 +3917,8 @@ class Stock_model_new extends CI_Model
             $this->db->where('mb.batch_status', 'ACTIVE');
             $this->db->where('m.status', 'active');
             $this->db->where('cs.status', 'ACTIVE');
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->order_by('mb.expiry_date', 'ASC');
             $this->db->order_by('m.medicine_name', 'ASC');
             $central_batches = $this->db->get()->result();
@@ -4263,149 +3942,6 @@ class Stock_model_new extends CI_Model
             return []; // Return empty array on any database error
         }
     }
-    // public function get_available_batches_for_disposal()
-    // {
-    //     // try {
-    //         // First try medicine_batches
-    //         $this->db->select('
-    //             mb.id as batch_id,
-    //             mb.batch_number,
-    //             mb.expiry_date,
-    //             DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
-    //             mb.quantity_remaining as available_quantity,
-    //             mb.selling_price,
-    //             mb.purchase_price,
-    //             m.medicine_name,
-    //             m.medicine_code,
-    //             COALESCE(b.name, "Unknown Brand") as brand_name,
-    //             COALESCE(v.name, "Unknown Vendor") as vendor_name,
-    //             COALESCE(c.center_name, "Unknown Center") as center_name
-    //         ');
-    //         $this->db->from("medicine_batches mb");
-    //         $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
-    //         $this->db->join("hms_brands b", "m.brand_id = b.ID", "left");
-    //         $this->db->join("hms_vendors v", "mb.vendor_id = v.ID", "left");
-    //         $this->db->join("hms_centers c", "mb.center_id = c.ID", "left");
-    //         $this->db->where("mb.batch_status", "ACTIVE");
-    //         $this->db->where("mb.quantity_remaining >", 0);
-    //         $this->db->order_by("mb.expiry_date", "ASC");
-    //         $this->db->order_by("m.medicine_name", "ASC");
-
-    //         $result = $this->db->get()->result();
-
-    //         // If no results, try center_stocks
-    //         if (empty($result)) {
-    //             $this->db->select('
-    //                 cs.id as batch_id,
-    //                 cs.batch_number,
-    //                 cs.expiry_date,
-    //                 DATEDIFF(cs.expiry_date, CURDATE()) as expiry_days,
-    //                 cs.quantity as available_quantity,
-    //                 cs.selling_price,
-    //                 cs.purchase_price,
-    //                 m.medicine_name,
-    //                 m.medicine_code,
-    //                 COALESCE(b.name, "Unknown Brand") as brand_name,
-    //                 COALESCE(v.name, "Unknown Vendor") as vendor_name,
-    //                 COALESCE(c.center_name, "Unknown Center") as center_name
-    //             ');
-    //             $this->db->from("center_stocks cs");
-    //             $this->db->join("medicines m", "cs.medicine_id = m.id", "left");
-    //             $this->db->join(
-    //                 $this->config->item("db_prefix") . "brands b",
-    //                 "m.brand_id = b.ID",
-    //                 "left",
-    //             );
-    //             $this->db->join(
-    //                 $this->config->item("db_prefix") . "vendors v",
-    //                 "cs.vendor_id = v.ID",
-    //                 "left",
-    //             );
-    //             $this->db->join("hms_centers c", "cs.center_id = c.ID", "left");
-    //             $this->db->where("cs.status", "ACTIVE");
-    //             $this->db->where("cs.quantity >", 0);
-    //             $this->db->order_by("cs.expiry_date", "ASC");
-    //             $this->db->order_by("m.medicine_name", "ASC");
-
-    //             $result = $this->db->get()->result();
-    //         }
-
-    //         return $result;
-    //     // } catch (Exception $e) {
-    //     //     // If tables don't exist or have issues, return empty array
-    //     //     return [];
-    //     // }
-    // }
- 
-
-    // public function get_audit_reports($filters = [])
-    // {
-    //     // try {
-    //         $this->db->select("ar.*, c.center_name");
-    //         $center = null;
-    //         $created_by = null;
-    //         if (!empty($_SESSION['logged_billing_manager']) &&
-    //             ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
-    //             $center = $_SESSION['logged_billing_manager']['center'];
-    //             $created_by =$this->get_employee_id_from_number($_SESSION['logged_billing_manager']['employee_number']);
-    //         }
-    //         if (!empty($_SESSION['logged_stock_manager']) &&
-    //             ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
-    //             $center = $_SESSION['logged_stock_manager']['center'];
-    //             $created_by =$this->get_employee_id_from_number($_SESSION['logged_stock_manager']['employee_number']);
-
-    //         }
-    //         if ($center !== null) {
-    //             $this->db->where('ar.center_id', $this->get_center_id($center));
-    //         }
-    //         if ($created_by !== null) {
-    //             $this->db->where('ar.created_by', $created_by);
-    //         }
-            
-    //         // Apply filters
-    //         if (!empty($filters['center_id'])) {
-    //             // Handle filtering for central warehouse
-    //             if ($filters['center_id'] === 'central' || $filters['center_id'] === '0') {
-    //                 $this->db->where('ar.center_id IS NULL');
-    //             } else {
-    //                 $this->db->where('ar.center_id', $filters['center_id']);
-    //             }
-    //         }
-            
-    //         if (!empty($filters['audit_type'])) {
-    //             // Use the audit_type directly as it now matches database values
-    //             $this->db->where('ar.audit_type', $filters['audit_type']);
-    //         }
-            
-    //         if (!empty($filters['status'])) {
-    //             $this->db->where('ar.status', $filters['status']);
-    //         }
-            
-    //         if (!empty($filters['from_date'])) {
-    //             $this->db->where('DATE(ar.audit_date) >=', $filters['from_date']);
-    //         }
-            
-    //         if (!empty($filters['to_date'])) {
-    //             $this->db->where('DATE(ar.audit_date) <=', $filters['to_date']);
-    //         }
-            
-    //         $this->db->from("audit_reports ar");
-    //         $this->db->join("hms_centers c", "ar.center_id = c.ID", "left"); // Use LEFT JOIN to include central warehouse (NULL center_id)
-    //         $this->db->order_by("ar.created_at", "DESC");
-            
-    //         $results = $this->db->get()->result();
-            
-    //         // Handle central warehouse display for records with NULL center_id
-    //         foreach ($results as $result) {
-    //             if ($result->center_id === null || $result->center_id == 0) {
-    //                 $result->center_name = 'Central Warehouse';
-    //             }
-    //         }
-    //         return $results;
-    //     // } catch (Exception $e) {
-    //     //     return [];
-    //     // }
-    // }
     public function get_audit_reports($filters = [])
     {
         $center = null;
@@ -4478,22 +4014,6 @@ class Stock_model_new extends CI_Model
         return $results;
     }
 
-
-    // public function get_disposal_reports()
-    // {
-    //     try {
-    //         $this->db->select("dr.*, c.center_name");
-    //         $this->db->from("disposal_reports dr");
-    //         $this->db->join("hms_centers c", "dr.center_id = c.ID");
-    //         $this->db->order_by("dr.created_at", "DESC");
-    //         return $this->db->get()->result();
-    //     } catch (Exception $e) {
-    //         return [];
-    //     }
-    // }
-        /**
-     * MODIFIED: Function now accepts a $filters array
-     */
     public function get_disposal_reports($filters = [])
     {
         try {
@@ -4572,6 +4092,8 @@ class Stock_model_new extends CI_Model
             $this->db->join("hms_centers c", "mb.center_id = c.ID", "left");
             $this->db->where("mb.batch_status", "ACTIVE");
             $this->db->where("m.status", "active");
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->where("mb.quantity_remaining >", 0);
             $this->db->order_by("mb.expiry_date", "ASC");
             return $this->db->get()->result();
@@ -4909,7 +4431,8 @@ class Stock_model_new extends CI_Model
                 $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
                 $this->db->where('m.status', 'active'); // Only active medicines
                 $this->db->where('cs.status', 'ACTIVE'); // Only active center stocks
-
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 // --- Ordering ---
                 $this->db->order_by('m.medicine_name', 'ASC');
                 $this->db->order_by('mb.expiry_date', 'ASC');
@@ -4939,6 +4462,8 @@ class Stock_model_new extends CI_Model
                     $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
                     $this->db->where('m.status', 'active'); // Only active medicines
                     $this->db->where('cs.status', 'ACTIVE'); // Only active central stocks
+                    $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                    $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                     // --- Ordering ---
                     $this->db->order_by('m.medicine_name', 'ASC');
                     $this->db->order_by('mb.expiry_date', 'ASC');
@@ -4970,6 +4495,8 @@ class Stock_model_new extends CI_Model
                     $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
                     $this->db->where('m.status', 'active'); // Only active medicines
                     $this->db->where('cs.status', 'ACTIVE'); // Only active center stocks
+                    $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                    $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                     // --- Ordering ---
                     $this->db->order_by('m.medicine_name', 'ASC');
                     $this->db->order_by('mb.expiry_date', 'ASC');
@@ -5019,6 +4546,8 @@ class Stock_model_new extends CI_Model
                     "mb.batch_number = vb.batch_number AND mb.vendor_id = vb.vendor_code",
                     "left",
                 );
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 $this->db->where("vb.purchase_po_no", $po_id);
                 $this->db->order_by("mb.created_at", "DESC");
                 return $this->db->get()->result();
@@ -5103,6 +4632,8 @@ class Stock_model_new extends CI_Model
                 $this->db->from("stock_movements sm");
                 $this->db->join("medicine_batches mb", "sm.batch_id = mb.id");
                 $this->db->join("medicines m", "mb.medicine_id = m.id");
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 $this->db->join(
                     "hms_centers fc",
                     "sm.from_location_id = fc.ID",
@@ -5147,6 +4678,8 @@ class Stock_model_new extends CI_Model
                     "left",
                 );
                 $this->db->where("sm.batch_id", $batch_id);
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 $this->db->order_by("sm.created_at", "DESC");
                 return $this->db->get()->result();
             } catch (Exception $e) {
@@ -5154,59 +4687,6 @@ class Stock_model_new extends CI_Model
             }
         }
 
-        // public function search_stock_movements($filters)
-        // {
-        //     try {
-        //         $this->db->select('
-        //             sm.*,
-        //             m.medicine_name,
-        //             m.medicine_code,
-        //             mb.batch_number,
-        //             fc.center_name as from_center,
-        //             tc.center_name as to_center
-        //         ');
-        //         $this->db->from("stock_movements sm");
-        //         $this->db->join("medicine_batches mb", "sm.batch_id = mb.id");
-        //         $this->db->join("medicines m", "mb.medicine_id = m.id");
-        //         $this->db->join(
-        //             "hms_centers fc",
-        //             "sm.from_location_id = fc.ID",
-        //             "left",
-        //         );
-        //         $this->db->join(
-        //             "hms_centers tc",
-        //             "sm.to_location_id = tc.ID",
-        //             "left",
-        //         );
-
-        //         if (!empty($filters["medicine_id"])) {
-        //             $this->db->where("m.id", $filters["medicine_id"]);
-        //         }
-        //         if (!empty($filters["batch_id"])) {
-        //             $this->db->where("mb.id", $filters["batch_id"]);
-        //         }
-        //         if (!empty($filters["center_id"])) {
-        //             $this->db->where(
-        //                 "(sm.from_location_id = " .
-        //                     $filters["center_id"] .
-        //                     " OR sm.to_location_id = " .
-        //                     $filters["center_id"] .
-        //                     ")",
-        //             );
-        //         }
-        //         if (!empty($filters["date_from"])) {
-        //             $this->db->where("sm.created_at >=", $filters["date_from"]);
-        //         }
-        //         if (!empty($filters["date_to"])) {
-        //             $this->db->where("sm.created_at <=", $filters["date_to"]);
-        //         }
-
-        //         $this->db->order_by("sm.created_at", "DESC");
-        //         return $this->db->get()->result();
-        //     } catch (Exception $e) {
-        //         return [];
-        //     }
-        // }
 
         public function get_summary_stats()
         {
@@ -5255,58 +4735,6 @@ class Stock_model_new extends CI_Model
                 ];
             }
         }
-
-        // public function export_stock_report($filters)
-        // {
-        //     try {
-        //         $movements = $this->search_stock_movements($filters);
-        //         // Set headers for CSV download
-        //         header("Content-Type: text/csv");
-        //         header(
-        //             'Content-Disposition: attachment; filename="stock_movements_report_' .
-        //                 date("Y-m-d") .
-        //                 '.csv"',
-        //         );
-        //         $output = fopen("php://output", "w");
-        //         // CSV headers
-        //         fputcsv($output, [
-        //             "Date",
-        //             "Medicine Name",
-        //             "Medicine Code",
-        //             "Batch Number",
-        //             "Movement Type",
-        //             "From Center",
-        //             "To Center",
-        //             "Quantity Change",
-        //             "Unit Price",
-        //             "Total Value",
-        //             "Reference Number",
-        //             "Status",
-        //         ]);
-
-        //         // CSV data
-        //         foreach ($movements as $movement) {
-        //             fputcsv($output, [
-        //                 $movement->movement_date,
-        //                 $movement->medicine_name,
-        //                 $movement->medicine_code,
-        //                 $movement->batch_number,
-        //                 $movement->movement_type,
-        //                 $movement->from_center,
-        //                 $movement->to_center,
-        //                 $movement->quantity_change,
-        //                 $movement->unit_price,
-        //                 $movement->total_value,
-        //                 $movement->reference_number,
-        //                 $movement->status,
-        //             ]);
-        //         }
-
-        //         fclose($output);
-        //     } catch (Exception $e) {
-        //         echo "Error exporting report: " . $e->getMessage();
-        //     }
-        // }
 /**
      * Fetches the stock movement data based on filters.
      * This is the missing function that export_stock_report() needs.
@@ -5347,7 +4775,8 @@ class Stock_model_new extends CI_Model
                 $this->db->join('hms_vendors fv', 'sm.from_location_id = fv.ID AND sm.from_location_type = "VENDOR"', 'left');
                 $this->db->join('hms_centers fc', 'sm.from_location_id = fc.ID AND sm.from_location_type = "CENTER"', 'left');
                 $this->db->join('hms_centers tc', 'sm.to_location_id = tc.ID AND sm.to_location_type = "CENTER"', 'left');
-
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 // --- Apply Filters ---
                 if (!empty($filters['medicine_id'])) {
                     $this->db->where('mb.medicine_id', $filters['medicine_id']);
@@ -5477,7 +4906,8 @@ class Stock_model_new extends CI_Model
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
             $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
             $this->db->join('hms_employees e', 's.created_by = e.ID', 'left');
-
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             // --- Apply Filters ---
             if (!empty($filters['date_from'])) {
                 $this->db->where('s.sale_date >=', $filters['date_from']);
@@ -5615,7 +5045,8 @@ class Stock_model_new extends CI_Model
                 $this->db->join('hms_centers from_center', 'st.from_center_id = from_center.ID', 'left'); // LEFT join for NULL
                 $this->db->join('hms_centers to_center', 'st.to_center_id = to_center.ID', 'left');
                 $this->db->join('hms_employees e', 'st.created_by = e.ID', 'left');
-
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 // --- Apply Filters ---
                 if (!empty($filters['date_from'])) {
                     $this->db->where('st.transfer_date >=', $filters['date_from']);
@@ -5793,314 +5224,6 @@ class Stock_model_new extends CI_Model
             }
         }
 
-        // public function process_medicine_return($return_data, $return_items)
-        // {
-        //     // 1. Check for empty items
-        //     if (empty($return_items)) {
-        //         return false;
-        //     }
-        //     // 2. Start Transaction
-        //     $this->db->trans_start();
-        //     // 3. Insert Return Header
-        //     $return_data["return_number"] = "RET" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-        //     $this->db->insert("medicine_returns", $return_data);
-        //     // 3a. Error Check
-        //     $db_error = $this->db->error();
-        //     if ($db_error["code"] != 0) {
-        //         $this->db->trans_rollback();
-        //         return false;
-        //     }
-        //     $return_id = $this->db->insert_id();
-        //     // 3b. Validate Return ID
-        //     if (!$return_id) {
-        //          $this->db->trans_rollback();
-        //          return false;
-        //     }
-        //     $total_items_processed = 0;
-        //     // 4. Loop through each item
-        //     foreach ($return_items as $index => $item) {
-        //         // 4a. Sanitize/Validate Item Data
-        //         $quantity = isset($item["return_quantity"]) ? (int)$item["return_quantity"] : 0;
-        //         $price = isset($item["price"]) ? (float)$item["price"] : 0;
-        //         $batch_id = isset($item["batch_id"]) ? (int)$item["batch_id"] : 0;
-        //         // Skip if item is invalid
-        //         if ($batch_id <= 0 || $quantity <= 0) {
-        //             continue; 
-        //         }
-        //         // 4b. Insert Item Line
-        //         $item_data = [
-        //             "return_id" => $return_id,
-        //             "batch_id" => $batch_id,
-        //             "quantity_returned" => $quantity,
-        //             "return_price" => $price,
-        //             "total_amount" => $quantity * $price,
-        //         ];
-        //         $this->db->insert("medicine_return_items", $item_data);
-        //         // 4c. Error Check
-        //         $db_error = $this->db->error();
-        //         if ($db_error["code"] != 0) {
-        //             $this->db->trans_rollback();
-        //             return false;
-        //         }
-        //         // 4d. Update Master Batch Stock (`medicine_batches`)
-        //         $this->db->set("quantity_remaining", "quantity_remaining + " . $quantity, false);
-        //         $this->db->set("updated_at", "NOW()", false);
-        //         $this->db->where("id", $batch_id);
-        //         $this->db->update("medicine_batches");
-        //         // 4e. **CRITICAL** Error Check
-        //         $db_error = $this->db->error();
-        //         if ($db_error["code"] != 0) {
-        //             $this->db->trans_rollback();
-        //             return false;
-        //         }
-        //         // 4f. Update Center-Specific Stock (`center_stocks`)
-        //         $this->db->where("batch_id", $batch_id);
-        //         $this->db->where("center_id", $return_data["center_id"]);
-        //         $center_stock = $this->db->get("center_stocks")->row();
-        //         $quantity_before = 0; // For audit log
-
-        //         if ($center_stock) {
-        //             // Update existing center stock
-        //             $quantity_before = (int)$center_stock->quantity;
-        //             $this->db->where("id", $center_stock->id);
-        //             $this->db->set("quantity", "quantity + " . $quantity, false);
-        //             $this->db->set("last_movement_date", date("Y-m-d H:i:s"));
-        //             $this->db->set("updated_at", "NOW()", false);
-        //             $this->db->update("center_stocks");
-        //         } else {
-        //             // Create new center stock record
-        //             // $quantity_before is already 0
-        //             $center_stock_data = [
-        //                 "batch_id" => $batch_id,
-        //                 "center_id" => $return_data["center_id"],
-        //                 "quantity" => $quantity,
-        //                 "reserved_quantity" => 0,
-        //                 "status" => "ACTIVE",
-        //                 "last_movement_date" => date("Y-m-d H:i:s"),
-        //                 "created_at" => date("Y-m-d H:i:s"),
-        //                 "updated_at" => date("Y-m-d H:i:s"),
-        //             ];
-        //             $this->db->insert("center_stocks", $center_stock_data);
-        //         }
-        //         // This is the correct quantity after for the *center*
-        //         $quantity_after = $quantity_before + $quantity; 
-        //         // 4g. **CRITICAL** Error Check (This was missing)
-        //         $db_error = $this->db->error();
-        //         if ($db_error["code"] != 0) {
-        //             $this->db->trans_rollback();
-        //             return false;
-        //         }
-
-        //         // 4h. Record Audit Trail (`stock_movements`)
-        //         if ($this->db->table_exists("stock_movements")) {
-        //             $movement_data = [
-        //                 "batch_id" => $batch_id,
-        //                 "movement_type" => "SALE_RETURN",
-        //                 "from_location_type" => "SALE",
-        //                 "from_location_id" => null,
-        //                 "to_location_type" => "CENTER",
-        //                 "to_location_id" => $return_data["center_id"],
-        //                 "quantity_before" => $quantity_before,
-        //                 "quantity_change" => $quantity,
-        //                 "quantity_after" => $quantity_after, // Corrected logic
-        //                 "unit_price" => $price,
-        //                 "total_value" => $quantity * $price,
-        //                 "reference_type" => "RETURN_VOUCHER",
-        //                 "reference_id" => $return_id,
-        //                 "reference_number" => $return_data["return_number"],
-        //                 "patient_id" => $return_data["patient_id"],
-        //                 "patient_name" => $return_data["patient_name"],
-        //                 "remarks" => "Medicine returned from patient",
-        //                 "created_at" => date("Y-m-d H:i:s"),
-        //                 "created_by" => $return_data["created_by"],
-        //             ];
-
-        //             $this->db->insert("stock_movements", $movement_data);
-                    
-        //             // 4i. Error Check
-        //             $db_error = $this->db->error();
-        //             if ($db_error["code"] != 0) {
-        //                 $this->db->trans_rollback();
-        //                 return false;
-        //             }
-        //         }
-        //         $total_items_processed++;
-        //     }
-        //     // 5. Final check: If no valid items were processed, roll back
-        //     if ($total_items_processed == 0) {
-        //          $this->db->trans_rollback();
-        //          return false;
-        //     }
-        //     // 6. Complete Transaction
-        //     $this->db->trans_complete();
-        //     $status = $this->db->trans_status();
-
-        //     return $status;
-        // }
-        // public function process_medicine_return($return_data, $return_items)
-        // {
-
-        //     if (empty($return_items)) {
-        //         return false;
-        //     }
-        //     $this->db->trans_start();
-        //     $return_data["return_number"] = "RET" . date("Ymd") . str_pad($this->db->count_all_results('medicine_returns') + 1, 4, "0", STR_PAD_LEFT);
-        //     $this->db->insert("medicine_returns", $return_data);
-        //     $db_error = $this->db->error();
-        //     if ($db_error["code"] != 0) {
-        //         $this->db->trans_rollback();
-        //         return false;
-        //     }
-        //     $return_id = $this->db->insert_id();
-        //     if (!$return_id) {
-        //         $this->db->trans_rollback();
-        //         return false;
-        //     }
-        //     $sale_id = null;
-        //     if (!empty($return_data['receipt_number'])) {
-        //         $sale = $this->db->get_where('sales', ['sale_number' => $return_data['receipt_number']])->row();
-        //         if ($sale) {
-        //             $sale_id = $sale->id;
-        //         }
-        //     }
-        //     $total_items_processed = 0;
-        //     foreach ($return_items as $index => $item) {
-        //         $quantity = isset($item["return_quantity"]) ? (int)$item["return_quantity"] : 0;
-        //         $price = isset($item["price"]) ? (float)$item["price"] : 0;
-        //         $batch_id = isset($item["batch_id"]) ? (int)$item["batch_id"] : 0;
-        //         if ($batch_id <= 0 || $quantity <= 0) {
-        //             continue; 
-        //         }
-        //         // Get discount information for this item
-        //         $item_discount_percentage = isset($item["discount_percentage"]) ? (float)$item["discount_percentage"] : 0;
-        //         $item_discount_amount = isset($item["discount_amount"]) ? (float)$item["discount_amount"] : 0;
-        //         $item_final_amount = isset($item["final_amount"]) ? (float)$item["final_amount"] : ($quantity * $price);
-        //         // If discount not calculated, calculate it
-        //         if ($item_discount_amount == 0 && $item_discount_percentage > 0) {
-        //             $item_total = $quantity * $price;
-        //             $item_discount_amount = ($item_total * $item_discount_percentage) / 100;
-        //             $item_final_amount = $item_total - $item_discount_amount;
-        //         }
-        //         $item_data = [
-        //             "return_id" => $return_id,
-        //             "batch_id" => $batch_id,
-        //             "quantity_returned" => $quantity,
-        //             "return_price" => $price,
-        //             "total_amount" => $quantity * $price,
-        //             "discount_percentage" => $item_discount_percentage,
-        //             "discount_amount" => $item_discount_amount,
-        //             "final_amount" => $item_final_amount,
-        //             "created_at" => date("Y-m-d H:i:s")
-        //         ];
-        //         $this->db->insert("medicine_return_items", $item_data);
-        //         $db_error = $this->db->error();
-        //         if ($db_error["code"] != 0) {
-        //             $this->db->trans_rollback();
-        //             return false;
-        //         }
-          
-        //        var_dump("quantity-", $quantity, "sale-id", $sale_id, "batch-id", $batch_id);
-        //         $quantity = (float) $quantity;
-        //         $this->db->set(
-        //             'quantity_returned',
-        //             'COALESCE(quantity_returned, 0) + ' . $quantity,
-        //             false
-        //         );
-        //         $this->db->set('updated_at', date('Y-m-d H:i:s'));
-        //         $this->db->where('sale_id', $sale_id);
-        //         $this->db->where('batch_id', $batch_id);
-        //         $this->db->update('sale_items');
-        //         $sale_items = $this->db
-        //             ->get_where('sale_items', [
-        //                 'sale_id' => $sale_id,
-        //                 'batch_id' => $batch_id
-        //             ])
-        //             ->row();
-        //         $this->db->set("quantity_remaining", "quantity_remaining + " . $quantity, false);
-        //         $this->db->set("updated_at", "NOW()", false);
-        //         $this->db->where("id", $batch_id);
-        //         $this->db->update("medicine_batches");
-        //         $db_error = $this->db->error();
-        //         if ($db_error["code"] != 0) {
-        //             $this->db->trans_rollback();
-        //             return false;
-        //         }
-        //         $this->db->where("batch_id", $batch_id);
-        //         $this->db->where("center_id", $return_data["center_id"]);
-        //         $this->db->where("department", $return_data["department"]);
-        //         $center_stock = $this->db->get("center_stocks")->row();
-        //         $quantity_before = 0; 
-        //         if ($center_stock) {
-        //             $quantity_before = (float)$center_stock->quantity;
-        //             $this->db->where("id", $center_stock->id);
-        //             $this->db->set("quantity", "quantity + " . $quantity, false);
-        //             $this->db->set("last_movement_date", date("Y-m-d H:i:s"));
-        //             $this->db->set("updated_at", "NOW()", false);
-        //             $this->db->update("center_stocks");
-        //         } else {
-        //             $center_stock_data = [
-        //                 "batch_id" => $batch_id,
-        //                 "center_id" => $return_data["center_id"],
-        //                 "department" => $return_data["department"],
-        //                 "quantity" => $quantity,
-        //                 "reserved_quantity" => 0,
-        //                 "status" => "ACTIVE",
-        //                 "last_movement_date" => date("Y-m-d H:i:s"),
-        //                 "created_at" => date("Y-m-d H:i:s"),
-        //                 "updated_at" => date("Y-m-d H:i:s"),
-        //             ];
-        //             $this->db->insert("center_stocks", $center_stock_data);
-        //         }
-        //         $quantity_after = $quantity_before + $quantity; 
-        //         // 5h. Error Check
-        //         $db_error = $this->db->error();
-        //         if ($db_error["code"] != 0) {
-        //             $this->db->trans_rollback();
-        //             return false;
-        //         }
-
-        //         // 5i. Record Audit Trail (`stock_movements`)
-        //         if ($this->db->table_exists("stock_movements")) {
-        //             $movement_data = [
-        //                 "batch_id" => $batch_id,
-        //                 "movement_type" => "SALE_RETURN",
-        //                 "from_location_type" => "SALE",
-        //                 "from_location_id" => $sale_id, // Store the sale_id here
-        //                 "to_location_type" => "CENTER",
-        //                 "to_location_id" => $return_data["center_id"],
-        //                 "quantity_before" => $quantity_before,
-        //                 "quantity_change" => $quantity,
-        //                 "quantity_after" => $quantity_after,
-        //                 "unit_price" => $price,
-        //                 "total_value" => $quantity * $price,
-        //                 "reference_type" => "RETURN_VOUCHER",
-        //                 "reference_id" => $return_id,
-        //                 "reference_number" => $return_data["return_number"],
-        //                 "patient_id" => $return_data["patient_id"],
-        //                 "patient_name" => $return_data["patient_name"],
-        //                 "remarks" => "Medicine returned from patient",
-        //                 "created_at" => date("Y-m-d H:i:s"),
-        //                 "created_by" => $return_data["created_by"],
-        //             ];
-        //             $this->db->insert("stock_movements", $movement_data);
-        //             // Error Check
-        //             $db_error = $this->db->error();
-        //             if ($db_error["code"] != 0) {
-        //                 $this->db->trans_rollback();
-        //                 return false;
-        //             }
-        //         }
-        //         $total_items_processed++;
-        //     }
-        //     // 6. Final check
-        //     if ($total_items_processed == 0) {
-        //         $this->db->trans_rollback();
-        //         return false;
-        //     }
-        //     // 7. Complete Transaction
-        //     $this->db->trans_complete();
-        //     return $this->db->trans_status();
-        // }
         public function get_all_active_batches()
         {
             $this->db->select('
@@ -6119,8 +5242,12 @@ class Stock_model_new extends CI_Model
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
             // Sirf wahi batches jo expire nahi hue aur active hain
             $this->db->where("mb.batch_status", "ACTIVE");
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->where("m.status", "active");
             $this->db->where("mb.expiry_date >", date('Y-m-d'));
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             // Order by Medicine Name and Expiry (FEFO)
             $this->db->order_by("m.medicine_name", "ASC");
             $this->db->order_by("mb.expiry_date", "ASC");
@@ -6280,7 +5407,6 @@ class Stock_model_new extends CI_Model
         public function disapprove_medicine_return($return_id)
         {
             $this->db->trans_start();
-
             $return = $this->db->where('id', $return_id)->get('medicine_returns')->row();
             if (!$return || $return->status != 'PENDING') {
                 $this->db->trans_rollback();
@@ -6350,230 +5476,6 @@ class Stock_model_new extends CI_Model
             //     return false;
             // }
         }
-        // public function process_medicine_return($return_data, $return_items)
-        // {
-        //     if (empty($return_items)) {
-        //         return false;
-        //     }
-        //     $this->db->trans_start();
-        //     $return_data["return_number"] =
-        //         "RET" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-        //     $this->db->insert("medicine_returns", $return_data);
-        //     $db_error = $this->db->error();
-        //     if ($db_error["code"] != 0) {
-        //         $this->db->trans_rollback();
-        //         return false;
-        //     }
-        //     $return_id = $this->db->insert_id();
-        //     if ($return_id && !empty($return_items)) {
-        //         foreach ($return_items as $index => $item) {
-        //             error_log(
-        //                 "Processing return item " .
-        //                     ($index + 1) .
-        //                     ": " .
-        //                     print_r($item, true),
-        //             );
-        //             $quantity = isset($item["return_quantity"])
-        //                 ? $item["return_quantity"]
-        //                 : (isset($item["quantity"])
-        //                     ? $item["quantity"]
-        //                     : 0);
-        //             $price = isset($item["price"]) ? $item["price"] : 0;
-        //             if (
-        //                 empty($item["batch_id"]) ||
-        //                 empty($quantity) ||
-        //                 empty($price)
-        //             ) {
-        //                 error_log(
-        //                     "ERROR: Invalid item data at index " .
-        //                         $index .
-        //                         " - batch_id: " .
-        //                         (isset($item["batch_id"])
-        //                             ? $item["batch_id"]
-        //                             : "missing") .
-        //                         ", quantity: " .
-        //                         $quantity .
-        //                         ", price: " .
-        //                         $price,
-        //                 );
-        //                 continue;
-        //             }
-
-        //             $item_data = [
-        //                 "return_id" => $return_id,
-        //                 "batch_id" => $item["batch_id"],
-        //                 "quantity_returned" => $quantity,
-        //                 "return_price" => $price,
-        //                 "total_amount" => $quantity * $price,
-        //             ];
-        //             $this->db->insert("medicine_return_items", $item_data);
-        //             // Check for insert error
-        //             $db_error = $this->db->error();
-        //             if ($db_error["code"] != 0) {
-        //                 $this->db->trans_rollback();
-        //                 return false;
-        //             }
-        //             // Get batch details for stock movement
-        //             $batch = $this->db
-        //                 ->get_where("medicine_batches", ["id" => $item["batch_id"]])
-        //                 ->row();
-
-        //             if (!$batch) {
-        //                 continue;
-        //             }
-        //             $this->db->set(
-        //                 "quantity_remaining",
-        //                 "quantity_remaining + " . $quantity,
-        //                 false,
-        //             );
-        //             $this->db->where("id", $item["batch_id"]);
-        //             $this->db->update("medicine_batches");
-        //             $db_error = $this->db->error();
-        //             $updated_batch = $this->db
-        //                 ->get_where("medicine_batches", ["id" => $item["batch_id"]])
-        //                 ->row();
-        //             // **FIX: Update center_stocks table**
-        //             // Check if center stock record exists for this batch and center
-        //             $this->db->where("batch_id", $item["batch_id"]);
-        //             $this->db->where("center_id", $return_data["center_id"]);
-        //             $center_stock = $this->db->get("center_stocks")->row();
-        //             if ($center_stock) {
-        //                 // Update existing center stock - add returned quantity
-        //                 $this->db->where("batch_id", $item["batch_id"]);
-        //                 $this->db->where("center_id", $return_data["center_id"]);
-        //                 $this->db->set(
-        //                     "quantity",
-        //                     "quantity + " . $quantity,
-        //                     false,
-        //                 );
-        //                 $this->db->set("last_movement_date", date("Y-m-d H:i:s"));
-        //                 $this->db->update("center_stocks");
-        //             } else {
-        //                 // Create new center stock record if it doesn't exist
-        //                 $center_stock_data = [
-        //                     "batch_id" => $item["batch_id"],
-        //                     "center_id" => $return_data["center_id"],
-        //                     "quantity" => $quantity,
-        //                     "reserved_quantity" => 0,
-        //                     "status" => "ACTIVE",
-        //                     "last_movement_date" => date("Y-m-d H:i:s"),
-        //                     "created_at" => date("Y-m-d H:i:s"),
-        //                     "updated_at" => date("Y-m-d H:i:s"),
-        //                 ];
-        //                 $this->db->insert("center_stocks", $center_stock_data);
-        //             }
-        //             // Check for center_stocks update error
-        //             $db_error = $this->db->error();
-        //             // Record stock movement (only if table exists)
-        //             if ($this->db->table_exists("stock_movements")) {
-        //                 // Get current center stock quantity for accurate reporting
-        //                 $current_center_stock = $this->db
-        //                     ->where("batch_id", $item["batch_id"])
-        //                     ->where("center_id", $return_data["center_id"])
-        //                     ->get("center_stocks")
-        //                     ->row();
-        //                 $quantity_after = $current_center_stock
-        //                     ? $current_center_stock->quantity
-        //                     : $quantity;
-        //                 $quantity_before = $quantity_after - $quantity;
-        //                 // Prepare stock movement data
-        //                 $movement_data = [
-        //                     "batch_id" => $item["batch_id"],
-        //                     "movement_type" => "SALE_RETURN",
-        //                     "from_location_type" => "SALE",
-        //                     "from_location_id" => null,
-        //                     "to_location_type" => "CENTER",
-        //                     "to_location_id" => $return_data["center_id"],
-        //                     "quantity_before" => $quantity_before,
-        //                     "quantity_change" => $quantity,
-        //                     "quantity_after" => $quantity_after,
-        //                     "unit_price" => $price,
-        //                     "total_value" => $quantity * $price,
-        //                     "reference_type" => "RETURN_VOUCHER",
-        //                     "reference_id" => $return_id,
-        //                     "reference_number" => $return_data["return_number"],
-        //                     "patient_id" => $return_data["patient_id"],
-        //                     "patient_name" => $return_data["patient_name"],
-        //                     "remarks" => "Medicine returned from patient",
-        //                     "created_at" => date("Y-m-d H:i:s"),
-        //                 ];
-        //                 // Only add created_by if it exists in hms_employees table
-        //                 if (!empty($return_data["created_by"])) {
-        //                     $employee_exists =
-        //                         $this->db
-        //                             ->where("ID", $return_data["created_by"])
-        //                             ->get("hms_employees")
-        //                             ->num_rows() > 0;
-        //                 }
-
-        //                 $this->db->insert("stock_movements", $movement_data);
-        //                 // Get batch details for stock movement
-        //                 $batch = $this->db->get_where('medicine_batches', ['id' => $item['batch_id']])->row();
-        //                 if(!$batch) {
-        //                     continue;
-        //                 }
-        //                 // Update batch quantity
-        //                 $this->db->set('quantity_remaining', 'quantity_remaining + ' . $quantity, FALSE);
-        //                 $this->db->where('id', $item['batch_id']);
-        //                 $this->db->update('medicine_batches');
-        //                 // Check for update error
-        //                 // Get updated quantity
-        //                 $updated_batch = $this->db->get_where('medicine_batches', ['id' => $item['batch_id']])->row();
-        //                 // Record stock movement (only if table exists)
-        //                 if($this->db->table_exists('stock_movements')) {
-        //                     // Prepare stock movement data
-        //                     $movement_data = [
-        //                         'batch_id' => $item['batch_id'],
-        //                         'movement_type' => 'SALE_RETURN',
-        //                         'from_location_type' => 'PATIENT',
-        //                         'from_location_id' => $return_data['patient_id'],
-        //                         'to_location_type' => 'CENTER',
-        //                         'to_location_id' => $return_data['center_id'],
-        //                         'quantity_change' => $quantity,
-        //                         'quantity_after' => $updated_batch->quantity_remaining,
-        //                         'unit_price' => $price,
-        //                         'total_value' => $quantity * $price,
-        //                         'reference_type' => 'MEDICINE_RETURN',
-        //                         'reference_id' => $return_id,
-        //                         'reference_number' => $return_data['return_number'],
-        //                         'patient_id' => $return_data['patient_id'],
-        //                         'patient_name' => $return_data['patient_name'],
-        //                         'created_at' => date('Y-m-d H:i:s')
-        //                     ];
-        //                     // Only add created_by if it exists in hms_employees table
-        //                     if(!empty($return_data['created_by'])) {
-        //                         $employee_exists = $this->db->where('ID', $return_data['created_by'])
-        //                             ->get('hms_employees')
-        //                             ->num_rows() > 0;
-
-        //                         if($employee_exists) {
-        //                             $movement_data['created_by'] = $return_data['created_by'];
-        //                         } else {
-        //                             error_log('WARNING: created_by employee ID ' . $return_data['created_by'] . ' does not exist in hms_employees table');
-        //                         }
-        //                     }
-
-        //                     $this->db->insert('stock_movements', $movement_data);
-        //                     // Check for insert error
-        //                     $db_error = $this->db->error();
-        //                     if($db_error['code'] != 0) {
-        //                         error_log('ERROR inserting into stock_movements: ' . print_r($db_error, true));
-        //                     }
-        //                 } else {
-        //                     error_log('WARNING: stock_movements table does not exist, skipping movement record');
-        //                 }
-        //             }
-        //         }
-        //     } else {
-        //         error_log("ERROR: Return ID not created or no return items");
-        //         $this->db->trans_rollback();
-        //         return false;
-        //     }
-
-        //     $this->db->trans_complete();
-        //     $status = $this->db->trans_status();
-        //     return $status;
-        // }
 
         public function get_medicine_returns()
         {
@@ -6605,6 +5507,8 @@ class Stock_model_new extends CI_Model
             $this->db->join("medicine_batches mb", "mri.batch_id = mb.id", "left");
             $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
             $this->db->join("medicine_brands b", "m.brand_id = b.id", "left");
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->group_by("mr.id");
             $this->db->order_by("mr.created_at", "DESC");
             return $this->db->get()->result();
@@ -6678,7 +5582,8 @@ class Stock_model_new extends CI_Model
             $this->db->join("medicine_batches mb", "mri.batch_id = mb.id", "left");
             $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
-
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             // Session Filters
             $center = null;
             if (!empty($_SESSION['logged_billing_manager'])) {
@@ -6732,6 +5637,8 @@ class Stock_model_new extends CI_Model
             //     "left",
             // );
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->where("mri.return_id", $return_id);
             return $this->db->get()->result();
         }
@@ -6798,79 +5705,6 @@ class Stock_model_new extends CI_Model
         // PROCESS FUNCTIONS FOR RETURNS, DISPOSAL, AUDIT
         // ===============================================
 
-        // public function process_medicine_disposal($disposal_data, $disposal_items)
-        // {
-        //     try {
-        //         $this->db->trans_start();
-        //         // Insert disposal record
-        //         $disposal_data["disposal_number"] =
-        //             "DIS" .
-        //             date("Ymd") .
-        //             str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-        //         $this->db->insert("disposal_reports", $disposal_data);
-        //         $disposal_id = $this->db->insert_id();
-        //         if ($disposal_id && !empty($disposal_items)) {
-        //             foreach ($disposal_items as $item) {
-        //                 if (
-        //                     !empty($item["batch_id"]) &&
-        //                     !empty($item["disposal_quantity"])
-        //                 ) {
-        //                     $batch = $this->db
-        //                         ->get_where("medicine_batches", [
-        //                             "id" => $item["batch_id"],
-        //                         ])
-        //                         ->row();
-
-        //                     if (
-        //                         $batch &&
-        //                         $batch->quantity_remaining >=
-        //                             $item["disposal_quantity"]
-        //                     ) {
-        //                         $new_quantity =
-        //                             $batch->quantity_remaining -
-        //                             $item["disposal_quantity"];
-        //                         $this->db->where("id", $item["batch_id"]);
-        //                         $this->db->update("medicine_batches", [
-        //                             "quantity_remaining" => $new_quantity,
-        //                             "updated_at" => date("Y-m-d H:i:s"),
-        //                         ]);
-
-        //                         // Record stock movement
-        //                         $this->db->insert("stock_movements", [
-        //                             "batch_id" => $item["batch_id"],
-        //                             "movement_type" => "DISPOSAL",
-        //                             "from_location_type" => "CENTER",
-        //                             "from_location_id" =>
-        //                                 $disposal_data["center_id"],
-        //                             "to_location_type" => "DISPOSAL",
-        //                             "to_location_id" => 0,
-        //                             "quantity_change" => -$item[
-        //                                 "disposal_quantity"
-        //                             ],
-        //                             "quantity_after" => $new_quantity,
-        //                             "unit_price" => $batch->purchase_price,
-        //                             "total_value" =>
-        //                                 $item["disposal_quantity"] *
-        //                                 $batch->purchase_price,
-        //                             "reference_type" => "DISPOSAL",
-        //                             "reference_id" => $disposal_id,
-        //                             "reference_number" =>
-        //                                 $disposal_data["disposal_number"],
-        //                             "created_by" => $disposal_data["created_by"],
-        //                             "created_at" => date("Y-m-d H:i:s"),
-        //                         ]);
-        //                     }
-        //                 }
-        //             }
-        //         }
-
-        //         $this->db->trans_complete();
-        //         return $this->db->trans_status();
-        //     } catch (Exception $e) {
-        //         $this->db->trans_rollback();
-        //         return false;
-        //     }
-        // }
 
         public function process_medicine_disposal($disposal_data, $disposal_items)
         {
@@ -7107,8 +5941,10 @@ class Stock_model_new extends CI_Model
                 // Filter specifically for this disposal report's log entries
                 $this->db->where('sm.reference_id', $disposal_id);
                 $this->db->where('sm.reference_type', 'DISPOSAL_VOUCHER');
-                $this->db->where('sm.movement_type', 'DISPOSAL'); // Ensure correct movement type
-                $this->db->order_by('sm.created_at', 'ASC'); // Order by log entry time
+                $this->db->where('sm.movement_type', 'DISPOSAL'); 
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
+                $this->db->order_by('sm.created_at', 'ASC');
                 return $this->db->get()->result(); // Return an array of item objects
                 
             // } catch (Exception $e) {
@@ -7265,6 +6101,8 @@ class Stock_model_new extends CI_Model
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
             $this->db->where('sm.reference_id', $audit_id);
             $this->db->where('sm.reference_type', 'AUDIT_REPORT');
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->order_by('sm.created_at', 'ASC'); 
             return $this->db->get()->result(); 
         // } catch (Exception $e) {
@@ -7273,167 +6111,6 @@ class Stock_model_new extends CI_Model
         // }
     }
 
-        // public function process_stock_audit($audit_data, $audit_items)
-        // {
-        //     try {
-        //         $this->db->trans_start();
-
-        //         // Insert audit record
-        //         $audit_data["audit_number"] =
-        //             "AUD" .
-        //             date("Ymd") .
-        //             str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-        //         $this->db->insert("audit_reports", $audit_data);
-        //         $audit_id = $this->db->insert_id();
-
-        //         if ($audit_id && !empty($audit_items)) {
-        //             // Process each audit item
-        //             foreach ($audit_items as $item) {
-        //                 if (
-        //                     !empty($item["batch_id"]) &&
-        //                     isset($item["physical_quantity"])
-        //                 ) {
-        //                     // Get batch details
-        //                     $batch = $this->db
-        //                         ->get_where("medicine_batches", [
-        //                             "id" => $item["batch_id"],
-        //                         ])
-        //                         ->row();
-
-        //                     if ($batch) {
-        //                         $system_quantity = $batch->quantity_remaining;
-        //                         $physical_quantity = $item["physical_quantity"];
-        //                         $variance = $physical_quantity - $system_quantity;
-
-        //                         // If there's a variance, adjust the stock
-        //                         if ($variance != 0) {
-        //                             $new_quantity = $physical_quantity;
-        //                             $this->db->where("id", $item["batch_id"]);
-        //                             $this->db->update("medicine_batches", [
-        //                                 "quantity_remaining" => $new_quantity,
-        //                                 "updated_at" => date("Y-m-d H:i:s"),
-        //                             ]);
-
-        //                             // Record stock movement for adjustment
-        //                             $this->db->insert("stock_movements", [
-        //                                 "batch_id" => $item["batch_id"],
-        //                                 "movement_type" =>
-        //                                     $variance > 0
-        //                                         ? "AUDIT_IN"
-        //                                         : "AUDIT_OUT",
-        //                                 "from_location_type" => "AUDIT",
-        //                                 "from_location_id" =>
-        //                                     $audit_data["center_id"],
-        //                                 "to_location_type" => "CENTER",
-        //                                 "to_location_id" =>
-        //                                     $audit_data["center_id"],
-        //                                 "quantity_change" => $variance,
-        //                                 "quantity_after" => $new_quantity,
-        //                                 "unit_price" => $batch->purchase_price,
-        //                                 "total_value" =>
-        //                                     abs($variance) * $batch->purchase_price,
-        //                                 "reference_type" => "AUDIT",
-        //                                 "reference_id" => $audit_id,
-        //                                 "reference_number" =>
-        //                                     $audit_data["audit_number"],
-        //                                 "created_by" => $audit_data["created_by"],
-        //                                 "created_at" => date("Y-m-d H:i:s"),
-        //                             ]);
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-
-        //         $this->db->trans_complete();
-        //         return $this->db->trans_status();
-        //     } catch (Exception $e) {
-        //         $this->db->trans_rollback();
-        //         return false;
-        //     }
-        // }
-
-        // public function process_vendor_return($return_data, $return_items)
-        // {
-        //     try {
-        //         $this->db->trans_start();
-
-        //         // Insert vendor return record
-        //         $return_data["return_number"] =
-        //             "VRET" .
-        //             date("Ymd") .
-        //             str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-        //         $return_data["status"] = "PENDING";
-        //         $this->db->insert("vendor_returns", $return_data);
-        //         $return_id = $this->db->insert_id();
-
-        //         if ($return_id && !empty($return_items)) {
-        //             // Process each return item
-        //             foreach ($return_items as $item) {
-        //                 if (
-        //                     !empty($item["batch_id"]) &&
-        //                     !empty($item["return_quantity"])
-        //                 ) {
-        //                     // Get batch details
-        //                     $batch = $this->db
-        //                         ->get_where("medicine_batches", [
-        //                             "id" => $item["batch_id"],
-        //                         ])
-        //                         ->row();
-
-        //                     if (
-        //                         $batch &&
-        //                         $batch->quantity_remaining >=
-        //                             $item["return_quantity"]
-        //                     ) {
-        //                         // Update batch quantity
-        //                         $new_quantity =
-        //                             $batch->quantity_remaining -
-        //                             $item["return_quantity"];
-        //                         $this->db->where("id", $item["batch_id"]);
-        //                         $this->db->update("medicine_batches", [
-        //                             "quantity_remaining" => $new_quantity,
-        //                             "updated_at" => date("Y-m-d H:i:s"),
-        //                         ]);
-
-        //                         // Record stock movement
-        //                         $this->db->insert("stock_movements", [
-        //                             "batch_id" => $item["batch_id"],
-        //                             "movement_type" => "PURCHASE_RETURN",
-        //                             "from_location_type" => "CENTER",
-        //                             "from_location_id" => $return_data["center_id"],
-        //                             "to_location_type" => "VENDOR",
-        //                             "to_location_id" => $return_data["vendor_id"],
-        //                             "quantity_change" => -$item["return_quantity"],
-        //                             "quantity_after" => $new_quantity,
-        //                             "unit_price" => $batch->purchase_price,
-        //                             "total_value" =>
-        //                                 $item["return_quantity"] *
-        //                                 $batch->purchase_price,
-        //                             "reference_type" => "VENDOR_RETURN",
-        //                             "reference_id" => $return_id,
-        //                             "reference_number" =>
-        //                                 $return_data["return_number"],
-        //                             "created_by" => $return_data["created_by"],
-        //                             "created_at" => date("Y-m-d H:i:s"),
-        //                         ]);
-        //                     }
-        //                 }
-        //             }
-        //         }
-
-        //         $this->db->trans_complete();
-        //         return $this->db->trans_status();
-        //     } catch (Exception $e) {
-        //         $this->db->trans_rollback();
-        //         return false;
-        //     }
-        // }
-        /**
-     * Processes a vendor return.
-     * Updates vendor_returns, center_stocks, medicine_batches, and stock_movements.
-     * Does NOT use vendor_return_items table.
-     */
         public function process_vendor_return($return_data, $return_items)
         {
             if (empty($return_items)) {
@@ -7623,139 +6300,6 @@ class Stock_model_new extends CI_Model
 
             return null;
         }
-
-         // End function
-        // public function process_vendor_return($return_data, $return_items)
-        // {
-        //     if (empty($return_items)) {
-        //         $this->session->set_flashdata('error', 'No items selected for return.');
-        //         return false;
-        //     }
-        //     if (empty($return_data['center_id']) || empty($return_data['vendor_id']) || empty($return_data['created_by'])) {
-        //         $this->session->set_flashdata('error', 'Center, Vendor, or User ID missing.');
-        //         return false;
-        //     }
-
-        //     $this->db->trans_start(); 
-        //     // 1. Insert Vendor Return Header (`vendor_returns`)
-        //     $return_data["return_number"] = "VRET" . date("Ymd") . str_pad(rand(1, 9999), 4, "0", STR_PAD_LEFT);
-        //     $return_data["total_items"] = 0;
-        //     $return_data["total_quantity"] = 0; 
-        //     $return_data["total_value"] = 0.00;
-        //     // Ensure only allowed fields are inserted
-        //     $allowed_header_fields = ['return_number', 'vendor_id', 'center_id', 'return_date', 'return_reason', 'total_items', 'total_quantity', 'total_value', 'status', 'remarks', 'created_by', 'created_at'];
-        //     $filtered_return_data = array_intersect_key($return_data, array_flip($allowed_header_fields));
-        //     $this->db->insert("vendor_returns", $filtered_return_data);
-        //     $db_error = $this->db->error();
-        //     if ($db_error["code"] != 0) { log_message('error', 'DB Error (vendor_returns insert): '.$db_error["message"]); $this->db->trans_rollback(); return false; }
-        //     $return_id = $this->db->insert_id();
-        //     if (!$return_id) { log_message('error', 'DB Error: Failed to get insert_id for vendor_returns.'); $this->db->trans_rollback(); return false; }
-        //     $calculated_total_value = 0;
-        //     $calculated_total_items = 0;
-        //     $calculated_total_quantity = 0;
-        //     foreach ($return_items as $item) {
-        //         $quantity_to_return = isset($item["quantity_returned"]) ? (int)$item["quantity_returned"] : 0;
-        //         $batch_id = isset($item["batch_id"]) ? (int)$item["batch_id"] : 0;
-        //         $unit_price = isset($item["unit_price"]) ? (float)$item["unit_price"] : 0; // Get price from hidden input
-        //         if ($batch_id <= 0 || $quantity_to_return <= 0 || $unit_price <= 0) { // Also check price
-        //             continue; // Skip invalid items
-        //         }
-        //         // 2a. Insert Vendor Return Item Line (`vendor_return_items`) - ASSUMES TABLE EXISTS
-        //         if ($this->db->table_exists('vendor_return_items')) {
-        //             $item_total_value = $unit_price * $quantity_to_return;
-        //             $item_data = [
-        //                 "return_id"         => $return_id,
-        //                 "batch_id"          => $batch_id,
-        //                 "quantity_returned" => $quantity_to_return,
-        //                 "unit_price"        => $unit_price, // Use price from hidden input
-        //                 "total_amount"      => $item_total_value
-        //                 // Add remarks column if it exists in vendor_return_items
-        //             ];
-        //             $this->db->insert("vendor_return_items", $item_data);
-        //             if ($this->db->error()["code"] != 0) { log_message('error', 'DB Error (vendor_return_items insert): '.$this->db->error()["message"]); $this->db->trans_rollback(); return false; }
-        //         } else {
-        //             log_message('error', 'Vendor Return failed: vendor_return_items table missing.');
-        //             $this->db->trans_rollback(); return false;
-        //         }
-        //         // 2c. Decrease Center Stock (`center_stocks`)
-        //         $this->db->where("batch_id", $batch_id);
-        //         $this->db->where("center_id", $return_data["center_id"]);
-        //         $center_stock = $this->db->select('quantity')->get("center_stocks")->row();
-        //         $quantity_before = ($center_stock) ? (int)$center_stock->quantity : 0;
-        //         // Only return what's actually available at the center
-        //         $actual_returned_qty = min($quantity_to_return, $quantity_before);
-        //         if ($actual_returned_qty <= 0) { continue; } // Skip if no stock
-        //         $quantity_after = $quantity_before - $actual_returned_qty;
-        //         $actual_item_total_value = $unit_price * $actual_returned_qty; // Value based on actual returned qty
-        //         // Update using GREATEST to prevent negative stock
-        //         $this->db->set("quantity", "GREATEST(0, quantity - " . $actual_returned_qty . ")", FALSE);
-        //         $this->db->set("last_movement_date", "NOW()", false);
-        //         $this->db->set("updated_at", "NOW()", false);
-        //         $this->db->where("batch_id", $batch_id);
-        //         $this->db->where("center_id", $return_data["center_id"]);
-        //         $this->db->update("center_stocks");
-        //         if ($this->db->error()["code"] != 0) { log_message('error', 'DB Error (center_stocks update): '.$this->db->error()["message"]); $this->db->trans_rollback(); return false; }
-        //         // 2b. Decrease Master Batch Stock (`medicine_batches`) - By the actual returned amount
-        //         $this->db->set("quantity_remaining", "GREATEST(0, quantity_remaining - " . $actual_returned_qty . ")", FALSE);
-        //         $this->db->set("updated_at", "NOW()", false);
-        //         $this->db->where("id", $batch_id);
-        //         $this->db->update("medicine_batches");
-        //         if ($this->db->error()["code"] != 0) { log_message('error', 'DB Error (medicine_batches update): '.$this->db->error()["message"]); $this->db->trans_rollback(); return false; }
-        //         // 2d. Record Audit Trail (`stock_movements`)
-        //         if ($this->db->table_exists("stock_movements")) {
-        //             $movement_data = [
-        //                 "batch_id"           => $batch_id,
-        //                 "movement_type"      => "PURCHASE_RETURN",
-        //                 "from_location_type" => "CENTER",
-        //                 "from_location_id"   => $return_data["center_id"],
-        //                 "to_location_type"   => "VENDOR",
-        //                 "to_location_id"     => $return_data["vendor_id"],
-        //                 "quantity_before"    => $quantity_before,
-        //                 "quantity_change"    => -$actual_returned_qty, // Negative, actual qty
-        //                 "quantity_after"     => $quantity_after,
-        //                 "unit_price"         => $unit_price, // Purchase price
-        //                 "total_value"        => $actual_item_total_value, // Actual value
-        //                 "reference_type"     => "RETURN_VOUCHER", // As per schema
-        //                 "reference_id"       => $return_id,
-        //                 "reference_number"   => $return_data["return_number"],
-        //                 "remarks"            => "Return to vendor: " . ($return_data["return_reason"] ?? 'N/A'),
-        //                 "created_by"         => $return_data["created_by"],
-        //                 "created_at"         => date("Y-m-d H:i:s")
-        //             ];
-        //             $this->db->insert("stock_movements", $movement_data);
-        //             if ($this->db->error()["code"] != 0) { log_message('error', 'DB Error (stock_movements insert): '.$this->db->error()["message"]); $this->db->trans_rollback(); return false; }
-        //         }
-        //         // Update calculated totals
-        //         $calculated_total_items++;
-        //         $calculated_total_quantity += $actual_returned_qty;
-        //         $calculated_total_value += $actual_item_total_value;
-        //     } // End foreach loop
-        //     // 3. Final check: if no valid items processed
-        //     if ($calculated_total_items == 0) {
-        //         log_message('error', "Vendor Return failed: No valid items found with available stock.");
-        //         $this->db->trans_rollback();
-        //         $this->session->set_flashdata('error', 'No stock available for the selected items/batches at this center for this vendor.');
-        //         return false;
-        //     }
-        //     // 4. Update Header Totals (`vendor_returns`) with CALCULATED values
-        //     $update_data = [
-        //         'total_items'    => $calculated_total_items,
-        //         'total_quantity' => $calculated_total_quantity,
-        //         'total_value'    => $calculated_total_value,
-        //         'updated_at'     => date("Y-m-d H:i:s") // Manually update timestamp if needed
-        //     ];
-        //     $this->db->where('id', $return_id);
-        //     $this->db->update('vendor_returns', $update_data);
-        //     if ($this->db->error()["code"] != 0) { log_message('error', 'DB Error (vendor_returns update totals): '.$this->db->error()["message"]); $this->db->trans_rollback(); return false; }
-        //     // 5. Complete Transaction
-        //     $this->db->trans_complete();
-        //     if ($this->db->trans_status() === FALSE) {
-        //         log_message('error', "Database transaction failed for vendor return ID: " . $return_id);
-        //         return false;
-        //     } else {
-        //         return true; // Success
-        //     }
-        // } // End function
         public function update_category($id, $data)
         {
             try {
@@ -8073,6 +6617,8 @@ class Stock_model_new extends CI_Model
                 $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
                 $this->db->where("poi.po_id", $po_id);
                 $this->db->where("poi.quantity >", 0);
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 return $this->db->get()->result();
             } catch (Exception $e) {
                 return [];
@@ -8451,6 +6997,8 @@ class Stock_model_new extends CI_Model
                     $this->db->where("m.status", "active");
                     $this->db->where("cs.quantity >", 0);
                     $this->db->where("cs.status", "ACTIVE");
+                    // $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                    // $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                     // --- FIX: Do not show expired stock ---
                     $this->db->where("mb.expiry_date >", date("Y-m-d"));
                 } elseif ($transfer_type == "CENTER_TO_CENTER") {
@@ -8501,6 +7049,8 @@ class Stock_model_new extends CI_Model
                     // Only show available center stocks
                     $this->db->where("mb.batch_status", "ACTIVE");
                     $this->db->where("m.status", "active");
+                    // $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                    // $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                     $this->db->where("ccs.quantity >", 0);
                     $this->db->where("ccs.status", "ACTIVE");
                     // --- FIX: Do not show expired stock ---
@@ -8551,6 +7101,8 @@ class Stock_model_new extends CI_Model
                     $this->db->where("m.status", "active");
                     $this->db->where("ccs.quantity >", 0);
                     $this->db->where("ccs.status", "ACTIVE");
+                    // $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                    // $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                     // --- FIX: Do not show expired stock ---
                     $this->db->where("mb.expiry_date >", date("Y-m-d"));
                 }
@@ -8564,179 +7116,6 @@ class Stock_model_new extends CI_Model
             }
         }
     
-        /**
-         * Get available stocks for transfer based on transfer type and source location
-         */
-        // public function get_available_stocks_for_transfer(
-        //     $transfer_type,
-        //     $from_center_id = null,
-        //     $from_department = null,
-        //     $from_employee_number = null,
-        // ) {
-        //     try {
-        //         if ($transfer_type == "CENTRAL_TO_CENTER") {
-        //             $this->db->select('
-        //                 mb.id as batch_id,
-        //                 mb.batch_number,
-        //                 mb.expiry_date,
-        //                 cs.quantity as quantity_remaining,
-        //                 mb.batch_status,
-        //                 mb.purchase_price,
-        //                 mb.selling_price,
-        //                 DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
-        //                 m.id as medicine_id,
-        //                 m.medicine_name,
-        //                 m.medicine_code,
-        //                 b.brand_name as brand_name,
-        //                 v.name as vendor_name,
-        //                 "CENTRAL" as center_name,
-        //                 CASE
-        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) < 0 THEN "EXPIRED"
-        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN "EXPIRING_SOON"
-        //                     ELSE "FRESH"
-        //                 END as expiry_status
-        //             ');
-
-        //             $this->db->from("medicine_batches mb");
-        //             $this->db->join("central_stocks cs", "mb.id = cs.batch_id");
-        //             $this->db->join("medicines m", "mb.medicine_id = m.id");
-        //             // $this->db->join(
-        //             //     $this->config->item("db_prefix") . "brands b",
-        //             //     "m.brand_id = b.ID",
-        //             //     "left",
-        //             // );
-        //             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
-        //             $this->db->join(
-        //                 $this->config->item("db_prefix") . "vendors v",
-        //                 "mb.vendor_id = v.ID",
-        //                 "left",
-        //             );
-
-        //             // Only show available central stocks
-        //             $this->db->where("mb.batch_status", "ACTIVE");
-        //             $this->db->where("cs.quantity >", 0);
-        //             $this->db->where("cs.status", "ACTIVE");
-        //         } elseif ($transfer_type == "CENTER_TO_CENTER") {
-        //             // Center stocks - join with center_stocks table
-        //             $this->db->select('
-        //                 mb.id as batch_id,
-        //                 mb.batch_number,
-        //                 mb.expiry_date,
-        //                 ccs.quantity as quantity_remaining,
-        //                 mb.batch_status,
-        //                 mb.purchase_price,
-        //                 mb.selling_price,
-        //                 DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
-        //                 m.id as medicine_id,
-        //                 m.medicine_name,
-        //                 m.medicine_code,
-        //                 b.brand_name as brand_name,
-        //                 v.name as vendor_name,
-        //                 c.center_name,
-        //                 CASE
-        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) < 0 THEN "EXPIRED"
-        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN "EXPIRING_SOON"
-        //                     ELSE "FRESH"
-        //                 END as expiry_status
-        //             ');
-
-        //             $this->db->from("medicine_batches mb");
-        //             $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
-        //             $this->db->join("medicines m", "mb.medicine_id = m.id");
-        //             // $this->db->join(
-        //             //     $this->config->item("db_prefix") . "brands b",
-        //             //     "m.brand_id = b.ID",
-        //             //     "left",
-        //             // );
-        //             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
-        //             $this->db->join(
-        //                 $this->config->item("db_prefix") . "vendors v",
-        //                 "mb.vendor_id = v.ID",
-        //                 "left",
-        //             );
-        //             $this->db->join(
-        //                 "hms_centers c",
-        //                 "ccs.center_id = c.ID",
-        //                 "left",
-        //             );
-
-        //             // Filter by source center
-        //             if ($from_center_id) {
-        //                 $this->db->where("ccs.center_id", $from_center_id);
-        //             }
-        //             // Filter by source department
-        //             if ($from_department) {
-        //                 $this->db->where("ccs.department", $from_department);
-        //             }
-
-        //             // Only show available center stocks
-        //             $this->db->where("mb.batch_status", "ACTIVE");
-        //             $this->db->where("ccs.quantity >", 0);
-        //             $this->db->where("ccs.status", "ACTIVE");
-        //         } elseif ($transfer_type == "CENTER_TO_CENTRAL") {
-        //             // Center stocks to return to central - join with center_stocks table
-        //             $this->db->select('
-        //                 mb.id as batch_id,
-        //                 mb.batch_number,
-        //                 mb.expiry_date,
-        //                 ccs.quantity as quantity_remaining,
-        //                 mb.batch_status,
-        //                 mb.purchase_price,
-        //                 mb.selling_price,
-        //                 DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days,
-        //                 m.id as medicine_id,
-        //                 m.medicine_name,
-        //                 m.medicine_code,
-        //                 b.brand_name as brand_name,
-        //                 v.name as vendor_name,
-        //                 c.center_name,
-        //                 CASE
-        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) < 0 THEN "EXPIRED"
-        //                     WHEN DATEDIFF(mb.expiry_date, CURDATE()) <= 30 THEN "EXPIRING_SOON"
-        //                     ELSE "FRESH"
-        //                 END as expiry_status
-        //             ');
-
-        //             $this->db->from("medicine_batches mb");
-        //             $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
-        //             $this->db->join("medicines m", "mb.medicine_id = m.id");
-        //             // $this->db->join(
-        //             //     $this->config->item("db_prefix") . "brands b",
-        //             //     "m.brand_id = b.ID",
-        //             //     "left",
-        //             // );
-        //             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
-        //             $this->db->join(
-        //                 $this->config->item("db_prefix") . "vendors v",
-        //                 "mb.vendor_id = v.ID",
-        //                 "left",
-        //             );
-        //             $this->db->join(
-        //                 "hms_centers c",
-        //                 "ccs.center_id = c.ID",
-        //                 "left",
-        //             );
-
-        //             // Filter by source center
-        //             if ($from_center_id) {
-        //                 $this->db->where("ccs.center_id", $from_center_id);
-        //             }
-
-        //             // Only show available center stocks
-        //             $this->db->where("mb.batch_status", "ACTIVE");
-        //             $this->db->where("ccs.quantity >", 0);
-        //             $this->db->where("ccs.status", "ACTIVE");
-        //         }
-
-        //         // Order by FEFO (First Expiry, First Out)
-        //         $this->db->order_by("mb.expiry_date", "ASC");
-        //         $this->db->order_by("m.medicine_name", "ASC");
-
-        //         return $this->db->get()->result();
-        //     } catch (Exception $e) {
-        //         return [];
-        //     }
-        // }
         public function get_all_stock_batches()
         {
         try {
@@ -8753,6 +7132,8 @@ class Stock_model_new extends CI_Model
                 $this->db->join('medicine_batches mb', 'cs.batch_id = mb.id');
                 $this->db->join('medicines m', 'mb.medicine_id = m.id');
                 $this->db->join('hms_centers c', 'cs.center_id = c.ID');
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'"); 
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 $this->db->where('cs.quantity >', 0); // Only batches with stock
                 $this->db->where('mb.batch_status', 'ACTIVE'); // Only active batches
                 $this->db->order_by('c.center_name', 'ASC');
@@ -8807,9 +7188,9 @@ class Stock_model_new extends CI_Model
             $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left'); // Corrected table name
-            
-            // Filter specifically for this return report's log entries
             $this->db->where('sm.reference_id', $return_id);
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->where('sm.reference_type', 'RETURN_VOUCHER'); // As per your schema
             $this->db->where('sm.movement_type', 'PURCHASE_RETURN');
             $this->db->order_by('sm.created_at', 'ASC');
@@ -8865,6 +7246,8 @@ class Stock_model_new extends CI_Model
         $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
         $this->db->where('m.id', $medicine_id);
         $this->db->where('m.status', 'active');
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         
         return $this->db->get()->row(); // Return one row
     }
@@ -8901,6 +7284,8 @@ class Stock_model_new extends CI_Model
         $this->db->from('medicines m');
         $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
         $this->db->where('m.status', 'active');
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
 
         if ($search_term) {
             $this->db->group_start();
@@ -9329,6 +7714,8 @@ public function add_stock_to_location($stock_data)
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
             $this->db->where('mb.id', $id);
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $query = $this->db->get();
             return $query->row();
 
@@ -9342,6 +7729,8 @@ public function add_stock_to_location($stock_data)
         $batch_details = $this->db->select('mb.id as batch_id, mb.batch_number, mb.expiry_date, mb.purchase_price, m.medicine_name')
                                   ->from('medicine_batches mb')
                                   ->join('medicines m', 'mb.medicine_id = m.id', 'left')
+                                  ->where("m.medicine_code NOT LIKE 'HK_%'")
+                                  ->where("m.medicine_code NOT LIKE 'ST_%'")
                                   ->where('mb.id', $batch_id)
                                   ->get()->row_array();
         if (!$batch_details) return null;
@@ -9527,6 +7916,8 @@ public function add_stock_to_location($stock_data)
             $this->db->join('hms_centers c', 'cs.center_id = c.ID', 'inner');
             $this->db->where('cs.quantity >', 0);
             $this->db->where('mb.batch_status', 'ACTIVE');
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->where("mb.id NOT IN ($sub_query)", NULL, FALSE); // Main filter
             $this->db->order_by('mb.expiry_date', 'ASC'); // Show oldest stock first
             $this->db->limit(50); // Limit results
@@ -9583,6 +7974,8 @@ public function add_stock_to_location($stock_data)
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left');
             $this->db->where('s.status', 'CONFIRMED');
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->group_by('m.id, m.medicine_name, b.brand_name');
             $this->db->order_by('total_revenue', 'DESC');
             $this->db->limit($limit);
@@ -9662,6 +8055,8 @@ public function add_stock_to_location($stock_data)
             $this->db->from('sale_items si');
             $this->db->join('medicine_batches mb', 'si.batch_id = mb.id', 'left');
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->join('medicine_brands b', 'm.brand_id = b.id', 'left'); // Correct join
             $this->db->where('si.sale_id', $sale_id);
             
@@ -10036,11 +8431,14 @@ public function add_stock_to_location($stock_data)
         return $this->db->get()->row();
     }
 
+
     public function get_package_items($package_id)
     {
         $this->db->select('pi.*, m.medicine_name, m.medicine_code, mb.brand_name');
         $this->db->from('package_items pi');
         $this->db->join('medicines m', 'pi.medicine_id = m.id', 'inner');
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         $this->db->join('medicine_brands mb', 'm.brand_id = mb.id', 'left');
         $this->db->where('pi.package_id', $package_id);
         return $this->db->get()->result();
@@ -10667,6 +9065,8 @@ public function add_stock_to_location($stock_data)
         $this->db->where('cs.center_id', $center_id);
         $this->db->where('cs.status', 'ACTIVE');
         $this->db->where('cs.quantity >', 0);
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
 
         if ($department) {
             $this->db->like('cs.department', $department);
@@ -10709,6 +9109,8 @@ public function add_stock_to_location($stock_data)
             $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
             $this->db->join("hms_employees e", "sm.created_by = e.ID", "left");
             $this->db->join("hms_centers hc", "sm.to_location_id = hc.ID AND sm.to_location_type = 'CENTER'", "left");
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             // --- FILTERS ---
             // This is the main filter: only show positive changes (stock additions)
             $this->db->where("sm.quantity_change >", 0);
@@ -10849,6 +9251,8 @@ public function add_stock_to_location($stock_data)
         $this->db->from('center_stocks ccs');
         $this->db->join('medicine_batches mb', 'ccs.batch_id = mb.id', 'inner');
         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         // Filters
         // $this->db->where('m.category', $category_name);
         $this->db->where('ccs.center_id', $center_id);
@@ -10925,13 +9329,14 @@ public function add_stock_to_location($stock_data)
             $department = $item_data['department'];
             $quantity = $item_data['quantity'];
             $expected_medicine_id = isset($item_data['medicine_id']) ? $item_data['medicine_id'] : null;
-
                 // 0. Validate batch belongs to expected medicine
             if ($expected_medicine_id) {
                 $this->db->select('mb.id, mb.medicine_id, m.medicine_name');
                 $this->db->from('medicine_batches mb');
                 $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
                 $this->db->where('mb.id', $batch_id);
+                $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                 $batch_medicine_check = $this->db->get()->row();
 
                 if (!$batch_medicine_check) {
@@ -10978,6 +9383,8 @@ public function add_stock_to_location($stock_data)
             }
             $this->db->where('ccs.status','ACTIVE');
             $this->db->where('ccs.quantity >', 0);
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             $this->db->order_by('ccs.quantity', 'DESC');
             $this->db->limit(1);
             $stock_record = $this->db->get()->row();
@@ -11100,6 +9507,8 @@ public function add_stock_to_location($stock_data)
             ->join('medicines m', 'mb.medicine_id = m.id', 'left')
             ->join('hms_centers c', 'sm.from_location_id = c.ID AND sm.from_location_type = "CENTER"', 'left')
             ->join('hms_employees e', 'sm.created_by = e.ID', 'left')
+            ->where("m.medicine_code NOT LIKE 'HK_%'")
+            ->where("m.medicine_code NOT LIKE 'ST_%'")
             ->order_by('sm.created_at', 'DESC')
             ->get_compiled_select();
 
@@ -11189,6 +9598,8 @@ public function add_stock_to_location($stock_data)
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
             $this->db->where('sm.movement_type', 'SALE');
             $this->db->where('sm.patient_id', $patient_id);
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             // ** NEW: Apply Date Filters **
             if (!empty($filters['start_date'])) {
                 $this->db->where('DATE(sm.created_at) >=', $filters['start_date']);
@@ -11268,6 +9679,8 @@ public function add_stock_to_location($stock_data)
             $this->db->from('stock_movements sm');
             $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'inner');
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'inner');
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
             
             // We only want 'SALE' transactions
             $this->db->where('sm.to_location_type', 'SALE_CONSUMPTION_BILLING');
@@ -11291,6 +9704,182 @@ public function add_stock_to_location($stock_data)
 
         // } catch (Exception $e) {
         //     log_message('error', 'Error in get_consumption_report_pivoted: ' . $e->getMessage());
+        //     return [];
+        // }
+    }
+
+    // stationary and housekeeping 
+       public function get_central_stocks_stationary_housekeeping(
+        $medicine_id = null,
+        $batch_number = null,
+        $status = null,
+    ) {
+        // try {
+            $this->db->select(
+                "cs.*, mb.batch_number,m.pack_size, mb.expiry_date, mb.purchase_price, mb.selling_price, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
+            );
+            $this->db->from("central_stocks cs");
+            $this->db->join("medicine_batches mb", "cs.batch_id = mb.id");
+            $this->db->join("medicines m", "mb.medicine_id = m.id");
+            $this->db->join("medicine_brands b",
+                "m.brand_id = b.id",
+            );
+            $this->db->join(
+                $this->config->item("db_prefix") . "vendors v",
+                "mb.vendor_id = v.ID",
+            );
+            $this->db->where("m.medicine_code LIKE 'HK_%'");
+            $this->db->or_where("m.medicine_code LIKE 'ST_%'");
+            if ($medicine_id && $medicine_id != "") {
+                $this->db->where("mb.medicine_id", $medicine_id);
+            }
+
+            if ($batch_number && $batch_number != "") {
+                $this->db->like("mb.batch_number", $batch_number);
+            }
+
+            if ($status && $status != "") {
+                $this->db->where("cs.status", $status);
+            }
+
+            $this->db->order_by("mb.expiry_date", "ASC");
+            return $this->db->get()->result();
+        // } catch (Exception $e) {
+        //     return [];
+        // }
+    }
+
+      public function get_all_medicines_stationary_housekeeping($medicine_name = null, $generic_name = null, $brand_id = null, $category = null, $selected_medicine_id = null)
+    {
+        $this->db->reset_query();
+        $this->db->select("m.*, mb.brand_name as brand_name");
+        $this->db->from("medicines m");
+        $this->db->join("medicine_brands mb", "m.brand_id = mb.id", "left");
+
+        // $this->db->join(
+        //     $this->config->item("db_prefix") . "brands mb",
+        //     "m.brand_id = mb.ID"
+        // );
+        $this->db->where("m.status", "active");
+        $this->db->where("m.medicine_code LIKE 'HK_%'");
+        $this->db->or_where("m.medicine_code LIKE 'ST_%'");
+
+        if (!empty($selected_medicine_id)) {
+            $this->db->where("m.ID", $selected_medicine_id);
+        }
+
+        // --- APPLY FILTERS ---
+        if (!empty($medicine_name)) {
+            $this->db->like("m.medicine_name", $medicine_name);
+        }
+        if (!empty($generic_name)) {
+            $this->db->like("m.generic_name", $generic_name);
+        }
+        if (!empty($brand_id)) {
+            $this->db->where("m.brand_id", $brand_id);
+        }
+        if (!empty($category)) {
+            $this->db->like("m.category", $category);
+        }
+        // --- END FILTERS ---
+
+        $this->db->order_by("m.medicine_name", "ASC");
+
+        return $this->db->get()->result();
+    }
+
+      public function stationary_housekeeping_center($center_id = null,$medicine_id = null,$batch_number = null,$status = null,$department = null) 
+    {
+        // try {
+            // Select columns - ensure pack_size is explicitly included from medicines table
+            // Using IFNULL (MySQL) to handle NULL pack_size values (defaults to 1)
+            // This ensures pack_size is always returned, even if medicine doesn't have it set
+            $this->db->select(
+                "ccs.*, mb.batch_number, mb.medicine_id, IFNULL(m.pack_size, 1) as pack_size, mb.expiry_date, mb.purchase_price, mb.selling_price, mb.mrp, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, c.center_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
+            );
+            $this->db->from("center_stocks ccs");
+            $this->db->join("medicine_batches mb", "ccs.batch_id = mb.id");
+            $this->db->join("medicines m", "mb.medicine_id = m.id");
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
+            $this->db->join("medicine_brands b",
+                "m.brand_id = b.id",
+            );
+            $this->db->join(
+                $this->config->item("db_prefix") . "vendors v",
+                "mb.vendor_id = v.ID",
+            );
+            $this->db->join("hms_centers c", "ccs.center_id = c.ID");
+            $this->db->where("m.medicine_code LIKE 'HK_%'");
+            $this->db->or_where("m.medicine_code LIKE 'ST_%'");
+            if ($center_id && $center_id != "") {
+                $this->db->where("ccs.center_id", $center_id);
+            }
+
+            if ($medicine_id && $medicine_id != "") {
+                $this->db->where("mb.medicine_id", $medicine_id);
+            }
+
+            if ($batch_number && $batch_number != "") {
+                $this->db->like("mb.batch_number", $batch_number);
+            }
+
+            if ($status && $status != "") {
+                $this->db->where("ccs.status", $status);
+            }
+
+            // if ($department && $department != "") {
+            //     $this->db->where("ccs.department", $department);
+            // }
+            // if ((isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') || (isset($_SESSION['logged_stock_manager']) && $_SESSION['logged_stock_manager']['role'] == 'stock_manager')){
+            // // if (isset($_SESSION['logged_billing_manager']) && $_SESSION['logged_billing_manager']['role'] == 'billing_manager') {
+            //     $this->db->where('ccs.center_id', $this->get_center_id($_SESSION['logged_billing_manager']['center']));
+            // }
+            $center = null;
+            if (!empty($_SESSION['logged_billing_manager']) &&
+                ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+                $center = $_SESSION['logged_billing_manager']['center'];
+                $department = $_SESSION['logged_billing_manager']['department'] ?? null;
+            }
+            if (!empty($_SESSION['logged_stock_manager']) &&
+                ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+                $center = $_SESSION['logged_stock_manager']['center'];
+                $department = $_SESSION['logged_stock_manager']['department'] ?? null;
+            }
+            if ($center !== null) {
+                $this->db->where('ccs.center_id', $this->get_center_id($center));
+            }
+            // Filter by department if available
+            if ($department !== null && $department !== '') {
+                if ($department == 'billing') {
+                    $this->db->like('ccs.department', 'CASH MEDICINE');
+                }elseif($department == 'Embryologist Basant Lok')
+                {
+                    $this->db->like('ccs.department', 'Embryology Basant Lok');
+                }
+                 else {
+                    $this->db->like('ccs.department', $department);
+                }
+            }
+            $this->db->order_by("mb.expiry_date", "ASC");
+            $results = $this->db->get()->result();
+            
+            // Post-process results to ensure pack_size is always set (fallback safety)
+            foreach ($results as $result) {
+                // Ensure pack_size is always set and valid
+                if (!isset($result->pack_size) || $result->pack_size === null || $result->pack_size === '' || $result->pack_size == 0) {
+                    $result->pack_size = 1;
+                } else {
+                    // Ensure pack_size is numeric
+                    $result->pack_size = floatval($result->pack_size);
+                    if ($result->pack_size <= 0) {
+                        $result->pack_size = 1;
+                    }
+                }
+            }
+            
+            return $results;
+        // } catch (Exception $e) {
         //     return [];
         // }
     }

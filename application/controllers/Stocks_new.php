@@ -86,6 +86,7 @@ class Stocks_new extends CI_Controller
     // MEDICINE PACKAGE MANAGEMENT
     // ===============================================
 
+
     public function packages()
     {
         $logg = checklogin();
@@ -247,7 +248,6 @@ class Stocks_new extends CI_Controller
             $data["package"] = $this->Stock_model_new->get_package_by_id($package_id);
             $data["package_items"] = $this->Stock_model_new->get_package_items($package_id);
             $data["medicines"] = $this->Stock_model_new->get_all_medicines_package();
-
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $this->load->view("stocks_new/edit_package", $data);
@@ -386,42 +386,42 @@ class Stocks_new extends CI_Controller
         }
     }
 
-    public function transfer_package_stock()
-    {
-        $logg = checklogin();
-        if ($logg["status"] == true) {
-            if ($this->input->post("action") == "transfer_package_stock") {
-                $this->form_validation->set_rules("package_id", "Package", "required");
-                $this->form_validation->set_rules("to_center_id", "To Center", "required");
-                $this->form_validation->set_rules("quantity", "Quantity", "required|numeric|greater_than[0]");
-                if ($this->form_validation->run() == true) {
-                    $transfer_data = [
-                        'package_id' => $this->input->post("package_id"),
-                        'to_center_id' => $this->input->post("to_center_id"),
-                        'quantity' => $this->input->post("quantity"),
-                        'to_department' => $this->input->post("to_department")
-                    ];
-                    $result = $this->Stock_model_new->transfer_package_stock($transfer_data, $this->get_current_user_id());
-                    if ($result['status'] === 'success') {
-                        $this->session->set_flashdata("success", $result['message']);
-                        redirect("stocks_new/packages");
-                    } else {
-                        $this->session->set_flashdata("error", $result['message']);
-                    }
-                }
-            }
+    // public function transfer_package_stock()
+    // {
+    //     $logg = checklogin();
+    //     if ($logg["status"] == true) {
+    //         if ($this->input->post("action") == "transfer_package_stock") {
+    //             $this->form_validation->set_rules("package_id", "Package", "required");
+    //             $this->form_validation->set_rules("to_center_id", "To Center", "required");
+    //             $this->form_validation->set_rules("quantity", "Quantity", "required|numeric|greater_than[0]");
+    //             if ($this->form_validation->run() == true) {
+    //                 $transfer_data = [
+    //                     'package_id' => $this->input->post("package_id"),
+    //                     'to_center_id' => $this->input->post("to_center_id"),
+    //                     'quantity' => $this->input->post("quantity"),
+    //                     'to_department' => $this->input->post("to_department")
+    //                 ];
+    //                 $result = $this->Stock_model_new->transfer_package_stock($transfer_data, $this->get_current_user_id());
+    //                 if ($result['status'] === 'success') {
+    //                     $this->session->set_flashdata("success", $result['message']);
+    //                     redirect("stocks_new/packages");
+    //                 } else {
+    //                     $this->session->set_flashdata("error", $result['message']);
+    //                 }
+    //             }
+    //         }
 
-            $data["packages"] = $this->Stock_model_new->get_all_packages();
-            $data["centers"] = $this->Stock_model_new->get_all_centers();
-            $template = get_header_template($logg["role"]);
-            $this->load->view($template["header"]);
-            $this->load->view("stocks_new/transfer_package_stock", $data);
-            $this->load->view($template["footer"]);
-        } else {
-            header("location:" . base_url() . "");
-            die();
-        }
-    }
+    //         $data["packages"] = $this->Stock_model_new->get_all_packages();
+    //         $data["centers"] = $this->Stock_model_new->get_all_centers();
+    //         $template = get_header_template($logg["role"]);
+    //         $this->load->view($template["header"]);
+    //         $this->load->view("stocks_new/transfer_package_stock", $data);
+    //         $this->load->view($template["footer"]);
+    //     } else {
+    //         header("location:" . base_url() . "");
+    //         die();
+    //     }
+    // }
 
     public function get_package_stock()
     {
@@ -2885,7 +2885,7 @@ class Stocks_new extends CI_Controller
         
         // Handle GET request with search term (for Select2 search)
         $search_term = $this->input->get('search') ?: $this->input->get('q');
-        $medicines = $this->Stock_model_new->search_medicines_for_select2($search_term); 
+        $medicines = $this->Stock_model_new->search_medicines_for_select2($search_term);
         $this->output->set_content_type('application/json')->set_output(json_encode($medicines));
     }
 
@@ -3296,6 +3296,7 @@ class Stocks_new extends CI_Controller
     // ===============================================
     // STOCK MANAGEMENT
     // ===============================================
+
 
     public function stock_levels()
     {
@@ -10805,6 +10806,8 @@ class Stocks_new extends CI_Controller
                         $this->db->where('ccs.center_id', $center_id);
                         $this->db->like('ccs.department',$department);
                         $this->db->where('ccs.status', 'ACTIVE');
+                        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                         $this->db->where('mb.batch_status', 'ACTIVE');
                         $this->db->where('mb.expiry_date >', date('Y-m-d'));
                         $stock_check = $this->db->get()->row();
@@ -10869,6 +10872,8 @@ class Stocks_new extends CI_Controller
                         $this->db->like('ccs.department',$department);
                         $this->db->where('ccs.status', 'ACTIVE');
                         $this->db->where('mb.batch_status', 'ACTIVE');
+                        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                         $this->db->where('mb.expiry_date >', date('Y-m-d'));
                         $stock_check = $this->db->get()->row();
                         if (!$stock_check) {
@@ -10962,6 +10967,8 @@ class Stocks_new extends CI_Controller
                         $this->db->like('ccs.department',$department);
                         $this->db->where('ccs.status', 'ACTIVE');
                         $this->db->where('mb.batch_status', 'ACTIVE');
+                        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                         $this->db->where('mb.expiry_date >', date('Y-m-d'));
                         $stock_check = $this->db->get()->row();
 
@@ -11164,6 +11171,8 @@ class Stocks_new extends CI_Controller
         $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
          // Join center_stocks to show what is left in the specific center NOW
         $this->db->join('center_stocks ccs', 'ccs.batch_id = si.batch_id AND ccs.center_id = s.center_id', 'left');
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         $this->db->where("
             EXISTS (
                 SELECT 1 FROM stock_movements sm
@@ -11281,6 +11290,72 @@ class Stocks_new extends CI_Controller
         // Load the print view
         $this->load->view('stocks_new/print_detailed_sales', $data);
     }
+
+    // get central stocks statinary and housekeeping 
+      public function stationary_housekeeping()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $medicine_id = $this->input->get("medicine_id");
+            $batch_number = $this->input->get("batch_number");
+            $status = $this->input->get("status");
+
+            $data[
+                "central_stocks"
+            ] = $this->Stock_model_new->get_central_stocks_stationary_housekeeping(
+                $medicine_id,
+                $batch_number,
+                $status,
+            );
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines_stationary_housekeeping();
+            $data["selected_medicine_id"] = $medicine_id;
+            $data["selected_batch_number"] = $batch_number;
+            $data["selected_status"] = $status;
+
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/stationary_housekeeping", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
+      public function stationary_housekeeping_center()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $center_id = $this->input->get("center_id");
+            $medicine_id = $this->input->get("medicine_id");
+            $batch_number = $this->input->get("batch_number");
+            $status = $this->input->get("status");
+            $department = $this->input->get("department");
+            $data["center_stocks"] = $this->Stock_model_new->stationary_housekeeping_center(
+                $center_id,
+                $medicine_id,
+                $batch_number,
+                $status,
+                $department,
+            );
+            $data["centers"] = $this->Stock_model_new->get_all_centers();
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines_stationary_housekeeping();
+            // $data["departments"] = $this->Stock_model_new->get_departments_by_center();
+            $data["selected_center_id"] = $center_id;
+            $data["selected_medicine_id"] = $medicine_id;
+            $data["selected_batch_number"] = $batch_number;
+            $data["selected_status"] = $status;
+            $data["selected_department"] = $department;
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/center_stocks_stationary", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+  
 
 
 }
