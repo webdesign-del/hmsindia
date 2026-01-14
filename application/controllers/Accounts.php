@@ -3076,6 +3076,8 @@ public function tally()
     exit;
 }
 
+// New update push test
+
 public function procedure_tally() {
 
     // 1. FIX: Receive 'ids' (matching the JS data key), not 'payment_ids'
