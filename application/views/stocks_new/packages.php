@@ -54,7 +54,7 @@
                                 <th>Items Count</th>
                                 <th>Selling Price</th>
                                 <th>MRP</th>
-                                <th>GST Rate</th>
+                                <!-- <th>GST Rate</th> -->
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -73,7 +73,7 @@
                                         <td><?php echo $package->total_items; ?> items</td>
                                         <td>₹<?php echo number_format($package->selling_price, 2); ?></td>
                                         <td>₹<?php echo number_format($package->mrp, 2); ?></td>
-                                        <td><?php echo $package->gst_rate; ?>%</td>
+                                        <!-- <td><?php echo $package->gst_rate; ?>%</td> -->
                                         <td>
                                             <span class="badge <?php echo $package->status == 'active' ? 'badge-success' : 'badge-danger'; ?>">
                                                 <?php echo ucfirst($package->status); ?>

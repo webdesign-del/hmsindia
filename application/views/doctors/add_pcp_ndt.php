@@ -1,3 +1,4 @@
+ <?php $all_method =&get_instance(); ?>
 <form class="col-sm-12 col-xs-12" method="post" action="" >
 <input type="hidden" name="action" value="add_pcp_ndt" />
   <div class="row">
@@ -42,11 +43,7 @@
 
 <div class="form-group col-sm-6 col-xs-12">
 <strong>Detail of Referring Dr.
-<select name="IVF_Consultant" style="width:100%;display: block;">
-<option value=""> <?php echo $res_val->IVF_Consultant; ?></option>
-<option value="Dr.Richika Sahay">Dr.Richika Sahay</option>
-<option value="Dr.Sonum Gautam">Dr.Sonum Gautam</option>
-</select>
+<input type="text" name="IVF_Consultant">
 </strong>
   </div>
 <div class="form-group col-sm-6 col-xs-12">
@@ -87,18 +84,32 @@
 <div class="form-group col-sm-6 col-xs-12">
 <strong>Female Issues 
 <input type="text" name="female_issues">
-<?php  $sql = "Select * from ".$this->config->item('db_prefix')."doctors where name='".$_SESSION['logged_doctor']['name']."'"; 
-			                    $select_result = run_select_query($sql); 
-                       $sql2 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result['center_id']."'"; 
-			                    $select_result2 = run_select_query($sql2); 
-                               ?>
-<input type="hidden" name="center" value="<?php echo $select_result2['center_name']; ?>" >
 </strong>
   </div>
   <div class="form-group col-sm-6 col-xs-12">
+<strong>Date Of Discharge
+<input type="hidden" class="Discharge" name="date" value="<?php echo date("Y-m-d"); ?>">								
+<input type="date" class="Discharge" name="date_of_discharge"></strong>
+  </div>
+    <div class="col-sm-6 col-xs-12" style="margin-top:10px;">
+            	<label>Center</label>
+                <select class="form-control" id="center" name="center">
+                	<option value=''>--Select From--</option>
+                    <?php $all_centers = $all_method->get_all_centers();
+						            foreach($all_centers as $key => $val){ //var_dump($val);die;
+                          if($center == $val['center_number']){
+                            echo '<option value="'.$val['center_number'].'" selected>'.$val['center_name'].'</option>';
+                          }else{
+		                        echo '<option value="'.$val['center_number'].'">'.$val['center_name'].'</option>';
+                          }
+                    	  } 
+					    ?>
+                </select>
+            </div>
+  <div class="form-group col-sm-6 col-xs-12">
 <strong>Test Type
 <select name="test_type" style="width:100%;display: block;">
-<option value=""> <?php echo $res_val->IVF_Consultant; ?></option>
+<option value=""></option>
 <option value="ET/FET">ET/FET</option>
 <option value="OPU">OPU</option>
 <option value="IUI">IUI</option>
@@ -106,12 +117,7 @@
 </select>
 </strong>
   </div>  
-<div class="form-group col-sm-6 col-xs-12">
-<strong>Date Of Discharge
 
-<input type="hidden" class="Discharge" name="date" value="<?php echo date("Y-m-d"); ?>">								
-<input type="date" class="Discharge" name="date_of_discharge"></strong>
-  </div>
 
  <div class="form-group col-sm-12 col-xs-12">
 				<input type="submit" id="submitbutton" class="btn btn-large" value="Submit" />

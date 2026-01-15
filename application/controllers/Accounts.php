@@ -3216,6 +3216,8 @@ public function tally()
         ->set_output(json_encode($response, JSON_PRETTY_PRINT));
 }
 
+// New update push test
+
 public function procedure_tally() {
 
     // 1. FIX: Receive 'ids' (matching the JS data key), not 'payment_ids'
@@ -9590,6 +9592,7 @@ public function partial_procedure(){
 			$data['patient_medicine_daily_result'] = $this->accounts_model->dashboard_medicine_reports_list_patination($center, $start_date, $end_date);
 			$data['patient_diagnostic_daily_result'] = $this->accounts_model->dashboard_diagnostic_reports_list_patination($center, $start_date, $end_date);
 			$data['patient_consultation_daily_result'] = $this->accounts_model->dashboard_consultation_reports_list_patination($center, $start_date, $end_date);
+			$data['patient_registration_daily_result'] = $this->accounts_model->dashboard_registration_daily_result_patination($center, $start_date, $end_date);
 			$data['patient_advance_daily_result'] = $this->accounts_model->dashboard_advance_reports_list_patination($center, $start_date, $end_date);
 			
 

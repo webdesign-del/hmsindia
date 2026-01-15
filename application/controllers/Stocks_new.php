@@ -86,6 +86,7 @@ class Stocks_new extends CI_Controller
     // MEDICINE PACKAGE MANAGEMENT
     // ===============================================
 
+
     public function packages()
     {
         $logg = checklogin();
@@ -103,6 +104,15 @@ class Stocks_new extends CI_Controller
         }
     }
 
+    public function get_all_active_batches()
+    {
+        $this->output->set_content_type('application/json');
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode(['success' => false, 'message' => 'Unauthorized']));
+        }
+        $batches = $this->Stock_model_new->get_all_active_batches();
+        return $this->output->set_output(json_encode($batches));
+    }
     public function create_package()
     {
         $logg = checklogin();
@@ -125,6 +135,7 @@ class Stocks_new extends CI_Controller
                         $this->session->set_flashdata("error", "Invalid user session. Please login again.");
                         redirect("stocks_new/create_package");
                     }
+               
 
                     $package_data = [
                         "package_name" => $this->input->post("package_name"),
@@ -136,7 +147,6 @@ class Stocks_new extends CI_Controller
                         "created_by" => $created_by,
                         "status" => "active"
                     ];
-
                     $medicine_ids = $this->input->post("medicine_ids");
                     $quantities = $this->input->post("quantities");
 
@@ -238,7 +248,6 @@ class Stocks_new extends CI_Controller
             $data["package"] = $this->Stock_model_new->get_package_by_id($package_id);
             $data["package_items"] = $this->Stock_model_new->get_package_items($package_id);
             $data["medicines"] = $this->Stock_model_new->get_all_medicines_package();
-
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
             $this->load->view("stocks_new/edit_package", $data);
@@ -377,42 +386,42 @@ class Stocks_new extends CI_Controller
         }
     }
 
-    public function transfer_package_stock()
-    {
-        $logg = checklogin();
-        if ($logg["status"] == true) {
-            if ($this->input->post("action") == "transfer_package_stock") {
-                $this->form_validation->set_rules("package_id", "Package", "required");
-                $this->form_validation->set_rules("to_center_id", "To Center", "required");
-                $this->form_validation->set_rules("quantity", "Quantity", "required|numeric|greater_than[0]");
-                if ($this->form_validation->run() == true) {
-                    $transfer_data = [
-                        'package_id' => $this->input->post("package_id"),
-                        'to_center_id' => $this->input->post("to_center_id"),
-                        'quantity' => $this->input->post("quantity"),
-                        'to_department' => $this->input->post("to_department")
-                    ];
-                    $result = $this->Stock_model_new->transfer_package_stock($transfer_data, $this->get_current_user_id());
-                    if ($result['status'] === 'success') {
-                        $this->session->set_flashdata("success", $result['message']);
-                        redirect("stocks_new/packages");
-                    } else {
-                        $this->session->set_flashdata("error", $result['message']);
-                    }
-                }
-            }
+    // public function transfer_package_stock()
+    // {
+    //     $logg = checklogin();
+    //     if ($logg["status"] == true) {
+    //         if ($this->input->post("action") == "transfer_package_stock") {
+    //             $this->form_validation->set_rules("package_id", "Package", "required");
+    //             $this->form_validation->set_rules("to_center_id", "To Center", "required");
+    //             $this->form_validation->set_rules("quantity", "Quantity", "required|numeric|greater_than[0]");
+    //             if ($this->form_validation->run() == true) {
+    //                 $transfer_data = [
+    //                     'package_id' => $this->input->post("package_id"),
+    //                     'to_center_id' => $this->input->post("to_center_id"),
+    //                     'quantity' => $this->input->post("quantity"),
+    //                     'to_department' => $this->input->post("to_department")
+    //                 ];
+    //                 $result = $this->Stock_model_new->transfer_package_stock($transfer_data, $this->get_current_user_id());
+    //                 if ($result['status'] === 'success') {
+    //                     $this->session->set_flashdata("success", $result['message']);
+    //                     redirect("stocks_new/packages");
+    //                 } else {
+    //                     $this->session->set_flashdata("error", $result['message']);
+    //                 }
+    //             }
+    //         }
 
-            $data["packages"] = $this->Stock_model_new->get_all_packages();
-            $data["centers"] = $this->Stock_model_new->get_all_centers();
-            $template = get_header_template($logg["role"]);
-            $this->load->view($template["header"]);
-            $this->load->view("stocks_new/transfer_package_stock", $data);
-            $this->load->view($template["footer"]);
-        } else {
-            header("location:" . base_url() . "");
-            die();
-        }
-    }
+    //         $data["packages"] = $this->Stock_model_new->get_all_packages();
+    //         $data["centers"] = $this->Stock_model_new->get_all_centers();
+    //         $template = get_header_template($logg["role"]);
+    //         $this->load->view($template["header"]);
+    //         $this->load->view("stocks_new/transfer_package_stock", $data);
+    //         $this->load->view($template["footer"]);
+    //     } else {
+    //         header("location:" . base_url() . "");
+    //         die();
+    //     }
+    // }
 
     public function get_package_stock()
     {
@@ -2876,7 +2885,7 @@ class Stocks_new extends CI_Controller
         
         // Handle GET request with search term (for Select2 search)
         $search_term = $this->input->get('search') ?: $this->input->get('q');
-        $medicines = $this->Stock_model_new->search_medicines_for_select2($search_term); 
+        $medicines = $this->Stock_model_new->search_medicines_for_select2($search_term);
         $this->output->set_content_type('application/json')->set_output(json_encode($medicines));
     }
 
@@ -3287,6 +3296,7 @@ class Stocks_new extends CI_Controller
     // ===============================================
     // STOCK MANAGEMENT
     // ===============================================
+
 
     public function stock_levels()
     {
@@ -5154,52 +5164,6 @@ class Stocks_new extends CI_Controller
         }
     }
 
-    // public function get_patient_receipts()
-    // {
-    //     $logg = checklogin();
-    //     if($logg['status'] == true) {
-    //         $patient_id = $this->input->post('patient_id');
-
-    //         if (!empty($patient_id)) {
-    //             // Get all confirmed sales for this patient
-    //             $this->db->select('s.sale_number, s.patient_name, s.sale_date, s.total_amount, COUNT(si.id) as item_count');
-    //             $this->db->from('sales s');
-    //             $this->db->join('sale_items si', 's.id = si.sale_id');
-    //             $this->db->where('s.patient_id', $patient_id);
-    //             $this->db->where('s.status', 'CONFIRMED');
-    //             $this->db->where("
-    //                 (
-    //                     EXISTS (
-    //                         SELECT 1
-    //                         FROM stock_movements sm
-    //                         WHERE sm.reference_id = s.id
-    //                         AND sm.movement_type = 'SALE'
-    //                         AND sm.to_location_type = 'SALE'
-    //                     )
-    //                 )
-    //             ", null, false);
-    //             $this->db->where('s.sale_date >=', date('Y-m-d', strtotime('-90 days'))); // Last 90 days
-    //             $this->db->group_by('s.id');
-    //             $this->db->order_by('s.sale_date', 'DESC');
-    //             $receipts = $this->db->get()->result();
-
-    //             echo json_encode([
-    //                 'success' => true,
-    //                 'receipts' => $receipts
-    //             ]);
-    //         } else {
-    //             echo json_encode([
-    //                 'success' => false,
-    //                 'message' => 'Patient ID is required'
-    //             ]);
-    //         }
-    //     } else {
-    //         echo json_encode([
-    //             'success' => false,
-    //             'message' => 'Unauthorized access'
-    //         ]);
-    //     }
-    // }
     public function get_patient_receipts()
     {
         // Always return JSON
@@ -5255,37 +5219,6 @@ class Stocks_new extends CI_Controller
         ]));
     }
 
-
-    // public function get_returnable_items()
-    // {
-    //     $logg = checklogin();
-    //     if($logg['status'] == true) {
-    //         $receipt_number = $this->input->post('receipt_number');
-    //         if (!empty($receipt_number)) {
-    //             $batches = $this->Stock_model_new->get_available_batches_for_return($receipt_number);
-    //             $this->db->select('s.patient_name, s.patient_id, s.sale_date');
-    //             $this->db->from('sales s');
-    //             $this->db->where('s.sale_number', $receipt_number);
-    //             $this->db->where('s.status', 'CONFIRMED');
-    //             $sale_info = $this->db->get()->row();
-    //             echo json_encode([
-    //                 'success' => true,
-    //                 'batches' => $batches,
-    //                 'sale_info' => $sale_info
-    //             ]);
-    //         } else {
-    //             echo json_encode([
-    //                 'success' => false,
-    //                 'message' => 'Receipt number is required'
-    //             ]);
-    //         }
-    //     } else {
-    //         echo json_encode([
-    //             'success' => false,
-    //             'message' => 'Unauthorized access'
-    //         ]);
-    //     }
-    // }
     public function get_returnable_items()
     {
         // Force JSON response
@@ -5324,7 +5257,7 @@ class Stocks_new extends CI_Controller
             'sale_info' => $sale_info
         ]));
     }
-
+    // ALTER TABLE `medicine_returns` ADD `is_old_system` VARCHAR(111) NULL DEFAULT NULL AFTER `total_return_amount`;
 
     public function process_return() {
         $logg = checklogin();
@@ -5332,10 +5265,14 @@ class Stocks_new extends CI_Controller
             if($this->input->post('action') == 'return_medicine') {
                 $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
                 $this->form_validation->set_rules('patient_name', 'Patient Name', 'required');
-                $this->form_validation->set_rules('receipt_number', 'Receipt Number', 'required');
+                // $this->form_validation->set_rules('receipt_number', 'Receipt Number', 'required');
                 $this->form_validation->set_rules('center_id', 'Center', 'required');
                 $this->form_validation->set_rules('department', 'Department', 'required');
                 $this->form_validation->set_rules('return_reason', 'Return Reason', 'required');
+                $return_type = $this->input->post('return_type');
+                $is_old = ($return_type === 'OLD');
+                // Correct receipt source based on type
+                $receipt_number = $is_old ? $this->input->post('receipt_number_manual') : $this->input->post('receipt_number_ajax');
                 if ($this->form_validation->run() == true) {
                     // Get employee ID safely
                     $employee_number = null;
@@ -5393,12 +5330,11 @@ class Stocks_new extends CI_Controller
                     $return_data = [
                         "patient_id" => $this->input->post("patient_id"),
                         "patient_name" => $this->input->post("patient_name"),
-                        "receipt_number" => $this->input->post(
-                            "receipt_number",
-                        ),
+                        "receipt_number" => $receipt_number,
                         "center_id" => $this->input->post("center_id"),
                         "department" => $this->input->post("department"),
                         "return_date" => $this->input->post("return_date"),
+                        "is_old_data"    => $is_old ? 1 : 0,
                         "return_reason" => $this->input->post("return_reason"),
                         "total_return_amount" => $total_amount,
                         "discount_amount" => $total_discount,
@@ -5410,24 +5346,32 @@ class Stocks_new extends CI_Controller
                         "created_by" => $created_by_id,
                         "created_at" => date("Y-m-d H:i:s"),
                     ];
-                    // Validate that all batch_ids belong to the specified receipt
                     $return_items = $this->input->post("return_items");
-                    $receipt_number = $this->input->post("receipt_number");
-                    if (!empty($return_items)) {
-                        // Get all batch_ids from the return items
-                        $batch_ids = array_column($return_items, 'batch_id');
-                        foreach ($batch_ids as $batch_id) {
-                            if (!empty($batch_id)) {
-                                $this->db->select('si.id');
-                                $this->db->from('sale_items si');
-                                $this->db->join('sales s', 'si.sale_id = s.id');
-                                $this->db->where('si.batch_id', $batch_id);
-                                $this->db->where('s.sale_number', $receipt_number);
-                                $this->db->where('s.status', 'CONFIRMED');
-                                $this->db->where('(si.quantity_sold - COALESCE(si.quantity_returned, 0)) >', 0);
-                                $exists = $this->db->get()->row();
-                                if (!$exists) {
-                                    $this->session->set_flashdata("error", "Invalid medicine selected. The selected medicine does not belong to receipt number: " . $receipt_number);
+                   if (!empty($return_items)) {
+                        if ($return_type === 'NEW') { 
+                            $batch_ids = array_column($return_items, 'batch_id');
+                            foreach ($batch_ids as $batch_id) {
+                                if (!empty($batch_id)) {
+                                    $this->db->select('si.id');
+                                    $this->db->from('sale_items si');
+                                    $this->db->join('sales s', 'si.sale_id = s.id');
+                                    $this->db->where('si.batch_id', $batch_id);
+                                    $this->db->where('s.sale_number', $receipt_number);
+                                    $this->db->where('s.status', 'CONFIRMED');
+                                    $this->db->where('(si.quantity_sold - COALESCE(si.quantity_returned, 0)) >', 0);
+                                    $exists = $this->db->get()->row();
+
+                                    if (!$exists) {
+                                        $this->session->set_flashdata("error", "Invalid medicine selected. This medicine does not belong to receipt: " . $receipt_number);
+                                        redirect("stocks_new/medicine_returns");
+                                        return;
+                                    }
+                                }
+                            }
+                        } else {
+                            foreach ($return_items as $item) {
+                                if (empty($item['batch_id']) || $item['return_quantity'] <= 0) {
+                                    $this->session->set_flashdata("error", "Please select valid medicines and quantities.");
                                     redirect("stocks_new/medicine_returns");
                                     return;
                                 }
@@ -5458,6 +5402,7 @@ class Stocks_new extends CI_Controller
                         $this->Stock_model_new->process_medicine_return(
                             $return_data,
                             $return_items,
+                            $is_old,
                         )
                     ) {
                         $this->session->set_flashdata(
@@ -5541,84 +5486,121 @@ class Stocks_new extends CI_Controller
     /**
      * Export medicine returns list to Excel or PDF
      */
-    public function export_returns_list()
+      public function export_returns_list()
     {
         $logg = checklogin();
         if ($logg["status"] != true) {
             redirect(base_url());
             return;
         }
+
+        // 1. Get export format and filters
         $format = $this->input->get('format'); // 'excel' or 'pdf'
-        $returns = $this->Stock_model_new->get_medicine_returns();
+        $filters = [
+            'center_id' => $this->input->get('center_id'),
+            'date_from' => $this->input->get('date_from'),
+            'date_to'   => $this->input->get('date_to')
+        ];
+
+        // 2. Fetch Detailed Item Data from the Model
+        $returns = $this->Stock_model_new->get_all_return_items_detailed($filters);
         if (empty($returns)) {
             $this->session->set_flashdata('error', 'No returns found to export.');
-            redirect('stocks_new/returns');
+            redirect('stocks_new/medicine_returns');
             return;
         }
+
+        // 3. Route to specific export helper
         if ($format == 'excel') {
             $this->export_returns_excel($returns);
         } elseif ($format == 'pdf') {
             $this->export_returns_pdf($returns);
         } else {
             $this->session->set_flashdata('error', 'Invalid export format.');
-            redirect('stocks_new/returns');
+            redirect('stocks_new/medicine_returns');
         }
     }
 
     /**
-     * Export medicine returns to Excel
+     * PRIVATE HELPER: export_returns_excel
+     * Generates a detailed item-wise CSV export with financial calculations.
      */
     private function export_returns_excel($returns)
     {
-        // Set headers for Excel download
-        $filename = 'Medicine_Returns_' . date('Y-m-d_H-i-s') . '.csv';
+        
+        $filename = 'Detailed_Medicine_Returns_' . date('Y-m-d_His') . '.csv';
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename=' . $filename);
-        // Create file pointer
         $output = fopen('php://output', 'w');
-        // Add BOM for UTF-8
         fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
-        // Add headers
         $headers = [
             'Return Number',
+            'Return Date',
+            'Sale Reference',
             'Patient Name',
             'Patient ID',
-            'Receipt Number',
             'Center',
             'Department',
-            'Medicine Names',
-            'Return Date',
-            'Reason',
-            'Total Items',
+            'Medicine Name',
+            'Item Code',
+            'Brand Name',
+            'Batch Number',
+            'Expiry Date',
+            'Qty Returned',
+            'MRP Price (₹)',
+            'MRP Value (₹)',
+            'Discount %',
+            'Discount Amount (₹)',
+            'Taxable Value (₹)',
+            'Tax %',
+            'Tax Amount (₹)',
             'Total Amount (₹)',
             'Status',
-            'Created Date'
+            'Return Reason',
+            'Current Center Stock'
         ];
         fputcsv($output, $headers);
-
-        // Add data rows
         foreach ($returns as $return) {
+            $qty          = (float) ($return['quantity_returned'] ?? 0);
+            $unit_price   = (float) ($return['unit_price'] ?? 0); // MRP Price
+            $gst_rate     = (float) ($return['gst_rate'] ?? 0);
+            $total_amount = (float) ($return['net_refund'] ?? 0); 
+            $mrp_value = $qty * $unit_price;
+            $taxable_value = $total_amount / (1 + ($gst_rate / 100));
+            $tax_amount    = $total_amount - $taxable_value;
             $row = [
-                $return->return_number ?? 'N/A',
-                $return->patient_name ?? 'N/A',
-                $return->patient_id ?? 'N/A',
-                $return->receipt_number ?? 'N/A',
-                $return->center_name ?? 'N/A',
-                $return->department ?? 'N/A',
-                $return->medicine_names ?? 'N/A',
-                isset($return->return_date) ? date('d-m-Y', strtotime($return->return_date)) : 'N/A',
-                $return->return_reason ?? 'N/A',
-                $return->total_items ?? 0,
-                number_format($return->total_return_amount ?? 0, 2),
-                $return->status ?? 'COMPLETED',
-                isset($return->created_at) ? date('d-m-Y H:i', strtotime($return->created_at)) : 'N/A'
+                $return['return_number'] ?? 'N/A',
+                isset($return['return_date']) ? date('d-m-Y', strtotime($return['return_date'])) : 'N/A',
+                $return['sale_reference'] ?? 'N/A',
+                $return['patient_name'] ?? 'N/A',
+                $return['patient_id'] ?? 'N/A',
+                $return['center_name'] ?? 'N/A',
+                $return['department'] ?? 'N/A',
+                $return['medicine_name'] ?? 'N/A',
+                $return['medicine_code'] ?? 'N/A',
+                $return['brand_name'] ?? 'N/A',
+                $return['batch_number'] ?? 'N/A',
+                isset($return['expiry_date']) ? date('d-m-Y', strtotime($return['expiry_date'])) : 'N/A',
+                $qty,
+                number_format($unit_price, 2),
+                number_format($mrp_value, 2),
+                number_format((float)($return['discount_percentage'] ?? 0), 2) . '%',
+                number_format((float)($return['discount_amount'] ?? 0), 2),
+                number_format($taxable_value, 2),
+                number_format($gst_rate, 2) . '%',
+                number_format($tax_amount, 2),
+                number_format($total_amount, 2),
+                $return['return_status'] ?? 'PENDING',
+                $return['return_reason'] ?? 'N/A',
+                $return['current_center_stock'] ?? 0
             ];
             fputcsv($output, $row);
         }
 
         fclose($output);
-        exit();
+        exit(); 
     }
+
 
     /**
      * Export medicine returns to PDF (HTML print version)
@@ -10824,6 +10806,8 @@ class Stocks_new extends CI_Controller
                         $this->db->where('ccs.center_id', $center_id);
                         $this->db->like('ccs.department',$department);
                         $this->db->where('ccs.status', 'ACTIVE');
+                        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                         $this->db->where('mb.batch_status', 'ACTIVE');
                         $this->db->where('mb.expiry_date >', date('Y-m-d'));
                         $stock_check = $this->db->get()->row();
@@ -10888,6 +10872,8 @@ class Stocks_new extends CI_Controller
                         $this->db->like('ccs.department',$department);
                         $this->db->where('ccs.status', 'ACTIVE');
                         $this->db->where('mb.batch_status', 'ACTIVE');
+                        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                         $this->db->where('mb.expiry_date >', date('Y-m-d'));
                         $stock_check = $this->db->get()->row();
                         if (!$stock_check) {
@@ -10981,6 +10967,8 @@ class Stocks_new extends CI_Controller
                         $this->db->like('ccs.department',$department);
                         $this->db->where('ccs.status', 'ACTIVE');
                         $this->db->where('mb.batch_status', 'ACTIVE');
+                        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+                        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
                         $this->db->where('mb.expiry_date >', date('Y-m-d'));
                         $stock_check = $this->db->get()->row();
 
@@ -11183,6 +11171,8 @@ class Stocks_new extends CI_Controller
         $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
          // Join center_stocks to show what is left in the specific center NOW
         $this->db->join('center_stocks ccs', 'ccs.batch_id = si.batch_id AND ccs.center_id = s.center_id', 'left');
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         $this->db->where("
             EXISTS (
                 SELECT 1 FROM stock_movements sm
@@ -11300,6 +11290,72 @@ class Stocks_new extends CI_Controller
         // Load the print view
         $this->load->view('stocks_new/print_detailed_sales', $data);
     }
+
+    // get central stocks statinary and housekeeping 
+      public function stationary_housekeeping()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $medicine_id = $this->input->get("medicine_id");
+            $batch_number = $this->input->get("batch_number");
+            $status = $this->input->get("status");
+
+            $data[
+                "central_stocks"
+            ] = $this->Stock_model_new->get_central_stocks_stationary_housekeeping(
+                $medicine_id,
+                $batch_number,
+                $status,
+            );
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines_stationary_housekeeping();
+            $data["selected_medicine_id"] = $medicine_id;
+            $data["selected_batch_number"] = $batch_number;
+            $data["selected_status"] = $status;
+
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/stationary_housekeeping", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+// New update push test
+      public function stationary_housekeeping_center()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $center_id = $this->input->get("center_id");
+            $medicine_id = $this->input->get("medicine_id");
+            $batch_number = $this->input->get("batch_number");
+            $status = $this->input->get("status");
+            $department = $this->input->get("department");
+            $data["center_stocks"] = $this->Stock_model_new->stationary_housekeeping_center(
+                $center_id,
+                $medicine_id,
+                $batch_number,
+                $status,
+                $department,
+            );
+            $data["centers"] = $this->Stock_model_new->get_all_centers();
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines_stationary_housekeeping();
+            // $data["departments"] = $this->Stock_model_new->get_departments_by_center();
+            $data["selected_center_id"] = $center_id;
+            $data["selected_medicine_id"] = $medicine_id;
+            $data["selected_batch_number"] = $batch_number;
+            $data["selected_status"] = $status;
+            $data["selected_department"] = $department;
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/center_stocks_stationary", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+  
 
 
 }

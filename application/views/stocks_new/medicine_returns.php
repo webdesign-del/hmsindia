@@ -47,7 +47,31 @@
                                             <input type="text" name="patient_id" id="patient_id" class="form-control" placeholder="Enter Patient ID" value="<?php echo set_value('patient_id'); ?>" required>
                                         </div>
                                     </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-4 control-label">Return Type</label>
+                                        <div class="col-sm-8">
+                                            <label class="radio-inline">
+                                                <input type="radio" name="return_type" value="OLD" > Old Medicine Return
+                                            </label>
+                                            <label class="radio-inline">
+                                                <input type="radio" name="return_type" value="NEW" CHECKED> New Medicine Return 
+                                            </label>
+                                        </div>
+                                    </div>
 
+                                    <div class="form-group" id="receipt_container">
+                                        <label class="col-sm-4 control-label">Receipt/Invoice Number *</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" name="receipt_number_manual" id="receipt_manual" class="form-control" placeholder="Enter Invoice Number Manually">
+                                            
+                                            <div id="receipt_ajax_section" style="display: none;">
+                                                <select name="receipt_number_ajax" id="receipt_select" class="form-control receipt-select2" style="width: 100%;">
+                                                    <option value="">Search and select a receipt...</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+<!-- 
                                     <div class="form-group" id="patient_receipts_section" style="display: none;">
                                         <label class="col-sm-4 control-label">Search & Select Receipt *</label>
                                         <div class="col-sm-8">
@@ -58,7 +82,7 @@
                                                 <i class="fa fa-search"></i> Search by receipt number, patient name, or date
                                             </small>
                                         </div>
-                                    </div>
+                                    </div> -->
 
                                     <div class="form-group">
                                         <label class="col-sm-4 control-label">Patient Name *</label>
@@ -413,8 +437,54 @@
 <script>
 $(document).ready(function() {
     var rowCount = 1;
-    var currentFilteredBatches = []; // Store current filtered batches
+    var currentFilteredBatches = []; 
+    // 1. Listen for Return Type Change
+    toggleReturnType('NEW');
+    // 2. Radio button change listener
+    $('input[name="return_type"]').on('change', function() {
+        toggleReturnType($(this).val());
+    });
+    function toggleReturnType(type) {
+        var $receiptManual = $('#receipt_manual');
+        var $receiptAjaxSection = $('#receipt_ajax_section');
+        var $patientName = $('#patient_name');
+        var $addItemBtn = $('#add_return_item');
+        var $receiptSelect = $('#receipt_select');
+        if (type === 'NEW') {
+            // Normal Logic: AJAX Receipt Search
+            $receiptAjaxSection.show();
+            $receiptManual.hide().prop('required', false).val('');
+            $receiptSelect.prop('required', true);
+            $patientName.prop('readonly', true).val('').attr('placeholder', 'Patient name will auto-fill');
+            $addItemBtn.prop('disabled', true);
+            $('#add_item_help').text('Please select a patient and receipt first');
+            // Clear current list
+            updateAvailableBatches([]); 
+        } else {
+            // Manual Logic: Show all medicines
+            $receiptAjaxSection.hide();
+            $receiptManual.show().prop('required', true);
+            $receiptSelect.prop('required', false).val(null).trigger('change');
+            $patientName.prop('readonly', false).val('').attr('placeholder', 'Type Patient Name Manually');
+            $addItemBtn.prop('disabled', false);
+            $('#add_item_help').text('Manual mode: All active batches loaded.');
+            loadAllMedicines(); // Purani entry ke liye saari medicine fetch karega
+        }
+    }
 
+    function loadAllMedicines() {
+        $.ajax({
+            url: '<?php echo base_url("stocks_new/get_all_active_batches"); ?>',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                updateAvailableBatches(response); 
+            },
+            error: function() {
+                showMessage('Error loading all medicines. Please try again.', 'error');
+            }
+        });
+    }
     // Initialize with available batches from server
     <?php if(isset($available_batches) && !empty($available_batches)): ?>
         currentFilteredBatches = <?php echo json_encode($available_batches); ?>;
@@ -713,57 +783,11 @@ $(document).ready(function() {
         $('#final_return_amount').val('₹' + totalFinal.toFixed(2));
         $('#final_return_amount_hidden').val(totalFinal.toFixed(2));
     }
-
-    // COMMENTED OUT: Old total discount calculation (now using per-item discount)
-    /*
-    // Calculate discount and final return amount
-    function calculateDiscount() {
-        var totalAmount = parseFloat($('#total_return_amount').val().replace('₹', '')) || 0;
-        var discountPercentage = parseFloat($('#discount_percentage').val()) || 0;
-        
-        // Validate discount percentage
-        if (discountPercentage < 0) {
-            discountPercentage = 0;
-            $('#discount_percentage').val(0);
-        }
-        if (discountPercentage > 100) {
-            discountPercentage = 100;
-            $('#discount_percentage').val(100);
-        }
-        
-        var discountAmount = (totalAmount * discountPercentage) / 100;
-        var finalAmount = totalAmount - discountAmount;
-        
-        $('#discount_amount').val('₹' + discountAmount.toFixed(2));
-        $('#final_return_amount').val('₹' + finalAmount.toFixed(2));
-        $('#final_return_amount_hidden').val(finalAmount.toFixed(2));
-    }
-
-    // Calculate discount when discount percentage changes
-    $(document).on('input', '#discount_percentage', function() {
-        calculateDiscount();
-    });
-
-    // Calculate discount when discount percentage loses focus
-    $(document).on('blur', '#discount_percentage', function() {
-        var discountPercentage = parseFloat($(this).val()) || 0;
-        if (discountPercentage < 0) {
-            $(this).val(0);
-        }
-        if (discountPercentage > 100) {
-            $(this).val(100);
-        }
-        calculateDiscount();
-    });
-    */
-    // Handle patient ID change to get receipts
     $('#patient_id').on('blur', function() {
         var patientId = $(this).val().trim();
-
         if (patientId) {
             // Show loading indicator
             $(this).parent().append('<i class="fa fa-spinner fa-spin" id="patient-loading"></i>');
-
             $.ajax({
                 url: '<?php echo base_url("stocks_new/get_patient_receipts"); ?>',
                 type: 'POST',
@@ -771,19 +795,15 @@ $(document).ready(function() {
                 dataType: 'json',
                 success: function(response) {
                     $('#patient-loading').remove();
-
                     if (response.success && response.receipts.length > 0) {
                         // Populate patient name
                         if (response.receipts[0]) {
                             $('#patient_name').val(response.receipts[0].patient_name || '');
                         }
-
                         // Show receipt selection section
                         $('#patient_receipts_section').show();
-
                         // Populate receipt dropdown
                         updateReceiptsDropdown(response.receipts);
-
                         showMessage('Patient found. Please select a receipt to return medicines from.', 'success');
                     } else {
                         // Hide receipt section if no receipts found
@@ -791,7 +811,6 @@ $(document).ready(function() {
                         $('#patient_name').val('');
                         $('#receipt_select').html('<option value="">Select a receipt</option>');
                         updateAvailableBatches([]);
-
                         showMessage('No receipts found for this patient in the last 90 days.', 'warning');
                     }
                 },
