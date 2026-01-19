@@ -11,7 +11,7 @@ class Doctors extends CI_Controller {
 		$this->load->helper('form');
         $this->load->helper('url_helper');
 	    $this->load->library('session');
-		$this->load->model(array('doctors_model', 'patients_model', 'center_model', 'employee_model', 'appointment_model', 'billingmodel_model', 'investigation_model', 'procedures_model', 'stock_model','accounts_model'));
+		$this->load->model(array('doctors_model', 'patients_model', 'center_model', 'employee_model', 'appointment_model', 'billingmodel_model', 'investigation_model', 'procedures_model', 'stock_model','accounts_model','billings_model'));
 		$this->load->helper('myhelper');
 		$this->load->library("pagination");
 	}	
@@ -5625,6 +5625,14 @@ foreach ($urls as $key => $url) {
 			header("location:" .base_url(). "");
 			die();
 		}
+	}
+
+	function get_patient_name($patient_id){
+
+		$name = $this->billings_model->get_patient_name($patient_id);
+
+		return $name;
+
 	}
     
 

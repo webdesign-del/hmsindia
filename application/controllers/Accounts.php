@@ -2821,103 +2821,155 @@ public function tally()
         
      
 
-    // =========================================================================
-    // PART 3: CONSULTATION SALES
-    // =========================================================================
+ // =========================================================================
+// PART 3: CONSULTATION SALES (FORMATTED LIKE PROCEDURE)
+// =========================================================================
 
-    $q_cons = $this->db->query("SELECT * FROM hms_consultation WHERE status='approved' AND tally_status='1' ORDER BY modified_on DESC LIMIT 20");
-    $consultation_rows = $q_cons->result_array();
-    $consultation_sales = []; 
+// 1. Build the query (Same optimized query as before)
+$this->db->select('
+    hms_consultation.*, 
+    hms_patients.wife_name, hms_patients.husband_name, 
+    hms_appointments.crm_id,
+    origin_center.center_name as origin_center_name,
+    bill_center.center_name as billing_center_name,
+    book_center.center_name as booking_center_name,
+    hms_employees.name as biller_name,
+    hms_doctors.name as doctor_name
+');
+$this->db->from('hms_consultation');
+$this->db->join('hms_patients', 'hms_patients.patient_id = hms_consultation.patient_id', 'left');
+$this->db->join('hms_appointments', 'hms_appointments.paitent_id = hms_consultation.patient_id AND hms_appointments.paitent_type = "new_patient"', 'left'); 
+$this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
+$this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
+$this->db->join('hms_centers as book_center', 'book_center.center_number = hms_consultation.billing_at', 'left'); 
+$this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
+$this->db->join('hms_doctors', 'hms_doctors.ID = hms_consultation.doctor_id', 'left');
 
-    foreach ($consultation_rows as $payment_row) {
-        $pt_q = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$payment_row['patient_id']]);
-        $patient = $pt_q->row_array() ?? [];
+$this->db->where('hms_consultation.status', 'approved');
+$this->db->where('hms_consultation.tally_status', '1');
+$this->db->order_by('hms_consultation.modified_on', 'DESC');
+$this->db->limit(20);
 
-        $appointments_q = $this->db->query("SELECT * FROM hms_appointments WHERE paitent_id = ? AND paitent_type = ?",[$payment_row['patient_id'], 'new_patient']);
-        $appointments = $appointments_q->row_array() ?? [];
+$q_cons = $this->db->get();
+$consultation_rows = $q_cons->result_array();
 
-        $org_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["origins"]]);
-        $origin = $org_q->row_array() ?? [];
+$consultation_sales = []; 
 
-        $bill_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]);
-        $bill_center = $bill_q->row_array() ?? [];
-
-        $book_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]); 
-        $book_center = $book_q->row_array() ?? [];
-
-        $emp_q = $this->db->query("SELECT * FROM hms_employees WHERE employee_number = ?", [$payment_row["biller_id"]]);
-        $employee = $emp_q->row_array() ?? [];
-
-        $doctors_q = $this->db->query("SELECT * FROM hms_doctors WHERE ID = ?", [$payment_row["doctor_id"]]);
-        $doctors = $doctors_q->row_array() ?? [];
-        
-        $consultation_sales[] = [
-            "type"            => "Consultation",
-            "patient_id"      => $payment_row['patient_id'],
-            "crm_id"          => $appointments['crm_id'] ?? '',
-            "patient_name"    => ($patient['wife_name'] ?? '') . ' W/O ' . ($patient['husband_name'] ?? ''),
-            "billing_id"      => $payment_row['billing_id'],
-            "payment_done"    => $payment_row['payment_done'],
-            "billing_center"  => $bill_center['center_name'] ?? 'N/A',
-            "booking_center"  => $book_center['center_name'] ?? 'N/A',
-            "origin_center"   => $origin['center_name'] ?? 'N/A',
-            "doctor_name"     => $doctors['name'] ?? 'N/A',
-            "on_date"         => !empty($payment_row["on_date"]) ? date("d-m-Y H:i:s", strtotime($payment_row["on_date"])) : '',
-            "receipt_number"  => $payment_row["receipt_number"] ?? '',
-            "biller_name"     => $employee['name'] ?? 'N/A',
-            "payment_method"  => $payment_row['payment_method'],
-            "status"          => $payment_row['status']
-        ];
-    }
+foreach ($consultation_rows as $row) {
     
-    // =========================================================================
-    // PART 4: REGISTRATION SALES (From hms_registation)
-    // =========================================================================
+    // Calculate pricing logic for the 'item'
+    $price = $row['totalpackage'] ?? 0;
+    $discount = $row['discount_amount'] ?? 0;
+    $paid = $row['payment_done'] ?? 0;
+    $after_discount = $price - $discount;
 
-    $q_reg = $this->db->query("SELECT * FROM hms_registation WHERE status IN ('approved', 'adjust') AND tally_status='1' ORDER BY modified_on DESC LIMIT 20");
-    $registration_rows = $q_reg->result_array();
-    $registration_sales = [];
+    // Create the nested item structure
+    $item_details = [
+        "item_name"                     => "Consultation", // Or use $row['doctor_name'] . ' Consultation'
+        "consultation_id"                 => $row['consultation_id'] ?? '', // Using ID as sub_procedure
+        "consultation_price"          => (string)$price,
+        "consultation_discount"       => (string)$discount,
+        "consultation_after_discount" => $after_discount,
+        "consultation_paid_price"     => (string)$paid
+    ];
+
+    // Build the main array in the requested format
+    $consultation_sales[] = [
+        "type"            => "Consultation",
+        "patient_id"      => $row['patient_id'],
+        "patient_name"    => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
+        "billing_center"  => $row['billing_center_name'] ?? 'N/A',
+        "origin_center"   => $row['origin_center_name'] ?? 'N/A',
+        // Formatting date to d-m-Y as per your example
+        "on_date"         => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '', 
+        "receipt_number"  => $row["receipt_number"] ?? '',
+        "biller_name"     => $row['biller_name'] ?? 'N/A',
+        "items"           => [$item_details], // Wrap the single item in an array
+        "payment_method"  => $row['payment_method'],
+        "status"          => $row['status']
+    ];
+}
+
+// Result is now in $consultation_sales
+// echo json_encode($consultation_sales);
     
-    foreach ($registration_rows as $payment_row) {
-        $pt_q = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$payment_row['patient_id']]);
-        $patient = $pt_q->row_array() ?? [];
+   // =========================================================================
+// PART 4: REGISTRATION SALES (OPTIMIZED & FORMATTED)
+// =========================================================================
 
-        $appointments_q = $this->db->query("SELECT * FROM hms_appointments WHERE paitent_id = ? AND paitent_type = ?",[$payment_row['patient_id'], 'new_patient']);
-        $appointments = $appointments_q->row_array() ?? [];
+// 1. Build the optimized query
+$this->db->select('
+    hms_registation.*, 
+    hms_patients.wife_name, hms_patients.husband_name, 
+    hms_appointments.crm_id,
+    origin_center.center_name as origin_center_name,
+    bill_center.center_name as billing_center_name,
+    book_center.center_name as booking_center_name,
+    hms_employees.name as biller_name,
+    hms_doctors.name as doctor_name
+');
+$this->db->from('hms_registation');
 
-        $org_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["origins"]]);
-        $origin = $org_q->row_array() ?? [];
+// Joins
+$this->db->join('hms_patients', 'hms_patients.patient_id = hms_registation.patient_id', 'left');
+$this->db->join('hms_appointments', 'hms_appointments.paitent_id = hms_registation.patient_id AND hms_appointments.paitent_type = "new_patient"', 'left'); 
+$this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_registation.origins', 'left');
+$this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_registation.billing_at', 'left');
+// Note: Changed to 'billing_from' as per your original code request
+$this->db->join('hms_centers as book_center', 'book_center.center_number = hms_registation.billing_from', 'left'); 
+$this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
+$this->db->join('hms_doctors', 'hms_doctors.ID = hms_registation.doctor_id', 'left');
 
-        $bill_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]);
-        $bill_center = $bill_q->row_array() ?? [];
+$this->db->where_in('hms_registation.status', ['approved', 'adjust']);
+$this->db->where('hms_registation.tally_status', '1');
+$this->db->order_by('hms_registation.modified_on', 'DESC');
+$this->db->limit(20);
 
-        $book_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]]); 
-        $book_center = $book_q->row_array() ?? [];
+$q_reg = $this->db->get();
+$registration_rows = $q_reg->result_array();
 
-        $emp_q = $this->db->query("SELECT * FROM hms_employees WHERE employee_number = ?", [$payment_row["biller_id"]]);
-        $employee = $emp_q->row_array() ?? [];
+$registration_sales = [];
 
-        $doctors_q = $this->db->query("SELECT * FROM hms_doctors WHERE ID = ?", [$payment_row["doctor_id"]]);
-        $doctors = $doctors_q->row_array() ?? [];
+foreach ($registration_rows as $row) {
 
-        $registration_sales[] = [
-            "type"            => "Registration",
-            "patient_id"      => $payment_row['patient_id'],
-            "crm_id"          => $appointments['crm_id'] ?? '',
-            "patient_name"    => ($patient['wife_name'] ?? '') . ' W/O ' . ($patient['husband_name'] ?? ''),
-            "billing_id"      => $payment_row['billing_id'],
-            "payment_done"    => $payment_row['payment_done'],
-            "billing_center"  => $bill_center['center_name'] ?? 'N/A',
-            "booking_center"  => $book_center['center_name'] ?? 'N/A',
-            "origin_center"   => $origin['center_name'] ?? 'N/A',
-            "doctor_name"     => $doctors['name'] ?? 'N/A',
-            "on_date"         => !empty($payment_row["on_date"]) ? date("d-m-Y H:i:s", strtotime($payment_row["on_date"])) : '',
-            "receipt_number"  => $payment_row["receipt_number"] ?? '',
-            "biller_name"     => $employee['name'] ?? 'N/A',
-            "payment_method"  => $payment_row['payment_method'],
-            "status"          => $payment_row['status']
-        ];
-    }
+    // 2. Calculations for the nested item
+    $price = $row['totalpackage'] ?? 0; // Assuming 'totalpackage' holds the reg fee. If not, change to correct column (e.g., 'registration_fees')
+    $discount = $row['discount_amount'] ?? 0;
+    $paid = $row['payment_done'] ?? 0;
+    $after_discount = $price - $discount;
+
+    // 3. Create the nested item structure
+    $item_details = [
+        "item_name"                     => "Registration",
+        "registation_id"                 => $row['registration_id'] ?? '', // Using reg ID as sub identifier
+        "registation_code"           => "REG",
+        "registation_price"          => (string)$price,
+        "registation_discount"       => (string)$discount,
+        "registation_after_discount" => $after_discount,
+        "registation_paid_price"     => (string)$paid
+    ];
+
+    // 4. Build the main array
+    $registration_sales[] = [
+        "type"            => "Registration",
+        "patient_id"      => $row['patient_id'],
+        "crm_id"          => $row['crm_id'] ?? '',
+        "patient_name"    => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
+        "billing_id"      => $row['billing_id'],
+        "billing_center"  => $row['billing_center_name'] ?? 'N/A',
+        "booking_from"    => $row['booking_center_name'] ?? 'N/A',
+        "origin_center"   => $row['origin_center_name'] ?? 'N/A',
+        "doctor_name"     => $row['doctor_name'] ?? 'N/A',
+        "on_date"         => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '', // Format: d-m-Y
+        "receipt_number"  => $row["receipt_number"] ?? '',
+        "biller_name"     => $row['biller_name'] ?? 'N/A',
+        "items"           => [$item_details], // WRAPPED IN ARRAY
+        "payment_method"  => $row['payment_method'],
+        "status"          => $row['status']
+    ];
+}
+
+// Result is now in $registration_sales
 
     // =========================================================================
     // PART 5: INVESTIGATION SALES (From hms_patient_investigations)
@@ -2941,7 +2993,7 @@ public function tally()
             $bill_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]]);
             $bill_center = $bill_q->row_array() ?? [];
 
-            $book_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]]); 
+            $book_q = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_from"]]); 
             $book_center = $book_q->row_array() ?? [];
 
             $emp_q = $this->db->query("SELECT * FROM hms_employees WHERE employee_number = ?", [$sale["biller_id"]]);
@@ -2952,7 +3004,7 @@ public function tally()
                 "patient_id"      => $sale["patient_id"],
                 "patient_name"    => ($patient['wife_name'] ?? '') . ' W/O ' . ($patient['husband_name'] ?? ''),
                 "billing_center"  => $bill_center['center_name'] ?? 'N/A',
-                "booking_center"  => $book_center['center_name'] ?? 'N/A',
+                "booking_from"  => $book_center['center_name'] ?? 'N/A',
                 "origin_center"   => $origin['center_name'] ?? 'N/A',
                 "on_date"         => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
                 "receipt_number"  => $sale["receipt_number"] ?? '',
@@ -3003,53 +3055,55 @@ public function tally()
     // PART 6: FELLOWSHIP / TRAINING SALES (From hms_fellowship_training)
     // =========================================================================
 
-    // =========================================================================
-    // PART 6: FELLOWSHIP / TRAINING SALES
-    // =========================================================================
+$q_fellow = $this->db->query("SELECT `ID`, `studentid`, `name`, `voucherCode`, `fname`, `course`, `code`, `hsn`, `price`, `discount_amount`, `payment_done`, `gst_amount`, `remaining_amount`, `gst`, `payment_method`, `address`, `place_of_supply`, `gst_number`, `on_date`, `cancel_date`, `receipt`, `invoice_no`, `receipt_url`, `status` FROM `hms_fellowship_training` WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 20");
 
-    $q_fellow = $this->db->query("SELECT `ID`, `studentid`, `name`, `voucherCode`, `fname`, `course`, `code`, `hsn`, `price`, `discount_amount`, `payment_done`, `gst_amount`, `remaining_amount`, `gst`, `payment_method`, `address`, `place_of_supply`, `gst_number`, `on_date`, `cancel_date`, `receipt`, `invoice_no`, `receipt_url`, `status` FROM `hms_fellowship_training` WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 20");
-    
-    $fellowship_rows = $q_fellow->result_array();
-    $fellowship_sales = [];
-    
-    foreach ($fellowship_rows as $row) {
-        
-        // Logic to convert Status ID to Text
-        $status_text = $row['status']; // Default
-        if ($row['status'] == '1') {
-            $status_text = 'Approved';
-        } elseif ($row['status'] == '3') {
-            $status_text = 'Cancel';
-        }
+$fellowship_rows = $q_fellow->result_array();
+$fellowship_sales = [];
 
-        $fellowship_sales[] = [
-            "type"            => "Fellowship",
-            "student_id"      => $row['studentid'],
-            "name"            => $row['name'],
-            "father_name"     => $row['fname'],
-            "course_name"     => $row['course'],
-            "hsn_code"        => $row['hsn'],
-            
-            // Financials
-            "price"           => $row['price'],
-            "payment_done"    => $row['payment_done'],
-            "gst_amount"      => $row['gst_amount'],
-            "discount"        => $row['discount_amount'],
-            
-            // Billing Info
-            "invoice_no"      => $row['invoice_no'],
-            "receipt_number"  => $row['receipt'],
-            "gst_number"      => $row['gst_number'],      
-            "address"         => $row['address'],
-            
-            // Standard Fields
-            "on_date"         => !empty($row["on_date"]) ? date("d-m-Y H:i:s", strtotime($row["on_date"])) : '',
-            "payment_method"  => $row['payment_method'],
-            
-            // USE THE CONVERTED STATUS HERE
-            "status"          => $status_text
-        ];
+foreach ($fellowship_rows as $row) {
+    
+    // 1. Logic to convert Status ID to Text (lowercase to match your previous JSON example)
+    $status_text = $row['status']; 
+    if ($row['status'] == '1') {
+        $status_text = 'approved';
+    } elseif ($row['status'] == '3') {
+        $status_text = 'cancel';
     }
+
+    // 2. Calculations for the nested item
+    $price = $row['price'] ?? 0;
+    $discount = $row['discount_amount'] ?? 0;
+    $paid = $row['payment_done'] ?? 0;
+    $after_discount = $price - $discount;
+
+    // 3. Create the nested item structure
+    $item_details = [
+        "item_name"                 => "Fellowship: " . ($row['course'] ?? ''),
+        "fellowship_voucherCode"             => $row['voucherCode'] ?? '',
+        "fellowship_code"           => $row['code'] ?? '',
+        "fellowship_price"          => (string)$price,
+        "fellowship_discount"       => (string)$discount,
+        "fellowship_after_discount" => $after_discount,
+        "fellowship_paid_price"     => (string)$paid
+    ];
+
+    // 4. Build the main array
+    $fellowship_sales[] = [
+        "type"            => "Fellowship",
+        "patient_id"      => $row['studentid'], // Mapping studentid to patient_id
+        "patient_name"    => ($row['name'] ?? '') . ' S/O ' . ($row['fname'] ?? ''), // Adding Father Name (S/O)
+        "billing_center"  => $row['place_of_supply'] ?? 'N/A', // Using place of supply as center, or hardcode if needed
+        "origin_center"   => 'N/A', // Not available in this table
+        "on_date"         => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '', // Format: d-m-Y
+        "receipt_number"  => $row['receipt'] ?? '',
+        "biller_name"     => 'N/A', // Biller info not in query
+        "items"           => [$item_details], // WRAPPED IN ARRAY
+        "payment_method"  => $row['payment_method'],
+        "status"          => $status_text
+    ];
+}
+
+// Result is now in $fellowship_sales
 
     // =========================================================================
     // PART 7: FINAL OUTPUT

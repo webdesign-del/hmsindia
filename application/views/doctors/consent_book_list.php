@@ -92,7 +92,7 @@
                 <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
 				  <td><?php echo $vl['patient_id']?></td>
-				  <td><?php echo $vl['patient_id']?></td>
+				  <td><?php echo $all_method->get_patient_name($vl['patient_id']); ?></td>
 				  <td><?php echo $vl['consent_book_name']?></td>
                   <td><a href="<?php echo $vl['transaction_img']; ?>" target="_blank"><?php echo $vl['transaction_img']; ?></a></td>
                   <td><?php echo $vl['on_date']?></td>
