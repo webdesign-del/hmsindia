@@ -2,11 +2,11 @@
 	    if(isset($_POST['submit'])){
 			unset($_POST['submit']);
 					
-			$select_query = "SELECT * FROM `hms_ovarian_stem_cell` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+			$select_query = "SELECT * FROM `hms_transvarian_ovarian` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
 			$select_result = run_select_query($select_query); 
 			if(empty($select_result)){
 				// mysql query to insert data
-				$query = "INSERT INTO `hms_ovarian_stem_cell` SET ";
+				$query = "INSERT INTO `hms_transvarian_ovarian` SET ";
 				$sqlArr = array();
 				foreach( $_POST as $key=> $value )
 				{
@@ -15,7 +15,7 @@
 				$query .= implode(',' , $sqlArr);
 			}else{
 				// mysql query to update data
-				$query = "UPDATE hms_ovarian_stem_cell SET ";
+				$query = "UPDATE hms_transvarian_ovarian SET ";
 				foreach( $_POST as $key=> $value )
 				{
 				  $sqlArr[] = " $key = '".$value."'"	;
@@ -33,7 +33,7 @@
     					die();
             }
 		}
-		$select_query = "SELECT * FROM `hms_ovarian_stem_cell` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+		$select_query = "SELECT * FROM `hms_transvarian_ovarian` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
 		$select_result = run_select_query($select_query);
 		
 		$sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
