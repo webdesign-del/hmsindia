@@ -1,8 +1,8 @@
-<?php
+ <?php $all_method =&get_instance(); ?><?php
 if (isset($_POST['submit'])) {
     extract($_POST);
 	$ID = $_GET['ID'];
-   $sql1 = "update pcp_ndt set wife_name='$wife_name', wife_age='$wife_age', husband_name='$husband_name', wife_address='$wife_address', wife_phone='$wife_phone',female_pregnancy_other_p='$female_pregnancy_other_p',female_pregnancy_other_l='$female_pregnancy_other_l',female_pregnancy_other_a='$female_pregnancy_other_a', details_management_advised='$details_management_advised', IVF_Consultant='$IVF_Consultant', procedure_done='$procedure_done', outcome_of_tretment='$outcome_of_tretment', further_referredfor_dellvery='$further_referredfor_dellvery', outcome_of_pregnancy='$outcome_of_pregnancy', male='$male', female='$female', malformation_in_newborn='$malformation_in_newborn', female_issues='$female_issues', date_of_discharge='$date_of_discharge' where ID = '$ID'  ";
+   $sql1 = "update pcp_ndt set wife_name='$wife_name', wife_age='$wife_age', husband_name='$husband_name', wife_address='$wife_address', wife_phone='$wife_phone',female_pregnancy_other_p='$female_pregnancy_other_p',female_pregnancy_other_l='$female_pregnancy_other_l',female_pregnancy_other_a='$female_pregnancy_other_a', details_management_advised='$details_management_advised', IVF_Consultant='$IVF_Consultant', procedure_done='$procedure_done', outcome_of_tretment='$outcome_of_tretment', further_referredfor_dellvery='$further_referredfor_dellvery', outcome_of_pregnancy='$outcome_of_pregnancy', male='$male', female='$female', malformation_in_newborn='$malformation_in_newborn', female_issues='$female_issues', date_of_discharge='$date_of_discharge', center='$center' where ID = '$ID'  ";
     $query2 = $this->db->query($sql1);
 	$num = (int) $query2;
     if ($num > 0) {
@@ -71,15 +71,9 @@ if (isset($_POST['submit'])) {
 
 <tr>
 <td colspan="2" width="50%">
-<strong>Detail of Referring Dr.
-<select name="IVF_Consultant" style="width:100%;display: block;">
-<option value="<?php echo $res_val->IVF_Consultant; ?>"> <?php echo $res_val->IVF_Consultant; ?></option>
-<option value="Dr.Richika Sahay">Dr.Richika Sahay</option>
-<option value="Dr.Sonum Gautam">Dr.Sonum Gautam</option>
-<option value="Dr.Rachna Rawat">Dr.Rachna Rawat</option>
-<option value="Dr.Manmeet Kaur">Dr.Manmeet Kaur</option>
-</select>
-</strong>
+
+<strong>Detail of Referring Dr: <input type="text" name="IVF_Consultant" value="<?php echo $res_val->IVF_Consultant; ?>"> </strong>
+
 </td>
 <td width="50%">
 <strong>Procedure Done
@@ -138,7 +132,23 @@ if (isset($_POST['submit'])) {
 <input type="date" class="Discharge" name="date_of_discharge" value="<?php echo $res_val->date_of_discharge; ?>"></strong>
 </td>
 </tr> 
- 
+<tr>
+<td width="50%" colspan="2">
+            	<label>Center</label>
+                <select class="form-control" id="center" name="center">
+                	<option value=''>--Select From--</option>
+                    <?php $all_centers = $all_method->get_all_centers();
+						            foreach($all_centers as $key => $val){ //var_dump($val);die;
+                          if($center == $val['center_number']){
+                            echo '<option value="'.$val['center_number'].'" selected>'.$val['center_name'].'</option>';
+                          }else{
+		                        echo '<option value="'.$val['center_number'].'">'.$val['center_name'].'</option>';
+                          }
+                    	  } 
+					    ?>
+                </select>
+</td>
+</tr>
 </tbody>
 </table> 
 </div>  
