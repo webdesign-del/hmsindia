@@ -2671,29 +2671,6 @@ public function update_procedure_date()
 	
 public function tally()
 {
-<<<<<<< HEAD
-    $logg = checklogin();
-    
-    // Accept ids from POST or GET
-    $ids = $this->input->post('ids');
-    if (empty($ids)) {
-        $ids = $this->input->get('ids');
-    }
-
-    $all_sales = [];
-
-    if (!empty($ids)) {
-        // fetch only selected
-        foreach ($ids as $ID) {
-            $sale = $this->accounts_model->send_procedure_tally($ID);
-
-            if ($sale) {
-
-                // -------------------------
-                // Convert serialized data →
-                // JSON patient_procedures[]
-                // -------------------------
-=======
     // =========================================================================
     // PART 1: MEDICINE SALES
     // =========================================================================
@@ -2794,21 +2771,14 @@ public function tally()
     $procedure_sales_raw = $this->accounts_model->get_all_sales_for_tally(); 
     $procedure_sales_formatted = [];
 
-    if (!empty($procedure_sales_raw)) {
+ if (!empty($procedure_sales_raw)) {
         foreach ($procedure_sales_raw as $sale) {
             $sql_patients = "SELECT * FROM hms_patients WHERE patient_id = ?";
             $patients_result = $this->db->query($sql_patients, [$sale["patient_id"]])->row_array();
->>>>>>> eec78a8bf490be05f055451c98a31a25c3d3dce4
 
-                if (!empty($sale['data'])) {
-                    $unserialized = @unserialize($sale['data']);
+            $sql_centers = "SELECT * FROM hms_centers WHERE center_number = ?";
+            $centers_result = $this->db->query($sql_centers, [$sale["origins"]])->row_array();    
 
-<<<<<<< HEAD
-                    if (isset($unserialized['patient_procedures'])) {
-                        $sale['patient_procedures'] = $unserialized['patient_procedures'];
-                    } else {
-                        $sale['patient_procedures'] = [];
-=======
             $sql_billing = "SELECT * FROM hms_centers WHERE center_number = ?";
             $billing_result = $this->db->query($sql_billing, [$sale["billing_at"]])->row_array();
 
@@ -2842,121 +2812,14 @@ public function tally()
                             "sub_procedures_after_discount" => ((float)($p["sub_procedures_price"]??0) - (float)($p["sub_procedures_discount"]??0)),
                             "sub_procedures_paid_price"   => $p["sub_procedures_paid_price"] ?? 0
                         ];
->>>>>>> eec78a8bf490be05f055451c98a31a25c3d3dce4
-                    }
-                } else {
-                    $sale['patient_procedures'] = [];
-                }
-
-                // remove original `data` field from output
-                unset($sale['data']);
-
-                $all_sales[] = $sale;
-            }
-        }
-    } else {
-
-        $sales = $this->accounts_model->get_all_sales_for_tally();
-
-        foreach ($sales as $sale) {
-
-		$sql_patients = "SELECT * FROM hms_patients WHERE patient_id ='".$sale["patient_id"]."'";
-        $patients_result = run_select_query($sql_patients);
-
-		$sql_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["origins"]."'";
-        $centers_result = run_select_query($sql_centers);
-
-		$sql_billing_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["billing_at"]."'";
-        $billing_centers_result = run_select_query($sql_billing_centers);
-
-		$sql_booking_centers = "SELECT * FROM hms_centers WHERE center_number ='".$sale["billing_at"]."'";
-        $booking_centers_result = run_select_query($sql_booking_centers);
-
-		$sql_employees = "SELECT * FROM hms_employees WHERE employee_number ='".$sale["biller_id"]."'";
-        $employees_result = run_select_query($sql_employees);
-
-		 // FIXED: Properly handle the embryo transfer data
-        $date_of_admission = null;
-        $formatted_admission_date = null;
-        $type = 'New';  // Default
-        
-        if (!empty($select_embryo_transfer)) {
-            // Check if it's a single row or multiple rows
-            if (isset($select_embryo_transfer['date_of_addmission'])) {
-                // Single row result
-                $date_of_admission = $select_embryo_transfer['date_of_addmission'];
-            } elseif (is_array($select_embryo_transfer) && count($select_embryo_transfer) > 0) {
-                // Multiple rows result - get the first one
-                $first_embryo = $select_embryo_transfer[0];
-                $date_of_admission = isset($first_embryo['date_of_addmission']) ? $first_embryo['date_of_addmission'] : null;
-            }
-            
-            if (!empty($date_of_admission)) {
-                $formatted_admission_date = date('Y-m-d', strtotime($date_of_admission));
-                
-                // Determine type based on admission date
-                if (strtotime($date_of_admission) < strtotime($row['on_date'])) {
-                    $type = 'recycle';
+ }
                 }
             }
-<<<<<<< HEAD
-        }
-
-    // ---- Parent sale fields ----
-    $formatted = [
-        "patient_id"      => $sale["patient_id"],
-     	"patient_name" => ($patients_result['wife_name'] ?? '') . ' W/O ' . ($patients_result['husband_name'] ?? ''),
-        "billing_center"  => $billing_centers_result['center_name'],
-        "booking_center"  => $booking_centers_result['center_name'],
-        "origin_center"   => $centers_result['center_name'],
-        "on_date"         => date("d-m-Y", strtotime($sale["on_date"])),
-        "receipt_number"  => $sale["receipt_number"],
-        "biller_name"     => $employees_result['name'] ?? 'N/A',
-        "procedure_type"  => $type . ($date_of_admission ? " (Admission: " . $date_of_admission . ")" : ""),
-        "patient_procedures" => [],
-        "payment_method" => $sale["payment_method"] ?? "",
-		"status" => $sale["status"] ?? ""
-    ];
-
-    // ---- Unserialize patient_procedures ----
-    if (!empty($sale['data'])) {
-
-        $unserialized = @unserialize($sale['data']);
-
-        if (isset($unserialized['patient_procedures'][0])) {
-
-            $p = $unserialized['patient_procedures'][0];
-
-            $formatted["patient_procedures"][] = [
-                "procedure_name"              => $sale["procedure_name"],
-                "category"                    => $sale["category"],
-                "sub_procedure"               => $p["sub_procedure"],
-                "sub_procedures_code"         => $p["sub_procedures_code"],
-                "sub_procedures_price"        => $p["sub_procedures_price"],
-                "sub_procedures_discount"     => $p["sub_procedures_discount"],
-                "sub_procedures_after_discount" =>
-                    (float)$p["sub_procedures_price"] - (float)$p["sub_procedures_discount"],
-                "sub_procedures_paid_price"   => $p["sub_procedures_paid_price"]
-            ];
-        }
-    }
-
-    unset($sale['data']);
-
-    $all_sales[] = $formatted;
-}
-
-    }
-
-    $response = [
-        'export_date'   => date('Y-m-d H:i:s'),
-        'selected_ids'  => !empty($ids) ? $ids : [],
-        'record_count'  => count($all_sales),
-        'Sales_Details' => $all_sales
-=======
             $procedure_sales_formatted[] = $formatted;
         }
     }
+        
+     
 
     // =========================================================================
     // PART 3: CONSULTATION SALES
@@ -3208,12 +3071,11 @@ public function tally()
         'Registration_Sales' => $registration_sales,
         'Investigation_Sales' => $investigation_sales,
         'Fellowship_Sales' => $fellowship_sales
->>>>>>> eec78a8bf490be05f055451c98a31a25c3d3dce4
-    ];
+];
 
-    return $this->output
-        ->set_content_type('application/json')
-        ->set_output(json_encode($response, JSON_PRETTY_PRINT));
+    header('Content-Type: application/json');
+    echo json_encode($final_output, JSON_PRETTY_PRINT);
+    exit;
 }
 
 // New update push test
