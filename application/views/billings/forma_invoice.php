@@ -227,43 +227,57 @@ IVF consumables charges for ovum pick up and ET without complication. Embryologi
 
 
 <tr>
-
-
-
 <td colspan="6"><strong>Excludes:</strong></td>
-
-
-
 </tr>
-
-
-
 <tr>
-
-
-
 <td colspan="6">
-
-
-
 <p style="margin-left:20px;font-size:14px;">Any other medicine except ovulation inductioninjection. Discharge medicines for ovum pick up and embryotransfer. General anesthesia
-
-
 
 for embryo transfer, anesthesia fees, consumables, OTChargesetc. Pre and Post IVFConsultations. Investigations notincluded. Any Complication in OT during Ovum pick up & Embryo transfer (Pre & Post). Meals & Lodging forpatients. SurrogacyCharges. Egg donor charges according to eggdonor. Sperm donor charges perdonor.
 
-
-
 </p>
-
-
-
 </td>
-
-
-
 </tr>
 
+<tr>
+<td colspan="6"><strong>Payment Structure:</strong></td>
+</tr>
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">10% of the total package amount is payable as a booking amount at the time of registration.<br/>
+40% of the amount must be paid before initiation of ovarian stimulation.<br/>
+The remaining 50% must be paid before the trigger injection.</p>
+<p style="margin-left:20px;font-size:14px;">Any add-on procedures or services (such as ICSI, blastocyst culture, freezing, thawing, etc.) will be informed to the patient in advance and charged separately as applicable.<br/>
+The booking amount is non-refundable under any circumstances.
+<br/>
+The booking is valid for a period of 60 days or 02 months from the date of payment. After this period, re-booking charges may apply.
+</p>
+</td>
+</tr>
+
+<tr>
+<td colspan="6"><strong>Embryology-Related Terms & Conditions</strong></td>
+</tr>
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">Outcomes related to oocyte quality, fertilization, embryo development, freezing, thawing, and transfer cannot be guaranteed, as they depend on biological factors beyond human control.
+Charges for embryology services are applicable once the service is initiated, irrespective of the outcome.
+</p>
+</td>
+</tr>
+
+<tr>
+<td colspan="6"><strong>Excludes:</strong></td>
+</tr>
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">Any other medicine except ovulation inductioninjection. Discharge medicines for ovum pick up and embryotransfer. General anesthesia
+
+for embryo transfer, anesthesia fees, consumables, OTChargesetc. Pre and Post IVFConsultations. Investigations notincluded. Any Complication in OT during Ovum pick up & Embryo transfer (Pre & Post). Meals & Lodging forpatients. SurrogacyCharges. Egg donor charges according to eggdonor. Sperm donor charges perdonor.
+
+</p>
+</td>
+</tr>
 
 
 <tr>
@@ -532,12 +546,34 @@ for embryo transfer, anesthesia fees, consumables, OTChargesetc. Pre and Post IV
 
 </tr>
 
-
+<tr>
+<td colspan="6"><strong>Payment Structure:</strong></td>
+</tr>
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">10% of the total package amount is payable as a booking amount at the time of registration.<br/>
+40% of the amount must be paid before initiation of ovarian stimulation.<br/>
+The remaining 50% must be paid before the trigger injection.</p>
+<p style="margin-left:20px;font-size:14px;">Any add-on procedures or services (such as ICSI, blastocyst culture, freezing, thawing, etc.) will be informed to the patient in advance and charged separately as applicable.<br/>
+The booking amount is non-refundable under any circumstances.
+<br/>
+The booking is valid for a period of 60 days or 02 months from the date of payment. After this period, re-booking charges may apply.
+</p>
+</td>
+</tr>
 
 <tr>
+<td colspan="6"><strong>Embryology-Related Terms & Conditions</strong></td>
+</tr>
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">Outcomes related to oocyte quality, fertilization, embryo development, freezing, thawing, and transfer cannot be guaranteed, as they depend on biological factors beyond human control.
+Charges for embryology services are applicable once the service is initiated, irrespective of the outcome.
+</p>
+</td>
+</tr>
 
-
-
+<tr>
 <td colspan="6"><strong>Note:</strong> Booking amount not refundable and 25% of package cost should be deposited within 10 days of Registration, failing to
 
 

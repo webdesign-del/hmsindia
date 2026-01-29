@@ -147,6 +147,32 @@ if ($package_suggestion_list !== false && is_array($package_suggestion_list)) {
 <tr><td colspan="6"><strong>Restrictions:</strong></td></tr>
 <tr><td colspan="6"><p style="margin-left:20px;font-size:14px;"><?= nl2br($last_treatment_conclusion) ?></p></td></tr>
 <?php endif; ?>
+<tr>
+<td colspan="6"><strong>Payment Structure:</strong></td>
+</tr>
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">10% of the total package amount is payable as a booking amount at the time of registration.<br/>
+40% of the amount must be paid before initiation of ovarian stimulation.<br/>
+The remaining 50% must be paid before the trigger injection.</p>
+<p style="margin-left:20px;font-size:14px;">Any add-on procedures or services (such as ICSI, blastocyst culture, freezing, thawing, etc.) will be informed to the patient in advance and charged separately as applicable.<br/>
+The booking amount is non-refundable under any circumstances.
+<br/>
+The booking is valid for a period of 60 days or 02 months from the date of payment. After this period, re-booking charges may apply.
+</p>
+</td>
+</tr>
+
+<tr>
+<td colspan="6"><strong>Embryology-Related Terms & Conditions</strong></td>
+</tr>
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">Outcomes related to oocyte quality, fertilization, embryo development, freezing, thawing, and transfer cannot be guaranteed, as they depend on biological factors beyond human control.
+Charges for embryology services are applicable once the service is initiated, irrespective of the outcome.
+</p>
+</td>
+</tr>
 <tr><td colspan="6"><strong>Note:</strong> Booking amount not refundable and 25% of package cost should be deposited within 10 days of Registration, failing to
 which the package will automatically stand cancelled without prior notification.</td></tr>
 <tr><td><strong>►We do not do preconception sex selection and we don’t allow sex determination</strong></td></tr>
@@ -356,6 +382,32 @@ if ($package_suggestion_list !== false && is_array($package_suggestion_list)) {
 <tr><td colspan="6"><strong>Restrictions:</strong></td></tr>
 <tr><td colspan="6"><p style="margin-left:20px;font-size:14px;"><?= nl2br($last_treatment_conclusion) ?></p></td></tr>
 <?php endif; ?>
+<tr>
+<td colspan="6"><strong>Payment Structure:</strong></td>
+</tr>
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">10% of the total package amount is payable as a booking amount at the time of registration.<br/>
+40% of the amount must be paid before initiation of ovarian stimulation.<br/>
+The remaining 50% must be paid before the trigger injection.</p>
+<p style="margin-left:20px;font-size:14px;">Any add-on procedures or services (such as ICSI, blastocyst culture, freezing, thawing, etc.) will be informed to the patient in advance and charged separately as applicable.<br/>
+The booking amount is non-refundable under any circumstances.
+<br/>
+The booking is valid for a period of 60 days or 02 months from the date of payment. After this period, re-booking charges may apply.
+</p>
+</td>
+</tr>
+
+<tr>
+<td colspan="6"><strong>Embryology-Related Terms & Conditions</strong></td>
+</tr>
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">Outcomes related to oocyte quality, fertilization, embryo development, freezing, thawing, and transfer cannot be guaranteed, as they depend on biological factors beyond human control.
+Charges for embryology services are applicable once the service is initiated, irrespective of the outcome.
+</p>
+</td>
+</tr>
 <tr>
 <td colspan="6">
 Note: Booking amount not refundable and 25% of package cost should be deposited within 10 days of Registration, failing to which the package will automatically stand cancelled without prior notification.
