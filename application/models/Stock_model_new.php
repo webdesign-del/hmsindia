@@ -7502,7 +7502,8 @@ class Stock_model_new extends CI_Model
         $total_qty = $old_qty + ($quantity_received/$pack_size);
         // $new_quantity = ($pack_size > 0) ? ($total_qty / $pack_size) : 0;
         $update = [
-            'quantity_received' => $total_qty
+            'quantity_received' => $total_qty,
+            'freight_charges' => $freight_charges
         ];
         $this->db->where('id', $item_data['po_item_id']);
         $this->db->update('hms_new_purchase_order_items', $update);

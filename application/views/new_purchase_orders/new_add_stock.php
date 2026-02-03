@@ -572,6 +572,7 @@ Batch Number	<div class="col-md-12">
                          <th style="min-width: 80px;">Incl.Tax?</th>
                          <th style="min-width: 100px;">Tax Amt</th>
                          <th style="min-width: 100px;">Amount</th>
+                         <td style="min-width: 100px;">Freight Charges</td>
                       </tr>
                    </thead>
                    <tbody id="receipt_items_tbody">
@@ -683,6 +684,9 @@ Batch Number	<div class="col-md-12">
                                   <input type="number" class="form-control" name="amount_<?php echo $row_counter; ?>" id="amount_<?php echo $row_counter; ?>" 
                                      value="0.00" 
                                      step="0.01" readonly>
+                               </td>
+                               <td>
+                                  <input type="number" class="form-control" name="freight_charges_<?php echo $row_counter; ?>" id="freight_charges_<?php echo $row_counter; ?>">
                                </td>
                             </tr>
                             <?php $row_counter++; ?>

@@ -279,6 +279,12 @@ for embryo transfer, anesthesia fees, consumables, OTChargesetc. Pre and Post IV
 </td>
 </tr>
 
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">IVF success rates are statistical and depend on medical variables including age, ovarian reserve, sperm quality, uterine receptivity, and other biological factors; accordingly, the Clinic gives no assurance, representation, or Guarantee of IVF success, pregnancy, implantation, live birth, or the genetic normalcy of the child. The Clinic shall not be held liable for treatment failure, miscarriage, congenital anomalies, or medical complications arising from inherent biological limitations.
+</p>
+</td>
+</tr>
 
 <tr>
 
@@ -569,6 +575,13 @@ The booking is valid for a period of 60 days or 02 months from the date of payme
 <td colspan="6">
 <p style="margin-left:20px;font-size:14px;">Outcomes related to oocyte quality, fertilization, embryo development, freezing, thawing, and transfer cannot be guaranteed, as they depend on biological factors beyond human control.
 Charges for embryology services are applicable once the service is initiated, irrespective of the outcome.
+</p>
+</td>
+</tr>
+
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">IVF success rates are statistical and depend on medical variables including age, ovarian reserve, sperm quality, uterine receptivity, and other biological factors; accordingly, the Clinic gives no assurance, representation, or Guarantee of IVF success, pregnancy, implantation, live birth, or the genetic normalcy of the child. The Clinic shall not be held liable for treatment failure, miscarriage, congenital anomalies, or medical complications arising from inherent biological limitations.
 </p>
 </td>
 </tr>

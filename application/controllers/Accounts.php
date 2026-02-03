@@ -2696,14 +2696,15 @@ public function tally()
     
     $med_results = $this->db->query($sql_med)->result_array();
     
-    // Group medicines by Sale ID first to handle multiple items per receipt
+    // Group medicines by Sale ID
     $med_grouped = [];
 
     foreach ($med_results as $row) {
         $saleId = $row['sale_id'];
         
         $qty     = abs((int) $row['quantity_change']);
-        $mrpUnit = $row['mrp'] / ($row['pack_size'] > 0 ? $row['pack_size'] : 1); 
+        $packSize = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
+        $mrpUnit = $row['mrp'] / $packSize; 
         $gstRate = (float) $row['gst_rate'];
         $total   = (float) $row['total_value'];
 
@@ -2719,7 +2720,7 @@ public function tally()
                 'patient_id'       => $row['patient_id'],
                 'patient_name'     => $row['patient_name'],
                 'billing_center'   => $row['center_name'],
-                'origin_center'    => $row['center_name'], // Medicines usually originate where billed
+                'origin_center'    => $row['center_name'],
                 'receipt_number'   => $row['sale_number'],
                 'on_date'          => date("d-m-Y", strtotime($row['sale_date'])),
                 'biller_name'      => $row['payment_approved_by_name'],
@@ -2731,7 +2732,7 @@ public function tally()
 
         $med_grouped[$saleId]['items'][] = [
             'item_name'       => $row['medicine_name'],
-            'code'            => $row['hsn_code'], // Standardized Key
+            'code'            => $row['hsn_code'],
             'batch_no'        => $row['batch_number'],
             'expiry'          => $row['expiry_date'],
             'quantity'        => $qty,
@@ -2740,7 +2741,7 @@ public function tally()
             'taxable_value'   => number_format($taxableValue, 2, '.', ''),
             'gst_rate'        => number_format($gstRate, 2, '.', ''),
             'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-            'total_amount'    => number_format($total, 2, '.', '') // Standardized Key
+            'total_amount'    => number_format($total, 2, '.', '')
         ];
     }
     
@@ -2756,7 +2757,6 @@ public function tally()
 
     if (!empty($procedure_raw)) {
         foreach ($procedure_raw as $sale) {
-            // Fetch related data
             $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
             $origin = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["origins"]])->row_array();
             $billing = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
@@ -2783,13 +2783,13 @@ public function tally()
                          $formatted_proc['items'][] = [
                             'item_name'       => $sale["procedure_name"] . ' - ' . ($p["sub_procedure"] ?? ''),
                             'code'            => $p["sub_procedures_code"] ?? '',
-                            'batch_no'        => '', // N/A for services
-                            'expiry'          => '', // N/A
+                            'batch_no'        => '',
+                            'expiry'          => '',
                             'quantity'        => 1,
                             'unit_price'      => number_format((float)($p["sub_procedures_price"]??0), 2, '.', ''),
                             'discount_amt'    => number_format((float)($p["sub_procedures_discount"]??0), 2, '.', ''),
-                            'taxable_value'   => '', // Calculate if needed or leave blank
-                            'gst_rate'        => 0, // Add if available
+                            'taxable_value'   => '',
+                            'gst_rate'        => 0,
                             'gst_amount'      => 0,
                             'total_amount'    => number_format((float)($p["sub_procedures_paid_price"]??0), 2, '.', '')
                         ];
@@ -2894,7 +2894,6 @@ public function tally()
     $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' LIMIT 50")->result_array();
 
     foreach ($invest_rows as $sale) {
-        // Fetch related data
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
         $bill_c = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
         $org_c = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["origins"]])->row_array();
@@ -2930,7 +2929,6 @@ public function tally()
                             $percent = isset($item[$keys['disc']])  ? (float)$item[$keys['disc']]  : 0;
                             $discount_amt = ($price * $percent) / 100;
 
-                            // Fetch investigation name
                             $inv_q = $this->db->query("SELECT hms_master_investigations.investigation_name, hms_master_investigations.code FROM hms_investigation JOIN hms_master_investigations ON hms_investigation.master_id = hms_master_investigations.ID WHERE hms_investigation.ID = ?", [(int)$item[$keys['name']]])->row_array();
 
                             $formatted_inv['items'][] = [
@@ -2992,10 +2990,15 @@ public function tally()
     }
 
     // =========================================================================
-    // OUTPUT
+    // FINAL OUTPUT: CORRECTION IS HERE
     // =========================================================================
+    // Wrap the array in a named key (e.g., 'transactions') so Tally accepts it.
+    $output_data = [
+        "Sales_Details" => $all_transactions
+    ];
+
     header('Content-Type: application/json');
-    echo json_encode($all_transactions, JSON_PRETTY_PRINT);
+    echo json_encode($output_data, JSON_PRETTY_PRINT);
     exit;
 }
 

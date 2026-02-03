@@ -150,7 +150,7 @@ public function registation_billings(){
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Registion-Patients-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
-				$headers = 'Receipt Number,IIC ID, Total Package,Discount Amount, Payment Done,Remaining Amount,, Payment Method,  Center, Date, Status';
+				$headers = 'Receipt Number,IIC ID,Patient Name,  Total Package,Discount Amount, Payment Done,Remaining Amount,, Payment Method,  Center, Date, Status';
 				//Add the headers
 				fwrite($fp, $headers. "\r\n");
 				foreach ($data as $key => $val) {//var_dump($val);die;
@@ -159,7 +159,7 @@ public function registation_billings(){
 						$billing_from = get_center_name($billing_from);
 					}
 					$billing_at = get_center_name($val['billing_at']);
-					$lead_arr = array($val['receipt_number'],$val['patient_id'], $val['totalpackage'], $val['discount_amount'], $val['payment_done'],$val['remaining_amount'], $val['payment_method'],  $val['billing_at'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status']);
+					$lead_arr = array($val['receipt_number'],$val['patient_id'], $val['wife_name'], $val['totalpackage'], $val['discount_amount'], $val['payment_done'],$val['remaining_amount'], $val['payment_method'],  $val['billing_at'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status']);
 					fputcsv($fp, $lead_arr);
 				}
 				fclose($fp);

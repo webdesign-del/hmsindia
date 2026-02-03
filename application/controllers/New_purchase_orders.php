@@ -1746,6 +1746,7 @@ class New_purchase_orders extends CI_Controller {
                     'tax_percent'      => (float)$this->input->post('tax_percentage_' . $row_counter),
                     'tax_amount'       => (float)$this->input->post('tax_amount_' . $row_counter),
                     'total_amount'     => (float)$this->input->post('amount_' . $row_counter),
+                    'freight_charges'      => $this->input->post('freight_charges_' . $row_counter),
                     'vendor_id'        => $vendor_id,
                     'po_id'            => $po_id,
                     'po_number'        => $po_number,

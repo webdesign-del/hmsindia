@@ -165,10 +165,11 @@ function consultation_billings_patination($limit, $page, $center, $start_date, $
         if(!empty($consultation_result)){
             foreach($consultation_result as $key => $val){
 				$patient_name = $this->get_patient_name($val['patient_id']);
-				$patient_name1 = strtoupper($patient_name);
+				//$patient_name1 = strtoupper($patient_name);
                 $response[] = array(
 				        'receipt_number' => $val['receipt_number'],
                         'patient_id' => $val['patient_id'],
+						'wife_name' => $patient_name,
 						'totalpackage' => $val['totalpackage'],
 						'discount_amount' => $val['discount_amount'],
                         'payment_done' => $val['payment_done'],

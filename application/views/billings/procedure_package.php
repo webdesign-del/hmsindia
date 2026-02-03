@@ -173,6 +173,14 @@ Charges for embryology services are applicable once the service is initiated, ir
 </p>
 </td>
 </tr>
+
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">IVF success rates are statistical and depend on medical variables including age, ovarian reserve, sperm quality, uterine receptivity, and other biological factors; accordingly, the Clinic gives no assurance, representation, or Guarantee of IVF success, pregnancy, implantation, live birth, or the genetic normalcy of the child. The Clinic shall not be held liable for treatment failure, miscarriage, congenital anomalies, or medical complications arising from inherent biological limitations.
+</p>
+</td>
+</tr>
+
 <tr><td colspan="6"><strong>Note:</strong> Booking amount not refundable and 25% of package cost should be deposited within 10 days of Registration, failing to
 which the package will automatically stand cancelled without prior notification.</td></tr>
 <tr><td><strong>►We do not do preconception sex selection and we don’t allow sex determination</strong></td></tr>
@@ -408,6 +416,14 @@ Charges for embryology services are applicable once the service is initiated, ir
 </p>
 </td>
 </tr>
+
+<tr>
+<td colspan="6">
+<p style="margin-left:20px;font-size:14px;">IVF success rates are statistical and depend on medical variables including age, ovarian reserve, sperm quality, uterine receptivity, and other biological factors; accordingly, the Clinic gives no assurance, representation, or Guarantee of IVF success, pregnancy, implantation, live birth, or the genetic normalcy of the child. The Clinic shall not be held liable for treatment failure, miscarriage, congenital anomalies, or medical complications arising from inherent biological limitations.
+</p>
+</td>
+</tr>
+
 <tr>
 <td colspan="6">
 Note: Booking amount not refundable and 25% of package cost should be deposited within 10 days of Registration, failing to which the package will automatically stand cancelled without prior notification.
