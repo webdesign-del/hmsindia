@@ -2690,7 +2690,7 @@ public function tally()
         INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
         INNER JOIN medicines m ON mb.medicine_id = m.id
         WHERE sm.movement_type = 'SALE' AND sm.to_location_type = 'SALE'
-        AND s.payment_status = 'approved' 
+        AND s.payment_status = 'PAID' 
         ORDER BY s.updated_at DESC LIMIT 50
     ";
     

@@ -6254,8 +6254,8 @@ $countdownDuration = 7200;
 					</table>
 					<div class="step-navigation-buttons">
 						<button type="button" class="btn-step-prev" onclick="goToStep(11)">Previous</button>
-						<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(12)">Save & Continue</button>
-						<button type="button" id="save_exit-button" class="btn btn-primary">Save & Exit</button>
+						<!--<button type="button" class="btn-step-save-continue" onclick="saveAndContinue(12)">Save & Continue</button>
+						<button type="button" id="save_exit-button" class="btn btn-primary">Save & Exit</button>-->
 						<?php if($_SESSION['logged_doctor']['junior_doctor'] == 0){ ?>
 							<button type="button" id="exit-button" class="btn btn-primary pull-right">Submit</button>
 						<?php } ?>

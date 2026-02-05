@@ -136,6 +136,9 @@
                                     <th>Batch</th>
                                     <th>Price</th>
                                     <th>Vendor Price</th>
+                                    <th>Vendor Price (Excl Tax)</th>
+                                    <th>Tax</th>
+                                    <th>Total (Inc Tax)</th>
                                     <th>MRP</th>
                                     <th>Tax %</th>
                                     <th>Company</th>
@@ -163,6 +166,9 @@
                                        <td><?php echo $item['batch_number']; ?></td>
                                        <td>₹<?php echo number_format($item['price'], 2); ?></td>
                                        <td>₹<?php echo number_format($item['vendor_price'], 2); ?></td>
+                                       <td><?php echo number_format($item['vendor_price'] * $item['quantity'], 2); ?></td>
+                                       <td><?php echo number_format(($item['vendor_price'] * $item['quantity']) * ($item['tax_percentage'] / 100), 2); ?></td>
+                                       <td>₹<?php echo number_format(($item['vendor_price'] * $item['quantity']) * (1 + ($item['tax_percentage'] / 100)), 2); ?></td>
                                        <td>₹<?php echo number_format($item['mrp'], 2); ?></td>
                                        <td><?php echo $item['tax_percentage']; ?>%</td>
                                        <td><?php echo $item['company']; ?></td>
