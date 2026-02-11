@@ -1693,7 +1693,7 @@ class New_purchase_orders extends CI_Controller {
             return;
         }
         // --- Handle File Uploads ---
-        $uploaded_files_info = [];
+      /*  $uploaded_files_info = [];
         if(!empty($_FILES['receipt_files']['name'][0])) {
             $uploaded_files_info = $this->handleFileUploads(); 
             if(isset($uploaded_files_info['error'])) {
@@ -1707,7 +1707,7 @@ class New_purchase_orders extends CI_Controller {
             foreach ($uploaded_files_info as $file_info) {
                 $file_paths[] = $file_info['path']; // store only the path or full info if you prefer
             }
-        }
+        }*/
         $file_names = !empty($file_paths) ? json_encode($file_paths) : null;
         $items_processed = 0;
         $items_failed = 0;

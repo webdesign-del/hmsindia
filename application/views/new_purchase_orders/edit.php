@@ -53,6 +53,7 @@
                     <label for="ship_to">Ship To <span class="text-danger">*</span></label>
                     <select class="form-control" id="ship_to" name="ship_to" required>
                        <option value="">-- Select Ship To --</option>
+                       <option value="<?php echo ucfirst($purchase_order['bill_to']); ?>" selected> <?php echo ucfirst($purchase_order['bill_to']); ?> </option>
                        <?php if (!empty($centers)): ?>
                            <?php foreach ($centers as $center): ?>
                              <option value="<?php echo $center['center_number']; ?>" 
@@ -69,6 +70,7 @@
                     <label for="bill_to">Bill To <span class="text-danger">*</span></label>
                     <select class="form-control" id="bill_to" name="bill_to" required>
                        <option value="">-- Select Bill To --</option>
+                       <option value="<?php echo ucfirst($purchase_order['bill_to']); ?>" selected> <?php echo ucfirst($purchase_order['bill_to']); ?> </option>
                        <?php if (!empty($centers)): ?>
                            <?php foreach ($centers as $center): ?>
                              <option value="<?php echo $center['center_number']; ?>" 

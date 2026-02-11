@@ -141,8 +141,20 @@
                             $ship_to = !empty($ship_to) ? $ship_to : 'N/A';
                             $bill_to = !empty($bill_to) ? $bill_to : 'N/A';
                            ?>
-                           <td><?php echo $bill_to; ?></td>
-                           <td><?php echo $ship_to; ?></td> 
+                           <td><?php 
+    if ($ship_to == "IndiaIVF") {
+        echo "CENTRAL_WAREHOUSE_NOIDA";
+    } else {
+        echo $ship_to;
+    }
+    ?></td>
+                           <td><?php 
+    if ($bill_to == "IndiaIVF") {
+        echo "CENTRAL_WAREHOUSE_NOIDA";
+    } else {
+        echo $bill_to;
+    }
+    ?></td> 
                            <td><?php echo !empty($po['department']) ? $po['department'] : 'N/A'; ?></td>
                            <td>
                               <span class="label label-info">

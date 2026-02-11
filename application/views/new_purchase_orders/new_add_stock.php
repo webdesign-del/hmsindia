@@ -651,20 +651,20 @@ Batch Number	<div class="col-md-12">
                                      rows="2" placeholder="Enter comments" <?php echo $disabled_attr; ?>><?php echo isset($item['comments']) ? $item['comments'] : ''; ?></textarea>
                                </td> -->
                                <td>
-                                  <input type="number" class="form-control" name="unit_price_<?php echo $row_counter; ?>" id="unit_price_<?php echo $row_counter; ?>" 
+                                  <input type="number" readonly class="form-control" name="unit_price_<?php echo $row_counter; ?>" id="unit_price_<?php echo $row_counter; ?>" 
                                      value="<?php echo isset($item['vendor_price']) ? $item['vendor_price'] : '0'; ?>" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)" <?php echo $disabled_attr; ?>>
                                </td>
                                <td>
-                                  <input type="number" class="form-control" name="tax_percentage_<?php echo $row_counter; ?>" id="tax_percentage_<?php echo $row_counter; ?>" 
+                                  <input type="number" readonly class="form-control" name="tax_percentage_<?php echo $row_counter; ?>" id="tax_percentage_<?php echo $row_counter; ?>" 
                                      value="<?php echo isset($item['tax_percentage']) ? $item['tax_percentage'] : '0'; ?>" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)" <?php echo $disabled_attr; ?>>
                                </td>
                                <td>
-                                  <input type="number" class="form-control" name="mrp_<?php echo $row_counter; ?>" id="mrp_<?php echo $row_counter; ?>" 
+                                  <input type="number" readonly class="form-control" name="mrp_<?php echo $row_counter; ?>" id="mrp_<?php echo $row_counter; ?>" 
                                      value="<?php echo isset($item['mrp']) ? $item['mrp'] : '0'; ?>" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)" <?php echo $disabled_attr; ?>>
                                </td>
                              
                                <td>
-                                  <input type="number" class="form-control" name="discount_<?php echo $row_counter; ?>" id="discount_<?php echo $row_counter; ?>" 
+                                  <input type="number" readonly class="form-control" name="discount_<?php echo $row_counter; ?>" id="discount_<?php echo $row_counter; ?>" 
                                      value="0" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)" <?php echo $disabled_attr; ?>>
                                </td>
                                <td class="checkbox-cell">
@@ -688,6 +688,7 @@ Batch Number	<div class="col-md-12">
                                <td>
                                   <input type="number" class="form-control" name="freight_charges_<?php echo $row_counter; ?>" id="freight_charges_<?php echo $row_counter; ?>">
                                </td>
+                               
                             </tr>
                             <?php $row_counter++; ?>
                          <?php endforeach; ?>
@@ -703,8 +704,8 @@ Batch Number	<div class="col-md-12">
           <!-- Submit Buttons -->
           <div class="row">
              <div class="col-md-12 text-center">
-                <button type="submit" class="btn btn-primary btn-lg">
-                   <i class="fa fa-save"></i> Add Stock
+                <button type="submit" class="btn btn-primary btn-lg" onclick="this.disabled=true; this.innerHTML='<i class=\'fa fa-spinner fa-spin\'></i> Processing...'; this.form.submit();">
+                    <i class="fa fa-save"></i> Add Stock
                 </button>
                 <a href="<?php echo base_url('new_purchase_orders'); ?>" class="btn btn-default btn-lg">
                    <i class="fa fa-times"></i> Cancel
@@ -718,7 +719,17 @@ Batch Number	<div class="col-md-12">
      </form>
    </div>
 </div>
-
+<script>
+    document.getElementById('stockForm').addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        
+        // Disable the button to prevent double clicks
+        btn.disabled = true;
+        
+        // Change text to show the user something is happening
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Saving...';
+    });
+</script>
 <script>
 // File upload functions (handleFileSelection, etc.)
 function toggleFileUpload() {
