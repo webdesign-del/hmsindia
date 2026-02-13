@@ -2741,7 +2741,7 @@ public function tally()
             'taxable_value'   => number_format($taxableValue, 2, '.', ''),
             'gst_rate'        => number_format($gstRate, 2, '.', ''),
             'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-            'total_amount'    => number_format($total, 2, '.', '')
+            'receive_amount'    => number_format($total, 2, '.', '')
         ];
     }
     
@@ -2791,7 +2791,7 @@ public function tally()
                             'taxable_value'   => '',
                             'gst_rate'        => 0,
                             'gst_amount'      => 0,
-                            'total_amount'    => number_format((float)($p["sub_procedures_paid_price"]??0), 2, '.', '')
+                            'receive_amount'    => number_format((float)($p["sub_procedures_paid_price"]??0), 2, '.', '')
                         ];
                     }
                 }
@@ -2839,7 +2839,7 @@ public function tally()
                 'taxable_value'   => '', 
                 'gst_rate'        => 0,
                 'gst_amount'      => 0,
-                'total_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
             ]]
         ];
     }
@@ -2883,7 +2883,7 @@ public function tally()
                 'taxable_value'   => '',
                 'gst_rate'        => 0,
                 'gst_amount'      => 0,
-                'total_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
             ]]
         ];
     }
@@ -2942,7 +2942,7 @@ public function tally()
                                 'taxable_value'   => '',
                                 'gst_rate'        => 0,
                                 'gst_amount'      => 0,
-                                'total_amount'    => number_format(($price - $discount_amt), 2, '.', '')
+                                'receive_amount'    => number_format(($price - $discount_amt), 2, '.', '')
                             ];
                         }
                     }
@@ -2984,7 +2984,7 @@ public function tally()
                 'taxable_value'   => '',
                 'gst_rate'        => number_format((float)($row['gst']??0), 2, '.', ''),
                 'gst_amount'      => number_format((float)($row['gst_amount']??0), 2, '.', ''),
-                'total_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
             ]]
         ];
     }
@@ -2994,7 +2994,7 @@ public function tally()
     // =========================================================================
     // Wrap the array in a named key (e.g., 'transactions') so Tally accepts it.
     $output_data = [
-        "Sales_Details" => $all_transactions
+        "Sales_receipt" => $all_transactions
     ];
 
     header('Content-Type: application/json');
@@ -3257,7 +3257,7 @@ public function order_invoice()
             'taxable_value'   => number_format($taxableValue, 2, '.', ''),
             'gst_rate'        => number_format($gstRate, 2, '.', ''),
             'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-            'total_amount'    => number_format($total, 2, '.', '')
+            'receive_amount'    => number_format($total, 2, '.', '')
         ];
     }
     foreach($med_grouped as $sale) { $all_transactions[] = $sale; }
@@ -3298,7 +3298,7 @@ public function order_invoice()
                             'unit_price'      => number_format((float)($p["sub_procedures_price"]??0), 2, '.', ''),
                             'discount_amt'    => number_format((float)($p["sub_procedures_discount"]??0), 2, '.', ''),
                             'taxable_value'   => '', 'gst_rate' => 0, 'gst_amount' => 0,
-                            'total_amount'    => number_format((float)($p["sub_procedures_paid_price"]??0), 2, '.', '')
+                            'receive_amount'    => number_format((float)($p["sub_procedures_paid_price"]??0), 2, '.', '')
                         ];
                     }
                 }
@@ -3342,7 +3342,7 @@ public function order_invoice()
                 'unit_price'      => number_format((float)($row['totalpackage']??0), 2, '.', ''),
                 'discount_amt'    => number_format((float)($row['discount_amount']??0), 2, '.', ''),
                 'taxable_value'   => '', 'gst_rate' => 0, 'gst_amount' => 0,
-                'total_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
             ]]
         ];
     }
@@ -3382,7 +3382,7 @@ public function order_invoice()
                 'unit_price'      => number_format((float)($row['totalpackage']??0), 2, '.', ''),
                 'discount_amt'    => number_format((float)($row['discount_amount']??0), 2, '.', ''),
                 'taxable_value'   => '', 'gst_rate' => 0, 'gst_amount' => 0,
-                'total_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
             ]]
         ];
     }
@@ -3434,7 +3434,7 @@ public function order_invoice()
                                 'unit_price'      => number_format($price, 2, '.', ''),
                                 'discount_amt'    => number_format($discount_amt, 2, '.', ''),
                                 'taxable_value'   => '', 'gst_rate' => 0, 'gst_amount' => 0,
-                                'total_amount'    => number_format(($price - $discount_amt), 2, '.', '')
+                                'receive_amount'    => number_format(($price - $discount_amt), 2, '.', '')
                             ];
                         }
                     }
@@ -3471,7 +3471,7 @@ public function order_invoice()
                 'taxable_value'   => '', 
                 'gst_rate'        => number_format((float)($row['gst']??0), 2, '.', ''),
                 'gst_amount'      => number_format((float)($row['gst_amount']??0), 2, '.', ''),
-                'total_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
             ]]
         ];
     }
@@ -3498,7 +3498,7 @@ public function order_invoice()
                 'unit_price'      => number_format((float)$proc['totalpackage'], 2, '.', ''),
                 'discount_amt'    => number_format((float)$proc['discount_amount'], 2, '.', ''),
                 'taxable_value'   => '', 'gst_rate' => 0, 'gst_amount' => 0,
-                'total_amount'    => number_format((float)$payment_row['payment_done'], 2, '.', '')
+                'receive_amount'    => number_format((float)$payment_row['payment_done'], 2, '.', ''),
             ];
         }
 
@@ -3522,7 +3522,7 @@ public function order_invoice()
     // FINAL OUTPUT
     // =========================================================================
     $output_data = [
-        "Sales_Details" => $all_transactions
+        "Sales_invoice" => $all_transactions
     ];
 
     header('Content-Type: application/json');

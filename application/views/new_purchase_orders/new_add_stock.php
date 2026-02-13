@@ -668,7 +668,7 @@ Batch Number	<div class="col-md-12">
                                </td>
                              
                                <td>
-                                  <input type="number" readonly class="form-control" name="discount_<?php echo $row_counter; ?>" id="discount_<?php echo $row_counter; ?>" 
+                                  <input type="number" class="form-control" name="discount_<?php echo $row_counter; ?>" id="discount_<?php echo $row_counter; ?>" 
                                      value="0" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)" <?php echo $disabled_attr; ?>>
                                </td>
                                <td class="checkbox-cell">
