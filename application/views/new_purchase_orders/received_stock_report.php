@@ -102,6 +102,7 @@
                    <th>Received Date</th>
                    <th>file</th>
                   <th>Total Value</th>
+                  <th>Freight Charges</th>
                 </tr>
               </thead>
               <tbody>
@@ -145,6 +146,7 @@
                                  ?>
                               </td>
                              <td><?php echo number_format($item->total_value, 2); ?></td>
+                             <td><?php echo $item->freight_charges; ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>

@@ -555,7 +555,8 @@ Batch Number	<div class="col-md-12">
                    <thead>
                       <tr>
                          <th style="min-width: 200px;">Product</th>
-                         <th style="min-width: 80px;">UOM</th>
+                         <th style="min-width: 80px;">(Pack Size) UOM</th>
+                         <th style="min-width: 100px;color:red">Total Order Qty (Unit)</th>
                          <th style="min-width: 100px;">Qty Remain</th>
                          <th style="min-width: 80px;">Rec.All?</th>
                          <th style="min-width: 120px;">Qty Receiving</th>
@@ -603,6 +604,9 @@ Batch Number	<div class="col-md-12">
                                <td>
                                   <input type="text" class="form-control" name="uom_<?php echo $row_counter; ?>" id="uom_<?php echo $row_counter; ?>" 
                                      value="<?php echo isset($item['pack_size']) ? $item['pack_size'] : 'PCS'; ?>" readonly>
+                               </td>
+                               <td class="checkbox-cell" style="min-width: 100px;color:red">
+                                  <input type="text" value="<?php echo  $qty_remaining * $item['pack_size']; ?>" readonly="">
                                </td>
                                <td>
                                   <input type="number" class="form-control" name="qty_remain_<?php echo $row_counter; ?>" id="qty_remain_<?php echo $row_counter; ?>" 

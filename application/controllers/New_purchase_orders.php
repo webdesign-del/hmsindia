@@ -344,7 +344,7 @@ class New_purchase_orders extends CI_Controller {
                     $medicine_id = $item['item_number'];
                     $medicine_item = $this->Stock_model_new->get_medicine_by_id($medicine_id,$center_id,$po_department,$po_center);
                     $item['unit'] =$medicine_item->unit ?? null;
-                    $item['pack_size'] =$medicine_item->pack_size ?? 1;
+                    //$item['pack_size'] =$medicine_item->pack_size ?? 1;
                     $item['min_stock_level'] =$medicine_item->min_stock_level ?? null;
                     $item['max_stock_level'] =$medicine_item->max_stock_level ?? null;
                     if (is_null($center_id)) {
@@ -1737,6 +1737,7 @@ class New_purchase_orders extends CI_Controller {
                     'medicine_id'      => $this->input->post('product_' . $row_counter),
                     'batch_number'     => $this->input->post('batch_number_' . $row_counter),
                     'expiry_date'      => $this->input->post('expiry_date_' . $row_counter),
+                    'freight_charges'  => $this->input->post('freight_charges_'. $row_counter),
                     'quantity'         => $qty_receiving * $this->input->post('uom_' . $row_counter),
                     'free_qty'         => (float)$this->input->post('free_qty_' . $row_counter) * $this->input->post('uom_' . $row_counter),
                     'purchase_price'   => (float)$this->input->post('unit_price_' . $row_counter),
@@ -1764,7 +1765,10 @@ class New_purchase_orders extends CI_Controller {
                 ];
                 // *** THIS IS THE FIX ***
                 // Call the new, smart function from Stock_model_new
+
                 $result = $this->Stock_model_new->receive_stock_item($item_data);
+                 //var_dump($this->Stock_model_new->receive_stock_item($item_data));
+                // die();
                 if ($result['status'] == 'success') {
                     $items_processed++;
                 } else {
@@ -1873,7 +1877,8 @@ class New_purchase_orders extends CI_Controller {
             'Invoice Number',
             'Received Date',
             'Files',
-            'Total Value'
+            'Total Value',
+            'Freight Charges'
         ];
         fputcsv($output, $headers);
 
@@ -1906,7 +1911,8 @@ class New_purchase_orders extends CI_Controller {
                 $item->receipt_number,
                 date('d-m-Y H:i', strtotime($item->received_date)),
                 $files_display,
-                number_format($item->total_value, 2)
+                number_format($item->total_value, 2),
+                $item->freight_charges
             ];
             fputcsv($output, $row);
         }

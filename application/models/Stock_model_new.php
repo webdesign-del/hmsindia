@@ -7350,6 +7350,7 @@ class Stock_model_new extends CI_Model
         $batch_number = $item_data['batch_number'];
         $vendor_id = $item_data['vendor_id'];
         $center_id = $item_data['center_id'];
+        $freight_charges = $item_data['freight_charges'];
         $is_central_warehouse = isset($item_data['is_central_warehouse']) && $item_data['is_central_warehouse'] === true;
         // Also check if center_id is null/empty as fallback
         if (!$is_central_warehouse && (empty($center_id) || $center_id === 'CENTRAL_WAREHOUSE_NOIDA')) {
@@ -7378,6 +7379,7 @@ class Stock_model_new extends CI_Model
                 "vendor_id"          => $vendor_id,
                 "batch_number"       => $batch_number,
                 "expiry_date"        => $item_data['expiry_date'],
+                'freight_charges'    => $item_data['freight_charges'],
                 "expiry_days"        => $this->calculate_expiry_days($item_data['expiry_date']),
                 "purchase_price"     => $item_data['purchase_price'] * (1 + ($item_data['tax_percent'] / 100)),
                 "selling_price"      => $item_data['mrp'], 

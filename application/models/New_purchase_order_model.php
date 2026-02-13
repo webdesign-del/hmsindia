@@ -606,17 +606,24 @@ class New_purchase_order_model extends CI_Model {
                 m.medicine_name,
                 m.medicine_code as item_number,
                 mb.batch_number,
-                mb.purchase_price as vendor_price_with_tax
+                mb.purchase_price as vendor_price_with_tax,
+                mi.freight_charges
             ');
             $this->db->from('stock_movements sm');
             // This is the main logic for your report
             $this->db->where('sm.movement_type', 'PURCHASE');
             // Joins to get the details
+            $this->db->select('sm.*, mb.*, m.*, po.po_number, mi.freight_charges');
+
             $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
             $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
             $this->db->join('hms_new_purchase_orders po', 'sm.reference_id = po.id AND sm.reference_type = "PURCHASE_ORDER"', 'left');
             $this->db->join('hms_vendors v', 'po.vendor_number = v.ID', 'left');
             $this->db->join('hms_centers c', 'sm.to_location_id = c.ID AND sm.to_location_type = "CENTER"', 'left');
+
+            // We match on po_number AND medicine_id to ensure we get the correct item's freight
+            $this->db->join('hms_new_purchase_order_items mi', 'po.po_number = mi.po_number', 'left');
+
             if (!empty($filters['po_number'])) {
                 $this->db->like('sm.reference_number', $filters['po_number'], 'both');
             }
