@@ -2984,6 +2984,89 @@ class Stocks_new extends CI_Controller
         }
     }
 
+
+
+    /**
+     * Get medicine central stock levels for editing
+     */
+    public function get_medicine_central_stock_levels()
+    {
+        // Clear all buffers FIRST
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        // Disable encoding & force JSON
+        $this->output
+            ->set_header('Content-Encoding: identity')
+            ->set_content_type('application/json');
+
+        if (!checklogin()['status']) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Unauthorized'
+            ]));
+        }
+
+        $medicine_id = $this->input->post('medicine_id');
+       
+        if (!$medicine_id) {
+            return $this->output->set_output(json_encode([
+                'success' => false,
+                'message' => 'Center, medicine and department are required'
+            ]));
+        }
+
+        $config = $this->Stock_model_new
+            ->get_medicine_central_stock_config($medicine_id);
+
+        return $this->output->set_output(json_encode([
+            'success' => true,
+            'data' => [
+                'min_stock_level' => (int) ($config->min_stock_level ?? 0),
+                'max_stock_level' => (int) ($config->max_stock_level ?? 0),
+                'reorder_level'   => (int) ($config->reorder_level ?? 0),
+            ]
+        ]));
+    }
+
+    /**
+     * Edit medicine center stock levels (min/max/reorder)
+     */
+   public function edit_medicine_central_stock_levels()
+{
+    $this->output->set_content_type('application/json');
+
+    // Input ka naam 'config_id' hai jo form se aa raha hai
+    $id = $this->input->post('config_id'); 
+    $min_stock_level = $this->input->post('min_stock_level');
+    $max_stock_level = $this->input->post('max_stock_level');
+    $reorder_level   = $this->input->post('reorder_level');
+
+    if (!$id) {
+        return $this->output->set_output(json_encode([
+            'success' => false,
+            'message' => 'Stock ID (config_id) is required'
+        ]));
+    }
+
+    // $data array mein 'stock_id' key honi chahiye jo Model use kar raha hai
+    $data = [
+        'id'              => $this->input->post('config_id'), // Yahan key 'id' honi chahiye
+        'min_stock_level' => (int) $this->input->post('min_stock_level'),
+        'max_stock_level' => (int) $this->input->post('max_stock_level'),
+        'reorder_level'   => (int) $this->input->post('reorder_level'),
+        'updated_at'      => date('Y-m-d H:i:s')
+    ];
+
+    $result = $this->Stock_model_new->save_medicine_central_stock_config($data);
+
+    return $this->output->set_output(json_encode([
+        'success' => (bool) $result,
+        'message' => $result ? 'Updated successfully' : 'Failed to update'
+    ]));
+}
+
     // ===============================================
     // CENTER STOCKS MANAGEMENT
     // ===============================================

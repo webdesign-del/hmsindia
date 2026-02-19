@@ -7379,7 +7379,6 @@ class Stock_model_new extends CI_Model
                 "vendor_id"          => $vendor_id,
                 "batch_number"       => $batch_number,
                 "expiry_date"        => $item_data['expiry_date'],
-                'freight_charges'    => $item_data['freight_charges'],
                 "expiry_days"        => $this->calculate_expiry_days($item_data['expiry_date']),
                 "purchase_price"     => $item_data['purchase_price'] * (1 + ($item_data['tax_percent'] / 100)),
                 "selling_price"      => $item_data['mrp'], 
@@ -9886,4 +9885,46 @@ public function add_stock_to_location($stock_data)
         //     return [];
         // }
     }
+
+
+
+  /**
+     * Insert or update medicine central stock configuration
+     * @param array $data
+     * @return bool
+     */
+
+    public function get_medicine_central_stock_config($id) {
+        return $this->db->where('id', $id)
+                        ->get('central_stocks')
+                        ->row();
+    }
+
+public function save_medicine_central_stock_config($data) {
+    try {
+        // Pehle check karein ki $data mein 'id' hai ya nahi
+        if (!isset($data['id']) || empty($data['id'])) {
+             return false; 
+        }
+
+        $id = $data['id'];
+        
+        // Check if record exists
+        $existing = $this->get_medicine_central_stock_config($id);
+
+        if ($existing) {
+            // Update existing record
+            unset($data['id']); // Update query se ID hata dein
+            $this->db->where('id', $id);
+            return $this->db->update('central_stocks', $data);
+        } else {
+            // Insert new record
+            return $this->db->insert('central_stocks', $data);
+        }
+    } catch (Exception $e) {
+        log_message('error', 'Error: ' . $e->getMessage());
+        return false;
+    }
+}
+
 }

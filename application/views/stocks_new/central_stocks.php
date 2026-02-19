@@ -148,6 +148,9 @@
                                                 <!-- <button type="button" class="btn btn-xs btn-danger" onclick="updateStockStatus(<?php echo $stock->id; ?>, 'QUARANTINE')">
                                                     <i class="fa fa-ban"></i> Quarantine
                                                 </button> -->
+                                                <button type="button" class="btn btn-xs btn-primary" onclick="openEditModal(<?php echo $stock->id; ?>)">
+                                                    <i class="fa fa-edit"></i> Edit
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -161,6 +164,64 @@
                     </div>
                 <?php endif; ?>
             </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Simple Modal Overlay -->
+<div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); z-index:10000;">
+    <div id="simpleModal" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:5px; max-width:600px; width:90%; max-height:80%; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h4 id="simpleModalTitle">Stock Level Configuration</h4>
+            <span style="cursor:pointer; font-size:24px;" onclick="closeModal()">&times;</span>
+        </div>
+        <style>
+            /* Ensure Select2 dropdown appears above modal */
+            .select2-container--open .select2-dropdown {
+                z-index: 10002 !important;
+            }
+            .select2-container {
+                z-index: 10001 !important;
+            }
+            /* Fix modal overlay covering dropdowns */
+            #modalOverlay {
+                z-index: 9999;
+            }
+            #simpleModal {
+                z-index: 10000;
+            }
+        </style>
+        <form id="simpleStockLevelForm">
+            <input type="hidden" id="simple_config_id" name="config_id" value="">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="simple_min_stock_level">Min Stock Level</label>
+                        <input type="number" class="form-control" id="simple_min_stock_level" name="min_stock_level" min="0" value="0">
+                        <small class="help-block">Alert when stock falls below this level</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="simple_max_stock_level">Max Stock Level</label>
+                        <input type="number" class="form-control" id="simple_max_stock_level" name="max_stock_level" min="0" value="0">
+                        <small class="help-block">Prevent ordering above this level</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="simple_reorder_level">Reorder Level</label>
+                        <input type="number" class="form-control" id="simple_reorder_level" name="reorder_level" min="0" value="0">
+                        <small class="help-block">Suggest reordering at this level</small>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align:right; margin-top:20px;">
+                <button type="button" class="btn btn-default" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="simpleSaveBtn">Save Configuration</button>
+            </div>
+        </form>
         </div>
     </div>
 </div>
@@ -219,4 +280,163 @@ function exportCentralStockReport() {
     var queryString = $.param(filters);
     window.open('<?php echo base_url("stocks_new/central_stocks_export"); ?>?' + queryString, '_blank');
 }
+
+
+// Simple modal functions
+function openModal() {
+    console.log('Opening modal...');
+    $('#modalOverlay').fadeIn();
+    $('#simple_config_id').val('');
+    $('#simpleModalTitle').text('Add Stock Level Configuration');
+    $('#simpleStockLevelForm')[0].reset();
+    $('#stock_id').val('');
+
+    // Debug: Check if dropdowns have options
+    console.log('Medicine options:', $('#stock_id option').length);
+
+    // Force Select2 to refresh safely
+    setTimeout(function() {
+        try {
+            if (typeof $.fn.select2 !== 'undefined') {
+                // Helper function to safely initialize Select2
+                function safeSelect2Init(selector, config) {
+                    var $element = $(selector);
+                    if ($element.length === 0) return;
+
+                    try {
+                        // Check if already has Select2 by looking for container
+                        if ($element.next('.select2-container').length > 0) {
+                            $element.select2('destroy');
+                        }
+                        $element.select2(config);
+                    } catch (e) {
+                        console.warn('Select2 init failed for', selector, ':', e.message);
+                    }
+                }
+
+                console.log('Select2 initialized successfully with search');
+            } else {
+                console.warn('Select2 not available, using regular select');
+            }
+        } catch (e) {
+            console.error('Select2 setup failed:', e);
+        }
+    }, 100);
+}
+
+
+function closeModal() {
+    $('#modalOverlay').fadeOut();
+}
+
+function openEditModal(configId) { // Sirf configId lene se bhi kaam chalega
+    openModal();
+    $('#simpleModalTitle').text('Edit Stock Level Configuration');
+    $('#simple_config_id').val(configId); // Hidden input mein ID set karein
+
+    $.ajax({
+        url: '<?php echo base_url("stocks_new/get_medicine_central_stock_levels"); ?>',
+        type: 'POST',
+        data: {
+            medicine_id: configId // Controller 'medicine_id' maang raha hai
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                $('#simple_min_stock_level').val(response.data.min_stock_level);
+                $('#simple_max_stock_level').val(response.data.max_stock_level);
+                $('#simple_reorder_level').val(response.data.reorder_level);
+            }
+        }
+    });
+}
+
+// Form submission
+$('#stockLevelForm').on('submit', function(e) {
+    e.preventDefault();
+
+    // Show loading state
+    var $saveBtn = $('#saveBtn');
+    var originalText = $saveBtn.text();
+    $saveBtn.prop('disabled', true).text('Saving...');
+
+    var formData = new FormData(this);
+
+    $.ajax({
+        url: '<?php echo base_url("stocks_new/edit_medicine_central_stock_levels"); ?>',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(response) {
+            // Restore button state
+            $saveBtn.prop('disabled', false).text(originalText);
+
+            if (response.success) {
+                alert('Stock level configuration saved successfully!');
+                if (window.stockLevelModal) {
+                    window.stockLevelModal.close();
+                }
+                // Reload page after modal closes
+                setTimeout(function() {
+                    location.reload();
+                }, 500);
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            // Restore button state
+            $saveBtn.prop('disabled', false).text(originalText);
+            alert('Error saving configuration: ' + error);
+        }
+    });
+});
+
+// Simple form submission
+$('#simpleStockLevelForm').on('submit', function(e) {
+    e.preventDefault();
+    console.log('Form submitted');
+
+    // Show loading state
+    var $saveBtn = $('#simpleSaveBtn');
+    var originalText = $saveBtn.text();
+    $saveBtn.prop('disabled', true).text('Saving...');
+
+    var formData = new FormData(this);
+    console.log('Form data created, sending AJAX request...');
+
+    $.ajax({
+        url: '<?php echo base_url("stocks_new/edit_medicine_central_stock_levels"); ?>',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(response) {
+            console.log('AJAX success:', response);
+            // Restore button state
+            $saveBtn.prop('disabled', false).text(originalText);
+
+            if (response.success) {
+                alert('Stock level configuration saved successfully!');
+                closeModal();
+                // Reload page after modal closes
+                setTimeout(function() {
+                    location.reload();
+                }, 300);
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX error:', xhr, status, error);
+            // Restore button state
+            $saveBtn.prop('disabled', false).text(originalText);
+            alert('Error saving configuration: ' + error);
+        }
+    });
+});
+
 </script>
