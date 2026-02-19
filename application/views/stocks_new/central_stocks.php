@@ -92,6 +92,9 @@
                                     <th>Expiry Days</th>
                                     <th>Pack Size</th>
                                     <th>Quantity</th>
+                                    <th>Min Quantity</th>
+                                    <th>Max Quantity</th>
+                                    <th>Reorder</th>
                                     <th>Vendor Price With GST</th>
                                     <th>Mrp</th>
                                     <th>Status</th>
@@ -123,6 +126,15 @@
                                         </td>
                                         <td>
                                             <strong><?php echo $stock->quantity; ?></strong>
+                                        </td>
+                                        <td>
+                                            <strong><?php echo $stock->min_stock_level; ?></strong>
+                                        </td>
+                                        <td>
+                                            <strong><?php echo $stock->max_stock_level; ?></strong>
+                                        </td>
+                                        <td>
+                                            <strong><?php echo $stock->reorder_level; ?></strong>
                                         </td>
                                         <td>₹<?php echo number_format($stock->purchase_price, 2); ?></td>
                                         <td>₹<?php echo number_format($stock->selling_price, 2); ?></td>
