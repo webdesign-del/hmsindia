@@ -1708,6 +1708,52 @@ class New_purchase_orders extends CI_Controller {
                 $file_paths[] = $file_info['path']; // store only the path or full info if you prefer
             }
         }*/
+
+        $uploaded_files = [];
+
+$upload_path = FCPATH . 'uploads/receipts/';
+
+if (!is_dir($upload_path)) {
+    mkdir($upload_path, 0777, true);
+}
+
+if (!empty($_FILES['receipt_files']['name'][0])) {
+
+    $this->load->library('upload');
+
+    $files = $_FILES['receipt_files'];
+
+    for ($i = 0; $i < count($files['name']); $i++) {
+
+        $_FILES['single_file']['name']     = $files['name'][$i];
+        $_FILES['single_file']['type']     = $files['type'][$i];
+        $_FILES['single_file']['tmp_name'] = $files['tmp_name'][$i];
+        $_FILES['single_file']['error']    = $files['error'][$i];
+        $_FILES['single_file']['size']     = $files['size'][$i];
+
+        $config = [
+            'upload_path'   => $upload_path,
+            'allowed_types' => 'pdf|jpg|jpeg|png',
+            'max_size'      => 10000,
+            'encrypt_name'  => TRUE
+        ];
+
+        $this->upload->initialize($config);
+
+        if ($this->upload->do_upload('single_file')) {
+
+            $upload_data = $this->upload->data();
+            $uploaded_files[] = 'uploads/receipts/' . $upload_data['file_name'];
+
+        } else {
+
+            echo $this->upload->display_errors();
+            exit;
+
+        }
+    }
+}    
+
         $file_names = !empty($file_paths) ? json_encode($file_paths) : null;
         $items_processed = 0;
         $items_failed = 0;
@@ -1747,7 +1793,6 @@ class New_purchase_orders extends CI_Controller {
                     'tax_percent'      => (float)$this->input->post('tax_percentage_' . $row_counter),
                     'tax_amount'       => (float)$this->input->post('tax_amount_' . $row_counter),
                     'total_amount'     => (float)$this->input->post('amount_' . $row_counter),
-                    'freight_charges'      => $this->input->post('freight_charges_' . $row_counter),
                     'vendor_id'        => $vendor_id,
                     'po_id'            => $po_id,
                     'po_number'        => $po_number,
@@ -1765,10 +1810,9 @@ class New_purchase_orders extends CI_Controller {
                 ];
                 // *** THIS IS THE FIX ***
                 // Call the new, smart function from Stock_model_new
-
+               $item_data['uploaded_files'] = json_encode($uploaded_files);
                 $result = $this->Stock_model_new->receive_stock_item($item_data);
-                 //var_dump($this->Stock_model_new->receive_stock_item($item_data));
-                // die();
+               
                 if ($result['status'] == 'success') {
                     $items_processed++;
                 } else {

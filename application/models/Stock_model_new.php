@@ -7361,6 +7361,7 @@ class Stock_model_new extends CI_Model
         if (empty($medicine_id) || empty($batch_number) || empty($vendor_id)) {
             return ['status' => 'error', 'message' => 'Missing required batch data (medicine, batch no, vendor).'];
         }
+
         $this->db->trans_start();
         $this->db->from('medicine_batches');
         $this->db->where('medicine_id', $medicine_id);
@@ -7441,7 +7442,7 @@ class Stock_model_new extends CI_Model
             $this->db->where('center_id', $center_id);
             $stock_record = $this->db->get()->row();
             
-            if ($stock_record) {
+            /*if ($stock_record) {
                 // 6A. STOCK RECORD EXISTS: Update it.
                 $quantity_before = $stock_record->quantity;
                 $this->db->where('id', $stock_record->id);
@@ -7455,7 +7456,23 @@ class Stock_model_new extends CI_Model
                     $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
                     $this->db->update('medicine_batches');
                 }
-            } else {
+            }*/
+                if ($stock_record) {
+
+                    $quantity_before = $stock_record->quantity;
+
+                    $this->db->where('id', $stock_record->id);
+                    $this->db->set('quantity', 'quantity + ' . (float)$quantity_received, FALSE);
+                    $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
+
+                    $this->db->update('center_stocks');
+
+                    if (!$is_new_batch) {
+                        $this->db->where('id', $batch_id);
+                        $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
+                        $this->db->update('medicine_batches');
+                    }
+                } else {
                 // 6B. NEW STOCK RECORD: Insert it.
                 $center_stock_data = [
                     "batch_id"  => $batch_id,
@@ -7494,6 +7511,10 @@ class Stock_model_new extends CI_Model
             "receipt_number"     => $item_data['receipt_number']
         ];
         $this->db->insert("stock_movements", $movement_data);
+
+        //echo $this->db->last_query();
+        //exit;
+
         $this->db->select('quantity_received, pack_size');
         $this->db->from('hms_new_purchase_order_items');
         $this->db->where('id', $item_data['po_item_id']);
