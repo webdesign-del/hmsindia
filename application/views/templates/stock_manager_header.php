@@ -136,6 +136,15 @@
 			<li> <a href="<?php echo base_url(); ?>doctors/acknowledgment">Acknowledgment</a> </li>
           </ul>
         </li>
+         <li> <a href="<?php echo base_url(); ?>doctors/ovarian_exosome_therapy"><i class="fa fa-sitemap"></i>Ovarian Exosome Therapy</a> </li>
+           <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Affidavit Form<span class="fa arrow"></span></a>
+            <ul class="nav nav-third-level">
+              <li> <a href="<?php echo base_url(); ?>doctors/new_ed_affidavit">New Ed affidavit</a> </li>
+              <li> <a href="<?php echo base_url(); ?>doctors/od_affidavit">OD affidavit</a> </li>
+              <li> <a href="<?php echo base_url(); ?>doctors/donor_sperm_affidavit">Donor Sperm Affidavit</a> </li>
+            </ul>
+          </li>
+          
 		 <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Admission Form<span class="fa arrow"></span></a>
           <ul class="nav nav-second-level">
             <li> <a href="<?php echo base_url(); ?>doctors/ipd_admission_form">Ipd Admission Form</a> </li>
