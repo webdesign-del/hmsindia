@@ -4583,25 +4583,23 @@ public function bulk_approve_sales()
     $sale_ids = $input['sale_ids'] ?? [];
 
     if(empty($sale_ids)){
-        echo json_encode(['status' => 'error', 'message' => 'No sales selected.']);
-        return;
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'No sales selected.'
+        ]);
+        exit;
     }
-
-    $approved_by = $_SESSION['logged_accountant']['ID'];
-    $approved_name = $_SESSION['logged_accountant']['name'];
 
     $this->db->where_in('id', $sale_ids);
     $this->db->update('sales', [
-        'accountant_approval_status' => 'APPROVED',
-        'accountant_approved_by'     => $approved_by,
-        'accountant_approved_by_name'=> $approved_name,
-        'accountant_approved_at'     => date('Y-m-d H:i:s')
+        'accountant_approval_status' => 'APPROVED'
     ]);
 
     echo json_encode([
         'status' => 'success',
-        'message' => count($sale_ids) . ' sales approved successfully.'
+        'message' => count($sale_ids).' sales approved successfully.'
     ]);
+    exit;  // 👈 IMPORTANT
 }
 
     public function get_appointment_details($appointment_id)

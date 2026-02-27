@@ -126,13 +126,14 @@
                                 <button type="button" class="btn btn-warning" onclick="exportDetailedSales('pdf')">
                                     <i class="fa fa-file-pdf-o"></i> Export All Items (PDF)
                                 </button>
-                                <div class="mb-2">
-                                    <button type="button" 
-                                            class="btn btn-success btn-sm" 
-                                            id="bulk_approve_btn">
-                                        <i class="fa fa-check"></i> Approve Selected
-                                    </button>
-                                </div>
+                                <button type="button" 
+                                        class="btn btn-success btn-sm" 
+                                        id="bulk_approve_btn">
+                                    <i class="fa fa-check"></i> Approve Selected
+                                </button>
+                                <span class="ml-3 text-primary">
+                                    Selected: <strong id="selected_count">0</strong>
+                                </span>
                             </div>
                             <?php endif; ?>
                         </form>
@@ -172,12 +173,13 @@
                     <?php endif; ?>
                     <!-- hide old report link if not an accountant -->
                     <div class="panel-body">
-                        <div class="table-responsive">
+                        <div class="table-responsive fixed-table-wrapper">
                             <table class="table table-striped table-bordered table-hover" id="salesTable">
                                 <thead>
-                                    <tr><th width="40">
-    <input type="checkbox" id="select_all">
-</th>
+                                    <tr>
+                                        <th width="40">
+                                            <input type="checkbox" id="select_all">
+                                        </th>
                                         <th>Sale #</th>
                                         <th>Patient ID</th>
                                         <th>Patient Name</th>
@@ -561,10 +563,26 @@ $is_accountant = isset($_SESSION['logged_accountant']) && !empty($_SESSION['logg
     display: inline-block !important;
     vertical-align: middle !important;
 }
-input.sale-checkbox {
-    position: absolute !important;
-    opacity: 1 !important;
-    left: 36px !important;
+[type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+    position: unset!important;
+    left: -9999px;
+    opacity: 1!important;;
+}
+.fixed-table-wrapper {
+    max-height: 700px;
+    overflow: auto;
+}
+
+.fixed-table-wrapper table {
+    min-width: 1600px; /* adjust based on your columns */
+}
+
+.fixed-table-wrapper thead th {
+    position: sticky;
+    top: 0;
+    background: #343a40;
+    color: white;
+    z-index: 20;
 }
 </style>
 <div class="modal fade" id="paymentDetailsModal" tabindex="-1" role="dialog" aria-labelledby="paymentDetailsModalLabel">
@@ -1397,38 +1415,75 @@ $(document).ready(function() {
 });
 </script>
 <script>
-document.getElementById('select_all').addEventListener('change', function() {
-    let checkboxes = document.querySelectorAll('.sale-checkbox');
-    checkboxes.forEach(cb => cb.checked = this.checked);
-});
+document.addEventListener("DOMContentLoaded", function () {
 
-document.getElementById('bulk_approve_btn').addEventListener('click', function() {
-    let selected = [];
-    document.querySelectorAll('.sale-checkbox:checked').forEach(cb => {
-        selected.push(cb.value);
-    });
-
-    if(selected.length === 0){
-        alert('Please select at least one sale.');
-        return;
+    // COUNT FUNCTION
+    function updateSelectedCount() {
+        let count = document.querySelectorAll('.sale-checkbox:checked').length;
+        let counter = document.getElementById('selected_count');
+        if(counter){
+            counter.innerText = count;
+        }
     }
 
-    if(!confirm('Are you sure you want to approve selected sales?')){
-        return;
+    // SELECT ALL
+    let selectAll = document.getElementById('select_all');
+    if(selectAll){
+        selectAll.addEventListener('change', function () {
+            document.querySelectorAll('.sale-checkbox').forEach(cb => {
+                cb.checked = this.checked;
+            });
+            updateSelectedCount();
+        });
     }
 
-    fetch("<?php echo base_url('stocks_new/bulk_approve_sales'); ?>", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ sale_ids: selected })
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert(data.message);
-        location.reload();
+    // INDIVIDUAL CHECKBOX CHANGE
+    document.addEventListener('change', function (e) {
+        if (e.target.classList.contains('sale-checkbox')) {
+            updateSelectedCount();
+        }
     });
+
+    // BULK APPROVE BUTTON
+    let bulkBtn = document.getElementById('bulk_approve_btn');
+    if(bulkBtn){
+        bulkBtn.addEventListener('click', function (e) {
+
+            e.preventDefault(); // VERY IMPORTANT
+
+            let selected = [];
+            document.querySelectorAll('.sale-checkbox:checked').forEach(cb => {
+                selected.push(cb.value);
+            });
+
+            if(selected.length === 0){
+                alert('Please select at least one sale.');
+                return;
+            }
+
+            if(!confirm('Are you sure you want to approve selected sales?')){
+                return;
+            }
+
+            fetch("<?php echo base_url('stocks_new/bulk_approve_sales'); ?>", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ sale_ids: selected })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            })
+            .catch(error => {
+                console.error(error);
+                alert("Something went wrong.");
+            });
+
+        });
+    }
+
 });
 </script>
-
