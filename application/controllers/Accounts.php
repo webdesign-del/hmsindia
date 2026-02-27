@@ -3004,14 +3004,19 @@ public function tally()
 
 // New update push test
 
-public function procedure_tally() {
+public function procedure_tally()
+{
+    // Force JSON header
+    $this->output->set_content_type('application/json');
 
-    // 1. FIX: Receive 'ids' (matching the JS data key), not 'payment_ids'
     $ids = $this->input->post('ids');
 
     if (empty($ids)) {
-        echo json_encode(['success' => false, 'message' => 'No IDs received.']);
-        return;
+        echo json_encode([
+            'success' => false,
+            'message' => 'No IDs received.'
+        ]);
+        exit; // IMPORTANT
     }
 
     $success_count = 0;
@@ -3020,23 +3025,20 @@ public function procedure_tally() {
 
     foreach ($ids as $id) {
 
-        // 2. Get current status for this ID
         $this->db->select('tally_status');
-        $this->db->where('id', $id); // Make sure column name is 'id' or 'ID' matches your DB
+        $this->db->where('id', $id);
         $q = $this->db->get('hms_patient_procedure');
-        
         $row = $q->row_array();
 
-        // 3. CHECK: If already sent (status 1), skip it
         if (!empty($row) && $row['tally_status'] == '1') {
             $already_sent_count++;
-            continue; 
+            continue;
         }
 
-        // 4. MARK AS SENT
-        // Update tally_status to 1 (Sent)
         $this->db->where('id', $id);
-        $update = $this->db->update('hms_patient_procedure', ['tally_status' => 1]);
+        $update = $this->db->update('hms_patient_procedure', [
+            'tally_status' => 1
+        ]);
 
         if ($update) {
             $success_count++;
@@ -3045,28 +3047,30 @@ public function procedure_tally() {
         }
     }
 
-    // 5. Build Response
-    if ($success_count > 0 || $already_sent_count > 0) {
-        
-        $msg = "";
-        
-        if ($success_count > 0) {
-            $msg .= "$success_count records marked as Sent. ";
-        }
-        
-        if ($already_sent_count > 0) {
-            $msg .= "($already_sent_count were already sent previously). ";
-        }
+    $msg = "";
 
-        if ($error_count > 0) {
-            $msg .= "($error_count failed).";
-        }
-
-        echo json_encode(['success' => true, 'message' => trim($msg)]);
-
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to update records.']);
+    if ($success_count > 0) {
+        $msg .= "$success_count records marked as Sent. ";
     }
+
+    if ($already_sent_count > 0) {
+        $msg .= "($already_sent_count already sent). ";
+    }
+
+    if ($error_count > 0) {
+        $msg .= "($error_count failed).";
+    }
+
+    if (empty($msg)) {
+        $msg = "Failed to update records.";
+    }
+
+    echo json_encode([
+        'success' => ($success_count > 0 || $already_sent_count > 0),
+        'message' => trim($msg)
+    ]);
+
+    exit;   // 🔥 VERY IMPORTANT
 }
 
 public function partial_tally() {
