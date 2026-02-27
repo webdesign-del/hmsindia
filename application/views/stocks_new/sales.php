@@ -126,6 +126,13 @@
                                 <button type="button" class="btn btn-warning" onclick="exportDetailedSales('pdf')">
                                     <i class="fa fa-file-pdf-o"></i> Export All Items (PDF)
                                 </button>
+                                <div class="mb-2">
+                                    <button type="button" 
+                                            class="btn btn-success btn-sm" 
+                                            id="bulk_approve_btn">
+                                        <i class="fa fa-check"></i> Approve Selected
+                                    </button>
+                                </div>
                             </div>
                             <?php endif; ?>
                         </form>
@@ -168,7 +175,9 @@
                         <div class="table-responsive">
                             <table class="table table-striped table-bordered table-hover" id="salesTable">
                                 <thead>
-                                    <tr>
+                                    <tr><th width="40">
+    <input type="checkbox" id="select_all">
+</th>
                                         <th>Sale #</th>
                                         <th>Patient ID</th>
                                         <th>Patient Name</th>
@@ -195,7 +204,15 @@
                                     <?php if(!empty($sales) && is_array($sales)): ?>
                                         <?php foreach($sales as $sale): ?>
                                             <?php if(isset($sale->sale_number) && !empty($sale->sale_number)): ?>
+                                                
                                             <tr>
+                                                <td>
+                                                    <?php if($sale->status == 'CONFIRMED' && $sale->accountant_approval_status != 'APPROVED'): ?>
+                                                        <input type="checkbox" 
+                                                            class="sale-checkbox" 
+                                                            value="<?php echo $sale->id; ?>">
+                                                    <?php endif; ?>
+                                                </td>
                                                 <td>
                                                     <strong><?php echo htmlspecialchars($sale->sale_number); ?></strong>
                                                 </td>
@@ -383,6 +400,7 @@
                                                     </div>
                                                 </td>
                                             </tr>
+                                            
                                             <?php endif; ?>
                                         <?php endforeach; ?>
                                     <?php endif; ?>
@@ -397,6 +415,9 @@
                                     <?php endif; ?>
                                 </tbody>
                             </table>
+                            <div class="text-center mt-3">
+    <ul><?php echo $pagination_links; ?></ul>
+</div>
                         </div>
                     </div>
                 </div>
@@ -539,6 +560,11 @@ $is_accountant = isset($_SESSION['logged_accountant']) && !empty($_SESSION['logg
     line-height: 1 !important;
     display: inline-block !important;
     vertical-align: middle !important;
+}
+input.sale-checkbox {
+    position: absolute !important;
+    opacity: 1 !important;
+    left: 36px !important;
 }
 </style>
 <div class="modal fade" id="paymentDetailsModal" tabindex="-1" role="dialog" aria-labelledby="paymentDetailsModalLabel">
@@ -1368,6 +1394,41 @@ $(document).ready(function() {
     });
     // *** END: Sale Approval Modal Functions ***
 
+});
+</script>
+<script>
+document.getElementById('select_all').addEventListener('change', function() {
+    let checkboxes = document.querySelectorAll('.sale-checkbox');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+});
+
+document.getElementById('bulk_approve_btn').addEventListener('click', function() {
+    let selected = [];
+    document.querySelectorAll('.sale-checkbox:checked').forEach(cb => {
+        selected.push(cb.value);
+    });
+
+    if(selected.length === 0){
+        alert('Please select at least one sale.');
+        return;
+    }
+
+    if(!confirm('Are you sure you want to approve selected sales?')){
+        return;
+    }
+
+    fetch("<?php echo base_url('stocks_new/bulk_approve_sales'); ?>", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ sale_ids: selected })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        location.reload();
+    });
 });
 </script>
 

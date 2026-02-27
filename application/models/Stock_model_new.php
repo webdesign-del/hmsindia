@@ -3159,7 +3159,55 @@ class Stock_model_new extends CI_Model
     //     //     return [];
     //     // }
     // }
-    public function get_all_sales($filters = [])
+
+   public function count_all_sales($filters = [])
+{
+    $this->db->select('COUNT(DISTINCT s.id) as total');
+    $this->db->from('sales s');
+
+    $this->db->join('sale_items si', 'si.sale_id = s.id', 'left');
+    $this->db->join('medicine_batches mb', 'mb.id = si.batch_id', 'left');
+    $this->db->join('medicines m', 'm.id = mb.medicine_id', 'left');
+
+    $this->db->where('s.status !=', 'package');
+    $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+    $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
+
+    // COPY SAME FILTERS HERE 👇
+
+    if (!empty($filters['center_id'])) {
+        $this->db->where('s.center_id', $filters['center_id']);
+    }
+
+    if (!empty($filters['patient_id'])) {
+        $this->db->like('s.patient_id', $filters['patient_id']);
+    }
+
+    if (!empty($filters['patient_name'])) {
+        $this->db->like('s.patient_name', $filters['patient_name']);
+    }
+
+    if (!empty($filters['status'])) {
+        $this->db->where('s.status', $filters['status']);
+    }
+
+    if (!empty($filters['approval_status'])) {
+        $this->db->where('s.accountant_approval_status', $filters['approval_status']);
+    }
+
+    if (!empty($filters['date_from'])) {
+        $this->db->where('s.sale_date >=', $filters['date_from']);
+    }
+
+    if (!empty($filters['date_to'])) {
+        $this->db->where('s.sale_date <=', $filters['date_to']);
+    }
+
+    $query = $this->db->get();
+    return $query->row()->total;
+}
+
+   public function get_all_sales($filters = [], $limit = null, $offset = null)
     {
         try {
 
@@ -3354,6 +3402,10 @@ class Stock_model_new extends CI_Model
             * -------------------------------------------------*/
             $this->db->group_by('s.id');
             $this->db->order_by('s.created_at', 'DESC');
+
+            if ($limit !== null) {
+                $this->db->limit($limit, $offset);
+            }
 
             return $this->db->get()->result();
 

@@ -4503,31 +4503,106 @@ class Stocks_new extends CI_Controller
     //     }
     // }
     public function sales()
-    {
-        $logg = checklogin();
-        if ($logg["status"] == true) {
-            $filters = [
-                'center_id'       => $this->input->get('center_id'),
-                'patient_id'      => $this->input->get('patient_id'),
-                'patient_name'    => $this->input->get('patient_name'),
-                'status'          => $this->input->get('status'),
-                'approval_status' => $this->input->get('approval_status'),
-                'date_from'       => $this->input->get('date_from'),
-                'date_to'         => $this->input->get('date_to')
-            ];
-            $data["sales"] = $this->Stock_model_new->get_all_sales($filters);
-            $data["centers"] = $this->Stock_model_new->get_all_centers();
-            $template = get_header_template($logg["role"]);
-            $this->load->view($template["header"]);
-            $this->load->view("stocks_new/sales", $data);
-            $this->load->view($template["footer"]);
-        } else {
-            header("location:" . base_url() . "");
-            die();
-        }
+{
+    $logg = checklogin();
+    if ($logg["status"] == true) {
+
+        $this->load->library('pagination');
+
+        $filters = [
+            'center_id'       => $this->input->get('center_id'),
+            'patient_id'      => $this->input->get('patient_id'),
+            'patient_name'    => $this->input->get('patient_name'),
+            'status'          => $this->input->get('status'),
+            'approval_status' => $this->input->get('approval_status'),
+            'date_from'       => $this->input->get('date_from'),
+            'date_to'         => $this->input->get('date_to')
+        ];
+
+        $per_page = 25;
+
+        // Get total rows count
+        $total_rows = $this->Stock_model_new->count_all_sales($filters);
+
+        // Pagination config
+        $config['base_url'] = base_url('stocks_new/sales');
+        $config['total_rows'] = $total_rows;
+        $config['per_page'] = $per_page;
+        $config['page_query_string'] = TRUE;
+        $config['query_string_segment'] = 'page';
+        $config['reuse_query_string'] = TRUE;
+
+        $config['full_tag_open']   = '<ul class="pagination pagination-sm">';
+        $config['full_tag_close']  = '</ul>';
+
+        $config['first_link'] = '«';
+        $config['last_link']  = '»';
+
+        $config['first_tag_open']  = '<li>';
+        $config['first_tag_close'] = '</li>';
+
+        $config['last_tag_open']   = '<li>';
+        $config['last_tag_close']  = '</li>';
+
+        $config['next_tag_open']   = '<li>';
+        $config['next_tag_close']  = '</li>';
+
+        $config['prev_tag_open']   = '<li>';
+        $config['prev_tag_close']  = '</li>';
+
+        $config['cur_tag_open']    = '<li class="active"><a href="#">';
+        $config['cur_tag_close']   = '</a></li>';
+
+        $config['num_tag_open']    = '<li>';
+        $config['num_tag_close']   = '</li>';
+
+        $this->pagination->initialize($config);
+
+        $page = $this->input->get('page');
+        $page = ($page) ? $page : 0;
+
+        // Get paginated data
+        $data["sales"] = $this->Stock_model_new->get_all_sales($filters, $per_page, $page);
+        $data["pagination_links"] = $this->pagination->create_links();
+        $data["centers"] = $this->Stock_model_new->get_all_centers();
+
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/sales", $data);
+        $this->load->view($template["footer"]);
+
+    } else {
+        header("location:" . base_url() . "");
+        die();
+    }
+}
+
+public function bulk_approve_sales()
+{
+    $input = json_decode(file_get_contents("php://input"), true);
+    $sale_ids = $input['sale_ids'] ?? [];
+
+    if(empty($sale_ids)){
+        echo json_encode(['status' => 'error', 'message' => 'No sales selected.']);
+        return;
     }
 
+    $approved_by = $_SESSION['logged_accountant']['ID'];
+    $approved_name = $_SESSION['logged_accountant']['name'];
 
+    $this->db->where_in('id', $sale_ids);
+    $this->db->update('sales', [
+        'accountant_approval_status' => 'APPROVED',
+        'accountant_approved_by'     => $approved_by,
+        'accountant_approved_by_name'=> $approved_name,
+        'accountant_approved_at'     => date('Y-m-d H:i:s')
+    ]);
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => count($sale_ids) . ' sales approved successfully.'
+    ]);
+}
 
     public function get_appointment_details($appointment_id)
     {
