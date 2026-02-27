@@ -86,9 +86,10 @@
 				$data = array(
 					"lead_id" => trim($select_result4['crm_id']),
 					"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($patient_result['on_date']))->format('Y-m-d'),
-					"cardiac_activity_no" => $_POST['cardiac_activity_no'],
-					"cardiac_activity_date" => $_POST['date'],
-					"no_of_gestational" => $_POST['no_of_gestational'],
+					"serum_beta_hcg_no" => isset($select_result['cardiac_activity_no'])?$select_result['cardiac_activity_no']:"",
+					"serum_beta_hcg_date" => isset($select_result['date'])?$select_result['date']:"",
+					"no_of_gestational_sac_cardiac_ultrasound" => isset($select_result['no_of_gestational'])?$select_result['no_of_gestational']:"",
+					"date_of_gestational_sac_cardiac_ultrasound" => isset($select_result['date_5'])?$select_result['date_5']:"",
 				);
 
 				// Convert PHP array to JSON
@@ -114,7 +115,7 @@
 
 				$response = curl_exec($curl);
 				curl_close($curl);	
-			//	print_r($response);die();			
+				//print_r($response);die();			
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">

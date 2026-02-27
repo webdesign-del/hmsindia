@@ -48,6 +48,39 @@
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);		
+
+	$procedure_sql = "SELECT ID, procedure_name, category FROM hms_procedures WHERE ID = '$procedure_id'";
+	$proc_result = run_select_query($procedure_sql);
+
+	$patient_procedure_sql = "SELECT * FROM hms_patient_procedure WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+	$patient_result = run_select_query($patient_procedure_sql);
+	
+	$data = [
+		"lead_id" => trim($select_result4['crm_id']),
+		"patient_id" => $patient_id,
+		"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($patient_result['on_date']))->format('Y-m-d'),
+		"actual_stimulation_start_date" => isset($select_result['date1'])?$select_result['date1']:"",
+	];
+
+	$curl = curl_init();
+
+	curl_setopt_array($curl, [
+		CURLOPT_URL => 'https://flertility.in/lead/lead-journey/',
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_ENCODING => '',
+		CURLOPT_MAXREDIRS => 10,
+		CURLOPT_TIMEOUT => 0,
+		CURLOPT_FOLLOWLOCATION => true,
+		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		CURLOPT_CUSTOMREQUEST => 'POST',
+		CURLOPT_POSTFIELDS => json_encode($data),
+		CURLOPT_HTTPHEADER => [
+			'Content-Type: application/json'
+		],
+	]);
+
+	$response = curl_exec($curl);
+	curl_close($curl);
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">

@@ -68,7 +68,35 @@
 	$select_result4 = run_select_query($sql4);
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
-	$select_result5 = run_select_query($sql5);		
+	$select_result5 = run_select_query($sql5);	
+	
+	$data = [
+		"lead_id" => trim($select_result4['crm_id']),
+		"patient_id" => $patient_id,
+		"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($proc_bill_result['on_date']))->format('Y-m-d'),
+		"emb_transfer_date" => isset($select_result['transfer_date'])?$select_result['transfer_date']:"",		
+	];
+
+	$curl = curl_init();
+
+	curl_setopt_array($curl, [
+		CURLOPT_URL => 'https://flertility.in/lead/lead-journey/',
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_ENCODING => '',
+		CURLOPT_MAXREDIRS => 10,
+		CURLOPT_TIMEOUT => 0,
+		CURLOPT_FOLLOWLOCATION => true,
+		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		CURLOPT_CUSTOMREQUEST => 'POST',
+		CURLOPT_POSTFIELDS => json_encode($data),
+		CURLOPT_HTTPHEADER => [
+			'Content-Type: application/json'
+		],
+	]);
+
+	$response = curl_exec($curl);
+	curl_close($curl);
+
 	  
 ?>
 

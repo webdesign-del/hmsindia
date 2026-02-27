@@ -77,7 +77,7 @@
 		"lead_id" => trim($select_result4['crm_id']),
 		"patient_id" => $patient_id,
 		"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($proc_bill_result['on_date']))->format('Y-m-d'),
-		"emb_transfer_date" => $select_result['transfer_date']		
+		"emb_transfer_date" => isset($select_result['transfer_date'])?$select_result['transfer_date']:"",		
 	];
 
 	$curl = curl_init();

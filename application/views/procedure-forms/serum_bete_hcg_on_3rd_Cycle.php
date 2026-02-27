@@ -83,6 +83,39 @@
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);		
+				
+	 			$data = array(
+					"lead_id" => trim($select_result4['crm_id']),
+					"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($patient_result['on_date']))->format('Y-m-d'),
+					"serum_beta_hcg_no" => isset($select_result['cardiac_activity_no'])?$select_result['cardiac_activity_no']:"",
+					"serum_beta_hcg_date" => isset($select_result['date'])?$select_result['date']:"",
+					"no_of_gestational_sac_cardiac_ultrasound" => isset($select_result['no_of_gestational'])?$select_result['no_of_gestational']:"",
+					"date_of_gestational_sac_cardiac_ultrasound" => isset($select_result['date_5'])?$select_result['date_5']:"",
+				);
+
+				// Convert PHP array to JSON
+				$jsonData = json_encode($data);
+
+				$curl = curl_init();
+
+				curl_setopt_array($curl, array(
+				  CURLOPT_URL => 'https://flertility.in/lead/lead-journey/',
+				  CURLOPT_RETURNTRANSFER => true,
+				  CURLOPT_ENCODING => '',
+				  CURLOPT_MAXREDIRS => 10,
+				  CURLOPT_TIMEOUT => 0,
+				  CURLOPT_FOLLOWLOCATION => true,
+				  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+				  CURLOPT_CUSTOMREQUEST => 'POST',
+				  CURLOPT_POSTFIELDS => $jsonData,  // Send JSON Data
+				  CURLOPT_HTTPHEADER => array(
+					'Content-Type: application/json',  // Specify JSON Content Type
+					'Accept: application/json'         // Expect JSON Response
+				  ),
+				));
+
+				$response = curl_exec($curl);
+				curl_close($curl);	
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
