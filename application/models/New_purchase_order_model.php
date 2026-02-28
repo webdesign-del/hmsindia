@@ -589,7 +589,7 @@ class New_purchase_order_model extends CI_Model {
             return false;
         }
     }
-    public function get_received_stock_report($filters = []) {
+    public function get_received_stock_report($filters = [], $limit = null, $offset = null){
         // try {
             $this->db->select('
                 sm.receive_date as received_date,
@@ -657,13 +657,72 @@ class New_purchase_order_model extends CI_Model {
             }
 
             $this->db->order_by('sm.created_at', 'DESC');
-            return $this->db->get()->result();
+        //    return $this->db->get()->result();
+
+            // Pagination
+            if ($limit !== null) {
+                $this->db->limit($limit, $offset);
+            }
+
+            return $this->db->get()->result();    
 
         // } catch (Exception $e) {
         //     log_message('error', 'Error in get_received_stock_report: ' . $e->getMessage());
         //     return [];
         // }
     }
+
+
+    public function count_received_stock_report($filters = [])    {
+        $this->db->from('stock_movements sm');
+        $this->db->where('sm.movement_type', 'PURCHASE');
+
+        $this->db->join('medicine_batches mb', 'sm.batch_id = mb.id', 'left');
+        $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
+        $this->db->join('hms_new_purchase_orders po', 'sm.reference_id = po.id AND sm.reference_type = "PURCHASE_ORDER"', 'left');
+        $this->db->join('hms_vendors v', 'po.vendor_number = v.ID', 'left');
+        $this->db->join('hms_centers c', 'sm.to_location_id = c.ID AND sm.to_location_type = "CENTER"', 'left');
+        $this->db->join('hms_new_purchase_order_items mi', 'po.po_number = mi.po_number', 'left');
+
+        // Apply SAME filters again
+        if (!empty($filters['po_number'])) {
+            $this->db->like('sm.reference_number', $filters['po_number'], 'both');
+        }
+
+        if (!empty($filters['invoice_number'])) {
+            $this->db->like('sm.receipt_number', $filters['invoice_number'], 'both');
+        }
+
+        if (!empty($filters['vendor_id'])) {
+            $this->db->where('po.vendor_number', $filters['vendor_id']);
+        }
+
+        if (isset($filters['has_file']) && $filters['has_file'] !== '') {
+
+            if ($filters['has_file'] == '1') {
+                $this->db->where('sm.uploaded_files IS NOT NULL');
+                $this->db->where('sm.uploaded_files !=', '');
+                $this->db->where('sm.uploaded_files !=', '[]');
+            } else {
+                $this->db->group_start();
+                $this->db->where('sm.uploaded_files IS NULL');
+                $this->db->or_where('sm.uploaded_files', '');
+                $this->db->or_where('sm.uploaded_files', '[]');
+                $this->db->group_end();
+            }
+        }
+
+        if (!empty($filters['start_date'])) {
+            $this->db->where('DATE(sm.created_at) >=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $this->db->where('DATE(sm.created_at) <=', $filters['end_date']);
+        }
+
+        return $this->db->count_all_results();
+    }
+
     // public function get_items_by_vendor($vendor_id) {
     //     if (empty($vendor_id)) {
     //         return [];

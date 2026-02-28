@@ -1838,34 +1838,81 @@ class New_purchase_orders extends CI_Controller {
     }
     
 
-    public function received_stock_report() {
-        $logg = checklogin();
-        if (!$logg["status"] == true) {
-             redirect(base_url());
-             die();
-        }
-
-        // Get filters from URL
-        $filters = [
-            'po_number'      => $this->input->get('po_number'),
-            'invoice_number' => $this->input->get('invoice_number'),
-            'vendor_id'      => $this->input->get('vendor_id'),
-            'has_file'       => $this->input->get('has_file'),
-            'start_date'     => $this->input->get('start_date'),
-            'end_date'       => $this->input->get('end_date')
-        ];
-
-        // Get data from model
-        $data['received_items'] = $this->New_purchase_order_model->get_received_stock_report($filters);
-        // Get data for filter dropdowns
-        $data['vendors'] = $this->get_vendors();
-        $data['filters'] = $filters; // Pass filters to the view
-
-        $template = get_header_template($logg["role"]);
-        $this->load->view($template["header"]);
-        $this->load->view("new_purchase_orders/received_stock_report", $data); 
-        $this->load->view($template["footer"]);
+    public function received_stock_report()
+{
+    $logg = checklogin();
+    if (!$logg["status"]) {
+        redirect(base_url());
+        die();
     }
+
+    $this->load->library('pagination');
+
+    // Filters
+    $filters = [
+        'po_number'      => $this->input->get('po_number'),
+        'invoice_number' => $this->input->get('invoice_number'),
+        'vendor_id'      => $this->input->get('vendor_id'),
+        'has_file'       => $this->input->get('has_file'),
+        'start_date'     => $this->input->get('start_date'),
+        'end_date'       => $this->input->get('end_date')
+    ];
+
+    // Pagination settings
+    $per_page = 25;
+    $page = $this->input->get('page') ?? 0;
+
+    // Get total rows count
+    $total_rows = $this->New_purchase_order_model
+        ->count_received_stock_report($filters);
+
+    $config['base_url'] = base_url('new_purchase_orders/received_stock_report');
+    $config['total_rows'] = $total_rows;
+    $config['per_page'] = $per_page;
+    $config['page_query_string'] = TRUE;
+    $config['query_string_segment'] = 'page';
+    $config['reuse_query_string'] = TRUE;
+
+    // Bootstrap Pagination Design
+    $config['full_tag_open']   = '<ul class="pagination pagination-sm">';
+    $config['full_tag_close']  = '</ul>';
+
+    $config['first_link'] = '«';
+    $config['last_link']  = '»';
+
+    $config['first_tag_open']  = '<li>';
+    $config['first_tag_close'] = '</li>';
+
+    $config['last_tag_open']   = '<li>';
+    $config['last_tag_close']  = '</li>';
+
+    $config['next_tag_open']   = '<li>';
+    $config['next_tag_close']  = '</li>';
+
+    $config['prev_tag_open']   = '<li>';
+    $config['prev_tag_close']  = '</li>';
+
+    $config['cur_tag_open']    = '<li class="active"><a href="#">';
+    $config['cur_tag_close']   = '</a></li>';
+
+    $config['num_tag_open']    = '<li>';
+    $config['num_tag_close']   = '</li>';
+
+    $this->pagination->initialize($config);
+
+    // Get paginated result
+    $data['received_items'] = $this->New_purchase_order_model
+        ->get_received_stock_report($filters, $per_page, $page);
+
+    $data['vendors'] = $this->get_vendors();
+    $data['filters'] = $filters;
+    $data['pagination_links'] = $this->pagination->create_links();
+
+    $template = get_header_template($logg["role"]);
+    $this->load->view($template["header"]);
+    $this->load->view("new_purchase_orders/received_stock_report", $data);
+    $this->load->view($template["footer"]);
+}
 
     /**
      * Export received stock report to Excel (CSV format)

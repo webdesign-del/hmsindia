@@ -85,7 +85,7 @@
      
      <div class="card-content">
         <div class="table-responsive">
-           <table class="table table-striped table-bordered table-hover" id="received_items_table">
+           <table class="table table-striped table-bordered table-hover" id="">
               <thead>
                 <tr>
                    <th>PO Number</th>
@@ -111,7 +111,13 @@
                         <tr class="odd gradeX">
                             <td><strong><?php echo htmlspecialchars($item->po_number); ?></strong></td>
                             <td><?php echo htmlspecialchars($item->vendor_name); ?></td>
-                            <td><?php echo htmlspecialchars($item->center_name); ?></td>
+                            <td><?php 
+                              if ($item->to_location_type == "CENTRAL") {
+                                 echo "Central Stock Noida";
+                              } else {
+                                 echo htmlspecialchars($item->center_name);
+                              }
+                              ?></td>
                             <td><?php echo htmlspecialchars($item->medicine_name); ?></td>
                             <td><?php echo htmlspecialchars($item->item_number); ?></td>
                             <td><?php echo htmlspecialchars($item->batch_number); ?></td>
@@ -159,7 +165,26 @@
                 <?php endif; ?>
               </tbody>
            </table>
+           
         </div>
+        <div class="row mt-3">
+    <div class="col-md-6">
+        <?php
+        $page = $this->input->get('page') ?? 0;
+        $start = $page + 1;
+        $end = $page + count($received_items);
+        ?>
+        <p>
+            Showing <strong><?php echo $start; ?></strong>
+            to <strong><?php echo $end; ?></strong>
+            entries
+        </p>
+    </div>
+
+    <div class="col-md-6 text-right">
+        <?php echo $pagination_links; ?>
+    </div>
+</div>
      </div>
    </div>
 </div>
