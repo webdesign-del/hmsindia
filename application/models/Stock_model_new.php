@@ -7509,14 +7509,17 @@ class Stock_model_new extends CI_Model
                     $this->db->update('medicine_batches');
                 }
             }*/
+
+
+
+
                 if ($stock_record) {
 
                     $quantity_before = $stock_record->quantity;
-
-                    $this->db->where('id', $stock_record->id);
+                    $this->db->where('id', $stock_record->id);                    
                     $this->db->set('quantity', 'quantity + ' . (float)$quantity_received, FALSE);
                     $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
-                    $this->db->set('department', $item_data['department'] ?? null);
+                    //$this->db->set('department', $item_data['department'] ?? null);
                     $this->db->update('center_stocks');
 
                     if (!$is_new_batch) {
