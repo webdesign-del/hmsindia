@@ -1650,6 +1650,7 @@ class New_purchase_orders extends CI_Controller {
         }
         return $uploaded_files_info; 
     }
+
     public function save_add_stock() 
     {
         $logg = checklogin();
@@ -1711,48 +1712,48 @@ class New_purchase_orders extends CI_Controller {
 
         $uploaded_files = [];
 
-$upload_path = FCPATH . 'uploads/receipts/';
+        $upload_path = FCPATH . 'uploads/receipts/';
 
-if (!is_dir($upload_path)) {
-    mkdir($upload_path, 0777, true);
-}
-
-if (!empty($_FILES['receipt_files']['name'][0])) {
-
-    $this->load->library('upload');
-
-    $files = $_FILES['receipt_files'];
-
-    for ($i = 0; $i < count($files['name']); $i++) {
-
-        $_FILES['single_file']['name']     = $files['name'][$i];
-        $_FILES['single_file']['type']     = $files['type'][$i];
-        $_FILES['single_file']['tmp_name'] = $files['tmp_name'][$i];
-        $_FILES['single_file']['error']    = $files['error'][$i];
-        $_FILES['single_file']['size']     = $files['size'][$i];
-
-        $config = [
-            'upload_path'   => $upload_path,
-            'allowed_types' => 'pdf|jpg|jpeg|png',
-            'max_size'      => 10000,
-            'encrypt_name'  => TRUE
-        ];
-
-        $this->upload->initialize($config);
-
-        if ($this->upload->do_upload('single_file')) {
-
-            $upload_data = $this->upload->data();
-            $uploaded_files[] = 'uploads/receipts/' . $upload_data['file_name'];
-
-        } else {
-
-            echo $this->upload->display_errors();
-            exit;
-
+        if (!is_dir($upload_path)) {
+            mkdir($upload_path, 0777, true);
         }
-    }
-}    
+
+        if (!empty($_FILES['receipt_files']['name'][0])) {
+
+            $this->load->library('upload');
+
+            $files = $_FILES['receipt_files'];
+
+            for ($i = 0; $i < count($files['name']); $i++) {
+
+                $_FILES['single_file']['name']     = $files['name'][$i];
+                $_FILES['single_file']['type']     = $files['type'][$i];
+                $_FILES['single_file']['tmp_name'] = $files['tmp_name'][$i];
+                $_FILES['single_file']['error']    = $files['error'][$i];
+                $_FILES['single_file']['size']     = $files['size'][$i];
+
+                $config = [
+                    'upload_path'   => $upload_path,
+                    'allowed_types' => 'pdf|jpg|jpeg|png',
+                    'max_size'      => 10000,
+                    'encrypt_name'  => TRUE
+                ];
+
+                $this->upload->initialize($config);
+
+                if ($this->upload->do_upload('single_file')) {
+
+                    $upload_data = $this->upload->data();
+                    $uploaded_files[] = 'uploads/receipts/' . $upload_data['file_name'];
+
+                } else {
+
+                    echo $this->upload->display_errors();
+                    exit;
+
+                }
+            }
+        }    
 
         $file_names = !empty($file_paths) ? json_encode($file_paths) : null;
         $items_processed = 0;
