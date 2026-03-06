@@ -1164,9 +1164,9 @@ class Stock_model_new extends CI_Model
             $this->db->where("mcs.center_id", $center_id);
         }
         
-        if ($po_department) {
+        /*if ($po_department) {
             $this->db->like('mcs.department', $po_department);
-        }
+        }*/
         return $this->db->get()->row();
     }
 
