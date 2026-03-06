@@ -1151,20 +1151,20 @@ class Stock_model_new extends CI_Model
                 $stock_result = $this->db->get()->row();
                 return $stock_result;
         }
-        if($po_department == 'Embryologist Basant Lok'){
+        /*if($po_department == 'Embryologist Basant Lok'){
             $po_department = 'Embryology Basant Lok';
-        }
+        }*/
         $this->db->select("mcs.*, med.unit,med.pack_size");
         $this->db->from("medicine_center_stocks mcs");
         $this->db->join("medicines med", "med.id = mcs.medicine_id", "left");
         $this->db->where("mcs.medicine_id", $medicine_id);
         $this->db->where("med.medicine_code NOT LIKE 'HK_%'");
         $this->db->where("med.medicine_code NOT LIKE 'ST_%'");
-        if (!empty($center_id)) {
+        /*if (!empty($center_id)) {
             $this->db->where("mcs.center_id", $center_id);
         }
         
-        /*if ($po_department) {
+        if ($po_department) {
             $this->db->like('mcs.department', $po_department);
         }*/
         return $this->db->get()->row();
