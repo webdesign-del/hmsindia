@@ -3853,23 +3853,55 @@ if (!empty($procedure_raw)) {
             if (isset($unserialized['patient_procedures']) && is_array($unserialized['patient_procedures'])) {
                 foreach($unserialized['patient_procedures'] as $p) {
                     
-                    // Correcting the manual assignment
-                    $broad_procedure = $sale["broad_procedure"] ?? "ICSI";
-                    
-               // 1. Query ko sahi array format mein likhein
-$embryo = $this->db->query("SELECT date0 FROM embryo_record WHERE receipt_number = ? AND patient_id = ?", [
-    $sale["receipt_number"], 
-    $sale["patient_id"]
-])->row_array();
+                // Get broad procedure (default ICSI if empty)
+$broad_procedure = $sale["broad_procedure"] ?? "ICSI";
 
-// 3. Completion date check aur formatting
-$completion_date = (isset($embryo['date0']) && $embryo['date0'] != '0000-00-00' && !empty($embryo['date0'])) 
-                   ? date("d-m-Y", strtotime($embryo['date0'])) 
-                   : 'N/A';
+/* Fetch embryo procedure date based on procedure type */
+if ($broad_procedure === "ICSI") {
 
+    $embryo = $this->db->query(
+        "SELECT date_of_procedure 
+         FROM ovum_discharge_summary 
+         WHERE iic_id = ? 
+         AND ICSI = 'Yes'
+         LIMIT 1",
+        [$sale["patient_id"]]
+    )->row_array();
 
+} elseif ($broad_procedure === "IVF") {
 
+    $embryo = $this->db->query(
+        "SELECT date_of_procedure 
+         FROM ovum_discharge_summary 
+         WHERE iic_id = ? 
+         AND IVF = 'Yes'
+         LIMIT 1",
+        [$sale["patient_id"]]
+    )->row_array();
 
+} elseif ($broad_procedure === "Sperm Sorting") {
+
+    $embryo = $this->db->query(
+        "SELECT date_of_procedure 
+         FROM ovum_discharge_summary 
+         WHERE iic_id = ? 
+         AND Micro_Fluidics = 'Yes'
+         LIMIT 1",
+        [$sale["patient_id"]]
+    )->row_array();
+
+} else {
+    $embryo = null;
+}
+
+/* Safely format completion date */
+if (!empty($embryo['date_of_procedure']) &&
+    $embryo['date_of_procedure'] !== '0000-00-00'
+) {
+    $completion_date = date("d-m-Y", strtotime($embryo['date_of_procedure']));
+} else {
+    $completion_date = date("d-m-Y", strtotime($sale["on_date"]));
+}
                     $formatted_proc['items'][] = [
                         'item_name'       => ($sale["procedure_name"] ?? $broad_procedure) . ' - ' . ($p["sub_procedure"] ?? ''),
                         'code'            => $p["sub_procedures_code"] ?? '',

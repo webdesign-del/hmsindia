@@ -19,6 +19,14 @@
     </div>
 </div>
 
+
+<form method="get" action="<?= base_url('stocks_new/export_daily_medicine_report') ?>">
+    <input type="date" name="date" required>
+    <button type="submit" class="btn btn-success">
+        Export Daily Report
+    </button>
+</form>
+
 <!-- Filters -->
 <div class="row">
     <div class="col-md-12">

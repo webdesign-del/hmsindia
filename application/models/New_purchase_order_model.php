@@ -74,11 +74,33 @@ class New_purchase_order_model extends CI_Model {
     }
 
     // Get purchase order items by PO ID
-    public function get_purchase_order_items($po_id) {
-        $this->db->where('po_id', $po_id);
-        $query = $this->db->get('hms_new_purchase_order_items');
-        return $query->result_array();
+   
+
+    public function get_purchase_order_items($id)
+{
+    return $this->db->where('po_id', $id)
+                    ->get('hms_new_purchase_order_items')
+                    ->result_array();
+}
+
+public function log_po_action($po_id, $action, $old_data = null, $new_data = null)
+{
+    $user = $this->session->userdata('username');
+    if (!$user) {
+        $user = 'administrator';
     }
+
+    $data = [
+        'po_id'       => $po_id,
+        'action_type' => $action,
+        'old_data'    => $old_data ? json_encode($old_data) : null,
+        'new_data'    => $new_data ? json_encode($new_data) : null,
+        'changed_by'  => $user,
+        'changed_at'  => date('Y-m-d H:i:s')
+    ];
+
+    return $this->db->insert('hms_purchase_order_logs', $data);
+}
 
     // Update purchase order status
     public function update_purchase_order_status($id, $status, $approved_by = null) {
@@ -119,11 +141,17 @@ class New_purchase_order_model extends CI_Model {
     }
 
     // Update purchase order
-    public function update_purchase_order($id, $data) {
+    /*public function update_purchase_order($id, $data) {
         $data['updated_at'] = date('Y-m-d H:i:s');
         $this->db->where('id', $id);
         return $this->db->update('hms_new_purchase_orders', $data);
-    }
+    }*/
+
+    public function update_purchase_order($id, $data)
+{
+    $this->db->where('id', $id);
+    return $this->db->update('hms_new_purchase_orders', $data);
+}    
 
     // Delete purchase order items
     public function delete_purchase_order_items($po_id) {

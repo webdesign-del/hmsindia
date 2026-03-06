@@ -85,7 +85,8 @@
                                             <th>Return Date</th>
                                             <th>Reason</th>
                                             <th>Items</th>
-                                            <th>Amount</th>
+                                            <th>Total Amount</th>
+                                            <th>After Discount Amount</th>
                                             <th>Status</th>
                                             <th>Actions</th>
                                         </tr>
@@ -108,6 +109,7 @@
                                                 </td>
                                                 <td><?php echo $return->total_items ?? '0'; ?></td>
                                                 <td>₹<?php echo number_format($return->total_return_amount ?? 0, 2); ?></td>
+                                                <td>₹<?php echo number_format($return->final_return_amount ?? 0, 2); ?></td>
                                                 <td>
                                                     <?php
                                                     $status_class = '';

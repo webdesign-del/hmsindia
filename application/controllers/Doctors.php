@@ -11,7 +11,7 @@ class Doctors extends CI_Controller {
 		$this->load->helper('form');
         $this->load->helper('url_helper');
 	    $this->load->library('session');
-		$this->load->model(array('doctors_model', 'patients_model', 'center_model', 'employee_model', 'appointment_model', 'billingmodel_model', 'investigation_model', 'procedures_model', 'stock_model','accounts_model','billings_model'));
+		$this->load->model(array('doctors_model', 'patients_model', 'center_model', 'employee_model', 'appointment_model', 'billingmodel_model', 'investigation_model', 'procedures_model', 'stock_model','accounts_model','billings_model','Embryology_model'));
 		$this->load->helper('myhelper');
 		$this->load->library("pagination");
 	}	
@@ -5633,6 +5633,77 @@ foreach ($urls as $key => $url) {
 
 		return $name;
 
+	}
+
+
+    public function embryology_list(){
+		$logg = checklogin();
+		error_reporting(0);
+		if($logg['status'] == true){
+
+		$filters = [
+            'center'     => $this->input->get('center'),
+            'doctor_id'  => $this->input->get('doctor_id'),
+            'iic_id'     => $this->input->get('iic_id'),
+            'from_date'  => $this->input->get('from_date'),
+            'to_date'    => $this->input->get('to_date'),
+        ];
+			
+		// 🔹 Pagination Settings
+        $config['base_url'] = base_url('doctors/embryology_list');
+        $config['total_rows'] = $this->Embryology_model->count_records($filters);
+        $config['per_page'] = 25;
+
+        // ✅ IMPORTANT FOR GET FILTERS
+        $config['page_query_string'] = TRUE;
+        $config['query_string_segment'] = 'per_page';
+        $config['reuse_query_string'] = TRUE;
+
+        $this->pagination->initialize($config);
+
+		$config['full_tag_open'] = '<ul class="pagination">';
+		$config['full_tag_close'] = '</ul>';
+
+		$config['first_link'] = 'First';
+		$config['first_tag_open'] = '<li>';
+		$config['first_tag_close'] = '</li>';
+
+		$config['last_link'] = 'Last';
+		$config['last_tag_open'] = '<li>';
+		$config['last_tag_close'] = '</li>';
+
+		$config['next_link'] = '&rsaquo;';
+		$config['next_tag_open'] = '<li>';
+		$config['next_tag_close'] = '</li>';
+
+		$config['prev_link'] = '&lsaquo;';
+		$config['prev_tag_open'] = '<li>';
+		$config['prev_tag_close'] = '</li>';
+
+		$config['cur_tag_open'] = '<li class="active"><a href="#">';
+		$config['cur_tag_close'] = '</a></li>';
+
+		$config['num_tag_open'] = '<li>';
+		$config['num_tag_close'] = '</li>';
+
+        $page = $this->input->get('per_page') ?? 0;
+
+        // 🔹 Get Records
+        $data['records'] = $this->Embryology_model->get_records(
+            $config['per_page'],
+            $page,
+            $filters
+        );
+
+        $data['pagination'] = $this->pagination->create_links();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('doctors/embryology_list', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
 	}
     
 

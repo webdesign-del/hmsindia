@@ -126,8 +126,10 @@
                      <?php foreach ($purchase_orders as $po): ?>
                         <?php if (!is_array($po)) continue; // Skip if not an array ?>
                         <tr class="odd gradeX">
+                           
                            <td>
-                              <strong><?php echo !empty($po['po_number']) ? $po['po_number'] : 'N/A'; ?></strong>
+                              <strong><a href="<?= base_url('new_purchase_orders/view_logs/'.$po['id']) ?>" 
+   class="btn btn-info btn-sm"><?php echo !empty($po['po_number']) ? $po['po_number'] : 'N/A'; ?></a></strong>
                            </td>
                            <?php
                            $all_method->load->model('Vendors_model');

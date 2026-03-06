@@ -655,7 +655,7 @@ Batch Number	<div class="col-md-12">
                                      rows="2" placeholder="Enter comments" <?php echo $disabled_attr; ?>><?php echo isset($item['comments']) ? $item['comments'] : ''; ?></textarea>
                                </td> -->
                                <td>
-                                  <input type="number" readonly class="form-control" name="unit_price_<?php echo $row_counter; ?>" id="unit_price_<?php echo $row_counter; ?>" 
+                                  <input type="number" class="form-control" name="unit_price_<?php echo $row_counter; ?>" id="unit_price_<?php echo $row_counter; ?>" 
                                      value="<?php echo isset($item['vendor_price']) ? $item['vendor_price'] : '0'; ?>" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)" <?php echo $disabled_attr; ?>>
                                </td>
                                <td>
@@ -663,7 +663,7 @@ Batch Number	<div class="col-md-12">
                                      value="<?php echo isset($item['tax_percentage']) ? $item['tax_percentage'] : '0'; ?>" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)" <?php echo $disabled_attr; ?>>
                                </td>
                                <td>
-                                  <input type="number" readonly class="form-control" name="mrp_<?php echo $row_counter; ?>" id="mrp_<?php echo $row_counter; ?>" 
+                                  <input type="number" class="form-control" name="mrp_<?php echo $row_counter; ?>" id="mrp_<?php echo $row_counter; ?>" 
                                      value="<?php echo isset($item['mrp']) ? $item['mrp'] : '0'; ?>" step="0.01" onchange="updateAmount(<?php echo $row_counter; ?>)" <?php echo $disabled_attr; ?>>
                                </td>
                              

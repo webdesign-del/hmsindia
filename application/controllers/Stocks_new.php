@@ -11518,6 +11518,76 @@ public function bulk_approve_sales()
         }
     }
   
+public function export_daily_medicine_report()
+{
+    $date = $this->input->get('date');
 
+    if (empty($date)) {
+        die("Please select date");
+    }
+
+    $this->db->select('
+        m.medicine_code,
+        m.medicine_name,
+        m.generic_name,
+        mb.batch_number,
+        mb.expiry_date,
+        cs.center_id,
+        cs.department,
+        sm.movement_type,
+        sm.quantity_before,
+        sm.quantity_change,
+        sm.quantity_after,
+        sm.unit_price,
+        sm.total_value,
+        sm.reference_number,
+        sm.patient_name,
+        sm.created_at
+    ');
+
+    $this->db->from('stock_movements sm');
+    $this->db->join('medicine_batches mb', 'mb.id = sm.batch_id', 'left');
+    $this->db->join('medicines m', 'm.id = mb.medicine_id', 'left');
+    $this->db->join('center_stocks cs', 'cs.batch_id = sm.batch_id', 'left');
+
+    $this->db->where('DATE(sm.created_at)', $date);
+    $this->db->order_by('sm.created_at', 'ASC');
+
+    $query = $this->db->get();
+    $results = $query->result_array();
+
+    // CSV Headers
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="daily_medicine_report_'.$date.'.csv"');
+
+    $output = fopen("php://output", "w");
+
+    // Column Headers
+    fputcsv($output, [
+        'Medicine Code',
+        'Medicine Name',
+        'Generic Name',
+        'Batch Number',
+        'Expiry Date',
+        'Center',
+        'Department',
+        'Movement Type',
+        'Qty Before',
+        'Qty Change',
+        'Qty After',
+        'Unit Price',
+        'Total Value',
+        'Reference No',
+        'Patient Name',
+        'Date'
+    ]);
+
+    foreach ($results as $row) {
+        fputcsv($output, $row);
+    }
+
+    fclose($output);
+    exit;
+}
 
 }

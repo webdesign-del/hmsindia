@@ -104,7 +104,10 @@ class New_purchase_orders extends CI_Controller {
             header("location:" .base_url(). "");
             die;
         }
-    }
+    } 
+
+
+
     function get_departments_by_center()
     {
         $result = [];
@@ -119,7 +122,7 @@ class New_purchase_orders extends CI_Controller {
             return $result;
         }
     }
-
+/*
     // Save new purchase order
     public function save() {
         $logg = checklogin();
@@ -166,6 +169,99 @@ class New_purchase_orders extends CI_Controller {
             die;
         }
     }
+*/
+
+
+public function save() 
+{
+    $logg = checklogin();
+    if($logg['status'] != true){
+        redirect(base_url());
+    }
+
+    if (!$this->input->post()) {
+        redirect('new_purchase_orders/add');
+    }
+
+    // Validate max stock level
+    $validation_errors = $this->validate_max_stock_levels();
+    if (!empty($validation_errors)) {
+        $error_message = 'Cannot create purchase order. Max stock level exceeded for: ' . implode(', ', $validation_errors);
+        $this->session->set_flashdata('error', $error_message);
+        redirect('new_purchase_orders/add');
+        return;
+    }
+
+    // Start DB Transaction (VERY IMPORTANT)
+    $this->db->trans_start();
+
+    $po_data = [
+        'po_number'     => $this->input->post('po_number'),
+        'vendor_number' => $this->input->post('vendor_number'),
+        'ship_to'       => $this->input->post('ship_to'),
+        'bill_to'       => $this->input->post('bill_to'),
+        'department'    => $this->input->post('department'),
+        'created_by'    => $_SESSION['logged_central_stock_manager']['employee_number'] ?? null,
+        'status'        => 'pending',
+        'created_at'    => date('Y-m-d H:i:s')
+    ];
+
+    // Insert PO
+    $po_id = $this->New_purchase_order_model->insert_purchase_order($po_data);
+
+    if (!$po_id) {
+        $this->db->trans_rollback();
+        $this->session->set_flashdata('error', 'Failed to create purchase order!');
+        redirect('new_purchase_orders/add');
+        return;
+    }
+
+    // 🔥 LOG CREATION
+    $this->New_purchase_order_model->log_po_action(
+        $po_id,
+        'created',
+        null,
+        $po_data
+    );
+
+    // Insert PO number tracking
+    $po_number_data = [
+        'po_number'       => $po_data['po_number'],
+        'financial_year'  => $this->New_purchase_order_model->get_financial_year(),
+        'month'           => $this->New_purchase_order_model->get_month_name(),
+        'sequence_number' => (int) substr($po_data['po_number'], strrpos($po_data['po_number'], "/") + 1)
+    ];
+
+    $this->New_purchase_order_model->insert_po_number($po_number_data);
+
+    // Save Items
+    $this->save_purchase_order_items($po_id, $po_data['po_number']);
+
+    // Log Items
+    $items = $this->New_purchase_order_model->get_purchase_order_items($po_id);
+    $this->New_purchase_order_model->log_po_action(
+        $po_id,
+        'items_added',
+        null,
+        $items
+    );
+
+    // Update Total
+    $this->New_purchase_order_model->update_total_amount($po_id);
+
+    // Complete Transaction
+    $this->db->trans_complete();
+
+    if ($this->db->trans_status() === FALSE) {
+        $this->session->set_flashdata('error', 'Something went wrong!');
+        redirect('new_purchase_orders/add');
+        return;
+    }
+
+    $this->session->set_flashdata('success', 'Purchase order created successfully!');
+    redirect('new_purchase_orders');
+}
+
 
     /**
      * Validate that PO quantities don't exceed max stock levels
@@ -247,6 +343,103 @@ class New_purchase_orders extends CI_Controller {
             $i++;
         }
     }
+
+public function update($id) 
+{
+    $logg = checklogin();
+    if($logg['status'] != true){
+        redirect(base_url());
+    }
+
+    if (!$this->input->post()) {
+        redirect('new_purchase_orders');
+    }
+
+    // ===== GET OLD HEADER + OLD ITEMS =====
+    $old_header = $this->New_purchase_order_model->get_purchase_order_by_id($id);
+    $old_items  = $this->New_purchase_order_model->get_purchase_order_items($id);
+
+    if (!$old_header) {
+        $this->session->set_flashdata('error', 'Purchase order not found!');
+        redirect('new_purchase_orders');
+    }
+
+    if ($old_header['status'] == 'approved' || $old_header['status'] == 'completed') {
+        $this->session->set_flashdata('error', 'Cannot update purchase order that is ' . $old_header['status'] . '!');
+        redirect('new_purchase_orders');
+        return;
+    }
+
+    $po_data = [
+        'vendor_number' => $this->input->post('vendor_number'),
+        'ship_to'       => $this->input->post('ship_to'),
+        'bill_to'       => $this->input->post('bill_to'),
+        'department'    => $this->input->post('department'),
+        'updated_at'    => date('Y-m-d H:i:s')
+    ];
+
+    $this->db->trans_begin();
+
+    // ===== UPDATE HEADER =====
+    $this->New_purchase_order_model->update_purchase_order($id, $po_data);
+
+    // ===== DELETE OLD ITEMS =====
+    $this->New_purchase_order_model->delete_purchase_order_items($id);
+
+    // ===== INSERT NEW ITEMS =====
+    $po = $this->New_purchase_order_model->get_purchase_order_by_id($id);
+    $this->save_purchase_order_items($id, $po['po_number']);
+
+    $this->New_purchase_order_model->update_total_amount($id);
+
+    // ===== GET NEW HEADER + NEW ITEMS =====
+    $new_header = $this->New_purchase_order_model->get_purchase_order_by_id($id);
+    $new_items  = $this->New_purchase_order_model->get_purchase_order_items($id);
+
+    // ===== COMBINE HEADER + ITEMS FOR LOG =====
+    $old_data = [
+        'header' => $old_header,
+        'items'  => $old_items
+    ];
+
+    $new_data = [
+        'header' => $new_header,
+        'items'  => $new_items
+    ];
+
+    // ===== LOG FULL DATA =====
+    $this->New_purchase_order_model->log_po_action(
+        $id,
+        'updated',
+        json_encode($old_data),
+        json_encode($new_data)
+    );
+
+    if ($this->db->trans_status() === FALSE) {
+        $this->db->trans_rollback();
+        $this->session->set_flashdata('error', 'Failed to update purchase order!');
+        redirect('new_purchase_orders/edit/' . $id);
+    } else {
+        $this->db->trans_commit();
+        $this->session->set_flashdata('success', 'Purchase order updated successfully!');
+        redirect('new_purchase_orders');
+    }
+}
+
+public function view_logs($po_id)
+{    $logg = checklogin();
+    $this->db->where('po_id', $po_id);
+    $this->db->order_by('changed_at', 'DESC');
+    $data['logs'] = $this->db->get('hms_purchase_order_logs')->result_array();
+
+    
+      $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+          $this->load->view('new_purchase_orders/logs', $data);
+            $this->load->view($template['footer']);
+}
+
+    
     public function edit($id) {
         $logg = checklogin();
         if($logg['status'] == true) {
@@ -279,10 +472,10 @@ class New_purchase_orders extends CI_Controller {
             header("location:" .base_url(). "");
             die;
         }
-    }
+    } 
 
     // Update purchase order
-    public function update($id) {
+  /*  public function update($id) {
         $logg = checklogin();
         if($logg['status'] == true) {
             if ($this->input->post()) {
@@ -320,7 +513,7 @@ class New_purchase_orders extends CI_Controller {
             header("location:" .base_url(). "");
             die;
         }
-    }
+    } */
 
     // View purchase order
     public function view($id) {
