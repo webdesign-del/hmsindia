@@ -283,17 +283,29 @@ if(!empty($appointments_result) && isset($appointments_result['appoitment_for'])
 
 <table style="width:100%; margin-top:20px;">
   <tr>
-    <td rowspan="2" colspan="1" style="border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;width:50%;">
-	<p><strong>Pashupati Lifecare Pvt. Ltd.</strong></p>
-	<p><strong>DL Number: </strong> UP16200002826, UP16210002824 & UP1620F000057</p>
-	<p><strong>FSSAI License No: </strong> 22723923000301</p>
-    <p><strong>GSTIN NO:</strong> 09AAHCP5838M1ZP</p>
-	<p><strong>CIN :</strong> U74999DL2014PTC264851</p>
-	<p><strong>Premise Address:</strong> India IVF clinic(A unit of Pashupati Lifecare Pvt. Ltd.)
-    Third Floor, N-26, Captain Vijayant Thapar Marg, Beside Dr Lal
-    PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar
-    Pradesh, 201301</p>
-	</td>
+   <?php if($data['billing_at'] == "16098223739590"){ ?>
+
+<td rowspan="2" colspan="1" style="border:1px solid black;border-collapse:collapse;padding:5px;text-align:left;width:50%;">
+<p><strong>Kailash Super Specility Hospital.</strong></p>
+<p><strong>GSTIN NO:</strong> 23AHBPJ0829N1ZF</p>
+<p><strong>Premise Address:</strong> Kailash Super Specility Hospital.
+(Kailash Superspeciality Hospital, Kampoo Rd, Idgah, Lashkar, Gwalior, Madhya Pradesh 474001)</p>
+</td>
+
+<?php } else { ?>
+
+<td rowspan="2" colspan="1" style="border:1px solid black;border-collapse:collapse;padding:5px;text-align:left;width:50%;">
+<p><strong>Pashupati Lifecare Pvt. Ltd.</strong></p>
+<p><strong>DL Number:</strong> UP16200002826, UP16210002824 & UP1620F000057</p>
+<p><strong>FSSAI License No:</strong> 22723923000301</p>
+<p><strong>GSTIN NO:</strong> 09AAHCP5838M1ZP</p>
+<p><strong>CIN :</strong> U74999DL2014PTC264851</p>
+<p><strong>Premise Address:</strong> India IVF clinic (A unit of Pashupati Lifecare Pvt. Ltd.)
+Third Floor, N-26, Captain Vijayant Thapar Marg, Beside Dr Lal
+PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar Pradesh, 201301</p>
+</td>
+
+<?php } ?>
     <td style="border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;">
 	<p>Bill To</p>
 	<p><strong>Patient Name :</strong><?php echo strtoupper($patient_data['wife_name']);?> </p>
@@ -307,7 +319,7 @@ if(!empty($appointments_result) && isset($appointments_result['appoitment_for'])
 	<p><strong>UHID : </strong> <?php  echo $select_result3['center_code']."/".$appointments_result['uhid'];  ?></p>
 	<p><strong>Gender :</strong> F</p>
 	<p><strong>Sac Code :</strong> 999311</p>
-	<p><strong>Place of Supply :</strong> Uttar Pradesh</p>
+	<p><strong>Place of Supply :</strong><?php if($data['billing_at'] == "16098223739590"){ ?>Madhya Pradesh  <?php } else { ?>Uttar Pradesh <?php } ?></p>
 	<p><strong>State Code :</strong> 09</p>
 	</td>
   </tr>
@@ -530,17 +542,29 @@ if(!empty($appointments_result) && isset($appointments_result['appoitment_for'])
 
 <table style="width:100%; margin-top:20px;">
   <tr>
-    <td rowspan="2" colspan="1" style="border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;width:50%;">
-	<p><strong>Pashupati Lifecare Pvt. Ltd.</strong></p>
-	<p><strong>DL Number: </strong> UP16200002826, UP16210002824 & UP1620F000057</p>
-	<p><strong>FSSAI License No: </strong> 22723923000301</p>
-    <p><strong>GSTIN NO:</strong> 09AAHCP5838M1ZP</p>
-	<p><strong>CIN :</strong> U74999DL2014PTC264851</p>
-	<p><strong>Premise Address:</strong> India IVF clinic(A unit of Pashupati Lifecare Pvt. Ltd.)
-    Third Floor, N-26, Captain Vijayant Thapar Marg, Beside Dr Lal
-    PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar
-    Pradesh, 201301</p>
-	</td>
+   <?php if($data['billing_at'] == "16098223739590"){ ?>
+
+<td rowspan="2" colspan="1" style="border:1px solid black;border-collapse:collapse;padding:5px;text-align:left;width:50%;">
+<p><strong>Kailash Super Specility Hospital.</strong></p>
+<p><strong>GSTIN NO:</strong> 23AHBPJ0829N1ZF</p>
+<p><strong>Premise Address:</strong> Kailash Super Specility Hospital.
+(Kailash Superspeciality Hospital, Kampoo Rd, Idgah, Lashkar, Gwalior, Madhya Pradesh 474001)</p>
+</td>
+
+<?php } else { ?>
+
+<td rowspan="2" colspan="1" style="border:1px solid black;border-collapse:collapse;padding:5px;text-align:left;width:50%;">
+<p><strong>Pashupati Lifecare Pvt. Ltd.</strong></p>
+<p><strong>DL Number:</strong> UP16200002826, UP16210002824 & UP1620F000057</p>
+<p><strong>FSSAI License No:</strong> 22723923000301</p>
+<p><strong>GSTIN NO:</strong> 09AAHCP5838M1ZP</p>
+<p><strong>CIN :</strong> U74999DL2014PTC264851</p>
+<p><strong>Premise Address:</strong> India IVF clinic (A unit of Pashupati Lifecare Pvt. Ltd.)
+Third Floor, N-26, Captain Vijayant Thapar Marg, Beside Dr Lal
+PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar Pradesh, 201301</p>
+</td>
+
+<?php } ?>
     <td style="border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;">
 	<p>Bill To</p>
 	<p><strong>Patient Name :</strong><?php echo strtoupper($patient_data['wife_name']);?> </p>
@@ -554,7 +578,7 @@ if(!empty($appointments_result) && isset($appointments_result['appoitment_for'])
 	<p><strong>UHID : </strong> <?php  echo $select_result3['center_code']."/".$appointments_result['uhid'];  ?></p>
 	<p><strong>Gender :</strong> F</p>
 	<p><strong>Sac Code :</strong> 999311</p>
-	<p><strong>Place of Supply :</strong> Uttar Pradesh</p>
+	<p><strong>Place of Supply :</strong> <?php if($data['billing_at'] == "16098223739590"){ ?>Madhya Pradesh  <?php } else { ?>Uttar Pradesh <?php } ?></p>
 	<p><strong>State Code :</strong> 09</p>
 	</td>
   </tr>
