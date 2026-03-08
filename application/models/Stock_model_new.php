@@ -1135,7 +1135,7 @@ class Stock_model_new extends CI_Model
         $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         return $this->db->get()->row();
     }
-    public function get_medicine_by_id($medicine_id, $center_id = null, $po_department = null,$po_center)
+  /*  public function get_medicine_by_id($medicine_id, $center_id = null, $po_department = null,$po_center)
     {
         if ($po_center === 'CENTRAL_WAREHOUSE_NOIDA') {
                 $this->db->select('COALESCE(SUM(cs.available_quantity), 0) AS current_stock');
@@ -1150,11 +1150,11 @@ class Stock_model_new extends CI_Model
                 $this->db->where_in('mb.batch_status', ['ACTIVE', 'EXPIRED']);
                 $stock_result = $this->db->get()->row();
                 return $stock_result;
-        }
+        } */
         /*if($po_department == 'Embryologist Basant Lok'){
             $po_department = 'Embryology Basant Lok';
         }*/
-        $this->db->select("mcs.*, med.unit,med.pack_size");
+      /*  $this->db->select("mcs.*, med.unit,med.pack_size");
         $this->db->from("medicine_center_stocks mcs");
         $this->db->join("medicines med", "med.id = mcs.medicine_id", "left");
         $this->db->where("mcs.medicine_id", $medicine_id);
@@ -1166,10 +1166,46 @@ class Stock_model_new extends CI_Model
         
         if ($po_department) {
             $this->db->like('mcs.department', $po_department);
-        }*/
+        }*/ /*
+        return $this->db->get()->row();
+    } */
+    
+public function get_medicine_by_id($medicine_id, $center_id = null, $po_department = null, $po_center = null)
+{
+    if ($po_center === 'CENTRAL_WAREHOUSE_NOIDA') {
+
+        $this->db->select('
+            COALESCE(SUM(cs.available_quantity),0) AS current_stock,
+            cs.min_stock_level,
+            cs.max_stock_level
+        ');
+
+        $this->db->from('central_stocks AS cs');
+
+        $this->db->join(
+            'medicine_batches AS mb',
+            'cs.batch_id = mb.id AND mb.medicine_id = '.(int)$medicine_id,
+            'LEFT'
+        );
+
+        $this->db->where('cs.status', 'ACTIVE');
+        $this->db->where_in('mb.batch_status', ['ACTIVE','EXPIRED']);
+
         return $this->db->get()->row();
     }
 
+    $this->db->select("mcs.*, med.unit, med.pack_size");
+
+    $this->db->from("medicine_center_stocks mcs");
+
+    $this->db->join("medicines med", "med.id = mcs.medicine_id", "left");
+
+    $this->db->where("mcs.medicine_id", $medicine_id);
+    $this->db->where("med.medicine_code NOT LIKE 'HK_%'");
+    $this->db->where("med.medicine_code NOT LIKE 'ST_%'");
+
+    return $this->db->get()->row();
+}
 
     // ===============================================
     // BATCHES FUNCTIONS
