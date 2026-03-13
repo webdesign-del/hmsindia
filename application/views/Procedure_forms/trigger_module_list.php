@@ -3,13 +3,13 @@
 <div class="card shadow">
 
 <div class="card-header bg-primary text-white">
-<h4 class="mb-0">Embryo Records</h4>
+<h4 class="mb-0">Trigger Records</h4>
 </div>
 <div class="row mb-3">
 
 <div class="col-md-5">
 
-<form method="get" action="<?php echo base_url('Procedure_forms/embryo_record_list'); ?>">
+<form method="get" action="<?php echo base_url('Procedure_forms/trigger_module_list'); ?>">
 
 <div class="input-group">
 
@@ -25,10 +25,9 @@ value="<?php echo $this->input->get('patient_id'); ?>">
 <i class="fa fa-search"></i> Search
 </button>
 
-<a href="<?php echo base_url('Procedure_forms/embryo_record_list'); ?>" class="btn btn-secondary">
+<a href="<?php echo base_url('Procedure_forms/trigger_module_list'); ?>" class="btn btn-secondary">
 <i class="fa fa-refresh"></i> Reset
 </a>
-
 
 </div>
 
@@ -75,7 +74,7 @@ value="<?php echo $this->input->get('patient_id'); ?>">
 
 <td><?php echo $row['receipt_number']; ?></td>
 
-<td><?php echo date('d-m-Y',strtotime($row['date0'])); ?></td>
+<td><?php echo date('d-m-Y',strtotime($row['last_inj_fsh'])); ?></td>
 
 <td><?php echo $row['procedure_id']; ?></td>
 
@@ -102,14 +101,14 @@ value="<?php echo $this->input->get('patient_id'); ?>">
 <?php if($row['status']!='approved'){ ?>
 
 <a class="btn btn-sm btn-success"
-href="<?php echo base_url('Procedure_forms/embryo_record_list/approve/'.$row['id']); ?>">
+href="<?php echo base_url('Procedure_forms/trigger_module_list/trigger_approve/'.$row['id']); ?>">
 
 Approve
 
 </a>
 
 <a class="btn btn-sm btn-danger"
-href="<?php echo base_url('Procedure_forms/embryo_record_list/reject/'.$row['id']); ?>">
+href="<?php echo base_url('Procedure_forms/trigger_module_list/trigger_reject/'.$row['id']); ?>">
 
 Reject
 

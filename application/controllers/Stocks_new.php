@@ -11332,7 +11332,15 @@ public function bulk_approve_sales()
         $this->db->join('medicines m', 'mb.medicine_id = m.id', 'left');
         $this->db->join('hms_centers c', 's.center_id = c.ID', 'left');
          // Join center_stocks to show what is left in the specific center NOW
-        $this->db->join('center_stocks ccs', 'ccs.batch_id = si.batch_id AND ccs.center_id = s.center_id', 'left');
+    //    $this->db->join('center_stocks ccs', 'ccs.batch_id = si.batch_id AND ccs.center_id = s.center_id', 'left');
+
+    $this->db->join('(SELECT batch_id, center_id, SUM(quantity) AS quantity 
+        FROM center_stocks 
+        GROUP BY batch_id, center_id) ccs',
+        'ccs.batch_id = si.batch_id AND ccs.center_id = s.center_id',
+        'left'
+    );
+
         $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
         $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
         $this->db->where("
