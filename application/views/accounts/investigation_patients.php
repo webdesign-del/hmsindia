@@ -430,7 +430,7 @@
 
 			if(disapprove_suggestion != '' || disapprove_reason != ''){
 
-				if(disapprove_suggestion !== ''){ disapprove_reason = disapprove_suggestion; }
+				if(disapprove_suggestion !== ''){ disapprove_reason = disapprove_suggestion; }a
 
 				window.location.href = '<?php echo base_url();?>accounts/approve/'+bill_id+'?t='+bill_type+'&u='+bill_action+'&r='+disapprove_reason+'';			
 

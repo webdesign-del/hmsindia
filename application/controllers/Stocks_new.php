@@ -4582,24 +4582,67 @@ public function bulk_approve_sales()
     $input = json_decode(file_get_contents("php://input"), true);
     $sale_ids = $input['sale_ids'] ?? [];
 
-    if(empty($sale_ids)){
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'No sales selected.'
-        ]);
+
+   
+
+    if (empty($sale_ids)) {
+        echo json_encode(['status' => 'error', 'message' => 'No sales selected.']);
         exit;
     }
 
-    $this->db->where_in('id', $sale_ids);
-    $this->db->update('sales', [
-        'accountant_approval_status' => 'APPROVED'
-    ]);
+    $date_now = date('Y-m-d H:i:s');
+    $approved_count = 0;
+
+    foreach ($sale_ids as $id) {
+    // 1. Fetch Sale Record
+    $row = $this->db->get_where('sales', ['id' => $id])->row_array();
+    
+    // Skip if already approved or has a number
+    if (!$row || !empty($row['series_number']) || $row['accountant_approval_status'] === 'APPROVED') {
+        continue;
+    }
+
+    // 2. GET CENTER PREFIX DIRECTLY
+    // Assuming your centers table is named 'hms_centers' or 'centers'
+    // Adjust 'centers' to your actual table name if different
+    $center_query = $this->db->get_where('hms_centers', ['id' => $row['center_id']])->row_array();
+    $state_prefix = (!empty($center_query['state_prefix'])) ? $center_query['state_prefix'] : 'NOD';
+
+    // 3. Financial Year Logic
+    $year = date('Y');
+    $month = date('n');
+    $f_year = ($month >= 4) ? substr($year + 1, -2) : substr($year, -2);
+
+    // Pattern for Sales
+    $search_pattern = 'IN/' . $state_prefix . '/S/' . $f_year . '/';
+
+    // 4. Get Max Number
+    $this->db->select("MAX(CAST(RIGHT(series_number, 5) AS UNSIGNED)) as max_val", FALSE);
+    $this->db->where('accountant_approval_status', 'APPROVED');
+    $this->db->like('series_number', $search_pattern, 'after');
+    $res = $this->db->get('sales')->row_array();
+
+    $next_number = (!empty($res['max_val'])) ? (int)$res['max_val'] + 1 : 1;
+    $invoice_string = $search_pattern . str_pad($next_number, 5, '0', STR_PAD_LEFT);
+
+    // 5. UPDATE
+    $update_data = [
+        'accountant_approval_status' => 'APPROVED',
+        'series_number' => $invoice_string,
+        'accountant_approved_at' => date('Y-m-d H:i:s'),
+    ];
+
+    $this->db->where('id', $id);
+    $this->db->update('sales', $update_data);
+
+    $approved_count++;
+}
 
     echo json_encode([
         'status' => 'success',
-        'message' => count($sale_ids).' sales approved successfully.'
+        'message' => $approved_count . ' sales approved and invoiced successfully.'
     ]);
-    exit;  // 👈 IMPORTANT
+    exit;
 }
 
     public function get_appointment_details($appointment_id)

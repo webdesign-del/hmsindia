@@ -11,14 +11,6 @@
    $appointments_sql = "SELECT * FROM `hms_appointments` WHERE paitent_id=".$billing_details['patient_id']." and paitent_type='new_patient'";
    $appointments_result = run_select_query($appointments_sql);
    
-   $date=date_create("2024-07-25");
-   if (date_format($date,"m") >= 4) {//On or After April (FY is current year - next year)
-       $financial_year = (date_format($date,"y")) . '-' . (date_format($date,"y")+1);
-   } else {//On or Before March (FY is previous year - current year)
-       $financial_year = (date_format($date,"y")-1) . '-' . date_format($date,"y");
-   }
-   
-   
     $form_action = $billing_type = "";
     //var_dump($billing_details);die;
    
@@ -119,20 +111,20 @@
    $procedure_wallet_result = $procedure_wallet_q->result_array();
    
    $consultation_wallet_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."consultation where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
-      $consultation_wallet_q = $ci->db->query($consultation_wallet_sql);
-      $consultation_wallet_result = $consultation_wallet_q->result_array();
+   $consultation_wallet_q = $ci->db->query($consultation_wallet_sql);
+   $consultation_wallet_result = $consultation_wallet_q->result_array();
    
    $investigation_wallet_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."patient_investigations where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
-      $investigation_wallet_q = $ci->db->query($investigation_wallet_sql);
-      $investigation_wallet_result = $investigation_wallet_q->result_array();
+   $investigation_wallet_q = $ci->db->query($investigation_wallet_sql);
+   $investigation_wallet_result = $investigation_wallet_q->result_array();
    
-      $partialpayments_wallet_sql = "Select refrence_number, payment_done, wallet_payment, billing_from, billing_at from ".$db_prefix."patient_payments where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
-      $partialpayments_wallet_q = $ci->db->query($partialpayments_wallet_sql);
-      $partialpayments_wallet_result = $partialpayments_wallet_q->result_array();
+   $partialpayments_wallet_sql = "Select refrence_number, payment_done, wallet_payment, billing_from, billing_at from ".$db_prefix."patient_payments where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
+   $partialpayments_wallet_q = $ci->db->query($partialpayments_wallet_sql);
+   $partialpayments_wallet_result = $partialpayments_wallet_q->result_array();
    
    $medicine_wallet_sql = "Select receipt_number, payment_done,wallet_payment, fees, remaining_amount, billing_at from ".$db_prefix."patient_medicine where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
-      $medicine_wallet_q = $ci->db->query($medicine_wallet_sql);
-      $medicine_wallet_result = $medicine_wallet_q->result_array();
+   $medicine_wallet_q = $ci->db->query($medicine_wallet_sql);
+   $medicine_wallet_result = $medicine_wallet_q->result_array();
    
    foreach($consultation_wallet_result as $key => $value){
    $wallet_arr[] = $value['wallet_payment'];
@@ -165,7 +157,7 @@
    $paid_total = 0;
    $paid_total = array_sum($bill_arr);
    
-      $wallet_bill_total = 0;
+   $wallet_bill_total = 0;
    $wallet_bill_total = array_sum($wallet_arr);
    
    $balance = $paid_total - $wallet_bill_total;
@@ -1148,13 +1140,6 @@ if (!empty($stored_procedures)) {
                   </div>
                   <div class="form-group col-sm-6 col-xs-12 role" style="display:none;">
                      <label for="statuss">Billing source (Required)</label>
-                     <?php if($billing_type == "investigation") { ?>
-                     <input value="<?php echo $centers_result['center_code']; ?>/D/<?php echo $financial_year; ?>/" id="series_number" name="series_number" type="hidden" class="form-control validate">
-                     <?php } ?>
-                     <?php if($billing_type == "procedure") { ?>
-                     <input value="<?php echo $centers_result['center_code']; ?>/P/<?php echo $financial_year; ?>/" id="series_number" name="series_number" type="hidden" class="form-control validate">
-                     <input type="hidden" value="<?php echo $select_result['po_id'] + 1; ?> " class="required_value" name="po_id" id="po_id"  />   								
-                     <?php } ?>
                   </div>
                </div>
                <div class="clearfix"></div>

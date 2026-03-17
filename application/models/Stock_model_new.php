@@ -7438,6 +7438,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         $batch_number = $item_data['batch_number'];
         $vendor_id = $item_data['vendor_id'];
         $center_id = $item_data['center_id'];
+        $department = $item_data['department'];
         $freight_charges = $item_data['freight_charges'];
         $is_central_warehouse = isset($item_data['is_central_warehouse']) && $item_data['is_central_warehouse'] === true;
         // Also check if center_id is null/empty as fallback
@@ -7528,6 +7529,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
             $this->db->from('center_stocks');
             $this->db->where('batch_id', $batch_id);
             $this->db->where('center_id', $center_id);
+            $this->db->where('department', $department);
             $stock_record = $this->db->get()->row();
             
             /*if ($stock_record) {
@@ -7549,15 +7551,18 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
 
 
 
-                if ($stock_record) {
+            if ($stock_record) {
 
                     $quantity_before = $stock_record->quantity;
                     $this->db->where('id', $stock_record->id);                    
                     $this->db->set('quantity', 'quantity + ' . (float)$quantity_received, FALSE);
                     $this->db->set('last_movement_date', date("Y-m-d H:i:s"));
-                    //$this->db->set('department', $item_data['department'] ?? null);
+                    $this->db->set('department', $item_data['department'] ?? null);
                     $this->db->update('center_stocks');
 
+                    // echo $this->db->last_query();
+                    // exit;
+                   
                     if (!$is_new_batch) {
                         $this->db->where('id', $batch_id);
                         $this->db->set('quantity_remaining', 'quantity_remaining + ' . (float)$quantity_received, FALSE);
@@ -7574,6 +7579,8 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
                     "status"    => "ACTIVE"
                 ];
                 $this->db->insert("center_stocks", $center_stock_data);
+                
+
             }
             $to_location_type = "CENTER";
             $to_location_id = $center_id;

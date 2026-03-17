@@ -2,6 +2,7 @@
   $center= get_center_name($data['billing_at']);
 	$patient_data = get_patient_detail($data['patient_id']);
 	$center_data = center_detail($center);
+
 	$currency = '';
   $status = check_billing_status($data['patient_id'], $data['receipt_number'], 'procedure');
   
@@ -283,29 +284,15 @@ if(!empty($appointments_result) && isset($appointments_result['appoitment_for'])
 
 <table style="width:100%; margin-top:20px;">
   <tr>
-   <?php if($data['billing_at'] == "16098223739590"){ ?>
-
 <td rowspan="2" colspan="1" style="border:1px solid black;border-collapse:collapse;padding:5px;text-align:left;width:50%;">
-<p><strong>Kailash Super Specility Hospital.</strong></p>
-<p><strong>GSTIN NO:</strong> 23AHBPJ0829N1ZF</p>
-<p><strong>Premise Address:</strong> Kailash Super Specility Hospital.
-(Kailash Superspeciality Hospital, Kampoo Rd, Idgah, Lashkar, Gwalior, Madhya Pradesh 474001)</p>
+<p><strong><?php echo $center_data['company_name']; ?></strong></p>
+<p><strong>DL Number:</strong> <?php echo $center_data['dl_number']; ?></p>
+<p><strong>FSSAI License No:</strong> <?php echo $center_data['fssai_license_no']; ?></p>
+<p><strong>GSTIN NO:</strong> <?php echo $center_data['center_gst']; ?></p>
+<p><strong>CIN :</strong> <?php echo $center_data['cin']; ?></p>
+<p><strong>Premise Address:</strong> <?php echo $center_data['center_address']; ?></p>
 </td>
 
-<?php } else { ?>
-
-<td rowspan="2" colspan="1" style="border:1px solid black;border-collapse:collapse;padding:5px;text-align:left;width:50%;">
-<p><strong>Pashupati Lifecare Pvt. Ltd.</strong></p>
-<p><strong>DL Number:</strong> UP16200002826, UP16210002824 & UP1620F000057</p>
-<p><strong>FSSAI License No:</strong> 22723923000301</p>
-<p><strong>GSTIN NO:</strong> 09AAHCP5838M1ZP</p>
-<p><strong>CIN :</strong> U74999DL2014PTC264851</p>
-<p><strong>Premise Address:</strong> India IVF clinic (A unit of Pashupati Lifecare Pvt. Ltd.)
-Third Floor, N-26, Captain Vijayant Thapar Marg, Beside Dr Lal
-PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar Pradesh, 201301</p>
-</td>
-
-<?php } ?>
     <td style="border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;">
 	<p>Bill To</p>
 	<p><strong>Patient Name :</strong><?php echo strtoupper($patient_data['wife_name']);?> </p>
@@ -319,8 +306,8 @@ PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar Pradesh, 201301</p>
 	<p><strong>UHID : </strong> <?php  echo $select_result3['center_code']."/".$appointments_result['uhid'];  ?></p>
 	<p><strong>Gender :</strong> F</p>
 	<p><strong>Sac Code :</strong> 999311</p>
-	<p><strong>Place of Supply :</strong><?php if($data['billing_at'] == "16098223739590"){ ?>Madhya Pradesh  <?php } else { ?>Uttar Pradesh <?php } ?></p>
-	<p><strong>State Code :</strong> 09</p>
+	<p><strong>Place of Supply :</strong><?php echo $center_data['state_name']; ?></p>
+	<p><strong>State Code :</strong> <?php echo $center_data['state_code']; ?></p>
 	</td>
   </tr>
    <tr>
@@ -528,12 +515,12 @@ PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar Pradesh, 201301</p>
   <div class="panel-body profile-edit" id="print_invoice" style="display:none;">
        <table style="width:100%;">
   <tr>
-    <td  style="padding:5px; text-align:left;width:70%;" colspan="1">
+    <td  style="padding:5px; text-align:left;width:60%;" colspan="1">
 	<p><strong>Tax Invoice/Bill of Supply/Cash Memo</strong></p>
 	<p>(Original for Recipient)</p>
 	</td>
 	<td colspan="1"></td>
-    <td style="padding:5px; text-align:left;width:30%;" colspan="1">
+    <td style="padding:5px; text-align:left;width:40%;" colspan="1">
 	<strong>Invoice no: <?php echo $data['receipt_number'];?></strong><br/>
 	<strong>Date : <?php echo date('d/m/Y', strtotime($data['on_date']));?></strong>
 	</td>
@@ -542,30 +529,38 @@ PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar Pradesh, 201301</p>
 
 <table style="width:100%; margin-top:20px;">
   <tr>
-   <?php if($data['billing_at'] == "16098223739590"){ ?>
+<td rowspan="2" colspan="1" style="font-size:12px;line-height:12px;border:1px solid black;border-collapse:collapse;padding:5px;text-align:left;width:50%;">
+<?php
+$fields = [
+    'company_name' => '',
+    'center_gst' => 'GSTIN:',
+    'dl_number' => 'DL Number:',
+    'fssai_license_no' => 'FSSAI License No:',
+    'art' => 'ART No:',
+    'hospital_licence' => 'Hospital License No:',
+    'cin' => 'CIN:',
+    'center_address' => 'Premise Address:'
+];
 
-<td rowspan="2" colspan="1" style="border:1px solid black;border-collapse:collapse;padding:5px;text-align:left;width:50%;">
-<p><strong>Kailash Super Specility Hospital.</strong></p>
-<p><strong>GSTIN NO:</strong> 23AHBPJ0829N1ZF</p>
-<p><strong>Premise Address:</strong> Kailash Super Specility Hospital.
-(Kailash Superspeciality Hospital, Kampoo Rd, Idgah, Lashkar, Gwalior, Madhya Pradesh 474001)</p>
+foreach($fields as $key => $label){
+    if(!empty($center_data[$key])){
+        if($key == 'company_name'){
+            echo "<p><strong>{$center_data[$key]}</strong></p>";
+        }else{
+            echo "<p><strong>{$label}</strong> {$center_data[$key]}</p>";
+        }
+    }
+}
+?>
+
+<?php if($center_data['operate_other'] == "1"){ 
+
+echo $center_data['procedure_others'];
+
+ } ?>
 </td>
 
-<?php } else { ?>
-
-<td rowspan="2" colspan="1" style="border:1px solid black;border-collapse:collapse;padding:5px;text-align:left;width:50%;">
-<p><strong>Pashupati Lifecare Pvt. Ltd.</strong></p>
-<p><strong>DL Number:</strong> UP16200002826, UP16210002824 & UP1620F000057</p>
-<p><strong>FSSAI License No:</strong> 22723923000301</p>
-<p><strong>GSTIN NO:</strong> 09AAHCP5838M1ZP</p>
-<p><strong>CIN :</strong> U74999DL2014PTC264851</p>
-<p><strong>Premise Address:</strong> India IVF clinic (A unit of Pashupati Lifecare Pvt. Ltd.)
-Third Floor, N-26, Captain Vijayant Thapar Marg, Beside Dr Lal
-PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar Pradesh, 201301</p>
-</td>
-
-<?php } ?>
-    <td style="border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;">
+    <td style="font-size:12px;line-height:12px;border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;">
 	<p>Bill To</p>
 	<p><strong>Patient Name :</strong><?php echo strtoupper($patient_data['wife_name']);?> </p>
 	<p><strong>Address :</strong><?php $sql4 = "Select * from ".$this->config->item('db_prefix')."patients where patient_id='".$data['patient_id']."'"; 
@@ -578,8 +573,8 @@ PathLabs, Sector 18, Noida, Gautambuddha Nagar, Uttar Pradesh, 201301</p>
 	<p><strong>UHID : </strong> <?php  echo $select_result3['center_code']."/".$appointments_result['uhid'];  ?></p>
 	<p><strong>Gender :</strong> F</p>
 	<p><strong>Sac Code :</strong> 999311</p>
-	<p><strong>Place of Supply :</strong> <?php if($data['billing_at'] == "16098223739590"){ ?>Madhya Pradesh  <?php } else { ?>Uttar Pradesh <?php } ?></p>
-	<p><strong>State Code :</strong> 09</p>
+	<p><strong>Place of Supply :</strong> <?php echo $center_data['state_name']; ?></p>
+	<p><strong>State Code :</strong> <?php echo $center_data['state_code']; ?></p>
 	</td>
   </tr>
    <tr>

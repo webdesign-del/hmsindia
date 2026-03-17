@@ -214,12 +214,34 @@ $center_result = run_select_query($sql_center);
 <table style="width:100%; margin-top:20px;">
   <tr>
     <td rowspan="2" colspan="1" style="border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;width:50%;">
-	<p><strong>Pashupati Lifecare Pvt. Ltd.</strong></p>
-	<p><strong>DL Number: </strong> <?php echo $center_result['dl_number']; ?></p>
-	<p><strong>FSSAI License No: </strong> <?php echo $center_result['fssai_license_no']; ?></p>
-    <p><strong>GSTIN NO:</strong> <?php echo $center_result['center_gst']; ?></p>
-	<p><strong>CIN :</strong> <?php echo $center_result['cin']; ?></p>
-	<p><strong>Premise Address:</strong> <?php echo $center_result['center_address']; ?></p>
+<?php
+$fields = [
+     'company_name' => '',
+    'dl_number' => 'DL Number:',
+    'fssai_license_no' => 'FSSAI License No:',
+    'center_gst' => 'GSTIN:',
+    'art' => 'ART No:',
+    'hospital_licence' => 'Hospital License No:',
+    'cin' => 'CIN:',
+    'center_address' => 'Premise Address:'
+];
+
+foreach($fields as $key => $label){
+    if(!empty($center_data[$key])){
+        if($key == 'company_name'){
+            echo "<p><strong>{$center_data[$key]}</strong></p>";
+        }else{
+            echo "<p><strong>{$label}</strong> {$center_data[$key]}</p>";
+        }
+    }
+}
+?>
+
+<?php if($center_data['operate_other'] == "1"){ 
+
+echo $center_data['investigation_others'];
+
+ } ?>
 	</td>
     <td style="border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;">
 	<p>Bill To</p>
@@ -377,12 +399,12 @@ $center_result = run_select_query($sql_center);
 
    <table style="width:100%;">
   <tr>
-    <td  style="padding:5px; text-align:left;width:70%;" colspan="1">
+    <td  style="padding:5px; text-align:left;width:60%;" colspan="1">
 	<p><strong>Tax Invoice/Bill of Supply/Cash Memo</strong></p>
 	<p>(Original for Recipient)</p>
 	</td>
 	<td colspan="1"></td>
-    <td style="padding:5px; text-align:left;width:30%;" colspan="1">
+    <td style="padding:5px; text-align:left;width:40%;" colspan="1">
 	<strong>Invoice no: <?php echo $data['receipt_number'];?></strong><br/>
 	<strong>Date : <?php echo date('d/m/Y', strtotime($data['on_date']));?></strong>
 	</td>
@@ -391,15 +413,37 @@ $center_result = run_select_query($sql_center);
 
 <table style="width:100%; margin-top:20px;">
   <tr>
-    <td rowspan="2" colspan="1" style="border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;width:50%;">
-	<p><strong>Pashupati Lifecare Pvt. Ltd.</strong></p>
-	<p><strong>DL Number: </strong> <?php echo $center_result['dl_number']; ?></p>
-	<p><strong>FSSAI License No: </strong> <?php echo $center_result['fssai_license_no']; ?></p>
-    <p><strong>GSTIN NO:</strong> <?php echo $center_result['center_gst']; ?></p>
-	<p><strong>CIN :</strong> <?php echo $center_result['cin']; ?></p>
-	<p><strong>Premise Address:</strong> <?php echo $center_result['center_address']; ?></p>
+    <td rowspan="2" colspan="1" style="font-size:12px;line-height:12px;border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;width:50%;">
+	<?php
+$fields = [
+    'company_name' => '',
+    'center_gst' => 'GSTIN:',
+    'dl_number' => 'DL Number:',
+    'fssai_license_no' => 'FSSAI License No:',
+    'art' => 'ART No:',
+    'hospital_licence' => 'Hospital License No:',
+    'cin' => 'CIN:',
+    'center_address' => 'Premise Address:'
+];
+
+foreach($fields as $key => $label){
+    if(!empty($center_data[$key])){
+        if($key == 'company_name'){
+            echo "<p><strong>{$center_data[$key]}</strong></p>";
+        }else{
+            echo "<p><strong>{$label}</strong> {$center_data[$key]}</p>";
+        }
+    }
+}
+?>
+
+<?php if($center_data['operate_other'] == "1"){ 
+
+echo $center_data['investigation_others'];
+
+ } ?>
 	</td>
-    <td style="border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;">
+    <td style="font-size:12px;line-height:12px;border: 1px solid black; border-collapse: collapse;padding:5px;text-align:left;">
 	<p>Bill To</p>
 	<p><strong>Patient Name :</strong><?php echo strtoupper($patient_data['wife_name']);?></p>
 	<p><strong>Address :</strong><?php $sql4 = "Select * from ".$this->config->item('db_prefix')."patients where patient_id='".$data['patient_id']."'"; 
@@ -542,7 +586,7 @@ $center_result = run_select_query($sql_center);
   </tr>
 </table>
 
-<div style="width:100%; margin-top:300px;text-align:center;">
+<div style="width:100%; margin-top:250px;text-align:center;">
 <p>This is computer generated invoice/receipt, does not need signature</p>
 <p>This Healthcare Services is exempted from GST vide Notification No. 12/2017-Central Tax (Rate) dated 28-06-2017 and Notification No.9/2017 – Integrated Tax (Rate) dated 28-06-2017.</p>
 </div>   

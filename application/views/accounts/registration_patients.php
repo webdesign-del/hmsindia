@@ -130,8 +130,8 @@
 				  				}
 				  			}else {
 					  		    if($vl['status'] == 'pending'){ ?> 
-								<a href="javascript:void(0);" class="btn btn-large" onclick="approveRegistation('<?php echo $vl['ID']; ?>')">Approve</a>
-                                   <!-- <a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=registation&u=approved" class="xyx btn btn-large" >Approve</a>--> |
+								 <!--<a href="javascript:void(0);" class="btn btn-large" onclick="approveRegistation('<?php echo $vl['ID']; ?>')">Approve</a>>-->
+                                   <a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=registation&u=approved" class="xyx btn btn-large" >Approve</a |
 									<a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a> | <a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="cancle_first btn btn-large" >Adjust</a>
 					            <?php }else {
 

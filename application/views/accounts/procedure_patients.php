@@ -80,6 +80,7 @@
                   <th>Discount amount</th>
 				  <th>Discounted Package</th>
 				  <th>Receive Amount</th>
+				  <th></th>
                   <!--<th>Balance</th>-->
                   <th>Biller</th>
                   <th>Status</th>
@@ -93,7 +94,7 @@
                 $current_balance = $all_method->get_current_balance($vl['patient_id']); ?>
                 <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
-				   <td><input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>"></td>
+				  <td><?php if($vl['status'] == 'approved'){ ?><input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>"><?php } ?></td>
                   <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
                   <td><?php 
                     $patient_name = $all_method->get_patient_name($vl['patient_id']);
@@ -105,6 +106,7 @@
 				  <td><?php echo $currency.$vl['discount_amount']?></td>
                   <td><?php echo $currency.$vl['fees']?></td>
 				  <td><?php echo $currency.$vl['payment_done']?></td>
+				  <td><?php echo $vl['series_number']?></td>
                  <!--<td><?php echo $currency.$current_balance; ?></td>-->
                   <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
                   <td><?php echo ucwords($vl['status']); ?></td>

@@ -638,7 +638,7 @@ class Accounts_model extends CI_Model
 		return $response;
 	}
 	
-	function approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice){ 
+	/*function approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice){ 
 		$result = array();
 		if($type == 'consultation'){			
 			$sql = "UPDATE `".$this->config->item('db_prefix')."consultation` SET `status`='$status',`reason_of_disapprove`='$reason',`reason_of_cancle`='$reason_of_cancle',`cn_invoice`='$cn_invoice',`modified_on`='".date('Y-m-d H:i:s')."' WHERE ID='".$request."'";
@@ -654,7 +654,100 @@ class Accounts_model extends CI_Model
 		
         $q = $this->db->query($sql);
         return 1;
-	}
+	}*/
+
+function approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice)
+{
+    $prefix = $this->config->item('db_prefix');
+    $date_now = date('Y-m-d H:i:s');
+
+    // 1. Identify table and invoice letter code
+    if ($type == 'consultation') {
+        $table = $prefix . 'consultation';
+        $code = 'C';
+    } elseif ($type == 'registation') {
+        $table = $prefix . 'registation';
+        $code = 'R';
+    } elseif ($type == 'investigation') {
+        $table = $prefix . 'patient_investigations';
+        $code = 'D';
+    } else {
+        // Simple update for other types (medicine, payments)
+        $simple_table = ($type == 'medicine') ? $prefix . 'patient_medicine' : $prefix . 'patient_payments';
+        $this->db->where('ID', $request)->update($simple_table, [
+            'status' => $status,
+            'reason_of_disapprove' => $reason,
+            'reason_of_cancle' => $reason_of_cancle,
+            'cn_invoice' => $cn_invoice,
+            'modified_on' => $date_now
+        ]);
+        return 1;
+    }
+
+    // 2. Fetch the Record
+    $row = $this->db->get_where($table, ['ID' => $request])->row_array();
+    if (!$row) return false;
+
+    // 3. Handle Disapproval/Cancellation
+    if ($status != 'approved') {
+        $this->db->where('ID', $request)->update($table, [
+            'status' => $status,
+            'reason_of_disapprove' => $reason,
+            'modified_on' => $date_now
+        ]);
+        return 1;
+    }
+
+    // 4. Handle Approval & Invoice Generation
+    // If it's already approved and has a number, don't change it
+    if ($row['status'] == 'approved' && !empty($row['series_number'])) {
+        return 1;
+    }
+
+    // Get Center Prefix
+    $center = get_center_name($row['billing_at']);
+    $center_data = center_detail($center);
+    $state_prefix = !empty($center_data['state_prefix']) ? $center_data['state_prefix'] : 'NOD';
+
+    // Financial Year Logic
+    $year = date('Y');
+    $month = date('n');
+    $f_year = ($month >= 4) ? substr($year + 1, -2) : substr($year, -2);
+
+    // Pattern: IN/NOD/C/26/
+    $search_pattern = 'IN/' . $state_prefix . '/' . $code . '/' . $f_year . '/';
+
+    // Get Max Series Number from the table
+    $this->db->select("MAX(CAST(RIGHT(series_number, 5) AS UNSIGNED)) as max_val", FALSE);
+    $this->db->where('status', 'approved');
+    $this->db->like('series_number', $search_pattern, 'after');
+    $res = $this->db->get($table)->row_array();
+
+    $next_number = (!empty($res['max_val'])) ? $res['max_val'] + 1 : 1;
+    $invoice_string = $search_pattern . str_pad($next_number, 5, '0', STR_PAD_LEFT);
+
+    // 5. Execute Update
+    $update_data = [
+        'status' => 'approved',
+        'series_number' => $invoice_string,
+        'reason_of_disapprove' => $reason,
+        'modified_on' => $date_now
+    ];
+
+    // Add extra fields if they exist in the table schema
+    if ($type == 'registation') {
+        $update_data['reason_of_cancle'] = $reason_of_cancle;
+        $update_data['cn_invoice'] = $cn_invoice;
+    }
+
+    $this->db->where('ID', $request);
+    $this->db->update($table, $update_data);
+
+//echo $this->db->last_query(); 
+//die();
+
+    return 1;
+}
 	
 	function approve_registation($ID){
 		 $sql = "UPDATE `".$this->config->item('db_prefix')."registation` SET `status`='approved',`modified_on`='".date('Y-m-d H:i:s')."' WHERE ID='".$ID."'";
@@ -1030,130 +1123,57 @@ function send_procedure_tally($ID) {
         return $this->db->affected_rows();
 	}
 	
-	function approve_procedure($ID){
-	 $sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `status`='approved',`modified_on`='".date('Y-m-d H:i:s')."' WHERE ID='".$ID."'";
-		$this->db->query($sql);
-		
-		$inserted_ids = []; // To store IDs of inserted records
+function approve_procedure($ID) {
+    // 1. Get the Current Record
+    $row = $this->db->get_where('hms_patient_procedure', ['ID' => $ID])->row_array();
+    
+    if (!$row || $row['status'] === 'approved') {
+        return false;
+    }
 
-	 $sql = "SELECT * FROM hms_patient_procedure WHERE ID = " . (int)$ID;
-		$result = run_select_query($sql);
+    // 2. Get Center Details
+    $center = get_center_name($row['billing_at']);
+    $center_data = center_detail($center);
+    $state_prefix = !empty($center_data['state_prefix']) ? $center_data['state_prefix'] : 'NOD';
 
-		if (!empty($result)) {
-			$row = $result;
-			$unserialized_data = unserialize($row['data']);
-			
-			foreach ($unserialized_data['patient_procedures'] as $procedure) {
-				// Prepare data for hms_package_collections
-				$collection_data = [
-					"patient_id" => $row['patient_id'],
-					"procedure_id" => $ID, // Original procedure ID
-					"receipt_number" => $row['receipt_number'],
-					"biller_id" => $row['biller_id'],
-					"procedure_name" => $procedure['sub_procedure'],
-					"procedure_code" => $procedure['sub_procedures_code'],
-					"original_price" => $procedure['sub_procedures_price'],
-					"discount" => $procedure['sub_procedures_discount'],
-					"final_price" => $procedure['sub_procedures_paid_price'],
-					"payment_status" => ($row['payment_done'] == $row['totalpackage']) ? 'paid' : 'partial',
-					"payment_method" => $row['payment_method'],
-					"pkg_booking_date" => date('Y-m-d', strtotime($row['on_date'])),
-					"created_at" => date('Y-m-d H:i:s'),
-					"updated_at" => date('Y-m-d H:i:s')
-				];
+    // 3. Financial Year Logic
+    $year = date('Y');
+    $month = date('n');
+    $financial_year_short = ($month >= 4) ? substr($year + 1, -2) : substr($year, -2);
 
-				$customMonths = [
-					1 => 'Apr',
-					2 => 'May',
-					3 => 'June',
-					4 => 'July',
-					5 => 'August',
-					6 => 'Sep',
-					7 => 'Oct',
-					8 => 'nov',
-					9 => 'dec',
-					10 => 'jan',
-					11 => 'feb',
-					12 => 'mar'
-				];
+    /* 4. THE FIX: Find the highest number for THIS SPECIFIC CENTER and YEAR.
+       We search for strings that look like: IN/SNR/P/26/....
+    */
+    $search_pattern = 'IN/' . $state_prefix . '/P/' . $financial_year_short . '/';
 
-				// Get current standard month number (1-12)
-				$standardMonth = date('n'); // e.g., July = 7
+    $this->db->select("MAX(CAST(RIGHT(series_number, 5) AS UNSIGNED)) as max_val", FALSE);
+    $this->db->where('status', 'approved');
+    $this->db->like('series_number', $search_pattern, 'after'); // Only look for this center's invoices
+    
+    $query = $this->db->get('hms_patient_procedure');
+    $result = $query->row_array();
 
-				// Convert to your custom number (April=1 to March=12)
-				if ($standardMonth >= 4) {
-					$customMonthNumber = $standardMonth - 3; // April(4)=1, May(5)=2,...December(12)=9
-				} else {
-					$customMonthNumber = $standardMonth + 9; // January(1)=10, February(2)=11, March(3)=12
-				}
+    // If center has no invoices for this year yet, start at 1
+    $next_number = (!empty($result['max_val'])) ? $result['max_val'] + 1 : 1;
+    
+    $padded_no = str_pad($next_number, 5, '0', STR_PAD_LEFT);
+    
+    // 5. Construct the final unique Invoice String
+    $invoice_string = $search_pattern . $padded_no;
 
-				// Build and execute insert query
-				$formatted_date = date('Y-m-d', strtotime($row['on_date']));
-				$pkg_month = date("$customMonthNumber.F.y", strtotime($row['on_date']));
-				$pkg_booking_year = date("Y", strtotime($row['on_date']));
-				$date = strtotime($row['on_date']); // your input date
-				$year = date("Y", $date);
-				$month = date("n", $date); // numeric month (1-12)
+    // 6. Update the Database
+    $update_data = [
+        'status'         => 'approved',
+        'series_number'  => $invoice_string,
+        'modified_on'    => date('Y-m-d H:i:s')
+    ];
 
-				if ($month >= 4) {
-					// From April to December: same year to next year
-					$financial_year = $year . '-' . ($year + 1);
-				} else {
-					// From January to March: previous year to current year
-					$financial_year = ($year - 1) . '-' . $year;
-				}
-				 $receipt_number = $row['receipt_number'];
-				 $patient_id = $row['patient_id'];
-				 $procedure_code = $procedure['sub_procedures_code'];
-				 
-			 $sql = "SELECT * FROM hms_procedures WHERE code ='$procedure_code'";
-				$procedure_result = run_select_query($sql);
-				
-			 $app_sql = "SELECT * FROM hms_appointments WHERE paitent_id ='$patient_id'";
-				$appointme_result = run_select_query($app_sql);
-				
-			 $center_sql = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$row['origins']."'";
-				$center_result = run_select_query($center_sql);
-				
-			 $billing_center_sql = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$result['billing_at']."'";
-				$billing_center_result = run_select_query($billing_center_sql);
-				
-				$procedure_name = $procedure_result['procedure_name'];
-				$category = $procedure_result['category'];
-				$type = $procedure_result['type'];
-				$wife_name = $appointme_result['wife_name'];
-				$nationality = $appointme_result['nationality'];
-				$crm_id = $appointme_result['crm_id'];
-				$origin = $center_result['center_name'];
-				$billing_center = $billing_center_result['center_name'];
-				$totalpackage = $result['totalpackage'];
-				$discount = $result['discount_amount'];
-				$fees = $result['fees'];
-				$payment_done = $result['payment_done'];
-				
-				$formattedDate = date('m_d', strtotime($result['on_date']));
-				$formattedmonth = date('M', strtotime($result['on_date']));
-				
-				 $lead_sql = "SELECT * FROM hms_leads WHERE lead_id ='$crm_id'";
-				$lead_result = run_select_query($lead_sql);
-				
-				$lead_source = $lead_result['lead_source'];
-				$agent = $lead_result['agent'];
-				
-			   $insert_sql = "INSERT INTO hms_package_collections (`pkg_booking_date`,`pkg_month`,`pkg_booking_year`,`financial_year`,`pkg_no`,`iic_id`,`pkg_code`,`pkg_description`,`category`,`sub_category2`,`patient_name`,`patient_category_2`,`origin_booking_centre`,`sales_reporting_centre`,`billing_centre`,`lead_source_id`,`source_category`,`source_3_agent_name`,`gross_revenue_pkg`,`discount`,`booked_pkg_amt_inc_gst`,`gst_in_booked_pkg_amt`,`booked_pkg_amt_ex_gst`,`collection_year_$formattedDate`,`collection_$formattedmonth`,`total_collection`) 
-			    VALUES ('$formatted_date','$pkg_month','$pkg_booking_year','$financial_year',' $receipt_number','$patient_id','$procedure_code','$procedure_name','$category','$type','$wife_name','$nationality','$origin','$billing_center','$billing_center','$crm_id','$lead_source','$agent','$totalpackage','$discount','$fees','0','$fees','$payment_done','$payment_done','$payment_done')";
-				$this->db->query($insert_sql);
-				
-				if ($this->db->affected_rows() > 0) {
-					$inserted_ids[] = $this->db->insert_id();
-				}
-			   
-			}
-		}
-		
-			return 1;
-		}
-	
+    $this->db->where('ID', $ID);
+    $this->db->update('hms_patient_procedure', $update_data);
+
+    return 1;
+}
+
 	function approve_procedure_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice, $used_amount){ 
 		if ($type == 'procedure') {
 			// Step 1: Update patient procedure status

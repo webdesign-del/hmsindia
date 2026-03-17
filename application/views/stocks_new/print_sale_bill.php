@@ -131,8 +131,9 @@
     <div class="invoice-container" id="invoice-to-print">
         <div class="invoice-header">
             <?php if (isset($center_details) && $center_details): ?>
+
+
                 <h2><?php echo htmlspecialchars($center_details->center_name); ?></h2>
-                <p><?php echo htmlspecialchars($center_details->center_address); ?></p>
                 <p>
                     <?php if(!empty($center_details->center_gst)): ?>
                         <strong>GSTN:</strong> <?php echo htmlspecialchars($center_details->center_gst); ?> |
@@ -141,6 +142,22 @@
                         <strong>DL No:</strong> <?php echo htmlspecialchars($center_details->dl_number); ?>
                     <?php endif; ?>
                 </p>
+                <p>
+                    <?php if(!empty($center_details->center_gst)): ?>
+                        <strong>Pharmacist Name:</strong> <?php echo htmlspecialchars($center_details->pharmacist_name); ?> |
+                    <?php endif; ?>
+                    <?php if(!empty($center_details->dl_number)): ?>
+                        <strong>Registration Number:</strong> <?php echo htmlspecialchars($center_details->pharmacist_registration); ?>
+                    <?php endif; ?>
+                </p>
+                <p><?php echo htmlspecialchars($center_details->center_address); ?></p>
+                <?php if($center_details->operate_other == "1"){ 
+
+                    echo $center_details->medicine_others;
+
+                    } ?>
+
+            
             <?php else: ?>
                 <h2>Invoice</h2>
             <?php endif; ?>
@@ -174,7 +191,7 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Item Description</th>
+                            <th>Item Description a</th>
                             <th>HSN</th>
                             <th>Batch</th>
                             <th>Expiry</th>
