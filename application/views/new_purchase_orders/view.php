@@ -134,7 +134,7 @@
                                     <th>Min Stock Level(In Quentity)</th>
                                     <th>Max Stock Level(In Quentity)</th>
                                     <th>Batch</th>
-                                    <th>Price</th>
+                                    <!--<th>Price</th>-->
                                     <th>Vendor Price</th>
                                     <th>Vendor Price (Excl Tax)</th>
                                     <th>Tax</th>
@@ -164,7 +164,7 @@
                                        <td><?php echo $item['min_stock_level']; ?></td>
                                        <td><?php echo $item['max_stock_level']; ?></td>
                                        <td><?php echo $item['batch_number']; ?></td>
-                                       <td>₹<?php echo number_format($item['price'], 2); ?></td>
+                                       <!--<td>₹<?php echo number_format($item['price'], 2); ?></td>-->
                                        <td>₹<?php echo number_format($item['vendor_price'], 2); ?></td>
                                        <td><?php echo number_format($item['vendor_price'] * $item['quantity'], 2); ?></td>
                                        <td><?php echo number_format(($item['vendor_price'] * $item['quantity']) * ($item['tax_percentage'] / 100), 2); ?></td>
