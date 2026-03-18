@@ -537,12 +537,17 @@ public function view_logs($po_id)
                     $medicine_id = $item['item_number'];
                     $medicine_item = $this->Stock_model_new->get_medicine_by_id($medicine_id,$center_id,$po_department,$po_center);
                     $item['unit'] =$medicine_item->unit ?? null;
-                    //$item['pack_size'] =$medicine_item->pack_size ?? 1;
+                    $item['pack_size'] =$medicine_item->pack_size ?? 1;
                     $item['min_stock_level'] =$medicine_item->min_stock_level ?? null;
                     $item['max_stock_level'] =$medicine_item->max_stock_level ?? null;
+
+                    
+
                     if (is_null($center_id)) {
                         $item['current_quantity'] = $medicine_item->current_stock;
                     } else {
+
+                   
                         $item['current_quantity'] =
                             $this->Stock_model_new->get_center_stock_quantity_for_po(
                                 $center_id,

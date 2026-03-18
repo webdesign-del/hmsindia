@@ -1172,6 +1172,7 @@ class Stock_model_new extends CI_Model
     
 public function get_medicine_by_id($medicine_id, $center_id = null, $po_department = null, $po_center = null)
 {
+
     if ($po_center === 'CENTRAL_WAREHOUSE_NOIDA') {
 
         $this->db->select('
@@ -1191,6 +1192,10 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         $this->db->where('cs.status', 'ACTIVE');
         $this->db->where_in('mb.batch_status', ['ACTIVE','EXPIRED']);
 
+        // ✅ PRINT QUERY
+       // echo $this->db->get_compiled_select();
+       // die();
+
         return $this->db->get()->row();
     }
 
@@ -1201,8 +1206,18 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
     $this->db->join("medicines med", "med.id = mcs.medicine_id", "left");
 
     $this->db->where("mcs.medicine_id", $medicine_id);
+
+        // ✅ ADD THIS
+    if (!empty($center_id)) {
+        $this->db->where("mcs.center_id", $center_id);
+    }
+
     $this->db->where("med.medicine_code NOT LIKE 'HK_%'");
     $this->db->where("med.medicine_code NOT LIKE 'ST_%'");
+
+    // ✅ PRINT QUERY
+    //echo $this->db->get_compiled_select();
+    //die();
 
     return $this->db->get()->row();
 }
@@ -1603,6 +1618,9 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         }
 
         $row = $this->db->get()->row();
+
+      //  echo $this->db->last_query();
+//die();
         return (int) ($row->total_quantity ?? 0);
     }
 
