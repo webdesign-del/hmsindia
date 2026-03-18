@@ -1175,13 +1175,13 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
 
     if ($po_center === 'CENTRAL_WAREHOUSE_NOIDA') {
 
-        $this->db->select('
+        /*$this->db->select('
             COALESCE(SUM(cs.available_quantity),0) AS current_stock,
             cs.min_stock_level,
             cs.max_stock_level
-        ');
+        ');*/
 
-        $this->db->from('central_stocks AS cs');
+       /* $this->db->from('central_stocks AS cs');
 
         $this->db->join(
             'medicine_batches AS mb',
@@ -1190,11 +1190,25 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         );
 
         $this->db->where('cs.status', 'ACTIVE');
+        $this->db->where_in('mb.batch_status', ['ACTIVE','EXPIRED']); */
+
+        $this->db->select('
+            COALESCE(SUM(cs.available_quantity),0) AS current_stock,
+            COALESCE(SUM(cs.min_stock_level),0) AS min_stock_level,
+            COALESCE(SUM(cs.max_stock_level),0) AS max_stock_level
+        ');
+
+        $this->db->from('central_stocks AS cs');
+
+        $this->db->join('medicine_batches AS mb', 'cs.batch_id = mb.id', 'LEFT');
+
+        $this->db->where('mb.medicine_id', $medicine_id);
+        $this->db->where('cs.status', 'ACTIVE');
         $this->db->where_in('mb.batch_status', ['ACTIVE','EXPIRED']);
 
         // ✅ PRINT QUERY
-       // echo $this->db->get_compiled_select();
-       // die();
+        //echo $this->db->get_compiled_select();
+        //die();
 
         return $this->db->get()->row();
     }
