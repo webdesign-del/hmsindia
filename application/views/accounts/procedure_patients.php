@@ -76,11 +76,12 @@
                   <th>Patient name</th>
                   <th>Receipt number</th>
                   <th>On Date</th>
+				  <th>Procedure Name</th>
                   <th>Total Package</th>
                   <th>Discount amount</th>
 				  <th>Discounted Package</th>
 				  <th>Receive Amount</th>
-				  <th></th>
+				  <th>Invoice Id</th>
                   <!--<th>Balance</th>-->
                   <th>Biller</th>
                   <th>Status</th>
@@ -102,6 +103,7 @@
                   </td>
                   <td><a href="<?php echo base_url(); ?>accounts/details/<?php echo $vl['receipt_number']?>?t=procedure"><?php echo $vl['receipt_number']?></a></td>
                   <td><?php echo $vl['on_date']?></td>
+				  <td><?php echo $vl['procedure_name']?></td>
 				  <td><?php echo $currency.$vl['totalpackage']?></td>
 				  <td><?php echo $currency.$vl['discount_amount']?></td>
                   <td><?php echo $currency.$vl['fees']?></td>

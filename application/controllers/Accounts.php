@@ -872,7 +872,7 @@ class Accounts extends CI_Controller {
 
 			$config = array();
         	$config["base_url"] = base_url() . "accounts/consultation_patients";
-        	$config["total_rows"] = $this->accounts_model->patient_consultation_count($center,$status, $start_date, $end_date, $patient_id,$doctor_id = null);
+        	$config["total_rows"] = $this->accounts_model->consultation_patients_count($center,$status, $start_date, $end_date, $patient_id,$doctor_id = null);
         	$config["per_page"] = 10;
         	$config["uri_segment"] = 2;
 			$config['use_page_numbers'] = true;

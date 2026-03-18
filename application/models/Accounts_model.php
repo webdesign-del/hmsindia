@@ -2886,7 +2886,44 @@ function patient_consultation_report_count($center, $start_date, $end_date, $pat
     return $this->db->count_all_results();
 }	
 
-// Count function for consultation patients pagination
+
+function consultation_patients_count($center, $status, $start_date, $end_date, $patient_id, $payment_method){
+		$investigation_result = array();
+		$conditions = '';
+		if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
+			$conditions = ' and billing_at="'.$_SESSION['logged_accountant']['center'].'"'; 
+		}
+
+		if (!empty($center)){
+			$conditions .= " and billing_at='$center'";
+		}
+		if (!empty($status)){
+			$conditions .= " and status='$status'";
+		}
+		if(!empty($payment_method)){
+			$conditions .= ' and payment_method="'.$payment_method.'"';
+        }
+		if (!empty($patient_id)){
+			$conditions .= " and patient_id='$patient_id'";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			//$conditions .= " and on_date >='$start_date' and  on_date <= '$end_date'";
+			$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " and on_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " and on_date='$end_date'";
+		}
+
+		$investigation_sql = "Select * from ".$this->config->item('db_prefix')."consultation where 1 ".$conditions."";
+		$q = $this->db->query($investigation_sql);
+		return $q->num_rows();
+		
+	}
+
+// Count function for consultation patients paginationq
 function patient_consultation_count($center, $status, $start_date, $end_date, $patient_id, $doctor_id = null){
     
     $this->db->distinct();
