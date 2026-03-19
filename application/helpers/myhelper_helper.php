@@ -80,7 +80,7 @@ $language = "en";
 //$templateName = "patient_registration";
 $templateName = "patient_registration_v2";
 $from = "+919971934495";
-$authorizationKey = "key_FRwBDvK22S";
+$authorizationKey = "key_eroAfskU9EVkgzXFbGQ8eoCDTukbNPjd9lu6NzTOfS3U7l8MDScaWGbeKUFtpyZ5wXvzR8TOvVtQ7TeszIJ67JKAhNsEeb7rh293W0cKvIELjwKM1EeCPD4AaspimLPczOocD5fAtOElVNYWqNDI0YPFAYfEAPgTMtx2yPWFWYfm4rKNJ80SzYbVTn6IzvYxd9K2UUkzZikTTX2NUDTWBjLbu3NmRW7iKiRYwifPxbX5dl3wFEu6oJZ3AKuA";
 
 // Create the data array
 $data = [
@@ -221,7 +221,7 @@ $language = "en";
 $filename = "Billing";
 //$templateName = "prescription_sent";
 $from = "+919971934495";
-$authorizationKey = "key_FRwBDvK22S";
+$authorizationKey = "key_eroAfskU9EVkgzXFbGQ8eoCDTukbNPjd9lu6NzTOfS3U7l8MDScaWGbeKUFtpyZ5wXvzR8TOvVtQ7TeszIJ67JKAhNsEeb7rh293W0cKvIELjwKM1EeCPD4AaspimLPczOocD5fAtOElVNYWqNDI0YPFAYfEAPgTMtx2yPWFWYfm4rKNJ80SzYbVTn6IzvYxd9K2UUkzZikTTX2NUDTWBjLbu3NmRW7iKiRYwifPxbX5dl3wFEu6oJZ3AKuA";
 
 $publicFileUrl = "https://indiaivf.website/assets/whatsapp-pdf/" . basename($file);
 
@@ -325,7 +325,7 @@ $longitude = "77.391029";
 $templateName = "appointment_confirmation_v7";
 //$templateName = "appointment_confirmation_v3";
 $from = "+919971934495";
-$authorizationKey = "key_FRwBDvK22S";	
+$authorizationKey = "key_eroAfskU9EVkgzXFbGQ8eoCDTukbNPjd9lu6NzTOfS3U7l8MDScaWGbeKUFtpyZ5wXvzR8TOvVtQ7TeszIJ67JKAhNsEeb7rh293W0cKvIELjwKM1EeCPD4AaspimLPczOocD5fAtOElVNYWqNDI0YPFAYfEAPgTMtx2yPWFWYfm4rKNJ80SzYbVTn6IzvYxd9K2UUkzZikTTX2NUDTWBjLbu3NmRW7iKiRYwifPxbX5dl3wFEu6oJZ3AKuA";	
 	
 // Create the data array
 

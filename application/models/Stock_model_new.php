@@ -1207,8 +1207,8 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         $this->db->where_in('mb.batch_status', ['ACTIVE','EXPIRED']);
 
         // ✅ PRINT QUERY
-        //echo $this->db->get_compiled_select();
-        //die();
+      //  echo $this->db->get_compiled_select();
+      //  die();
 
         return $this->db->get()->row();
     }
