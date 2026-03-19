@@ -384,7 +384,7 @@ $api_endpoints = [
   CURLOPT_CUSTOMREQUEST => 'POST',
   CURLOPT_POSTFIELDS => $jsonData,
   CURLOPT_HTTPHEADER => array(
-    'Authorization: key_FRwBDvK22S',
+    'Authorization: key_eroAfskU9EVkgzXFbGQ8eoCDTukbNPjd9lu6NzTOfS3U7l8MDScaWGbeKUFtpyZ5wXvzR8TOvVtQ7TeszIJ67JKAhNsEeb7rh293W0cKvIELjwKM1EeCPD4AaspimLPczOocD5fAtOElVNYWqNDI0YPFAYfEAPgTMtx2yPWFWYfm4rKNJ80SzYbVTn6IzvYxd9K2UUkzZikTTX2NUDTWBjLbu3NmRW7iKiRYwifPxbX5dl3wFEu6oJZ3AKuA',
     'accept: application/json',
     'content-type: application/json'
   ),
