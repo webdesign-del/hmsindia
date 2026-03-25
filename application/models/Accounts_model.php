@@ -3484,7 +3484,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 	return $consultation_result;
 }
 
-	function export_registration_data($start, $end, $center, $status){
+	function export_registration_data($start_date, $end_date, $center, $patient_id, $status){
 		$registration_result = $response = array();
         $conditions = '';
 		if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
@@ -3492,6 +3492,12 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 		}
         if(!empty($center)){
 			$conditions .= ' and billing_at="'.$center.'"';
+        }
+		 if(!empty($status)){
+			$conditions .= ' and status="'.$status.'"';
+        }
+		 if(!empty($patient_id)){
+			$conditions .= ' and patient_id="'.$patient_id.'"';
         }
 		if(!empty($start) && !empty($end)){
             $conditions .= " and on_date between '".$start."' AND '".$end."' ";
@@ -3523,7 +3529,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 		return $response;
     }
 	
-	function patient_registration_count($center, $start_date, $end_date, $patient_id){
+	function patient_registration_count($center, $start_date, $end_date, $patient_id, $status){
 		$registration_result = array();
 		$conditions = '';
 		if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
@@ -3534,6 +3540,9 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 		}
 		if (!empty($patient_id)){
 			$conditions .= " and patient_id='$patient_id'";
+		}
+		if (!empty($status)){
+			$conditions .= " and status='$status'";
 		}
 		if (!empty($start_date) && !empty($end_date)){
 			$conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";

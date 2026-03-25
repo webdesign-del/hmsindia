@@ -21,6 +21,15 @@
                 </select>
             </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            	<label>Status</label>
+                <select class="form-control" id="status" name="status">
+                	<option value=''>--Select From--</option>
+					<option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+					
+                </select>
+            </div>
+            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Start Date</label>
               <input type="text" class="particular_date_filter form-control" id="start_date" name="start_date" value="<?php echo $start_date;?>" />
             </div>
@@ -82,7 +91,28 @@
 			   ?>
                 <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
-				<td><?php if($vl['status'] == 'approved') { ?><input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>"><?php } ?></td>
+                  <td>
+    <?php 
+    // Show checkbox if (Status is 1 OR 3) AND it hasn't been sent to Tally yet
+    if (($vl['status'] == 'approved' || $vl['status'] == 'adjust') && $vl['tally_status'] != '1') { 
+    ?>
+        <input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>">
+    <?php } ?>
+    
+    <?php 
+    // Show text if it is already sent
+    if ($vl['tally_status'] == '1') { 
+        echo '<span class="label label-success">Already Sent</span>'; 
+    } 
+    ?>
+</td>
+				 <td>
+                        <?php if($vl['status'] == 'approved' && $vl['tally_status'] != '1'){ ?>
+                            <input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>">
+                        <?php } ?>
+                        
+                        <?php if($vl['tally_status'] == '1'){ echo 'Already Sent'; } ?>
+                    </td>
                 <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
                 <td><?php $patient_name = $all_method->get_patient_name($vl['patient_id']); echo strtoupper($patient_name); ?></td>
                 <td><a href="<?php echo base_url(); ?>accounts/details/<?php echo $vl['receipt_number']?>?t=registation"><?php echo $vl['receipt_number']?></a></td>

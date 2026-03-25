@@ -95,13 +95,22 @@
                 $current_balance = $all_method->get_current_balance($vl['patient_id']); ?>
                 <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
-				 <td>
-    <?php if($vl['status'] == 'approved' && $vl['tally_status'] != '1'){ ?>
+				  <td>
+    <?php 
+    // Show checkbox if (Status is 1 OR 3) AND it hasn't been sent to Tally yet
+    if (($vl['status'] == 'approved' || $vl['status'] == 'cancel') && $vl['tally_status'] != '1') { 
+    ?>
         <input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>">
     <?php } ?>
     
-    <?php if($vl['tally_status'] == '1'){ echo 'Already Sent'; } ?>
-</td> <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
+    <?php 
+    // Show text if it is already sent
+    if ($vl['tally_status'] == '1') { 
+        echo '<span class="label label-success">Already Sent</span>'; 
+    } 
+    ?>
+</td>
+ <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
                   <td><?php 
                     $patient_name = $all_method->get_patient_name($vl['patient_id']);
                     echo strtoupper($patient_name); ?>

@@ -82,8 +82,22 @@
                   $current_balance = $all_method->get_current_balance($vl['patient_id']); ?>
                     <tr class="odd gradeX">
                       <td><?php echo $count; ?></td>
-					<td>  <?php if($vl['status'] == 1 || $vl['status'] == 3) { ?><input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>"><?php } ?></td>
-                      <td><a href="<?php echo base_url(); ?>accounts/details/<?php echo $vl['billing_id']?>?t=<?php echo $vl['type']?>"><?php echo $vl['billing_id']?></a></td>
+                      <td>
+    <?php 
+    // Show checkbox if (Status is 1 OR 3) AND it hasn't been sent to Tally yet
+    if (($vl['status'] == '1' || $vl['status'] == '3') && $vl['tally_status'] != '1') { 
+    ?>
+        <input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>">
+    <?php } ?>
+    
+    <?php 
+    // Show text if it is already sent
+    if ($vl['tally_status'] == '1') { 
+        echo '<span class="label label-success">Already Sent</span>'; 
+    } 
+    ?>
+</td>
+					            <td><a href="<?php echo base_url(); ?>accounts/details/<?php echo $vl['billing_id']?>?t=<?php echo $vl['type']?>"><?php echo $vl['billing_id']?></a></td>
                       <td><a href="<?php echo base_url()?>partial-payment-receipt/<?php echo $vl['refrence_number'];?>"><?php echo $vl['refrence_number']; ?></a></td>
                       <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
                       <td><?php echo $vl['on_date']?></td>
