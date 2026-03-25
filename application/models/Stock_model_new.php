@@ -10078,4 +10078,33 @@ public function save_medicine_central_stock_config($data) {
     }
 }
 
+
+
+
+public function count_medicine_returns($f = []) {
+    $this->apply_return_filters($f);
+    return $this->db->count_all_results('medicine_returns');
+}
+
+public function get_medicine_returns_paged($f = [], $limit, $offset) {
+    $this->apply_return_filters($f);
+    $this->db->limit($limit, $offset);
+    $this->db->order_by('id', 'DESC');
+    return $this->db->get('medicine_returns')->result();
+}
+
+private function apply_return_filters($f) {
+    if(!empty($f['search'])) {
+        $this->db->group_start();
+        $this->db->like('return_number', $f['search']);
+        $this->db->or_like('patient_name', $f['search']);
+        $this->db->or_like('receipt_number', $f['search']);
+        $this->db->group_end();
+    }
+    if(!empty($f['center_id'])) $this->db->where('center_id', $f['center_id']);
+    if(!empty($f['status']))    $this->db->where('status', $f['status']);
+    if(!empty($f['start_date'])) $this->db->where('return_date >=', $f['start_date']);
+    if(!empty($f['end_date']))   $this->db->where('return_date <=', $f['end_date']);
+}
+
 }

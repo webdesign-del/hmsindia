@@ -2748,6 +2748,87 @@ public function tally()
         $all_transactions[] = $sale;
     }
 
+	// =========================================================================
+// PART 2: MEDICINE RETURNS
+// =========================================================================
+$sql_ret = "
+    SELECT 
+    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,
+    r.return_number, r.return_date, r.status, r.return_reason,
+    m.medicine_name, mb.batch_number, mb.expiry_date, 
+    m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
+    ri.quantity_returned, ri.total_amount AS item_total,
+    ri.final_amount AS item_final, ri.discount_amount AS item_discount,
+    r.tally_status
+FROM medicine_returns r
+LEFT JOIN hms_centers c ON r.center_id = c.id
+LEFT JOIN medicine_return_items ri ON r.id = ri.return_id
+LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
+LEFT JOIN medicines m ON mb.medicine_id = m.id
+WHERE r.status = 'APPROVED' 
+AND r.tally_status = '1'
+ORDER BY r.id DESC
+";
+
+$ret_results = $this->db->query($sql_ret)->result_array();
+
+// Group items by Return ID
+$ret_grouped = [];
+
+foreach ($ret_results as $row) {
+    $retId = $row['return_id'];
+    
+    $qty      = (int) $row['quantity_returned'];
+    $packSize = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
+    $mrpUnit  = $row['mrp'] / $packSize; 
+    $gstRate  = (float) $row['gst_rate'];
+    
+    // final_amount is usually the amount being refunded to the patient
+    $totalRefundItem = (float) $row['item_final']; 
+
+    // Calculations (Reverse Tax calculation)
+    $taxableValue   = ($totalRefundItem * 100) / (100 + $gstRate);
+    $gstAmount      = $totalRefundItem - $taxableValue;
+    $mrpTotalValue  = $mrpUnit * $qty;
+    $discountAmount = $row['item_discount']; // or $mrpTotalValue - $totalRefundItem;
+    
+    if (!isset($ret_grouped[$retId])) {
+        $ret_grouped[$retId] = [
+            'type'             => 'Medicine Return',
+            'patient_id'       => $row['patient_id'],
+            'patient_name'     => $row['patient_name'],
+            'billing_center'   => $row['center_name'],
+            'origin_center'    => $row['center_name'],
+            'receipt_number'   => $row['return_number'],
+            'on_date'          => date("d-m-Y", strtotime($row['return_date'])),
+            'biller_name'      => 'System Approved', // Or join with employee table
+            'payment_method'   => 'Refund',
+            'status'           => $row['status'],
+            'reason'           => $row['return_reason'],
+            'items'            => []
+        ];
+    }
+
+    $ret_grouped[$retId]['items'][] = [
+        'item_name'       => $row['medicine_name'],
+        'code'            => $row['hsn_code'],
+        'batch_no'        => $row['batch_number'],
+        'expiry'          => $row['expiry_date'],
+        'quantity'        => $qty,
+        'unit_price'      => number_format($mrpUnit, 2, '.', ''),
+        'discount_amt'    => number_format($discountAmount, 2, '.', ''),
+        'taxable_value'   => number_format($taxableValue, 2, '.', ''),
+        'gst_rate'        => number_format($gstRate, 2, '.', ''),
+        'gst_amount'      => number_format($gstAmount, 2, '.', ''),
+        'receive_amount'   => number_format($totalRefundItem, 2, '.', '')
+    ];
+}
+
+// Merge Returns into Master Array
+foreach($ret_grouped as $return) {
+    $all_transactions[] = $return;
+}
+
     // =========================================================================
     // PART 2: PROCEDURE SALES
     // =========================================================================
@@ -3264,6 +3345,89 @@ public function order_invoice()
     }
     foreach($med_grouped as $sale) { $all_transactions[] = $sale; }
 
+
+		// =========================================================================
+// PART 2: MEDICINE RETURNS
+// =========================================================================
+$sql_ret = "
+    SELECT 
+    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,
+    r.return_number, r.return_date, r.status, r.return_reason,
+    m.medicine_name, mb.batch_number, mb.expiry_date, 
+    m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
+    ri.quantity_returned, ri.total_amount AS item_total,
+    ri.final_amount AS item_final, ri.discount_amount AS item_discount,
+    r.tally_status
+FROM medicine_returns r
+LEFT JOIN hms_centers c ON r.center_id = c.id
+LEFT JOIN medicine_return_items ri ON r.id = ri.return_id
+LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
+LEFT JOIN medicines m ON mb.medicine_id = m.id
+WHERE r.status = 'APPROVED' 
+AND r.tally_status = '1'
+ORDER BY r.id DESC
+";
+
+$ret_results = $this->db->query($sql_ret)->result_array();
+
+// Group items by Return ID
+$ret_grouped = [];
+
+foreach ($ret_results as $row) {
+    $retId = $row['return_id'];
+    
+    $qty      = (int) $row['quantity_returned'];
+    $packSize = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
+    $mrpUnit  = $row['mrp'] / $packSize; 
+    $gstRate  = (float) $row['gst_rate'];
+    
+    // final_amount is usually the amount being refunded to the patient
+    $totalRefundItem = (float) $row['item_final']; 
+
+    // Calculations (Reverse Tax calculation)
+    $taxableValue   = ($totalRefundItem * 100) / (100 + $gstRate);
+    $gstAmount      = $totalRefundItem - $taxableValue;
+    $mrpTotalValue  = $mrpUnit * $qty;
+    $discountAmount = $row['item_discount']; // or $mrpTotalValue - $totalRefundItem;
+    
+    if (!isset($ret_grouped[$retId])) {
+        $ret_grouped[$retId] = [
+            'type'             => 'Medicine Return',
+            'patient_id'       => $row['patient_id'],
+            'patient_name'     => $row['patient_name'],
+            'billing_center'   => $row['center_name'],
+            'origin_center'    => $row['center_name'],
+            'receipt_number'   => $row['return_number'],
+            'on_date'          => date("d-m-Y", strtotime($row['return_date'])),
+			'updated_date'          => "",
+            'biller_name'      => 'System Approved', // Or join with employee table
+            'payment_method'   => 'Refund',
+            'status'           => $row['status'],
+            'reason'           => $row['return_reason'],
+            'items'            => []
+        ];
+    }
+
+    $ret_grouped[$retId]['items'][] = [
+        'item_name'       => $row['medicine_name'],
+        'code'            => $row['hsn_code'],
+        'batch_no'        => $row['batch_number'],
+        'expiry'          => $row['expiry_date'],
+        'quantity'        => $qty,
+        'unit_price'      => number_format($mrpUnit, 2, '.', ''),
+        'discount_amt'    => number_format($discountAmount, 2, '.', ''),
+        'taxable_value'   => number_format($taxableValue, 2, '.', ''),
+        'gst_rate'        => number_format($gstRate, 2, '.', ''),
+        'gst_amount'      => number_format($gstAmount, 2, '.', ''),
+        'receive_amount'   => number_format($totalRefundItem, 2, '.', '')
+    ];
+}
+
+// Merge Returns into Master Array
+foreach($ret_grouped as $return) {
+    $all_transactions[] = $return;
+}
+
     // =========================================================================
     // PART 2: PROCEDURE SALES
     // =========================================================================
@@ -3283,6 +3447,7 @@ public function order_invoice()
                 'origin_center'    => $origin['center_name'] ?? 'N/A',
                 'receipt_number'   => $sale["receipt_number"],
                 'on_date'          => date("d-m-Y", strtotime($sale["on_date"])),
+				'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
                 'biller_name'      => $biller['name'] ?? 'N/A',
                 'payment_method'   => $sale["payment_method"] ?? "",
                 'status'           => $sale["status"] ?? "",
@@ -3320,7 +3485,7 @@ public function order_invoice()
     $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
     $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
-    $this->db->where('hms_consultation.status', 'approved');
+   $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
     $this->db->where('hms_consultation.tally_status', '1');
     $this->db->limit(20);
     $consult_rows = $this->db->get()->result_array();
@@ -3334,6 +3499,7 @@ public function order_invoice()
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
+			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
             'status'           => $row['status'],
@@ -3374,6 +3540,7 @@ public function order_invoice()
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
+			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
             'status'           => $row['status'],
@@ -3392,7 +3559,7 @@ public function order_invoice()
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' LIMIT 50")->result_array();
+    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' ORDER BY id DESC LIMIT 50")->result_array();
 
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
@@ -3408,6 +3575,7 @@ public function order_invoice()
             'origin_center'    => $org_c['center_name'] ?? 'N/A',
             'receipt_number'   => $sale["receipt_number"] ?? '',
             'on_date'          => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
+			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
@@ -3461,6 +3629,7 @@ public function order_invoice()
             'origin_center'    => 'N/A', 
             'receipt_number'   => $row['receipt'] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
+			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => 'N/A', 
             'payment_method'   => $row['payment_method'],
             'status'           => $status_text,
@@ -3777,6 +3946,87 @@ public function sales_completion_order()
         $all_transactions[] = $sale;
     }
 
+		// =========================================================================
+// PART 2: MEDICINE RETURNS
+// =========================================================================
+$sql_ret = "
+    SELECT 
+    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,
+    r.return_number, r.return_date, r.status, r.return_reason,
+    m.medicine_name, mb.batch_number, mb.expiry_date, 
+    m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
+    ri.quantity_returned, ri.total_amount AS item_total,
+    ri.final_amount AS item_final, ri.discount_amount AS item_discount,
+    r.tally_status
+FROM medicine_returns r
+LEFT JOIN hms_centers c ON r.center_id = c.id
+LEFT JOIN medicine_return_items ri ON r.id = ri.return_id
+LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
+LEFT JOIN medicines m ON mb.medicine_id = m.id
+WHERE r.status = 'APPROVED' 
+AND r.tally_status = '1'
+ORDER BY r.id DESC
+";
+
+$ret_results = $this->db->query($sql_ret)->result_array();
+
+// Group items by Return ID
+$ret_grouped = [];
+
+foreach ($ret_results as $row) {
+    $retId = $row['return_id'];
+    
+    $qty      = (int) $row['quantity_returned'];
+    $packSize = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
+    $mrpUnit  = $row['mrp'] / $packSize; 
+    $gstRate  = (float) $row['gst_rate'];
+    
+    // final_amount is usually the amount being refunded to the patient
+    $totalRefundItem = (float) $row['item_final']; 
+
+    // Calculations (Reverse Tax calculation)
+    $taxableValue   = ($totalRefundItem * 100) / (100 + $gstRate);
+    $gstAmount      = $totalRefundItem - $taxableValue;
+    $mrpTotalValue  = $mrpUnit * $qty;
+    $discountAmount = $row['item_discount']; // or $mrpTotalValue - $totalRefundItem;
+    
+    if (!isset($ret_grouped[$retId])) {
+        $ret_grouped[$retId] = [
+            'type'             => 'Medicine Return',
+            'patient_id'       => $row['patient_id'],
+            'patient_name'     => $row['patient_name'],
+            'billing_center'   => $row['center_name'],
+            'origin_center'    => $row['center_name'],
+            'receipt_number'   => $row['return_number'],
+            'on_date'          => date("d-m-Y", strtotime($row['return_date'])),
+            'biller_name'      => 'System Approved', // Or join with employee table
+            'payment_method'   => 'Refund',
+            'status'           => $row['status'],
+            'reason'           => $row['return_reason'],
+            'items'            => []
+        ];
+    }
+
+    $ret_grouped[$retId]['items'][] = [
+        'item_name'       => $row['medicine_name'],
+        'code'            => $row['hsn_code'],
+        'batch_no'        => $row['batch_number'],
+        'expiry'          => $row['expiry_date'],
+        'quantity'        => $qty,
+        'unit_price'      => number_format($mrpUnit, 2, '.', ''),
+        'discount_amt'    => number_format($discountAmount, 2, '.', ''),
+        'taxable_value'   => number_format($taxableValue, 2, '.', ''),
+        'gst_rate'        => number_format($gstRate, 2, '.', ''),
+        'gst_amount'      => number_format($gstAmount, 2, '.', ''),
+        'receive_amount'   => number_format($totalRefundItem, 2, '.', '')
+    ];
+}
+
+// Merge Returns into Master Array
+foreach($ret_grouped as $return) {
+    $all_transactions[] = $return;
+}
+
     // =========================================================================
     // PART 2: PROCEDURE SALES
     // =========================================================================
@@ -3799,6 +4049,7 @@ if (!empty($procedure_raw)) {
             'origin_center'    => $origin['center_name'] ?? 'N/A',
             'receipt_number'   => $sale["receipt_number"],
             'on_date'          => date("d-m-Y", strtotime($sale["on_date"])),
+			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
@@ -3824,6 +4075,10 @@ if ($broad_procedure === "ICSI") {
     $embryo = $this->db->query("SELECT date_of_procedure FROM ovum_discharge_summary WHERE iic_id = ? AND IVF = 'Yes' LIMIT 1", [$sale["patient_id"]])->row_array();
 
 } elseif ($broad_procedure === "Blastocyst") {$embryo = $this->db->query("SELECT date_of_procedure FROM ovum_discharge_summary WHERE iic_id = ? AND Micro_Fluidics = 'Yes' LIMIT 1", [$sale["patient_id"]])->row_array();
+
+} elseif ($broad_procedure === "Frozen Embryo Transfer (FET)") {$embryo = $this->db->query("SELECT date_of_procedure FROM embryology_discharge_summary WHERE iic_id = ? AND FET = 'Yes' LIMIT 1", [$sale["patient_id"]])->row_array();
+
+} elseif ($broad_procedure === "Diagnostic Procedures") {$embryo = $this->db->query("SELECT on_date FROM hms_patient_procedure WHERE patient_id = ? AND broad_procedure = 'Diagnostic Procedures' LIMIT 1", [$sale["patient_id"]])->row_array();
 
 } else {
     $embryo = null;
@@ -3927,18 +4182,30 @@ if ($is_ivf_type) {
     // =========================================================================
     // PART 3: CONSULTATION SALES
     // =========================================================================
-    $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
-        hms_employees.name as biller_name');
-    $this->db->from('hms_consultation');
-    $this->db->join('hms_patients', 'hms_patients.patient_id = hms_consultation.patient_id', 'left');
-    $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
-    $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
-    $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
-    $this->db->where('hms_consultation.status', 'approved');
-    $this->db->where('hms_consultation.tally_status', '1');
-    $this->db->limit(20);
-    $consult_rows = $this->db->get()->result_array();
+ $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
+    bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
+    hms_employees.name as biller_name');
+$this->db->from('hms_consultation');
+
+// Joins
+$this->db->join('hms_patients', 'hms_patients.patient_id = hms_consultation.patient_id', 'left');
+$this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
+$this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
+$this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
+
+// Filters
+// Use lowercase if your DB is strictly lowercase, otherwise include both variants
+$this->db->where_in('hms_consultation.status', ['approved', 'adjust', 'Approved', 'Adjust']); 
+
+// Check if your live DB uses '1' (string) or 1 (integer) for tally_status
+$this->db->where('hms_consultation.tally_status', '1');
+
+// Always order by the latest ID so you don't see old records first
+$this->db->order_by('hms_consultation.id', 'DESC'); 
+
+$this->db->limit(20);
+
+$consult_rows = $this->db->get()->result_array();
 
     foreach ($consult_rows as $row) {
         $all_transactions[] = [
@@ -3949,6 +4216,7 @@ if ($is_ivf_type) {
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
+			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
             'status'           => $row['status'],
@@ -3993,6 +4261,7 @@ if ($is_ivf_type) {
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
+			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
             'status'           => $row['status'],
@@ -4015,8 +4284,7 @@ if ($is_ivf_type) {
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' LIMIT 50")->result_array();
-
+   $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' ORDER BY id DESC LIMIT 50")->result_array();
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
         $bill_c = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
@@ -4031,6 +4299,7 @@ if ($is_ivf_type) {
             'origin_center'    => $org_c['center_name'] ?? 'N/A',
             'receipt_number'   => $sale["receipt_number"] ?? '',
             'on_date'          => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
+			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
@@ -4094,6 +4363,7 @@ if ($is_ivf_type) {
             'origin_center'    => 'N/A', 
             'receipt_number'   => $row['receipt'] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
+			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => 'N/A', 
             'payment_method'   => $row['payment_method'],
             'status'           => $status_text,

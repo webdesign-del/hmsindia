@@ -5648,20 +5648,52 @@ public function bulk_approve_sales()
     }
 
     public function returns()
-    {
-        $logg = checklogin();
-        if ($logg["status"] == true) {
-            $data["returns"] = $this->Stock_model_new->get_medicine_returns();
-            $data["centers"] = $this->Stock_model_new->get_all_centers();
-            $template = get_header_template($logg["role"]);
-            $this->load->view($template["header"]);
-            $this->load->view("stocks_new/returns_list", $data);
-            $this->load->view($template["footer"]);
-        } else {
-            header("location:" . base_url() . "");
-            die();
-        }
+{
+    $logg = checklogin();
+    if ($logg["status"] == true) {
+        $this->load->library('pagination');
+
+        // 1. Collect Filters from GET
+        $filter = [
+            'search'     => $this->input->get('search'),
+            'center_id'  => $this->input->get('center_id'),
+            'status'     => $this->input->get('status'),
+            'start_date' => $this->input->get('start_date'),
+            'end_date'   => $this->input->get('end_date')
+        ];
+
+        // 2. Pagination Configuration
+        $config['base_url'] = base_url('stocks_new/returns');
+        $config['total_rows'] = $this->Stock_model_new->count_medicine_returns($filter);
+        $config['per_page'] = 20;
+        $config['uri_segment'] = 3;
+        $config['reuse_query_string'] = TRUE; // Keeps filters active while paging
+
+        // Bootstrap Styling for Pagination
+        $config['full_tag_open'] = '<ul class="pagination pagination-sm no-margin pull-right">';
+        $config['full_tag_close'] = '</ul>';
+        $config['num_tag_open'] = '<li>'; $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">'; $config['cur_tag_close'] = '</a></li>';
+        $config['prev_tag_open'] = '<li>'; $config['prev_tag_close'] = '</li>';
+        $config['next_tag_open'] = '<li>'; $config['next_tag_close'] = '</li>';
+
+        $this->pagination->initialize($config);
+        $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
+
+        // 3. Fetch Data
+        $data["returns"] = $this->Stock_model_new->get_medicine_returns_paged($filter, $config['per_page'], $page);
+        $data["centers"] = $this->Stock_model_new->get_all_centers();
+        $data["pagination"] = $this->pagination->create_links();
+        $data["total_records"] = $config['total_rows'];
+
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/returns_list", $data);
+        $this->load->view($template["footer"]);
+    } else {
+        redirect(base_url());
     }
+}
 
     public function view_return($id)
     {
@@ -11639,6 +11671,45 @@ public function export_daily_medicine_report()
 
     fclose($output);
     exit;
+}
+
+
+
+public function bulk_returns_tally() {
+    // Ensure only authorized users can call this
+    if (!$this->session->userdata('logged_accountant')) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
+        return;
+    }
+
+    $ids = $this->input->post('return_ids');
+    if (empty($ids) || !is_array($ids)) {
+        echo json_encode(['success' => false, 'message' => 'No records selected']);
+        return;
+    }
+
+    $success_count = 0;
+    foreach ($ids as $id) {
+        // Verify it exists and is approved before updating
+        $this->db->where('id', $id);
+        $this->db->where('status', 'APPROVED');
+        $this->db->where('tally_status !=', 1);
+        $query = $this->db->get('medicine_returns'); // Adjust table name if different
+
+        if ($query->num_rows() > 0) {
+            // Update tally status to 1
+            $this->db->where('id', $id);
+            if ($this->db->update('medicine_returns', ['tally_status' => 1])) {
+                $success_count++;
+            }
+        }
+    }
+
+    if ($success_count > 0) {
+        echo json_encode(['success' => true, 'message' => $success_count . ' records updated for Tally.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'No records were updated. Check if they are approved.']);
+    }
 }
 
 }

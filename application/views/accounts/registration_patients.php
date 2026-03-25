@@ -26,7 +26,7 @@
                 	<option value=''>--Select From--</option>
 					<option value="approved">Approved</option>
                     <option value="pending">Pending</option>
-					
+					 <option value="adjust">Adjust</option>
                 </select>
             </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
