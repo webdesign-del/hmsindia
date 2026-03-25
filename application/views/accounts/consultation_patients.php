@@ -90,8 +90,13 @@
 			   ?>
                 <tr class="odd gradeX">
                   <td><?php echo $count; ?></td>
-				   <td>  <?php if($vl['status'] == 'approved') { ?><input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>"><?php } ?></td>
-                 
+				  <td>
+                        <?php if($vl['status'] == 'approved' && $vl['tally_status'] != '1'){ ?>
+                            <input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>">
+                        <?php } ?>
+                        
+                        <?php if($vl['tally_status'] == '1'){ echo 'Already Sent'; } ?>
+                    </td>
                   <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
                   <td><?php $patient_name = $all_method->get_patient_name($vl['patient_id']); echo strtoupper($patient_name); ?></td>
                   <td><a href="<?php echo base_url(); ?>accounts/details/<?php echo $vl['receipt_number']?>?t=consultation"><?php echo $vl['receipt_number']?></a></td>

@@ -1997,23 +1997,19 @@ public function procedure_reports(){
 					$discounted_package = $discounted_package +  (int)$val['discounted_package'];
 					$billing_at = get_center_name($val['billing_at']);
 					
-					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "'";
+					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "' and paitent_type='new_patient'";
                     $select_result = run_select_query($sql);
                     					
-                    $sql3 = "SELECT * FROM hms_appointments WHERE wife_phone='" . $select_result['wife_phone'] . "' and paitent_type='new_patient'";
-                    $select_result3 = run_select_query($sql3);
+                    $sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $select_result['appoitment_for'] . "'";
+                    $select_result3 = run_select_query($sql4);
                     					
-                    $sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $select_result3['appoitment_for'] . "'";
-                    $select_result4 = run_select_query($sql4);
-                    					
-                    $uhid = $select_result4['center_code']."/".$select_result3['uhid'];
-
-					$lead_id = $select_result3['crm_id']; 
-					$lead_source = $select_result3['lead_source']; 
-
-					//$crm_id = get_lead($val['patient_id']);
-					$agent = $select_result3['agent']; 
-					$councellor = $select_result3['councellor']; 
+                    $uhid = $select_result3['center_code']."/".$select_result['uhid'];
+					$lead_id = $select_result['crm_id']; 
+					$lead_source = $select_result['lead_source']; 
+					$camp_selection = $select_result['camp_selection'] ?? "";
+					$visit_type = (!empty($camp_selection)) ? "Camp Visit" : "Center Visit";
+					$agent = $select_result['agent']; 
+					$councellor = $select_result['councellor']; 
 
 					// 1. INITIALIZE $category BEFORE the main if block to guarantee scope
 					$category = 'not booked'; // Default value (safer than 'not found')
@@ -2059,7 +2055,7 @@ public function procedure_reports(){
 
 					$doctor = $select_appoint['name'];
 					
-					$lead_arr = array($uhid, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $lead_id, $lead_source, $agent, $councellor, $doctor,$category);
+					$lead_arr = array($uhid, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $lead_id, $lead_source, $agent, $councellor, $doctor,$category, $visit_type);
 					fputcsv($fp, $lead_arr);
 				}
 				$final_arr = array("", "", "", "", $total_package, $discounted_package, $paid_amount, "", "", "", "", "", "", "");
@@ -3537,136 +3533,100 @@ public function order_invoice()
 
 
 public function investigations_send_tally() {
+    // Force clean JSON output
+    header('Content-Type: application/json');
+    
+    try {
+        $payment_ids = $this->input->post('payment_ids');
 
-    $payment_ids = $this->input->post('payment_ids');
-
-    if (empty($payment_ids)) {
-        echo json_encode(['success' => false, 'message' => 'No IDs received.']);
-        return;
-    }
-
-    $success_count = 0;
-    $error_count = 0;
-    $already_sent_count = 0; // Track how many were skipped
-
-    foreach ($payment_ids as $id) {
-
-        // 1. Get the current status of THIS specific ID
-        // We select only tally_status to be efficient
-        $this->db->select('tally_status');
-        $this->db->where('ID', $id);
-        $q = $this->db->get('hms_patient_investigations');
-        
-        $row = $q->row_array();
-
-        // 2. CHECK: If row exists AND tally_status is already 1, skip it
-        if (!empty($row) && $row['tally_status'] == '1') {
-            $already_sent_count++;
-            continue; // specific keyword to skip to the next ID in the loop
+        if (empty($payment_ids)) {
+            echo json_encode(['success' => false, 'message' => 'No IDs received.']);
+            return;
         }
 
-        // --- Tally Logic Here ---
-        // Put your actual code to send data to Tally API here.
-        // For now, we assume it is successful.
-        $result = true; 
+        $success_count = 0;
+        $already_sent_count = 0;
 
-        if ($result) {
-            $success_count++;
-            // Update the status to 1 so it isn't sent again next time
-            $this->db->where('ID', $id)->update('hms_patient_investigations', ['tally_status' => 1]);
-        } else {
-            $error_count++;
-        }
-    }
+        foreach ($payment_ids as $id) {
+            // Use $this->db->dbprefix if your live DB uses prefixes
+            $q = $this->db->select('tally_status')->where('ID', $id)->get('hms_patient_investigations');
+            $row = $q->row_array();
 
-    // 3. Build the response message
-    if ($success_count > 0 || $already_sent_count > 0) {
-        
-        $msg = "";
-        
-        if ($success_count > 0) {
-            $msg .= "$success_count records sent successfully. ";
-        }
-        
-        if ($already_sent_count > 0) {
-            $msg .= "($already_sent_count records were already sent). ";
+            if (!empty($row) && $row['tally_status'] == '1') {
+                $already_sent_count++;
+                continue; 
+            }
+
+            // --- IMPORTANT: LIVE TALLY CONNECTION ---
+            // If you have CURL code here, ensure the IP is a PUBLIC STATIC IP.
+            // localhost:9000 will NOT work on a live server.
+            $result = true; 
+
+            if ($result) {
+                $this->db->where('ID', $id)->update('hms_patient_investigations', ['tally_status' => '1']);
+                $success_count++;
+            }
         }
 
-        if ($error_count > 0) {
-            $msg .= "($error_count failed).";
-        }
+        echo json_encode([
+            'success' => true, 
+            'message' => "Success: $success_count sent. ($already_sent_count already existed)."
+        ]);
 
-        echo json_encode(['success' => true, 'message' => trim($msg)]);
-
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to send records to Tally.']);
+    } catch (Exception $e) {
+        // This will tell you EXACTLY what is wrong on the live server
+        echo json_encode(['success' => false, 'message' => 'DB Error: ' . $e->getMessage()]);
     }
 }
 
 public function consultation_send_tally() {
+    // Clear any previous accidental output (like warnings)
+    if (ob_get_length()) ob_clean();
+    header('Content-Type: application/json');
 
-    $payment_ids = $this->input->post('payment_ids');
+    try {
+        $payment_ids = $this->input->post('payment_ids');
 
-    if (empty($payment_ids)) {
-        echo json_encode(['success' => false, 'message' => 'No IDs received.']);
-        return;
-    }
-
-    $success_count = 0;
-    $error_count = 0;
-    $already_sent_count = 0; // Track how many were skipped
-
-    foreach ($payment_ids as $id) {
-
-        // 1. Get the current status of THIS specific ID
-        // We select only tally_status to be efficient
-        $this->db->select('tally_status');
-        $this->db->where('ID', $id);
-        $q = $this->db->get('hms_consultation');
-        
-        $row = $q->row_array();
-
-        // 2. CHECK: If row exists AND tally_status is already 1, skip it
-        if (!empty($row) && $row['tally_status'] == '1') {
-            $already_sent_count++;
-            continue; // specific keyword to skip to the next ID in the loop
+        if (empty($payment_ids)) {
+            echo json_encode(['success' => false, 'message' => 'No IDs received.']);
+            return;
         }
 
-        // --- Tally Logic Here ---
-        // Put your actual code to send data to Tally API here.
-        // For now, we assume it is successful.
-        $result = true; 
+        $success_count = 0;
+        $already_sent_count = 0;
 
-        if ($result) {
-            $success_count++;
-            // Update the status to 1 so it isn't sent again next time
-            $this->db->where('ID', $id)->update('hms_consultation', ['tally_status' => 1]);
-        } else {
-            $error_count++;
-        }
-    }
+        foreach ($payment_ids as $id) {
+            // Check current status
+            // Use lowercase 'id' if 'ID' fails on live
+            $this->db->select('tally_status');
+            $this->db->where('ID', $id); 
+            $q = $this->db->get('hms_consultation');
+            $row = $q->row_array();
 
-    // 3. Build the response message
-    if ($success_count > 0 || $already_sent_count > 0) {
-        
-        $msg = "";
-        
-        if ($success_count > 0) {
-            $msg .= "$success_count records sent successfully. ";
-        }
-        
-        if ($already_sent_count > 0) {
-            $msg .= "($already_sent_count records were already sent). ";
-        }
+            if (!empty($row) && $row['tally_status'] == '1') {
+                $already_sent_count++;
+                continue;
+            }
 
-        if ($error_count > 0) {
-            $msg .= "($error_count failed).";
+            // --- Tally Connection Logic ---
+            // If you add CURL here later, ensure the live server has permission to 
+            // talk to your office IP via Port 9000.
+            $result = true; 
+
+            if ($result) {
+                $this->db->where('ID', $id)->update('hms_consultation', ['tally_status' => '1']);
+                $success_count++;
+            }
         }
 
-        echo json_encode(['success' => true, 'message' => trim($msg)]);
+        $msg = "Processed: $success_count sent.";
+        if($already_sent_count > 0) $msg .= " ($already_sent_count already sent)";
 
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to send records to Tally.']);
+        echo json_encode(['success' => true, 'message' => $msg]);
+
+    } catch (Exception $e) {
+        // Send the ACTUAL error to the JS alert so you can see it
+        echo json_encode(['success' => false, 'message' => 'Live Server Error: ' . $e->getMessage()]);
     }
 }
 
@@ -3859,36 +3819,13 @@ $broad_procedure = $sale["broad_procedure"] ?? "ICSI";
 /* Fetch embryo procedure date based on procedure type */
 if ($broad_procedure === "ICSI") {
 
-    $embryo = $this->db->query(
-        "SELECT date_of_procedure 
-         FROM ovum_discharge_summary 
-         WHERE iic_id = ? 
-         AND ICSI = 'Yes'
-         LIMIT 1",
-        [$sale["patient_id"]]
-    )->row_array();
+    $embryo = $this->db->query("SELECT date_of_procedure FROM ovum_discharge_summary WHERE iic_id = ? AND ICSI = 'Yes' LIMIT 1", [$sale["patient_id"]] )->row_array();
 
 } elseif ($broad_procedure === "IVF") {
 
-    $embryo = $this->db->query(
-        "SELECT date_of_procedure 
-         FROM ovum_discharge_summary 
-         WHERE iic_id = ? 
-         AND IVF = 'Yes'
-         LIMIT 1",
-        [$sale["patient_id"]]
-    )->row_array();
+    $embryo = $this->db->query("SELECT date_of_procedure FROM ovum_discharge_summary WHERE iic_id = ? AND IVF = 'Yes' LIMIT 1", [$sale["patient_id"]])->row_array();
 
-} elseif ($broad_procedure === "Sperm Sorting") {
-
-    $embryo = $this->db->query(
-        "SELECT date_of_procedure 
-         FROM ovum_discharge_summary 
-         WHERE iic_id = ? 
-         AND Micro_Fluidics = 'Yes'
-         LIMIT 1",
-        [$sale["patient_id"]]
-    )->row_array();
+} elseif ($broad_procedure === "Blastocyst") {$embryo = $this->db->query("SELECT date_of_procedure FROM ovum_discharge_summary WHERE iic_id = ? AND Micro_Fluidics = 'Yes' LIMIT 1", [$sale["patient_id"]])->row_array();
 
 } else {
     $embryo = null;
@@ -3902,6 +3839,72 @@ if (!empty($embryo['date_of_procedure']) &&
 } else {
     $completion_date = date("d-m-Y", strtotime($sale["on_date"]));
 }
+
+
+/*
+                   // ✅ Check procedure correctly
+// Check procedure type
+$is_ivf_type = in_array($sale["broad_procedure"], ["IVF", "ICSI", "Blastocyst","Diagnostic Procedures"]);
+
+// Default completion date
+$completion_date = "";
+
+// If IVF-type → fetch from tables
+if ($is_ivf_type) {
+
+    // Embryo Transfer
+    $row = $this->db->query("
+        SELECT transfer_date 
+        FROM embryo_transfer 
+        WHERE patient_id = '".$sale["patient_id"]."' 
+        AND status='approved'
+        ORDER BY id DESC 
+        LIMIT 1
+    ")->row_array();
+
+    // Embryo Record
+    $embryo_row = $this->db->query("
+        SELECT date0 
+        FROM embryo_record 
+        WHERE patient_id = '".$sale["patient_id"]."' 
+        AND status='approved'
+        ORDER BY id DESC 
+        LIMIT 1
+    ")->row_array();
+
+	 // Embryo Record
+    $blastocyst_row = $this->db->query("
+        SELECT date1 
+        FROM hms_blastocyst 
+        WHERE patient_id = '".$sale["patient_id"]."' 
+        AND status='1'
+        ORDER BY id DESC 
+        LIMIT 1
+    ")->row_array();
+
+	
+
+    // Priority logic
+    if (!empty($row['transfer_date'])) {
+        $completion_date = date("d-m-Y", strtotime($row['transfer_date']));
+    } elseif (!empty($embryo_row['date0'])) {
+        $completion_date = date("d-m-Y", strtotime($embryo_row['date0']));
+    } elseif (!empty($blastocyst_row['date1'])) {
+        $completion_date = date("d-m-Y", strtotime($blastocyst_row['date1']));
+    }
+
+} else {
+
+    if (!empty($sale["on_date"]) && strtotime($sale["on_date"])) {
+        $completion_date = format_date_safe($sale["on_date"]);
+    } elseif (!empty($sale["created_on"]) && strtotime($sale["created_on"])) {
+        $completion_date = format_date_safe($sale["created_on"]);
+    } else {
+        $completion_date = date("d-m-Y"); // fallback
+    }
+}
+*/
+
                     $formatted_proc['items'][] = [
                         'item_name'       => ($sale["procedure_name"] ?? $broad_procedure) . ' - ' . ($p["sub_procedure"] ?? ''),
                         'code'            => $p["sub_procedures_code"] ?? '',
@@ -4124,6 +4127,7 @@ if (!empty($embryo['date_of_procedure']) &&
     echo json_encode($output_data, JSON_PRETTY_PRINT);
     exit;
 }
+
 
 public function front_approve($request = NULL){
 			$data = array();
@@ -10946,6 +10950,397 @@ public function clinical_details() {
     
 }
 
+public function export_wallet_data($patient_id) {
+    // 1. Setup Database and Helper
+    $ci = &get_instance();
+    $ci->load->database();
+    $db_prefix = $ci->config->config['db_prefix'];
+    
+    $filename = "Wallet_Export_" . $patient_id . "_" . date('Ymd') . ".csv";
+    
+    // 2. Open Memory Stream
+    $f = fopen('php://memory', 'w');
+    
+    // 3. Define CSV Headers
+    fputcsv($f, array('Type', 'Receipt Number', 'Patient Id', 'On Date', 'Paid Amount', 'Payment Method','Cancle Date', 'Status'));
+
+    // 4. Data Map (Source Table => [Label, Status Filter])
+    $data_sources = array(
+        'consultation'           => array('Consultation', "status='adjust'"),
+        'registation'            => array('Registration', "status='adjust'"),
+        'patient_procedure'      => array('Procedure', "status='cancel'"),
+        'patient_investigations' => array('Investigation', "status='cancel'"),
+        'patient_medicine'       => array('Medicine', "status='cancel'")
+    );
+
+    foreach ($data_sources as $table => $info) {
+        $label = $info[0];
+        $status_filter = $info[1];
+        
+        $sql = "SELECT receipt_number, patient_id, on_date, fees,payment_method, payment_done, modified_on, status 
+                FROM " . $db_prefix . $table . " 
+                WHERE " . $status_filter . " AND patient_id = '" . $this->db->escape_str($patient_id) . "'";
+        
+        $query = $this->db->query($sql);
+        
+        foreach ($query->result_array() as $row) {
+            fputcsv($f, array(
+                $label,
+                $row['receipt_number'],
+				$row['patient_id'],
+                $row['on_date'],
+                $row['payment_done'],
+				$row['payment_method'],
+				$row['modified_on'],
+                $row['status']
+            ));
+        }
+    }
+
+    // 5. Add Partial Payments (Status 3)
+    $pay_sql = "SELECT billing_id, billing_at, payment_done FROM " . $db_prefix . "patient_payments 
+                WHERE patient_id = '" . $this->db->escape_str($patient_id) . "' AND status = '3'";
+    $pay_query = $this->db->query($pay_sql);
+    
+    foreach ($pay_query->result_array() as $pay_row) {
+        fputcsv($f, array('Partial Payment', $pay_row['billing_id'], $pay_row['billing_at'], 'N/A', '0', $pay_row['payment_done'], '0', 'Paid'));
+    }
+
+    // 6. Output headers and download
+    fseek($f, 0);
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="'.$filename.'";');
+    fpassthru($f);
+    exit;
+}
+
+public function export_wallet_used_history($patient_id) {
+    $ci = &get_instance();
+    $ci->load->database();
+    $db_prefix = $ci->config->config['db_prefix'];
+    
+    $filename = "Wallet_Used_History_" . $patient_id . "_" . date('Ymd') . ".csv";
+    $f = fopen('php://memory', 'w');
+    
+    // Header (5 Columns) - Fixed to match your requirement
+    fputcsv($f, array(
+		'Type', 
+        'Receipt number', 
+		'Patient ID',        
+        'On Date',  
+        'Paid amount', 
+        'Payment Method',
+		'Status'
+    ));
+
+    // Mapping tables to their labels
+    // We removed the individual status filters since you want all where payment_method is wallet
+    $data_sources = array(
+        'consultation'           => 'Consultation',
+        'registation'            => 'Registration',
+        'patient_procedure'      => 'Procedure',
+        'patient_investigations' => 'Investigation',
+        'patient_payments'       => 'Partial Payments'
+    );
+
+    foreach ($data_sources as $table => $label) {
+        
+        // Corrected SQL: Standardized to look for payment_method = 'wallet'
+        $sql = "SELECT * FROM " . $db_prefix . $table . " 
+                WHERE patient_id = " . $this->db->escape($patient_id) . " 
+                AND payment_method = 'wallet'";
+        
+        $query = $this->db->query($sql);
+        
+        if ($query) {
+            foreach ($query->result_array() as $row) {
+                // Building the row with exactly 5 columns to match the header
+                fputcsv($f, array(
+					$label,
+                    $row['receipt_number'] ?? $row['billing_id'] ?? '',
+					$row['patient_id'],
+                    $row['on_date'] ?? $row['billing_at'] ?? $row['created_at'] ?? '',
+                    $row['payment_done'] ?? $row['amount'] ?? '0',
+                    $row['payment_method'] ?? 'wallet',
+					$row['status']
+                ));
+            }
+        }
+    }
+
+    fseek($f, 0);
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="'.$filename.'";');
+    fpassthru($f);
+    exit;
+}
+
+
+
+public function all_patient_wallet_summary($export = false) {
+    $logg = checklogin();
+    $this->load->library('pagination');
+    $db_prefix = $this->config->item('db_prefix');
+
+    // --- 1. GET FILTERS ---
+    $search = $this->input->get('search');
+    $start_date = $this->input->get('start_date');
+    $end_date = $this->input->get('end_date');
+    $type_filter = $this->input->get('type');
+
+    // --- 2. BUILD THE BASE QUERY ---
+    // Note: billing_at is used as Center Number here
+    $subquery = "
+        SELECT patient_id, 'Procedure' AS type, on_date, billing_at, receipt_number, status, payment_done, payment_method FROM {$db_prefix}patient_procedure WHERE payment_method = 'wallet'
+        UNION ALL
+        SELECT patient_id, 'Consultation' AS type, on_date, billing_at, receipt_number, status, payment_done, payment_method FROM {$db_prefix}consultation WHERE payment_method = 'wallet'
+        UNION ALL
+        SELECT patient_id, 'Investigation' AS type, on_date, billing_at, receipt_number, status, payment_done, payment_method FROM {$db_prefix}patient_investigations WHERE payment_method = 'wallet'
+        UNION ALL
+        SELECT patient_id, 'Partial Payment' AS type, on_date, billing_at, refrence_number as receipt_number, status, payment_done, payment_method FROM {$db_prefix}patient_payments WHERE payment_method = 'wallet' AND status != '3'
+    ";
+
+    // --- 3. APPLY FILTERS ---
+    $where = " WHERE 1=1";
+    if (!empty($search)) {
+        $where .= " AND (p.wife_name LIKE '%".$this->db->escape_like_str($search)."%' OR data.patient_id LIKE '%".$this->db->escape_like_str($search)."%')";
+    }
+    // Filtering by on_date since billing_at is the Center Number
+    if (!empty($start_date)) {
+        $where .= " AND DATE(data.on_date) >= '".$this->db->escape_str($start_date)."'";
+    }
+    if (!empty($end_date)) {
+        $where .= " AND DATE(data.on_date) <= '".$this->db->escape_str($end_date)."'";
+    }
+    if (!empty($type_filter)) {
+        $where .= " AND data.type = '".$this->db->escape_str($type_filter)."'";
+    }
+
+    // Join Patients for Name and Centers for Center Name using data.billing_at
+    $final_query_base = "FROM ($subquery) AS data 
+                         LEFT JOIN {$db_prefix}patients p ON data.patient_id = p.id 
+                         LEFT JOIN {$db_prefix}centers c ON data.billing_at = c.center_number 
+                         $where";
+
+    // --- 4. PAGINATION ---
+    $total_rows = $this->db->query("SELECT COUNT(*) as count $final_query_base")->row()->count;
+    $per_page = 20;
+    $page = ($this->uri->segment(4)) ? $this->uri->segment(4) : 0;
+
+    $config['base_url'] = base_url('accounts/all_patient_wallet_summary/false');
+    $config['total_rows'] = $total_rows;
+    $config['per_page'] = $per_page;
+    $config['reuse_query_string'] = TRUE;
+    
+    // --- PAGINATION DESIGN (BOOTSTRAP) ---
+	$config['full_tag_open'] = '<ul class="pagination pagination-sm no-margin pull-right">';
+	$config['full_tag_close'] = '</ul>';
+
+	$config['first_link'] = 'First';
+	$config['first_tag_open'] = '<li>';
+	$config['first_tag_close'] = '</li>';
+
+	$config['last_link'] = 'Last';
+	$config['last_tag_open'] = '<li>';
+	$config['last_tag_close'] = '</li>';
+
+	$config['next_link'] = '&raquo;';
+	$config['next_tag_open'] = '<li>';
+	$config['next_tag_close'] = '</li>';
+
+	$config['prev_link'] = '&laquo;';
+	$config['prev_tag_open'] = '<li>';
+	$config['prev_tag_close'] = '</li>';
+
+	$config['cur_tag_open'] = '<li class="active"><a href="#">';
+	$config['cur_tag_close'] = '</a></li>';
+
+	$config['num_tag_open'] = '<li>';
+	$config['num_tag_close'] = '</li>';
+
+	$this->pagination->initialize($config);
+    // --- 5. FETCH DATA ---
+    $limit_sql = ($export === 'true') ? "" : "LIMIT $page, $per_page";
+    // Selecting center_name and using on_date for sorting
+    $sql = "SELECT data.*, p.wife_name as patient_name, c.center_name $final_query_base ORDER BY data.on_date DESC $limit_sql";
+    
+    $query = $this->db->query($sql);
+    $data['wallet_list'] = $query->result_array();
+    $data['pagination'] = $this->pagination->create_links();
+
+    if ($export === 'true') {
+        $this->export_wallet_summary_csv($data['wallet_list']);
+    } else {
+        $template = get_header_template($logg['role']);
+        $this->load->view($template['header']);
+        $this->load->view('accounts/all_patient_wallet_view', $data);
+        $this->load->view($template['footer']);
+    }
+}
+
+private function export_wallet_summary_csv($list) {
+    $filename = "All_Patient_Wallet_Summary_" . date('Ymd') . ".csv";
+    $f = fopen('php://memory', 'w');
+    
+    // Header (8 Columns) - Removed "Center ID / billing_at"
+    fputcsv($f, array(
+        'Patient ID', 
+        'Type', 
+        'Date', 
+        'Receipt Number', 
+        'Status', 
+        'Paid Amount', 
+        'Payment Method', 
+        'Center'
+    ));
+
+    foreach ($list as $row) {
+        fputcsv($f, array(
+            $row['patient_id'],
+            $row['type'],
+            $row['on_date'],
+            $row['receipt_number'],
+            $row['status'],
+            $row['payment_done'],
+            $row['payment_method'],
+            $row['center_name'] // This shows the text "India IVF Noida", not the ID
+        ));
+    }
+    
+    fseek($f, 0);
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="'.$filename.'";');
+    fpassthru($f);
+    exit;
+}
+
+
+public function patient_wallet_add_summary($export = false) {
+    $logg = checklogin();
+    $db_prefix = $this->config->item('db_prefix');
+
+    // --- 1. GET FILTERS ---
+    $search = $this->input->get('search');
+    $start_date = $this->input->get('start_date');
+    $end_date = $this->input->get('end_date');
+    $type_filter = $this->input->get('type');
+
+    // --- 2. BUILD THE BASE QUERY ---
+    // Filtering for 'cancel' and 'adjust' as requested
+    $subquery = "
+        SELECT patient_id, 'Procedure' AS type, on_date, billing_at, receipt_number, status, payment_done, payment_method, modified_on FROM {$db_prefix}patient_procedure WHERE status = 'cancel'
+        UNION ALL
+        SELECT patient_id, 'Consultation' AS type, on_date, billing_at, receipt_number, status, payment_done, payment_method, modified_on FROM {$db_prefix}consultation WHERE status = 'adjust'
+        UNION ALL
+        SELECT patient_id, 'Investigation' AS type, on_date, billing_at, receipt_number, status, payment_done, payment_method, modified_on FROM {$db_prefix}patient_investigations WHERE status = 'cancel'
+        UNION ALL
+        SELECT patient_id, 'Wallet Deposit' AS type, on_date, billing_at, refrence_number as receipt_number, status, payment_done, payment_method, modified_on FROM {$db_prefix}patient_payments WHERE status = '3' ";
+
+    // --- 3. APPLY SEARCH FILTERS ---
+    $where = " WHERE 1=1";
+    if (!empty($search)) {
+        $where .= " AND (p.wife_name LIKE '%".$this->db->escape_like_str($search)."%' OR data.patient_id LIKE '%".$this->db->escape_like_str($search)."%')";
+    }
+    if (!empty($start_date)) {
+        $where .= " AND DATE(data.on_date) >= '".$this->db->escape_str($start_date)."'";
+    }
+    if (!empty($end_date)) {
+        $where .= " AND DATE(data.on_date) <= '".$this->db->escape_str($end_date)."'";
+    }
+    if (!empty($type_filter)) {
+        $where .= " AND data.type = '".$this->db->escape_str($type_filter)."'";
+    }
+
+    $final_query_base = "FROM ($subquery) AS data 
+                         LEFT JOIN {$db_prefix}patients p ON data.patient_id = p.id 
+                         LEFT JOIN {$db_prefix}centers c ON data.billing_at = c.center_number 
+                         $where";
+
+    // --- 4. PAGINATION ---
+	
+    $total_rows = $this->db->query("SELECT COUNT(*) as count $final_query_base")->row()->count;
+    $per_page = 20;
+    $page = ($this->uri->segment(4)) ? $this->uri->segment(4) : 0;
+
+    $config['base_url'] = base_url('accounts/patient_wallet_add_summary/false');
+    $config['total_rows'] = $total_rows;
+    $config['per_page'] = $per_page;
+    $config['reuse_query_string'] = TRUE;
+   // --- PAGINATION DESIGN (BOOTSTRAP) ---
+$config['full_tag_open'] = '<ul class="pagination pagination-sm no-margin pull-right">';
+$config['full_tag_close'] = '</ul>';
+
+$config['first_link'] = 'First';
+$config['first_tag_open'] = '<li>';
+$config['first_tag_close'] = '</li>';
+
+$config['last_link'] = 'Last';
+$config['last_tag_open'] = '<li>';
+$config['last_tag_close'] = '</li>';
+
+$config['next_link'] = '&raquo;';
+$config['next_tag_open'] = '<li>';
+$config['next_tag_close'] = '</li>';
+
+$config['prev_link'] = '&laquo;';
+$config['prev_tag_open'] = '<li>';
+$config['prev_tag_close'] = '</li>';
+
+$config['cur_tag_open'] = '<li class="active"><a href="#">';
+$config['cur_tag_close'] = '</a></li>';
+
+$config['num_tag_open'] = '<li>';
+$config['num_tag_close'] = '</li>';
+
+$this->pagination->initialize($config);
+
+    // --- 5. FETCH DATA ---
+    $limit_sql = ($export === 'true') ? "" : "LIMIT $page, $per_page";
+    $sql = "SELECT data.*, p.wife_name as patient_name, c.center_name $final_query_base ORDER BY data.on_date DESC $limit_sql";
+    
+    $query = $this->db->query($sql);
+    $data['wallet_list'] = $query ? $query->result_array() : array();
+    $data['pagination'] = $this->pagination->create_links();
+
+    if ($export === 'true') {
+        $this->export_wallet_add_summary_csv($data['wallet_list']);
+    } else {
+        $template = get_header_template($logg['role']);
+        $this->load->view($template['header']);
+        $this->load->view('accounts/patient_wallet_add_summary', $data);
+        $this->load->view($template['footer']);
+    }
+}
+
+private function export_wallet_add_summary_csv($list) {
+    $filename = "Wallet_Cancel_Adjust_Report_" . date('Ymd') . ".csv";
+    $f = fopen('php://memory', 'w');
+    
+    // Header
+    fputcsv($f, array('Patient ID', 'Patient Name', 'Type', 'Date', 'Receipt Number', 'Status', 'Amount', 'Method', 'Center','Wallete Add Date'));
+
+    foreach ($list as $row) {
+        fputcsv($f, array(
+            $row['patient_id'],
+            $row['patient_name'],
+            $row['type'],
+            $row['on_date'],
+            $row['receipt_number'],
+            $row['status'],
+            $row['payment_done'],
+            $row['payment_method'],
+            $row['center_name'],
+			$row['modified_on']
+			
+        ));
+    }
+    
+    fseek($f, 0);
+    header('Content-Type: text/csv');
+    header('Content-Disposition: attachment; filename="'.$filename.'";');
+    fpassthru($f);
+    exit;
+}
 
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 

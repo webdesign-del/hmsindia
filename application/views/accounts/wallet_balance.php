@@ -112,9 +112,9 @@
 			$wallet_arr[] = $value['wallet_payment'];
 		}
 		
-		foreach($done_wallet_result as $key => $value){
-			$wallet_arr[] = $value['wallet_payment'];
-		}
+		//foreach($done_wallet_result as $key => $value){
+		//	$wallet_arr[] = $value['wallet_payment'];
+		//}
 
         foreach($refund_amount_result as $key => $value){
 			$refund_amount_arr[] = $value['consultation_fee'];
@@ -139,7 +139,31 @@
 		
 		$balance = $paid_total - $wallet_bill_total - $refund_amount_total;
 ?>
+<div class="panel-heading">
+    <h3 class="heading">Edit patient</h3>
+    <a href="<?php echo base_url(); ?>accounts/export_wallet_data/<?php echo $patient_data['patient_id']; ?>" class="btn btn-success pull-right">
+        <i class="fa fa-download"></i> Export to Excel
+    </a>
+    <p style="margin-top:20px;color:red;">Wallets Amount : ...</p>
+</div>
+<div class="row">
+    <div class="col-md-12 text-right">
+        <a href="<?php echo base_url('accounts/export_wallet_used_history/' . $patient_data['patient_id']); ?>" 
+           class="btn btn-success">
+           <i class="fa fa-file-excel-o"></i> Download CSV
+        </a>
+    </div>
+</div>
 
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th colspan="11" style="text-align:center; font-size:18px;">Wallet History</th>
+            </tr>
+            </thead>
+        </table>
+</div>
 <form class="col-sm-12 col-xs-12" method="post" action="" enctype="multipart/form-data" >
     <input type="hidden" name="action" value="wallet_balance" />
     <input type="hidden" name="patient_id" value="<?php echo $patient_data['patient_id']; ?>" id="patient_id" />
@@ -208,7 +232,7 @@
               <tbody id="procedure_result">
 			    <tr class="odd gradeX">
 					<td><a href="<?php echo base_url(); ?>accounts/consultation_wallet/<?php echo $registation_val->receipt_number; ?>?t=consultation"><?php echo $registation_val->receipt_number; ?></a></td>
-                	<td>Consultation</td>
+                	<td>Registation</td>
 					<td><?php echo $registation_val->on_date; ?></td>
 					<td><?php echo $registation_val->totalpackage; ?></td>
 					<td><?php echo $registation_val->fees; ?></td>
@@ -334,11 +358,11 @@
                   <td><a href="<?php echo base_url(); ?>accounts/wallet/<?php echo $res_val_par->billing_id; ?>?t=procedure"><?php echo $res_val_par->billing_id; ?></a></td>
 				  <td>Partial Payments</td>
 				  <td><?php echo $res_val_par->on_date; ?></td>
-                  <td><?php echo $res_val_par->totalpackage; ?></td>
-                  <td><?php echo $res_val_par->fees; ?></td>
+                  <td></td>
+                  <td></td>
                   <td><?php echo $res_val_par->payment_done; ?></td>
-				  <td><?php echo $res_val_par->used_amount; ?></td>
-				  <td><?php echo $res_val_par->used_amount; ?></td>
+				  <td></td>
+				  <td></td>
                   <td><?php echo $res_val_par->modified_on; ?></td>
                   <td><?php echo $res_val_par->status; ?></td>
 				  <td><?php echo $res_val_par->cn_invoice; ?></td>

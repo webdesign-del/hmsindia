@@ -175,6 +175,8 @@
                      <li> <a href="<?php echo base_url(); ?>accounts/cancel_consultation_list">Consultation</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/cancel_medicine_list">Medicine</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/cancel_procedure_list">Procedure</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>accounts/patient_wallet_add_summary">Add Wallet</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>accounts/all_patient_wallet_summary">Used Wallet</a> </li>
                   </ul>
                </li>
                <li>

@@ -130,7 +130,14 @@
 
                   <td><?php echo $count; ?></td>
 
-                  <td>  <?php if($vl['status'] == 'approved') { ?><input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>"><?php } ?></td>
+                  <td>
+    <?php if($vl['status'] == 'approved' && $vl['tally_status'] != '1'){ ?>
+        <input type="checkbox" class="rowCheckbox" value="<?php echo $vl['ID']; ?>">
+    <?php } ?>
+    
+    <?php if($vl['tally_status'] == '1'){ echo 'Already Sent'; } ?>
+</td>
+
                     
 
                   <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
@@ -430,7 +437,7 @@
 
 			if(disapprove_suggestion != '' || disapprove_reason != ''){
 
-				if(disapprove_suggestion !== ''){ disapprove_reason = disapprove_suggestion; }a
+				if(disapprove_suggestion !== ''){ disapprove_reason = disapprove_suggestion; }
 
 				window.location.href = '<?php echo base_url();?>accounts/approve/'+bill_id+'?t='+bill_type+'&u='+bill_action+'&r='+disapprove_reason+'';			
 
