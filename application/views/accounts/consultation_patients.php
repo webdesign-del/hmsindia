@@ -457,7 +457,7 @@ $(document).ready(function() {
         $('.rowCheckbox').prop('checked', false);
     });
 
-    $('#sendToTallyBtn').click(function() {
+   $('#sendToTallyBtn').click(function() {
     var btn = $(this);
     var selectedIds = [];
 
@@ -470,12 +470,11 @@ $(document).ready(function() {
         return;
     }
 
-    if(!confirm('Send ' + selectedIds.length + ' records?')) return;
-
     var originalText = btn.html();
     btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Sending...');
 
-    // Get CSRF token details from CodeIgniter
+    // --- LIVE SERVER SECURITY FIX ---
+    // We fetch the token from a hidden input or the cookie
     var csrfName = '<?php echo $this->security->get_csrf_token_name(); ?>';
     var csrfHash = '<?php echo $this->security->get_csrf_hash(); ?>';
 
@@ -483,24 +482,23 @@ $(document).ready(function() {
         url: '<?php echo base_url("accounts/consultation_send_tally"); ?>',
         type: 'POST',
         data: {
-            [csrfName]: csrfHash, // ADD THIS LINE FOR LIVE SERVER
+            [csrfName]: csrfHash, // This token MUST match the server's current session
             payment_ids: selectedIds
         },
         dataType: 'json',
         success: function(response) {
             if(response.success) {
-                alert('Success: ' + response.message);
-                location.reload(); 
+                alert(response.message);
+                location.reload(); // Refresh to get a NEW token for the next action
             } else {
                 alert('Error: ' + response.message);
+                btn.prop('disabled', false).html(originalText);
             }
         },
         error: function(xhr, status, error) {
-            // Updated error message to show the ACTUAL server response
-            console.log(xhr.responseText);
-            alert('Server Error: Your live server blocked the request. Try refreshing the page.');
-        },
-        complete: function() {
+            // DEBUG: If it fails, see the ACTUAL error from the server
+            console.log("FULL ERROR RESPONSE:", xhr.responseText);
+            alert('Live Server Blocked the Request. Check if your session expired or if the URL is correct.');
             btn.prop('disabled', false).html(originalText);
         }
     });
