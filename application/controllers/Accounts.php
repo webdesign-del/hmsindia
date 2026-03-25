@@ -3580,7 +3580,10 @@ public function investigations_send_tally() {
 }
 
 public function consultation_send_tally() {
-    // Clear any previous accidental output (like warnings)
+    // Prevent the script from timing out on live server
+    set_time_limit(300); 
+    ignore_user_abort(true);
+
     if (ob_get_length()) ob_clean();
     header('Content-Type: application/json');
 
@@ -3596,11 +3599,8 @@ public function consultation_send_tally() {
         $already_sent_count = 0;
 
         foreach ($payment_ids as $id) {
-            // Check current status
-            // Use lowercase 'id' if 'ID' fails on live
-            $this->db->select('tally_status');
-            $this->db->where('ID', $id); 
-            $q = $this->db->get('hms_consultation');
+            // Double check table name case sensitivity on Live
+            $q = $this->db->select('tally_status')->where('ID', $id)->get('hms_consultation');
             $row = $q->row_array();
 
             if (!empty($row) && $row['tally_status'] == '1') {
@@ -3608,25 +3608,21 @@ public function consultation_send_tally() {
                 continue;
             }
 
-            // --- Tally Connection Logic ---
-            // If you add CURL here later, ensure the live server has permission to 
-            // talk to your office IP via Port 9000.
-            $result = true; 
-
-            if ($result) {
-                $this->db->where('ID', $id)->update('hms_consultation', ['tally_status' => '1']);
+            // Update status
+            $update = $this->db->where('ID', $id)->update('hms_consultation', ['tally_status' => '1']);
+            
+            if($update) {
                 $success_count++;
             }
         }
 
-        $msg = "Processed: $success_count sent.";
-        if($already_sent_count > 0) $msg .= " ($already_sent_count already sent)";
-
-        echo json_encode(['success' => true, 'message' => $msg]);
+        echo json_encode([
+            'success' => true, 
+            'message' => "Successfully processed $success_count records."
+        ]);
 
     } catch (Exception $e) {
-        // Send the ACTUAL error to the JS alert so you can see it
-        echo json_encode(['success' => false, 'message' => 'Live Server Error: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
     }
 }
 

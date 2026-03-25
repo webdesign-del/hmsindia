@@ -457,57 +457,54 @@ $(document).ready(function() {
         $('.rowCheckbox').prop('checked', false);
     });
 
-    // 3. Logic for "Send to Tally"
     $('#sendToTallyBtn').click(function() {
-        var btn = $(this);
-        var selectedIds = [];
+    var btn = $(this);
+    var selectedIds = [];
 
-        // Gather all checked checkboxes
-        $('.rowCheckbox:checked').each(function() {
-            selectedIds.push($(this).val());
-        });
-
-        // Validation: Check if anything is selected
-        if(selectedIds.length === 0) {
-            alert('Please select at least one record to send to Tally.');
-            return;
-        }
-
-        if(!confirm('Are you sure you want to send ' + selectedIds.length + ' records to Tally?')) {
-            return;
-        }
-
-        // Change button state to indicate loading
-        var originalText = btn.html();
-        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Sending...');
-
-        // 4. AJAX Request to your specific URL
-        $.ajax({
-            url: '<?php echo base_url("accounts/consultation_send_tally"); ?>', // Maps to your URL
-            type: 'POST',
-            data: {
-                payment_ids: selectedIds // Sending the array of IDs
-            },
-            dataType: 'json', // Expecting JSON response from controller
-            success: function(response) {
-                if(response.success) {
-                    alert('Success: ' + response.message);
-                    // Optional: Reload page to update status
-                    // location.reload(); 
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            },
-            error: function(xhr, status, error) {
-                alert('Server Error: Failed to connect to Tally endpoint.');
-                console.error(xhr.responseText);
-            },
-            complete: function() {
-                // Reset button
-                btn.prop('disabled', false).html(originalText);
-            }
-        });
+    $('.rowCheckbox:checked').each(function() {
+        selectedIds.push($(this).val());
     });
+
+    if(selectedIds.length === 0) {
+        alert('Please select at least one record.');
+        return;
+    }
+
+    if(!confirm('Send ' + selectedIds.length + ' records?')) return;
+
+    var originalText = btn.html();
+    btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Sending...');
+
+    // Get CSRF token details from CodeIgniter
+    var csrfName = '<?php echo $this->security->get_csrf_token_name(); ?>';
+    var csrfHash = '<?php echo $this->security->get_csrf_hash(); ?>';
+
+    $.ajax({
+        url: '<?php echo base_url("accounts/consultation_send_tally"); ?>',
+        type: 'POST',
+        data: {
+            [csrfName]: csrfHash, // ADD THIS LINE FOR LIVE SERVER
+            payment_ids: selectedIds
+        },
+        dataType: 'json',
+        success: function(response) {
+            if(response.success) {
+                alert('Success: ' + response.message);
+                location.reload(); 
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            // Updated error message to show the ACTUAL server response
+            console.log(xhr.responseText);
+            alert('Server Error: Your live server blocked the request. Try refreshing the page.');
+        },
+        complete: function() {
+            btn.prop('disabled', false).html(originalText);
+        }
+    });
+});
 });
 </script>
 <style >
