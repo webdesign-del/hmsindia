@@ -11610,6 +11610,54 @@ private function export_wallet_add_summary_csv($list) {
     exit;
 }
 
+public function procedure_list() {
+    $logg = checklogin();
+    if ($logg["status"] == true) {
+        $this->load->library('pagination');
+
+        // 1. Collect Filters from GET
+        $filter = [
+            'search'     => $this->input->get('search'),
+            'center_id'  => $this->input->get('center_id'),
+            'status'     => $this->input->get('status'),
+            'start_date' => $this->input->get('start_date'),
+            'end_date'   => $this->input->get('end_date'),
+            'tally_status' => $this->input->get('tally_status')
+        ];
+
+        // 2. Pagination Configuration
+        $config['base_url'] = base_url('accounts/procedure_list');
+        $config['total_rows'] = $this->accounts_model->count_procedures($filter);
+        $config['per_page'] = 25;
+        $config['uri_segment'] = 5;
+        $config['reuse_query_string'] = TRUE; // Crucial for keeping filters while paging
+
+        // Bootstrap Styling for Pagination
+        $config['full_tag_open'] = '<ul class="pagination pagination-sm no-margin pull-right">';
+        $config['full_tag_close'] = '</ul>';
+        $config['num_tag_open'] = '<li>'; $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">'; $config['cur_tag_close'] = '</a></li>';
+        $config['prev_tag_open'] = '<li>'; $config['prev_tag_close'] = '</li>';
+        $config['next_tag_open'] = '<li>'; $config['next_tag_close'] = '</li>';
+
+        $this->pagination->initialize($config);
+        $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
+
+        // 3. Fetch Data
+        $data["procedures"] = $this->accounts_model->get_procedures_paged($filter, $config['per_page'], $page);
+        //$data["centers"] = $this->accounts_model->get_all_centers();
+        $data["pagination"] = $this->pagination->create_links();
+        $data["total_records"] = $config['total_rows'];
+
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("accounts/procedure_list_view", $data);
+        $this->load->view($template["footer"]);
+    } else {
+        redirect(base_url());
+    }
+}
+
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 
 	

@@ -7917,4 +7917,69 @@ public function get_yearly_egg_freezing($year, $type, $month = null, $center = n
     return $this->db->get()->result_array();
 }
 
+public function count_procedures($f = []) {
+    $this->db->from('hms_patient_procedure as p');
+    // ONLY join if you actually need to search by patient name
+    if(!empty($f['search'])) {
+        $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
+    }
+    $this->apply_procedure_filters($f);
+    return $this->db->count_all_results();
+}
+
+public function get_procedures_paged($f = [], $limit, $offset) {
+    $this->db->select('
+        p.*, 
+        pt.wife_name, pt.husband_name, 
+        c.center_name,
+        sa.iic_id as sa_iic, sa.date as sa_date,
+        ov.iic_id as ov_iic, ov.date_of_procedure as ov_date,
+		op.iic_id as op_iic, op.date_of_procedure as op_date,
+		et.iic_id as et_iic, et.date_of_procedure as et_date
+    ');
+    $this->db->from('hms_patient_procedure p');
+    $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
+    $this->db->join('hms_centers c', 'c.center_number = p.billing_at', 'left');
+    
+    // Join Semen Analysis
+    $this->db->join('semen_analysis sa', 'sa.iic_id = p.patient_id', 'left');
+    
+    // Join Ovum Summary (only where ICSI was Yes)
+    $this->db->join('ovum_discharge_summary ov', "ov.iic_id = p.patient_id AND ov.ICSI = 'Yes'", 'left');
+
+	  // Join Ovum Summary (only where ICSI was Yes)
+    $this->db->join('ovum_pickup_discharge_summary op', "op.iic_id = p.patient_id", 'left');
+
+	  // Join Ovum Summary (only where ICSI was Yes)
+    $this->db->join('embryo_transfer_discharge_summary et', "et.iic_id = p.patient_id", 'left');
+    
+    $this->apply_procedure_filters($f);
+    
+    // Group by Procedure ID to prevent row duplication
+    $this->db->group_by('p.ID'); 
+    
+    $this->db->limit($limit, $offset);
+    $this->db->order_by('p.ID', 'DESC');
+    
+    return $this->db->get()->result();
+}
+
+private function apply_procedure_filters($f) {
+	$this->db->where_not_in('p.code', ['IP219', 'IP218']);
+    if(!empty($f['search'])) {
+        $this->db->group_start();
+        $this->db->like('p.receipt_number', $f['search']);
+        $this->db->or_like('p.procedure_name', $f['search']);
+		$this->db->or_like('p.patient_id', $f['search']);
+        $this->db->or_like('pt.wife_name', $f['search']); // pt is already joined above
+        $this->db->group_end();
+    }
+    
+    if(!empty($f['center_id'])) $this->db->where('p.billing_at', $f['center_id']);
+    if(!empty($f['status']))    $this->db->where('p.status', $f['status']);
+    if(!empty($f['tally_status'])) $this->db->where('p.tally_status', $f['tally_status']);
+    if(!empty($f['start_date'])) $this->db->where('p.on_date >=', $f['start_date']);
+    if(!empty($f['end_date']))   $this->db->where('p.on_date <=', $f['end_date']);
+}
+
 }

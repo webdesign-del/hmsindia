@@ -342,6 +342,7 @@
                 <th>Company</th>
                 <th>Quantity (Pack)</th>
                 <th>MRP (Pack)</th>
+                <th>Pack Size</th>
                 <th>Vendor Price Without GST</th>
                 <th>GST Amount</th>
                 <th>Vendor Price With GST</th>
@@ -359,6 +360,7 @@
                 $vendor_price = floatval($item['vendor_price']);
                 $tax_percentage = floatval($item['tax_percentage']);
                 $mrp = floatval($item['mrp']);
+                $pack_size = floatval($item['pack_size']);
                 
                 $item_total_without_gst = $quantity * $vendor_price;
                 $gst_amount = $item_total_without_gst * ($tax_percentage / 100);
@@ -373,6 +375,7 @@
                 <td><?php echo $item['company']; ?></td>
                 <td class="text-center"><?php echo $quantity; ?></td>
                 <td class="text-right"><?php echo number_format($mrp, 2); ?></td>
+                 <td class="text-right"><?php echo number_format($pack_size, 2); ?></td>
                 <td class="text-right"><?php echo number_format($item_total_without_gst, 3); ?></td>
                 <td class="text-right"><?php echo number_format($gst_amount, 3); ?></td>
                 <td class="text-right"><?php echo number_format($item_total_with_gst, 1); ?></td>
