@@ -82,6 +82,33 @@
                                 <span class="text-muted">Proc. Date:</span> <?= date('d-M-y', strtotime($row->et_date)) ?>
                             </div>
 
+                             <?php elseif ((strpos($row->code, "IP39") !== false || 
+                            strpos($row->code, "IP149") !== false) 
+                            && !empty($row->ed_iic)): 
+                        ?>
+                            <div class="label-details" style="font-size: 11px; color: #d9534f; margin-top: 4px;">
+                                <span class="text-danger"><i class="fa fa-flask"></i> IVF:</span> <?= $row->ed_iic ?> | 
+                                <span class="text-muted">Proc. Date:</span> <?= date('d-M-y', strtotime($row->ed_date)) ?>
+                            </div>
+
+                             <?php elseif ((strpos($row->code, "IP147") !== false || 
+                            strpos($row->code, "") !== false) 
+                            && !empty($row->edl_iic)): 
+                        ?>
+                            <div class="label-details" style="font-size: 11px; color: #d9534f; margin-top: 4px;">
+                                <span class="text-danger"><i class="fa fa-flask"></i> IVF:</span> <?= $row->edl_iic ?> | 
+                                <span class="text-muted">Proc. Date:</span> <?= date('d-M-y', strtotime($row->edl_date)) ?>
+                            </div>
+
+                             <?php elseif ((strpos($row->code, "IP147") !== false || 
+                            strpos($row->code, "") !== false) 
+                            && !empty($row->edl_iic)): 
+                        ?>
+                            <div class="label-details" style="font-size: 11px; color: #d9534f; margin-top: 4px;">
+                                <span class="text-danger"><i class="fa fa-flask"></i> IVF:</span> <?= $row->edl_iic ?> | 
+                                <span class="text-muted">Proc. Date:</span> <?= date('d-M-y', strtotime($row->edl_date)) ?>
+                            </div>
+
                         <?php endif; ?>
                     </td>
                     <td><span class="label label-success"><?= $row->status ?></span></td>

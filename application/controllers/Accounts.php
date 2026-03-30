@@ -11658,6 +11658,75 @@ public function procedure_list() {
     }
 }
 
+public function patient_journey() {
+    $logg = checklogin();
+    if ($logg["status"] == true) {
+        $this->load->model('Accounts_model');
+        $this->load->library('pagination');
+
+        // 1. Capture Filters
+        $filter = [
+            'billing_at' => $this->input->get('billing_at'),
+            'start_date' => $this->input->get('start_date'),
+            'end_date'   => $this->input->get('end_date'),
+            'iic_id'     => $this->input->get('iic_id')
+        ];
+
+        // 2. Pagination Setup
+        $config['base_url'] = base_url('accounts/patient_journey');
+        $config['total_rows'] = $this->Accounts_model->count_journey_records($filter);
+        $config['per_page'] = 25;
+        $config['uri_segment'] = 3;
+        $config['reuse_query_string'] = TRUE;
+
+       // Existing tags
+$config['full_tag_open'] = '<ul class="pagination pagination-sm no-margin pull-right">';
+$config['full_tag_close'] = '</ul>';
+$config['num_tag_open'] = '<li>';
+$config['num_tag_close'] = '</li>';
+$config['cur_tag_open'] = '<li class="active"><a href="#">';
+$config['cur_tag_close'] = '</a></li>';
+
+// FIX: Add <li> tags to these 4 configurations
+$config['next_tag_open'] = '<li>';
+$config['next_tag_close'] = '</li>';
+$config['prev_tag_open'] = '<li>';
+$config['prev_tag_close'] = '</li>';
+
+$config['first_tag_open'] = '<li>';
+$config['first_tag_close'] = '</li>';
+$config['last_tag_open'] = '<li>';
+$config['last_tag_close'] = '</li>';
+
+// Optional: Change the labels to icons for a cleaner look
+$config['first_link'] = '&laquo; First';
+$config['last_link'] = 'Last &raquo;';
+$config['next_link'] = '&gt;';
+$config['prev_link'] = '&lt;';
+
+        $this->pagination->initialize($config);
+        $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
+
+        // 3. Fetch Data
+        $data["procedure_result"] = $this->Accounts_model->get_journey_report($filter, $config['per_page'], $page);
+        $data["links"] = $this->pagination->create_links();
+        
+        // Pass filter values back to view for the inputs
+        $data["billing_at"] = $filter['billing_at'];
+        $data["start_date"] = $filter['start_date'];
+        $data["end_date"]   = $filter['end_date'];
+        $data["iic_id"]     = $filter['iic_id'];
+        $data["total_records"] = $config['total_rows'];
+
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("accounts/patient_journey", $data);
+        $this->load->view($template["footer"]);
+    } else {
+        redirect(base_url());
+    }
+}
+
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 
 	

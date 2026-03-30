@@ -10,6 +10,8 @@ class Stocks_new extends CI_Controller
         parent::__construct();
         $this->load->database();
         $this->load->model("Stock_model_new");
+        $this->load->model('accounts_model');
+        $this->load->helper('billing');
         $this->load->model("Center_model");
         $this->load->library("form_validation");
         $this->load->helper("form");

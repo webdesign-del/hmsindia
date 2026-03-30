@@ -322,6 +322,9 @@
    .bootstrap-multiselect .dropdown-menu ul {
    z-index: 10001 !important;
    }
+   .open > .dropdown-menu {
+    width: 450px;
+}
 </style>
 <div class="follow-up-container">
    <div class="container-fluid">
@@ -586,7 +589,7 @@
                   Enable Management
                   </label>
                </div>
-               <div class="section-content">
+              <!-- <div class="section-content">
                   <div class="form-group-enhanced">
                      <label>Select Procedures</label>
                      <select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
@@ -595,8 +598,98 @@
                         <?php  } } ?>
                      </select>
                   </div>
-               </div>
+               </div> -->
+
+                <div class="section-content">
+        <div class="row">
+            <div class="col-md-6">
+               <label>Only Indian Patient</label>
+                <!--<select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
+                    <?php foreach($procedures as $val) { 
+                        if(isset($val['code_type']) && $val['code_type'] == "india") { ?>
+                            <option value="<?= $val['ID']; ?>"><?= $val['procedure_name']." (".$val['code'].")"; ?></option>
+                    <?php } } ?>
+                </select>-->
+                <select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
+    <?php 
+    if(!empty($procedures)) {
+        // 1. Group the procedures by Package ID in a temporary array
+        $grouped_procedures = [];
+        foreach($procedures as $val) {
+            if(isset($val['code_type']) && $val['code_type'] == "india") {
+                $p_id = !empty($val['package_id']) ? $val['package_id'] : 'General';
+                $grouped_procedures[$p_id][] = $val;
+            }
+        }
+
+        // 2. Loop through the grouped array to create the dropdown
+        foreach($grouped_procedures as $package_id => $items) {
+            // Label the group (e.g., Package 1, Package 2)
+            $label = ($package_id == 'General Procedure') ? "General Procedures" : "Package Name: " . $package_id;
+            echo '<optgroup label="' . $label . '">';
+            
+            foreach($items as $item) {
+                ?>
+                <option value="<?= $item['ID']; ?>">
+                    <?= $item['procedure_name']." (".$item['code'].")"; ?>
+                </option>
+                <?php
+            }
+            
+            echo '</optgroup>';
+        }
+    } 
+    ?>
+</select>
             </div>
+            <div class="col-md-6">
+               <label>International Patient</label>
+                <!--<select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
+                    <?php foreach($procedures as $val) { 
+                        if(isset($val['code_type']) && $val['code_type'] == "non-india") { ?>
+                            <option value="<?= $val['ID']; ?>"><?= $val['procedure_name']." (".$val['code'].")"; ?></option>
+                    <?php } } ?>
+                </select>-->
+                <select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
+    <?php 
+    if(!empty($procedures)) {
+        // 1. Group the procedures by Package ID in a temporary array
+        $grouped_procedures = [];
+        foreach($procedures as $val) {
+            if(isset($val['code_type']) && $val['code_type'] == "non-india") {
+                $p_id = !empty($val['package_id']) ? $val['package_id'] : 'General';
+                $grouped_procedures[$p_id][] = $val;
+            }
+        }
+
+        // 2. Loop through the grouped array to create the dropdown
+        foreach($grouped_procedures as $package_id => $items) {
+            // Label the group (e.g., Package 1, Package 2)
+            $label = ($package_id == 'General Procedure') ? "General Procedures" : "Package Name: " . $package_id;
+            echo '<optgroup label="' . $label . '">';
+            
+            foreach($items as $item) {
+                ?>
+                <option value="<?= $item['ID']; ?>">
+                    <?= $item['procedure_name']." (".$item['code'].")"; ?>
+                </option>
+                <?php
+            }
+            
+            echo '</optgroup>';
+        }
+    } 
+    ?>
+</select>
+            </div>
+        </div>
+    </div>
+            </div>
+
+            <!-- ******** -->
+
+                
+
             <!-- Package Section -->
             <div class="section-card">
                <div class="section-header">
@@ -2060,4 +2153,44 @@
    }
    
    
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+    // 1. Checkbox Toggle Logic
+    $('#procedure_suggestion').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        var $dropdowns = $('#list_india, #list_non_india');
+
+        if (isChecked) {
+            // Enable the underlying HTML
+            $dropdowns.prop('disabled', false);
+            
+            // Refresh the Multiselect Plugin (Bootstrap Multiselect)
+            if (typeof $dropdowns.multiselect === 'function') {
+                $dropdowns.multiselect('enable');
+                $dropdowns.multiselect('refresh');
+            }
+        } else {
+            // Disable and Clear
+            $dropdowns.val(null).prop('disabled', true);
+            
+            if (typeof $dropdowns.multiselect === 'function') {
+                $dropdowns.multiselect('deselectAll', false);
+                $dropdowns.multiselect('updateButtonText');
+                $dropdowns.multiselect('disable');
+            }
+        }
+    });
+
+    // 2. THE CRITICAL FIX: Ensure data isn't blocked on Save
+    $('form').on('submit', function() {
+        if ($('#procedure_suggestion').is(':checked')) {
+            // Browsers DO NOT send 'disabled' fields. 
+            // We must force enable them 1 millisecond before the form sends.
+            $('#list_india, #list_non_india').prop('disabled', false);
+        }
+    });
+});
 </script>

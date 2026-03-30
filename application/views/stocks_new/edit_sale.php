@@ -1,6 +1,6 @@
 
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-
+<?php $w = get_final_wallet_balance($sale->patient_id); ?>
             <div class="row">
                 <div class="col-md-12">
                     <h1 class="page-header">
@@ -8,6 +8,10 @@
                         <small>Add items to sale with FEFO batch selection</small>
                     </h1>
                 </div>
+
+<div class="wallet-info" style="background: #f9f9f9; padding: 10px; border: 1px solid #ddd;">
+    <p><strong>Current Wallet Balance:</strong> <span style="color:green; font-size: 18px;"><?php echo number_format($w['balance'], 2); ?></span></p>
+</div>
             </div>
             
             <!-- Sale Information -->

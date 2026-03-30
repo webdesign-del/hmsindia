@@ -7935,7 +7935,9 @@ public function get_procedures_paged($f = [], $limit, $offset) {
         sa.iic_id as sa_iic, sa.date as sa_date,
         ov.iic_id as ov_iic, ov.date_of_procedure as ov_date,
 		op.iic_id as op_iic, op.date_of_procedure as op_date,
-		et.iic_id as et_iic, et.date_of_procedure as et_date
+		et.iic_id as et_iic, et.date_of_procedure as et_date,
+		ed.iic_id as ed_iic, ed.date_of_procedure as ed_date,
+		edl.iic_id as edl_iic, edl.date_of_procedure as edl_date
     ');
     $this->db->from('hms_patient_procedure p');
     $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
@@ -7952,6 +7954,13 @@ public function get_procedures_paged($f = [], $limit, $offset) {
 
 	  // Join Ovum Summary (only where ICSI was Yes)
     $this->db->join('embryo_transfer_discharge_summary et', "et.iic_id = p.patient_id", 'left');
+
+  // Join only once
+$this->db->join('embryology_discharge_summary ed',"ed.iic_id = p.patient_id",'left');
+$this->db->where('ed.Embryo_Glue', 'Yes');
+
+$this->db->join('embryology_discharge_summary edl',"edl.iic_id = p.patient_id",'left');
+$this->db->where('edl.Laser_Assisted', 'Yes');
     
     $this->apply_procedure_filters($f);
     
@@ -7980,6 +7989,75 @@ private function apply_procedure_filters($f) {
     if(!empty($f['tally_status'])) $this->db->where('p.tally_status', $f['tally_status']);
     if(!empty($f['start_date'])) $this->db->where('p.on_date >=', $f['start_date']);
     if(!empty($f['end_date']))   $this->db->where('p.on_date <=', $f['end_date']);
+}
+
+
+public function count_journey_records($f) {
+    $this->db->from('hms_patient_procedure as p');
+    $this->apply_journey_filters($f);
+    return $this->db->count_all_results();
+}
+
+public function get_journey_report($f, $limit, $offset) {
+    $this->db->select('
+        p.*, 
+        pt.wife_name, 
+        stim.date1 as stim_date, 
+        trig.last_inj_fsh as trigger_date, 
+        trig.ovum_pick_up_on as opu_date,
+        et.transfer_date as et_date,
+        hcg.date as hcg_date,
+        hcg.no_of_gestational as sac_count
+    ');
+    $this->db->from('hms_patient_procedure p');
+    
+    // Core Joins
+    $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
+    
+    // Clinical Module Joins (linked via receipt_number)
+    $this->db->join('ovulation_induction_protocol stim', 'stim.receipt_number = p.receipt_number', 'left');
+    $this->db->join('trigger_module trig', 'trig.receipt_number = p.receipt_number', 'left');
+    $this->db->join('embryo_transfer et', 'et.receipt_number = p.receipt_number', 'left');
+    $this->db->join('hms_serum_bete_hcg_on hcg', 'hcg.receipt_number = p.receipt_number', 'left');
+
+    $this->apply_journey_filters($f);
+
+    $this->db->limit($limit, $offset);
+    $this->db->order_by('p.ID', 'DESC');
+    return $this->db->get()->result_array();
+}
+
+private function apply_journey_filters($f) {
+    
+    // FIX: ADDED STATUS FILTER HERE
+    $this->db->where('p.status', 'approved');
+
+    // 1. Center Filter
+    if (!empty($f['billing_at'])) {
+        $this->db->where('p.billing_at', $f['billing_at']);
+    }
+    
+    // 2. Date Range Filter
+    if (!empty($f['start_date'])) {
+        $this->db->where('p.on_date >=', $f['start_date']);
+    }
+    if (!empty($f['end_date'])) {
+        $this->db->where('p.on_date <=', $f['end_date']);
+    }
+
+    // 3. IIC ID / Patient ID Search
+    if (!empty($f['iic_id'])) {
+        $this->db->where('p.patient_id', $f['iic_id']);
+    }
+
+    // 4. Clean list (Excluded codes)
+    $this->db->where_not_in('p.code', [
+        'IP219','IP218','IP16','IP64','IP63','IP298','IP02','IP26','IP05','IP123','IP145','IP29','IP453','IP48','IP39','INT15','IP602','IP04',
+        'IP40','IP128','IP127','IP450','IP14','INT220','IP641','INT20','IP459','IP08','IP27','IP06','IP57','INT19','IP112','IP19','IP125','IP58',
+        'IP600','IP370','IP371','IP292','IP69','IP24','IP94','IP454','IP364','IP72','IP09','IP451','IP369','IP365','IP65','IP251','IP45','INT55',
+        'IP221','IP23','IP03','IPD2','IPD1','INT284','VC012','VC011','VC010','VC009','VC008','VC006','VC005','IP91','IP65','IP47','IP66','IP455',
+        'VC002','VC001','IP220','IP288','IP01D','IP37','IP21','IP599','IP34','IP458','IP96','INT02','INT59','INT27','IP42','IP601','IP633','IP613'
+    ]);
 }
 
 }

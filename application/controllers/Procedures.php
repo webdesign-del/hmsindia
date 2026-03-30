@@ -103,6 +103,8 @@ class Procedures extends CI_Controller {
 				$post_arr['broad_procedure'] = $_POST['broad_procedure'];unset($_POST['broad_procedure']);
 				$post_arr['broad_procedure_count'] = $_POST['broad_procedure_count'];unset($_POST['broad_procedure_count']);
 				$post_arr['parent_id'] = $_POST['parent_id'];unset($_POST['parent_id']);
+				$post_arr['code_type'] = $_POST['code_type'];unset($_POST['code_type']);
+				$post_arr['package_id'] = $_POST['package_id'];unset($_POST['package_id']);
 				$post_arr['status'] = $_POST['status'];unset($_POST['status']);
 				
 				// Store procedure_form before it gets unset

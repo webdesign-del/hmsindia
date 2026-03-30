@@ -65,6 +65,19 @@
                   <label for="item_name">Broad Procedure Count (Required)</label>
                   <input value="" placeholder="Broad Procedure Count" id="broad_procedure_count" name="broad_procedure_count" type="number" class="form-control validate" required>
                </div>
+                <div class="form-group col-sm-6 col-xs-12">
+                  <label for="item_name">Club Procedure Name</label>
+                  <input value="" placeholder="Club Procedure Name" id="package_id" name="package_id" type="text" class="form-control validate" required>
+               </div>
+               <div class="form-group col-sm-6 col-xs-12">
+                  <label for="item_name">Procedure Type  (Required)</label>
+                  <select class="form-control" name="code_type" id="code_type">
+                     <option value="">--- Select ---</option>
+                     <option value="india">Indian</option>
+                     <option value="non-india">Non Indian</option>
+                  </select>
+               </div>
+              
             </div>
             <div class="row">
               <div class="form-group col-sm-6 col-xs-12">

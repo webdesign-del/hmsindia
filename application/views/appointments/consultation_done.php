@@ -5128,7 +5128,7 @@ $countdownDuration = 7200;
 					<?php $sub_procedure_suggestion_list = array(); if($appointments['partial_billing'] == 0){ ?>
 						<tr>
 							<th style="color: red;">MANAGEMENT ADVISED <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="procedure_suggestion" value="1" <?php if(isset($patient_doctor_consultation['procedure_suggestion']) && $patient_doctor_consultation['procedure_suggestion'] == "1"){echo 'checked="checked"';}?> name="procedure_suggestion" /></th>
-							<td colspan="2">
+							<td>
 								<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['procedure_suggestion']) && $patient_doctor_consultation['procedure_suggestion'] == "1"){
 										if(!empty($patient_doctor_consultation['sub_procedure_suggestion_list'])){
 											$sub_procedure_suggestion_list = unserialize($patient_doctor_consultation['sub_procedure_suggestion_list']); 
@@ -5136,13 +5136,90 @@ $countdownDuration = 7200;
 										$disabled = "";
 										//var_dump($sub_procedure_suggestion_list);die;
 								}?>
-								<select class="form-control multidselect_dropdown_2"  multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" <?php echo $disabled; ?>>
+								<!--<select class="form-control multidselect_dropdown_2"  multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" <?php echo $disabled; ?>>
 									<?php if(!empty($procedures)) { foreach($procedures as $key => $val) { $selected=""; if(in_array($val['ID'], $sub_procedure_suggestion_list)){$selected= 'checked="checked"';} ?>
 											<option value="<?php echo $val['ID']; ?>" <?php echo $selected; ?>><?php echo $val['procedure_name']." (".$val['code'].")"; ?></option>
 									<?php  } } ?>
-								</select>
+								</select>-->
+                                  <label>Indian Patient</label>
+								<select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" <?php echo $disabled; ?>>
+    <?php 
+    if(!empty($procedures)) {
+        // 1. Group the procedures by Package ID in a temporary array
+        $grouped_procedures = [];
+        foreach($procedures as $val) {
+            if(isset($val['code_type']) && $val['code_type'] == "india") {
+                $p_id = !empty($val['package_id']) ? $val['package_id'] : 'General';
+                $grouped_procedures[$p_id][] = $val;
+            }
+        }
+
+        // 2. Loop through the grouped array to create the dropdown
+        foreach($grouped_procedures as $package_id => $items) {
+            // Label the group (e.g., Package 1, Package 2)
+            $label = ($package_id == 'General Procedure') ? "General Procedures" : "Package Name: " . $package_id;
+            echo '<optgroup label="' . $label . '">';
+            
+            foreach($items as $item) {
+                ?>
+                <option value="<?= $item['ID']; ?>">
+                    <?= $item['procedure_name']." (".$item['code'].")"; ?>
+                </option>
+                <?php
+            }
+            
+            echo '</optgroup>';
+        }
+    } 
+    ?>
+</select>
 							</td>
-							<td></td>
+							<td>
+								<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['procedure_suggestion']) && $patient_doctor_consultation['procedure_suggestion'] == "1"){
+										if(!empty($patient_doctor_consultation['sub_procedure_suggestion_list'])){
+											$sub_procedure_suggestion_list = unserialize($patient_doctor_consultation['sub_procedure_suggestion_list']); 
+										}
+										$disabled = "";
+										//var_dump($sub_procedure_suggestion_list);die;
+								}?>
+								<!--<select class="form-control multidselect_dropdown_2"  multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" <?php echo $disabled; ?>>
+									<?php if(!empty($procedures)) { foreach($procedures as $key => $val) { $selected=""; if(in_array($val['ID'], $sub_procedure_suggestion_list)){$selected= 'checked="checked"';} ?>
+											<option value="<?php echo $val['ID']; ?>" <?php echo $selected; ?>><?php echo $val['procedure_name']." (".$val['code'].")"; ?></option>
+									<?php  } } ?>
+								</select>-->
+ <label>International Patient</label>
+								<select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" <?php echo $disabled; ?>>
+    <?php 
+    if(!empty($procedures)) {
+        // 1. Group the procedures by Package ID in a temporary array
+        $grouped_procedures = [];
+        foreach($procedures as $val) {
+            if(isset($val['code_type']) && $val['code_type'] == "non-india") {
+                $p_id = !empty($val['package_id']) ? $val['package_id'] : 'General';
+                $grouped_procedures[$p_id][] = $val;
+            }
+        }
+
+        // 2. Loop through the grouped array to create the dropdown
+        foreach($grouped_procedures as $package_id => $items) {
+            // Label the group (e.g., Package 1, Package 2)
+            $label = ($package_id == 'General Procedure') ? "General Procedures" : "Package Name: " . $package_id;
+            echo '<optgroup label="' . $label . '">';
+            
+            foreach($items as $item) {
+                ?>
+                <option value="<?= $item['ID']; ?>">
+                    <?= $item['procedure_name']." (".$item['code'].")"; ?>
+                </option>
+                <?php
+            }
+            
+            echo '</optgroup>';
+        }
+    } 
+    ?>
+</select>
+							</td>
 						</tr>
 						<script type='text/javascript'>
     						$('#sub_procedure_suggestion_list').val(<?php echo json_encode($sub_procedure_suggestion_list); ?>);
