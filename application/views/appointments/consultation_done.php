@@ -5187,7 +5187,7 @@ $countdownDuration = 7200;
 											<option value="<?php echo $val['ID']; ?>" <?php echo $selected; ?>><?php echo $val['procedure_name']." (".$val['code'].")"; ?></option>
 									<?php  } } ?>
 								</select>-->
- <label>International Patient</label>
+ <label style="color:#ff0000;">International Patient</label>
 								<select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" <?php echo $disabled; ?>>
     <?php 
     if(!empty($procedures)) {

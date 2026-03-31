@@ -438,10 +438,28 @@
                   </table>
                </div>
             </div>
+
+            <div class="section-card">
+               <div class="section-header">
+                  <i class="fa fa-medkit"></i> Withdrawal Date
+                  
+               </div>
+               <div class="section-content">
+                  <div class="row">
+                     <div class="col-md-12">
+                        <div class="form-group-enhanced">
+                           <label><i class="fa fa-female"></i> Withdrawal Date</label>
+                          <input type="date" class="form-control form-control-enhanced" name="withdrawal_date" id="withdrawal_date" />
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
             <!-- Medication Section opd -->
             <div class="section-card">
                <div class="section-header">
-                  <i class="fa fa-medkit"></i> Medication Advised  Opd
+                  <i class="fa fa-medkit"></i> Medication Advised  Opd Withdrawal Date
                   <label class="checkbox-enhanced pull-right">
                   <input type="checkbox" id="medicine_suggestion" value="1" name="medicine_suggestion" />
                   Enable Medication
@@ -643,7 +661,7 @@
 </select>
             </div>
             <div class="col-md-6">
-               <label>International Patient</label>
+               <label style="color:#ff0000;">International Patient</label>
                 <!--<select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
                     <?php foreach($procedures as $val) { 
                         if(isset($val['code_type']) && $val['code_type'] == "non-india") { ?>
@@ -1732,6 +1750,7 @@
            // Findings
            female_findings: $('input[name="female_findings"]').val(),
            male_findings: $('input[name="male_findings"]').val(),
+           withdrawal_date: $('input[name="withdrawal_date"]').val(),
            
            // Follow-up appointment data
            follow_up: $('input[name="follow_up"]').val(),

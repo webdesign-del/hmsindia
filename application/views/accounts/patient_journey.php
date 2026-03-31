@@ -1,7 +1,7 @@
 <?php $all_method =& get_instance(); ?>
 <div class="col-md-12 card">
     <div class="row" style="margin-bottom:20px;">
-        <div class="col-md-12"><h3> Patient Journey </h3></div>
+        <div class="col-md-12"><h3> Procedure Journey </h3></div>
         <div class="clearfix"></div>
         
         <form action="<?php echo base_url('accounts/patient_journey'); ?>" method="get">
@@ -17,20 +17,27 @@
                     } ?>
                 </select>
             </div>
-            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            <div class="col-sm-2 col-xs-12" style="margin-top:10px;">
+                <label>Procedure Code</label>
+                <input type="text" class="form-control" name="code" placeholder="e.g. IP919" value="<?php echo !empty($code) ? $code : ''; ?>" />
+            </div>
+            <div class="col-sm-2 col-xs-12" style="margin-top:10px;">
                 <label>Start Booking Date</label>
                 <input type="text" class="particular_date_filter form-control" name="start_date" value="<?php echo $start_date;?>" autocomplete="off" />
             </div>
-            <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
+            <div class="col-sm-2 col-xs-12" style="margin-top:10px;">
                 <label>End Booking Date</label>
                 <input type="text" class="particular_date_filter form-control" name="end_date" value="<?php echo $end_date;?>" autocomplete="off" />
             </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
-                <label>IIC ID / Patient ID</label>
+                <label>Patient ID</label>
                 <input type="text" class="form-control" name="iic_id" value="<?php echo $iic_id; ?>" />
             </div>
             <div class="col-sm-12" style="margin-top: 15px;">
                 <button type="submit" class="btn btn-primary">Search</button>
+                <a href="<?php echo base_url('accounts/export_patient_journey?').$_SERVER['QUERY_STRING']; ?>" class="btn btn-success">
+                    <i class="fa fa-file-text-o"></i> Export CSV
+                </a>
                 <a href="<?php echo base_url('accounts/patient_journey'); ?>" class="btn btn-secondary">RESET</a>
             </div>		
         </form>  
@@ -46,25 +53,37 @@
                         <th>IIC ID</th>
                         <th>Patient Name</th>
                         <th>Center</th>
-                        <th>Procedure</th>
                         <th>Code</th>
+                        <th>Procedure</th>
                         <th>Status</th>
+                        <th>Withdrawal Date</th>
                         <th>Actual Stimulation Start</th>
                         <th>Trigger Date</th>
                         <th>Actual OPU Date</th>
                         <th>Embryo Transfer Date</th>
                         <th>HCG On Date</th>
-                        <th>Gestational Sacs</th>
                     </tr>
                 </thead>
                 <tbody>
                 <?php 
                 $count = 1; 
+                $patient_id = !empty($procedure_result) ? $procedure_result[0]['patient_id'] : 0;
                 foreach($procedure_result as $vl): 
                     // 1. Fetch Related Data (Optimized)
                     $receipt = $vl['receipt_number'];
+
+                    // Fetch the LATEST withdrawal date for this specific patient ID
+                    $withdrawal = $this->db->select('withdrawal_date')
+                               ->from('hms_doctor_consultation')
+                               ->where('patient_id', $vl['patient_id']) // Use the ID from the current row
+                               ->where('withdrawal_date !=', '0000-00-00')
+                               ->where('withdrawal_date !=', NULL)
+                               ->order_by('ID', 'DESC')
+                               ->limit(1)
+                               ->get()
+                               ->row_array();
                     
-                    // Fetch Stimulation Data
+                     // Fetch Stimulation Data
                     $stim = $this->db->get_where('ovulation_induction_protocol', ['receipt_number' => $receipt])->row_array();
                     
                     // Fetch Trigger/OPU Data
@@ -82,15 +101,18 @@
                         <td><?php echo $vl['patient_id']; ?></td>
                         <td><?php echo strtoupper($all_method->get_patient_name($vl['patient_id'])); ?></td>
                         <td><?php echo $all_method->get_center_name($vl['billing_at']); ?></td>
-                        <td><?php echo $vl['procedure_name']; ?></td>
                         <td><?php echo $vl['code']; ?></td>
+                        <td><?php echo $vl['procedure_name']; ?></td>
                         <td><span class="label label-info"><?php echo $vl['status']; ?></span></td>
-                        <td><?php echo !empty($stim['date1']) ? $stim['date1'] : 'N/A'; ?></td>
-                        <td><?php echo !empty($trigger['last_inj_fsh']) ? $trigger['last_inj_fsh'] : 'N/A'; ?></td>
-                        <td><?php echo !empty($trigger['ovum_pick_up_on']) ? $trigger['ovum_pick_up_on'] : 'N/A'; ?></td>
-                        <td><?php echo !empty($et['transfer_date']) ? $et['transfer_date'] : '-'; ?></td>
-                        <td><?php echo !empty($hcg['date']) ? $hcg['date'] : '-'; ?></td>
-                        <td><?php echo !empty($hcg['no_of_gestational']) ? $hcg['no_of_gestational'] : '0'; ?></td>
+                        <td><?php  if(!empty($withdrawal['withdrawal_date'])) {
+                                echo date('d-M-Y', strtotime($withdrawal['withdrawal_date']));
+                            } 
+                        ?></td>
+                        <td><?php echo !empty($stim['date1']) ? $stim['date1'] : ''; ?></td>
+                        <td><?php echo !empty($trigger['last_inj_fsh']) ? $trigger['last_inj_fsh'] : ''; ?></td>
+                        <td><?php echo !empty($trigger['ovum_pick_up_on']) ? $trigger['ovum_pick_up_on'] : ''; ?></td>
+                        <td><?php echo !empty($et['transfer_date']) ? $et['transfer_date'] : ''; ?></td>
+                        <td><?php echo !empty($hcg['date']) ? $hcg['date'] : ''; ?></td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -112,6 +134,30 @@ $(function() {
 
 <style>
     .table th { background: #f4f4f4; vertical-align: middle !important; text-align: center; }
+    .btn { height: 34px; margin-right: 5px; }
+    .label { padding: 5px; }
+    /* 1. Make the table container scrollable if needed */
+    .table-responsive {
+        max-height: 700px; /* Adjust this height as per your screen */
+        overflow-y: auto;
+        border: 1px solid #ddd;
+    }
+
+    /* 2. Make the header sticky */
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #f4f4f4 !important; /* Matches your current header color */
+        z-index: 100; /* Keeps header above the body rows */
+        box-shadow: inset 0 -1px 0 #ddd; /* Adds a bottom border to the sticky header */
+    }
+
+    /* 3. Keep your existing styles */
+    .table th { 
+        vertical-align: middle !important; 
+        text-align: center; 
+        white-space: nowrap; /* Prevents header text from breaking into two lines */
+    }
     .btn { height: 34px; margin-right: 5px; }
     .label { padding: 5px; }
 </style>

@@ -2593,6 +2593,7 @@ class Doctors extends CI_Controller {
 				$consultation_post['center_number'] = $_POST['center_number']; unset($_POST['center_number']);
 				$consultation_post['female_findings'] = isset($_POST['female_findings'])?$_POST['female_findings']:''; unset($_POST['female_findings']);
 				$consultation_post['male_findings'] = isset($_POST['male_findings'])?$_POST['male_findings']:''; unset($_POST['male_findings']);
+				$consultation_post['withdrawal_date'] = isset($_POST['withdrawal_date'])?$_POST['withdrawal_date']:''; unset($_POST['withdrawal_date']);
 				$consultation_post['follow_up'] = isset($_POST['follow_up'])?$_POST['follow_up']:""; unset($_POST['follow_up']);
 				$consultation_post['follow_up_date'] = isset($_POST['follow_up_date'])?$_POST['follow_up_date']:"";unset($_POST['follow_up_date']);
 				$consultation_post['follow_slot'] = isset($_POST['appoitmented_slot'])?$_POST['appoitmented_slot']:"";unset($_POST['appoitmented_slot']);
@@ -5282,6 +5283,7 @@ foreach ($urls as $key => $url) {
 				'center_number' => $this->input->post('center_number', TRUE),
 				'female_findings' => $this->input->post('female_findings', TRUE) ?: '',
 				'male_findings' => $this->input->post('male_findings', TRUE) ?: '',
+				'withdrawal_date' => $this->input->post('withdrawal_date', TRUE) ?: '',
 				'follow_up' => $this->input->post('follow_up', TRUE) ?: 0,
 				'follow_up_date' => $this->input->post('follow_up_date', TRUE) ?: '',
 				'follow_slot' => $this->input->post('follow_slot', TRUE) ?: '',

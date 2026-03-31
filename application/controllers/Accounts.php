@@ -11669,7 +11669,8 @@ public function patient_journey() {
             'billing_at' => $this->input->get('billing_at'),
             'start_date' => $this->input->get('start_date'),
             'end_date'   => $this->input->get('end_date'),
-            'iic_id'     => $this->input->get('iic_id')
+            'iic_id'     => $this->input->get('iic_id'),
+			'code' => $this->input->get('code')
         ];
 
         // 2. Pagination Setup
@@ -11680,29 +11681,29 @@ public function patient_journey() {
         $config['reuse_query_string'] = TRUE;
 
        // Existing tags
-$config['full_tag_open'] = '<ul class="pagination pagination-sm no-margin pull-right">';
-$config['full_tag_close'] = '</ul>';
-$config['num_tag_open'] = '<li>';
-$config['num_tag_close'] = '</li>';
-$config['cur_tag_open'] = '<li class="active"><a href="#">';
-$config['cur_tag_close'] = '</a></li>';
+		$config['full_tag_open'] = '<ul class="pagination pagination-sm no-margin pull-right">';
+		$config['full_tag_close'] = '</ul>';
+		$config['num_tag_open'] = '<li>';
+		$config['num_tag_close'] = '</li>';
+		$config['cur_tag_open'] = '<li class="active"><a href="#">';
+		$config['cur_tag_close'] = '</a></li>';
 
-// FIX: Add <li> tags to these 4 configurations
-$config['next_tag_open'] = '<li>';
-$config['next_tag_close'] = '</li>';
-$config['prev_tag_open'] = '<li>';
-$config['prev_tag_close'] = '</li>';
+		// FIX: Add <li> tags to these 4 configurations
+		$config['next_tag_open'] = '<li>';
+		$config['next_tag_close'] = '</li>';
+		$config['prev_tag_open'] = '<li>';
+		$config['prev_tag_close'] = '</li>';
 
-$config['first_tag_open'] = '<li>';
-$config['first_tag_close'] = '</li>';
-$config['last_tag_open'] = '<li>';
-$config['last_tag_close'] = '</li>';
+		$config['first_tag_open'] = '<li>';
+		$config['first_tag_close'] = '</li>';
+		$config['last_tag_open'] = '<li>';
+		$config['last_tag_close'] = '</li>';
 
-// Optional: Change the labels to icons for a cleaner look
-$config['first_link'] = '&laquo; First';
-$config['last_link'] = 'Last &raquo;';
-$config['next_link'] = '&gt;';
-$config['prev_link'] = '&lt;';
+		// Optional: Change the labels to icons for a cleaner look
+		$config['first_link'] = '&laquo; First';
+		$config['last_link'] = 'Last &raquo;';
+		$config['next_link'] = '&gt;';
+		$config['prev_link'] = '&lt;';
 
         $this->pagination->initialize($config);
         $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
@@ -11716,6 +11717,7 @@ $config['prev_link'] = '&lt;';
         $data["start_date"] = $filter['start_date'];
         $data["end_date"]   = $filter['end_date'];
         $data["iic_id"]     = $filter['iic_id'];
+		$data["code"]     = $filter['code'];
         $data["total_records"] = $config['total_rows'];
 
         $template = get_header_template($logg["role"]);
@@ -11725,6 +11727,80 @@ $config['prev_link'] = '&lt;';
     } else {
         redirect(base_url());
     }
+}
+
+public function export_patient_journey() {
+    $this->load->model('Accounts_model');
+    $all_method =& get_instance();
+
+    // 1. Capture filters - IMPORTANT: use trim() to avoid spaces
+    $filter = [
+        'billing_at' => trim($this->input->get('billing_at')),
+        'start_date' => trim($this->input->get('start_date')),
+        'end_date'   => trim($this->input->get('end_date')),
+        'iic_id'     => trim($this->input->get('iic_id')),
+        'code'       => trim($this->input->get('code'))
+    ];
+
+    // 2. Fetch data (Passing '0' as limit to get ALL records)
+    $data = $this->Accounts_model->get_journey_report($filter, 0, 0);
+
+    // DEBUG: If you want to check why it's blank, uncomment the 2 lines below:
+    // echo "<pre>"; print_r($data); die();
+
+    // 3. Clear any output to prevent blank lines at the top
+    if (ob_get_level()) ob_end_clean();
+
+    // 4. Headers
+    $filename = "Journey_Export_" . date('Y-m-d_Hi') . ".csv";
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=' . $filename);
+
+    // 5. Create File Pointer
+    $fp = fopen('php://output', 'w');
+
+    // 6. Add Headers to CSV
+    fputcsv($fp, [
+        'S.No.', 'Booking Date', 'Patient ID', 'Patient Name', 'Center', 
+        'Code', 'Procedure', 'Withdrawal Date', 'Stimulation Start', 
+        'Trigger Date', 'OPU Date', 'ET Date', 'HCG Date'
+    ]);
+
+    // 7. Add Data Rows
+    if (!empty($data)) {
+        $count = 1;
+        foreach ($data as $vl) {
+            // Withdrawal Query (using the logic that works in your view)
+            $withdrawal = $this->db->select('withdrawal_date')
+                       ->from('hms_doctor_consultation')
+                       ->where('patient_id', $vl['patient_id'])
+                       ->where('withdrawal_date !=', '0000-00-00')
+                       ->order_by('ID', 'DESC')->limit(1)->get()->row_array();
+
+            $row = [
+                $count++,
+                date('d-M-y', strtotime($vl['on_date'])),
+                $vl['patient_id'],
+                strtoupper($all_method->get_patient_name($vl['patient_id'])),
+                $all_method->get_center_name($vl['billing_at']),
+                $vl['code'],
+                $vl['procedure_name'],
+                (!empty($withdrawal['withdrawal_date']) ? date('d-M-Y', strtotime($withdrawal['withdrawal_date'])) : '-'),
+                $vl['stim_date'],
+                $vl['trigger_date'],
+                $vl['opu_date'],
+                $vl['et_date'],
+                $vl['hcg_date']
+            ];
+            fputcsv($fp, $row);
+        }
+    } else {
+        // If data is empty, put one row saying so
+        fputcsv($fp, ['No data found for the selected filters']);
+    }
+
+    fclose($fp);
+    exit;
 }
 
 } // End of class - MAKE SURE THIS IS THE LAST LINE

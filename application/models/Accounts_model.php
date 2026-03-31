@@ -8002,7 +8002,7 @@ public function get_journey_report($f, $limit, $offset) {
     $this->db->select('
         p.*, 
         pt.wife_name, 
-        stim.date1 as stim_date, 
+	    stim.date1 as stim_date, 
         trig.last_inj_fsh as trigger_date, 
         trig.ovum_pick_up_on as opu_date,
         et.transfer_date as et_date,
@@ -8010,7 +8010,7 @@ public function get_journey_report($f, $limit, $offset) {
         hcg.no_of_gestational as sac_count
     ');
     $this->db->from('hms_patient_procedure p');
-    
+ //   $this->db->join('hms_doctor_consultation dc', 'dc.receipt_number = p.receipt_number', 'left');
     // Core Joins
     $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
     
@@ -8048,6 +8048,10 @@ private function apply_journey_filters($f) {
     // 3. IIC ID / Patient ID Search
     if (!empty($f['iic_id'])) {
         $this->db->where('p.patient_id', $f['iic_id']);
+    }
+
+	if (!empty($f['code'])) {
+        $this->db->where('p.code', $f['code']);
     }
 
     // 4. Clean list (Excluded codes)
