@@ -7919,7 +7919,6 @@ public function get_yearly_egg_freezing($year, $type, $month = null, $center = n
 
 public function count_procedures($f = []) {
     $this->db->from('hms_patient_procedure as p');
-    // ONLY join if you actually need to search by patient name
     if(!empty($f['search'])) {
         $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
     }
@@ -7934,39 +7933,29 @@ public function get_procedures_paged($f = [], $limit, $offset) {
         c.center_name,
         sa.iic_id as sa_iic, sa.date as sa_date,
         ov.iic_id as ov_iic, ov.date_of_procedure as ov_date,
-		op.iic_id as op_iic, op.date_of_procedure as op_date,
-		et.iic_id as et_iic, et.date_of_procedure as et_date,
-		ed.iic_id as ed_iic, ed.date_of_procedure as ed_date,
-		edl.iic_id as edl_iic, edl.date_of_procedure as edl_date
+        op.iic_id as op_iic, op.date_of_procedure as op_date,
+        et.iic_id as et_iic, et.date_of_procedure as et_date,
+        ed.iic_id as ed_iic, ed.date_of_procedure as ed_date,
+        edl.iic_id as edl_iic, edl.date_of_procedure as edl_date
     ');
     $this->db->from('hms_patient_procedure p');
     $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
-    $this->db->join('hms_centers c', 'c.center_number = p.billing_at', 'left');
     
-    // Join Semen Analysis
+    // Ensure this matches your column name for center ID (e.g., billing_at)
+    $this->db->join('hms_centers c', 'c.center_number = p.billing_at', 'left'); 
+    
     $this->db->join('semen_analysis sa', 'sa.iic_id = p.patient_id', 'left');
-    
-    // Join Ovum Summary (only where ICSI was Yes)
     $this->db->join('ovum_discharge_summary ov', "ov.iic_id = p.patient_id AND ov.ICSI = 'Yes'", 'left');
-
-	  // Join Ovum Summary (only where ICSI was Yes)
     $this->db->join('ovum_pickup_discharge_summary op', "op.iic_id = p.patient_id", 'left');
-
-	  // Join Ovum Summary (only where ICSI was Yes)
     $this->db->join('embryo_transfer_discharge_summary et', "et.iic_id = p.patient_id", 'left');
 
-  // Join only once
-$this->db->join('embryology_discharge_summary ed',"ed.iic_id = p.patient_id",'left');
-$this->db->where('ed.Embryo_Glue', 'Yes');
-
-$this->db->join('embryology_discharge_summary edl',"edl.iic_id = p.patient_id",'left');
-$this->db->where('edl.Laser_Assisted', 'Yes');
+    // Grouping clinical data more cleanly
+    $this->db->join('embryology_discharge_summary ed', "ed.iic_id = p.patient_id AND ed.Embryo_Glue = 'Yes'", 'left');
+    $this->db->join('embryology_discharge_summary edl', "edl.iic_id = p.patient_id AND edl.Laser_Assisted = 'Yes'", 'left');
     
     $this->apply_procedure_filters($f);
     
-    // Group by Procedure ID to prevent row duplication
     $this->db->group_by('p.ID'); 
-    
     $this->db->limit($limit, $offset);
     $this->db->order_by('p.ID', 'DESC');
     
@@ -8002,7 +7991,7 @@ public function get_journey_report($f, $limit, $offset) {
     $this->db->select('
         p.*, 
         pt.wife_name, 
-	    stim.date1 as stim_date, 
+        stim.date1 as stim_date, 
         trig.last_inj_fsh as trigger_date, 
         trig.ovum_pick_up_on as opu_date,
         et.transfer_date as et_date,
@@ -8010,11 +7999,7 @@ public function get_journey_report($f, $limit, $offset) {
         hcg.no_of_gestational as sac_count
     ');
     $this->db->from('hms_patient_procedure p');
- //   $this->db->join('hms_doctor_consultation dc', 'dc.receipt_number = p.receipt_number', 'left');
-    // Core Joins
     $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
-    
-    // Clinical Module Joins (linked via receipt_number)
     $this->db->join('ovulation_induction_protocol stim', 'stim.receipt_number = p.receipt_number', 'left');
     $this->db->join('trigger_module trig', 'trig.receipt_number = p.receipt_number', 'left');
     $this->db->join('embryo_transfer et', 'et.receipt_number = p.receipt_number', 'left');
@@ -8022,7 +8007,11 @@ public function get_journey_report($f, $limit, $offset) {
 
     $this->apply_journey_filters($f);
 
-    $this->db->limit($limit, $offset);
+    // FIX: Only apply limit if it is greater than 0
+    if ($limit > 0) {
+        $this->db->limit($limit, $offset);
+    }
+
     $this->db->order_by('p.ID', 'DESC');
     return $this->db->get()->result_array();
 }

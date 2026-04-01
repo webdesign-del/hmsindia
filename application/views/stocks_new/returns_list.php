@@ -152,7 +152,7 @@ input[type="checkbox"].return_check, #check_all_returns {
                                         <td>
                                             <a href="<?php echo base_url('stocks_new/view_return/' . $return->id); ?>" class="btn btn-default btn-xs"><i class="fa fa-eye"></i></a>
                                             
-                                            <?php if(isset($is_accountant) && $is_accountant && $status === 'PENDING'): ?>
+                                           <?php if (strtolower($user_role) == 'accountant' && strtoupper($return->status) == 'PENDING'): ?>
                                                 <a href="<?php echo base_url('stocks_new/approve_return/' . $return->id); ?>" class="btn btn-success btn-xs" onclick="return confirm('Approve this return?')"><i class="fa fa-check"></i></a>
                                                 <a href="<?php echo base_url('stocks_new/disapprove_return/' . $return->id); ?>" class="btn btn-danger btn-xs" onclick="return confirm('Disapprove this return?')"><i class="fa fa-times"></i></a>
                                             <?php endif; ?>

@@ -205,6 +205,8 @@ ul.nav.nav-second-level.collapse.in li {
         </ul>
       </li>
        <li> <a href="<?php echo base_url(); ?>accounts/patient_financial_clearance" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Financial Clearance</a></li>
+       <li> <a href="<?php echo base_url(); ?>accounts/patient_journey" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Journey</a></li>
+               <li> <a href="<?php echo base_url(); ?>accounts/procedure_list" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Complete</a></li>
      
   </ul>
   </div>

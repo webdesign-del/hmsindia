@@ -11614,6 +11614,7 @@ public function procedure_list() {
     $logg = checklogin();
     if ($logg["status"] == true) {
         $this->load->library('pagination');
+        $this->load->model('accounts_model');
 
         // 1. Collect Filters from GET
         $filter = [
@@ -11629,23 +11630,35 @@ public function procedure_list() {
         $config['base_url'] = base_url('accounts/procedure_list');
         $config['total_rows'] = $this->accounts_model->count_procedures($filter);
         $config['per_page'] = 25;
-        $config['uri_segment'] = 5;
-        $config['reuse_query_string'] = TRUE; // Crucial for keeping filters while paging
+        $config['uri_segment'] = 3; // Corrected from 5 to 3
+        $config['reuse_query_string'] = TRUE; 
 
         // Bootstrap Styling for Pagination
         $config['full_tag_open'] = '<ul class="pagination pagination-sm no-margin pull-right">';
         $config['full_tag_close'] = '</ul>';
-        $config['num_tag_open'] = '<li>'; $config['num_tag_close'] = '</li>';
-        $config['cur_tag_open'] = '<li class="active"><a href="#">'; $config['cur_tag_close'] = '</a></li>';
-        $config['prev_tag_open'] = '<li>'; $config['prev_tag_close'] = '</li>';
-        $config['next_tag_open'] = '<li>'; $config['next_tag_close'] = '</li>';
+        $config['num_tag_open'] = '<li>';
+        $config['num_tag_close'] = '</li>';
+        $config['cur_tag_open'] = '<li class="active"><a href="#">';
+        $config['cur_tag_close'] = '</a></li>';
+        $config['next_tag_open'] = '<li>';
+        $config['next_tag_close'] = '</li>';
+        $config['prev_tag_open'] = '<li>';
+        $config['prev_tag_close'] = '</li>';
+        $config['first_tag_open'] = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_tag_open'] = '<li>';
+        $config['last_tag_close'] = '</li>';
+        $config['first_link'] = '&laquo; First';
+        $config['last_link'] = 'Last &raquo;';
 
         $this->pagination->initialize($config);
+        
+        // Fetch the offset from segment 3
         $page = ($this->uri->segment(3)) ? $this->uri->segment(3) : 0;
 
         // 3. Fetch Data
         $data["procedures"] = $this->accounts_model->get_procedures_paged($filter, $config['per_page'], $page);
-        //$data["centers"] = $this->accounts_model->get_all_centers();
+        $data["centers"] = $this->db->get_where('hms_centers', array('status' => '1'))->result_array();
         $data["pagination"] = $this->pagination->create_links();
         $data["total_records"] = $config['total_rows'];
 
@@ -11656,6 +11669,54 @@ public function procedure_list() {
     } else {
         redirect(base_url());
     }
+}
+
+public function export_procedure_list() {
+    $this->load->model('accounts_model');
+    
+    // 1. Capture filters directly from GET
+    $filter = [
+        'search'     => $this->input->get('search'),
+        'center_id'  => $this->input->get('center_id'),
+        'status'     => $this->input->get('status'),
+        'start_date' => $this->input->get('start_date'),
+        'end_date'   => $this->input->get('end_date')
+    ];
+
+    // 2. Fetch data (Passing 0 as limit for "All Records")
+    $data = $this->accounts_model->get_procedures_paged($filter, 0, 0);
+
+    // 3. CRITICAL: Clear buffer to prevent blank files
+    if (ob_get_level()) ob_end_clean();
+
+    $filename = "Procedures_Export_".date('Ymd_His').".csv";
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="'.$filename.'"');
+
+    $output = fopen('php://output', 'w');
+    
+    // 4. Add BOM for Excel UTF-8 Support
+    fputs($output, $bom =( chr(0xEF) . chr(0xBB) . chr(0xBF) ));
+
+    // 5. Headers
+    fputcsv($output, ['Date', 'Patient ID', 'Center', 'Patient Name', 'Code', 'Procedure', 'Status']);
+
+    // 6. Data
+    if(!empty($data)) {
+        foreach($data as $row) {
+            fputcsv($output, [
+                date('d-M-Y', strtotime($row->on_date)),
+                $row->patient_id,
+                $row->center_name,
+                strtoupper($row->wife_name),
+                $row->code,
+                $row->procedure_name,
+                strtoupper($row->status)
+            ]);
+        }
+    }
+    fclose($output);
+    exit; 
 }
 
 public function patient_journey() {
@@ -11733,51 +11794,40 @@ public function export_patient_journey() {
     $this->load->model('Accounts_model');
     $all_method =& get_instance();
 
-    // 1. Capture filters - IMPORTANT: use trim() to avoid spaces
+    // Ensure 'code' is captured from the URL (Search uses 'code', not 'procedure_code')
     $filter = [
         'billing_at' => trim($this->input->get('billing_at')),
         'start_date' => trim($this->input->get('start_date')),
         'end_date'   => trim($this->input->get('end_date')),
         'iic_id'     => trim($this->input->get('iic_id')),
-        'code'       => trim($this->input->get('code'))
+        'code'       => trim($this->input->get('code')) 
     ];
 
-    // 2. Fetch data (Passing '0' as limit to get ALL records)
+    // Passing 0 here now works because of the Model fix above
     $data = $this->Accounts_model->get_journey_report($filter, 0, 0);
 
-    // DEBUG: If you want to check why it's blank, uncomment the 2 lines below:
-    // echo "<pre>"; print_r($data); die();
-
-    // 3. Clear any output to prevent blank lines at the top
     if (ob_get_level()) ob_end_clean();
 
-    // 4. Headers
     $filename = "Journey_Export_" . date('Y-m-d_Hi') . ".csv";
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=' . $filename);
 
-    // 5. Create File Pointer
     $fp = fopen('php://output', 'w');
 
-    // 6. Add Headers to CSV
-    fputcsv($fp, [
-        'S.No.', 'Booking Date', 'Patient ID', 'Patient Name', 'Center', 
-        'Code', 'Procedure', 'Withdrawal Date', 'Stimulation Start', 
-        'Trigger Date', 'OPU Date', 'ET Date', 'HCG Date'
-    ]);
+    // Add headers
+    fputcsv($fp, ['S.No.', 'Booking Date', 'Patient ID', 'Patient Name', 'Center', 'Code', 'Procedure', 'Withdrawal Date', 'Stimulation Start', 'Trigger Date', 'OPU Date', 'ET Date', 'HCG Date']);
 
-    // 7. Add Data Rows
     if (!empty($data)) {
         $count = 1;
         foreach ($data as $vl) {
-            // Withdrawal Query (using the logic that works in your view)
+            // Withdrawal Date Query
             $withdrawal = $this->db->select('withdrawal_date')
                        ->from('hms_doctor_consultation')
                        ->where('patient_id', $vl['patient_id'])
                        ->where('withdrawal_date !=', '0000-00-00')
                        ->order_by('ID', 'DESC')->limit(1)->get()->row_array();
 
-            $row = [
+            fputcsv($fp, [
                 $count++,
                 date('d-M-y', strtotime($vl['on_date'])),
                 $vl['patient_id'],
@@ -11791,14 +11841,9 @@ public function export_patient_journey() {
                 $vl['opu_date'],
                 $vl['et_date'],
                 $vl['hcg_date']
-            ];
-            fputcsv($fp, $row);
+            ]);
         }
-    } else {
-        // If data is empty, put one row saying so
-        fputcsv($fp, ['No data found for the selected filters']);
     }
-
     fclose($fp);
     exit;
 }
