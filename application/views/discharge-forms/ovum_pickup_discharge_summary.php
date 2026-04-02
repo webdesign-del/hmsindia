@@ -142,6 +142,9 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	
 	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
 	$select_result3 = run_select_query($sql3);
+
+	$sql_ovulation = "Select * from ovulation_induction_protocol where patient_id='".$iic_id."'";
+	$ovulation_select_result = run_select_query($sql_ovulation);
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
 	$select_result5 = run_select_query($sql5); 
@@ -171,6 +174,17 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	<input type="hidden" value="<?php echo $patient_data['husband_name']; ?>" class="form" name="husband_name">
 	<input type="hidden" value="<?php echo $patient_data['wife_address']; ?>" class="form" name="wife_address">
 	<input type="hidden" value="<?php echo $patient_data['wife_age']; ?>" class="form" name="wife_age">
+	<div class="form-group">
+    <?php if (!empty($ovulation_select_result['receipt_number'])): ?>
+        <input type="hidden" value="<?php echo $ovulation_select_result['receipt_number']; ?>" class="form-control" name="receipt_number" require="">
+    <?php else: ?>
+        <div class="alert alert-danger" style="padding: 5px 10px; margin-top: 5px;">
+            <i class="fa fa-exclamation-triangle"></i> 
+            <strong>Action Required:</strong> Please fill Ovulation IPD form first.
+        </div>
+        <input type="hidden" name="receipt_number" value="">
+    <?php endif; ?>
+</div>
 	<?php foreach ($select_result4 as $res_val){  ?>
 	<input type="hidden" value="<?php echo $res_val->female_pregnancy_other_p; ?>" class="form" name="female_pregnancy_other_p">
 	<input type="hidden" value="<?php echo $res_val->female_pregnancy_other_l; ?>" class="form" name="female_pregnancy_other_l">
@@ -179,7 +193,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	<?php } ?>	
 
 <div class="col-sm-12 col-md-12">	
-<div class="col-sm-12 col-md-4" style="margin-bottom: 10px;">
+<div class="col-sm-12 col-md-3" style="margin-bottom: 10px;">
 <label for="Center">Center</label>
 <select class="form-control" id="center" name="center">
     <option value=''>--Select From--</option>

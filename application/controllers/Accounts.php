@@ -13,6 +13,7 @@ class Accounts extends CI_Controller {
 	    $this->load->library('session');
 		$this->load->model('accounts_model');
 		$this->load->model('billings_model');
+		$this->load->helper('billing');
 		$this->load->model('procedures_model');
 		$this->load->model('Purchase_order_model');
 		$this->load->model('billingmodel_model');
