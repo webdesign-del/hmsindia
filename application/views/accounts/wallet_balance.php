@@ -49,6 +49,37 @@
                             <th>CN Invoice</th>
                         </tr>
                     </thead>
+                              <?php
+
+$sql_par = "Select * from medicine_returns where patient_id='".$patient_data['patient_id']."' and status='APPROVED'";
+
+$query = $this->db->query($sql_par);
+
+$select_result_par = $query->result();
+
+foreach ($select_result_par as $res_val_par){ ?>
+
+<tbody id="procedure_result">
+
+<tr class="odd gradeX">
+
+<td><?php echo $res_val_par->receipt_number; ?></td>
+
+<td>Medicine</td>
+
+<td><?php echo date('d-M-y', strtotime($res_val_par->return_date)); ?></td>
+
+<td class="text-green">+ <?php echo number_format($res_val_par->final_return_amount, 2); ?></td>
+
+<td><?php echo $res_val_par->status; ?></td>
+
+<td><?php echo $res_val_par->return_number; ?></td>
+
+</tr>
+
+</tbody>
+
+<?php } ?>
                     <tbody>
                         <?php 
                         $db_prefix = $this->config->item('db_prefix');
@@ -93,6 +124,37 @@
                             <th>Payment Method</th>
                         </tr>
                     </thead>
+                    <?php
+
+$sql_par = "Select * from sales where patient_id='".$patient_data['patient_id']."' and payment_method='wallet' and status='CONFIRMED'";
+
+$query = $this->db->query($sql_par);
+
+$select_result_par = $query->result();
+
+foreach ($select_result_par as $res_val_par){ ?>
+
+<tbody id="procedure_result">
+
+<tr class="odd gradeX">
+
+<td><?php echo $res_val_par->sale_number; ?></td>
+
+<td>Medicine</td>
+
+<td><?php echo date('d-M-y', strtotime($res->on_date)); ?></td>
+
+<td class="text-red">- <?php echo number_format($res_val_par->total_amount, 2); ?></td>
+
+<td><?php echo $res_val_par->accountant_approval_status; ?></td>
+
+<td><span class="label label-default">Wallet</span></td>
+
+</tr>
+
+</tbody>
+
+<?php } ?>
                     <tbody>
                         <?php 
                         // Tables where wallet is used as a payment method
