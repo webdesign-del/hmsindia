@@ -57,7 +57,7 @@
                             'consultation' => "status='adjust'",
                             'registation'  => "status='adjust'",
                             'patient_procedure' => "status='cancel'",
-                            'patient_medicine' => "status='cancel'"
+                            'patient_payments' => "status='3'"
                         ];
 
                         foreach($types as $tbl => $where):
