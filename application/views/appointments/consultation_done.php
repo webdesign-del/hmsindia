@@ -5685,6 +5685,7 @@ $countdownDuration = 7200;
 										<?php if(!empty($consultation_medicine)) { foreach($consultation_medicine as $key => $val) { ?>
 												<option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
 										<?php  } } ?>
+										<option value="0">NA</option>
 									</select>
 									<hr/>
 									<table id="female_medicine_table" style="width:100%; border:1px solid #000; display:<?php echo $display;?>;" border='1'>
@@ -5786,6 +5787,7 @@ $countdownDuration = 7200;
 										<?php if(!empty($consultation_medicine)) { foreach($consultation_medicine as $key => $val) { ?>
 												<option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
 										<?php  } } ?>
+										<option value="0">NA</option>
 									</select>
 									<hr/>
 									<table style="width:100%; border:1px solid #000; display:<?php echo $display;?>;" id="male_medicine_table" border='1'>
@@ -5901,6 +5903,7 @@ $countdownDuration = 7200;
 											<?php if(!empty($consultation_medicine_ipd)) { foreach($consultation_medicine_ipd as $key => $val) { ?>
 													<option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
 											<?php  } } ?>
+											<option value="0">NA</option>
 										</select>
 										<hr/>
 										<table id="female_medicine_table_ipd" style="width:100%; border:1px solid #000; display:<?php echo $display;?>;" border='1'>
@@ -6012,6 +6015,7 @@ $countdownDuration = 7200;
 											<?php if(!empty($consultation_medicine_ipd)) { foreach($consultation_medicine_ipd as $key => $val) { ?>
 													<option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
 											<?php  } } ?>
+											<option value="0">NA</option>
 										</select>
 										<hr/>
 										<table style="width:100%; border:1px solid #000; display:<?php echo $display;?>;" id="male_medicine_table_ipd" border='1'>

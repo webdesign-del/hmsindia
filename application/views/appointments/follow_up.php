@@ -474,6 +474,7 @@
                               <?php if(!empty($consultation_medicine)) { foreach($consultation_medicine as $key => $val) { ?>
                               <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
                               <?php  } } ?>
+                              <option value="0">NA</option>
                            </select>
                         </div>
                         <div class="table-responsive">
@@ -502,6 +503,7 @@
                               <?php if(!empty($consultation_medicine)) { foreach($consultation_medicine as $key => $val) { ?>
                               <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
                               <?php  } } ?>
+                              <option value="0">NA</option>
                            </select>
                         </div>
                         <div class="table-responsive">
