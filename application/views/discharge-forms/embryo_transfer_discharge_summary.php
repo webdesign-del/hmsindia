@@ -136,9 +136,17 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
 	$select_result5 = run_select_query($sql5); 
-?>
 
-<?php 
+// 1. Run the query to check if Andrology record exists
+$select_embryo_transfer = "SELECT receipt_number FROM `embryo_transfer` WHERE patient_id='$iic_id' LIMIT 1";
+$embryo_transfer_result = run_select_query($select_embryo_transfer);
+
+// 2. Define the 'is_complete' flag based on the result
+$is_complete = !empty($embryo_transfer_result);
+
+// 3. Set the receipt number for the hidden input
+$final_receipt = ($is_complete) ? $embryo_transfer_result['receipt_number'] : "";
+
     $physical = $applicablemedicine = array();
     if(!empty($select_result['physical_examination'])){
         $physical = explode(',',$select_result['physical_examination']);
@@ -164,7 +172,34 @@ $appoitmented_date = $_GET['appoitmented_date'];
 <input type="text" value="<?php echo $select_result4['details_management_advised']; ?>" class="form" name="details_management_advised">
 <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
 <input type="hidden" value="<?php echo $_SESSION['logged_doctor']['doctor_id'] ?>" class="form" name="doctor_id">				 
-	
+<?php if ($is_complete): ?>
+    <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
+    
+    <div class="alert alert-success" style="padding: 10px; border-left: 5px solid #00a65a; margin-top: 5px;">
+        <i class="fa fa-check-circle"></i> 
+        <strong>Verified:</strong> Embryo Transfer clinical form is present. You may proceed.
+    </div>
+
+<?php else: ?>
+    <div class="alert alert-danger" style="padding: 15px; margin-top: 5px; border-left: 5px solid #a94442;">
+        <i class="fa fa-exclamation-triangle fa-2x pull-left" style="margin-right: 15px;"></i> 
+        <strong>Clinical Data Incomplete!</strong><br>
+        The following mandatory record is missing:
+        <ul style="margin-top:10px;">
+            <li>Embryo Transfer Form (Missing for Receipt: <?php echo $receipt_number; ?>)</li>
+        </ul>
+        <p style="margin-top:10px;"><em>Please fill the Embryo Transfer form before proceeding with this entry.</em></p>
+    </div>
+    
+    <input type="hidden" name="receipt_number" value="">
+    
+    <style>
+        /* Automatically hides the save button if clinical data is missing */
+        #submitbutton, .btn-submit, button[type="submit"] { 
+            display: none !important; 
+        } 
+    </style>
+<?php endif; ?>	
 
 <div class="ga-pro">
 <h3>Discharge Summary</h3>

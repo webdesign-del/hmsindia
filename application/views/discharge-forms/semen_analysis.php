@@ -80,7 +80,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	$select_result3 = run_select_query($sql3);		
 
 // 1. Run the query to check if Andrology record exists
-$select_query = "SELECT receipt_number FROM `andrology` WHERE patient_id='$patient_id' AND receipt_number='$receipt_number' LIMIT 1";
+$select_query = "SELECT receipt_number FROM `andrology` WHERE patient_id='$iic_id' LIMIT 1";
 $select_result = run_select_query($select_query);
 
 // 2. Define the 'is_complete' flag based on the result
