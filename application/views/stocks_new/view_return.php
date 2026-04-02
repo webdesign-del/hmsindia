@@ -43,7 +43,7 @@
                                     </p>
                                     <p><strong>Total Items:</strong> <?php echo $return->total_items ?? 0; ?></p>
                                     <p><strong>Total Quantity:</strong> <?php echo $return->total_quantity ?? 0; ?></p>
-                                    <p><strong>Total Return Amount:</strong> ₹<?php echo number_format($return->total_return_amount ?? 0, 2); ?></p>
+                                    <p><strong>Total Return Amount:</strong> ₹<?php echo number_format($return->final_return_amount ?? 0, 2); ?></p>
                                     <p><strong>Remarks:</strong> <?php echo htmlspecialchars($return->remarks ?? 'N/A'); ?></p>
                                 </div>
                             </div>
@@ -87,7 +87,7 @@
                                             $qty        = (float) $item->quantity_returned;
                                             $unit_price = (float) $item->return_price;     // FIXED
                                             $gst_rate   = (float) $item->gst_rate;
-                                            $total      = (float) $item->total_amount;     // FIXED
+                                            $total      = (float) $item->total_amount - $item->discount_amount;     // FIXED
 
                                             // Display-only MRP value
                                             $mrp_value = $qty * $unit_price;
@@ -120,7 +120,7 @@
                                 <tfoot>
                                     <tr class="info">
                                         <th colspan="12" style="text-align:right;">Total Return Amount:</th>
-                                        <th>₹<?= number_format($return->total_return_amount ?? 0, 2) ?></th>
+                                        <th>₹<?= number_format($return->final_return_amount ?? 0, 2) ?></th>
                                     </tr>
                                 </tfoot>
                             </table>

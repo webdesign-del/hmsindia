@@ -5702,9 +5702,7 @@ public function bulk_approve_sales()
         $logg = checklogin();
         if ($logg["status"] == true) {
             $data["return"] = $this->Stock_model_new->get_return_by_id($id);
-            $data["return_items"] = $this->Stock_model_new->get_return_items(
-                $id,
-            );
+            $data["return_items"] = $this->Stock_model_new->get_return_items($id,);
 
             $template = get_header_template($logg["role"]);
             $this->load->view($template["header"]);
