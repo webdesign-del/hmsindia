@@ -3,7 +3,7 @@
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
         
-       echo $select_query = "SELECT * FROM `laparoscopy_hysteroscopy` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+       $select_query = "SELECT * FROM `laparoscopy_hysteroscopy` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
         $select_result = run_select_query($select_query); 
         if(empty($select_result)){
             // mysql query to insert data

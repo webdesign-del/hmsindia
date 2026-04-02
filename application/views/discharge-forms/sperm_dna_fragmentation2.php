@@ -73,6 +73,15 @@ $id = $_GET['id'];
 	
 	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
 	$select_result3 = run_select_query($sql3);
+
+  $select_query = "SELECT * FROM `dna_fragmentation` WHERE patient_id='$iic_id' ";
+  $dna_result = run_select_query($select_query); 
+
+  // 2. Define the 'is_complete' flag based on the result
+$is_complete = !empty($dna_result);
+
+// 3. Set the receipt number for the hidden input
+$final_receipt = ($is_complete) ? $dna_result['receipt_number'] : "";
 ?>
 
 <div class="ga-pro">
@@ -94,6 +103,34 @@ function isNumber(evt) {
   <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
   <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
   <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
+  <?php if ($is_complete): ?>
+    <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
+    
+    <div class="alert alert-success" style="padding: 10px; border-left: 5px solid #00a65a; margin-top: 5px;">
+        <i class="fa fa-check-circle"></i> 
+        <strong>Verified:</strong> Dna Fragmentation clinical form is present. You may proceed.
+    </div>
+
+<?php else: ?>
+    <div class="alert alert-danger" style="padding: 15px; margin-top: 5px; border-left: 5px solid #a94442;">
+        <i class="fa fa-exclamation-triangle fa-2x pull-left" style="margin-right: 15px;"></i> 
+        <strong>Clinical Data Incomplete!</strong><br>
+        The following mandatory record is missing:
+        <ul style="margin-top:10px;">
+            <li>Dna Fragmentation Form (Missing for Receipt: <?php echo $receipt_number; ?>)</li>
+        </ul>
+        <p style="margin-top:10px;"><em>Please fill the Dna Fragmentation form before proceeding with this entry.</em></p>
+    </div>
+    
+    <input type="hidden" name="receipt_number" value="">
+    
+    <style>
+        /* Automatically hides the save button if clinical data is missing */
+        #submitbutton, .btn-submit, button[type="submit"] { 
+            display: none !important; 
+        } 
+    </style>
+<?php endif; ?>	
 <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
 <div class="fg45rt">
 <h5>PATIENT INFORMATION</h5>

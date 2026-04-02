@@ -141,7 +141,15 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
 	$select_result5 = run_select_query($sql5); 
-	
+
+	$select_iui = "SELECT * FROM `intrauterine` WHERE patient_id='$patient_id'";
+    $select_result_iui = run_select_query($select_iui); 
+
+	  // 2. Define the 'is_complete' flag based on the result
+	$is_complete = !empty($select_result_iui);
+
+	// 3. Set the receipt number for the hidden input
+	$final_receipt = ($is_complete) ? $select_result_iui['receipt_number'] : "";
 ?>
 
 <div class="ga-pro">
@@ -164,7 +172,34 @@ $appoitmented_date = $_GET['appoitmented_date'];
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_a']; ?>" class="form" name="female_pregnancy_other_a">
   <input type="hidden" value="<?php echo $select_result4['details_management_advised']; ?>" class="form" name="details_management_advised">
   <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
-  
+  <?php if ($is_complete): ?>
+    <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
+    
+    <div class="alert alert-success" style="padding: 10px; border-left: 5px solid #00a65a; margin-top: 5px;">
+        <i class="fa fa-check-circle"></i> 
+        <strong>Verified:</strong> IUI IPD clinical form is present. You may proceed.
+    </div>
+
+<?php else: ?>
+    <div class="alert alert-danger" style="padding: 15px; margin-top: 5px; border-left: 5px solid #a94442;">
+        <i class="fa fa-exclamation-triangle fa-2x pull-left" style="margin-right: 15px;"></i> 
+        <strong>Clinical Data Incomplete!</strong><br>
+        The following mandatory record is missing:
+        <ul style="margin-top:10px;">
+            <li>IUI Form (Missing for Receipt: <?php echo $receipt_number; ?>)</li>
+        </ul>
+        <p style="margin-top:10px;"><em>Please fill the IUI form before proceeding with this entry.</em></p>
+    </div>
+    
+    <input type="hidden" name="receipt_number" value="">
+    
+    <style>
+        /* Automatically hides the save button if clinical data is missing */
+        #submitbutton, .btn-submit, button[type="submit"] { 
+            display: none !important; 
+        } 
+    </style>
+<?php endif; ?>	
   <?php $physical = array();
     if(!empty($select_result['physical_examination'])){
         $physical = explode(',',$select_result['physical_examination']);

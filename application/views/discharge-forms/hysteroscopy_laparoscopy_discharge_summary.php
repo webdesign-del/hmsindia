@@ -63,7 +63,16 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	$select_result3 = run_select_query($sql3);	
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
-	$select_result5 = run_select_query($sql5); 	
+	$select_result5 = run_select_query($sql5); 
+  
+  $select_query_laparoscopy = "SELECT * FROM `laparoscopy_hysteroscopy` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+  $select_result_laparoscopy = run_select_query($select_query_laparoscopy); 
+
+  $is_complete = !empty($select_result_laparoscopy);
+
+	// 3. Set the receipt number for the hidden input
+	$final_receipt = ($is_complete) ? $select_result_laparoscopy['receipt_number'] : "";
+       
 ?>
 
  <?php $phyical = $applicablemedicine = $procedures = array();
@@ -92,7 +101,35 @@ $appoitmented_date = $_GET['appoitmented_date'];
 <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
 <input type="hidden" value="<?php echo $iic_id; ?>" class="form" name="iic_id">
 <input type="hidden" value="<?php echo $_SESSION['logged_doctor']['doctor_id'] ?>" class="form" name="doctor_id">				 
+<?php if ($is_complete): ?>
+    <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
+    
+    <div class="alert alert-success" style="padding: 10px; border-left: 5px solid #00a65a; margin-top: 5px;">
+        <i class="fa fa-check-circle"></i> 
+        <strong>Verified:</strong> IUI IPD clinical form is present. You may proceed.
+    </div>
 
+<?php else: ?>
+    <div class="alert alert-danger" style="padding: 15px; margin-top: 5px; border-left: 5px solid #a94442;">
+        <i class="fa fa-exclamation-triangle fa-2x pull-left" style="margin-right: 15px;"></i> 
+        <strong>Clinical Data Incomplete!</strong><br>
+        The following mandatory record is missing:
+        <ul style="margin-top:10px;">
+            <li>Laparoscopy Form (Missing for Receipt: <?php echo $receipt_number; ?>)</li>
+        </ul>
+        <p style="margin-top:10px;"><em>Please fill the Laparoscopy form before proceeding with this entry.</em></p>
+    </div>
+    
+    <input type="hidden" name="receipt_number" value="">
+    
+    <style>
+        /* Automatically hides the save button if clinical data is missing */
+        #submitbutton, .btn-submit, button[type="submit"] { 
+            display: none !important; 
+        } 
+    </style>
+<?php endif; ?>	
+  
 <div class="col-sm-12 col-md-12">	
 <div class="col-sm-12 col-md-4" style="margin-bottom: 10px;">
 <label for="Center">Center</label>
