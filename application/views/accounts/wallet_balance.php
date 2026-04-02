@@ -40,38 +40,82 @@
                         <tr class="bg-gray">
                             <th colspan="7">Money Added to Wallet (Refunds/Cancellations)</th>
                         </tr>
-                        <tr>
+                        <tr class="info">
                             <th>Receipt #</th>
                             <th>Type</th>
                             <th>Date</th>
-                            <th>Paid Amount</th>
+                            <th>Amount Added</th>
                             <th>Status</th>
                             <th>CN Invoice</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php 
-                        // Simplified unified query logic for display
                         $db_prefix = $this->config->item('db_prefix');
-                        $types = [
+                        $inflow_types = [
                             'consultation' => "status='adjust'",
                             'registation'  => "status='adjust'",
                             'patient_procedure' => "status='cancel'",
-                            'patient_payments' => "status='3'"
+                            'patient_payments' => "status='3'",
+                            'patient_medicine' => "status='cancel'"
                         ];
 
-                        foreach($types as $tbl => $where):
+                        foreach($inflow_types as $tbl => $where):
                             $results = $this->db->query("SELECT * FROM {$db_prefix}{$tbl} WHERE patient_id='{$patient_data['patient_id']}' AND $where")->result();
                             foreach($results as $res): ?>
                             <tr>
-                                <td><?php echo $res->receipt_number; ?></td>
+                                <td><?php echo $res->receipt_number ?? ($res->billing_id ?? '-'); ?></td>
                                 <td><?php echo ucfirst(str_replace('patient_', '', $tbl)); ?></td>
                                 <td><?php echo date('d-M-y', strtotime($res->on_date)); ?></td>
-                                <td><?php echo $res->payment_done; ?></td>
+                                <td class="text-green">+ <?php echo number_format($res->payment_done, 2); ?></td>
                                 <td><span class="label label-info"><?php echo $res->status; ?></span></td>
-                                <td><?php echo $res->cn_invoice; ?></td>
+                                <td><?php echo $res->cn_invoice ?? '-'; ?></td>
                             </tr>
                         <?php endforeach; endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <br>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                        <tr class="bg-black" style="background:#333; color:#fff;">
+                            <th colspan="7">Wallet Expenditure (Money Used)</th>
+                        </tr>
+                        <tr class="warning">
+                            <th>Receipt #</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Amount Deducted</th>
+                            <th>Status</th>
+                            <th>Payment Method</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        // Tables where wallet is used as a payment method
+                        $outflow_tables = ['patient_procedure', 'patient_medicine', 'patient_investigations', 'consultation', 'patient_payments'];
+                        $found_outflow = false;
+
+                        foreach($outflow_tables as $tbl):
+                            $results = $this->db->query("SELECT * FROM {$db_prefix}{$tbl} WHERE patient_id='{$patient_data['patient_id']}' AND LOWER(payment_method)='wallet'")->result();
+                            foreach($results as $res): 
+                                $found_outflow = true; ?>
+                            <tr>
+                                <td><?php echo $res->receipt_number ?? ($res->billing_id ?? '-'); ?></td>
+                                <td><?php echo ucfirst(str_replace('patient_', '', $tbl)); ?></td>
+                                <td><?php echo date('d-M-y', strtotime($res->on_date)); ?></td>
+                                <td class="text-red">- <?php echo number_format($res->payment_done, 2); ?></td>
+                                <td><span class="label label-success"><?php echo $res->status; ?></span></td>
+                                <td><span class="label label-default">Wallet</span></td>
+                            </tr>
+                        <?php endforeach; endforeach; 
+                        
+                        if(!$found_outflow): ?>
+                            <tr><td colspan="6" class="text-center text-muted">No wallet deductions found.</td></tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
