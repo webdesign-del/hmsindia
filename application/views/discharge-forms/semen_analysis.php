@@ -78,6 +78,16 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	
 	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
 	$select_result3 = run_select_query($sql3);		
+
+// 1. Run the query to check if Andrology record exists
+$select_query = "SELECT receipt_number FROM `andrology` WHERE patient_id='$patient_id' AND receipt_number='$receipt_number' LIMIT 1";
+$select_result = run_select_query($select_query);
+
+// 2. Define the 'is_complete' flag based on the result
+$is_complete = !empty($select_result);
+
+// 3. Set the receipt number for the hidden input
+$final_receipt = ($is_complete) ? $select_result['receipt_number'] : "";
 ?>
 <div class="ga-pro">
  <form action="" enctype='multipart/form-data' method="post">
@@ -87,6 +97,34 @@ $appoitmented_date = $_GET['appoitmented_date'];
   <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
   <input type="hidden" value="<?php echo $iic_id;?>" class="form" name="iic_id">
   <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
+  <?php if ($is_complete): ?>
+    <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
+    
+    <div class="alert alert-success" style="padding: 10px; border-left: 5px solid #00a65a; margin-top: 5px;">
+        <i class="fa fa-check-circle"></i> 
+        <strong>Verified:</strong> Andrology clinical form is present. You may proceed.
+    </div>
+
+<?php else: ?>
+    <div class="alert alert-danger" style="padding: 15px; margin-top: 5px; border-left: 5px solid #a94442;">
+        <i class="fa fa-exclamation-triangle fa-2x pull-left" style="margin-right: 15px;"></i> 
+        <strong>Clinical Data Incomplete!</strong><br>
+        The following mandatory record is missing:
+        <ul style="margin-top:10px;">
+            <li>Andrology Form (Missing for Receipt: <?php echo $receipt_number; ?>)</li>
+        </ul>
+        <p style="margin-top:10px;"><em>Please fill the Andrology form before proceeding with this entry.</em></p>
+    </div>
+    
+    <input type="hidden" name="receipt_number" value="">
+    
+    <style>
+        /* Automatically hides the save button if clinical data is missing */
+        #submitbutton, .btn-submit, button[type="submit"] { 
+            display: none !important; 
+        } 
+    </style>
+<?php endif; ?>
   <?php $physical = $applicablemedicine= $Agglutination = $Debris = array();
     if(!empty($select_result['physical_examination'])){
         $physical = explode(',',$select_result['physical_examination']);

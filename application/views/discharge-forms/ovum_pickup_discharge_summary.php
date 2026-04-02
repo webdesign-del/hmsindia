@@ -143,8 +143,23 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
 	$select_result3 = run_select_query($sql3);
 
-	$sql_ovulation = "Select * from ovulation_induction_protocol where patient_id='".$iic_id."'";
-	$ovulation_select_result = run_select_query($sql_ovulation);
+	// 1. Check Ovulation Induction Protocol
+$sql_ovulation = "SELECT receipt_number FROM ovulation_induction_protocol WHERE patient_id='".$iic_id."' LIMIT 1";
+$res_ovulation = run_select_query($sql_ovulation);
+
+// 2. Check Trigger Module
+$sql_trigger = "SELECT id FROM trigger_module WHERE patient_id='".$iic_id."' LIMIT 1";
+$res_trigger = run_select_query($sql_trigger);
+
+// 3. Check OPU
+$sql_opu = "SELECT id FROM opu WHERE patient_id='".$iic_id."' LIMIT 1";
+$res_opu = run_select_query($sql_opu);
+
+// Final Validation: Do they exist in ALL tables?
+$is_complete = (!empty($res_ovulation) && !empty($res_trigger) && !empty($res_opu));
+
+// Get the receipt number from the first table to use in the form
+$receipt_number = (!empty($res_ovulation['receipt_number'])) ? $res_ovulation['receipt_number'] : "";
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
 	$select_result5 = run_select_query($sql5); 
@@ -174,17 +189,33 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	<input type="hidden" value="<?php echo $patient_data['husband_name']; ?>" class="form" name="husband_name">
 	<input type="hidden" value="<?php echo $patient_data['wife_address']; ?>" class="form" name="wife_address">
 	<input type="hidden" value="<?php echo $patient_data['wife_age']; ?>" class="form" name="wife_age">
-	<div class="form-group">
-    <?php if (!empty($ovulation_select_result['receipt_number'])): ?>
-        <input type="hidden" value="<?php echo $ovulation_select_result['receipt_number']; ?>" class="form-control" name="receipt_number" require="">
-    <?php else: ?>
-        <div class="alert alert-danger" style="padding: 5px 10px; margin-top: 5px;">
-            <i class="fa fa-exclamation-triangle"></i> 
-            <strong>Action Required:</strong> Please fill Ovulation IPD form first.
-        </div>
-        <input type="hidden" name="receipt_number" value="">
-    <?php endif; ?>
-</div>
+	<?php if ($is_complete): ?>
+    <input type="hidden" value="<?php echo $receipt_number; ?>" name="receipt_number">
+    
+    <div class="alert alert-success" style="padding: 5px 10px; margin-top: 5px;">
+        <i class="fa fa-check-circle"></i> 
+        Patient Journey Verified: All clinical forms are present.
+    </div>
+
+<?php else: ?>
+    <div class="alert alert-danger" style="padding: 15px; margin-top: 5px; border-left: 5px solid #a94442;">
+        <i class="fa fa-exclamation-triangle fa-2x pull-left"></i> 
+        <strong>Clinical Data Incomplete!</strong><br>
+        This patient is missing mandatory records in the following:
+        <ul style="margin-top:10px;">
+            <?php if(empty($res1)) echo "<li>Ovulation Induction Protocol</li>"; ?>
+            <?php if(empty($res2)) echo "<li>Trigger Module</li>"; ?>
+            <?php if(empty($res3)) echo "<li>OPU (Ovum Pick Up) Form</li>"; ?>
+        </ul>
+        <p style="margin-top:10px;"><em>Please fill these forms before proceeding with this entry.</em></p>
+    </div>
+    
+    <input type="hidden" name="receipt_number" value="">
+    
+    <style>
+        #submitbutton, .btn-submit { display: none !important; } /* Hide the save button if incomplete */
+    </style>
+<?php endif; ?>
 	<?php foreach ($select_result4 as $res_val){  ?>
 	<input type="hidden" value="<?php echo $res_val->female_pregnancy_other_p; ?>" class="form" name="female_pregnancy_other_p">
 	<input type="hidden" value="<?php echo $res_val->female_pregnancy_other_l; ?>" class="form" name="female_pregnancy_other_l">
