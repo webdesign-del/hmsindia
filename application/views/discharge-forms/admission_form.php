@@ -59,8 +59,8 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);
 
-      $CI =& get_instance();
-   $sql_forms = "SELECT id, form_name,name, db_name FROM `hms_discharge_forms` WHERE status = 'active' and role=''";
+    $CI =& get_instance();
+    $sql_forms = "SELECT id, form_name,name, db_name FROM `hms_discharge_forms` WHERE status = 'active' and role=''";
     $form_list = $CI->db->query($sql_forms)->result_array(); 
 ?>
 
@@ -150,9 +150,25 @@ $appoitmented_date = $_GET['appoitmented_date'];
 
 <tr>
 <td colspan="3" width="50%">
-<strong>Provisional Diagnosis:
- <textarea name="provisional_diagnosis" style="width:100%; height:80px!important;" > <?php echo isset($select_result['provisional_diagnosis'])?$select_result['provisional_diagnosis']:""; ?> </textarea>
-</strong>
+    <strong>Indication :</strong><br>
+    
+    <?php if ($has_ovulation_data): ?>
+        <textarea name="provisional_diagnosis" class="form-control" style="width:100%; height:80px!important; border: 1px solid #ccc; padding: 5px;">
+            <?php 
+                // Using indication from the ovulation table if available, 
+                // otherwise fallback to the current select_result
+                echo isset($select_result5['indication']) ? $select_result5['indication'] : (isset($select_result['provisional_diagnosis']) ? $select_result['provisional_diagnosis'] : ""); 
+            ?>
+        </textarea>
+    <?php else: ?>
+        <div style="background: #f2dede; color: #a94442; padding: 15px; border: 1px solid #ebccd1; border-radius: 4px; margin-top: 5px;">
+            <i class="fa fa-exclamation-circle"></i> 
+            <strong>Please Fill Ovulation Induction IPD Form !</strong><br>
+            <small>Mandatory clinical data is missing for Patient ID: <?php echo $iic_id; ?></small>
+        </div>
+        
+        <style> #submitbutton { display: none; } </style>
+    <?php endif; ?>
 </td>
 <td width="50%" colspan="3">
 <strong>Name Of Procedure: 
