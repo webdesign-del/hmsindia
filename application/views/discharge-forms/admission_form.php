@@ -64,11 +64,11 @@ $appoitmented_date = $_GET['appoitmented_date'];
     $form_list = $CI->db->query($sql_forms)->result_array(); 
 
     // 1. Check Table 1: Ovulation Induction
-    $sql_ov = "SELECT indication FROM ovulation_induction_protocol WHERE patient_id='".trim($iic_id)."' LIMIT 1";
+   echo $sql_ov = "SELECT indication FROM ovulation_induction_protocol WHERE patient_id='".trim($iic_id)."' LIMIT 1";
     $res_ov = run_select_query($sql_ov);
 
     // 2. Check Table 2: Pre Embryo Transfer
-    $sql_et = "SELECT indication FROM pre_embryo_transfer WHERE patient_id='".trim($iic_id)."' LIMIT 1";
+   echo $sql_et = "SELECT indication FROM pre_embryo_transfer WHERE patient_id='".trim($iic_id)."' LIMIT 1";
     $res_et = run_select_query($sql_et);
 
     // 3. LOGIC: Kisi bhi EK table me data hona chahiye (OR Logic)
@@ -96,7 +96,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
     <input type="hidden" value="<?php echo $select_result5['center_code']; ?>/<?php $year = date("y"); echo $year-1, $year; ?>/<?php echo $select_result2['RIGHT(CAST(ipid AS CHAR), 3)'] + 1;?>" class="form" id="ipid" name="ipid">	
 	<div class="col-sm-12 col-md-4">
 <label for="Center">Center</label>
-<select class="form-control" id="center" name="center">
+<select class="form-control" id="center" name="center" required="">
     <option value=''>--Select From--</option>
     <?php $all_centers = $all_method->get_all_centers();
 	foreach($all_centers as $key => $val){ //var_dump($val);die;
@@ -111,11 +111,11 @@ $appoitmented_date = $_GET['appoitmented_date'];
  </div> 
 <div class="col-sm-12 col-md-4">
   <label for="Admission">Date of Admission:</label>
-  <input type="date" class="Admission" name="date_of_addmission" value="<?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?>">
+  <input type="date" class="Admission" required="" name="date_of_addmission" value="<?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?>">
 </div>  
 <div class="form-group col-md-4">
     <label>Select Discharge Form:</label>
-    <select class="form-control" name="form_type">
+    <select class="form-control" name="form_type" required>
         <option value="">-- Choose Form --</option>
         <?php if(!empty($form_list)): ?>
             <?php foreach($form_list as $form): ?>
@@ -172,7 +172,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
     <strong>Indication:</strong><br>
     
     <?php if ($has_any_data): ?>
-        <textarea name="provisional_diagnosis" class="form-control" style="width:100%; height:80px!important; border: 1px solid #ccc; padding: 5px;">
+        <textarea name="indication" class="form-control" style="width:100%; height:80px!important; border: 1px solid #ccc; padding: 5px;">
             <?php echo $final_indication; ?>
         </textarea>
     <?php else: ?>
