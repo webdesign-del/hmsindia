@@ -90,16 +90,11 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	?>
     </select>
  </div> 
-<div class="col-sm-12 col-md-2">
+<div class="col-sm-12 col-md-4">
   <label for="Admission">Date of Admission:</label>
   <input type="date" class="Admission" name="date_of_addmission" value="<?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?>">
 </div>  
-<div class="col-sm-12 col-md-2">
-  <label for="Discharge">Date of Discharge:</label>
-  <input type="date" class="Discharge" name="date_of_discharge" value="<?php echo isset($select_result['date_of_discharge'])?$select_result['date_of_discharge']:""; ?>">
- </div>
-
-<div class="form-group col-md-3">
+<div class="form-group col-md-4">
     <label>Select Discharge Form:</label>
     <select class="form-control" name="form_type">
         <option value="">-- Choose Form --</option>
