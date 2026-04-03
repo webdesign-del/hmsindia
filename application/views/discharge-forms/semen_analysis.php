@@ -64,9 +64,9 @@ $appoitmented_date = $_GET['appoitmented_date'];
     }
 	
 	 if (!empty($appoitmented_date)) {
-		echo	$sql = "SELECT * FROM `semen_analysis` WHERE iic_id='$iic_id' AND appoitmented_date='$appoitmented_date'";
+			$sql = "SELECT * FROM `semen_analysis` WHERE iic_id='$iic_id' AND appoitmented_date='$appoitmented_date'";
 	} else {
-			echo $sql = "SELECT * FROM `semen_analysis` WHERE iic_id='$iic_id'";
+			 $sql = "SELECT * FROM `semen_analysis` WHERE iic_id='$iic_id'";
 	}
 	$select_result = run_select_query($sql);
 	

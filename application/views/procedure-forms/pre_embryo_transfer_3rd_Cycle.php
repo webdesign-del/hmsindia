@@ -177,6 +177,10 @@
 			<td colspan="2"><input  type="date" value="<?php echo isset($select_result['last_menstrual_period'])?$select_result['last_menstrual_period']:""; ?>"   name="last_menstrual_period" class="form-control"></td>
 
 		</tr>
+		<tr>
+			<td colspan="">Indication </td>
+			<td colspan="3"><input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>" maxlength="200" name="indication" class="form-control" ></td>
+		</tr>	
 
 	</table>
 

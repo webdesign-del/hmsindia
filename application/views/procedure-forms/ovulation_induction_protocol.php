@@ -137,6 +137,10 @@ if(isset($_POST['submit'])){
 			<td>LAST MENSTRUAL PERIOD -</td>
 			<td><input type="date" value="<?php echo isset($select_result['last_menstrual'])?$select_result['last_menstrual']:""; ?>" name="last_menstrual" class="form-control"></td>
 		</tr>
+		<tr style="color: red;">
+			<td>Indication </td>
+			<td><input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>" maxlength="200" name="indication" class="form-control" ></td>
+		</tr>	
 	</table>
 	<div class="table-responsive">
 		<table style="color: red;" class="table-bordered" width="100%">

@@ -107,7 +107,7 @@
 			</td>
 			<td>
 				Indication<br>
-				<input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"     maxlength="50" name="indication" class="form-control" >
+				<input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"     maxlength="200" name="indication" class="form-control" >
 			</td>
 			<td>
 				Allergies<br>
