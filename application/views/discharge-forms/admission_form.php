@@ -60,7 +60,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	$select_result5 = run_select_query($sql5);
 
       $CI =& get_instance();
-   $sql_forms = "SELECT id, form_name,name, db_name FROM `hms_discharge_forms` WHERE status = 'active'";
+   $sql_forms = "SELECT id, form_name,name, db_name FROM `hms_discharge_forms` WHERE status = 'active' and role=''";
     $form_list = $CI->db->query($sql_forms)->result_array(); 
 ?>
 
@@ -90,11 +90,11 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	?>
     </select>
  </div> 
-<div class="col-sm-12 col-md-2" style="float: left; margin-bottom: 10px;">
+<div class="col-sm-12 col-md-2">
   <label for="Admission">Date of Admission:</label>
   <input type="date" class="Admission" name="date_of_addmission" value="<?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?>">
 </div>  
-<div class="col-sm-12 col-md-2" style="float: right; margin-bottom: 10px;">
+<div class="col-sm-12 col-md-2">
   <label for="Discharge">Date of Discharge:</label>
   <input type="date" class="Discharge" name="date_of_discharge" value="<?php echo isset($select_result['date_of_discharge'])?$select_result['date_of_discharge']:""; ?>">
  </div>
