@@ -62,6 +62,25 @@ $appoitmented_date = $_GET['appoitmented_date'];
     $CI =& get_instance();
     $sql_forms = "SELECT id, form_name,name, db_name FROM `hms_discharge_forms` WHERE status = 'active' and role=''";
     $form_list = $CI->db->query($sql_forms)->result_array(); 
+
+    // 1. Check Table 1: Ovulation Induction
+    $sql_ov = "SELECT indication FROM ovulation_induction_protocol WHERE patient_id='".trim($iic_id)."' LIMIT 1";
+    $res_ov = run_select_query($sql_ov);
+
+    // 2. Check Table 2: Pre Embryo Transfer
+    $sql_et = "SELECT indication FROM pre_embryo_transfer WHERE patient_id='".trim($iic_id)."' LIMIT 1";
+    $res_et = run_select_query($sql_et);
+
+    // 3. LOGIC: Kisi bhi EK table me data hona chahiye (OR Logic)
+    $has_any_data = (!empty($res_ov) || !empty($res_et));
+
+    // 4. Get the Indication value (Prioritize Ovulation, then ET)
+    $final_indication = "";
+    if (!empty($res_ov['indication'])) {
+        $final_indication = $res_ov['indication'];
+    } elseif (!empty($res_et['indication'])) {
+        $final_indication = $res_et['indication'];
+    }
 ?>
 
 <div class="ga-pro">
@@ -149,25 +168,21 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 
 <tr>
-<td colspan="3" width="50%">
-    <strong>Indication :</strong><br>
+<td colspan="3" width="50%" style="vertical-align: top;">
+    <strong>Indication:</strong><br>
     
-    <?php if ($has_ovulation_data): ?>
+    <?php if ($has_any_data): ?>
         <textarea name="provisional_diagnosis" class="form-control" style="width:100%; height:80px!important; border: 1px solid #ccc; padding: 5px;">
-            <?php 
-                // Using indication from the ovulation table if available, 
-                // otherwise fallback to the current select_result
-                echo isset($select_result5['indication']) ? $select_result5['indication'] : (isset($select_result['provisional_diagnosis']) ? $select_result['provisional_diagnosis'] : ""); 
-            ?>
+            <?php echo $final_indication; ?>
         </textarea>
     <?php else: ?>
-        <div style="background: #f2dede; color: #a94442; padding: 15px; border: 1px solid #ebccd1; border-radius: 4px; margin-top: 5px;">
-            <i class="fa fa-exclamation-circle"></i> 
-            <strong>Please Fill Ovulation Induction IPD Form !</strong><br>
-            <small>Mandatory clinical data is missing for Patient ID: <?php echo $iic_id; ?></small>
+        <div class="alert alert-danger" style="margin-top: 5px; padding: 15px; border-left: 5px solid #a94442;">
+            <i class="fa fa-exclamation-triangle"></i> 
+            <strong>Pahle clinical details fill karo!</strong><br>
+            <small>No Indication found in Ovulation or Pre-ET forms for ID: <?php echo $iic_id; ?></small>
         </div>
         
-        <style> #submitbutton { display: none; } </style>
+        <style> #submitbutton, button[type="submit"] { display: none !important; } </style>
     <?php endif; ?>
 </td>
 <td width="50%" colspan="3">
