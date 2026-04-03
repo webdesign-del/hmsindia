@@ -61,6 +61,13 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);
+
+// Fetch all discharge forms to populate the dropdown
+$sql_discharge = "SELECT * FROM `hms_discharge_forms` WHERE 1 ORDER BY id DESC";
+$discharge_list = $this->db->query($sql_discharge)->result_array(); 
+
+// Get the existing value for selection
+$existing_value = isset($select_result['date_of_addmission']) ? $select_result['date_of_addmission'] : "";
 ?>
 
 <div class="ga-pro">
@@ -74,7 +81,51 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	<input type="hidden" value="<?php echo date('Y-m-d'); ?>" class="form" name="date_of_addmission">
 	<input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">  
     <input type="hidden" value="<?php echo $select_result5['center_code']; ?>/<?php $year = date("y"); echo $year-1, $year; ?>/<?php echo $select_result2['RIGHT(CAST(ipid AS CHAR), 3)'] + 1;?>" class="form" id="ipid" name="ipid">	
-	
+	<div class="col-sm-12 col-md-4">
+<label for="Center">Center</label>
+<select class="form-control" id="center" name="center">
+    <option value=''>--Select From--</option>
+    <?php $all_centers = $all_method->get_all_centers();
+	foreach($all_centers as $key => $val){ //var_dump($val);die;
+    if($center == $val['center_number']){
+    echo '<option value="'.$val['center_number'].'" selected>'.$val['center_name'].'</option>';
+    }else{
+	echo '<option value="'.$val['center_number'].'">'.$val['center_name'].'</option>';
+    }
+    } 
+	?>
+    </select>
+ </div> 
+<div class="col-sm-12 col-md-2" style="float: left; margin-bottom: 10px;">
+  <label for="Admission">Date of Admission:</label>
+  <input type="date" class="Admission" name="date_of_addmission" value="<?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?>">
+</div>
+<div class="col-sm-12 col-md-2" style="margin-bottom: 10px;">
+  <label for="Admission">Admission Time:</label>
+  <input type="time" class="Admission" name="time_of_addmission" value="<?php echo isset($select_result['time_of_addmission'])?$select_result['time_of_addmission']:""; ?>">
+</div>    
+<div class="col-sm-12 col-md-2" style="float: right; margin-bottom: 10px;">
+  <label for="Discharge">Date of Discharge:</label>
+  <input type="date" class="Discharge" name="date_of_discharge" value="<?php echo isset($select_result['date_of_discharge'])?$select_result['date_of_discharge']:""; ?>">
+ </div>
+<div class="col-sm-12 col-md-2" style="margin-bottom: 10px;">
+  <label for="Discharge">Discharge Time:</label>
+  <input type="time" class="Discharge" name="time_of_discharge" value="<?php echo isset($select_result['time_of_discharge'])?$select_result['time_of_discharge']:""; ?>">
+ </div> 
+ <div class="col-sm-12 col-md-2" style="float: left; margin-bottom: 10px;">
+  <label for="Admission">Date of Admission:</label>
+  <select class="form-control Admission" name="date_of_addmission">
+    <option value="">-- Select Date --</option>
+    <?php foreach($discharge_list as $row): ?>
+        <option value="<?php echo $row['date_of_addmission']; ?>" 
+            <?php echo ($existing_value == $row['date_of_addmission']) ? 'selected' : ''; ?>>
+            <?php echo date('d-M-Y', strtotime($row['date_of_addmission'])); ?> 
+            (ID: <?php echo $row['patient_id']; ?>)
+        </option>
+    <?php endforeach; ?>
+  </select>
+</div>
+ </div>  
 <table width="100%" class="vb45rt">
 <tbody>
 <tr style="background: #b3b9b7;">
