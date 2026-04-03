@@ -1,4 +1,4 @@
-<?php
+<?php $all_method =&get_instance();
 $appoitmented_date = $_GET['appoitmented_date'];
 
     // php code to Insert data into mysql database from input text
@@ -52,22 +52,16 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	
     $sql2 = "SELECT RIGHT(CAST(ipid AS CHAR), 3) FROM `admission_form` ORDER BY ID DESC LIMIT 1";
     $select_result2 = run_select_query($sql2);
-    
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."'";
-	$select_result3 = run_select_query($sql3);
 	
-	$sql4 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result3['wife_phone']."' and paitent_type='new_patient'";
+	$sql4 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
 	$select_result4 = run_select_query($sql4);
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);
 
-// Fetch all discharge forms to populate the dropdown
-$sql_discharge = "SELECT * FROM `hms_discharge_forms` WHERE 1 ORDER BY id DESC";
-$discharge_list = $this->db->query($sql_discharge)->result_array(); 
-
-// Get the existing value for selection
-$existing_value = isset($select_result['date_of_addmission']) ? $select_result['date_of_addmission'] : "";
+      $CI =& get_instance();
+   $sql_forms = "SELECT id, form_name,name, db_name FROM `hms_discharge_forms` WHERE status = 'active'";
+    $form_list = $CI->db->query($sql_forms)->result_array(); 
 ?>
 
 <div class="ga-pro">
@@ -99,31 +93,26 @@ $existing_value = isset($select_result['date_of_addmission']) ? $select_result['
 <div class="col-sm-12 col-md-2" style="float: left; margin-bottom: 10px;">
   <label for="Admission">Date of Admission:</label>
   <input type="date" class="Admission" name="date_of_addmission" value="<?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?>">
-</div>
-<div class="col-sm-12 col-md-2" style="margin-bottom: 10px;">
-  <label for="Admission">Admission Time:</label>
-  <input type="time" class="Admission" name="time_of_addmission" value="<?php echo isset($select_result['time_of_addmission'])?$select_result['time_of_addmission']:""; ?>">
-</div>    
+</div>  
 <div class="col-sm-12 col-md-2" style="float: right; margin-bottom: 10px;">
   <label for="Discharge">Date of Discharge:</label>
   <input type="date" class="Discharge" name="date_of_discharge" value="<?php echo isset($select_result['date_of_discharge'])?$select_result['date_of_discharge']:""; ?>">
  </div>
-<div class="col-sm-12 col-md-2" style="margin-bottom: 10px;">
-  <label for="Discharge">Discharge Time:</label>
-  <input type="time" class="Discharge" name="time_of_discharge" value="<?php echo isset($select_result['time_of_discharge'])?$select_result['time_of_discharge']:""; ?>">
- </div> 
- <div class="col-sm-12 col-md-2" style="float: left; margin-bottom: 10px;">
-  <label for="Admission">Date of Admission:</label>
-  <select class="form-control Admission" name="date_of_addmission">
-    <option value="">-- Select Date --</option>
-    <?php foreach($discharge_list as $row): ?>
-        <option value="<?php echo $row['date_of_addmission']; ?>" 
-            <?php echo ($existing_value == $row['date_of_addmission']) ? 'selected' : ''; ?>>
-            <?php echo date('d-M-Y', strtotime($row['date_of_addmission'])); ?> 
-            (ID: <?php echo $row['patient_id']; ?>)
-        </option>
-    <?php endforeach; ?>
-  </select>
+
+<div class="form-group col-md-3">
+    <label>Select Discharge Form:</label>
+    <select class="form-control" name="form_type">
+        <option value="">-- Choose Form --</option>
+        <?php if(!empty($form_list)): ?>
+            <?php foreach($form_list as $form): ?>
+                <option value="<?php echo $form['name']; ?>">
+                    <?php echo $form['name']; ?>
+                </option>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <option value="">No forms found in database</option>
+        <?php endif; ?>
+    </select>
 </div>
  </div>  
 <table width="100%" class="vb45rt">
