@@ -64,9 +64,9 @@ $appoitmented_date = $_GET['appoitmented_date'];
     }
 	
 	 if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `semen_analysis` WHERE iic_id='$iic_id' AND appoitmented_date='$appoitmented_date'";
+		echo	$sql = "SELECT * FROM `semen_analysis` WHERE iic_id='$iic_id' AND appoitmented_date='$appoitmented_date'";
 	} else {
-			$sql = "SELECT * FROM `semen_analysis` WHERE iic_id='$iic_id'";
+			echo $sql = "SELECT * FROM `semen_analysis` WHERE iic_id='$iic_id'";
 	}
 	$select_result = run_select_query($sql);
 	
@@ -81,13 +81,13 @@ $appoitmented_date = $_GET['appoitmented_date'];
 
 // 1. Run the query to check if Andrology record exists
 $select_query = "SELECT receipt_number FROM `andrology` WHERE patient_id='$iic_id' LIMIT 1";
-$select_result = run_select_query($select_query);
+$select_andrology = run_select_query($select_query);
 
 // 2. Define the 'is_complete' flag based on the result
-$is_complete = !empty($select_result);
+$is_complete = !empty($select_andrology);
 
 // 3. Set the receipt number for the hidden input
-$final_receipt = ($is_complete) ? $select_result['receipt_number'] : "";
+$final_receipt = ($is_complete) ? $select_andrology['receipt_number'] : "";
 ?>
 <div class="ga-pro">
  <form action="" enctype='multipart/form-data' method="post">
