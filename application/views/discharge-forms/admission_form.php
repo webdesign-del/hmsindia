@@ -64,11 +64,11 @@ $appoitmented_date = $_GET['appoitmented_date'];
     $form_list = $CI->db->query($sql_forms)->result_array(); 
 
     // 1. Check Table 1: Ovulation Induction
-   echo $sql_ov = "SELECT indication FROM ovulation_induction_protocol WHERE patient_id='".trim($iic_id)."' LIMIT 1";
+    $sql_ov = "SELECT indication FROM ovulation_induction_protocol WHERE patient_id='".trim($iic_id)."' LIMIT 1";
     $res_ov = run_select_query($sql_ov);
 
     // 2. Check Table 2: Pre Embryo Transfer
-   echo $sql_et = "SELECT indication FROM pre_embryo_transfer WHERE patient_id='".trim($iic_id)."' LIMIT 1";
+    $sql_et = "SELECT indication FROM pre_embryo_transfer WHERE patient_id='".trim($iic_id)."' LIMIT 1";
     $res_et = run_select_query($sql_et);
 
     // 3. LOGIC: Kisi bhi EK table me data hona chahiye (OR Logic)
@@ -178,7 +178,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
     <?php else: ?>
         <div class="alert alert-danger" style="margin-top: 5px; padding: 15px; border-left: 5px solid #a94442;">
             <i class="fa fa-exclamation-triangle"></i> 
-            <strong>Pahle clinical details fill karo!</strong><br>
+            <strong>Please Fill Ovulation Induction / Pre Embryo transfer IPD Form!</strong><br>
             <small>No Indication found in Ovulation or Pre-ET forms for ID: <?php echo $iic_id; ?></small>
         </div>
         
