@@ -152,7 +152,7 @@ $sql_trigger = "SELECT id FROM trigger_module WHERE patient_id='".$iic_id."' LIM
 $res_trigger = run_select_query($sql_trigger);
 
 // 3. Check OPU
-$sql_opu = "SELECT id FROM opu WHERE patient_id='".$iic_id."' LIMIT 1";
+$sql_opu = "SELECT id FROM hms_opu WHERE patient_id='".$iic_id."' LIMIT 1";
 $res_opu = run_select_query($sql_opu);
 
 // Final Validation: Do they exist in ALL tables?
