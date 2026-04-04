@@ -115,68 +115,28 @@
                 <td><?php echo $currency.$vl['fees']?></td>
                 <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
                 <td><?php echo ucwords($vl['status']); ?></td>
-                <td><?php if($all_method->discount_applied($vl['receipt_number']) > 0 && $vl['status'] !="disapproved"){
-                                $discont_stats = $all_method->discount_applied_status($vl['receipt_number']);
-                  				if($discont_stats == 1){
-				  				    echo '<p><i title="Discount Approved" class="fa fa-exclamation-circle" aria-hidden="true"></i></p>';
-				  				    if($vl['status'] == 'pending'){ ?> 
-                                        <a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=registation&u=approved" class="xyx btn btn-large" >Approve</a> | <a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a>
-					                <?php }else {
-            						  		echo ucwords($vl['status']);
-            								if($vl['status'] == 'approved'){
-            									if($vl['remaining_amount'] < 0){ ?>
-            										<a href="<?php echo base_url();?>accounts/patient_reconcile/<?php echo $vl['receipt_number']?>?t=registation" class="btn btn-large" >Reconcile to patient</a>
-            								<?php }            
-            								}
-            								if($vl['status'] == 'disapproved'){echo ' <i class="fa fa-exclamation-circle" aria-hidden="true" title="'.$vl['reason_of_disapprove'].'"></i>';}								
-						        	}
-				  				}else if($discont_stats == 2){
-				  				    echo '<p><i title="Discount disapproved" class="fa fa-exclamation-circle" aria-hidden="true"></i></p>';
-				  				    if($vl['status'] == 'pending'){ ?> 
-                                        <a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=registation&u=approved" class="xyx btn btn-large" >Approve</a> | <a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a>
-					                <?php }else {
-            						  		echo ucwords($vl['status']);           
-            								if($vl['status'] == 'approved'){
-            									if($vl['remaining_amount'] < 0){ ?>
-            
-            										<a href="<?php echo base_url();?>accounts/patient_reconcile/<?php echo $vl['receipt_number']?>?t=registation" class="btn btn-large" >Reconcile to patient</a>
-            
-            								<?php }
-            
-            								}
-            
-            								if($vl['status'] == 'disapproved'){echo ' <i class="fa fa-exclamation-circle" aria-hidden="true" title="'.$vl['reason_of_disapprove'].'"></i>';}								
-                                            if($vl['status'] == 'adjust'){echo ' <i class="fa fa-exclamation-circle" aria-hidden="true" title="'.$vl['reason_of_cancle'].'"></i>';}	
-						        	}
-				  				}else{
-				  				    echo "Discount Requested!";
-				  				}
-				  			}else {
-					  		    if($vl['status'] == 'pending'){ ?> 
+                <td><?php  if($vl['status'] == 'pending'){ ?> 
 								 <!--<a href="javascript:void(0);" class="btn btn-large" onclick="approveRegistation('<?php echo $vl['ID']; ?>')">Approve</a>>-->
-                                   <a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=registation&u=approved" class="xyx btn btn-large" >Approve</a |
+                                   <a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=registation&u=approved" class="xyx btn btn-large" >Approve</a> |
 									<a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a> | <a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="cancle_first btn btn-large" >Adjust</a>
 					            <?php }else {
 
 						  		echo ucwords($vl['status']); ?>
 								
-								<a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="cancle_first btn btn-large" >Adjust</a>
 								<?php
 
 								if($vl['status'] == 'approved'){
 
-									if($vl['remaining_amount'] < 0){ ?>
-
-										<a href="<?php echo base_url();?>accounts/patient_reconcile/<?php echo $vl['receipt_number']?>?t=registation" class="btn btn-large" >Reconcile to patient</a>
-
-								<?php }
+								?>
+                                <a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="cancle_first btn btn-large" >Adjust</a>
+								
+								<?php 
 
 								}
 
 								if($vl['status'] == 'disapproved'){echo ' <i class="fa fa-exclamation-circle" aria-hidden="true" title="'.$vl['reason_of_disapprove'].'"></i>';}								
                                 if($vl['status'] == 'adjust'){echo ' <i class="fa fa-exclamation-circle" aria-hidden="true" title="'.$vl['reason_of_cancle'].'"></i>';}	
 							}
-					    	}
 					    ?>
 						
                   </td>

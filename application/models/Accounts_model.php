@@ -3484,7 +3484,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 	return $consultation_result;
 }
 
-	function export_registration_data($start_date, $end_date, $center, $patient_id, $status){
+	function export_registration_data($center, $status, $start_date, $end_date, $patient_id){
 		$registration_result = $response = array();
         $conditions = '';
 		if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
@@ -3499,11 +3499,11 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 		 if(!empty($patient_id)){
 			$conditions .= ' and patient_id="'.$patient_id.'"';
         }
-		if(!empty($start) && !empty($end)){
-            $conditions .= " and on_date between '".$start."' AND '".$end."' ";
+		if(!empty($start_date) && !empty($end_date)){
+            $conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
         }
 		
-	    $registration_sql = "Select DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package,payment_done,remaining_amount,payment_method,billing_from,billing_at,on_date as date,status from ".$this->config->item('db_prefix')."registation where 1 $conditions order by on_date desc";
+	    $registration_sql = "Select DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package,payment_done,remaining_amount,payment_method,billing_from,billing_at,on_date,status from ".$this->config->item('db_prefix')."registation where 1 $conditions order by on_date desc";
         $registration_q = $this->db->query($registration_sql);
         $registration_result = $registration_q->result_array();
         if(!empty($registration_result)){
@@ -3520,7 +3520,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
                         'payment_method' => $val['payment_method'],
                         'billing_from' => $val['billing_from'],
                         'billing_at' => $val['billing_at'],
-                        'date' => $val['date'],
+                        'date' => $val['on_date'],
                         'status' => $val['status'],
                         'billing_type' => 'registration',
                 );
@@ -3529,7 +3529,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 		return $response;
     }
 	
-	function patient_registration_count($center, $start_date, $end_date, $patient_id, $status){
+	function patient_registration_count($center, $status, $start_date, $end_date, $patient_id){
 		$registration_result = array();
 		$conditions = '';
 		if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
@@ -3558,7 +3558,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 		return $q->num_rows();
 	}
 	
-	function patient_registration_list_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $status){
+	function patient_registration_list_patination($limit, $page, $center, $status, $start_date, $end_date, $patient_id){
 		$registration_result = array();
 		$conditions = '';
 		if(empty($page)){

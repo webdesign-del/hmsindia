@@ -913,10 +913,10 @@ class Accounts extends CI_Controller {
 			$status = $this->input->get('status', true);
 			$start_date = $this->input->get('start_date', true);
 			$end_date = $this->input->get('end_date', true);
-			$patient_id = $this->input->get('iic_id', true);
+			$patient_id = $this->input->get('patient_id', true);
 			$export_billing = $this->input->get('export-billing', true);
 			if (isset($export_billing)){
-				$data = $this->accounts_model->export_registration_data($start_date, $end_date, $center, $patient_id, $status);
+				$data = $this->accounts_model->export_registration_data($center, $status, $start_date, $end_date, $patient_id);
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Registration-Patients-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
@@ -938,7 +938,7 @@ class Accounts extends CI_Controller {
 
 			$config = array();
         	$config["base_url"] = base_url() . "accounts/registration_patients";
-        	$config["total_rows"] = $this->accounts_model->patient_registration_count($center, $start_date, $end_date, $patient_id, $status);
+        	$config["total_rows"] = $this->accounts_model->patient_registration_count($center, $status, $start_date, $end_date, $patient_id);
         	$config["per_page"] = 10;
         	$config["uri_segment"] = 2;
 			$config['use_page_numbers'] = true;
@@ -949,7 +949,7 @@ class Accounts extends CI_Controller {
         	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
 			
         	$data["links"] = $this->pagination->create_links();
-			$data['registration_result'] = $this->accounts_model->patient_registration_list_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $status);
+			$data['registration_result'] = $this->accounts_model->patient_registration_list_patination($config["per_page"], $per_page, $center, $status, $start_date, $end_date, $patient_id);
 			$data["billing_at"] = $center;
 			$data["status"] = $status;
 			$data["start_date"] = $start_date;
