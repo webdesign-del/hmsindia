@@ -459,7 +459,7 @@
             <!-- Medication Section opd -->
             <div class="section-card">
                <div class="section-header">
-                  <i class="fa fa-medkit"></i> Medication Advised  Opd Withdrawal Date
+                  <i class="fa fa-medkit"></i> Medication Advised Opd
                   <label class="checkbox-enhanced pull-right">
                   <input type="checkbox" id="medicine_suggestion" value="1" name="medicine_suggestion" />
                   Enable Medication
@@ -630,10 +630,37 @@
                             <option value="<?= $val['ID']; ?>"><?= $val['procedure_name']." (".$val['code'].")"; ?></option>
                     <?php } } ?>
                 </select>-->
-                <select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
+
+<?php
+$patient_id = $patient_data['patient_id'];
+
+// CodeIgniter Query
+$billed_data = $this->db->select('code')
+                        ->where('patient_id', $patient_id)
+                        ->get('hms_patient_procedure')
+                        ->result_array();
+
+$billed_codes = [];
+
+// List of codes you want to ALLOW (not disable even if billed)
+$exclude_from_disabling = ['IP218', 'IP219'];
+
+if (!empty($billed_data)) {
+    foreach ($billed_data as $row) {
+        $trimmed_code = trim($row['code']);
+        
+        /* Check: Agar code 'IP218' ya 'IP219' array mein NAHI hai, 
+           tabhi use $billed_codes mein daalo (taaki wo disable ho sake).
+        */
+        if (!in_array($trimmed_code, $exclude_from_disabling)) {
+            $billed_codes[] = $trimmed_code;
+        }
+    }
+}
+?>
+<select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
     <?php 
     if(!empty($procedures)) {
-        // 1. Group the procedures by Package ID in a temporary array
         $grouped_procedures = [];
         foreach($procedures as $val) {
             if(isset($val['code_type']) && $val['code_type'] == "india") {
@@ -642,25 +669,58 @@
             }
         }
 
-        // 2. Loop through the grouped array to create the dropdown
         foreach($grouped_procedures as $package_id => $items) {
-            // Label the group (e.g., Package 1, Package 2)
-            $label = ($package_id == 'General Procedure') ? "General Procedures" : "Package Name: " . $package_id;
+            $label = ($package_id == 'General' || $package_id == 'General Procedure') ? "General Procedures" : "Package Name: " . $package_id;
             echo '<optgroup label="' . $label . '">';
             
             foreach($items as $item) {
+                $current_code = trim($item['code']);
+                
+                $disabled_attr = '';
+                $already_billed_text = '';
+                $style_attr = ''; // Red color ke liye variable
+
+                if (in_array($current_code, $billed_codes)) {
+                    $disabled_attr = 'disabled';
+                    $already_billed_text = ' [ALREADY ADVICES]';
+                    // Red color aur background light grey taaki alag dikhe
+                    $style_attr = 'style="color: red !important; background-color: #ffe6e6;"';
+                }
                 ?>
-                <option value="<?= $item['ID']; ?>">
-                    <?= $item['procedure_name']." (".$item['code'].")"; ?>
+                <option value="<?= $item['ID']; ?>" <?= $disabled_attr; ?> <?= $style_attr; ?>>
+                    <?= $item['procedure_name'] . " (" . $current_code . ")" . $already_billed_text; ?>
                 </option>
                 <?php
             }
-            
             echo '</optgroup>';
         }
-    } 
+    } else {
+        echo '<option disabled>No procedures found</option>';
+    }
     ?>
 </select>
+
+<style>
+   /* 1. Default browser select ke liye */
+#sub_procedure_suggestion_list option:disabled {
+    color: red !important;
+    background-color: #fff0f0; /* Light red background taaki highlight ho */
+    -webkit-text-fill-color: red; /* Safari/Chrome fix */
+}
+
+/* 2. Agar Select2 Plugin use kar rahe hain (Most likely) */
+.select2-container--default .select2-results__option[aria-disabled=true] {
+    color: red !important;
+    font-weight: bold;
+}
+
+/* 3. Bootstrap Multiselect ke liye */
+.multiselect-container > li.disabled > a > label {
+    color: red !important;
+}
+</style>
+
+
             </div>
             <div class="col-md-6">
                <label style="color:#ff0000;">International Patient</label>

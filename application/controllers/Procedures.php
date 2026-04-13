@@ -708,4 +708,72 @@ class Procedures extends CI_Controller {
 			die();
 		}
 	}
+
+	// LIST VIEW
+   
+	public function procedure_list(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$data['list'] = $this->procedures_model->get_all_min_prices();
+			$this->load->view($template['header']);
+			$this->load->view('procedures/procedure_list', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
+    // ADD / EDIT FORM
+    public function procedure_form($id = null) {
+    // 1. Login Check
+    $logg = checklogin();
+    if ($logg['status'] == false) {
+        redirect(base_url()); // CodeIgniter style redirect
+        die();
+    }
+
+    $data = array();
+    $data['procedure'] = null;
+
+    // 2. Fetch Data if Edit Mode
+    if ($id) {
+        $data['procedure'] = $this->procedures_model->get_min_price_by_id($id);
+        if (!$data['procedure']) {
+            $this->session->set_flashdata('error', 'Record not found');
+            redirect('procedures/procedure_list'); // Apni list wali method ka naam likhein
+        }
+    }
+
+    // 3. Handle Form Submission
+    if ($this->input->post()) {
+        $save_data = array(
+            'procedure_id'   => $this->input->post('procedure_id'),
+            'procedure_name' => $this->input->post('procedure_name'),
+            'code'           => $this->input->post('code'),
+            'min_price'      => $this->input->post('min_price'),
+            'actual_price'   => $this->input->post('actual_price'),
+            'status'         => $this->input->post('status')
+        );
+
+        if ($id) {
+            $this->procedures_model->update_min_price($id, $save_data);
+            $this->session->set_flashdata('msg', 'Updated Successfully');
+        } else {
+            $this->procedures_model->insert_min_price($save_data);
+            $this->session->set_flashdata('msg', 'Added Successfully');
+        }
+        
+        // Save hone ke baad list par wapas bhejien (Duplicate entry rokne ke liye)
+        redirect('procedures/procedure_list'); 
+    }
+
+    // 4. Load Views
+    $template = get_header_template($logg['role']);
+    $this->load->view($template['header']);
+    $this->load->view('procedures/procedure_form', $data);
+    $this->load->view($template['footer']);
+}
 } 

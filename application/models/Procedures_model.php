@@ -557,6 +557,27 @@ class Procedures_model extends CI_Model
 		return $result;
 	}
 
+	// List dikhane ke liye
+    public function get_all_min_prices() {
+        return $this->db->get('hms_procedure_min_prices')->result_array();
+    }
+
+    // Single record fetch karne ke liye (Edit ke waqt)
+    public function get_min_price_by_id($id) {
+        return $this->db->get_where('hms_procedure_min_prices', array('id' => $id))->row_array();
+    }
+
+    // Naya data add karne ke liye
+    public function insert_min_price($data) {
+        return $this->db->insert('hms_procedure_min_prices', $data);
+    }
+
+    // Data update karne ke liye
+    public function update_min_price($id, $data) {
+        $this->db->where('id', $id);
+        return $this->db->update('hms_procedure_min_prices', $data);
+    }
+
 }
 // END Stock_model class
 

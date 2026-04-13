@@ -143,7 +143,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
 	$select_result3 = run_select_query($sql3);
 
-	// 1. Check Ovulation Induction Protocol
+// 1. Check Ovulation Induction Protocol
 $sql_ovulation = "SELECT receipt_number FROM ovulation_induction_protocol WHERE patient_id='".$iic_id."' LIMIT 1";
 $res_ovulation = run_select_query($sql_ovulation);
 
@@ -155,11 +155,10 @@ $res_trigger = run_select_query($sql_trigger);
 $sql_opu = "SELECT id FROM hms_opu WHERE patient_id='".$iic_id."' LIMIT 1";
 $res_opu = run_select_query($sql_opu);
 
-// Final Validation: Do they exist in ALL tables?
+// Final Validation: Kya teeno exist karte hain?
 $is_complete = (!empty($res_ovulation) && !empty($res_trigger) && !empty($res_opu));
 
-// Get the receipt number from the first table to use in the form
-$receipt_number = (!empty($res_ovulation['receipt_number'])) ? $res_ovulation['receipt_number'] : "";
+$receipt_number = (!empty($res_ovulation[0]['receipt_number'])) ? $res_ovulation[0]['receipt_number'] : "";
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
 	$select_result5 = run_select_query($sql5); 
@@ -189,32 +188,16 @@ $receipt_number = (!empty($res_ovulation['receipt_number'])) ? $res_ovulation['r
 	<input type="hidden" value="<?php echo $patient_data['husband_name']; ?>" class="form" name="husband_name">
 	<input type="hidden" value="<?php echo $patient_data['wife_address']; ?>" class="form" name="wife_address">
 	<input type="hidden" value="<?php echo $patient_data['wife_age']; ?>" class="form" name="wife_age">
-	<?php if ($is_complete): ?>
-    <input type="hidden" value="<?php echo $receipt_number; ?>" name="receipt_number">
-    
-    <div class="alert alert-success" style="padding: 5px 10px; margin-top: 5px;">
-        <i class="fa fa-check-circle"></i> 
-        Patient Journey Verified: All clinical forms are present.
-    </div>
-
-<?php else: ?>
-    <div class="alert alert-danger" style="padding: 15px; margin-top: 5px; border-left: 5px solid #a94442;">
-        <i class="fa fa-exclamation-triangle fa-2x pull-left"></i> 
-        <strong>Clinical Data Incomplete!</strong><br>
-        This patient is missing mandatory records in the following:
-        <ul style="margin-top:10px;">
-            <?php if(empty($res1)) echo "<li>Ovulation Induction Protocol</li>"; ?>
-            <?php if(empty($res2)) echo "<li>Trigger Module</li>"; ?>
-            <?php if(empty($res3)) echo "<li>OPU (Ovum Pick Up) Form</li>"; ?>
+	<?php if (!$is_complete): ?>
+    <div class="alert alert-danger" style="background-color: #ffe6e6; border-left: 5px solid red; color: red; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+        <strong><i class="fa fa-warning"></i> Access Denied!</strong> 
+        Please complete the following before submitting this form:
+        <ul style="margin-top: 10px;">
+            <li>Ovulation Induction Protocol <?php echo empty($res_ovulation) ? '<span class="badge badge-danger">Pending</span>' : '<span class="badge badge-success">Done</span>'; ?></li>
+            <li>Trigger Module <?php echo empty($res_trigger) ? '<span class="badge badge-danger">Pending</span>' : '<span class="badge badge-success">Done</span>'; ?></li>
+            <li>OPU (Oocyte Pick-up) <?php echo empty($res_opu) ? '<span class="badge badge-danger">Pending</span>' : '<span class="badge badge-success">Done</span>'; ?></li>
         </ul>
-        <p style="margin-top:10px;"><em>Please fill these forms before proceeding with this entry.</em></p>
     </div>
-    
-    <input type="hidden" name="receipt_number" value="">
-    
-    <style>
-        #submitbutton, .btn-submit { display: none !important; } /* Hide the save button if incomplete */
-    </style>
 <?php endif; ?>
 	<?php foreach ($select_result4 as $res_val){  ?>
 	<input type="hidden" value="<?php echo $res_val->female_pregnancy_other_p; ?>" class="form" name="female_pregnancy_other_p">
@@ -1623,7 +1606,8 @@ if (!empty($select_result['applicablemedicine']) && in_array($medicine, $applica
 <label for="other">Please take prescribed medicines / injections only. Dont skip/ stop any medicine on your own unless advised by the doctor.</label>
     
 </div> 
-<input type="submit" name="submit" value="submit">
+<input type="submit" name="submit" value="submit" <?php echo (!$is_complete) ? 'disabled title="Complete all 3 forms to enable submission"' : ''; ?> 
+        style="<?php echo (!$is_complete) ? 'cursor: not-allowed; opacity: 0.6; background-color: #ccc; border-color: #bbb;' : ''; ?>">
 <input type="submit" name="submit2" value="PCPNDT">
 </form>
 

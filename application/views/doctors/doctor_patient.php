@@ -113,6 +113,8 @@
                                     <th class="text-center" style="width: 120px;">Package Name</th>
                                     <th class="text-center" style="width: 80px;">Status</th>
                                     <th class="text-center" style="width: 120px;">Counselor</th>
+                                    <th class="text-center" style="width: 120px;">Remark</th>
+                                    <th class="text-center" style="width: 120px;">Approved By</th>
                                 </tr>
                             </thead>
                             <tbody id="appointment_body">
@@ -461,6 +463,12 @@ if (isset($data['consumables']) && is_array($data['consumables'])) {
                                     </td>
                                     <td class="text-center">
                                         <strong><?php echo $vl['counsellor_signature']; ?></strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong><?php echo $vl['approval_remarks']; ?></strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong><?php echo $vl['approved_by']; ?></strong>
                                     </td>
                                 </tr>
                             <?php $count++; } ?>

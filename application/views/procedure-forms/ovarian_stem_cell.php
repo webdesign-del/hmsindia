@@ -47,6 +47,20 @@
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);
+
+	$id = $procedure_id;
+	$query = $this->db->select('procedure_name')
+                  ->where('ID', $id)
+                  ->get('hms_procedures');
+
+	if ($query->num_rows() > 0) {
+		$row = $query->row();
+		$procedure_name = $row->procedure_name; // Yahan aapka name mil jayega
+	//	echo $procedure_name;
+	} else {
+		echo "Procedure not found";
+	}
+	
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
@@ -94,11 +108,23 @@
                 			</table>
 							<table class="table-bordered" width="100%">
 								<tr style="color: red;">
+						                <th colspan="2"><strong>Indication</strong> : <input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>" maxlength="200" placeholder="Indication" name="indication"></td>
+						                <td colspan="2">Name Of Procedure : <?php echo $procedure_name; ?></td>
+						                <td colspan="2">Ecg  : <br>
+											<label><input type="radio"   value="Yes"  <?php if(isset($select_result['ecg']) && $select_result['ecg'] == "Yes"){echo 'checked="checked"'; }?>    name="ecg"> Yes</label>
+											<label><input type="radio"    value="No"  <?php if(isset($select_result['ecg']) && $select_result['ecg'] == "No"){echo 'checked="checked"'; }
+  											else if(isset($select_result['ecg']) && $select_result['ecg'] != "Yes"){echo 'checked="checked"';}?>   name="ecg"> No</label></td>
+									    <td colspan="1"> Echo : <br>
+											<label><input type="radio"   value="Yes"  <?php if(isset($select_result['echo']) && $select_result['echo'] == "Yes"){echo 'checked="checked"'; }?>    name="echo"> Yes</label>
+											<label><input type="radio"    value="No"  <?php if(isset($select_result['echo']) && $select_result['echo'] == "No"){echo 'checked="checked"'; }
+  											else if(isset($select_result['echo']) && $select_result['echo'] != "Yes"){echo 'checked="checked"';}?>   name="echo"> No</label></td>
+									
+									</tr>
+								<tr style="color: red;">
 									<td><b>OVARIAN PRP</b></td>
 									<td>Date<br><input   type="date" value="<?php echo isset($select_result['date'])?$select_result['date']:""; ?>"     name="date" class="form-control" ></td>
 									<td>Time<br><input   type="time" value="<?php echo isset($select_result['time'])?$select_result['time']:""; ?>"     name="time" class="form-control" ></td>
-									<td>Indication<br><input   type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"     maxlength="50" name="indication" class="form-control" ></td>
-									<td>Allergies<br><input   type="text" value="<?php echo isset($select_result['allergies'])?$select_result['allergies']:""; ?>"     maxlength="50" name="allergies" class="form-control" ></td>
+									<td colspan="2">Allergies<br><input   type="text" value="<?php echo isset($select_result['allergies'])?$select_result['allergies']:""; ?>"     maxlength="50" name="allergies" class="form-control" ></td>
 									<td>
 										Consent<br>
 										<label><input type="radio"  name="consent"  value="Yes"  <?php if(isset($select_result['consent']) && $select_result['consent'] == "Yes"){echo 'checked="checked"'; }?>   > Yes</label>
@@ -364,6 +390,15 @@
                 			</table>
 							
 							<table class="table-bordered" style="width:100%; border:1px solid #cdcdcd;">
+								<tr style="color: red;">
+		<th style="border:1px solid #cdcdcd;"  colspan="3"><strong>Indication</strong> : <?php echo isset($select_result['indication'])?$select_result['indication']:""; ?></td>
+		<td style="border:1px solid #cdcdcd;"  colspan="2">Name Of Procedure : <?php echo $procedure_name; ?></td>
+		<td  style="border:1px solid #cdcdcd;" colspan="1">Ecg  : <?php if(isset($select_result['ecg']) && $select_result['ecg'] == "Yes"){echo 'yes'; }?>
+		                       <?php if(isset($select_result['ecg']) && $select_result['ecg'] == "No"){echo 'no'; } ?></td>
+		<td  style="border:1px solid #cdcdcd;" colspan="1"> Echo : <br><?php if(isset($select_result['echo']) && $select_result['echo'] == "Yes"){echo 'yes'; }?>
+		   						<?php if(isset($select_result['echo']) && $select_result['echo'] == "No"){echo 'no'; } ?></td>
+									
+									</tr>
 								<tr style="color: red;">
 									<td style="border:1px solid #cdcdcd;"><b>OVARIAN PRP</b></td>
 									

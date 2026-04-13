@@ -142,7 +142,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
 	$select_result5 = run_select_query($sql5); 
 
-	$select_iui = "SELECT * FROM `intrauterine` WHERE patient_id='$patient_id'";
+	$select_iui = "SELECT * FROM `intrauterine` WHERE patient_id='$iic_id'";
     $select_result_iui = run_select_query($select_iui); 
 
 	  // 2. Define the 'is_complete' flag based on the result

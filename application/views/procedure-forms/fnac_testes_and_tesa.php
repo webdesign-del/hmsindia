@@ -47,6 +47,19 @@ if(isset($_POST['submit'])){
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);
+
+	$id = $procedure_id;
+	$query = $this->db->select('procedure_name')
+                  ->where('ID', $id)
+                  ->get('hms_procedures');
+
+	if ($query->num_rows() > 0) {
+		$row = $query->row();
+		$procedure_name = $row->procedure_name; // Yahan aapka name mil jayega
+	//	echo $procedure_name;
+	} else {
+		echo "Procedure not found";
+	}
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
@@ -98,11 +111,23 @@ if(isset($_POST['submit'])){
         				<div class = "table-responsive">
             				<table class="table table-bordered table-hover table-sm">
             					<thead>
+									<tr style="color: red;">
+						                <th colspan="2"><strong>Indication</strong> : <input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>" maxlength="200" placeholder="Indication" name="indication"></td>
+						                <td colspan="2">Name Of Procedure : <?php echo $procedure_name; ?></td>
+						                <td colspan="1">Ecg  : <br>
+											<label><input type="radio"   value="Yes"  <?php if(isset($select_result['ecg']) && $select_result['ecg'] == "Yes"){echo 'checked="checked"'; }?>    name="ecg"> Yes</label>
+											<label><input type="radio"    value="No"  <?php if(isset($select_result['ecg']) && $select_result['ecg'] == "No"){echo 'checked="checked"'; }
+  											else if(isset($select_result['ecg']) && $select_result['ecg'] != "Yes"){echo 'checked="checked"';}?>   name="ecg"> No</label></td>
+									    <td colspan="1"> Echo : <br>
+											<label><input type="radio"   value="Yes"  <?php if(isset($select_result['echo']) && $select_result['echo'] == "Yes"){echo 'checked="checked"'; }?>    name="echo"> Yes</label>
+											<label><input type="radio"    value="No"  <?php if(isset($select_result['echo']) && $select_result['echo'] == "No"){echo 'checked="checked"'; }
+  											else if(isset($select_result['echo']) && $select_result['echo'] != "Yes"){echo 'checked="checked"';}?>   name="echo"> No</label></td>
+									
+									</tr>
 					                <tr style="color: red;">
 						                <th><strong>FNAC TESTES AND TESA</strong></th>
 						                <td>Date <input  type="date" value="<?php echo isset($select_result['date'])?$select_result['date']:""; ?>"     name="date"></td>
 						                <td>Time <input  type="time" value="<?php echo isset($select_result['time'])?$select_result['time']:""; ?>"     name="time"></td>
-						                <td>Indication <input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"     maxlength="50" placeholder="Indication" name="indication"></td>
 						                <td>ALLERGIES <input  type="text" value="<?php echo isset($select_result['allergy_yes'])?$select_result['allergy_yes']:""; ?>"     maxlength="50" placeholder="ALLERGIES" name="allergy_yes"></td>
 										<td>
 											Consent<br>
@@ -118,8 +143,7 @@ if(isset($_POST['submit'])){
 										</td>
 					                </tr>
 						            <tr style="color: red;">
-						              	<th><strong>PRE ASSESSMENT</strong></th>
-						              	<td>BP <input  type="text" value="<?php echo isset($select_result['afc_left'])?$select_result['afc_left']:""; ?>"     maxlength="20" name="bp"></td>
+						              	<td>BP <input  type="text" value="<?php echo isset($select_result['bp'])?$select_result['bp']:""; ?>"     maxlength="20" name="bp"></td>
 						              	<td>
 						              		PULSE<br>
 											<label><input type="radio"   value="Yes"  <?php if(isset($select_result['pulse']) && $select_result['pulse'] == "Yes"){echo 'checked="checked"'; }?>    name="pulse"> Yes</label>
@@ -160,7 +184,7 @@ if(isset($_POST['submit'])){
 											<label><input type="radio"    value="No"  <?php if(isset($select_result['denture']) && $select_result['denture'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['denture']) && $select_result['denture'] != "Yes"){echo 'checked="checked"';}?>   name="denture"> No</label>
 										</td>
-						              	<td colspan="2">
+						              	<td>
 						              		Dental bridge<br>
 											<label><input type="radio"   value="Yes"  <?php if(isset($select_result['dental_bridge']) && $select_result['dental_bridge'] == "Yes"){echo 'checked="checked"'; }?>    name="dental_bridge"> Yes</label>
 											<label><input type="radio"    value="No"  <?php if(isset($select_result['dental_bridge']) && $select_result['dental_bridge'] == "No"){echo 'checked="checked"'; }
@@ -317,31 +341,39 @@ if(isset($_POST['submit'])){
         			<ul class="d-flex mb-1 mt-2 list-unstyled">
         			
    <table class="table table-bordered table-hover table-sm" style="width:100%; border:1px solid #cdcdcd;">
-     <thead>
-	 <tr style="color: red;">
-	 <th  style="border:1px solid #cdcdcd;" > <strong>FNAC TESTES/TESA/TESE/MICRO TESE</strong></th>
-	  <td  style="border:1px solid #cdcdcd;" >Date <?php echo isset($select_result['date'])?$select_result['date']:""; ?></td>
-	 <td  style="border:1px solid #cdcdcd;" >Time <?php echo isset($select_result['time'])?$select_result['time']:""; ?>     </td>
-<td  style="border:1px solid #cdcdcd;" >Indication <?php echo isset($select_result['indication'])?$select_result['indication']:""; ?></td>
- <td  style="border:1px solid #cdcdcd;" >ALLERGIES <?php echo isset($select_result['allergy_yes'])?$select_result['allergy_yes']:""; ?></td>
-<td  style="border:1px solid #cdcdcd;" >Consent<br>
+    <thead>
+	<tr style="color: red;">
+		<th style="border:1px solid #cdcdcd;"  colspan="3"><strong>Indication</strong> : <?php echo isset($select_result['indication'])?$select_result['indication']:""; ?></td>
+		<td style="border:1px solid #cdcdcd;"  colspan="2">Name Of Procedure : <?php echo $procedure_name; ?></td>
+		<td  style="border:1px solid #cdcdcd;" colspan="1">Ecg  : <?php if(isset($select_result['ecg']) && $select_result['ecg'] == "Yes"){echo 'yes'; }?>
+		                       <?php if(isset($select_result['ecg']) && $select_result['ecg'] == "No"){echo 'no'; } ?></td>
+		<td  style="border:1px solid #cdcdcd;" colspan="1"> Echo : <br><?php if(isset($select_result['echo']) && $select_result['echo'] == "Yes"){echo 'yes'; }?>
+		   						<?php if(isset($select_result['echo']) && $select_result['echo'] == "No"){echo 'no'; } ?></td>
+									
+									</tr>
+	<tr style="color: red;">
+	<th  style="border:1px solid #cdcdcd;" colspan="2"> <strong>FNAC TESTES/TESA/TESE/MICRO TESE</strong></th>
+	<td  style="border:1px solid #cdcdcd;" >Date <?php echo isset($select_result['date'])?$select_result['date']:""; ?></td>
+	<td  style="border:1px solid #cdcdcd;" >Time <?php echo isset($select_result['time'])?$select_result['time']:""; ?>     </td>
+	<td  style="border:1px solid #cdcdcd;" >ALLERGIES <?php echo isset($select_result['allergy_yes'])?$select_result['allergy_yes']:""; ?></td>
+	<td  style="border:1px solid #cdcdcd;" >Consent<br>
 
 										
 	<?php if(isset($select_result['consent']) && $select_result['consent'] == "Yes"){echo 'yes'; }?>
-									
+	<?php if(isset($select_result['consent']) && $select_result['consent'] == "No"){echo 'no'; }?>								
 										
 										</td>
 										<td  style="border:1px solid #cdcdcd;" >
 											ID <br>
 								
 <?php if(isset($select_result['id_checked']) && $select_result['id_checked'] == "Yes"){echo 'yes'; }?>
-
+<?php if(isset($select_result['id_checked']) && $select_result['id_checked'] == "No"){echo 'no'; }?>
 
 									</td>
 					                </tr>
 						            <tr style="color: red;">
 						              	<th  style="border:1px solid #cdcdcd;" ><strong>PRE ASSESSMENT</strong></th>
-<td  style="border:1px solid #cdcdcd;" > BP <?php echo isset($select_result['afc_left'])?$select_result['afc_left']:""; ?></td>
+<td  style="border:1px solid #cdcdcd;" > BP <?php echo isset($select_result['bp'])?$select_result['bp']:""; ?></td>
 						              	<td  style="border:1px solid #cdcdcd;" >
 						              		PULSE<br>
 															
@@ -350,12 +382,12 @@ if(isset($_POST['submit'])){
 								</td>
 						              	<td  style="border:1px solid #cdcdcd;" >
 						              		RESP<br>
-										
+	<?php if(isset($select_result['resp']) && $select_result['resp'] == "No"){echo 'no'; }?>									
 <?php if(isset($select_result['resp']) && $select_result['resp'] == "Yes"){echo 'yes'; }?>
 	</td>
 						              	<td  style="border:1px solid #cdcdcd;" >
 						              		VOIDED<br>
-										
+		<?php if(isset($select_result['voided']) && $select_result['voided'] == "No"){echo 'no'; }?>								
 		<?php if(isset($select_result['voided']) && $select_result['voided'] == "Yes"){echo 'yes'; }?>
 					</td>
 	<td  style="border:1px solid #cdcdcd;" >HT (Cms)<?php echo isset($select_result['afc_left'])?$select_result['afc_left']:""; ?></td>
@@ -366,31 +398,32 @@ if(isset($_POST['submit'])){
 						              		Glasses<br>
 												
 <?php if(isset($select_result['glasses']) && $select_result['glasses'] == "Yes"){echo 'yes'; }?>
-
+<?php if(isset($select_result['glasses']) && $select_result['glasses'] == "No"){echo 'no'; }?>
 
 									</td>
 						              	<td  style="border:1px solid #cdcdcd;" >
 						              		Contacts<br>
 	<?php if(isset($select_result['contacts']) && $select_result['contacts'] == "Yes"){echo 'yes'; }?>
-
+	<?php if(isset($select_result['contacts']) && $select_result['contacts'] == "No"){echo 'no'; }?>
 									</td>
 						              	<td  style="border:1px solid #cdcdcd;" >
 						              		Denture<br>
 										
 <?php if(isset($select_result['denture']) && $select_result['denture'] == "Yes"){echo 'yes'; }?>
-
+<?php if(isset($select_result['denture']) && $select_result['denture'] == "No"){echo 'no'; }?>
 									</td>
-						              	<td  colspan="2"  style="border:1px solid #cdcdcd;" >
+						              	<td style="border:1px solid #cdcdcd;" >
 						              		Dental bridge<br>
 									
 <?php if(isset($select_result['dental_bridge']) && $select_result['dental_bridge'] == "Yes"){echo 'yes'; }?>
+<?php if(isset($select_result['dental_bridge']) && $select_result['dental_bridge'] == "No"){echo 'no'; }?>
 
 									</td>
-						              	<td  style="border:1px solid #cdcdcd;" >
+						              	<td colspan="2" style="border:1px solid #cdcdcd;" >
 						              		Valuables with escort<br>
 									
 <?php if(isset($select_result['valuables_with_escort']) && $select_result['valuables_with_escort'] == "Yes"){echo 'yes'; }?>
-
+<?php if(isset($select_result['valuables_with_escort']) && $select_result['valuables_with_escort'] == "No"){echo 'no'; }?>
 									</td>
 	<td  style="border:1px solid #cdcdcd;" >Last meal <?php echo isset($select_result['last_meal'])?$select_result['last_meal']:""; ?> </td>
 						            </tr>
