@@ -44,44 +44,7 @@ foreach ($procedure_list as $proc) {
         "</option>";
 }
 ?>
-<style>
-@media print {
-    /* Hide non-essential elements like buttons and the Action column  */
-    .no-print, .btn, .select2-container, #last_counter_value, button, 
-    th:last-child, td:last-child {
-        display: none !important;
-    }
 
-    /* Maintain table borders and layout as seen in the ledger [cite: 8, 11, 14] */
-    table {
-        border-collapse: collapse !important;
-        width: 100% !important;
-    }
-    
-    th, td {
-        border: 1px solid #000 !important;
-        padding: 8px !important;
-        font-size: 12px !important;
-    }
-
-    /* Force background colors (Min Price/Discount %) to appear in the PDF [cite: 13, 17] */
-    input, td, tr {
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-
-    /* Make inputs look like flat text for the final document [cite: 3] */
-    input.form-control {
-        border: none !important;
-        background: transparent !important;
-        width: auto !important;
-    }
-}
-</style>
-
-<button type="button" onclick="window.print();" class="btn btn-primary no-print">
-   <i class="fa fa-print"></i> Print PDF
-</button>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <div class="card">
    <div class="card-content">
