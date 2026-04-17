@@ -197,7 +197,7 @@
    <div class="row">
       <div class="col-sm-12 col-xs-12 panel panel-piluku" id="consultation_details">
          <div class="panel-heading">
-            <h3 class="heading">Billing Details</h3>
+            <h3 class="heading">Billing Details </h3>
             <p style="margin-top:20px;color:red;">Wallets Amount : <a href="<?php echo base_url(); ?>patients/edit/<?php echo $billing_details['patient_id']; ?>"><?php echo $balance; ?></a></p>
          </div>
          <div class="panel-body profile-edit">

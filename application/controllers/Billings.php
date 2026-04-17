@@ -2320,33 +2320,6 @@ public function procedure_billings(){
 			die();
 		}
 	}
-
-	/*public function procedure_package($ID) {
-		$logg = checklogin();
-		if ($logg['status'] !== true) {
-			redirect(base_url());
-			exit;
-		}
-		$data = array();
-		$data['data'] = $this->billings_model->get_transfer_data($ID);
-		if (isset($_POST['action']) && $_POST['action'] === 'add_product') {
-			unset($_POST['action']);
-			$result = $this->billings_model->add_product($_POST);
-			if ($result > 0) {
-				$message = base64_encode('Product added successfully!');
-				$type = base64_encode('success');
-			} else {
-				$message = base64_encode('Something went wrong!');
-				$type = base64_encode('error');
-			}
-			redirect(base_url("billings/procedure_package/$ID"));
-			exit;
-		}
-		$template = get_header_template($logg['role']);
-		$this->load->view($template['header']);
-		$this->load->view('billings/procedure_package', $data);
-		$this->load->view($template['footer']);
-	}*/
 	
 // --- 1. MAIN INVOICE FUNCTION (Saves data and triggers Mail) ---
     public function forma_invoice($ID) {

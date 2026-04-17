@@ -47,11 +47,42 @@
          <div class="row">            
            <div class="form-group col-sm-6 col-xs-12">
                 <label for="item_name">Wife Phone</label>
-				 <?php if($_SESSION['logged_counselor']){?>
-				<p><?php echo $patient_data['wife_phone']; ?></p>
-				 <?php }else{ ?>
-				 <p><?php echo sting_masking($patient_data['wife_phone']); ?></p>
-				 <?php } ?>
+				<?php 
+// 1. Pehle check karein ki Patient ID empty toh nahi hai
+if (!empty($patient_data['patient_id'])) {
+    
+    // Agar aapko database se fresh data nikalna hai toh:
+    $p_id = $patient_data['patient_id'];
+    $query = $this->db->query("SELECT wife_phone FROM hms_patient_medical_info WHERE patient_id = '$p_id'");
+    $medical_info = $query->row_array();
+
+    // 2. Counselor Login Check
+    if (isset($_SESSION['logged_counselor']) && !empty($_SESSION['logged_counselor'])) { 
+        ?>
+        <p>
+            <strong>Mobile No:</strong> 
+            <?php 
+                // Pehle medical_info check karein, agar wahan nahi hai toh patient_data se lein
+                if (!empty($medical_info['wife_phone'])) {
+                    echo $medical_info['wife_phone'];
+                } elseif (!empty($patient_data['wife_phone'])) {
+                   // echo $patient_data['wife_phone'];
+                } else {
+                    echo 'N/A';
+                }
+            ?>
+        </p>
+        <?php 
+    } else {
+        // Counselor login nahi hai
+        echo "<p><strong>Mobile No:</strong> <em>Hidden (Counselor login required)</em></p>";
+    }
+
+} else {
+    // Agar Patient ID hi nahi hai toh mobile_no variable empty rakhein
+    $mobile_no = "";
+} 
+?>
            </div>
            
            <div class="form-group col-sm-6 col-xs-12">

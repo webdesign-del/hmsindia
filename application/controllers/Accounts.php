@@ -15,6 +15,7 @@ class Accounts extends CI_Controller {
 		$this->load->model('billings_model');
 		$this->load->helper('billing');
 		$this->load->model('procedures_model');
+		$this->load->model('Wallet_model');
 		$this->load->model('Purchase_order_model');
 		$this->load->model('billingmodel_model');
 		$this->load->model('center_model');
@@ -7167,33 +7168,6 @@ function consultation_wallet($receipt_number){
 
 	}
 
-	public function wallet_balance($paitent_id)
-	{
-		$logg = checklogin();
-		if($logg['status'] == true){
-			
-			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'wallet_balance'){
-				unset($_POST['action']);
-				$data = $this->accounts_model->balancereturn_insert($_POST);
-				if($data > 0){
-					header("location:" .base_url(). "accounts/wallet_balance?m=".base64_encode('Item added successfully !').'&t='.base64_encode('success'));
-					die();
-				}else{
-					header("location:" .base_url(). "accounts/wallet_balance?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
-					die();
-				}				
-			}
-			$data = array();
-			$template = get_header_template($logg['role']);
-			$data['patient_data'] = get_patient_detail($paitent_id);
-			$this->load->view($template['header']);
-			$this->load->view('accounts/wallet_balance', $data);
-			$this->load->view($template['footer']);
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}
 
 	public function wallet_list(){
 		$logg = checklogin();
@@ -11848,6 +11822,182 @@ public function export_patient_journey() {
     fclose($fp);
     exit;
 }
+
+/******** Wallet ***** */
+
+	public function wallet_balance($paitent_id)
+	{
+		$logg = checklogin();
+		if($logg['status'] == true){
+			
+			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'wallet_balance'){
+				unset($_POST['action']);
+				$data = $this->accounts_model->balancereturn_insert($_POST);
+				if($data > 0){
+					header("location:" .base_url(). "accounts/wallet_balance?m=".base64_encode('Item added successfully !').'&t='.base64_encode('success'));
+					die();
+				}else{
+					header("location:" .base_url(). "accounts/wallet_balance?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+					die();
+				}				
+			}
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$data['patient_data'] = get_patient_detail($paitent_id);
+			$data['wallets'] = $this->Wallet_model->get_wallets($paitent_id);
+			$data['paitent_id'] = $paitent_id;
+			$this->load->view($template['header']);
+			$this->load->view('accounts/wallet_balance', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
+	public function add_money_to_w1() {
+		$p_id = $this->input->post('patient_id');
+		$amt  = (float)$this->input->post('amount');
+		$mode = $this->input->post('mode');
+		$user = $this->session->userdata('user_id');
+		$screenshot_name = ""; // Default empty
+
+		// 1. Image Upload Logic
+		if (!empty($_FILES['screenshot']['name'])) {
+			$config['upload_path']   = './uploads/wallet_screenshots/';
+			$config['allowed_types'] = 'jpg|jpeg|png|gif';
+			$config['file_name']     = 'WLT_' . time() . '_' . $p_id;
+
+			$this->load->library('upload', $config);
+
+			// Folder create karein agar nahi hai
+			if (!is_dir($config['upload_path'])) {
+				mkdir($config['upload_path'], 0777, TRUE);
+			}
+
+			if ($this->upload->do_upload('screenshot')) {
+				$uploadData = $this->upload->data();
+				$screenshot_name = $uploadData['file_name']; // File ka naam variable mein aaya
+			} else {
+				// Agar upload fail ho toh error dekhein (Debugging ke liye)
+				// echo $this->upload->display_errors(); die();
+			}
+		}
+
+		// 2. Model call karte waqt screenshot_name ZAROOR bhejein
+		$this->load->model('Wallet_model');
+		$status = $this->Wallet_model->deposit_w1($p_id, $amt, $mode, $user, $screenshot_name);
+
+		if($status) {
+			$this->session->set_flashdata('success', 'Amount Deposited Successfully');
+		}
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+	public function transfer_wallet_money() {
+		$patient_id = $this->input->post('patient_id');
+		$amount = (float)$this->input->post('amount');
+		$remarks = $this->input->post('remarks');
+		$user_id = $this->session->userdata('user_id'); // Current employee
+
+		if ($amount <= 0) {
+			$this->session->set_flashdata('error', 'Invalid amount.');
+			redirect($_SERVER['HTTP_REFERER']);
+		}
+
+		// Call Model Function
+		$result = $this->Wallet_model->move_money_w1_to_w2($patient_id, $amount, $remarks, $user_id);
+
+		if ($result === true) {
+			$this->session->set_flashdata('success', 'Money transferred to Wallet B.');
+		} else {
+			$this->session->set_flashdata('error', $result); // Error message like 'Insufficient Balance'
+		}
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+	public function check_balance($patient_id) {
+		$logg = checklogin();
+		if($logg['status'] == true){		
+			$data = array();
+			$template = get_header_template($logg['role']);
+		
+		// 1. Current Balances fetch karein
+		 $wallets = $this->Wallet_model->get_wallets($patient_id);
+		
+		// 2. Transaction History fetch karein
+		$data['wallets'] = $wallets;
+    	$data['history'] = $this->Wallet_model->get_wallet_history($patient_id);
+    	$data['patient_id'] = $patient_id;
+
+		// 3. View load karein
+		
+		$this->load->view($template['header']);
+		$this->load->view('accounts/wallet_history_view', $data);
+		$this->load->view($template['footer']);
+	}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
+	public function deduct_wallet_money() {
+		$p_id = $this->input->post('patient_id');
+		$amt  = (float)$this->input->post('amount');
+		$procedure = $this->input->post('procedure');
+		$user = $this->session->userdata('user_id');
+
+		$this->load->model('Wallet_model');
+		$result = $this->Wallet_model->use_wallet_money($p_id, $amt, $procedure, $user);
+
+		if ($result === true) {
+			$this->session->set_flashdata('success', 'Amount deducted successfully.');
+		} else {
+			$this->session->set_flashdata('error', $result);
+		}
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+	public function approve_wallet_transfer($log_id) {
+		// 1. Log se details nikalein
+		$log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id])->row_array();
+		
+		if($log && $log['status'] == 'pending') {
+			$p_id = $log['patient_id'];
+			$amt = $log['amount'];
+			
+			$wallets = $this->Wallet_model->get_wallets($p_id);
+			
+			// 2. Balance update karein (B se minus, A mein plus)
+			$this->db->where('patient_id', $p_id)->update('hms_patient_wallets', [
+				'wallet_1_balance' => $wallets['wallet_1_balance'] + $amt,
+				'wallet_2_balance' => $wallets['wallet_2_balance'] - $amt
+			]);
+			
+			// 3. Status 'approved' karein
+			$this->db->where('log_id', $log_id)->update('hms_wallet_logs', ['status' => 'approved']);
+			
+			$this->session->set_flashdata('success', 'Transfer Approved Successfully');
+		}
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+	public function request_w2_to_w1() {
+		$p_id = $this->input->post('patient_id');
+		$amt  = (float)$this->input->post('amount');
+		$rem  = $this->input->post('remarks');
+		$user = $this->session->userdata('user_id');
+
+		$this->load->model('Wallet_model');
+		$result = $this->Wallet_model->request_transfer_2_to_1($p_id, $amt, $rem, $user);
+
+		if ($result === true) {
+			$this->session->set_flashdata('success', 'Transfer request sent to Accountant.');
+		} else {
+			$this->session->set_flashdata('error', $result);
+		}
+		redirect($_SERVER['HTTP_REFERER']);
+	}
 
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 

@@ -8,6 +8,152 @@
     $balance = $w['balance']; 
 ?>
 
+ <?php $all_method = &get_instance(); ?>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9;">
+                <div class="card-body">
+                    <h6 class="text-success font-weight-bold">WALLET A (MAIN/ADVANCE)</h6>
+                    <h2 class="display-5">₹ <?php echo number_format($wallets['wallet_1_balance'], 2); ?></h2>
+                    <button type="button" class="btn btn-success btn-sm mt-2" data-toggle="modal" data-target="#addMoneyModal">+ Add Money</button>
+                    <button type="button" class="btn btn-warning btn-sm text-white mt-2" data-toggle="modal" data-target="#transferModal">⇆ Transfer from Wallet A</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2;">
+                <div class="card-body">
+                    <h6 class="text-warning font-weight-bold">WALLET B (PROCEDURE/USAGE)</h6>
+                    <h2 class="display-5">₹ <?php echo number_format($wallets['wallet_2_balance'], 2); ?></h2>
+                    <button type="button" class="btn btn-outline-warning btn-sm mt-2" data-toggle="modal" data-target="#transferBackModal">⇆ Transfer back to Wallet A</button>
+                <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#useMoneyModal">Redeem for Procedure</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="useMoneyModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="<?php echo base_url('accounts/deduct_wallet_money'); ?>" method="POST">
+                <div class="modal-header bg-danger text-white"><h5>Use Procedure Wallet (B)</h5></div>
+                <div class="modal-body">
+                    <input type="hidden" name="patient_id" value="<?php echo $paitent_id; ?>">
+                    <div class="form-group">
+                        <label>Redeem Amount (₹)</label>
+                        <input type="number" name="amount" class="form-control" max="<?php echo $wallets['wallet_2_balance']; ?>" required>
+                        <small class="text-muted">Available in Wallet B: ₹<?php echo $wallets['wallet_2_balance']; ?></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Procedure/Service Name</label>
+                        <input type="text" name="procedure" class="form-control" placeholder="e.g. IVF Injection Fee" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Confirm Deduction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="transferModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="<?php echo base_url('accounts/transfer_wallet_money'); ?>" method="POST">
+                <div class="modal-header bg-warning text-white">
+                    <h5 class="modal-title">Internal Wallet Transfer</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="patient_id" value="<?php echo $paitent_id; ?>">
+                    <div class="form-group">
+                        <label>Amount to Transfer</label>
+                        <input type="number" name="amount" class="form-control" max="<?php echo $wallets['wallet_1_balance']; ?>" required placeholder="0.00">
+                        <small class="text-danger font-weight-bold">Available in A: ₹<?php echo number_format($wallets['wallet_1_balance'], 2); ?></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Purpose/Remarks</label>
+                        <textarea name="remarks" class="form-control" rows="2" placeholder="e.g. Move money for IVF Cycle"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning text-white">Confirm Transfer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="transferBackModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="<?php echo base_url('accounts/request_w2_to_w1'); ?>" method="POST">
+                <div class="modal-header bg-primary text-white"><h5>Transfer B to A (Wallet 2 to 1)</h5></div>
+                <div class="modal-body">
+                    <input type="hidden" name="patient_id" value="<?php echo $paitent_id; ?>">
+                    <div class="form-group">
+                        <label>Amount to Transfer Back</label>
+                        <input type="number" name="amount" class="form-control" max="<?php echo $wallets['wallet_2_balance']; ?>" required>
+                        <small>Available in B: ₹<?php echo $wallets['wallet_2_balance']; ?></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Reason for Transfer Back</label>
+                        <textarea name="remarks" class="form-control" required></textarea>
+                    </div>
+                    <p class="text-danger small">*This transfer requires Accountant Approval.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Send Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addMoneyModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="<?php echo base_url('accounts/add_money_to_w1'); ?>" method="POST" enctype="multipart/form-data">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title text-white">Deposit to Main Wallet</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="patient_id" value="<?php echo $paitent_id; ?>">
+                    <div class="form-group">
+                        <label>Deposit Amount</label>
+                        <input type="number" name="amount" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Mode</label>
+                        <select name="mode" class="form-control">
+                            <option value="Cash">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Upload Screenshot (Optional)</label>
+                        <input type="file" name="screenshot" class="form-control" accept="image/*">
+                        <small class="text-muted">Max size: 2MB (JPG/PNG)</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Add Amount</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 <div class="row" style="margin-top: 20px;">
     <div class="col-md-6">
         <div class="well" style="background: #ecf0f5; border-left: 5px solid #00a65a;">
@@ -240,4 +386,34 @@ function checkTotalAmount() {
         btn.disabled = false;
     }
 }
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    console.log("Wallet Script Initialized");
+
+    // Manual click handler
+    $(document).on('click', '.btn-open-modal', function(e) {
+        e.preventDefault();
+        var modalId = $(this).attr('data-id');
+        
+        console.log("Attempting to open modal: " + modalId);
+        
+        // Modal ko open karne ke teen alag tarike (Force backup)
+        try {
+            $('#' + modalId).modal('show');
+        } catch (err) {
+            console.log("Bootstrap Modal Error, trying alternative...");
+            $('#' + modalId).addClass('in').css('display', 'block').show();
+            $('body').append('<div class="modal-backdrop fade in"></div>');
+        }
+    });
+
+    // Close buttons ke liye
+    $(document).on('click', '[data-dismiss="modal"]', function() {
+        $('.modal').modal('hide').hide();
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open');
+    });
+});
 </script>
