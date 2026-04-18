@@ -1221,6 +1221,8 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
 
     $this->db->where("mcs.medicine_id", $medicine_id);
 
+    $this->db->where("mcs.department", $po_department);
+
         // ✅ ADD THIS
     if (!empty($center_id)) {
         $this->db->where("mcs.center_id", $center_id);
