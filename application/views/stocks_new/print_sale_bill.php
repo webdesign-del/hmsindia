@@ -180,7 +180,13 @@
                     <p><strong>Bill No:</strong> <?php echo htmlspecialchars($sale->sale_number); ?></p>
                     <p><strong>Date:</strong> <?php echo date('d-M-Y', strtotime($sale->sale_date)); ?></p>
                     <p><strong>Time:</strong> <?php echo date('h:i A', strtotime($sale->sale_time)); ?></p>
-                    <p><strong>Doctor:</strong> <?php echo htmlspecialchars($sale->doctor_name ?? 'N/A'); ?></p>
+                    <?php if (isset($center_details->center_number) && $center_details->center_number == "16266778858144"): ?>
+    <p>
+        <strong>Doctor:</strong> 
+        <?php echo htmlspecialchars($sale->doctor_name ?? 'N/A'); ?>
+    </p>
+<?php else: ?>
+    <?php endif; ?>
                 </div>
             </div>
         </div>
