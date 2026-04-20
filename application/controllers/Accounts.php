@@ -3520,7 +3520,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 4: REGISTRATION SALES
     // =========================================================================
-    $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
+   /* $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
         bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_registation');
@@ -3556,7 +3556,7 @@ foreach($ret_grouped as $return) {
                 'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
             ]]
         ];
-    }
+    } */
 
     // =========================================================================
     // PART 5: INVESTIGATION SALES
