@@ -129,7 +129,12 @@
                                                         <i class="fa fa-stethoscope"></i>
                                                     </a>
                                                 <?php } ?>
-                                                <?php if($vl['package_suggestion'] == 1) { ?>
+                                                 <?php if ($vl['status'] == '3') { ?>
+                                                   <button type="button" class="btn btn-warning btn-xs" onclick="changeConsultationStatus(<?php echo $vl['ID']; ?>)" title="Change Status">
+                                                        <i class="fa fa-refresh"></i> 
+                                                    </button>
+                                                     <?php } ?>
+                                                    <?php if($vl['package_suggestion'] == 1) { ?>
                                                     <a href="<?php echo base_url().'billings/procedure_package/'; ?><?php echo $vl['ID']; ?>" class="btn btn-info btn-xs" target="_blank" title="Package">
                                                         <i class="fa fa-cube"></i>
                                                     </a>
@@ -457,6 +462,8 @@ if (isset($data['consumables']) && is_array($data['consumables'])) {
                                     <td class="text-center">
                                         <?php if ($vl['status'] == '1') { ?>
                                             <span class="label label-success">Approved</span>
+                                        <?php } elseif($vl['status'] == '3') { ?>
+                                          <span class="label label-success">Reject</span>
                                         <?php } else { ?>
                                             <span class="label label-warning">Pending</span>
                                         <?php } ?>
@@ -574,7 +581,32 @@ if (isset($data['consumables']) && is_array($data['consumables'])) {
         </table>
     </div>
 </div>
-
+<script>
+function changeConsultationStatus(id) {
+    if(confirm("Are you sure you want to change the status?")) {
+        $.ajax({
+            url: '<?php echo base_url("billings/update_consultation_status"); ?>',
+            type: 'POST',
+            data: { id: id },
+            dataType: 'json',
+            success: function(response) {
+                if(response.status === 'success') {
+                    // Success message dikhayein
+                    alert('Status changed successfully to: ' + response.new_status);
+                    
+                    // Page ko reload karein taaki naya status table mein dikhe
+                    location.reload(); 
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Something went wrong. Please try again.');
+            }
+        });
+    }
+}
+</script>
 <script>
 $(document).ready(function() {
     // Date picker initialization

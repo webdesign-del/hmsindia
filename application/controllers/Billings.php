@@ -24,49 +24,6 @@ class Billings extends CI_Controller {
 		$this->load->library("pagination");
 	}	
 
-/*	public function billings(){
-		$data = array();
-		$logg = checklogin();
-		if($logg['status'] == true){
-			$data = $data_arr = array();
-				
-			$data = $this->billings_model->get_billings_list();
-			$data_arr['consultation_result'] = $data['consultation_result'];
-			$data_arr['investigate_result'] = $data['investigate_result'];
-			$data_arr['procedure_result'] = $data['procedure_result'];
-			
-			$template = get_header_template($logg['role']);		
-			$this->load->view($template['header']);
-			$this->load->view('billings/billings_request', $data_arr);
-			$this->load->view($template['footer']);
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}
-	
-public function all_billings(){
-		$data = array();
-		$logg = checklogin();
-		if($logg['status'] == true){
-			$data = $data_arr = array();
-				
-			$data = $this->billings_model->get_billings_list();
-			$data_arr['consultation_result'] = $data['consultation_result'];
-			$data_arr['investigate_result'] = $data['investigate_result'];
-			$data_arr['procedure_result'] = $data['procedure_result'];
-			
-			$template = get_header_template($logg['role']);
-			$this->load->view($template['header']);
-			$this->load->view('billings/all_billings', $data_arr);
-			$this->load->view($template['footer']);
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}	
-*/	
-
 public function consultation_billings(){
 		$logg = checklogin();
 		error_reporting(0);
@@ -1409,96 +1366,6 @@ public function procedure_billings(){
 		die;
 	}
 		
-	/*function ajax_center_billing_filter(){
-		if($_POST['type'] == 'billing_from'){
-			$center = $_SESSION['logged_billing_manager']['center'];
-			$billing_from = $_POST['billing_from'];
-			$data = $this->billings_model->ajax_center_billing_from_data($billing_from, $center);
-		}else if($_POST['type'] == 'date_wise'){
-			$center = $_SESSION['logged_billing_manager']['center'];
-			$start = $_POST['start'];
-			$end = $_POST['end'];
-			$data = $this->billings_model->ajax_center_billing_date_data($start, $end, $center);
-		}else{
-			$response = array('consultant_html'=>"", 'investigation_html'=>"", 'procedure_html' => "", 'result'=> 0);
-			echo json_encode($response);
-			die;
-		}
-		//var_dump($data);die;
-		
-		if(!empty($data['consultation_result']) || !empty($data['investigate_result']) || !empty($data['procedure_result'])){
-			$consultant_html = $investigation_html = $procedure_html = "";
-			if(!empty($data['consultation_result'])){
-				$count=1; 
-				foreach($data['consultation_result'] as $ky => $vl){                
-					$patient_name = $this->get_patient_name($vl['patient_id']);
-					$consultant_html .= '<tr class="odd gradeX">
-										  <td>'.$count.'</td>
-										  <td><a href="'.base_url().'accounts/details/'.$vl['receipt_number'].'?t=consultation">'.$vl['receipt_number'].'</a></td>
-										  <td><a href="'.base_url().'accounts/patient_details/'.$vl['patient_id'].'">'.$vl['patient_id'].'</a></td>
-										  <td>'.strtoupper($patient_name).'</td>
-										  <td>'.$vl['fees'].'</td>
-										  <td>'.$vl['on_date'].'</td>
-										  <td>'.ucwords($vl['status']).'';
-										  if($vl['status'] == 'disapproved'){
-										  	$consultant_html .= ' <i class="fa fa-exclamation-circle" aria-hidden="true" title="'.$vl['reason_of_disapprove'].'"></i>
-										  							<a href="'.base_url().'billings/disapproved/'.$vl['receipt_number'].'?t=consultation" class="btn btn-large">edit billing</a>';
-										  }
-										$consultant_html .= '</td></tr>';
-					$count++;
-              	}
-			}
-			if(!empty($data['investigate_result'])){
-				$count=1; 
-				foreach($data['investigate_result'] as $ky => $vl){                
-					$patient_name = $this->get_patient_name($vl['patient_id']);
-					$investigation_html .= '<tr class="odd gradeX">
-										  <td>'.$count.'</td>
-										  <td><a href="'.base_url().'accounts/details/'.$vl['receipt_number'].'?t=investigation">'.$vl['receipt_number'].'</a></td>
-										  <td><a href="'.base_url().'accounts/patient_details/'.$vl['patient_id'].'">'.$vl['patient_id'].'</a></td>
-										  <td>'.strtoupper($patient_name).'</td>
-										  <td>'.$vl['fees'].'</td>
-										  <td>'.$vl['on_date'].'</td>                  
-										  <td>'.ucwords($vl['status']).'';
-										  if($vl['status'] == 'disapproved'){
-										  	$investigation_html .= ' <i class="fa fa-exclamation-circle" aria-hidden="true" title="'.$vl['reason_of_disapprove'].'"></i>
-										  			<a href="'.base_url().'billings/disapproved/'.$vl['receipt_number'].'?t=investigation" class="btn btn-large">edit billing</a>';
-										  }
-										$investigation_html .= '</td></tr>';            	
-					$count++;
-              	}
-			}
-			if(!empty($data['procedure_result'])){
-				$count=1; 
-				foreach($data['procedure_result'] as $ky => $vl){                
-					$patient_name = $this->get_patient_name($vl['patient_id']);
-					$procedure_parent = $this->get_procedure_name($vl['procedure_parent']);
-					$procedure_html .= '<tr class="odd gradeX">
-										  <td>'.$count.'</td>
-										  <td><a href="'.base_url().'accounts/details/'.$vl['receipt_number'].'?t=procedure">'.$vl['receipt_number'].'</a></td>
-										  <td><a href="'.base_url().'accounts/patient_details/'.$vl['patient_id'].'">'.$vl['patient_id'].'</a></td>
-										  <td>'.strtoupper($patient_name).'</td>
-										  <td>'.$vl['fees'].'</td>
-										  <td>'.$vl['on_date'].'</td>
-										  <td>'.ucwords($vl['status']).'';
-										  if($vl['status'] == 'disapproved'){
-										  	$procedure_html .= ' <i class="fa fa-exclamation-circle" aria-hidden="true" title="'.$vl['reason_of_disapprove'].'"></i>
-										  							<a href="'.base_url().'billings/disapproved/'.$vl['receipt_number'].'?t=procedure" class="btn btn-large">edit billing</a>';
-										  }
-										$procedure_html .= '</td></tr>';
-					$count++;
-              	}
-			}
-			
-			$response = array('consultant_html'=>$consultant_html, 'investigation_html'=>$investigation_html, 'procedure_html' => $procedure_html);
-			echo json_encode($response);
-			die;
-		}else{
-			$response = array('consultant_html'=>"", 'investigation_html'=>"", 'procedure_html' => "", 'result'=> 0);
-			echo json_encode($response);
-			die;
-		}
-	}*/
 
 	function ajax_accounts_billing_filter(){
 		if($_POST['type'] == 'billing_from'){
@@ -1806,23 +1673,7 @@ public function procedure_billings(){
 				$data_arr = array();
 				
 				$procedure_data = $val['data'];
-				/*if(!empty($procedure_data)){
-					$html2 .= '<div><table width="100%" border="1"><tr><th>Code</th><th>Price</th><th>Discound Price</th></tr>';
-					$procedure_data1 = unserialize($procedure_data);
-					foreach ($procedure_data1 as $key1 => $val1){
-						foreach($val1 as $key2 => $val2){
-							$sub_procedure = $val2['sub_procedure'];
-							$sub_procedures_code = $val2['sub_procedures_code'];
-							$sub_procedures_price = $val2['sub_procedures_price'];
-							$sub_procedures_discount = $val2['sub_procedures_discount'];
-							$html2 .= '<tr><td>'.$sub_procedures_code.'</td><td>'.$sub_procedures_price.'</td><td>'.$sub_procedures_discount.'</td></tr>';
-							
-						}
-					}
-					$html2 .= '</table></div>';
-				}*/
 				
-			
 				$html .= '<tr><td><a class="btn btn-large" target="_blank" href="'.base_url().'accounts/details/'.$val['billing_id'].'?t='.$val['type'].'">'.$val['billing_id'].'</a><a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['billing_id'].'?t='.$val['type'].'">'.'Add Payments'.'</a></td><td>'.get_center_name($val['billing_at']).'</td>';
 				if($val['billing_from'] == 'IndiaIVF'){ 
 					$html .= '<td>'.$val['billing_from'].'</td>'; 
@@ -2436,131 +2287,6 @@ private function trigger_external_api($data) {
     curl_close($curl);
 }
 
-/*
-private function send_approval_email_to_multiple($post_data, $procedures, $ID) {
-    $this->load->library('email');
-    
-    // 1. Emails Setup
-    $counselor_email = $_SESSION['logged_counselor']['email'] ?? 'webdesign@indiaivf.in'; 
-    $ceo_email       = 'shanky.malhotra@indiaivf.in';
-    $director_email  = 'webdesign@indiaivf.in';
-    //$accounts_email  = 'accounts@indiaivf.in';
-	//$pan_email  = 'pan.singh@indiaivf.in';
-	//$deepa_email  = 'deepa.mishra@indiaivf.in';
-    //$shanky_email    = 'webdesign@indiaivf.in';
-
-	$cc_list = array(
-        'accounts@indiaivf.in', 
-        'pan.singh@indiaivf.in', 
-        'deepa.mishra@indiaivf.in', 
-        'shanky.malhotra@indiaivf.in', // Shanky's secondary/main if applicable
-        $counselor_email
-    );
-
-    // 2. Patient Data. $post_data['center_number'] ?? 'N/A'
-    $pt_sql = "SELECT wife_name, husband_name, wife_age FROM hms_patients WHERE patient_id = '{$post_data['patient_id']}'";
-    $pt_res = $this->db->query($pt_sql)->row_array();
-    $wife_name = $pt_res['wife_name'] ?? 'N/A';
-
-	$cen_sql = "SELECT center_number,center_name FROM hms_centers WHERE center_number = '{$post_data['center_number']}'";
-    $cen_res = $this->db->query($cen_sql)->row_array();
-    $center_name = $cen_res['center_name'] ?? 'N/A';
-
-    // 3. THREADING LOGIC
-    $server_name = "indiaivf.in"; 
-    $unique_msg_id = "<" . time() . "." . uniqid() . "@" . $server_name . ">";
-    $this->db->where('ID', $ID)->update('hms_doctor_consultation', ['last_email_msg_id' => $unique_msg_id]);
-
-    $config = array('mailtype' => 'html', 'charset' => 'utf-8', 'priority' => '1');
-    $encoded_id = base64_encode($ID);
-    $subject = 'APPROVAL REQUEST: Discounted Package - ' . $wife_name . ' (ID: ' . $post_data['patient_id'] . ') - ' . $center_name;
-
-    // --- SHARED HTML PARTS ---
-    $header_html = "<html><body style='font-family: Arial, sans-serif; color: #333;'>";
-    $header_html .= "<h2 style='color:#2c3e50;'>Discount Approval Request</h2>";
-    
-    $patient_table = "<h4>Patient Details:</h4><table border='1' style='border-collapse:collapse; width:100%; margin-bottom:20px;' cellpadding='8'>";
-    $patient_table .= "<tr><td style='background:#f9f9f9;'><strong>Patient Name:</strong></td><td>{$wife_name} / {$pt_res['husband_name']}</td></tr>";
-	$patient_table .= "<tr><td style='background:#f9f9f9;'><strong>Patient ID:</strong></td><td>{$post_data['patient_id']}</td></tr>";
-    $patient_table .= "<tr><td style='background:#f9f9f9;'><strong>Counselor:</strong></td><td>" . ($_SESSION['logged_counselor']['name']) . "</td></tr></table>";
-	
-    $procedure_table = "<h4>Procedures:</h4><table border='1' style='border-collapse:collapse; width:100%;' cellpadding='5'>";
-    $procedure_table .= "<tr style='background:#eee;'><th>Code</th><th>Name</th><th>Actual</th><th>Min</th><th>Final</th><th>Disc %</th></tr>";
-    
-    $total_min = 0; $total_actual = 0;
-    foreach($procedures as $p) {
-        $total_min += (float)($p['min_price'] ?? 0);
-        $total_actual += (float)($p['price'] ?? 0);
-        $row_price = (float)($p['price'] ?? 0);
-        $row_after = (float)($p['after_discount'] ?? 0);
-        $row_disc_percent = ($row_price > 0) ? round((($row_price - $row_after) / $row_price) * 100, 2) : 0;
-        $procedure_table .= "<tr><td>{$p['code']}</td><td>{$p['procedure_name']}</td><td>{$p['price']}</td><td>{$p['min_price']}</td><td style='color:green; font-weight:bold;'>{$p['after_discount']}</td><td>{$row_disc_percent}%</td></tr>";
-    }
-    $total_after = (float)$post_data['total_after_discount'];
-    $grand_disc_percent = ($total_actual > 0) ? round((($total_actual - $total_after) / $total_actual) * 100, 2) : 0;
-    $procedure_table .= "<tr style='font-weight:bold; background:#f9f9f9;'><td colspan='2' style='text-align:right;'>TOTAL:</td><td>{$total_actual}</td><td>{$total_min}</td><td style='background:green; color:white;'>{$total_after}</td><td>{$grand_disc_percent}%</td></tr></table>";
-
-    $footer_html = "<p style='font-size: 11px; color: #999; margin-top: 20px;'>HMS Billing System</p></body></html>";
-
-    // --- 1. SEND TO CEO (ONLY CEO BUTTONS) ---
-    $this->email->initialize($config);
-    $this->email->set_header('Message-ID', $unique_msg_id);
-
-	$this->email->from($counselor_email, 'HMS Billing - ' . $_SESSION['logged_counselor']['name']);
-    $this->email->to($ceo_email);
-    $this->email->cc($cc_list);
-    $this->email->subject($subject);
-
-    //$this->email->from($counselor_email, 'HMS Approval');
-    //$this->email->to($ceo_email);
-    //$this->email->subject($subject);
-    
-    $ceo_btn = "<div style='margin-top:25px; text-align:center; padding:15px; border:2px solid #28a745;'>";
-    $ceo_btn .= "<h4>CEO ACTION SECTION</h4>";
-    $ceo_btn .= "<a href='".base_url()."billings/decision_form/approve/{$encoded_id}/ceo' style='background:green; color:white; padding:10px 15px; text-decoration:none; border-radius:5px;'>Approve</a> &nbsp; ";
-    $ceo_btn .= "<a href='".base_url()."billings/decision_form/disapprove/{$encoded_id}/ceo' style='background:red; color:white; padding:10px 15px; text-decoration:none; border-radius:5px;'>Reject</a></div>";
-    
-    $this->email->message($header_html . $patient_table . $procedure_table . $ceo_btn . $footer_html);
-    $this->email->send();
-
-    // --- 2. SEND TO DIRECTOR (ONLY DIRECTOR BUTTONS) ---
-    $this->email->clear();
-    $this->email->initialize($config);
-    $this->email->set_header('In-Reply-To', $unique_msg_id);
-    $this->email->set_header('References', $unique_msg_id);
-
-	$this->email->from($counselor_email, 'HMS Billing - ' . $_SESSION['logged_counselor']['name']);
-    $this->email->to($director_email);
-    $this->email->cc($cc_list);
-    $this->email->subject($subject);
-
-    //$this->email->from($counselor_email, 'HMS Approval');
-    //$this->email->to($director_email);
-    //$this->email->subject($subject);
-    
-    $dir_btn = "<div style='margin-top:25px; text-align:center; padding:15px; border:2px solid #007bff;'>";
-    $dir_btn .= "<h4>DIRECTOR ACTION SECTION</h4>";
-    $dir_btn .= "<a href='".base_url()."billings/decision_form/approve/{$encoded_id}/director' style='background:#007bff; color:white; padding:10px 15px; text-decoration:none; border-radius:5px;'>Approve</a> &nbsp; ";
-    $dir_btn .= "<a href='".base_url()."billings/decision_form/disapprove/{$encoded_id}/director' style='background:red; color:white; padding:10px 15px; text-decoration:none; border-radius:5px;'>Reject</a></div>";
-    
-    $this->email->message($header_html . $patient_table . $procedure_table . $dir_btn . $footer_html);
-    $this->email->send();
-
-    // --- 3. SEND INFO MAIL TO OTHERS (NO BUTTONS) ---
-    $this->email->clear();
-    $this->email->initialize($config);
-    $this->email->set_header('In-Reply-To', $unique_msg_id);
-    $this->email->set_header('References', $unique_msg_id);
-    $this->email->from('billing-system@indiaivf.in', 'HMS Billing Info');
-    $this->email->to(array($accounts_email, $pan_email, $deepa_email, $shanky_email, $counselor_email));
-    $this->email->subject($subject);
-
-	$info_msg = "<div style='background:#fff3cd; padding:15px; border:1px solid #ffeeba;'><strong>Status:</strong> This package is pending approval from CEO/Director. Notification will be sent once processed.</div>";
-    
-    $this->email->message($header_html . $info_msg . $patient_table . $procedure_table . $footer_html);
-    $this->email->send();
-}*/
-
 private function send_approval_email_to_multiple($post_data, $procedures, $ID) {
     $this->load->library('email');
     
@@ -2789,7 +2515,8 @@ public function decision_form($action, $encoded_id, $role = '') {
             'deepa.mishra@indiaivf.in', 
             'pan.singh@indiaivf.in',
             'accounts@indiaivf.in',
-            'webdesign@indiaivf.in'
+            'ceo@indiaivf.in',
+			'director@indiaivf.in'
         );
 
         $config = array('mailtype' => 'html', 'charset' => 'utf-8', 'priority' => '1');
@@ -3055,6 +2782,42 @@ public function generate_pdf($id) {
 		    return $doctor_name['name'];
 		}else {return "";}
 	}
+
+	public function update_consultation_status() {
+    // AJAX se aayi hui ID receive karein
+    $id = $this->input->post('id');
+    
+    if(!empty($id)) {
+        // 1. Database se current status fetch karein
+        $this->db->select('status');
+        $this->db->from('hms_doctor_consultation');
+        $this->db->where('ID', $id);
+        $query = $this->db->get();
+        $record = $query->row();
+        
+        if($record) {
+            // 2. Status Toggle Logic 
+            // (Agar pending hai toh approved kar do, approved hai toh pending kar do)
+            // Aap in values ko apni requirement ke hisaab se badal sakte hain.
+            $current_status = $record->status;
+            $new_status = ($current_status == '3') ? '0' : '3';
+            
+            // 3. Database mein naya status update karein
+            $this->db->where('ID', $id);
+            $this->db->update('hms_doctor_consultation', ['status' => $new_status]);
+            
+            // 4. Success response bhejein
+            echo json_encode([
+                'status' => 'success', 
+                'new_status' => $new_status
+            ]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Record not found in database.']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid ID.']);
+    }
+}
 
 	
 } 

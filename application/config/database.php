@@ -20,7 +20,7 @@ switch ($environment) {
             'dsn'	=> '',
             'hostname' => getenv('DB_HOST') ?: 'localhost',
             'username' => getenv('DB_USER') ?: 'hmsindiaivf',
-            'password' => getenv('DB_PASSWORD') ?:'Hmsindia@2025',
+            'password' => getenv('DB_PASSWORD') ?:'Hmsindia@$#2026',
             'database' => getenv('DB_NAME') ?: 'hmsindiaivf',
             'dbdriver' => 'mysqli',
             'dbprefix' => '',
