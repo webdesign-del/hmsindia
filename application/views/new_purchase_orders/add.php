@@ -403,6 +403,7 @@ function populateItemDetails(rowId) {
 }
 
 // Check stock level for a specific row
+// Check stock level for a specific row
 function checkStockLevel(rowId) {
     var medicineId = $('#consumables_name_' + rowId).val();
     var quantity = parseInt($('#consumables_quantity_' + rowId).val()) || 0;
@@ -410,7 +411,6 @@ function checkStockLevel(rowId) {
     var department = $('#department').val();
 
     if (!medicineId || quantity <= 0) {
-        // Clear any previous error messages
         $('#row_' + rowId).removeClass('has-error');
         $('#stock_error_' + rowId).remove();
         $('#stock_info_' + rowId).remove();
@@ -425,23 +425,34 @@ function checkStockLevel(rowId) {
     })
     .done(function(response) {
         if (response.status === 'success') {
-            // Remove previous error/info messages
             $('#row_' + rowId).removeClass('has-error');
             $('#stock_error_' + rowId).remove();
             $('#stock_info_' + rowId).remove();
             
-            if (!response.can_order) {
-                // Show error message
+            // FRONTEND STRICT CHECK (Agar PHP allow kar bhi de, JS rok lega)
+            var currentStock = parseInt(response.current_stock) || 0;
+            var maxStock = parseInt(response.max_stock) || 0;
+            var afterPo = currentStock + quantity;
+            
+            // Check if limit is strictly exceeded
+            var limitExceeded = (maxStock > 0 && afterPo > maxStock);
+
+            if (!response.can_order || limitExceeded) {
                 $('#row_' + rowId).addClass('has-error');
+                
+                // Agar backend ne message nahi bheja, toh khud ka banayenge
+                var msgToShow = response.message;
+                if (limitExceeded && response.can_order) {
+                    msgToShow = "Max stock exceeded! Current: " + currentStock + ", Max: " + maxStock + ", After PO: " + afterPo;
+                }
+                
                 var errorMsg = '<small id="stock_error_' + rowId + '" class="text-danger" style="display: block; margin-top: 5px;">' +
-                    '<i class="fa fa-exclamation-triangle"></i> ' + response.message +
-                    '</small>';
+                    '<i class="fa fa-exclamation-triangle"></i> ' + msgToShow + '</small>';
                 $('#consumables_quantity_' + rowId).closest('td').append(errorMsg);
-            } else if (response.max_stock > 0) {
-                // Show info message if max stock is set
+            } else {
+                var maxVal = (maxStock > 0) ? maxStock : "Unlimited";
                 var infoMsg = '<small id="stock_info_' + rowId + '" class="text-muted" style="display: block; margin-top: 5px;">' +
-                    'Stock: ' + response.current_stock + ' / Max: ' + response.max_stock +
-                    '</small>';
+                    'Stock: ' + currentStock + ' / Max: ' + maxVal + '</small>';
                 $('#consumables_quantity_' + rowId).closest('td').append(infoMsg);
             }
         }
