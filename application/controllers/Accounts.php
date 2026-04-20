@@ -3479,7 +3479,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 3: CONSULTATION SALES
     // =========================================================================
-    $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
+   /* $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
         bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_consultation');
@@ -3487,7 +3487,7 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
     $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
-   $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
+   $this->db->where_in('hms_consultation.status', ['approved', 'adjust']);
     $this->db->where('hms_consultation.tally_status', '1');
     $this->db->limit(20);
     $consult_rows = $this->db->get()->result_array();
@@ -3515,12 +3515,12 @@ foreach($ret_grouped as $return) {
                 'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
             ]]
         ];
-    }
+    } */
 
     // =========================================================================
     // PART 4: REGISTRATION SALES
     // =========================================================================
-   /* $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
+   /* $this->db->select('hms_registation.*, hms_patients.wife_name,hms_registation.status hms_patients.husband_name, 
         bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_registation');
