@@ -2681,7 +2681,7 @@ public function tally()
         SELECT 
             s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,
             s.sale_number, s.sale_date, s.payment_method, s.payment_status,
-            s.payment_approved_by_name, m.medicine_name, mb.batch_number,
+            s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
             mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
             sm.quantity_change, sm.total_value
         FROM sales s
@@ -2726,6 +2726,7 @@ public function tally()
                 'biller_name'      => $row['payment_approved_by_name'],
                 'payment_method'   => $row['payment_method'],
                 'status'           => $row['payment_status'],
+				'series_number'   => $row['series_number'],
                 'items'            => []
             ];
         }
@@ -2854,6 +2855,7 @@ foreach($ret_grouped as $return) {
                 'biller_name'      => $biller['name'] ?? 'N/A',
                 'payment_method'   => $sale["payment_method"] ?? "",
                 'status'           => $sale["status"] ?? "",
+				'series_number'    => $sale["series_number"],
                 'items'            => []
             ];
 
@@ -2908,6 +2910,7 @@ foreach($ret_grouped as $return) {
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
+			'series_number'    => $row["series_number"],
             'status'           => $row['status'],
             'items'            => [[
                 'item_name'       => 'Consultation Charges',
@@ -2952,6 +2955,7 @@ foreach($ret_grouped as $return) {
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
+			'series_number'    => $row['series_number'],
             'status'           => $row['status'],
             'items'            => [[
                 'item_name'       => 'Registration Fees',
@@ -2991,6 +2995,7 @@ foreach($ret_grouped as $return) {
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
+			'series_number'    => $sale['series_number'],
             'items'            => []
         ];
 
@@ -3079,7 +3084,7 @@ foreach($ret_grouped as $return) {
     ];
 
     header('Content-Type: application/json');
-    echo json_encode($output_data, JSON_PRETTY_PRINT);
+    echo json_encode($output_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
@@ -3286,7 +3291,7 @@ public function order_invoice()
         SELECT 
             s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,
             s.sale_number, s.sale_date, s.payment_method, s.payment_status,
-            s.payment_approved_by_name, m.medicine_name, mb.batch_number,
+            s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
             mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
             sm.quantity_change, sm.total_value
         FROM sales s
@@ -3327,6 +3332,7 @@ public function order_invoice()
                 'biller_name'      => $row['payment_approved_by_name'],
                 'payment_method'   => $row['payment_method'],
                 'status'           => $row['payment_status'],
+				'series_number'    => $row['series_number'],
                 'items'            => []
             ];
         }
@@ -3453,6 +3459,7 @@ foreach($ret_grouped as $return) {
                 'biller_name'      => $biller['name'] ?? 'N/A',
                 'payment_method'   => $sale["payment_method"] ?? "",
                 'status'           => $sale["status"] ?? "",
+				'series_number'    => $sale['series_number'],
                 'items'            => []
             ];
 
@@ -3504,6 +3511,7 @@ foreach($ret_grouped as $return) {
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
+			'series_number'    => $row['series_number'],
             'status'           => $row['status'],
             'items'            => [[
                 'item_name'       => 'Consultation Charges',
@@ -3546,6 +3554,7 @@ foreach($ret_grouped as $return) {
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
+			'series_number'    => $row['series_number'],
             'status'           => $row['status'],
             'items'            => [[
                 'item_name'       => 'Registration Fees',
@@ -3582,6 +3591,7 @@ foreach($ret_grouped as $return) {
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
+			'series_number'    => $sale['series_number'],
             'items'            => []
         ];
 
@@ -3700,7 +3710,7 @@ foreach($ret_grouped as $return) {
     ];
 
     header('Content-Type: application/json');
-    echo json_encode($output_data, JSON_PRETTY_PRINT);
+    echo json_encode($output_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
@@ -3880,7 +3890,7 @@ public function sales_completion_order()
         SELECT 
             s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,
             s.sale_number, s.sale_date, s.payment_method, s.payment_status,
-            s.payment_approved_by_name, m.medicine_name, mb.batch_number,
+            s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
             mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
             sm.quantity_change, sm.total_value
         FROM sales s
@@ -3925,6 +3935,7 @@ public function sales_completion_order()
                 'biller_name'      => $row['payment_approved_by_name'],
                 'payment_method'   => $row['payment_method'],
                 'status'           => $row['payment_status'],
+				'series_number'    => $row['series_number'],
                 'items'            => []
             ];
         }
@@ -4006,6 +4017,7 @@ foreach ($ret_results as $row) {
             'payment_method'   => 'Refund',
             'status'           => $row['status'],
             'reason'           => $row['return_reason'],
+			'series_number'    => '',
             'items'            => []
         ];
     }
@@ -4056,6 +4068,7 @@ if (!empty($procedure_raw)) {
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
+			'series_number'    => $sale['series_number'],
             'items'            => []
         ];
 
@@ -4095,71 +4108,6 @@ if (!empty($embryo['date_of_procedure']) &&
 } else {
     $completion_date = date("d-m-Y", strtotime($sale["on_date"]));
 }
-
-
-/*
-                   // ✅ Check procedure correctly
-// Check procedure type
-$is_ivf_type = in_array($sale["broad_procedure"], ["IVF", "ICSI", "Blastocyst","Diagnostic Procedures"]);
-
-// Default completion date
-$completion_date = "";
-
-// If IVF-type → fetch from tables
-if ($is_ivf_type) {
-
-    // Embryo Transfer
-    $row = $this->db->query("
-        SELECT transfer_date 
-        FROM embryo_transfer 
-        WHERE patient_id = '".$sale["patient_id"]."' 
-        AND status='approved'
-        ORDER BY id DESC 
-        LIMIT 1
-    ")->row_array();
-
-    // Embryo Record
-    $embryo_row = $this->db->query("
-        SELECT date0 
-        FROM embryo_record 
-        WHERE patient_id = '".$sale["patient_id"]."' 
-        AND status='approved'
-        ORDER BY id DESC 
-        LIMIT 1
-    ")->row_array();
-
-	 // Embryo Record
-    $blastocyst_row = $this->db->query("
-        SELECT date1 
-        FROM hms_blastocyst 
-        WHERE patient_id = '".$sale["patient_id"]."' 
-        AND status='1'
-        ORDER BY id DESC 
-        LIMIT 1
-    ")->row_array();
-
-	
-
-    // Priority logic
-    if (!empty($row['transfer_date'])) {
-        $completion_date = date("d-m-Y", strtotime($row['transfer_date']));
-    } elseif (!empty($embryo_row['date0'])) {
-        $completion_date = date("d-m-Y", strtotime($embryo_row['date0']));
-    } elseif (!empty($blastocyst_row['date1'])) {
-        $completion_date = date("d-m-Y", strtotime($blastocyst_row['date1']));
-    }
-
-} else {
-
-    if (!empty($sale["on_date"]) && strtotime($sale["on_date"])) {
-        $completion_date = format_date_safe($sale["on_date"]);
-    } elseif (!empty($sale["created_on"]) && strtotime($sale["created_on"])) {
-        $completion_date = format_date_safe($sale["created_on"]);
-    } else {
-        $completion_date = date("d-m-Y"); // fallback
-    }
-}
-*/
 
                     $formatted_proc['items'][] = [
                         'item_name'       => ($sale["procedure_name"] ?? $broad_procedure) . ' - ' . ($p["sub_procedure"] ?? ''),
@@ -4223,6 +4171,7 @@ $consult_rows = $this->db->get()->result_array();
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
             'status'           => $row['status'],
+			'series_number'    => $row['series_number'],
             'items'            => [[
                 'item_name'       => 'Consultation Charges',
                 'code'            => 'CONS',
@@ -4268,6 +4217,7 @@ $consult_rows = $this->db->get()->result_array();
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
             'status'           => $row['status'],
+			'series_number'    => $row['series_number'],
             'items'            => [[
                 'item_name'       => 'Registration Fees',
                 'code'            => 'REG',
@@ -4306,6 +4256,7 @@ $consult_rows = $this->db->get()->result_array();
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
+			'series_number'    => $sale['series_number'],
             'items'            => []
         ];
 
@@ -4370,6 +4321,7 @@ $consult_rows = $this->db->get()->result_array();
             'biller_name'      => 'N/A', 
             'payment_method'   => $row['payment_method'],
             'status'           => $status_text,
+			'series_number'    => '',
             'items'            => [[
                 'item_name'       => 'Fellowship: ' . ($row['course'] ?? ''),
                 'code'            => $row['code'] ?? '',
@@ -4395,7 +4347,7 @@ $consult_rows = $this->db->get()->result_array();
     ];
 
     header('Content-Type: application/json');
-    echo json_encode($output_data, JSON_PRETTY_PRINT);
+    echo json_encode($output_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
