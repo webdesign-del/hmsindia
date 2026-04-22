@@ -32,6 +32,7 @@
         <p>
 
         <a href="#" class="btn btn-primary" id="procedure_link" target="_blank">Wallet</a>
+        <a href="#" class="btn btn-primary" id="checkbalance_link" target="_blank">Wallet History</a>
 
         <div class="row">
           <div class="form-group col-sm-4 col-xs-12">
@@ -214,6 +215,11 @@ function updateLink() {
 
     // Update the href attribute with the new ID
     procedureLink.href = "<?php echo base_url('accounts/wallet_balance/'); ?>" + encodeURIComponent(dynamicId);
+
+     var checkbalance = document.getElementById("checkbalance_link");
+
+    // Update the href attribute with the new ID
+    checkbalance.href = "<?php echo base_url('accounts/check_balance/'); ?>" + encodeURIComponent(dynamicId);
 }
 
 // Add an event listener to the input field
