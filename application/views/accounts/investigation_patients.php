@@ -94,6 +94,8 @@
 
                   <th>Biller</th>
 
+                  <th>invoices No</th>
+
                   <th>Status</th>
 
                   <th>Action</th>
@@ -163,6 +165,8 @@
                   <td><?php echo $currency.$vl['remaining_amount']?></td>
 
                   <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
+
+                  <td><?php echo $vl['series_number']; ?></td>
 
                   <td><?php echo ucwords($vl['status']); ?></td>
                   

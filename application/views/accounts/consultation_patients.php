@@ -79,6 +79,7 @@
                   <th>Discount amount</th>
                   <th>Balance</th>
                   <th>Biller</th>
+                  <th>Invoices No</th>
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -113,6 +114,8 @@
                   <td><?php echo $currency.$vl['discount_amount']?></td>
                   <td><?php echo $currency.$vl['remaining_amount']?></td>
                   <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
+                  
+                  <td><?php echo $vl['series_number']; ?></td>
                   <td><?php echo ucwords($vl['status']); ?></td>
                   <td><?php if($all_method->discount_applied($vl['receipt_number']) > 0 && $vl['status'] !="disapproved"){
                                 $discont_stats = $all_method->discount_applied_status($vl['receipt_number']);

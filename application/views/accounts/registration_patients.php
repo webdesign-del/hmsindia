@@ -79,6 +79,7 @@
                   <th>Discount amount</th>
                   <th>Paid Amount</th>
                   <th>Biller</th>
+                  <th>Invoices No</th>
                   <th>Status</th>
                   <th>Action</th>
                 </tr>
@@ -114,6 +115,7 @@
                 <td><?php echo $currency.$vl['discount_amount']?></td>
                 <td><?php echo $currency.$vl['fees']?></td>
                 <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
+                <td><?php echo $vl['series_number']; ?></td>
                 <td><?php echo ucwords($vl['status']); ?></td>
                 <td><?php  if($vl['status'] == 'pending'){ ?> 
 								 <!--<a href="javascript:void(0);" class="btn btn-large" onclick="approveRegistation('<?php echo $vl['ID']; ?>')">Approve</a>>-->

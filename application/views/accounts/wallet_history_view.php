@@ -2,13 +2,13 @@
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="alert alert-success">
-                <h4>Wallet A (Main Balance)</h4>
+                <h4>Money Wallet</h4>
                <h2>₹ <?php echo number_format($wallets['wallet_1_balance'], 2); ?></h2>
             </div>
         </div>
         <div class="col-md-6">
             <div class="alert alert-warning">
-                <h4>Wallet B (Procedure Balance)</h4>
+                <h4>Package Wallet</h4>
                 <h2>₹ <?php echo number_format($wallets['wallet_2_balance'], 2); ?></h2>
             </div>
         </div>
