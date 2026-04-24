@@ -31,7 +31,7 @@ class Wallet_model extends CI_Model {
         $this->db->insert('hms_wallet_logs', [
             'patient_id' => $patient_id,
             'amount' => $amount,
-            'action_type' => 'TRANSFER_W1_TO_W2',
+            'action_type' => 'TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET',
             'opening_w1' => $wallets['wallet_1_balance'], 'closing_w1' => $new_w1,
             'opening_w2' => $wallets['wallet_2_balance'], 'closing_w2' => $new_w2,
             'remarks' => $remarks, 'created_by' => $user_id
@@ -42,7 +42,7 @@ class Wallet_model extends CI_Model {
     }
 
 // Check karein ki yahan $screenshot parameter hai
-public function deposit_w1($patient_id, $amount, $mode, $user_id, $screenshot = "") {
+public function deposit_w1($patient_id, $amount, $mode, $remarks, $user_id, $screenshot = "") {
     
     $wallets = $this->get_wallets($patient_id);
     $new_w1 = $wallets['wallet_1_balance'] + $amount;
@@ -61,10 +61,11 @@ public function deposit_w1($patient_id, $amount, $mode, $user_id, $screenshot = 
     $log_data = [
         'patient_id'  => $patient_id,
         'amount'      => $amount,
-        'action_type' => 'DEPOSIT_W1',
+        'action_type' => 'DEPOSIT_MONEY_WALLET',
         'opening_w1'  => $wallets['wallet_1_balance'],
         'closing_w1'  => $new_w1,
-        'remarks'     => "Payment via " . $mode,
+        'mode'        => $mode,
+        'remarks'     => $remarks,
         'screenshot'  => $screenshot, // Ye value database mein jayegi
         'created_by'  => (!empty($user_id)) ? $user_id : 1,
         'created_at'  => date('Y-m-d H:i:s')
@@ -145,7 +146,7 @@ public function deposit_w1($patient_id, $amount, $mode, $user_id, $screenshot = 
         $data = [
             'patient_id'  => $patient_id,
             'amount'      => $amount,
-            'action_type' => 'TRANSFER_W2_TO_W1',
+            'action_type' => 'TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET',
             'status'      => 'pending', // Ye Accountant ke pass dikhega
             'remarks'     => "Request: " . $remarks,
             'created_by'  => $user_id,

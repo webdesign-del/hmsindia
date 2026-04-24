@@ -776,4 +776,49 @@ class Procedures extends CI_Controller {
     $this->load->view('procedures/procedure_form', $data);
     $this->load->view($template['footer']);
 }
+
+public function manage_procedure_prices() {
+    $logg = checklogin();
+    if($logg['status'] == true) {
+        // 1. Fetch data
+        $data['master_procedures'] = $this->db->get('hms_procedures')->result();
+        $data['existing_prices'] = $this->db->get('hms_procedure_min_prices')->result();
+
+        // 2. Load View with Header/Footer
+        $template = get_header_template($logg['role']);
+        $this->load->view($template['header']);
+        $this->load->view('procedures/procedure_prices_view', $data);
+        $this->load->view($template['footer']);
+    } else {
+        redirect(base_url());
+    }
+}
+
+public function save_procedure_price() {
+    $logg = checklogin();
+    if($logg['status'] == true) {
+        $data = array(
+            'procedure_id'   => $this->input->post('procedure_id'),
+            'procedure_name' => $this->input->post('procedure_name'),
+            'code'           => $this->input->post('code'),
+            'min_price'      => $this->input->post('min_price'),
+            'actual_price'   => $this->input->post('actual_price'),
+            'status'         => 1,
+            'created_at'     => date('Y-m-d H:i:s'),
+            'updated_at'     => date('Y-m-d H:i:s')
+        );
+
+        $this->db->insert('hms_procedure_min_prices', $data);
+        
+        // Success Message
+        $this->session->set_flashdata('success', 'Price configuration saved!');
+        
+        // IMPORTANT: Redirect back to the list page to prevent duplicate form submission
+        redirect('procedures/manage_procedure_prices');
+    } else {
+        redirect(base_url());
+    }
+}
+
+
 } 

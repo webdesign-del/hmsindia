@@ -11853,6 +11853,7 @@ public function export_patient_journey() {
 		$p_id = $this->input->post('patient_id');
 		$amt  = (float)$this->input->post('amount');
 		$mode = $this->input->post('mode');
+		$remarks = $this->input->post('remarks');
 		$user = $this->session->userdata('user_id');
 		$screenshot_name = ""; // Default empty
 
@@ -11879,8 +11880,7 @@ public function export_patient_journey() {
 		}
 
 		// 2. Model call karte waqt screenshot_name ZAROOR bhejein
-		$this->load->model('Wallet_model');
-		$status = $this->Wallet_model->deposit_w1($p_id, $amt, $mode, $user, $screenshot_name);
+		$status = $this->Wallet_model->deposit_w1($p_id, $amt, $mode, $remarks, $user, $screenshot_name);
 
 		if($status) {
 			$this->session->set_flashdata('success', 'Amount Deposited Successfully');
@@ -11935,23 +11935,6 @@ public function export_patient_journey() {
 		}
 	}
 
-	public function deduct_wallet_money() {
-		$p_id = $this->input->post('patient_id');
-		$amt  = (float)$this->input->post('amount');
-		$procedure = $this->input->post('procedure');
-		$user = $this->session->userdata('user_id');
-
-		$this->load->model('Wallet_model');
-		$result = $this->Wallet_model->use_wallet_money($p_id, $amt, $procedure, $user);
-
-		if ($result === true) {
-			$this->session->set_flashdata('success', 'Amount deducted successfully.');
-		} else {
-			$this->session->set_flashdata('error', $result);
-		}
-		redirect($_SERVER['HTTP_REFERER']);
-	}
-
 	public function approve_wallet_transfer($log_id) {
 		// 1. Log se details nikalein
 		$log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id])->row_array();
@@ -11982,7 +11965,6 @@ public function export_patient_journey() {
 		$rem  = $this->input->post('remarks');
 		$user = $this->session->userdata('user_id');
 
-		$this->load->model('Wallet_model');
 		$result = $this->Wallet_model->request_transfer_2_to_1($p_id, $amt, $rem, $user);
 
 		if ($result === true) {
@@ -11992,6 +11974,66 @@ public function export_patient_journey() {
 		}
 		redirect($_SERVER['HTTP_REFERER']);
 	}
+
+	public function add_money_to_package() {
+    $patient_id = $this->input->post('patient_id');
+    $amount     = (float)$this->input->post('amount');
+	$mode    = $this->input->post('mode');
+    $remarks    = $this->input->post('remarks');
+
+    // 1. Get current balance for Wallet 2 (Package Wallet)
+    $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row();
+    
+    if (!$wallet) {
+        // If no wallet exists for this patient, handle error or create one
+        show_error('Patient wallet not found.');
+        return;
+    }
+
+    $opening_w2 = (float)$wallet->wallet_2_balance;
+    $closing_w2 = $opening_w2 + $amount;
+
+    // 2. Update the Balance in hms_patient_wallets
+    $this->db->where('patient_id', $patient_id);
+    $this->db->update('hms_patient_wallets', [
+        'wallet_2_balance' => $closing_w2,
+        'updated_at'       => date('Y-m-d H:i:s')
+    ]);
+
+    // 3. Insert Log into hms_wallet_logs
+    $log_data = [
+        'patient_id'  => $patient_id,
+        'amount'      => $amount,
+        'action_type' => 'DEPOSIT_PACKAGE_WALLET', // or "Deposit"
+        'opening_w1'  => $wallet->wallet_1_balance, // W1 stays the same
+        'closing_w1'  => $wallet->wallet_1_balance,
+        'opening_w2'  => $opening_w2,
+        'closing_w2'  => $closing_w2,
+		'mode'        => $mode,
+        'remarks'     => $remarks,
+        'created_at'  => date('Y-m-d H:i:s'),
+        'status'      => 1
+    ];
+
+    // Handle Screenshot Upload (if file was selected)
+    if (!empty($_FILES['screenshot']['name'])) {
+        $config['upload_path']   = './uploads/screenshots/';
+        $config['allowed_types'] = 'jpg|jpeg|png';
+        $config['max_size']      = 2048;
+        $this->load->library('upload', $config);
+
+        if ($this->upload->do_upload('screenshot')) {
+            $uploadData = $this->upload->data();
+            $log_data['screenshot'] = $uploadData['file_name'];
+        }
+    }
+
+    $this->db->insert('hms_wallet_logs', $log_data);
+
+    // 4. Success Message and Redirect
+    $this->session->set_flashdata('success', 'Money added to Package Wallet successfully!');
+    redirect($_SERVER['HTTP_REFERER']);
+}
 
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 
