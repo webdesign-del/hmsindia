@@ -2678,20 +2678,23 @@ public function tally()
     // PART 1: MEDICINE SALES
     // =========================================================================
     $sql_med = "
-        SELECT 
-            s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,
-            s.sale_number, s.sale_date, s.payment_method, s.payment_status,
-            s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
-            mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
-            sm.quantity_change, sm.total_value
-        FROM sales s
-        INNER JOIN hms_centers c ON s.center_id = c.id
-        INNER JOIN stock_movements sm ON s.id = sm.reference_id
-        INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
-        INNER JOIN medicines m ON mb.medicine_id = m.id
-        WHERE sm.movement_type = 'SALE' AND sm.to_location_type = 'SALE'
-        AND s.payment_status = 'PAID' 
-        ORDER BY s.updated_at DESC LIMIT 50
+       SELECT 
+    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,
+    s.sale_number, s.sale_date, s.payment_method, s.payment_status,
+    s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
+    mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
+    sm.quantity_change, sm.total_value, s.tally_status
+FROM sales s
+INNER JOIN hms_centers c ON s.center_id = c.id
+INNER JOIN stock_movements sm ON s.id = sm.reference_id
+INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
+INNER JOIN medicines m ON mb.medicine_id = m.id
+WHERE sm.movement_type = 'SALE' 
+    AND sm.to_location_type = 'SALE'
+    AND s.payment_status = 'PAID' 
+    AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
+ORDER BY s.updated_at DESC 
+LIMIT 50
     ";
     
 	// Change result_array() to row_array()
