@@ -152,14 +152,9 @@ if ($package_suggestion_list !== false && is_array($package_suggestion_list)) {
 </tr>
 <tr>
 <td colspan="6">
-<p style="margin-left:20px;font-size:14px;">10% of the total package amount is payable as a booking amount at the time of registration.<br/>
-40% of the amount must be paid before initiation of ovarian stimulation.<br/>
-The remaining 50% must be paid before the trigger injection.</p>
-<p style="margin-left:20px;font-size:14px;">Any add-on procedures or services (such as ICSI, blastocyst culture, freezing, thawing, etc.) will be informed to the patient in advance and charged separately as applicable.<br/>
-The booking amount is non-refundable under any circumstances.
-<br/>
-The booking is valid for a period of 60 days or 02 months from the date of payment. After this period, re-booking charges may apply.
-</p>
+<?php if (!empty($payment_structure)) : ?>
+<?= nl2br($payment_structure) ?>
+<?php endif; ?>
 </td>
 </tr>
 
