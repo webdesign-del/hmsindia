@@ -65,7 +65,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
 	$select_result5 = run_select_query($sql5); 
   
-  $select_query_laparoscopy = "SELECT * FROM `laparoscopy_hysteroscopy` WHERE patient_id='$iic_id' and receipt_number='$receipt_number'";
+  $select_query_laparoscopy = "SELECT * FROM `laparoscopy_hysteroscopy` WHERE patient_id='$iic_id'";
   $select_result_laparoscopy = run_select_query($select_query_laparoscopy); 
 
   $is_complete = !empty($select_result_laparoscopy);
