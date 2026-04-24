@@ -3294,6 +3294,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
                 s.doctor_name,
                 s.sale_date,
                 s.sale_time,
+                s.series_number,
                 s.tally_status,
                 s.payment_method,
                 s.payment_status,
