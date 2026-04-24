@@ -77,6 +77,15 @@ if ($package_suggestion_list !== false && is_array($package_suggestion_list)) {
             if (isset($select_result4['payment_structure'])) {
                 $payment_structure = $select_result4['payment_structure'];
             }
+            if (isset($select_result4['booking_1'])) {
+                $booking_1 = $select_result4['booking_1'];
+            }
+            if (isset($select_result4['booking_21'])) {
+                $booking_2 = $select_result4['booking_2'];
+            }
+            if (isset($select_result4['booking_3'])) {
+                $booking_3 = $select_result4['booking_3'];
+            }
 			if (isset($select_result4['excludes'])) {
                 $last_excludes = $select_result4['excludes'];
             }
@@ -196,7 +205,7 @@ $excluded_ids = [11, 12, 13, 14, 15];
 if (!in_array($last_package_id, $excluded_ids)) {
 ?>
 <tr>
-    <td colspan="2" style="font-size:12px;">Booking Amount (10%)</td>    
+    <td colspan="2" style="font-size:12px;"><?= nl2br($booking_1) ?></td>    
     <td colspan="2">Rs: 
         <input type="text" id="booking_amount" value="<?= number_format($grand_total_price * 0.10, 2) ?>" name="booking_amount" style="border-top:0px;border-left:0px;border-right:0px;">
     </td>
@@ -205,7 +214,7 @@ if (!in_array($last_package_id, $excluded_ids)) {
     </td>
 </tr>
 <tr>
-    <td colspan="2" style="font-size:12px;">Deposit on the start of treatment Self / Third Party (40%)</td>    
+    <td colspan="2" style="font-size:12px;"><?= nl2br($booking_2) ?></td>    
     <td colspan="2">Rs: 
         <input type="text" id="booking_amount_40" name="booking_amount_40" value="<?= number_format($grand_total_price * 0.40, 2) ?>" style="border-top:0px;border-left:0px;border-right:0px;">
     </td>
@@ -214,7 +223,7 @@ if (!in_array($last_package_id, $excluded_ids)) {
     </td>
 </tr>
 <tr>
-    <td colspan="2" style="font-size:12px;">Deposit on the Day of Trigger (50%)</td>    
+    <td colspan="2" style="font-size:12px;"><?= nl2br($booking_3) ?></td>    
     <td colspan="2">Rs: 
         <input type="text" id="booking_amount_50" name="booking_amount_50" value="<?= number_format($grand_total_price * 0.50, 2) ?>" style="border-top:0px;border-left:0px;border-right:0px;">
     </td>
@@ -391,14 +400,7 @@ if ($package_suggestion_list !== false && is_array($package_suggestion_list)) {
 </tr>
 <tr>
 <td colspan="6">
-<p style="margin-left:20px;font-size:14px;">10% of the total package amount is payable as a booking amount at the time of registration.<br/>
-40% of the amount must be paid before initiation of ovarian stimulation.<br/>
-The remaining 50% must be paid before the trigger injection.</p>
-<p style="margin-left:20px;font-size:14px;">Any add-on procedures or services (such as ICSI, blastocyst culture, freezing, thawing, etc.) will be informed to the patient in advance and charged separately as applicable.<br/>
-The booking amount is non-refundable under any circumstances.
-<br/>
-The booking is valid for a period of 60 days or 02 months from the date of payment. After this period, re-booking charges may apply.
-</p>
+<?= nl2br($payment_structure) ?>
 </td>
 </tr>
 
@@ -441,17 +443,17 @@ Note: Booking amount not refundable and 25% of package cost should be deposited 
 <td width="25%" colspan="2">Date: <input type="text" value="<?php echo $select_result['package_date']; ?>" style="border-top:0px;border-left:0px;border-right:0px;width:200px;"></td>
 </tr>
 <tr>
-<td width="50%" colspan="2" style="font-size:12px;">Booking Amount (10 %)</td>	
+<td width="50%" colspan="2" style="font-size:12px;"><?= nl2br($booking_1) ?></td>	
 <td width="25%" colspan="2">Rs: <input type="text" id="name29" value="<?php echo $select_result['booking_amount']; ?>" style="border-top:0px;border-left:0px;border-right:0px;width:200px;"></td>
 <td width="25%" colspan="2">Date: <input type="text"   id="name30" value="<?php echo $select_result['booking_date']; ?>" style="border-top:0px;border-left:0px;border-right:0px;width:200px;"></td>
 </tr>
 <tr>
-<td width="50%" colspan="2" style="font-size:12px;">Deposit on the start of treatment Self /Third Party (40%)</td>	
+<td width="50%" colspan="2" style="font-size:12px;"><?= nl2br($booking_2) ?></td>	
 <td width="25%" colspan="2">Rs: <input type="text" id="name29" value="" style="border-top:0px;border-left:0px;border-right:0px;width:200px;"></td>
 <td width="25%" colspan="2">Date: <input type="text" id="name30" value="" style="border-top:0px;border-left:0px;border-right:0px;width:200px;"></td>
 </tr>
 <tr>
-<td width="50%" colspan="2" style="font-size:12px;">Deposit on the Day of trigger (50%)</td>	
+<td width="50%" colspan="2" style="font-size:12px;"><?= nl2br($booking_3) ?></td>	
 <td width="25%" colspan="2">Rs: <input type="text" id="name29" value="" style="border-top:0px;border-left:0px;border-right:0px;width:200px;"></td>
 <td width="25%" colspan="2">Date: <input type="text" id="name30" value="" style="border-top:0px;border-left:0px;border-right:0px;width:200px;"></td>
 </tr>
