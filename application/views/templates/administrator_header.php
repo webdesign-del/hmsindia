@@ -151,7 +151,9 @@
           <li> <a href="<?php echo base_url(); ?>procedures/add">Add Procedure</a> </li>
           <li> <a href="<?php echo base_url(); ?>procedures/forms">All Forms</a> </li>
           <li> <a href="<?php echo base_url(); ?>procedures/add_form">Add Forms</a> </li>
-		  <li> <a href="<?php echo base_url(); ?>procedures/form_relationship">Procedure Forms Relations</a> </li>
+		     <li><a href="<?php echo base_url(); ?>procedures/form_relationship">Procedure Forms Relations</a> </li>
+         <li><a href="<?php echo base_url(); ?>procedures/manage_procedure_prices">Procedure Min Prices</a> </li>
+          <li><a href="<?php echo base_url(); ?>procedures/procedure_list">Procedure Pricing Management</a> </li>
         </ul>
       </li>
       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Consultation<span class="fa arrow"></span></a>
