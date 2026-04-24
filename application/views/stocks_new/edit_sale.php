@@ -109,14 +109,14 @@
                                 <div class="form-group">
                                     <label><strong>Your Decision:</strong></label>
                                     <div class="row" style="margin-top: 10px;">
-                                        <div class="col-md-4">
+                                        <!--<div class="col-md-4">
                                             <label class="btn btn-success btn-block approval-btn" style="padding: 20px;">
                                                 <strong style="color:black">APPROVE</strong><br>
                                                 <input type="radio" name="approval_action" value="APPROVED" style="margin-right: 8px;" required>
                                                 <i class="fa fa-check fa-2x"></i><br><br>
                                                 <small>Confirm this sale is valid</small>
                                             </label>
-                                        </div>
+                                        </div>-->
                                         <div class="col-md-4">
                                             <label class="btn btn-danger btn-block approval-btn" style="padding: 20px;">
                                                 <strong style="color:black">DISAPPROVE</strong><br>

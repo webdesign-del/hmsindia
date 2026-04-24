@@ -195,6 +195,7 @@
                                         <th>Payment</th>
                                         <th>Payment Mode</th>
                                         <th>Payment Method</th>
+                                        <th>Invoice Id</th>
                                         <!-- <th>Remarks</th> -->
                                         <th>Status</th>
                                         <th>Approval</th>
@@ -272,6 +273,7 @@
                                                     </select>
                                                 </td>
                                                 <td><?php echo isset($sale->payment_method) ? htmlspecialchars($sale->payment_method) : 'N/A'; ?></td>
+                                                <td><?php echo isset($sale->series_number) ? htmlspecialchars($sale->series_number) : 'N/A'; ?></td>
                                                 <!-- <td><?php echo isset($sale->remarks) ? htmlspecialchars($sale->remarks) : 'N/A'; ?></td> -->
                                                 <td>
                                                     <?php if(isset($sale->status) && !empty($sale->status)): ?>
