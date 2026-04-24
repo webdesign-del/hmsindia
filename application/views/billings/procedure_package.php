@@ -80,7 +80,7 @@ if ($package_suggestion_list !== false && is_array($package_suggestion_list)) {
             if (isset($select_result4['booking_1'])) {
                 $booking_1 = $select_result4['booking_1'];
             }
-            if (isset($select_result4['booking_21'])) {
+            if (isset($select_result4['booking_2'])) {
                 $booking_2 = $select_result4['booking_2'];
             }
             if (isset($select_result4['booking_3'])) {
