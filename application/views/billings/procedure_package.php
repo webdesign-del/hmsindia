@@ -152,9 +152,8 @@ if ($package_suggestion_list !== false && is_array($package_suggestion_list)) {
 </tr>
 <tr>
 <td colspan="6">
-<?php if (!empty($payment_structure)) : ?>
+
 <?= nl2br($payment_structure) ?>
-<?php endif; ?>
 </td>
 </tr>
 
