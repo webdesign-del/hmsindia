@@ -74,6 +74,9 @@ if ($package_suggestion_list !== false && is_array($package_suggestion_list)) {
 			if (isset($select_result4['Includes'])) {
                 $last_includes = $select_result4['Includes'];
             }
+            if (isset($select_result4['payment_structure'])) {
+                $payment_structure = $select_result4['payment_structure'];
+            }
 			if (isset($select_result4['excludes'])) {
                 $last_excludes = $select_result4['excludes'];
             }
@@ -152,7 +155,6 @@ if ($package_suggestion_list !== false && is_array($package_suggestion_list)) {
 </tr>
 <tr>
 <td colspan="6">
-
 <?= nl2br($payment_structure) ?>
 </td>
 </tr>
