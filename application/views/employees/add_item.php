@@ -48,13 +48,15 @@
          <div class="row">
 		  <div class="form-group col-sm-6 col-xs-12 role">
             <label for="statuss">Debartment(Required)</label>
-            <select name="department" id="department" required>
+            <select name="department" id="department">
               <option value="">Select Debartment</option>
               <option value="billing">Billing</option>
               <option value="Nonsaleable">Nonsaleable</option>
               <option value="Hormonal">Hormonal</option>
               <option value="OT Noida">OT Noida</option>
               <option value="Embryologist Noida">Embryologist Noida</option>
+              <option value="Embryologist">Embryologist</option>
+               <option value="OT">OT</option>
               <option value="House Keeping">House Keeping</option>
               <option value="Stationery">Stationery</option>
 			</select>
