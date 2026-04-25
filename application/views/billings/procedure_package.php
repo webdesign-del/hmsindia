@@ -98,6 +98,9 @@ if ($package_suggestion_list !== false && is_array($package_suggestion_list)) {
 			if (isset($select_result4['package_id'])) {
                 $last_package_id = $select_result4['package_id'];
             }
+            if (isset($select_result4['note'])) {
+                $note = $select_result4['note'];
+            }
 			
             if (!empty($procedure_id)) {
                 $sql_quefe = "SELECT * FROM `hms_procedures` WHERE ID = '$procedure_id'";
@@ -424,7 +427,7 @@ Charges for embryology services are applicable once the service is initiated, ir
 
 <tr>
 <td colspan="6">
-Note: Booking amount not refundable and 25% of package cost should be deposited within 10 days of Registration, failing to which the package will automatically stand cancelled without prior notification.
+<?= nl2br($note) ?>
 </td>
 </tr>
 <tr>
