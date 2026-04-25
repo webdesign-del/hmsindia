@@ -285,6 +285,9 @@
                     <option value="Embryology Basant Lok">Embryology Basant Lok</option>
                     <option value="Embryology Srinagar">Embryology Srinagar</option>
                     <option value="OT Srinagar">OT Srinagar</option>
+                    <option value="OT">OT</option>
+                    <option value="Embryology">Embryology</option>
+                    <option value="Hormonal">Hormonal</option>
                 </select>
             </div>
             <div class="row">
