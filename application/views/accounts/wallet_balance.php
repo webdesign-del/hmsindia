@@ -9,27 +9,167 @@
 ?>
 
  <?php $all_method = &get_instance(); ?>
+ 
 <div class="container-fluid mt-4">
     <div class="row">
-        <div class="col-md-6 mb-3">
-            <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9;">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9; min-height: 160px;">
                 <div class="card-body">
                     <h6 class="text-success font-weight-bold">Money Wallet</h6>
-                    <h2 class="display-5">₹ <?php echo number_format($wallets['wallet_1_balance'], 2); ?></h2>
-                    <button type="button" class="btn btn-success btn-sm mt-2" data-toggle="modal" data-target="#addMoneyModal">+ Add Money</button>
-                    <button type="button" class="btn btn-warning btn-sm text-white mt-2" data-toggle="modal" data-target="#transferModal">⇆ Transfer from Package Wallet</button>
+                    <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallets['wallet_1_balance'], 2); ?></h2>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addMoneyModal">+ Add Money</button>
+                        <button type="button" class="btn btn-warning btn-sm text-white" data-toggle="modal" data-target="#transferModal" style="margin-left:5px;">⇆ Transfer</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 mb-3">
-            <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2;">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2; min-height: 160px;">
                 <div class="card-body">
                     <h6 class="text-warning font-weight-bold">Package Wallet</h6>
-                    <h2 class="display-5">₹ <?php echo number_format($wallets['wallet_2_balance'], 2); ?></h2>
-                    <button class="btn btn-success btn-sm mt-2" data-target="#addPackageMoneyModal" data-toggle="modal">+ Add Money</button>
-                    <button type="button" class="btn btn-outline-warning btn-sm mt-2" data-toggle="modal" data-target="#transferBackModal">⇆ Transfer from Money Wallet</button>
+                    <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallets['wallet_2_balance'], 2); ?></h2>
+                    <div class="btn-group">
+                        <button class="btn btn-success btn-sm" data-target="#addPackageMoneyModal" data-toggle="modal">+ Add Money</button>
+                        <button type="button" class="btn btn-outline-warning btn-sm" data-toggle="modal" data-target="#transferBackModal" style="margin-left:5px;">⇆ Transfer Back</button>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm" style="border-left: 5px solid #007bff; background: #f0f7ff; min-height: 160px;">
+                <div class="card-body">
+                    <h6 class="text-primary font-weight-bold">Available Promo Coupons</h6>
+                    <?php 
+                        $this->db->where('status', 1);
+                        $this->db->where('expiry_date >=', date('Y-m-d'));
+                        $coupons = $this->db->get('hms_coupons')->result();
+                        $coupon_count = count($coupons);
+                    ?>
+                    <h2 class="display-5" style="margin: 10px 0;"><?php echo $coupon_count; ?> <small style="font-size: 16px; color: #666;">Active Codes</small></h2>
+                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#viewCouponsModal">
+                        <i class="fa fa-ticket"></i> View All Coupons
+                    </button>
+                    <p class="text-muted small" style="margin-top: 8px; margin-bottom: 0;">Check validity & minimum bill</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="margin-bottom: 20px;">
+    <div class="col-md-12">
+        <div class="container-fluid mt-4">
+    <div class="row" style="margin-bottom: 20px;">
+        <div class="col-md-12">
+            <table class="table table-bordered" style="background-color: #fff; border-left: 5px solid #5db85d; margin-bottom: 0;">
+                <tbody>
+                    <tr>
+                        <td style="width: 15%; font-weight: bold; border-right: 2px solid #007bff; color:#000;">IIC Id</td>
+                        <td style="width: 35%; border-right: 4px solid #b3b3b3; color:#000;">
+                            <?php echo $patient_data['patient_id'] ?? $patient_data['uhid'] ?? 'N/A'; ?>
+                        </td>
+                        <td style="width: 35%; font-weight: bold; border-right: 2px solid #007bff; color:#000;">General Wallet</td>
+                        <td style="width: 15%; text-align: right; text-decoration: underline; font-weight: bold; color:#000;">
+                            ₹ <?php echo number_format(($wallets['wallet_1_balance'] ?? 0), 2); ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; border-right: 2px solid #007bff; color:#000;">Name</td>
+                        <td style="border-right: 4px solid #b3b3b3; color:#000;">
+                            <?php 
+                                // This line checks all common name keys to avoid the Warning
+                                echo $patient_data['patient_name'] ?? $patient_data['name'] ?? $patient_data['p_name'] ?? 'N/A'; 
+                            ?>
+                        </td>
+                        <td style="font-weight: bold; border-right: 2px solid #007bff; color:#000;">Package Wallet</td>
+                        <td style="text-align: right; text-decoration: underline; font-weight: bold; color:#000;">
+                            ₹ <?php echo number_format(($wallets['wallet_2_balance'] ?? 0), 2); ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: bold; border-right: 2px solid #007bff; color:#000;">Origin Centre</td>
+                        <td style="border-right: 4px solid #b3b3b3; color:#000;">
+                            <?php echo $patient_data['origin_centre'] ?? 'Main Center'; ?>
+                        </td>
+                        <td style="font-weight: bold; border-right: 2px solid #007bff; color:#000;">Coupon Wallet*</td>
+                        <td style="text-align: right; text-decoration: underline; font-weight: bold; color:#000;">
+                            <?php 
+                                $cp_count = $this->db->where('status', 1)->where('expiry_date >=', date('Y-m-d'))->count_all_results('hms_coupons');
+                                echo "₹ " . number_format($cp_count, 2);
+                            ?>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+        <small class="pull-right text-muted">*Coupon Wallet displays the count of active promo codes available.</small>
+    </div>
+</div>
+</div>
+
+<div class="modal fade" id="viewCouponsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-white">Valid Discount Coupons</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr class="info">
+                                <th>Coupon Code</th>
+                                <th>Discount</th>
+                                <th>Service Type</th>
+                                <th>Min. Bill Amount</th>
+                                <th>Valid Until</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if($coupon_count > 0): ?>
+                                <?php foreach($coupons as $cp): ?>
+                                    <tr>
+                                        <td><strong class="text-primary" style="font-size: 1.1em; letter-spacing: 1px;"><?php echo $cp->coupon_code; ?></strong></td>
+                                        <td>
+                                            <?php 
+                                                echo ($cp->discount_type == 'fixed') 
+                                                     ? '₹' . number_format($cp->discount_value, 2) 
+                                                     : $cp->discount_value . '% OFF'; 
+                                            ?>
+                                        </td>
+                                        <td><span class="label label-info"><?php echo ucfirst($cp->service_type); ?></span></td>
+                                        <td>₹<?php echo number_format($cp->min_amount, 2); ?></td>
+                                        <td>
+                                            <?php 
+                                                $expiry = strtotime($cp->expiry_date);
+                                                echo date('d-M-Y', $expiry);
+                                                
+                                                // Alert if expiring soon (within 3 days)
+                                                if ($expiry < strtotime('+3 days')) {
+                                                    echo '<br><small class="text-danger"><b>Expiring Soon!</b></small>';
+                                                }
+                                            ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" class="text-center">No active coupons available right now.</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="alert alert-warning small">
+                    <i class="fa fa-info-circle"></i> These coupons can be applied during Pharmacy Billing or Consultation payments.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>

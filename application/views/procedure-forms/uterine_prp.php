@@ -47,6 +47,9 @@
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);
+
+  $select_prp = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+	$select_result_prp = run_select_query($select_prp);
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
@@ -81,101 +84,98 @@
 </tr>
 	   </table>
       <div class="container1 red-field form mt-5 mb-5">
-        <ul class="d-flex mb-1 mt-2 list-unstyled">
-          <div class = "table-responsive">
-            <table class="table table-bordered table-hover table-sm">
-              <thead>
-                <tr style="color: red;">
-                  <th colspan="2"><strong>UTERINE PRP</strong></th>
-                  <th colspan="2">
-        			    <?php if(isset($select_result['updated_by']) && !empty($select_result['updated_by']) &&
+        <?php if(isset($select_result['updated_by']) && !empty($select_result['updated_by']) &&
         			            isset($select_result['updated_at']) && !empty($select_result['updated_at']) && 
         			            isset($select_result['updated_type']) && !empty($select_result['updated_type'])
         			            ){?>
         			        <p id="last_updated">Last updated on <?php echo $select_result['updated_at']; ?> by <?php echo last_updated_user($select_result['updated_type'],$select_result['updated_by']); ?></p>
         			    <?php } ?>
-        			</th>
-                  <td>Date <input  type="date" value="<?php echo isset($select_result['date'])?$select_result['date']:""; ?>"   placeholder="enter a date" name="date"></td>
-                  <td>Time <input  type="time" value="<?php echo isset($select_result['time'])?$select_result['time']:""; ?>"   id="appt" name="time"></td>
-                  <td>Indication <input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"   maxlength="50" name="indication"></td>
+        <ul class="d-flex mb-1 mt-2 list-unstyled">
+          <div class = "table-responsive">
+            <table class="table table-bordered table-hover table-sm">
+              <thead>
+                <tr style="color: red;">
+                  
+                  <td>Date <input  type="date" value="<?php echo isset($select_result_prp['date'])?$select_result_prp['date']:""; ?>" placeholder="enter a date" name="date" readonly></td>
+                  <td>Time <input  type="time" value="<?php echo isset($select_result_prp['time'])?$select_result_prp['time']:""; ?>"   id="appt" name="time" readonly></td>
+                  <td>Indication <input  type="text" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>"   maxlength="200" name="indication" readonly></td>
                   <td>
                     ALLERGIES <br>
-                    <input  type="text" value="<?php echo isset($select_result['allergy'])?$select_result['allergy']:""; ?>"   maxlength="50" name="allergy">
+                    <input  type="text" value="<?php echo isset($select_result_prp['allergy'])?$select_result_prp['allergy']:""; ?>" maxlength="50" name="allergy" readonly>
                   </td>
                   <td>
                     Consent<br>
-                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result['consent']) && $select_result['consent'] == "Yes"){echo 'checked="checked"'; }?>  name="consent"> Yes</label>
-                    <label><input type="radio"    value="No"  <?php if(isset($select_result['consent']) && $select_result['consent'] == "No"){echo 'checked="checked"'; }
-  else if(isset($select_result['consent']) && $select_result['consent'] != "Yes"){echo 'checked="checked"';}?>   name="consent"> No</label>
+                    <label><input type="radio" value="Yes"  <?php if(isset($select_result_prp['consent']) && $select_result_prp['consent'] == "Yes"){echo 'checked="checked"'; }?>  name="consent"> Yes</label>
+                    <label><input type="radio" value="No"  <?php if(isset($select_result_prp['consent']) && $select_result_prp['consent'] == "No"){echo 'checked="checked"'; }
+  else if(isset($select_result_prp['consent']) && $select_result_prp['consent'] != "Yes"){echo 'checked="checked"';}?>   name="consent"> No</label>
                   </td>
                   <td>
                     ID checked<br>
-                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result['id_checked']) && $select_result['id_checked'] == "Yes"){echo 'checked="checked"'; }?>  name="id_checked"> Yes</label>
-                    <label><input type="radio"    value="No"  <?php if(isset($select_result['id_checked']) && $select_result['id_checked'] == "No"){echo 'checked="checked"'; }
-  else if(isset($select_result['id_checked']) && $select_result['id_checked'] != "Yes"){echo 'checked="checked"';}?>   name="id_checked"> No</label>
+                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result_prp['id_checked']) && $select_result_prp['id_checked'] == "Yes"){echo 'checked="checked"'; }?>  name="id_checked"> Yes</label>
+                    <label><input type="radio"    value="No"  <?php if(isset($select_result_prp['id_checked']) && $select_result_prp['id_checked'] == "No"){echo 'checked="checked"'; }
+  else if(isset($select_result_prp['id_checked']) && $select_result_prp['id_checked'] != "Yes"){echo 'checked="checked"';}?>   name="id_checked"> No</label>
                   </td>
                 </tr>
                 <tr style="color: red;">
-                  <td>PRE ASSESSMENT</td>
-                  <td>BP <input  type="text" value="<?php echo isset($select_result['bp'])?$select_result['bp']:""; ?>"   maxlength="20" name="bp"></td>
+                  <td>BP <input  type="text" value="<?php echo isset($select_result_prp['bp'])?$select_result_prp['bp']:""; ?>"   maxlength="20" name="bp" readonly></td>
                   <td>
                     PULSE <br>
-                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result['pulse']) && $select_result['pulse'] == "Yes"){echo 'checked="checked"'; }?>  name="pulse"> Yes</label>
-                    <label><input type="radio"    value="No"  <?php if(isset($select_result['pulse']) && $select_result['pulse'] == "No"){echo 'checked="checked"'; }
-  else if(isset($select_result['pulse']) && $select_result['pulse'] != "Yes"){echo 'checked="checked"';}?>   name="pulse"> No</label>
+                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result_prp['pulse']) && $select_result_prp['pulse'] == "Yes"){echo 'checked="checked"'; }?>  name="pulse"> Yes</label>
+                    <label><input type="radio"    value="No"  <?php if(isset($select_result_prp['pulse']) && $select_result_prp['pulse'] == "No"){echo 'checked="checked"'; }
+  else if(isset($select_result_prp['pulse']) && $select_result_prp['pulse'] != "Yes"){echo 'checked="checked"';}?>   name="pulse"> No</label>
                   </td>
                   <td>
                     RESP <br>
-                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result['resp']) && $select_result['resp'] == "Yes"){echo 'checked="checked"'; }?>  name="resp"> Yes</label>
-                    <label><input type="radio"    value="No"  <?php if(isset($select_result['resp']) && $select_result['resp'] == "No"){echo 'checked="checked"'; }
-  else if(isset($select_result['resp']) && $select_result['resp'] != "Yes"){echo 'checked="checked"';}?>   name="resp"> No</label>
+                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result_prp['resp']) && $select_result_prp['resp'] == "Yes"){echo 'checked="checked"'; }?>  name="resp"> Yes</label>
+                    <label><input type="radio"    value="No"  <?php if(isset($select_result_prp['resp']) && $select_result_prp['resp'] == "No"){echo 'checked="checked"'; }
+  else if(isset($select_result_prp['resp']) && $select_result_prp['resp'] != "Yes"){echo 'checked="checked"';}?>   name="resp"> No</label>
                   </td>
                   <td>
                     VOIDED <br>
-                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result['voided']) && $select_result['voided'] == "Yes"){echo 'checked="checked"'; }?>  name="voided"> Yes</label>
-                    <label><input type="radio"    value="No"  <?php if(isset($select_result['voided']) && $select_result['voided'] == "No"){echo 'checked="checked"'; }
-  else if(isset($select_result['voided']) && $select_result['voided'] != "Yes"){echo 'checked="checked"';}?>   name="voided"> No</label>
+                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result_prp['voided']) && $select_result_prp['voided'] == "Yes"){echo 'checked="checked"'; }?>  name="voided"> Yes</label>
+                    <label><input type="radio"    value="No"  <?php if(isset($select_result_prp['voided']) && $select_result_prp['voided'] == "No"){echo 'checked="checked"'; }
+  else if(isset($select_result_prp['voided']) && $select_result_prp['voided'] != "Yes"){echo 'checked="checked"';}?>   name="voided"> No</label>
                   </td>
                   <td>HT (Cms)<br>
-                    <input  type="number" value="<?php echo isset($select_result['ht'])?$select_result['ht']:""; ?>"   min="0" name="ht">
+                    <input  type="number" value="<?php echo isset($select_result_prp['ht'])?$select_result_prp['ht']:""; ?>"   min="0" name="ht" readonly>
                   </td>
                   <td>
                     WT (Kg)<br>
-                     <input  type="number" value="<?php echo isset($select_result['wt'])?$select_result['wt']:""; ?>"   min="0" name="wt">
+                     <input  type="number" value="<?php echo isset($select_result_prp['wt'])?$select_result_prp['wt']:""; ?>"   min="0" name="wt" readonly>
                   </td>
                 </tr>
                 <tr>
                   <td>
                     Glasses<br>
-                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result['glasses']) && $select_result['glasses'] == "Yes"){echo 'checked="checked"'; }?>     name="glasses"> Yes</label>
-                    <label><input type="radio"    value="No"  <?php if(isset($select_result['glasses']) && $select_result['glasses'] == "No"){echo 'checked="checked"'; }
-  else if(isset($select_result['glasses']) && $select_result['glasses'] != "Yes"){echo 'checked="checked"';}?>   name="glasses"> No</label>
+                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result_prp['glasses']) && $select_result_prp['glasses'] == "Yes"){echo 'checked="checked"'; }?>     name="glasses"> Yes</label>
+                    <label><input type="radio"    value="No"  <?php if(isset($select_result_prp['glasses']) && $select_result_prp['glasses'] == "No"){echo 'checked="checked"'; }
+  else if(isset($select_result_prp['glasses']) && $select_result_prp['glasses'] != "Yes"){echo 'checked="checked"';}?>   name="glasses"> No</label>
                   </td>
                   <td>
                     Contacts<br>
-                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result['contacts']) && $select_result['contacts'] == "Yes"){echo 'checked="checked"'; }?>     name="contacts"> Yes</label>
-                    <label><input type="radio"    value="No"  <?php if(isset($select_result['contacts']) && $select_result['contacts'] == "No"){echo 'checked="checked"'; }
-  else if(isset($select_result['contacts']) && $select_result['contacts'] != "Yes"){echo 'checked="checked"';}?>   name="contacts"> No</label>
+                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result_prp['contacts']) && $select_result_prp['contacts'] == "Yes"){echo 'checked="checked"'; }?>     name="contacts"> Yes</label>
+                    <label><input type="radio"    value="No"  <?php if(isset($select_result_prp['contacts']) && $select_result_prp['contacts'] == "No"){echo 'checked="checked"'; }
+  else if(isset($select_result_prp['contacts']) && $select_result_prp['contacts'] != "Yes"){echo 'checked="checked"';}?>   name="contacts"> No</label>
                   </td>
                   <td>
                     Denture<br>
-                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result['denture']) && $select_result['denture'] == "Yes"){echo 'checked="checked"'; }?>     name="denture"> Yes</label>
-                    <label><input type="radio"    value="No"  <?php if(isset($select_result['denture']) && $select_result['denture'] == "No"){echo 'checked="checked"'; }
-  else if(isset($select_result['denture']) && $select_result['denture'] != "Yes"){echo 'checked="checked"';}?>   name="denture"> No</label>
+                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result_prp['denture']) && $select_result_prp['denture'] == "Yes"){echo 'checked="checked"'; }?>     name="denture"> Yes</label>
+                    <label><input type="radio"    value="No"  <?php if(isset($select_result_prp['denture']) && $select_result_prp['denture'] == "No"){echo 'checked="checked"'; }
+  else if(isset($select_result_prp['denture']) && $select_result_prp['denture'] != "Yes"){echo 'checked="checked"';}?>   name="denture"> No</label>
                   </td>
-                  <td colspan="2">
+                  <td>
                     Dental bridge<br>
-                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result['dental_bridge']) && $select_result['dental_bridge'] == "Yes"){echo 'checked="checked"'; }?>     name="dental_bridge"> Yes</label>
-                    <label><input type="radio"    value="No"  <?php if(isset($select_result['dental_bridge']) && $select_result['dental_bridge'] == "No"){echo 'checked="checked"'; }
-  else if(isset($select_result['dental_bridge']) && $select_result['dental_bridge'] != "Yes"){echo 'checked="checked"';}?>   name="dental_bridge"> No</label>
+                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result_prp['dental_bridge']) && $select_result_prp['dental_bridge'] == "Yes"){echo 'checked="checked"'; }?>     name="dental_bridge"> Yes</label>
+                    <label><input type="radio"    value="No"  <?php if(isset($select_result_prp['dental_bridge']) && $select_result_prp['dental_bridge'] == "No"){echo 'checked="checked"'; }
+  else if(isset($select_result_prp['dental_bridge']) && $select_result_prp['dental_bridge'] != "Yes"){echo 'checked="checked"';}?>   name="dental_bridge"> No</label>
                   </td>
                   <td>
                     Valuables with escort<br>
-                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result['valuables_with_escort']) && $select_result['valuables_with_escort'] == "Yes"){echo 'checked="checked"'; }?>     name="valuables_with_escort"> Yes</label>
-                    <label><input type="radio"    value="No"  <?php if(isset($select_result['valuables_with_escort']) && $select_result['valuables_with_escort'] == "No"){echo 'checked="checked"'; }
-  else if(isset($select_result['valuables_with_escort']) && $select_result['valuables_with_escort'] != "Yes"){echo 'checked="checked"';}?>   name="valuables_with_escort"> No</label>
+                    <label><input type="radio"   value="Yes"  <?php if(isset($select_result_prp['valuables_with_escort']) && $select_result_prp['valuables_with_escort'] == "Yes"){echo 'checked="checked"'; }?>     name="valuables_with_escort"> Yes</label>
+                    <label><input type="radio"    value="No"  <?php if(isset($select_result_prp['valuables_with_escort']) && $select_result_prp['valuables_with_escort'] == "No"){echo 'checked="checked"'; }
+  else if(isset($select_result_prp['valuables_with_escort']) && $select_result_prp['valuables_with_escort'] != "Yes"){echo 'checked="checked"';}?>   name="valuables_with_escort"> No</label>
                   </td>
-                  <td>Last meal <input  type="time" value="<?php echo isset($select_result['last_meal'])?$select_result['last_meal']:""; ?>"   name="last_meal"></td>
+                  <td>Last meal <input  type="time" value="<?php echo isset($select_result_prp['last_meal'])?$select_result_prp['last_meal']:""; ?>"   name="last_meal"></td>
                 </tr>
               </thead>
             </table>

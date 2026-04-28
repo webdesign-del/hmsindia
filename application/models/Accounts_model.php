@@ -771,7 +771,7 @@ public function get_all_sales_for_tally()
     $this->db->where('tally_status', '1'); 
     
     $this->db->order_by('modified_on', 'DESC');
-    $this->db->limit(100); // Increased limit to match your other functions
+    $this->db->limit(500); // Increased limit to match your other functions
 
     $query = $this->db->get();
     return $query->result_array();
@@ -8051,6 +8051,30 @@ private function apply_journey_filters($f) {
         'IP221','IP23','IP03','IPD2','IPD1','INT284','VC012','VC011','VC010','VC009','VC008','VC006','VC005','IP91','IP65','IP47','IP66','IP455',
         'VC002','VC001','IP220','IP288','IP01D','IP37','IP21','IP599','IP34','IP458','IP96','INT02','INT59','INT27','IP42','IP601','IP633','IP613'
     ]);
+}
+
+public function validate_coupon($code, $service_type, $amount) {
+    $this->db->where('code', $code);
+    $this->db->where('status', 1);
+    $this->db->where('expiry_date >=', date('Y-m-d'));
+    $query = $this->db->get('coupons');
+
+    if ($query->num_rows() > 0) {
+        $coupon = $query->row();
+
+        // 1. Check if the coupon belongs to the specific service type
+        if ($coupon->service_type !== 'all' && $coupon->service_type !== $service_type) {
+            return ['status' => false, 'message' => "This code is only for " . $coupon->service_type];
+        }
+
+        // 2. Check minimum amount
+        if ($amount < $coupon->min_cart_value) {
+            return ['status' => false, 'message' => "Min spend required: ₹" . $coupon->min_cart_value];
+        }
+
+        return ['status' => true, 'data' => $coupon];
+    }
+    return ['status' => false, 'message' => "Invalid or expired code"];
 }
 
 }

@@ -6,7 +6,7 @@
 			$select_result = run_select_query($select_query); 
 			if(empty($select_result)){
 				// mysql query to insert data
-				$query = "INSERT INTO `ovarian_prp` SET ";
+				$query = "INSERT INTO `hms_prp` SET ";
 				$sqlArr = array();
 				foreach( $_POST as $key=> $value )
 				{
@@ -15,7 +15,7 @@
 				$query .= implode(',' , $sqlArr);
 			}else{
 				// mysql query to update data
-				$query = "UPDATE ovarian_prp SET ";
+				$query = "UPDATE hms_prp SET ";
 				foreach( $_POST as $key=> $value )
 				{
 				  $sqlArr[] = " $key = '".$value."'"	;
@@ -98,7 +98,7 @@
 								<tr style="color: red;">
 									<td>Date<br><input   type="date" value="<?php echo isset($select_result['date'])?$select_result['date']:""; ?>"     name="date" class="form-control" ></td>
 									<td>Time<br><input   type="time" value="<?php echo isset($select_result['time'])?$select_result['time']:""; ?>"     name="time" class="form-control" ></td>
-									<td>Indication<br><input   type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"     maxlength="50" name="indication" class="form-control" ></td>
+									<td>Indication<br><input type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>" maxlength="200" name="indication" class="form-control" ></td>
 									<td>Allergies<br><input   type="text" value="<?php echo isset($select_result['allergies'])?$select_result['allergies']:""; ?>"     maxlength="50" name="allergies" class="form-control" ></td>
 									<td>
 										Consent<br>

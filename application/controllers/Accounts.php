@@ -12071,6 +12071,25 @@ public function export_patient_journey() {
     redirect($_SERVER['HTTP_REFERER']);
 }
 
+public function apply_discount() {
+    $code = $this->input->post('coupon_code');
+    $type = $this->input->post('billing_type'); // medicine, consultant, etc.
+    $total = $this->input->post('total_amount');
+
+    $result = $this->Coupon_model->validate_coupon($code, $type, $total);
+
+    if ($result['status']) {
+        $coupon = $result['data'];
+        $discount = ($coupon->discount_type == 'percentage') 
+                    ? ($total * ($coupon->discount_value / 100)) 
+                    : $coupon->discount_value;
+
+        echo json_encode(['new_total' => $total - $discount, 'discount' => $discount]);
+    } else {
+        echo json_encode(['error' => $result['message']]);
+    }
+}
+
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 
 	
