@@ -130,7 +130,7 @@
 		<tr>
 			<td>
 				BP<br>
-				<input  type="text" value="<?php echo isset($select_result_prp['bp'])?$select_result_prp['bp']:""; ?>" maxlength="20" name="bp" class="form-control" readonly>
+				<input  type="text" value="<?php echo isset($select_result['bp'])?$select_result['bp']:""; ?>" maxlength="20" name="bp" class="form-control" readonly>
 			</td>
 			<td>
 				Pulse<br>
@@ -152,11 +152,11 @@
 			</td>
 			<td>
 				Ht (Cms)<br>
-				<input  type="number" value="<?php echo isset($select_result_prp['ht'])?$select_result_prp['ht']:""; ?>" min="0" name="ht" class="form-control" readonly>
+				<input  type="number" value="<?php echo isset($select_result['ht'])?$select_result['ht']:""; ?>" min="0" name="ht" class="form-control" readonly>
 			</td>
 			<td>
 				Wt (Kg)<br>
-				<input  type="number" value="<?php echo isset($select_result_prp['wt'])?$select_result_prp['wt']:""; ?>" min="0" name="wt" class="form-control" readonly>
+				<input  type="number" value="<?php echo isset($select_result['wt'])?$select_result['wt']:""; ?>" min="0" name="wt" class="form-control" readonly>
 			</td>
 		</tr>
 		<tr>

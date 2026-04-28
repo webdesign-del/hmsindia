@@ -52,6 +52,9 @@
         }
     }
 
+	$select_prp = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id'";
+	$select_result_prp = run_select_query($select_prp);
+
     $select_query = "SELECT * FROM `embryo_transfer` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
 	$select_result = run_select_query($select_query); 
 	
@@ -177,7 +180,7 @@
 
 					<td>
 
-						Indication<br><input type="text" maxlength="50" name="indication" class="form-control" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"  >
+						Indication<br><input type="text" maxlength="50" name="indication" class="form-control" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>"  readonly>
 
 					</td>
 
