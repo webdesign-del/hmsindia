@@ -130,7 +130,7 @@
 		<tr>
 			<td>
 				BP<br>
-				<input  type="text" value="<?php echo isset($select_result['bp'])?$select_result['bp']:""; ?>" maxlength="20" name="bp" class="form-control" readonly>
+				<input  type="text" value="<?php echo isset($select_result['bp'])?$select_result['bp']:""; ?>" maxlength="20" name="bp" class="form-control">
 			</td>
 			<td>
 				Pulse<br>
