@@ -103,6 +103,12 @@
           <!-- <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> Reports</a> </li> -->
         </ul>
       </li>
+      <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Coupon Code<span class="fa arrow"></span></a>
+        <ul class="nav nav-second-level">
+          <li> <a href="<?php echo base_url(); ?>admin/coupon/add"> Add</a> </li>
+         
+        </ul>
+      </li>
       <li>
         <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Reports & Alerts<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
