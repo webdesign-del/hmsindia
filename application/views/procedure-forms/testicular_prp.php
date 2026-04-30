@@ -103,8 +103,8 @@ $select_result = run_select_query($select_query);
                   <table class="table table-bordered table-hover table-sm">
                     <thead>
                       <tr style="color: red;">
-                        <td>Date <input class="form-control"  type="date" value="<?php echo isset($select_result_prp['date'])?$select_result_prp['date']:""; ?>" placeholder="enter a date" name="date" readonly></td>
-                        <td>Time <input class="form-control"  type="time" value="<?php echo isset($select_result_prp['time'])?$select_result_prp['time']:""; ?>" id="appt" name="time" readonly></td>
+                        <td>Date <input class="form-control"  type="date" value="<?php echo isset($select_result['date'])?$select_result['date']:""; ?>" placeholder="enter a date" name="date"></td>
+                        <td>Time <input class="form-control"  type="time" value="<?php echo isset($select_result['time'])?$select_result['time']:""; ?>" id="appt" name="time"></td>
                         <td>Indication <input class="form-control" maxlength="200"  type="text" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>" name="indication" readonly></td>
                         <td>Allergies <input class="form-control" maxlength="50"  type="text" value="<?php echo isset($select_result_prp['allergy'])?$select_result_prp['allergy']:""; ?>" name="allergy" readonly></td>
                         <td>

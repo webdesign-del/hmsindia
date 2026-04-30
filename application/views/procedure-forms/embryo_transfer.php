@@ -115,7 +115,7 @@
     <input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
     <input type="hidden" value="<?php echo $receipt_number; ?>" class="form" name="receipt_number">
     <input type="hidden" value="pending" name="status"> 
-    		<table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
+<table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
    <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
    <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">EMBRYO TRANSFER/ FROZEN EMBRYO TRANSFER</h3></td>

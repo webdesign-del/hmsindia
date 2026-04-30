@@ -79,6 +79,9 @@
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);	
 
+  $select_prp = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id'";
+	$select_result_prp = run_select_query($select_prp);
+
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
@@ -156,7 +159,7 @@
 
               <td><input  type="time" value="<?php echo isset($select_result['time'])?$select_result['time']:""; ?>"   name="time"></td>
 
-              <td><input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"   maxlength="50" placeholder="Indication" name="indication"></td>
+              <td><input  type="text" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>"   maxlength="50" placeholder="Indication" name="indication" readonly></td>
 
       				<td><input  type="text" value="<?php echo isset($select_result['allergy'])?$select_result['allergy']:""; ?>"   maxlength="50" placeholder="Allergies" name="allergy"></td>
 

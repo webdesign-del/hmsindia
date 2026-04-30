@@ -48,6 +48,9 @@
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);
+
+	$select_prp = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id'";
+	$select_result_prp = run_select_query($select_prp);
 ?>
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
 <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
@@ -99,7 +102,7 @@
 		</td>
 		<td>
 			Indication<br>
-			<input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"   maxlength="50" name="indication" class="form-control" >
+			<input  type="text" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>" name="indication" class="form-control" readonly>
 		</td>
 		<td>
 			ALLERGIES<br>
@@ -276,40 +279,48 @@
 			<table width="100%">
 				<tr>
 					<td>
-						<input type="radio"  name="normal_diet"   value="Yes"  <?php if(isset($select_result['normal_diet']) && $select_result['normal_diet'] == "Yes"){echo 'checked="checked"'; }?>  > Yes
-						<input type="radio"  name="normal_diet"   value="No"  <?php if(isset($select_result['normal_diet']) && $select_result['normal_diet'] == "No"){echo 'checked="checked"'; }
+						<label>
+            <input type="radio" name="normal_diet" value="Yes" <?php if(!isset($select_result['normal_diet']) || $select_result['normal_diet'] == "Yes" || $select_result['normal_diet'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<input type="radio"  name="normal_diet"   value="No"  <?php if(isset($select_result['normal_diet']) && $select_result['normal_diet'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['normal_diet']) && $select_result['normal_diet'] != "Yes"){echo 'checked="checked"';}?>  > No
 					</td>
 					<td>Normal diet</td>
 				</tr>
 				<tr>
 					<td>
-						<input type="radio"  name="tab_doxycycline"   value="Yes"  <?php if(isset($select_result['tab_doxycycline']) && $select_result['tab_doxycycline'] == "Yes"){echo 'checked="checked"'; }?>  > Yes
-						<input type="radio"  name="tab_doxycycline"   value="No"  <?php if(isset($select_result['tab_doxycycline']) && $select_result['tab_doxycycline'] == "No"){echo 'checked="checked"'; }
+						<label>
+            <input type="radio" name="tab_doxycycline" value="Yes" <?php if(!isset($select_result['tab_doxycycline']) || $select_result['tab_doxycycline'] == "Yes" || $select_result['tab_doxycycline'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<input type="radio"  name="tab_doxycycline"   value="No"  <?php if(isset($select_result['tab_doxycycline']) && $select_result['tab_doxycycline'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['tab_doxycycline']) && $select_result['tab_doxycycline'] != "Yes"){echo 'checked="checked"';}?>  > No
 					</td>
 					<td>Tab. Doxycycline 100 mg twice daily one morning one evening after meals for 5 days</td>
 				</tr>
 				<tr>
 					<td>
-						<input type="radio"  name="cap_pantoprazole"   value="Yes"  <?php if(isset($select_result['cap_pantoprazole']) && $select_result['cap_pantoprazole'] == "Yes"){echo 'checked="checked"'; }?>  > Yes
-						<input type="radio"  name="cap_pantoprazole"   value="No"  <?php if(isset($select_result['cap_pantoprazole']) && $select_result['cap_pantoprazole'] == "No"){echo 'checked="checked"'; }
+						<label>
+            <input type="radio" name="cap_pantoprazole" value="Yes" <?php if(!isset($select_result['cap_pantoprazole']) || $select_result['cap_pantoprazole'] == "Yes" || $select_result['cap_pantoprazole'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<input type="radio"  name="cap_pantoprazole"   value="No"  <?php if(isset($select_result['cap_pantoprazole']) && $select_result['cap_pantoprazole'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['cap_pantoprazole']) && $select_result['cap_pantoprazole'] != "Yes"){echo 'checked="checked"';}?>  > No
 					</td>
 					<td>Cap Pantoprazole 40 mg once daily in empty stomach for 5 days</td>
 				</tr>
 				<tr>
 					<td>
-						<input type="radio"  name="tab_crocin"   value="Yes"  <?php if(isset($select_result['tab_crocin']) && $select_result['tab_crocin'] == "Yes"){echo 'checked="checked"'; }?>  > Yes
-						<input type="radio"  name="tab_crocin"   value="No"  <?php if(isset($select_result['tab_crocin']) && $select_result['tab_crocin'] == "No"){echo 'checked="checked"'; }
+						<label>
+            <input type="radio" name="tab_crocin" value="Yes" <?php if(!isset($select_result['tab_crocin']) || $select_result['tab_crocin'] == "Yes" || $select_result['tab_crocin'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<input type="radio"  name="tab_crocin"   value="No"  <?php if(isset($select_result['tab_crocin']) && $select_result['tab_crocin'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['tab_crocin']) && $select_result['tab_crocin'] != "Yes"){echo 'checked="checked"';}?>  > No
 					</td>
 					<td>Tab Crocin 500 mg thrice daily eight hourly after meals for 2 days</td>
 				</tr>
 				<tr>
 					<td>
-						<input type="radio"  name="report"   value="Yes"  <?php if(isset($select_result['report']) && $select_result['report'] == "Yes"){echo 'checked="checked"'; }?>  > Yes
-						<input type="radio"  name="report"   value="No"  <?php if(isset($select_result['report']) && $select_result['report'] == "No"){echo 'checked="checked"'; }
+			 <input type="radio" name="report" value="Yes" <?php if(!isset($select_result['report']) || $select_result['report'] == "Yes" || $select_result['report'] == "") { echo 'checked="checked"'; } ?>> Yes
+             <input type="radio"  name="report"   value="No"  <?php if(isset($select_result['report']) && $select_result['report'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['report']) && $select_result['report'] != "Yes"){echo 'checked="checked"';}?>  > No
 					</td>
 					<td>To report if giddiness /nausea/vomiting/bleeding/pain/fever /purulent discharge immediately</td>

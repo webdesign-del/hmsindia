@@ -96,9 +96,9 @@
               <thead>
                 <tr style="color: red;">
                   
-                  <td>Date <input  type="date" value="<?php echo isset($select_result_prp['date'])?$select_result_prp['date']:""; ?>" placeholder="enter a date" name="date" readonly></td>
-                  <td>Time <input  type="time" value="<?php echo isset($select_result_prp['time'])?$select_result_prp['time']:""; ?>"   id="appt" name="time" readonly></td>
-                  <td>Indication <input  type="text" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>"   maxlength="200" name="indication" readonly></td>
+                  <td>Date <input  type="date" value="<?php echo isset($select_result['date'])?$select_result['date']:""; ?>" placeholder="enter a date" name="date"></td>
+                  <td>Time <input  type="time" value="<?php echo isset($select_result['time'])?$select_result['time']:""; ?>"   id="appt" name="time"></td>
+                  <td>Indication <input  type="text" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>" name="indication" readonly></td>
                   <td>
                     ALLERGIES <br>
                     <input  type="text" value="<?php echo isset($select_result_prp['allergy'])?$select_result_prp['allergy']:""; ?>" maxlength="50" name="allergy" readonly>

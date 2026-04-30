@@ -98,8 +98,8 @@
 							
 							<table class="table-bordered" width="100%">
 								<tr style="color: red;">
-									<td>Date<br><input   type="date" value="<?php echo isset($select_result_prp['date'])?$select_result_prp['date']:""; ?>" name="date" class="form-control" readonly></td>
-									<td>Time<br><input   type="time" value="<?php echo isset($select_result_prp['time'])?$select_result_prp['time']:""; ?>" name="time" class="form-control" readonly></td>
+									<td>Date<br><input   type="date" value="<?php echo isset($select_result['date'])?$select_result['date']:""; ?>" name="date" class="form-control"></td>
+									<td>Time<br><input   type="time" value="<?php echo isset($select_result['time'])?$select_result['time']:""; ?>" name="time" class="form-control"></td>
 									<td>Indication<br><input   type="text" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>" maxlength="200" name="indication" class="form-control"readonly ></td>
 									<td>Allergies<br><input   type="text" value="<?php echo isset($select_result_prp['allergies'])?$select_result_prp['allergies']:""; ?>" maxlength="50" name="allergies" class="form-control" readonly></td>
 									<td>
@@ -250,64 +250,80 @@
 								</tr>
 								<tr>
 									<td>
-										<label><input type="radio"  name="npo_x_2hrs"  value="Yes"  <?php if(isset($select_result['npo_x_2hrs']) && $select_result['npo_x_2hrs'] == "Yes"){echo 'checked="checked"'; }?>   > Yes</label>
-										<label><input type="radio"  name="npo_x_2hrs"   value="No"  <?php if(isset($select_result['npo_x_2hrs']) && $select_result['npo_x_2hrs'] == "No"){echo 'checked="checked"'; }
+										<label>
+            <input type="radio" name="npo_x_2hrs" value="Yes" <?php if(!isset($select_result['npo_x_2hrs']) || $select_result['npo_x_2hrs'] == "Yes" || $select_result['npo_x_2hrs'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<label><input type="radio"  name="npo_x_2hrs"   value="No"  <?php if(isset($select_result['npo_x_2hrs']) && $select_result['npo_x_2hrs'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['npo_x_2hrs']) && $select_result['npo_x_2hrs'] != "Yes"){echo 'checked="checked"';}?>  > No</label>
 									</td>
 									<td>NPO X 2HRS</td>
 								</tr>
 								<tr>
 									<td>
-										<label><input type="radio"  name="sips_of_fluid"  value="Yes"  <?php if(isset($select_result['sips_of_fluid']) && $select_result['sips_of_fluid'] == "Yes"){echo 'checked="checked"'; }?>   > Yes</label>
-										<label><input type="radio"  name="sips_of_fluid"   value="No"  <?php if(isset($select_result['sips_of_fluid']) && $select_result['sips_of_fluid'] == "No"){echo 'checked="checked"'; }
+										<label>
+            <input type="radio" name="sips_of_fluid" value="Yes" <?php if(!isset($select_result['sips_of_fluid']) || $select_result['sips_of_fluid'] == "Yes" || $select_result['sips_of_fluid'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<label><input type="radio"  name="sips_of_fluid"   value="No"  <?php if(isset($select_result['sips_of_fluid']) && $select_result['sips_of_fluid'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['sips_of_fluid']) && $select_result['sips_of_fluid'] != "Yes"){echo 'checked="checked"';}?>  > No</label>
 									</td>
 									<td>Sips of fluid after 2 hrs fld by soft diet</td>
 								</tr>
 								<tr>
 									<td>
-										<label><input type="radio"  name="fluid"  value="Yes"  <?php if(isset($select_result['fluid']) && $select_result['fluid'] == "Yes"){echo 'checked="checked"'; }?>   > Yes</label>
-										<label><input type="radio"  name="fluid"   value="No"  <?php if(isset($select_result['fluid']) && $select_result['fluid'] == "No"){echo 'checked="checked"'; }
+										<label>
+            <input type="radio" name="fluid" value="Yes" <?php if(!isset($select_result['fluid']) || $select_result['fluid'] == "Yes" || $select_result['fluid'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<label><input type="radio"  name="fluid"   value="No"  <?php if(isset($select_result['fluid']) && $select_result['fluid'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['fluid']) && $select_result['fluid'] != "Yes"){echo 'checked="checked"';}?>  > No</label>
 									</td>
 									<td>i.v. fluid R.L or NS 500 ml@ 125 ml/hr</td>
 								</tr>
 								<tr>
 									<td>
-										<label><input type="radio"  name="paracetamol"  value="Yes"  <?php if(isset($select_result['paracetamol']) && $select_result['paracetamol'] == "Yes"){echo 'checked="checked"'; }?>   > Yes</label>
-										<label><input type="radio"  name="paracetamol"   value="No"  <?php if(isset($select_result['paracetamol']) && $select_result['paracetamol'] == "No"){echo 'checked="checked"'; }
+										<label>
+            <input type="radio" name="paracetamol" value="Yes" <?php if(!isset($select_result['paracetamol']) || $select_result['paracetamol'] == "Yes" || $select_result['paracetamol'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<label><input type="radio"  name="paracetamol"   value="No"  <?php if(isset($select_result['paracetamol']) && $select_result['paracetamol'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['paracetamol']) && $select_result['paracetamol'] != "Yes"){echo 'checked="checked"';}?>  > No</label>
 									</td>
 									<td>i.v. paracetamol 100 ml (SOS)@8-10 drops/min</td>
 								</tr>
 								<tr>
 									<td>
-										<label><input type="radio"  name="justin_suppository"  value="Yes"  <?php if(isset($select_result['justin_suppository']) && $select_result['justin_suppository'] == "Yes"){echo 'checked="checked"'; }?>   > Yes</label>
-										<label><input type="radio"  name="justin_suppository"   value="No"  <?php if(isset($select_result['justin_suppository']) && $select_result['justin_suppository'] == "No"){echo 'checked="checked"'; }
+										<label>
+            <input type="radio" name="justin_suppository" value="Yes" <?php if(!isset($select_result['justin_suppository']) || $select_result['justin_suppository'] == "Yes" || $select_result['justin_suppository'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<label><input type="radio"  name="justin_suppository"   value="No"  <?php if(isset($select_result['justin_suppository']) && $select_result['justin_suppository'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['justin_suppository']) && $select_result['justin_suppository'] != "Yes"){echo 'checked="checked"';}?>  > No</label>
 									</td>
 									<td>Justin suppository per rectally</td>
 								</tr>
 								<tr>
 									<td>
-										<label><input type="radio"  name="monitor_pulse"  value="Yes"  <?php if(isset($select_result['monitor_pulse']) && $select_result['monitor_pulse'] == "Yes"){echo 'checked="checked"'; }?>   > Yes</label>
-										<label><input type="radio"  name="monitor_pulse"   value="No"  <?php if(isset($select_result['monitor_pulse']) && $select_result['monitor_pulse'] == "No"){echo 'checked="checked"'; }
+										<label>
+            <input type="radio" name="monitor_pulse" value="Yes" <?php if(!isset($select_result['monitor_pulse']) || $select_result['monitor_pulse'] == "Yes" || $select_result['monitor_pulse'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<label><input type="radio"  name="monitor_pulse"   value="No"  <?php if(isset($select_result['monitor_pulse']) && $select_result['monitor_pulse'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['monitor_pulse']) && $select_result['monitor_pulse'] != "Yes"){echo 'checked="checked"';}?>  > No</label>
 									</td>
 									<td>Monitor pulse/BP/Spo2 continuously</td>
 								</tr>
 								<tr>
 									<td>
-										<label><input type="radio"  name="monitor_bleeding"  value="Yes"  <?php if(isset($select_result['monitor_bleeding']) && $select_result['monitor_bleeding'] == "Yes"){echo 'checked="checked"'; }?>   > Yes</label>
-										<label><input type="radio"  name="monitor_bleeding"   value="No"  <?php if(isset($select_result['monitor_bleeding']) && $select_result['monitor_bleeding'] == "No"){echo 'checked="checked"'; }
+										<label>
+            <input type="radio" name="monitor_bleeding" value="Yes" <?php if(!isset($select_result['monitor_bleeding']) || $select_result['monitor_bleeding'] == "Yes" || $select_result['monitor_bleeding'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<label><input type="radio"  name="monitor_bleeding"   value="No"  <?php if(isset($select_result['monitor_bleeding']) && $select_result['monitor_bleeding'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['monitor_bleeding']) && $select_result['monitor_bleeding'] != "Yes"){echo 'checked="checked"';}?>  > No</label>
 									</td>
 									<td>Monitor bleeding p/v every half hour</td>
 								</tr>
 								<tr>
 									<td>
-										<label><input type="radio"  name="remove_vaginal"  value="Yes"  <?php if(isset($select_result['remove_vaginal']) && $select_result['remove_vaginal'] == "Yes"){echo 'checked="checked"'; }?>   > Yes</label>
-										<label><input type="radio"  name="remove_vaginal"   value="No"  <?php if(isset($select_result['remove_vaginal']) && $select_result['remove_vaginal'] == "No"){echo 'checked="checked"'; }
+										<label>
+            <input type="radio" name="remove_vaginal" value="Yes" <?php if(!isset($select_result['remove_vaginal']) || $select_result['remove_vaginal'] == "Yes" || $select_result['remove_vaginal'] == "") { echo 'checked="checked"'; } ?>> Yes
+        </label>
+		<label><input type="radio"  name="remove_vaginal"   value="No"  <?php if(isset($select_result['remove_vaginal']) && $select_result['remove_vaginal'] == "No"){echo 'checked="checked"'; }
   else if(isset($select_result['remove_vaginal']) && $select_result['remove_vaginal'] != "Yes"){echo 'checked="checked"';}?>  > No</label>
 									</td>
 									<td>Remove vaginal pack if any</td>
