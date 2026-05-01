@@ -1367,14 +1367,14 @@ function approve_procedure($ID) {
 	
 	function disapprove_payment($id, $reason){
 		$sql = "";
-		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_payments` SET `status`='2', `disapproval_reason`='$reason' WHERE ID='".$id."'";
+		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_payments` SET `status`='2', `reason_of_disapprove`='$reason' WHERE ID='".$id."'";
         $this->db->query($sql);
         return $this->db->affected_rows();
 	}
 
 	function cancle_payment($id, $reason){
 		$sql = "";
-		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_payments` SET `status`='3', `disapproval_reason`='$reason' WHERE ID='".$id."'";
+		$sql = "UPDATE `".$this->config->item('db_prefix')."patient_payments` SET `status`='3', `reason_of_disapprove`='$reason' WHERE ID='".$id."'";
         $this->db->query($sql);
         return $this->db->affected_rows();
 	}
