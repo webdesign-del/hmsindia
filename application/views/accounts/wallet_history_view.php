@@ -1,11 +1,20 @@
+<?php 
+    $all_method =& get_instance(); 
+    // Load the helper if not loaded in controller
+  //  $this->load->helper('billing');
+    
+    // 1. Try to get the ID from $patient_data first. If it doesn't exist, grab it from the URL!
+    $patient_id = $patient_data['patient_id'] ?? $patient_data['uhid'] ?? $this->uri->segment(3);    
+?>
+
 <div class="container-fluid mt-4">
 
 <div class="row" style="margin-top: 20px;">
     <div class="col-md-6">
         <div class="well" style="background: #ecf0f5; border-left: 5px solid #00a65a;">
             <h4 style="margin-top:0;">Wallet Summary</h4>
-            <p>IIC Id: <strong><?php echo $paitent_id; ?></strong></p>
-            <p>Name: <strong>34,000.00</strong></p>
+            <p>IIC Id: <strong><?php echo !empty($patient_id) ? $patient_id : 'N/A'; ?></strong></p>
+            <p>Name: <strong><?php echo isset($patient_data['patient_name']) ? $patient_data['patient_name'] : 'N/A'; ?></strong></p>
             <p>Origin Center: <span style="color:green; font-size: 20px; font-weight:bold;">₹0.00</span></p>
         </div>
     </div>

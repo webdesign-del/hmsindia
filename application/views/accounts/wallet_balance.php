@@ -1,14 +1,12 @@
 <?php 
     $all_method =& get_instance(); 
     // Load the helper if not loaded in controller
-    $this->load->helper('billing');
+  //  $this->load->helper('billing');
     
     // Fetch real-time balance using the function we built
     $w = get_final_wallet_balance($patient_data['patient_id']); 
     $balance = $w['balance']; 
 ?>
-
- <?php $all_method = &get_instance(); ?>
  
 <div class="container-fluid mt-4">
     <div class="row">

@@ -2694,7 +2694,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at DESC 
-LIMIT 50
+LIMIT 500
     ";
     
 	// Change result_array() to row_array()
@@ -2936,7 +2936,7 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
     $this->db->where('hms_consultation.status', 'approved');
     $this->db->where('hms_consultation.tally_status', '1');
-    $this->db->limit(20);
+    $this->db->limit(500);
     $consult_rows = $this->db->get()->result_array();
 
     foreach ($consult_rows as $row) {
@@ -2982,7 +2982,7 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
     $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-    $this->db->limit(20);
+    $this->db->limit(500);
     $reg_rows = $this->db->get()->result_array();
 
     foreach ($reg_rows as $row) {

@@ -165,6 +165,7 @@
    
    $balance = $paid_total - $wallet_bill_total;
    ?>
+
 <style type="text/css">
    form{
    margin: 20px 0;
@@ -185,7 +186,72 @@
    text-align: left;
    }
 </style>
+ <?php 
+    $all_method =& get_instance();
+    $this->load->helper('billing');
+    
+    // 1. Try to get patient_id from $patient_data array first
+    $patient_id = $patient_data['patient_id'] ?? $patient_data['uhid'] ?? '';
 
+ 
+    // 3. Set safe defaults
+    $wallet_1 = 0;
+    $wallet_2 = 0;
+
+    // 4. Fetch the real-time balance using the CORRECT patient ID
+    if(!empty($patient_id)) {
+        $w = get_final_wallet_balance($patient_id); 
+        
+        $wallet_1 = $w['wallet_1_balance'] ?? $w['balance'] ?? 0;
+        $wallet_2 = $w['wallet_2_balance'] ?? 0;
+    }
+?>
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9; min-height: 160px;">
+            <div class="card-body">
+                <h6 class="text-success font-weight-bold">Money Wallet <?php echo $patient_id;  ?></h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet_1, 2); ?></h2>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addMoneyModal">+ Add Money</button>
+                    <button type="button" class="btn btn-warning btn-sm text-white" data-toggle="modal" data-target="#transferModal" style="margin-left:5px;">⇆ Transfer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2; min-height: 160px;">
+            <div class="card-body">
+                <h6 class="text-warning font-weight-bold">Package Wallet</h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet_2, 2); ?></h2>
+                <div class="btn-group">
+                    <button class="btn btn-success btn-sm" data-target="#addPackageMoneyModal" data-toggle="modal">+ Add Money</button>
+                    <button type="button" class="btn btn-outline-warning btn-sm" data-toggle="modal" data-target="#transferBackModal" style="margin-left:5px;">⇆ Transfer Back</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #007bff; background: #f0f7ff; min-height: 160px;">
+            <div class="card-body">
+                <h6 class="text-primary font-weight-bold">Available Promo Coupons</h6>
+                <?php 
+                    $this->db->where('status', 1);
+                    $this->db->where('expiry_date >=', date('Y-m-d'));
+                    $coupons = $this->db->get('hms_coupons')->result();
+                    $coupon_count = count($coupons);
+                ?>
+                <h2 class="display-5" style="margin: 10px 0;"><?php echo $coupon_count; ?> <small style="font-size: 16px; color: #666;">Active Codes</small></h2>
+                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#viewCouponsModal">
+                    <i class="fa fa-ticket"></i> View All Coupons
+                </button>
+                <p class="text-muted small" style="margin-top: 8px; margin-bottom: 0;">Check validity & minimum bill</p>
+            </div>
+        </div>
+    </div>
+</div>
 <form class="col-sm-12 col-xs-12" method="post" action="" enctype="multipart/form-data">
    <input type="hidden" name="action" value="<?php echo $form_action; ?>" />
    <input type="hidden" name="appointment_id" value="<?php echo $billing_details['appointment_id']; ?>" />
