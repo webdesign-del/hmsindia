@@ -539,14 +539,11 @@ if (!empty($stored_procedures)) {
                            }
                          }
                        }
-                    //   if ($_SESSION['logged_billing_manager']['center'] == "16249589462327" || $_SESSION['logged_billing_manager']['center'] == "16133769691598"  || $_SESSION['logged_billing_manager']['center'] == "16267558222750") {
                               $sub_procedure_counter = 1;
                            if(!empty($billing_details['sub_procedure_suggestion_list'])){
                         $sub_procedure_suggestion_list = unserialize($billing_details['sub_procedure_suggestion_list']);
                         foreach($sub_procedure_suggestion_list as $key => $val){
                           $sub_procedure_details = $all_method->get_procedure_details($val); 
-                    //        if (!empty($sub_procedure_details['code']) && in_array($sub_procedure_details['code'], ["IP599","IP602","IP42", "IP43", "IP44", "IP45", "IP46","IP274", "IP201", "IP202", "IP203", "IP204", "IP205", "IP206", "IP21", "IP207", "IP208", "IP209", "IP60", "IP43", "IP55", "IP56", "IP57", "IP58", "IP89", "IP91", "IPD4", "IP210", "IP211", "IP212", "IP213", "IP214", "IP215", "IP38", "IP06", "IP15", "IP07", "IP216", "IP217", "IP01", "IP02", "IP03", "IP12", "IP18", "IP17", "IP14", "IP96", "IP65", "IP63", "IP05", "IP04", "IP08", "IP09", "IP37", "IP11", "IP59", "IP16", "IP34", "IP39", "IP20", "IP94", "IP95", "IP97", "IP90", "IP98", "IP99", "IP72", "IP73", "IP93", "IP40", "IP41", "IP48", "IP66", "IP68", "IP69", "IP47", "IP74", "IPD1", "IPD2", "IP67", "IP102", "IP103", "IP104", "IP105", "IP106", "IP107", "IP108", "IP109", "IP110", "IP111", "IP112", "IP113", "IP114", "IP115", "IP116", "IP117", "IP118", "IP119", "IP120", "IP121", "IP122", "IP123", "IP124", "IP125", "IP126", "IP127", "IP128", "IP129", "IP130", "IP131", "IP132", "IP133", "IP134", "IP135", "IP136", "IP137", "IP138", "IP139", "IP140", "IP141", "IP142", "IP143", "IP144", "IP145", "IP146", "IP147", "IP148", "IP149", "IP150", "IP151", "IP152", "IP153", "IP154", "IP155", "IP156", "IP157", "IP158", "IP159", "IP160", "IP161", "IP162", "IP163", "IP164", "IP165", "IP166", "IP167", "IP168", "IP169", "IP170", "IP171", "IP172", "IP173", "IP174", "IP175", "IP176", "IP177", "IP178", "IP179", "IP180", "IP181", "IP182", "IP183", "IP184", "IP185", "IP186", "IP187", "IP188", "IP189", "IP190", "IP191", "IP192", "IP193", "IP194", "IP195", "IP196", "IP197", "IP198", "IP199", "IP200", "IP218", "IP219", "IP220",
-                     //   "IP221", "IP226", "IP228", "IP230", "IP232", "IP234", "IP236", "IP238", "IP240", "IP242", "IP19", "IP62", "IP54", "IP64", "IP13", "IP22", "IP23", "IP70", "IP36", "IP71", "IP75", "IP76", "IP100", "IP78", "IP79", "IP80", "IP81", "IP82", "IP83", "IP84", "IP85", "IP86", "IP87", "IP88", "IP92", "IP222", "IP223", "IP224", "IP225", "IP227", "IP229", "IP231", "IP233", "IP235", "IP237", "IP239", "IP241", "IP245","INT78","INT65","INT13","INT02","INT11","INT54","INT42","INT64","INT20","INT229","INT230","IP101","IP250","IP251","IPD2INT","IPD1INT","INT228","INT227","IP243","INT03","INT220","IPD5","INT17","IP244","IP29","INT222","INT48","INT63","IP01D","IP252","IP253","IP286","INT225","INT226","IP24","INT40","INT246","INT07","INT19","IP286","IP292","INT53","IP299","IP300","IP302","IP301","IP303","IP27","IP26","IP298","INT292","IP447","IP246","INT47","IP458","IP357","INT31","IP32","IP453","IP451","IP459","IP288","IP289","INT67","IP31","IP254","INT298","INT458"])) {
                         ?>
                      <tr>
                         <td><?php echo $sub_procedure_details['procedure_name']; ?>
@@ -634,84 +631,6 @@ if (!empty($stored_procedures)) {
     <?php 
 }
 ?>
-                     <?php 	
-                   /*     //var_dump($parent_procedure_details); die;	
-                        $sub_procedure_counter = 1;
-                        if(!empty($billing_details['sub_procedure_suggestion_list'])){
-                        $sub_procedure_suggestion_list = unserialize($billing_details['sub_procedure_suggestion_list']);
-                        foreach($sub_procedure_suggestion_list as $key => $val){
-                          $sub_procedure_details = $all_method->get_procedure_details($val); //var_dump($val);die;
-                        
-                            if (!empty($sub_procedure_details['code']) && in_array($sub_procedure_details['code'], ["IP599","IP602","IP55", "IP56", "IP57","IP16" ,"IP58", "IP89", "IP91", "IP68", "IP69", "IPD1", "IPD2", "IP67", "IP175", "IP176", "IP177", "IP178", "IP221", "IP222", "IP223", "IP224", "IP225", "IP227", "IP229", "IP231", "IP233", "IP235", "IP237", "IP239", "IP241", "IP62", "IP64", "IP13", "IP22", "IP23", "IP70", "IP36", "IP245", "IP218", "IP219", "INT222","IP101","IP250","IP251","IPD2INT","IPD1INT","INT228","INT227","INT220","IPD5","IP01D","IP286","IP450","IP452","IP289","INT67","IP451","IP02","IP218","IP45","IP11","IP459","IP14","IP298","IP04","IP64","IP601"])) {
-                        ?>
-                     <tr>
-                     <td><?php echo $sub_procedure_details['procedure_name']; ?>
-                        <input value="<?php echo $val; ?>" procedure="<?php echo $sub_procedure_details['procedure_name']; ?>" readonly="readonly" id="sub_procedure_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedure_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
-                     </td>
-                        <?php
-                           $login_user_center_id = $_SESSION['logged_billing_manager']['center'];
-                           $center_exit = $all_method->check_procedure_exit_in_center($sub_procedure_details['code'],$login_user_center_id);
-                           if($center_exit) {
-                              $hub_name = $all_method->get_center_name($login_user_center_id);
-                              $spoke_name =$hub_name;
-                              $hub_center_id=$login_user_center_id;
-                              $spoke_center_id=$login_user_center_id;
-                           }else{
-                              $hub_id_of_this_procedure = $all_method->get_hub_center_id_from_spoke($login_user_center_id);
-                              $hub_name = $all_method->get_center_name($hub_id_of_this_procedure);
-                              $spoke_name =$all_method->get_center_name($login_user_center_id);
-                              $hub_center_id=$hub_id_of_this_procedure;
-                              $spoke_center_id=$login_user_center_id;
-                           }
-                        ?>
-                         <td>
-                           <?php echo $hub_name; ?>
-                           <input type="hidden" value="<?php echo $hub_center_id; ?>" name="billing_from" />
-                        </td>
-                        <td>
-                           <?php 
-                           echo !empty($spoke_name) ? $spoke_name : $hub_name; 
-                           ?>
-                           <input type="hidden" 
-                                 value="<?php echo !empty($spoke_name) ? $spoke_center_id : $hub_center_id; ?>" 
-                                 name="billing_at" 
-                           />
-                        </td>
-                        <td><?php echo $sub_procedure_details['code']; ?>
-                           <input value="<?php echo $sub_procedure_details['code']; ?>" readonly="readonly" id="sub_procedures_code_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_code_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
-                        </td>
-                        <td><?php $sub_price = 0;
-                           $sub_price = $sub_procedure_details['price']; echo 'Rs.'.$sub_price; ?>
-                           <input value="<?php echo $sub_price; ?>" readonly="readonly" id="sub_procedures_price_<?php echo $sub_procedure_counter;?>" class="required_value" name="sub_procedures_price_<?php echo $sub_procedure_counter;?>" type="hidden" class="form-control " required>
-                        </td>
-                        <!-- <td><input value="" placeholder="Discount" id="sub_procedures_discount_<?php echo $sub_procedure_counter;?>" class="sub_procedures_discount required_value" name="sub_procedures_discount_<?php echo $sub_procedure_counter;?>" type="text" class="form-control " required sub_procedures_price="<?php echo $sub_price; ?>" ></td> -->
-                        <td><input value="<?php echo isset($procedure_discount_map[$val]) ? $procedure_discount_map[$val] : ''; ?>" placeholder="Discount" id="sub_procedures_discount_<?php echo $sub_procedure_counter;?>" class="sub_procedures_discount required_value" name="sub_procedures_discount_<?php echo $sub_procedure_counter;?>" type="text" class="form-control " required sub_procedures_price="<?php echo $sub_price; ?>"  ></td>
-                        <td><input value="0" placeholder="GST" id="" class="sub_procedures_discount required_value" name="" type="text" class="form-control " required sub_procedures_price="" ></td>
-                        <td><input value="" placeholder="Paid Price" id="sub_procedures_paid_price_<?php echo $sub_procedure_counter;?>" class="sub_procedures_paid_price required_value" name="sub_procedures_paid_price_<?php echo $sub_procedure_counter;?>" type="text" class="form-control " required ></td>
-                        <td>
-                           <select name="payment_method_<?php echo $sub_procedure_counter;?>" id="payment_method_<?php echo $sub_procedure_counter;?>" style="display: block;" required>
-                              <option value="" selected>Select</option>
-                              <?php if($patient_data['nationality'] == 'indian'){?>
-                              <option value="neft" mode="NEFT">NEFT</option>
-                              <option value="rtgs" mode="RTGS">RTGS</option>
-                              <option value="card" mode="Card">Card</option>
-                              <option value="insurance" mode="Insurance">Insurance</option>
-                              <?php }else{ ?>
-                              <option value="international_card" mode="International Card">International Card</option>
-                              <option value="card" mode="Card">Card</option>
-                              <?php } ?>
-                              <option value="cash" mode="Cash">Cash</option>
-                              <option value="cheque" mode="Cheque">Cheque</option>
-                              <option value="upi" mode="UPI">UPI</option>
-                              <option value="wallet" mode="Wallet">Wallet</option>
-                              <option value="Finance" mode="Finance">Finance</option>
-                           </select>
-                        </td>
-                        <td><input value="<?php echo getReceiptGUID(); ?>" placeholder="Receipt number" readonly="readonly" id="receipt_number_<?php echo $sub_procedure_counter;?>" name="receipt_number_<?php echo $sub_procedure_counter;?>" type="text" class="form-control " required></td>
-                        <td><input type="file" name="receipt_image_<?php echo $sub_procedure_counter;?>" id="receipt_image_<?php echo $sub_procedure_counter;?>" class="form-control " required></td>
-                        <td><input type="checkbox" class="statuss" name="record"></td>
-                     </tr>
-                     <?php  $grand_total += $sub_price; $sub_procedure_counter++;}}}} */ ?>
                   </tbody>
                </table>
                <?php } ?>
@@ -950,58 +869,8 @@ if (!empty($stored_procedures)) {
                      <label for="item_name">Remaining amount (Required)</label>
                      <input value="" placeholder="Remaining amount" readonly="readonly" id="remaining_amount" name="remaining_amount" type="text" class="form-control required_value" required>
                   </div>
-                  <div class="form-group col-sm-6 col-xs-12">
-                     <label for="item_name">Cash Payment</label>
-                     <input value="" placeholder="Cash Payment" id="cash_payment" name="cash_payment" type="text" class="form-control ">
-                  </div>
-                  <div class="form-group col-sm-6 col-xs-12">
-                     <label for="item_name">Card Payment</label>
-                     <input value="" placeholder="Card Payment" id="card_payment" name="card_payment" type="text" class="form-control ">
-                  </div>
-                  <div class="form-group col-sm-6 col-xs-12">
-                     <label for="item_name">UPI Payment</label>
-                     <input value="" placeholder="UPI Payment" id="upi_payment" name="upi_payment" type="text" class="form-control ">
-                  </div>
-                  <div class="form-group col-sm-6 col-xs-12">
-                     <label for="item_name">NEFT Payment</label>
-                     <input value="" placeholder="NEFT Payment" id="neft_payment" name="neft_payment" type="text" class="form-control ">
-                  </div>
-                  <div class="form-group col-sm-6 col-xs-12">
-                     <label for="item_name">Wallet Payment</label>
-                     <input type="number" wallet_payment="<?php echo $balance; ?>" name="wallet_payment" id="wallet_payment" onchange="consumables_quantity_update(this)">
-                  </div>
                </div>
                <?php } ?>
-               <?php 	
-                  //if(!empty($billing_details['sub_procedure_suggestion_list'])){
-                  /*	$sub_procedure_suggestion_list = unserialize($billing_details['sub_procedure_suggestion_list']);
-                  foreach($sub_procedure_suggestion_list as $key => $val){
-                        $sub_procedure_details = $all_method->get_procedure_details($val); //var_dump($val);die;
-                  
-                          if (!empty($sub_procedure_details['code']) && in_array($sub_procedure_details['code'], ["IP17", "IP14", "IP96"])) {*/
-                  ?>
-               <!-- <div class="form-group col-sm-6 col-xs-12">
-                  <label>Freezing Valid Date</label>
-                  <input placeholder="Expiry Date" name="expiry_date" id="expiry_date" value="" type="date" class="form-control">
-                  </div>
-                  <div class="form-group col-sm-6 col-xs-12 role">
-                    <label for="item_name">Renewal Type</label>
-                    <select name="renewal_type" id="renewal_type">
-                          <option value="">Select</option>
-                          <option value="First Renewal">First Renewal</option> 
-                          <option value="Second Renewal">Second Renewal</option> 
-                          <option value="Third Renewal">Third Renewal</option> 
-                          <option value="Fourth Renewal">Fourth Renewal</option> 
-                          <option value="Fifth Renewal">Fifth Renewal</option> 
-                          <option value="Sixth Renewal">Sixth Renewal</option> 
-                          <option value="Seventh Renewal">Seventh Renewal</option> 
-                          <option value="Eighth Renewal">Eighth Renewal</option> 
-                          <option value="Ninth Renewal">Ninth Renewal</option> 
-                          <option value="Tenth Renewal">Tenth Renewal</option> 
-                    </select>
-                  
-                  </div-->
-               <?php //}}//} ?>
                <?php if($billing_type == "investigation") { ?>  
                <div class="row">
                   <div class="form-group col-sm-6 col-xs-12" id="transaction" style="display:none;">
@@ -1027,6 +896,7 @@ if (!empty($stored_procedures)) {
                         <option value="Srinagar">SRINAGAR</option>
                         <option value="Ghaziabad">Ghaziabad</option>
                         <option value="Rohini">Rohini</option>
+                        <option value="Kailash Super Specility Hospital">Kailash Super Specility Hospital</option>
                      </select>
                   </div>
                </div>

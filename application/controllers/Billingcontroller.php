@@ -1461,13 +1461,81 @@ function partial_billing($appointment_id){
     				$post_arr['discount_amount'] = $_POST['rs_discount'];unset($_POST['rs_discount']);
 				}
 				$post_arr['payment_in'] = $_POST['payment_in'];unset($_POST['payment_in']);
-				$post_arr['cash_payment'] = $_POST['cash_payment'];unset($_POST['cash_payment']);
-				$post_arr['card_payment'] = $_POST['card_payment'];unset($_POST['card_payment']);
-				$post_arr['upi_payment'] = $_POST['upi_payment'];unset($_POST['upi_payment']);
-				$post_arr['neft_payment'] = $_POST['neft_payment'];unset($_POST['neft_payment']);
-				$post_arr['wallet_payment'] = $_POST['wallet_payment'];unset($_POST['wallet_payment']);
+			//	$post_arr['cash_payment'] = $_POST['cash_payment'];unset($_POST['cash_payment']);
+			//	$post_arr['card_payment'] = $_POST['card_payment'];unset($_POST['card_payment']);
+			//	$post_arr['upi_payment'] = $_POST['upi_payment'];unset($_POST['upi_payment']);
+			//	$post_arr['neft_payment'] = $_POST['neft_payment'];unset($_POST['neft_payment']);
+			//	$post_arr['wallet_payment'] = $_POST['wallet_payment'];unset($_POST['wallet_payment']);
                 $post_arr['origins'] = $_POST['origins'];unset($_POST['origins']);
 				$post_arr['series_number'] = $_POST['series_number'] ; unset($_POST['series_number']);
+
+// ==================================================================
+                // --- MONEY WALLET DEDUCTION LOGIC START (For Investigations) ---
+                // ==================================================================
+                $total_wallet_amount_to_deduct = 0;
+
+                // 1. Check if the global payment method is set to Wallet
+                $global_method = isset($post_arr['payment_method']) ? strtolower(trim($post_arr['payment_method'])) : '';
+                
+                // If they chose Wallet, grab the total paid amount 
+                // (Note: We use $post_arr['payment_done'] because your code already converted it for USD/RS above!)
+                if ($global_method == 'wallet' || $global_method == 'money wallet' || $global_method == 'money_wallet') {
+                    $total_wallet_amount_to_deduct = isset($post_arr['payment_done']) ? (float)$post_arr['payment_done'] : 0;
+                }
+
+                // 2. DEDUCT THE MONEY: If we found ANY wallet payments, do the deduction!
+                if ($total_wallet_amount_to_deduct > 0) {
+                    $wallet_patient_id = $post_arr['patient_id'];
+
+                    // A. Fetch current wallet balances
+                    $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $wallet_patient_id])->row();
+
+                    // B. Check if they have enough balance in Wallet 1 (Money Wallet)
+                    if (!$wallet || $wallet->wallet_1_balance < $total_wallet_amount_to_deduct) {
+                        // Redirect back to Investigation tab with error
+                        header("location:" . base_url() . "after-consultation-step-2?t=investigation&m=" . base64_encode('Insufficient balance in Money Wallet!'));
+                        die();
+                    }
+
+                    // C. Calculate new balances
+                    $opening_w1 = $wallet->wallet_1_balance;
+                    $closing_w1 = $opening_w1 - $total_wallet_amount_to_deduct; // DEDUCT from Wallet 1
+                    
+                    $opening_w2 = $wallet->wallet_2_balance;
+                    $closing_w2 = $wallet->wallet_2_balance; // Wallet 2 stays exactly the same
+
+                    // D. Update the Patient Wallet Table
+                    $this->db->where('patient_id', $wallet_patient_id);
+                    $this->db->update('hms_patient_wallets', [
+                        'wallet_1_balance' => $closing_w1, // Updating Wallet 1 here
+                        'updated_at'       => date('Y-m-d H:i:s')
+                    ]);
+
+                    // E. Insert the Log History
+                    $log_data = [
+                        'patient_id'  => $wallet_patient_id,
+                        'amount'      => $total_wallet_amount_to_deduct,
+                        'action_type' => 'INVESTIGATION_USAGE', 
+                        'opening_w1'  => $opening_w1,
+                        'closing_w1'  => $closing_w1,
+                        'opening_w2'  => $opening_w2,
+                        'closing_w2'  => $closing_w2,
+                        'mode'        => 'Wallet',
+                        'remarks'     => 'Paid for Investigation/Medicine. Appt ID: ' . $post_arr['appointment_id'],
+                        'created_by'  => $post_arr['biller_id'],
+                        'created_at'  => date('Y-m-d H:i:s'),
+                        'status'      => 'approved'
+                    ];
+                    $this->db->insert('hms_wallet_logs', $log_data);
+
+                    // F. Record for your insert query below
+                    $post_arr['wallet_payment'] = $total_wallet_amount_to_deduct;
+                }
+                // ==================================================================
+                // --- MONEY WALLET DEDUCTION LOGIC END ---
+                // ==================================================================
+
+
 				$male_medicine_array = $female_medicine_array = $medicine_array = $male_invest_array = $female_invest_array = $investigation_array = array();
 				if(isset($_POST['medicine_suggestion']) && $_POST['medicine_suggestion'] == 1){
 					foreach($_POST as $key => $val){
