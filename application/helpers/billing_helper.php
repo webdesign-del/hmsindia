@@ -63,3 +63,43 @@ function get_final_wallet_balance($patient_id) {
         'balance'     => $balance
     ];
 }
+
+
+if (!function_exists('get_universal_wallet')) {
+    function get_universal_wallet($passed_patient_id = null) {
+        $CI =& get_instance();
+        
+        // 1. Find the ID (passed directly, from GET ?i=, or URL segment)
+        $patient_id = $passed_patient_id;
+        if (empty($patient_id)) {
+            $patient_id = $CI->input->get('i') ?? $CI->uri->segment(3) ?? '';
+        }
+
+        // 2. If it's a short ID (Booking ID like 41383), get the real Patient ID
+        if (!empty($patient_id) && strlen($patient_id) < 10) { 
+            $CI->db->select('patient_id');
+            $CI->db->where('id', $patient_id);
+            $query = $CI->db->get('hms_opd_booking'); // Update table name if needed!
+            if ($query->num_rows() > 0) {
+                $patient_id = $query->row()->patient_id;
+            }
+        }
+
+        // 3. Fetch the real-time balance
+        if (!empty($patient_id)) {
+            $CI->db->select('wallet_1_balance, wallet_2_balance');
+            $CI->db->where('patient_id', $patient_id);
+            $wallet = $CI->db->get('hms_patient_wallets')->row_array();
+
+            if ($wallet) {
+                return [
+                    'wallet_1' => $wallet['wallet_1_balance'] ?? 0,
+                    'wallet_2' => $wallet['wallet_2_balance'] ?? 0
+                ];
+            }
+        }
+
+        // Return 0 if nothing is found
+        return ['wallet_1' => 0, 'wallet_2' => 0];
+    }
+}

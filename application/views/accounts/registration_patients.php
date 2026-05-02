@@ -39,7 +39,7 @@
             </div>
             <div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>IIC ID </label>
-                <input type="text" class="form-control" id="iic_id" name="iic_id" value="<?php echo $patient_id;?>" />
+                <input type="text" class="form-control" id="patient_id" name="patient_id" value="<?php echo $patient_id;?>" />
             </div>
             <div class="col-sm-1" style="margin-top: 10px;">
             	<button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>
