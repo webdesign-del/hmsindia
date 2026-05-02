@@ -1,6 +1,5 @@
 <?php  
    $all_method =&get_instance();
-   $done_wallet_result = array();
    $consultation_sql=0;
    $consultation_sql = "SELECT * FROM hms_patient_procedure WHERE billing_at='".$_SESSION['logged_billing_manager']['center']."' ORDER BY po_id DESC LIMIT 1 ";
    $select_result = run_select_query($consultation_sql); 
@@ -34,7 +33,7 @@
 <?php 
    $investigation_details = $all_method->get_master_investigation_details($val);
 
-   var_dump($investigation_details);
+   //var_dump($investigation_details);
    $inved_options = '<option value="" selected> - - - Select - - - -</option>';
    $sql1 = "select * from hms_investigation where status=1"; 
    $query = $this->db->query($sql1);
@@ -43,128 +42,6 @@
    	$inved_options .= '<option value="'.$res_val->ID.':~'.$res_val->code.':~'.$res_val->price.':~'.$res_val->ID.'">'.$res_val->investigation.'</option>';
    } 
    ?>	
-<?php 
-   $ci = &get_instance();
-   $ci->load->database();
-   $db_prefix = $ci->config->config['db_prefix'];
-   $patient_sql = "Select * from ".$db_prefix."patients where  patient_id='".$billing_details['patient_id']."'";
-      $patient_q = $ci->db->query($patient_sql);
-      $patient_result = $patient_q->result_array();
-   $patient_id = $patient_result[0]['patient_id'];
-   
-   $consultation_result = $registation_result = $procedure_result = $investigation_result = $medicine_result = $remaining_billing = $bill_arr = $bill_total = array();
-   $procedure_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."patient_procedure where status='cancel' and patient_id='".$billing_details['patient_id']."'";
-      $procedure_q = $ci->db->query($procedure_sql);
-      $procedure_result = $procedure_q->result_array();
-   
-   $consultation_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."consultation where status='adjust' and patient_id='".$billing_details['patient_id']."'";
-      $consultation_q = $ci->db->query($consultation_sql);
-      $consultation_result = $consultation_q->result_array();
-   
-   $registation_sql = "Select receipt_number, payment_done, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."registation where status='adjust' and patient_id='".$billing_details['patient_id']."'";
-   $registation_q = $ci->db->query($registation_sql);
-   $registation_result = $registation_q->result_array();
-   
-   $investigation_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."patient_investigations where status='cancel' and patient_id='".$billing_details['patient_id']."'";
-   $investigation_q = $ci->db->query($investigation_sql);
-   $investigation_result = $investigation_q->result_array();
-   
-   $medicine_sql = "Select receipt_number, payment_done, fees, remaining_amount, billing_at from ".$db_prefix."patient_medicine where status='cancel' and patient_id='".$billing_details['patient_id']."'";
-   $medicine_q = $ci->db->query($medicine_sql);
-   $medicine_result = $medicine_q->result_array();
-   
-   $total = 0;
-   
-   $done_sql = "Select sum(payment_done) as payment_done from ".$db_prefix."patient_payments where patient_id='".$billing_details['patient_id']."' AND status='3'";
-   $done_q = $ci->db->query($done_sql);
-   $done_result = $done_q->result_array();
-   
-   foreach($consultation_result as $key => $val){
-    $bill_arr[] = $val['payment_done'];
-   }
-   
-   $total = 0;
-   foreach($investigation_result as $key => $val){
-    $bill_arr[] = $val['payment_done'];
-   }
-   
-   $total = 0;
-   foreach($registation_result as $key => $val){
-    $bill_arr[] = $val['payment_done'];
-   }
-   
-   $total = 0;
-   foreach($procedure_result as $key => $val){
-   $bill_arr[] = $val['payment_done'];
-   }
-   
-   $total = 0;
-   foreach($medicine_result as $key => $val){
-   $bill_arr[] = $val['payment_done'];
-   }
-   
-   foreach($done_result as $key => $val){
-   $bill_arr[] = $val['payment_done'];
-   }
-   
-      //wallete
-   $consultation_wallet_result = $procedure_wallet_result = $investigation_wallet_result = $partialpayments_wallet_result = $medicine_wallet_result = $done_wallet_result = $wallet_remaining_billing = $wallet_arr = $wallet_bill_total = array();
-   $procedure_wallet_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."patient_procedure where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
-   $procedure_wallet_q = $ci->db->query($procedure_wallet_sql);
-   $procedure_wallet_result = $procedure_wallet_q->result_array();
-   
-   $consultation_wallet_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."consultation where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
-   $consultation_wallet_q = $ci->db->query($consultation_wallet_sql);
-   $consultation_wallet_result = $consultation_wallet_q->result_array();
-   
-   $investigation_wallet_sql = "Select receipt_number, payment_done, wallet_payment, fees, remaining_amount, billing_from, billing_at from ".$db_prefix."patient_investigations where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
-   $investigation_wallet_q = $ci->db->query($investigation_wallet_sql);
-   $investigation_wallet_result = $investigation_wallet_q->result_array();
-   
-   $partialpayments_wallet_sql = "Select refrence_number, payment_done, wallet_payment, billing_from, billing_at from ".$db_prefix."patient_payments where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
-   $partialpayments_wallet_q = $ci->db->query($partialpayments_wallet_sql);
-   $partialpayments_wallet_result = $partialpayments_wallet_q->result_array();
-   
-   $medicine_wallet_sql = "Select receipt_number, payment_done,wallet_payment, fees, remaining_amount, billing_at from ".$db_prefix."patient_medicine where wallet_payment > 0 and patient_id='".$billing_details['patient_id']."'";
-   $medicine_wallet_q = $ci->db->query($medicine_wallet_sql);
-   $medicine_wallet_result = $medicine_wallet_q->result_array();
-   
-   foreach($consultation_wallet_result as $key => $value){
-   $wallet_arr[] = $value['wallet_payment'];
-   }
-   
-   $total = 0;
-   foreach($investigation_wallet_result as $key => $value){
-   $wallet_arr[] = $value['wallet_payment'];
-   }
-   
-   $total = 0;
-   foreach($procedure_wallet_result as $key => $value){
-   $wallet_arr[] = $value['wallet_payment'];
-   }
-   
-   $total = 0;
-   foreach($medicine_wallet_result as $key => $value){
-   $wallet_arr[] = $value['wallet_payment'];
-   }
-   
-   $total = 0;
-   foreach($partialpayments_wallet_result as $key => $value){
-   $wallet_arr[] = $value['wallet_payment'];
-   }
-   
-   foreach($done_wallet_result as $key => $value){
-   $wallet_arr[] = $value['wallet_payment'];
-   }
-   
-   $paid_total = 0;
-   $paid_total = array_sum($bill_arr);
-   
-   $wallet_bill_total = 0;
-   $wallet_bill_total = array_sum($wallet_arr);
-   
-   $balance = $paid_total - $wallet_bill_total;
-   ?>
 
 <style type="text/css">
    form{
@@ -186,68 +63,29 @@
    text-align: left;
    }
 </style>
- <?php 
-    $all_method =& get_instance();
+<?php 
+    // Load our smart helper
     $this->load->helper('billing');
     
-    // 1. Try to get patient_id from $patient_data array first
-    $patient_id = $patient_data['patient_id'] ?? $patient_data['uhid'] ?? '';
-
- 
-    // 3. Set safe defaults
-    $wallet_1 = 0;
-    $wallet_2 = 0;
-
-    // 4. Fetch the real-time balance using the CORRECT patient ID
-    if(!empty($patient_id)) {
-        $w = get_final_wallet_balance($patient_id); 
-        
-        $wallet_1 = $w['wallet_1_balance'] ?? $w['balance'] ?? 0;
-        $wallet_2 = $w['wallet_2_balance'] ?? 0;
-    }
+    // Check if parent page passed $patient_data, otherwise let helper find it
+    $p_id = $patient_data['patient_id'] ?? $patient_data['uhid'] ?? null;
+    $wallet = get_universal_wallet($p_id); 
 ?>
 <div class="row">
     <div class="col-md-4 mb-3">
-        <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9; min-height: 160px;">
+        <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9; min-height: 100px;">
             <div class="card-body">
-                <h6 class="text-success font-weight-bold">Money Wallet <?php echo $patient_id;  ?></h6>
-                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet_1, 2); ?></h2>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addMoneyModal">+ Add Money</button>
-                    <button type="button" class="btn btn-warning btn-sm text-white" data-toggle="modal" data-target="#transferModal" style="margin-left:5px;">⇆ Transfer</button>
-                </div>
+                <h6 class="text-success font-weight-bold">Money Wallet</h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet['wallet_1'], 2); ?></h2>
             </div>
         </div>
     </div>
 
     <div class="col-md-4 mb-3">
-        <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2; min-height: 160px;">
+        <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2; min-height: 100px;">
             <div class="card-body">
                 <h6 class="text-warning font-weight-bold">Package Wallet</h6>
-                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet_2, 2); ?></h2>
-                <div class="btn-group">
-                    <button class="btn btn-success btn-sm" data-target="#addPackageMoneyModal" data-toggle="modal">+ Add Money</button>
-                    <button type="button" class="btn btn-outline-warning btn-sm" data-toggle="modal" data-target="#transferBackModal" style="margin-left:5px;">⇆ Transfer Back</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4 mb-3">
-        <div class="card shadow-sm" style="border-left: 5px solid #007bff; background: #f0f7ff; min-height: 160px;">
-            <div class="card-body">
-                <h6 class="text-primary font-weight-bold">Available Promo Coupons</h6>
-                <?php 
-                    $this->db->where('status', 1);
-                    $this->db->where('expiry_date >=', date('Y-m-d'));
-                    $coupons = $this->db->get('hms_coupons')->result();
-                    $coupon_count = count($coupons);
-                ?>
-                <h2 class="display-5" style="margin: 10px 0;"><?php echo $coupon_count; ?> <small style="font-size: 16px; color: #666;">Active Codes</small></h2>
-                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#viewCouponsModal">
-                    <i class="fa fa-ticket"></i> View All Coupons
-                </button>
-                <p class="text-muted small" style="margin-top: 8px; margin-bottom: 0;">Check validity & minimum bill</p>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet['wallet_2'], 2); ?></h2>
             </div>
         </div>
     </div>

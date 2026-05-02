@@ -1610,17 +1610,97 @@ function partial_billing($appointment_id){
 					$post_arr['package_form'] = $package_form;
 
 					// Common Payment Details
-					//$post_arr['payment_method'] = $_POST['payment_method']; unset($_POST['payment_method']);
+					$post_arr['payment_method'] = isset($_POST['payment_method']) ? $_POST['payment_method'] : ''; unset($_POST['payment_method']);
 					$post_arr['cash_payment'] = $_POST['cash_payment']; unset($_POST['cash_payment']);
 					$post_arr['card_payment'] = $_POST['card_payment']; unset($_POST['card_payment']);
 					$post_arr['upi_payment'] = $_POST['upi_payment']; unset($_POST['upi_payment']);
 					$post_arr['neft_payment'] = $_POST['neft_payment']; unset($_POST['neft_payment']);
-					$post_arr['wallet_payment'] = $_POST['wallet_payment']; unset($_POST['wallet_payment']);
+
 					$post_arr['origins'] = $_POST['origins']; unset($_POST['origins']);
 					$post_arr['series_number'] = $_POST['series_number']; unset($_POST['series_number']);
 					$post_arr['expiry_date'] = $_POST['expiry_date']; unset($_POST['expiry_date']);
 					$post_arr['renewal_type'] = $_POST['renewal_type']; unset($_POST['renewal_type']);
 					$post_arr['status'] = 'pending';
+
+					// ==================================================================
+                    // --- SMART WALLET DEDUCTION LOGIC START ---
+                    // ==================================================================
+                    $total_wallet_amount_to_deduct = 0;
+
+                    // 1. FIRST CHECK: Does a global payment method exist?
+                    $global_method = isset($_POST['payment_method']) ? strtolower(trim($_POST['payment_method'])) : '';
+                    if ($global_method == 'wallet' || $global_method == 'package wallet' || $global_method == 'package_wallet') {
+                        $total_wallet_amount_to_deduct += isset($_POST['payment_done']) ? (float)$_POST['payment_done'] : 0;
+                    }
+
+                    // 2. SECOND CHECK: Loop through ALL procedure rows (payment_method_1, payment_method_2, etc.)
+                    if (isset($_POST['procedure_suggestion']) && $_POST['procedure_suggestion'] == 1) {
+                        foreach ($_POST as $key => $val) {
+                            if (substr($key, 0, 14) === "sub_procedure_") {
+                                // Extract the row number (e.g., "1", "2")
+                                $idx = str_replace('sub_procedure_', '', $key);
+                                
+                                // Get the dropdown value for THIS specific row
+                                $row_method = isset($_POST['payment_method_' . $idx]) ? strtolower(trim($_POST['payment_method_' . $idx])) : '';
+                                
+                                // If this specific row is paid via wallet, add it to our deduction total!
+                                if ($row_method == 'wallet' || $row_method == 'package wallet' || $row_method == 'package_wallet') {
+                                    $row_paid = isset($_POST['sub_procedures_paid_price_' . $idx]) ? (float)$_POST['sub_procedures_paid_price_' . $idx] : 0;
+                                    $total_wallet_amount_to_deduct += $row_paid;
+                                }
+                            }
+                        }
+                    }
+
+                    // 3. DEDUCT THE MONEY: If we found ANY wallet payments, do the deduction!
+                    if ($total_wallet_amount_to_deduct > 0) {
+                        $wallet_patient_id = $post_arr['patient_id'];
+
+                        // A. Fetch current wallet balances
+                        $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $wallet_patient_id])->row();
+
+                        // B. Check if they have enough balance in Wallet 2 (Package Wallet)
+                        if (!$wallet || $wallet->wallet_2_balance < $total_wallet_amount_to_deduct) {
+                            header("location:" . base_url() . "after-consultation-step-2?t=procedure&m=" . base64_encode('Insufficient balance in Package Wallet!'));
+                            die();
+                        }
+
+                        // C. Calculate new balances
+                        $opening_w1 = $wallet->wallet_1_balance;
+                        $closing_w1 = $wallet->wallet_1_balance; 
+                        $opening_w2 = $wallet->wallet_2_balance;
+                        $closing_w2 = $opening_w2 - $total_wallet_amount_to_deduct; // DEDUCT the money
+
+                        // D. Update the Patient Wallet Table
+                        $this->db->where('patient_id', $wallet_patient_id);
+                        $this->db->update('hms_patient_wallets', [
+                            'wallet_2_balance' => $closing_w2,
+                            'updated_at'       => date('Y-m-d H:i:s')
+                        ]);
+
+                        // E. Insert the Log History
+                        $log_data = [
+                            'patient_id'  => $wallet_patient_id,
+                            'amount'      => $total_wallet_amount_to_deduct,
+                            'action_type' => 'PACKAGE_USAGE', 
+                            'opening_w1'  => $opening_w1,
+                            'closing_w1'  => $closing_w1,
+                            'opening_w2'  => $opening_w2,
+                            'closing_w2'  => $closing_w2,
+                            'mode'        => 'Wallet',
+                            'remarks'     => 'Paid for Procedure. Appt ID: ' . $post_arr['appointment_id'],
+                            'created_by'  => $post_arr['biller_id'],
+                            'created_at'  => date('Y-m-d H:i:s'),
+                            'status'      => 'approved'
+                        ];
+                        $this->db->insert('hms_wallet_logs', $log_data);
+
+                        // F. Record for your insert query below
+                        $post_arr['wallet_payment'] = $total_wallet_amount_to_deduct;
+                    }
+                    // ==================================================================
+                    // --- SMART WALLET DEDUCTION LOGIC END ---
+                    // ==================================================================
 
 					// Global Currency Logic (used for center share calculation)
 					if ($_POST['payment_in'] == 'rs_payment') {

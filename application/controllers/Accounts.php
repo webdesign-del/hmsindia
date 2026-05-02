@@ -3018,7 +3018,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' LIMIT 50")->result_array();
+    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' LIMIT 700")->result_array();
 
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
