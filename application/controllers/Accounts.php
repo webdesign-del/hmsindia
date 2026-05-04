@@ -2694,7 +2694,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at DESC 
-LIMIT 1000
+LIMIT 3500
     ";
     
 	// Change result_array() to row_array()
