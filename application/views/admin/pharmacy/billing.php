@@ -28,9 +28,9 @@
                             </div>
 
                             <div style="background: #fdf7f0; padding: 15px; border: 1px dashed #f39c12; border-radius: 5px;">
-                                <label><i class="fa fa-tag"></i> Have a Coupon?</label>
+                                <label><i class="fa fa-tag"></i> Have a Cashback Code?</label>
                                 <div class="input-group">
-                                    <input type="text" id="coupon_input" class="form-control" placeholder="Enter Code">
+                                    <input type="text" name="coupon_code" id="coupon_input" class="form-control" placeholder="Enter Code">
                                     <span class="input-group-btn">
                                         <button type="button" id="apply_coupon_btn" class="btn btn-warning">Apply</button>
                                     </span>
@@ -45,20 +45,22 @@
                                     <th>Total Amount</th>
                                     <td>₹<span id="display_total">1000.00</span></td>
                                 </tr>
-                                <tr class="text-success">
-                                    <th>Coupon Discount</th>
-                                    <td>- ₹<span id="display_discount">0.00</span></td>
+                                
+                                <tr id="cashback_row" style="display:none; background: #e8f5e9; color: #2e7d32;">
+                                    <th><i class="fa fa-wallet"></i> Cashback Earned</th>
+                                    <td>+ ₹<span id="display_cashback">0.00</span></td>
                                 </tr>
+
                                 <tr style="font-size: 1.5em; background: #eee;">
                                     <th>Net Payable</th>
                                     <td>₹<span id="display_net">1000.00</span></td>
                                 </tr>
                             </table>
 
-                            <input type="hidden" name="coupon_discount" id="hidden_discount" value="0">
+                            <input type="hidden" name="cashback_amount" id="hidden_cashback" value="0">
                             <input type="hidden" name="net_payable" id="hidden_net" value="1000">
                             
-                            <button type="submit" class="btn btn-success btn-lg btn-block">Generate Bill</button>
+                            <button type="submit" class="btn btn-success btn-lg btn-block">Generate Bill & Claim Cashback</button>
                         </div>
                     </div>
                 </form>
@@ -71,30 +73,29 @@
 <script>
 /**
  * Updates display when user types in the Bill Amount
- * Handles math if a coupon is already applied
  */
 function updateTotal() {
     let amt = parseFloat($('#main_bill_amt').val());
     if(isNaN(amt)) amt = 0;
 
-    // Update the base total display
+    // Update the base total and net display (Net = Total for cashback scenarios)
     $('#display_total').text(amt.toFixed(2));
+    $('#display_net').text(amt.toFixed(2));
+    $('#hidden_net').val(amt.toFixed(2));
 
-    // Get current applied discount from hidden input
-    let currentDiscount = parseFloat($('#hidden_discount').val());
-
-    // Calculate new Net
-    let newNet = amt - currentDiscount;
-    if(newNet < 0) newNet = 0;
-
-    // Update display and hidden net field
-    $('#display_net').text(newNet.toFixed(2));
-    $('#hidden_net').val(newNet.toFixed(2));
+    // If they change the amount AFTER applying a coupon, reset the coupon to prevent fraud
+    if ($('#hidden_cashback').val() > 0) {
+        $('#hidden_cashback').val(0);
+        $('#cashback_row').hide();
+        $('#coupon_input').val('').attr('readonly', false);
+        $('#apply_coupon_btn').attr('disabled', false).text('Apply');
+        $('#coupon_resp_msg').text('Bill amount changed. Please re-apply coupon.').css('color', 'orange');
+    }
 }
 
 $(document).ready(function() {
     /**
-     * AJAX Call to validate and apply coupon
+     * AJAX Call to validate code and calculate cashback
      */
     $('#apply_coupon_btn').click(function() {
         let code = $('#coupon_input').val();
@@ -117,30 +118,28 @@ $(document).ready(function() {
             success: function(res) {
                 if(res.status == 'success') {
                     // 1. Success Message
-                    $('#coupon_resp_msg').html('<i class="fa fa-check"></i> ' + res.message).css('color', 'green');
+                    $('#coupon_resp_msg').html('<i class="fa fa-check"></i> Valid! You will earn cashback.').css('color', 'green');
                     
                     // 2. Extract calculations from server response
-                    let disc = parseFloat(res.discount);
-                    let net = parseFloat(res.final_amount);
+                    let cashbackEarned = parseFloat(res.cashback_amount);
 
-                    // 3. Update the UI text
-                    $('#display_discount').text(disc.toFixed(2));
-                    $('#display_net').text(net.toFixed(2));
+                    // 3. Update the UI
+                    $('#display_cashback').text(cashbackEarned.toFixed(2));
+                    $('#cashback_row').show(); // Reveal the hidden cashback row
                     
                     // 4. Update the hidden inputs for the Form POST
-                    $('#hidden_discount').val(disc.toFixed(2));
-                    $('#hidden_net').val(net.toFixed(2));
+                    $('#hidden_cashback').val(cashbackEarned.toFixed(2));
                     
-                    // 5. UI Improvements: Readonly mode
+                    // 5. Lock the input
                     $('#coupon_input').attr('readonly', true);
                     $('#apply_coupon_btn').attr('disabled', true).text('Applied');
                 } else {
-                    // Show Error (Expired, Invalid, etc.)
+                    // Show Error (Expired, Invalid, Minimum Bill Not Met)
                     $('#coupon_resp_msg').html('<i class="fa fa-times"></i> ' + res.message).css('color', 'red');
                 }
             },
             error: function() {
-                alert("Server error. Check if Coupon_model is loaded.");
+                alert("Server error while validating coupon.");
             }
         });
     });

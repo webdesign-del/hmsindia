@@ -3348,7 +3348,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at DESC 
-LIMIT 50
+LIMIT 700
     ";
     
 	// Change result_array() to row_array()
@@ -3648,7 +3648,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' ORDER BY id DESC LIMIT 50")->result_array();
+    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' ORDER BY id DESC LIMIT 700")->result_array();
 
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
@@ -3707,7 +3707,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 6: FELLOWSHIP / TRAINING SALES
     // =========================================================================
-    $fellow_rows = $this->db->query("SELECT * FROM hms_fellowship_training WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 20")->result_array();
+    $fellow_rows = $this->db->query("SELECT * FROM hms_fellowship_training WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 700")->result_array();
 
     foreach ($fellow_rows as $row) {
         $status_text = ($row['status'] == '1') ? 'approved' : 'cancel';
@@ -3740,7 +3740,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 7: PARTIAL PAYMENTS
     // =========================================================================
-    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 20");
+    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 700");
     $payment_rows = $partial_q->result_array();
 
     foreach ($payment_rows as $payment_row) {
@@ -3977,7 +3977,7 @@ public function sales_completion_order()
         INNER JOIN medicines m ON mb.medicine_id = m.id
         WHERE sm.movement_type = 'SALE' AND sm.to_location_type = 'SALE'
         AND s.payment_status = 'PAID' 
-        ORDER BY s.updated_at DESC LIMIT 50
+        ORDER BY s.updated_at DESC LIMIT 1000
     ";
     
     $med_results = $this->db->query($sql_med)->result_array();
@@ -4231,7 +4231,7 @@ $this->db->where('hms_consultation.tally_status', '1');
 // Always order by the latest ID so you don't see old records first
 $this->db->order_by('hms_consultation.id', 'DESC'); 
 
-$this->db->limit(20);
+$this->db->limit(700);
 
 $consult_rows = $this->db->get()->result_array();
 
@@ -4278,7 +4278,7 @@ $consult_rows = $this->db->get()->result_array();
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
     $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-    $this->db->limit(20);
+    $this->db->limit(700);
     $reg_rows = $this->db->get()->result_array();
 
     foreach ($reg_rows as $row) {
@@ -4314,7 +4314,7 @@ $consult_rows = $this->db->get()->result_array();
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-   $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' ORDER BY id DESC LIMIT 50")->result_array();
+   $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' ORDER BY id DESC LIMIT 700")->result_array();
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
         $bill_c = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
@@ -4379,7 +4379,7 @@ $consult_rows = $this->db->get()->result_array();
     // =========================================================================
     // PART 6: FELLOWSHIP / TRAINING SALES
     // =========================================================================
-    $fellow_rows = $this->db->query("SELECT * FROM hms_fellowship_training WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 20")->result_array();
+    $fellow_rows = $this->db->query("SELECT * FROM hms_fellowship_training WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 700")->result_array();
 
     foreach ($fellow_rows as $row) {
         $status_text = ($row['status'] == '1') ? 'approved' : 'cancel';
