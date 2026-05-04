@@ -2694,7 +2694,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at DESC 
-LIMIT 500
+LIMIT 1000
     ";
     
 	// Change result_array() to row_array()
@@ -3019,7 +3019,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' LIMIT 700")->result_array();
+    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' LIMIT 1000")->result_array();
 
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
@@ -3349,7 +3349,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at DESC 
-LIMIT 700
+LIMIT 1000
     ";
     
 	// Change result_array() to row_array()
@@ -3574,7 +3574,7 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
     $this->db->where('hms_consultation.status', 'approved');
     $this->db->where('hms_consultation.tally_status', '1');
-    $this->db->limit(20);
+    $this->db->limit(500);
     $consult_rows = $this->db->get()->result_array();
 
     foreach ($consult_rows as $row) {
@@ -3616,7 +3616,7 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
     $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-    $this->db->limit(20);
+    $this->db->limit(200);
     $reg_rows = $this->db->get()->result_array();
 
 
@@ -3649,7 +3649,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' ORDER BY id DESC LIMIT 700")->result_array();
+    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' ORDER BY id DESC LIMIT 1000")->result_array();
 
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
@@ -3741,7 +3741,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 7: PARTIAL PAYMENTS
     // =========================================================================
-    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 700");
+    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 1000");
     $payment_rows = $partial_q->result_array();
 
     foreach ($payment_rows as $payment_row) {
