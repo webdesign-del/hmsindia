@@ -2934,7 +2934,8 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
     $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
-    $this->db->where('hms_consultation.status', 'approved');
+   // $this->db->where('hms_consultation.status', 'approved');
+	$this->db->where_in('hms_consultation.status', ['adjust', 'pending']);
     $this->db->where('hms_consultation.tally_status', '1');
     $this->db->limit(500);
     $consult_rows = $this->db->get()->result_array();
