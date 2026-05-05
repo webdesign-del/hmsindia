@@ -2694,7 +2694,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at DESC 
-LIMIT 1500
+LIMIT 1000
     ";
     
 	// Change result_array() to row_array()
@@ -3019,7 +3019,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' LIMIT 1000")->result_array();
+    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' LIMIT 500")->result_array();
 
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
