@@ -1846,6 +1846,7 @@ function approve_procedure($ID) {
 	function get_discharge_form_data() {
         $this->db->from('hms_discharge_forms');
         // Remove the status filter to show both active and inactive forms
+		$this->db->where('status', 'active');
         $sel = $this->db->get();
         $q = $sel->result_array();
         if ($q) {
@@ -1858,6 +1859,7 @@ function approve_procedure($ID) {
         $this->db->from('hms_discharge_forms');
         // Remove the status filter to show both active and inactive forms
 		$this->db->where('role', 'embryologist');
+		$this->db->where('status', 'active');
         $sel = $this->db->get();
         $q = $sel->result_array();
         if ($q) {
@@ -1870,6 +1872,7 @@ function approve_procedure($ID) {
         $this->db->from('hms_discharge_forms');
         // Remove the status filter to show both active and inactive forms
 		$this->db->where('role', 'nurse');
+		$this->db->where('status', 'active');
         $sel = $this->db->get();
         $q = $sel->result_array();
         if ($q) {

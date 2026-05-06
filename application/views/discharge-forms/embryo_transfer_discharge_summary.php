@@ -137,15 +137,23 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
 	$select_result5 = run_select_query($sql5); 
 
-// 1. Run the query to check if Andrology record exists
-$select_embryo_transfer = "SELECT receipt_number FROM `embryo_transfer` WHERE patient_id='$iic_id' LIMIT 1";
-$embryo_transfer_result = run_select_query($select_embryo_transfer);
+    $select_embryo_transfer = "SELECT receipt_number FROM `embryo_transfer` WHERE patient_id='$iic_id' LIMIT 1";
+    $embryo_transfer_result = run_select_query($select_embryo_transfer);
 
-// 2. Define the 'is_complete' flag based on the result
-$is_complete = !empty($embryo_transfer_result);
+    $select_embryo_transfer_fet = "SELECT receipt_number FROM `hms_embryo_transfer_fet` WHERE patient_id='$iic_id' LIMIT 1";
+    $fet_result = run_select_query($select_embryo_transfer_fet);
 
-// 3. Set the receipt number for the hidden input
-$final_receipt = ($is_complete) ? $embryo_transfer_result['receipt_number'] : "";
+    // 2. 'is_complete' सेट करें: अगर किसी एक में भी डेटा है तो TRUE
+    $is_complete = !empty($embryo_transfer_result) || !empty($fet_result);
+
+    // 3. रसीद नंबर सेट करें (पहले पहली टेबल चेक करें, नहीं तो दूसरी)
+    if (!empty($embryo_transfer_result)) {
+        $final_receipt = $embryo_transfer_result['receipt_number'];
+    } elseif (!empty($fet_result)) {
+        $final_receipt = $fet_result['receipt_number'];
+    } else {
+        $final_receipt = ""; // डेटा नहीं मिलने पर खाली
+    }
 
     $physical = $applicablemedicine = array();
     if(!empty($select_result['physical_examination'])){
@@ -172,34 +180,43 @@ $final_receipt = ($is_complete) ? $embryo_transfer_result['receipt_number'] : ""
 <input type="text" value="<?php echo $select_result4['details_management_advised']; ?>" class="form" name="details_management_advised">
 <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
 <input type="hidden" value="<?php echo $_SESSION['logged_doctor']['doctor_id'] ?>" class="form" name="doctor_id">				 
-<?php if ($is_complete): ?>
-    <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
-    
-    <div class="alert alert-success" style="padding: 10px; border-left: 5px solid #00a65a; margin-top: 5px;">
-        <i class="fa fa-check-circle"></i> 
-        <strong>Verified:</strong> Embryo Transfer clinical form is present. You may proceed.
-    </div>
+<div class="verification-container" style="margin-bottom: 20px;">
+    <?php if ($is_complete): ?>
+        <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
+        
+        <div class="alert alert-success" style="padding: 15px; border-left: 5px solid #00a65a; border-radius: 4px; background-color: #dff0d8;">
+            <i class="fa fa-check-circle fa-lg"></i> 
+            <strong>Verified:</strong> Embryo Transfer clinical form found (Receipt: <?php echo $final_receipt; ?>). You may proceed.
+        </div>
 
-<?php else: ?>
-    <div class="alert alert-danger" style="padding: 15px; margin-top: 5px; border-left: 5px solid #a94442;">
-        <i class="fa fa-exclamation-triangle fa-2x pull-left" style="margin-right: 15px;"></i> 
-        <strong>Clinical Data Incomplete!</strong><br>
-        The following mandatory record is missing:
-        <ul style="margin-top:10px;">
-            <li>Embryo Transfer Form (Missing for Receipt: <?php echo $receipt_number; ?>)</li>
-        </ul>
-        <p style="margin-top:10px;"><em>Please fill the Embryo Transfer form before proceeding with this entry.</em></p>
-    </div>
-    
-    <input type="hidden" name="receipt_number" value="">
-    
-    <style>
-        /* Automatically hides the save button if clinical data is missing */
-        #submitbutton, .btn-submit, button[type="submit"] { 
-            display: none !important; 
-        } 
-    </style>
-<?php endif; ?>	
+    <?php else: ?>
+        <div class="alert alert-danger" style="padding: 20px; border-left: 5px solid #a94442; background-color: #f2dede;">
+            <i class="fa fa-exclamation-triangle fa-2x pull-left" style="margin-right: 15px; color: #a94442;"></i> 
+            <strong style="font-size: 16px;">Clinical Data Incomplete!</strong><br>
+            <p style="margin-top:10px;">The mandatory <strong>Embryo Transfer Form</strong> is missing for this patient.</p>
+            
+            <ul style="margin-top:10px;">
+                <li>Please fill either <strong>Embryo Transfer</strong> or <strong>ET FET</strong> form before proceeding.</li>
+            </ul>
+        </div>
+        
+        <input type="hidden" name="receipt_number" value="">
+        
+        <style>
+            /* फॉर्म जमा करने से रोकने के लिए सबमिट बटन को हाइड करें */
+            #submitbutton, 
+            .btn-submit, 
+            button[type="submit"],
+            input[type="submit"] { 
+                display: none !important; 
+            } 
+        </style>
+        
+        <div class="text-center">
+            <p class="text-danger"><strong>Note:</strong> Submit button is disabled due to missing clinical records.</p>
+        </div>
+    <?php endif; ?>
+</div>
 
 <div class="ga-pro">
 <h3>Discharge Summary</h3>

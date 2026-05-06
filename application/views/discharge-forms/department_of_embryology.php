@@ -310,6 +310,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </strong>
 </td>
 </tr>
+<?php if (!empty($select_result['no_of_oocytes_retrieved'])): ?>
 <tr>
 <td colspan="4" style="border:1px solid;padding:5px;">
 <strong>No. of oocytes retrieved
@@ -317,6 +318,8 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </strong>
 </td>
 </tr>
+<?php endif; ?>
+<?php if (!empty($select_result['fertilization_status'])): ?>
 <tr>
 <td colspan="4" style="border:1px solid;padding:5px;">
 <strong>Fertilization status
@@ -324,6 +327,8 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </strong>
 </td>
 </tr>
+<?php endif; ?>
+<?php if (!empty($select_result['d2'])): ?>
 <tr>
 <td colspan="4" style="border:1px solid;padding:5px;">
 <strong>D2
@@ -331,6 +336,8 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </strong>
 </td>
 </tr>
+<?php endif; ?>
+<?php if (!empty($select_result['d3'])): ?>
 <tr>
 <td colspan="4" style="border:1px solid;padding:5px;">
 <strong>D3
@@ -338,6 +345,8 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </strong>
 </td>
 </tr>
+<?php endif; ?>
+<?php if (!empty($select_result['d4'])): ?>
 <tr>
 <td colspan="4" style="border:1px solid;padding:5px;">
 <strong>D4
@@ -345,6 +354,8 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </strong>
 </td>
 </tr>
+<?php endif; ?>
+<?php if (!empty($select_result['d5'])): ?>
 <tr>
 <td colspan="4" style="border:1px solid;padding:5px;">
 <strong>D5
@@ -352,6 +363,8 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </strong>
 </td>
 </tr>
+<?php endif; ?>
+<?php if (!empty($select_result['d6'])): ?>
 <tr>
 <td colspan="4" style="border:1px solid;padding:5px;">
 <strong>D6
@@ -359,6 +372,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </strong>
 </td>
 </tr>
+<?php endif; ?>
 <tr>
 <td colspan="4" style="border:1px solid;padding:5px;">
 <strong>EMBRYO STATUS
