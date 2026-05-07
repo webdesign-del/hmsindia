@@ -3649,7 +3649,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' ORDER BY id DESC LIMIT 1000")->result_array();
+    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' ORDER BY id DESC LIMIT 500")->result_array();
 
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
@@ -3708,7 +3708,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 6: FELLOWSHIP / TRAINING SALES
     // =========================================================================
-    $fellow_rows = $this->db->query("SELECT * FROM hms_fellowship_training WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 700")->result_array();
+    $fellow_rows = $this->db->query("SELECT * FROM hms_fellowship_training WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 500")->result_array();
 
     foreach ($fellow_rows as $row) {
         $status_text = ($row['status'] == '1') ? 'approved' : 'cancel';
@@ -3741,7 +3741,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 7: PARTIAL PAYMENTS
     // =========================================================================
-    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 1000");
+    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 500");
     $payment_rows = $partial_q->result_array();
 
     foreach ($payment_rows as $payment_row) {
