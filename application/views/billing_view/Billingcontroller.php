@@ -416,7 +416,7 @@ function partial_billing($appointment_id){
 
 				$_POST['patient_id'] = $paitent_id;
 
-				$_POST['reason_of_visit'] = $appointments['reason_of_visit'];
+				$_POST['reason_of_visit'] = $_POST['reason_of_visit'];
 
 				$_POST['doctor_id'] = $appointments['appoitmented_doctor'];				
 

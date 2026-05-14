@@ -103,6 +103,8 @@
           <!-- <li> <a href="<?php echo base_url(); ?>stocks_new/reports"> Reports</a> </li> -->
         </ul>
       </li>
+       <?php if($_SESSION['logged_administrator']['username'] == "ceo@indiaivf.in" || $_SESSION['logged_administrator']['username'] == "webdesign@indiaivf.in"){ ?>
+     
       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Coupon Code<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>admin/coupon/add"> Add</a> </li>
@@ -207,6 +209,7 @@
               <li> <a href="<?php echo base_url(); ?>doctor-consultations">Doctor's Consultation</a> </li>
         </ul>
       </li>
+      <?php } ?>
       <!-- <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Orders<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>orders/orders">Centre requisition</a> </li>
@@ -223,6 +226,7 @@
           <li> <a href="<?php echo base_url(); ?>new_purchase_orders/status">Pending Purchase Orders</a> </li>
         </ul>
       </li>
+      <?php if($_SESSION['logged_administrator']['username'] == "ceo@indiaivf.in" || $_SESSION['logged_administrator']['username'] == "webdesign@indiaivf.in"){ ?>
       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Patients<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
             <li> <a href="<?php echo base_url(); ?>patients/patients">Patients</a></li>
@@ -305,7 +309,8 @@
       </li>
       <li> <a href="<?php echo base_url(); ?>accounts/patient_financial_clearance" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Procedure Financial Clearance</a></li>
      <li> <a href="<?php echo base_url(); ?>accounts/clinical_reports" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Clinical Reports</a></li>
-	</ul>
+<?php  } ?>
+    </ul>
   </div>
 </nav>
 <!-- /. NAV SIDE  -->

@@ -327,11 +327,11 @@ function partial_billing($appointment_id){
 				$biller_id = $_POST['biller_id'];
 				$uhid = isset($_POST['uhid']) ? $_POST['uhid'] : '';
 				$donor_patient_id = isset($_POST['donor_patient_id']) ? $_POST['donor_patient_id'] : '';
-				$cash_payment = isset($_POST['cash_payment']) ? $_POST['cash_payment'] : 0;
-				$card_payment = isset($_POST['card_payment']) ? $_POST['card_payment'] : 0;
-				$upi_payment = isset($_POST['upi_payment']) ? $_POST['upi_payment'] : 0;
-				$neft_payment = isset($_POST['neft_payment']) ? $_POST['neft_payment'] : 0;
-				$wallet_payment = isset($_POST['wallet_payment']) ? $_POST['wallet_payment'] : 0;
+				//$cash_payment = isset($_POST['cash_payment']) ? $_POST['cash_payment'] : 0;
+				//$card_payment = isset($_POST['card_payment']) ? $_POST['card_payment'] : 0;
+				//$upi_payment = isset($_POST['upi_payment']) ? $_POST['upi_payment'] : 0;
+				//$neft_payment = isset($_POST['neft_payment']) ? $_POST['neft_payment'] : 0;
+				//$wallet_payment = isset($_POST['wallet_payment']) ? $_POST['wallet_payment'] : 0;
 				$appointments = $this->billingmodel_model->check_appointments($appointment);
 				if(empty($appointments)){
 				    header("location:" .base_url(). "my_appointments?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
@@ -366,11 +366,21 @@ function partial_billing($appointment_id){
 					$paitent_insert = $this->billings_model->paitent_insert($patient_arr);
 				}
 				$_POST['patient_id'] = $paitent_id;
-				$_POST['reason_of_visit'] = $appointments['reason_of_visit'];
-				$_POST['doctor_id'] = $appointments['appoitmented_doctor'];				
+				$reason_of_visit = $_POST['reason_of_visit'];
+				$_POST['doctor_id'] = $appointments['appoitmented_doctor'];             
 				$_POST['status'] = 'pending';
+
+				// --- DYNAMIC STATUS LOGIC START ---
+				// Hum check karenge ki kya JavaScript ne 'approve_by_status' bheja hai
+				if (isset($_POST['approve_by_status']) && $_POST['approve_by_status'] === '2') {
+					$_POST['approve_by_status'] = 2; // Pending for CEO Approval
+				} else {
+					$_POST['approve_by_status'] = 1; // Normal/Paid Consultation (Already Approved)
+				}
+				// --- DYNAMIC STATUS LOGIC END ---
+
 				if($_POST['discount_amount'] == ''){ $_POST['discount_amount'] = 0; }
-				$series_number = $_POST['series_number'];
+			
 				$consult = $this->billings_model->consultation_insert($_POST);
 				$curl = curl_init();
 				curl_setopt_array($curl, array(

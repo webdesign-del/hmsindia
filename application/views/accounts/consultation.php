@@ -18,7 +18,7 @@
   <div class="row">
     <div class="col-sm-12 col-xs-12 panel panel-piluku" id="consultation_details">
       <div class="panel-heading">
-        <h3 class="heading">Consultation Billing</h3>
+        <h3 class="heading">Consultation Billing </h3>
       </div>
       <div class="panel-body profile-edit">
       <p id="msg_area" class="delete"></p>

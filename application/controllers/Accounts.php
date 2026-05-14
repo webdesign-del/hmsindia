@@ -2192,114 +2192,114 @@ public function export_consultation_csv() {
     exit;
 }
 
-	public function approve($request = NULL){
+public function approve($request = NULL) {
+    $logg = checklogin();
+    if($logg['status'] == true) {
+        $data = array();
+        
+        // Parameters catch karein safety checks ke saath
+        $type = isset($_GET['t']) ? $_GET['t'] : '';
+        $status = isset($_GET['u']) ? $_GET['u'] : '';
+        $cn_invoice = isset($_GET['cn']) ? $_GET['cn'] : '';
+        $used_amount = isset($_GET['ua']) ? $_GET['ua'] : 0;
+        $reason = isset($_GET['r']) ? $_GET['r'] : '';
+        $reason_of_cancle = isset($_GET['c']) ? $_GET['c'] : '';
 
-		$logg = checklogin();
+        $patient_id = 0;
+        $receipt_number = 0;
 
-		if($logg['status'] == true){
+        // --- WALLET REFUND LOGIC ---
+        if(in_array($status, ['cancel', 'disapproved', 'adjust'])) {
+            $table_map = [
+                'consultation' => 'consultation',
+                'registation' => 'registation',
+                'investigation' => 'patient_investigations',
+                'medicine' => 'patient_medicine',
+                'procedure' => 'patient_procedure'
+            ];
 
-			$data = array();
+            if(isset($table_map[$type])) {
+                $billing_info = india_ivf_billing($request, $table_map[$type]);
+                
+                // FIX: Pehle check karein ki data mil raha hai ya nahi
+                if(!empty($billing_info) && is_array($billing_info) && isset($billing_info['payment_done']) && $billing_info['payment_done'] > 0) {
+                    $p_id = $billing_info['patient_id'];
+                    $refund_amt = $billing_info['payment_done'];
+                    $wallet_column = ($type == 'procedure') ? 'wallet_2_balance' : 'wallet_1_balance';
 
-			$type = $_GET['t'];
+                    // Update Wallet
+                    $this->db->query("UPDATE hms_patient_wallets SET $wallet_column = $wallet_column + $refund_amt, updated_at = NOW() WHERE patient_id = ?", array($p_id));
+                    
+                    $new_wallet = $this->db->get_where('hms_patient_wallets', array('patient_id' => $p_id))->row_array();
+                    $log_remarks = 'Refund: '.ucfirst($type).' '.ucfirst($status);
+                    
+                    // Log Entry
+                    $wallet_log = array(
+                        'patient_id'  => $p_id,
+                        'amount'      => $refund_amt,
+                        'action_type' => 'credit',
+                        'opening_w1'  => ($type != 'procedure') ? ($new_wallet['wallet_1_balance'] - $refund_amt) : $new_wallet['wallet_1_balance'],
+                        'closing_w1'  => $new_wallet['wallet_1_balance'],
+                        'opening_w2'  => ($type == 'procedure') ? ($new_wallet['wallet_2_balance'] - $refund_amt) : $new_wallet['wallet_2_balance'],
+                        'closing_w2'  => $new_wallet['wallet_2_balance'],
+                        'reference_id'=> isset($billing_info['receipt_number']) ? $billing_info['receipt_number'] : $request,
+                        'mode'        => 'refund',
+                        'remarks'     => $log_remarks,
+                        'created_by'  => $_SESSION['logged_accountant']['username'],
+                        'created_at'  => date('Y-m-d H:i:s'),
+                        'status'      => 'success'
+                    );
+                    $this->db->insert('hms_wallet_logs', $wallet_log);
+                }
+            }
+        }
 
-			$status = $_GET['u'];
-			
-			$cn_invoice = $_GET['cn'];
-			
-			$used_amount = $_GET['ua'];
+        // --- BILLING PROCESS LOGIC ---
+        // FIX: Har block mein empty() check add kiya gaya hai
+        if($type == 'consultation') {            
+            $billing_records = india_ivf_billing($request, "consultation"); 
+            if(!empty($billing_records) && is_array($billing_records)) {
+                $patient_id = $billing_records['patient_id'];
+                $receipt_number = $billing_records['receipt_number'];
+            }
+            $data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
+        } else if($type == 'registation') {
+            $billing_records = india_ivf_billing($request, "registation"); 
+            if(!empty($billing_records) && is_array($billing_records)) {
+                $patient_id = $billing_records['patient_id'];
+                $receipt_number = $billing_records['receipt_number'];
+            }
+            $data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
+        } else if($type == 'investigation') {
+            $billing_records = india_ivf_billing($request, "patient_investigations"); 
+            if(!empty($billing_records) && is_array($billing_records)) {
+                $patient_id = $billing_records['patient_id'];
+                $receipt_number = $billing_records['receipt_number'];
+            }
+            $data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
+        } else if($type == 'medicine') {
+            $billing_records = india_ivf_billing($request, "patient_medicine"); 
+            if(!empty($billing_records) && is_array($billing_records)) {
+                $patient_id = $billing_records['patient_id'];
+                $receipt_number = $billing_records['receipt_number'];
+            }
+            $data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
+        } else if($type == 'procedure') {
+            $billing_records = india_ivf_billing($request, "patient_procedure"); 
+            if(!empty($billing_records) && is_array($billing_records)) {
+                $patient_id = $billing_records['patient_id'];
+                $receipt_number = $billing_records['receipt_number'];
+            }
+            $data = $this->accounts_model->approve_procedure_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice, $used_amount);
+        }
 
-			$reason = '';
-
-			if($status == 'disapproved'){
-
-				$reason = $_GET['r'];
-
-			}
-			if($status == 'cancel'){
-
-				$reason_of_cancle = $_GET['c'];
-			}
-			if($status == 'adjust'){
-				$reason_of_cancle = $_GET['c'];
-			}
-			$subject = 'Billing approval status';
-			
-			if($type == 'consultation'){			
-			    $billing_records  = india_ivf_billing($request, "consultation"); 
-			    if(!empty($billing_records)){
-    			    $patient_id = $billing_records['patient_id'];
-    			    $receipt_number = $billing_records['receipt_number'];
-			    }
-				$data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
-			
-			}else if($type == 'registation'){
-                $billing_records  = india_ivf_billing($request, "registation"); 
-			    if(!empty($billing_records)){
-    			    $patient_id = $billing_records['patient_id'];
-    			    $receipt_number = $billing_records['receipt_number'];
-			    }
-				$data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
-           
-
-			}else if($type == 'investigation'){
-                $billing_records  = india_ivf_billing($request, "patient_investigations"); 
-			    if(!empty($billing_records)){
-    			    $patient_id = $billing_records['patient_id'];
-    			    $receipt_number = $billing_records['receipt_number'];
-			    }
-				$data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
-            
-			}else if($type == 'medicine'){
-                $billing_records  = india_ivf_billing($request, "patient_medicine"); 
-			    if(!empty($billing_records)){
-    			    $patient_id = $billing_records['patient_id'];
-    			    $receipt_number = $billing_records['receipt_number'];
-			    }
-			    $data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
-			
-			}else if($type == 'partialpayments'){
-                $billing_records  = india_ivf_billing($request, "patient_payments"); 
-			    if(!empty($billing_records)){
-    			    $patient_id = $billing_records['patient_id'];
-    			    $refrence_number = $billing_records['refrence_number'];
-			    }
-				
-			$data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
-			
-			}else if($type == 'procedure'){
-                $billing_records  = india_ivf_billing($request, "patient_procedure"); 
-			    if(!empty($billing_records)){
-    			    $patient_id = $billing_records['patient_id'];
-    			    $receipt_number = $billing_records['receipt_number'];
-			    }
-				//print_r($data = $this->accounts_model->approve_procedure_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice, $used_amount));die();
-				$data = $this->accounts_model->approve_procedure_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice, $used_amount);
-
-			}
-			/*else{
-				//header("location:" .base_url(). "accounts/medicine_patients");
-				die();
-			}*/
-			if($patient_id !== 0 && $receipt_number !== 0){
-			    $patient_details = get_patient_detail($patient_id);
-			    if(isset($_SESSION['logged_accountant']) && !empty($_SESSION['logged_accountant'])){
-					$mail_msg = 'Hi IndiaIVF, <br/><br/> '.ucwords($type).' billing receipt ('.$receipt_number.') for patient '.$patient_details['wife_name'].' ('.$patient_id.') has been '.$status.'.';
-					$account_email = $_SESSION['logged_accountant']['email']; //echo $mail_msg;die;
-					$admin_email = $this->accounts_model->get_admin_email();
-					$to_email =  $admin_email."|".$account_email;//echo $to_email;die;
-					// $result = send_mail($to_email, $subject, $mail_msg);
-					$result = true;
-				}
-			}
-			header("location:" .$_SERVER['HTTP_REFERER']. "?m=".base64_encode('Billing '.$status.' successfully').'&t='.base64_encode('success'));
-			die();
-
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-
-	}
+        header("location:" .$_SERVER['HTTP_REFERER']. "?m=".base64_encode('Billing processed successfully').'&t='.base64_encode('success'));
+        die();
+    } else {
+        header("location:" .base_url(). "");
+        die();
+    }
+}
 	
 	function approve_registation($ID){
 		$approved = $this->accounts_model->approve_registation($ID);

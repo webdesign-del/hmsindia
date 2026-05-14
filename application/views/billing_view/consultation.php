@@ -6,7 +6,18 @@
   $sql1 = "SELECT * FROM hms_appointments WHERE uhid = ( SELECT MAX(uhid) FROM hms_appointments)"; 
 		$query = $this->db->query($sql1);
         $select_result1 = $query->result(); 
+
+  // Check if patient already had a consultation
+  $check_prev_consultation = $this->db->get_where('hms_consultation', array('patient_id' => $patient_id))->num_rows();
+  
+  // Check if patient has any procedure billing
+  $check_procedure = $this->db->get_where('hms_patient_procedure', array('patient_id' => $patient_id))->num_rows();
+
+    // Flags for JS (Naming Match)
+  $is_first_visit = ($check_prev_consultation == 0) ? 'true' : 'false';
+  $procedure_exists = ($check_procedure > 0) ? 'true' : 'false';
 ?>
+
 <div class="container-fluid">
   <div class="row">
     <div class="col-md-12">
@@ -73,29 +84,6 @@
                   <span class="input-group-addon" style="background-color: #ecf0f1; border-color: #bdc3c7;">
                     <i class="fa fa-hashtag"></i>
                   </span>
-                  <?php 
-                    if ($appointments['paitent_type'] == 'new_patient' ){
-                      foreach ($select_result1 as $res_val){
-                   ?>
-                    <?php  if($_SESSION['logged_billing_manager']['employee_number'] = "16267558222750" ) {  ?>
-                      <input value="<?php echo $res_val->uhid+1; ?>" id="uhid" name="uhid" type="text" class="form-control">
-                    <?php  } ?>    
-                    <?php  if($_SESSION['logged_billing_manager']['employee_number'] == "16249589462327" ) {  ?>
-                      <input value="001/<?php echo $res_val->uhid+1; ?>" id="uhid" name="uhid" type="text" class="form-control">
-                    <?php  } ?>  
-                    <?php  if($_SESSION['logged_billing_manager']['employee_number'] == "16266778858144" ) {  ?>
-                      <input value="002/<?php echo $res_val->uhid+1; ?>" id="uhid" name="uhid" type="text" class="form-control">
-                    <?php  } ?>  
-                    <?php  if($_SESSION['logged_billing_manager']['employee_number'] == "1581156221" ) {  ?>
-                      <input value="003/<?php echo $res_val->uhid+1; ?>" id="uhid" name="uhid" type="text" class="form-control">
-                    <?php  } ?>  
-                    <?php  if($_SESSION['logged_billing_manager']['employee_number'] == "16098223739590" ) {  ?>
-                      <input value="004/<?php echo $res_val->uhid+1; ?>" id="uhid" name="uhid" type="text" class="form-control">
-                    <?php  } ?>
-                    <?php  if($_SESSION['logged_billing_manager']['employee_number'] == "16133769691598" ) {  ?>
-                      <input value="005/<?php echo $res_val->uhid+1; ?>" id="uhid" name="uhid" type="text" class="form-control">
-                    <?php  } ?>
-                   <?php } } ?>
                 </div>
               </div>
             </div>
@@ -210,13 +198,13 @@
               <div class="form-group col-sm-6 col-xs-12" id="free_reason_box" style="display:none;">
                 <label for="free_reason" class="control-label" style="font-weight: 600; color: #34495e;">
                   <i class="fa fa-info-circle" style="margin-right: 5px; color: #3498db;"></i>
-                  Free Reason <span class="text-danger">*</span>
+                  Free Reason <span class="text-danger">*</span>a
                 </label>
                 <div class="input-group">
                   <span class="input-group-addon" style="background-color: #ecf0f1; border-color: #bdc3c7;">
                     <i class="fa fa-list"></i>
                   </span>
-                  <select id="free_reason" class="form-control">
+                  <select id="reason_of_visit" name="reason_of_visit" class="form-control">
                     <option value="">Select Reason</option>
                     <option value="First Consultation">First Consultation</option>
                     <option value="For TVS (Under Package)">For TVS (Under Package)</option>
@@ -937,4 +925,63 @@ function printDiv()
         });
 
     });
+    
+$(document).ready(function() {
+    // PHP se flags uthayein (Ensure naming is correct in PHP block)
+    var isFirstVisit = <?php echo $is_first_visit; ?>; 
+    var procedureExists = <?php echo $procedure_exists; ?>;
+
+    // Dropdown change validation
+    $('#reason_of_visit').on('change', function() {
+        var reason = $(this).val();
+        if (reason === "First Consultation" && isFirstVisit === false) {
+            alert("This is not a first-time consultation. Please select another reason.");
+            $(this).val("");
+            return false;
+        }
+    });
+
+    // Create Billing Button Click
+    $('#create_billing').on('click', function(e) {
+        var reason = $('#reason_of_visit').val();
+        var discountType = $('#payment_discount').val();
+        var packageReasons = ["For TVS (Under Package)", "Under Package"];
+        
+        // Remove any existing hidden status input first to prevent duplicates
+        $('input[name="approve_by_status"]').remove();
+
+        // Check if approval is needed (Free + Package Reason + No Procedure)
+        // JavaScript logic in your View file
+if (discountType === 'free' && packageReasons.indexOf(reason) !== -1 && procedureExists === false) {
+    if (confirm("No paid procedure found. Save as PENDING for CEO approval?")) {
+        // Hidden input add karein value '2' ke saath
+        $('<input>').attr({
+            type: 'hidden',
+            name: 'approve_by_status',
+            value: '2' // Controller isi '2' ko check kar raha hai
+        }).appendTo('form');
+
+        sendApprovalMail(reason); // CEO ko mail bhejhein
+        value_into_text(); // Preview dikhayein
+    } else {
+        return false;
+    }
+}
+    });
+
+    function sendApprovalMail(reason) {
+        $.ajax({
+            url: '<?php echo base_url("Billings/request_ceo_approval"); ?>',
+            type: 'POST',
+            data: { 
+                patient_id: $('#patient_id').val(), 
+                reason: reason, 
+                doctor: $('#doctor_name').val()
+            },
+            success: function(res) {
+                console.log("Mail Status: " + res);
+            }
+        });
+    }
+});
 </script>

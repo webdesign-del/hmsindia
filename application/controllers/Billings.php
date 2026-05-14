@@ -895,57 +895,63 @@ public function procedure_billings(){
 	}
 	
 	function consultation(){
-			
-		$data = array();
-		$logg = checklogin();
-		if($logg['status'] == true){
-			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_consultation'){
-				unset($_POST['action']);
-				
-				/*echo '<br/>---------------</br>';
-				var_dump($_FILES);die;
-				die;*/
-				//var_dump($_POST);die;
-				$transaction_img = '';
-				if(!empty($_FILES['transaction_img']['tmp_name'])){
-					$dest_path = $this->config->item('upload_path');
-					$destination = $dest_path.'patient_files/';
-					$NewImageName = rand(4,10000)."-".$_POST['patient_id']."-". $_FILES['transaction_img']['name'];
-					$transaction_img = base_url().'assets/patient_files/'.$NewImageName;
-					move_uploaded_file($_FILES['transaction_img']['tmp_name'], $destination.$NewImageName);
-					$_POST['transaction_img'] = $transaction_img;
-				}
-				$_POST['status'] = 'pending';
-				if($_POST['discount_amount'] == ''){					
-					$_POST['discount_amount'] = 0;
-				}
-				//echo '<pre>';
-				//var_dump($_POST);die;
-				$consult = $this->billings_model->consultation_insert($_POST);
-				if($consult > 0){
-					$this->send_billing_receipt($_POST['patient_id'], $_POST['on_date'], $_POST['billing_from'], $_POST['receipt_number'], 'consultation');
-					//header("location:" .base_url(). "billings/add?m=".base64_encode('Billing added successfully').'&t='.base64_encode('success'));
-					$receipt_number = $_POST['receipt_number'];
-					header("location:" .base_url(). "accounts/details/$receipt_number?m=".base64_encode('Billing added successfully').'&t=consultation');
-					die();
-				}else{
-					header("location:" .base_url(). "billings/add?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
-					die();
-				}
-			}
-		
-			$template = get_header_template($logg['role']);
-			$data['doctors'] = $this->doctors_model->get_doctors_list();
-			$data['session_data'] = $_SESSION['consultation_session'];
-			
-			$this->load->view($template['header']);
-			$this->load->view('billings/consultation', $data);
-			$this->load->view($template['footer']);
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}
+    $data = array();
+    $logg = checklogin();
+    if($logg['status'] == true){
+        if(isset($_POST['action']) && $_POST['action'] == 'add_consultation'){
+            unset($_POST['action']);
+            
+            $transaction_img = '';
+            if(!empty($_FILES['transaction_img']['tmp_name'])){
+                $dest_path = $this->config->item('upload_path');
+                $destination = $dest_path.'patient_files/';
+                $NewImageName = rand(4,10000)."-".$_POST['patient_id']."-". $_FILES['transaction_img']['name'];
+                $transaction_img = base_url().'assets/patient_files/'.$NewImageName;
+                move_uploaded_file($_FILES['transaction_img']['tmp_name'], $destination.$NewImageName);
+                $_POST['transaction_img'] = $transaction_img;
+            }
+
+            $_POST['status'] = 'pending';
+
+            // --- NAYA LOGIC YAHAN SE SHURU ---
+            // Agar JS se 'approve_by_status' bhej rahe hain (yani Under Package free case)
+            if(isset($_POST['approve_by_status'])) {
+                $_POST['approve_by_status'] = 2; // Pending for CEO
+            } else {
+                $_POST['approve_by_status'] = 1; // Normal Approved
+            }
+            // --- NAYA LOGIC YAHAN KHATAM ---
+
+            if($_POST['discount_amount'] == ''){                    
+                $_POST['discount_amount'] = 0;
+            }
+
+            // Model ko update kiya hua $_POST bhej rahe hain
+            $consult = $this->billings_model->consultation_insert($_POST);
+
+            if($consult > 0){
+                $this->send_billing_receipt($_POST['patient_id'], $_POST['on_date'], $_POST['billing_from'], $_POST['receipt_number'], 'consultation');
+                $receipt_number = $_POST['receipt_number'];
+                header("location:" .base_url(). "accounts/details/$receipt_number?m=".base64_encode('Billing added successfully').'&t=consultation');
+                die();
+            } else {
+                header("location:" .base_url(). "billings/add?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+                die();
+            }
+        }
+    
+        $template = get_header_template($logg['role']);
+        $data['doctors'] = $this->doctors_model->get_doctors_list();
+        $data['session_data'] = $_SESSION['consultation_session'];
+        
+        $this->load->view($template['header']);
+        $this->load->view('billings/consultation', $data);
+        $this->load->view($template['footer']);
+    } else {
+        header("location:" .base_url(). "");
+        die();
+    }
+}
 		
 	function investigation(){
 			
@@ -2819,5 +2825,72 @@ public function generate_pdf($id) {
     }
 }
 
+
+public function request_ceo_approval() {
+    $patient_id = $this->input->post('patient_id');
+    $reason = $this->input->post('reason');
+    $ceo_email = 'webdesign@indiaivf.in';
+
+    // SMTP Configuration yahan define karna zaroori hai
+    $config = array(
+        'protocol'    => 'smtp',
+        'smtp_host'   => 'smtp.gmail.com',
+        'smtp_port'   => 587,
+        'smtp_crypto' => 'tls',
+        'smtp_user'   => 'digital@indiaivf.in', 
+        'smtp_pass'   => 'mboo fuem kfsy qsdr', // Google App Password
+        'mailtype'    => 'html',
+        'charset'     => 'utf-8',
+        'newline'     => "\r\n",
+        'wordwrap'    => TRUE
+    );
+
+    // Unique Token/Link for Approval
+    $approve_link = base_url("Billings/approve_consultation/" . $patient_id);
+
+    $message = "<h3>Consultation Approval Required</h3>
+                <p><b>Patient ID:</b> $patient_id</p>
+                <p><b>Reason:</b> $reason</p>
+                <p>No paid procedure found. Please approve to clear this billing.</p>
+                <br>
+                <a href='$approve_link' style='background:green;color:white;padding:10px;text-decoration:none;border-radius:5px;'>APPROVE BILLING</a>";
+
+    // Email library load aur initialize karein
+    $this->load->library('email');
+    $this->email->initialize($config); 
+    
+    $this->email->from('digital@indiaivf.in', 'HMS Billing');
+    $this->email->to($ceo_email);
+    $this->email->subject("Approval Required - $patient_id");
+    $this->email->message($message);
+
+    if($this->email->send()) { 
+        echo "success"; 
+    } else { 
+        // Agar mail nahi ja raha toh error dekhne ke liye:
+        // echo $this->email->print_debugger(); 
+        echo "error"; 
+    }
+}
+
+// CEO click karega toh ye function chalega
+public function approve_consultation($patient_id) {
+    // Sirf us patient ka latest record update karein jiska status abhi 0 hai
+    $this->db->where('patient_id', $patient_id);
+    $this->db->where('approve_by_status', 2); 
+    $this->db->order_by('id', 'DESC');
+    $this->db->limit(1);
+    
+    $update = $this->db->update('hms_consultation', array('approve_by_status' => 1));
+
+    if($update) {
+        echo "<div style='text-align:center; margin-top:50px; font-family:sans-serif;'>
+                <h1 style='color:green;'>✔️ Approved!</h1>
+                <p>Billing for Patient ID <b>$patient_id</b> has been approved (Status 1).</p>
+              </div>";
+    } else {
+        echo "Error: Record not found or already approved.";
+    }
+}
 	
 } 
