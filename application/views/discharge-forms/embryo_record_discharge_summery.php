@@ -190,6 +190,9 @@
    
    $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
    $select_result3 = run_select_query($sql3);
+
+   $embryo_record_query = "SELECT * FROM `embryo_record` WHERE patient_id='$iic_id'";
+   $embryo_record_result = run_select_query($embryo_record_query); 
    
    // Display success/error messages
    if(isset($_GET['m']) && isset($_GET['t'])){
@@ -325,13 +328,13 @@
                   </td> 
                   <td colspan="4" width="45%">
                      <label for="d2">D2:</label>
-                     <input type="text" name="d2_status" value="<?php echo isset($select_result['d2_status'])?$select_result['d2_status']:""; ?>" style="width:100%;" <?php echo $form_locked ? 'disabled' : ''; ?>>
+                     <input type="text" name="d2_status" value="<?php echo isset($embryo_record_result['cell_embryos_day2'])?$embryo_record_result['cell_embryos_day2']:""; ?>" style="width:100%;" <?php echo $form_locked ? 'disabled' : ''; ?>>
                   </td>
                </tr>
                <tr>
                   <td colspan="2" width="25%">
                      <label for="d3">D3:</label>
-                     <input type="text" name="d3_status" value="<?php echo isset($select_result['d3_status'])?$select_result['d3_status']:""; ?>" style="width:100%;" <?php echo $form_locked ? 'disabled' : ''; ?>>
+                     <input type="text" name="d3_status" value="<?php echo isset($embryo_record_result['cell_embryos_day3'])?$embryo_record_result['cell_embryos_day3']:""; ?>" style="width:100%;" <?php echo $form_locked ? 'disabled' : ''; ?>>
                   </td>
                   <td colspan="2" width="25%">
                      <label for="d4">D4:</label>

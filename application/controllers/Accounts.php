@@ -3349,7 +3349,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at DESC 
-LIMIT 500
+LIMIT 700
     ";
     
 	// Change result_array() to row_array()
@@ -3965,59 +3965,80 @@ public function sales_completion_order()
     // PART 1: MEDICINE SALES
     // =========================================================================
     $sql_med = "
-        SELECT 
-            s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,
-            s.sale_number, s.sale_date, s.payment_method, s.payment_status,
-            s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
-            mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
-            sm.quantity_change, sm.total_value
-        FROM sales s
-        INNER JOIN hms_centers c ON s.center_id = c.id
-        INNER JOIN stock_movements sm ON s.id = sm.reference_id
-        INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
-        INNER JOIN medicines m ON mb.medicine_id = m.id
-        WHERE sm.movement_type = 'SALE' AND sm.to_location_type = 'SALE'
-        AND s.payment_status = 'PAID' 
-        ORDER BY s.updated_at DESC LIMIT 1000
-    ";
+       SELECT 
+    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,
+    s.sale_number, s.sale_date, s.payment_method, s.payment_status,
+    s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
+    mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
+    sm.quantity_change, sm.total_value, s.tally_status
+FROM sales s
+INNER JOIN hms_centers c ON s.center_id = c.id
+INNER JOIN stock_movements sm ON s.id = sm.reference_id
+INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
+INNER JOIN medicines m ON mb.medicine_id = m.id
+WHERE sm.movement_type = 'SALE' 
+    AND sm.to_location_type = 'SALE'
+    AND s.payment_status = 'PAID' 
+    AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
+ORDER BY s.updated_at DESC 
+LIMIT 1000";
     
-    $med_results = $this->db->query($sql_med)->result_array();
-    
-    // Group medicines by Sale ID
-    $med_grouped = [];
+	// Change result_array() to row_array()
+	// 1. Change back to result_array() to handle all 50 potential records
+$med_results = $this->db->query($sql_med)->result_array();
 
+$med_grouped = [];
+$prefix = $this->config->item('db_prefix');
+
+if (!empty($med_results)) {
     foreach ($med_results as $row) {
         $saleId = $row['sale_id'];
-        
-        $qty     = abs((int) $row['quantity_change']);
-        $packSize = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
-        $mrpUnit = $row['mrp'] / $packSize; 
-        $gstRate = (float) $row['gst_rate'];
-        $total   = (float) $row['total_value'];
+        $patient_id = $row['patient_id'];
 
-        // Calculations
-        $mrpValue = $mrpUnit * $qty;
-        $taxableValue = ($total * 100) / (100 + $gstRate);
-        $gstAmount = $total - $taxableValue;
+        // 2. Fetch Appointment for THIS specific row
+        $sql_app = "SELECT * FROM {$prefix}appointments WHERE paitent_id = '$patient_id' AND paitent_type = 'new_patient' LIMIT 1";
+        $app_result = run_select_query($sql_app);
+
+        // 3. Fetch Center info based on the appointment
+        $app_center_name = "N/A"; // Default if not found
+        if (!empty($app_result['appoitment_for'])) {
+            $sql_center = "SELECT center_name FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+            $center_data = run_select_query($sql_center);
+            $app_center_name = $center_data['center_name'] ?? "N/A";
+        }
+
+        // 4. Calculations
+        $qty            = abs((int) $row['quantity_change']);
+        $packSize       = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
+        $mrpUnit        = $row['mrp'] / $packSize; 
+        $gstRate        = (float) $row['gst_rate'];
+        $total          = (float) $row['total_value'];
+
+        $mrpValue       = $mrpUnit * $qty;
+        $taxableValue   = ($total * 100) / (100 + $gstRate);
+        $gstAmount      = $total - $taxableValue;
         $discountAmount = $mrpValue - $total;
         
+        // 5. Grouping Logic
         if (!isset($med_grouped[$saleId])) {
             $med_grouped[$saleId] = [
                 'type'             => 'Medicine',
                 'patient_id'       => $row['patient_id'],
                 'patient_name'     => $row['patient_name'],
                 'billing_center'   => $row['center_name'],
-                'origin_center'    => $row['center_name'],
+                'origin_center'    => $app_center_name, // Now correctly populated
+				'cost_center'      => $row['center_name'], // Now correctly populated
                 'receipt_number'   => $row['sale_number'],
                 'on_date'          => date("d-m-Y", strtotime($row['sale_date'])),
                 'biller_name'      => $row['payment_approved_by_name'],
                 'payment_method'   => $row['payment_method'],
                 'status'           => $row['payment_status'],
-				'series_number'    => $row['series_number'],
+                'series_number'    => $row['series_number'],
                 'items'            => []
             ];
         }
 
+        // 6. Add medicine as an item to this Sale ID
         $med_grouped[$saleId]['items'][] = [
             'item_name'       => $row['medicine_name'],
             'code'            => $row['hsn_code'],
@@ -4029,16 +4050,19 @@ public function sales_completion_order()
             'taxable_value'   => number_format($taxableValue, 2, '.', ''),
             'gst_rate'        => number_format($gstRate, 2, '.', ''),
             'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-            'receive_amount'    => number_format($total, 2, '.', '')
+            'receive_amount'  => number_format($total, 2, '.', '')
         ];
     }
-    
-    // Merge Medicines into Master Array
+}
+
+// 7. Final Merge into Master Array
+if (!empty($med_grouped)) {
     foreach($med_grouped as $sale) {
         $all_transactions[] = $sale;
     }
-
-		// =========================================================================
+}
+    
+// =========================================================================
 // PART 2: MEDICINE RETURNS
 // =========================================================================
 $sql_ret = "
@@ -4124,7 +4148,7 @@ foreach($ret_grouped as $return) {
     // PART 2: PROCEDURE SALES
     // =========================================================================
     $procedure_raw = $this->accounts_model->get_all_sales_for_tally(); 
-$all_transactions = [];
+//$all_transactions = [];
 
 if (!empty($procedure_raw)) {
     foreach ($procedure_raw as $sale) {

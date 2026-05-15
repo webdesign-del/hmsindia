@@ -61,6 +61,9 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	
 	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
 	$select_result3 = run_select_query($sql3);
+
+  $select_opu_query = "SELECT * FROM `hms_opu` WHERE patient_id='$patient_id'";
+  $select_opu_result = run_select_query($select_opu_query); 
 	
 ?>
 
@@ -94,7 +97,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
  </div> 
 <div class="col-sm-12 col-md-2" style="margin-bottom: 10px;">
   <label for="Admission">Date of Admission:</label>
-  <input type="date" class="Admission" name="date_of_addmission" value="<?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?>">
+  <input type="date" class="Admission" name="date_of_addmission" value="<?php echo isset($select_opu_result['dates'])?$select_opu_result['dates']:""; ?>">
  </div>
 <div class="col-sm-12 col-md-2" style="margin-bottom: 10px;">
   <label for="Admission">Admission Time:</label>
@@ -102,7 +105,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
  </div>   
 <div class="col-sm-12 col-md-2" style="margin-bottom: 10px;">
   <label for="Discharge">Date of Discharge:</label>
-  <input type="date" class="Discharge" name="date_of_discharge" value="<?php echo isset($select_result['date_of_discharge'])?$select_result['date_of_discharge']:""; ?>">
+  <input type="date" class="Discharge" name="date_of_discharge" value="<?php echo isset($select_opu_result['dates'])?$select_opu_result['dates']:""; ?>">
  </div> 
 <div class="col-sm-12 col-md-2" style="margin-bottom: 10px;">
   <label for="Discharge">Discharge Time:</label>
@@ -155,8 +158,10 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td width="100%" colspan="10">
-<label>No. of oocytes retrieved with grading</label> 
-<textarea name="oocytes_retrieved" style="width:100%; height:80px!important;"> <?php echo isset($select_result['oocytes_retrieved'])?$select_result['oocytes_retrieved']:""; ?></textarea>
+<label>No. of oocytes retrieved</label> 
+<input type="number" class="oocytes_retrieved" name="oocytes_retrieved" value="<?php echo isset($select_result['oocytes_retrieved'])?$select_result['oocytes_retrieved']:""; ?>"></strong>
+<!--
+<textarea name="oocytes_retrieved" style="width:100%; height:80px!important;"> <?php echo isset($select_result['oocytes_retrieved'])?$select_result['oocytes_retrieved']:""; ?></textarea>-->
  </td>
 </tr>
 

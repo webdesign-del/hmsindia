@@ -2827,11 +2827,38 @@ public function generate_pdf($id) {
 
 
 public function request_ceo_approval() {
-    $patient_id = $this->input->post('patient_id');
-    $reason = $this->input->post('reason');
-    $ceo_email = 'webdesign@indiaivf.in';
+    $patient_id   = $this->input->post('patient_id');
+    $reason       = $this->input->post('reason');
+    $biller_id    = $this->input->post('biller_id');
+    $billing_from = $this->input->post('billing_from');
+    $ceo_email    = 'webdesign@indiaivf.in';
 
-    // SMTP Configuration yahan define karna zaroori hai
+    // 1. Employee (Biller) Name Fetch Karein
+    $biller_name = "N/A";
+    if(!empty($biller_id)) {
+        $employee_q = $this->db->get_where('hms_employees', array('ID' => $biller_id))->row_array();
+        if(!empty($employee_q)) {
+            $biller_name = $employee_q['name'];
+        }
+    }
+
+    // 2. Center Name Fetch Karein (billing_from -> center_number ya ID jo bhi match kare)
+    $center_name = "N/A";
+    if(!empty($billing_from)) {
+        // Agar aapke database mein ID ya center_number pass ho raha hai, uske hisaab se check karein
+        $center_q = $this->db->get_where('hms_centers', array('center_number' => $billing_from))->row_array();
+        
+        // Agar center_number se nahi mila, toh primary ID (ID) se check karein
+        if(empty($center_q)) {
+            $center_q = $this->db->get_where('hms_centers', array('ID' => $billing_from))->row_array();
+        }
+
+        if(!empty($center_q)) {
+            $center_name = $center_q['center_name'];
+        }
+    }
+
+    // SMTP Configuration
     $config = array(
         'protocol'    => 'smtp',
         'smtp_host'   => 'smtp.gmail.com',
@@ -2848,9 +2875,12 @@ public function request_ceo_approval() {
     // Unique Token/Link for Approval
     $approve_link = base_url("Billings/approve_consultation/" . $patient_id);
 
+    // Email Body (Biller aur Center details ke sath)
     $message = "<h3>Consultation Approval Required</h3>
                 <p><b>Patient ID:</b> $patient_id</p>
                 <p><b>Reason:</b> $reason</p>
+                <p><b>Biller (Employee Name):</b> $biller_name</p>
+                <p><b>Billing Center:</b> $center_name</p>
                 <p>No paid procedure found. Please approve to clear this billing.</p>
                 <br>
                 <a href='$approve_link' style='background:green;color:white;padding:10px;text-decoration:none;border-radius:5px;'>APPROVE BILLING</a>";
@@ -2867,8 +2897,6 @@ public function request_ceo_approval() {
     if($this->email->send()) { 
         echo "success"; 
     } else { 
-        // Agar mail nahi ja raha toh error dekhne ke liye:
-        // echo $this->email->print_debugger(); 
         echo "error"; 
     }
 }
