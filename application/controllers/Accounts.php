@@ -3490,6 +3490,7 @@ foreach ($ret_results as $row) {
             'biller_name'      => 'System Approved', // Or join with employee table
             'payment_method'   => 'Refund',
             'status'           => $row['status'],
+			'total_amount'           => $row['total_amount'],
             'reason'           => $row['return_reason'],
             'items'            => []
         ];
@@ -3538,6 +3539,7 @@ foreach($ret_grouped as $return) {
                 'biller_name'      => $biller['name'] ?? 'N/A',
                 'payment_method'   => $sale["payment_method"] ?? "",
                 'status'           => $sale["status"] ?? "",
+				'total_amount'     => $sale['payment_done'],
 				'series_number'    => $sale['series_number'],
                 'items'            => []
             ];
@@ -3590,6 +3592,7 @@ foreach($ret_grouped as $return) {
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
+			'total_amount'     => $row['payment_done'],
 			'series_number'    => $row['series_number'],
             'status'           => $row['status'],
             'items'            => [[
@@ -3633,6 +3636,7 @@ foreach($ret_grouped as $return) {
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'],
+			'total_amount'     => $row['payment_done'],
 			'series_number'    => $row['series_number'],
             'status'           => $row['status'],
             'items'            => [[
@@ -3670,6 +3674,7 @@ foreach($ret_grouped as $return) {
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
+			'total_amount'     => $sale['payment_done'],
 			'series_number'    => $sale['series_number'],
             'items'            => []
         ];
@@ -3725,6 +3730,7 @@ foreach($ret_grouped as $return) {
             'biller_name'      => 'N/A', 
             'payment_method'   => $row['payment_method'],
             'status'           => $status_text,
+			'total_amount'     => "",
             'items'            => [[
                 'item_name'       => 'Fellowship: ' . ($row['course'] ?? ''),
                 'code'            => $row['code'] ?? '',
