@@ -2693,8 +2693,8 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-ORDER BY s.updated_at DESC 
-LIMIT 300
+ORDER BY s.updated_at ASC 
+LIMIT 900
     ";
     
 	// Change result_array() to row_array()
@@ -3349,7 +3349,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at ASC 
-LIMIT 300
+LIMIT 900
     ";
     
 	// Change result_array() to row_array()
@@ -3981,7 +3981,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at ASC 
-LIMIT 300";
+LIMIT 900";
     
 	// Change result_array() to row_array()
 	// 1. Change back to result_array() to handle all 50 potential records
