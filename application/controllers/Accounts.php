@@ -3782,6 +3782,7 @@ foreach($ret_grouped as $return) {
             'on_date'          => date('d-m-Y', strtotime($payment_row['on_date'])),
             'biller_name'      => 'N/A',
             'payment_method'   => $payment_row['payment_method'],
+			'total_amount'     => $payment_row['payment_done'],
             'status'           => ($payment_row['status'] == 1) ? 'Approved' : 'Cancel',
             'items'            => $partial_items
         ];
