@@ -771,7 +771,7 @@ public function get_all_sales_for_tally()
     $this->db->where('tally_status', '1'); 
     
     $this->db->order_by('modified_on', 'DESC');
-    $this->db->limit(500); // Increased limit to match your other functions
+    $this->db->limit(200); // Increased limit to match your other functions
 
     $query = $this->db->get();
     return $query->result_array();
