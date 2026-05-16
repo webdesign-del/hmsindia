@@ -2694,7 +2694,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at DESC 
-LIMIT 1000
+LIMIT 300
     ";
     
 	// Change result_array() to row_array()
@@ -2937,7 +2937,7 @@ foreach($ret_grouped as $return) {
    // $this->db->where('hms_consultation.status', 'approved');
 	$this->db->where_in('hms_consultation.status', ['adjust', 'approved']);
     $this->db->where('hms_consultation.tally_status', '1');
-    $this->db->limit(500);
+    $this->db->limit(300);
     $consult_rows = $this->db->get()->result_array();
 
     foreach ($consult_rows as $row) {
@@ -2983,7 +2983,7 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
     $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-    $this->db->limit(500);
+    $this->db->limit(300);
     $reg_rows = $this->db->get()->result_array();
 
     foreach ($reg_rows as $row) {
@@ -3349,7 +3349,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at ASC 
-LIMIT 900
+LIMIT 300
     ";
     
 	// Change result_array() to row_array()
@@ -3708,7 +3708,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 6: FELLOWSHIP / TRAINING SALES
     // =========================================================================
-    $fellow_rows = $this->db->query("SELECT * FROM hms_fellowship_training WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 400")->result_array();
+    $fellow_rows = $this->db->query("SELECT * FROM hms_fellowship_training WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 200")->result_array();
 
     foreach ($fellow_rows as $row) {
         $status_text = ($row['status'] == '1') ? 'approved' : 'cancel';
@@ -3981,7 +3981,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 ORDER BY s.updated_at ASC 
-LIMIT 900";
+LIMIT 300";
     
 	// Change result_array() to row_array()
 	// 1. Change back to result_array() to handle all 50 potential records
