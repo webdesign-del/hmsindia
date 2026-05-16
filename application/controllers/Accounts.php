@@ -3338,7 +3338,7 @@ public function order_invoice()
     s.sale_number, s.sale_date, s.payment_method, s.payment_status,
     s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
     mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
-    sm.quantity_change, sm.total_value, s.tally_status
+    sm.quantity_change, sm.total_value, s.tally_status, s.total_amount
 FROM sales s
 INNER JOIN hms_centers c ON s.center_id = c.id
 INNER JOIN stock_movements sm ON s.id = sm.reference_id
@@ -3402,6 +3402,7 @@ if (!empty($med_results)) {
                 'biller_name'      => $row['payment_approved_by_name'],
                 'payment_method'   => $row['payment_method'],
                 'status'           => $row['payment_status'],
+				'total_amount'           => $row['total_amount'],
                 'series_number'    => $row['series_number'],
                 'items'            => []
             ];
