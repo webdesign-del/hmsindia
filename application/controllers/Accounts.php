@@ -3348,7 +3348,7 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-ORDER BY s.updated_at DESC 
+ORDER BY s.updated_at ASC 
 LIMIT 900
     ";
     
@@ -3980,7 +3980,7 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-ORDER BY s.updated_at DESC 
+ORDER BY s.updated_at ASC 
 LIMIT 900";
     
 	// Change result_array() to row_array()
