@@ -39,7 +39,8 @@
               <option value="investigator_manager">Investigator manager</option>
               <option value="embryologist">Embryologist</option>
               <option value="telecaller">Telecaller</option>
-			  <option value="counselor">Counselor</option>
+			        <option value="counselor">Counselor</option>
+              <option value="mrd">Mrd</option>
             </select>
         </div>
         </div>
@@ -59,6 +60,7 @@
                <option value="OT">OT</option>
               <option value="House Keeping">House Keeping</option>
               <option value="Stationery">Stationery</option>
+              <option value="NA">NA</option>
 			</select>
         </div>
            <div class="form-group col-sm-6 col-xs-12 role">

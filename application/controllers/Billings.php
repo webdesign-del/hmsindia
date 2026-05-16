@@ -2828,35 +2828,22 @@ public function generate_pdf($id) {
 
 public function request_ceo_approval() {
     $patient_id   = $this->input->post('patient_id');
+    
+    // FIX 1: $vl hata diya gaya hai, aur direct $patient_id use kiya hai
+    $patient_data = get_patient_detail($patient_id);
+    
+    // Safety check: Agar data na mile toh "N/A" print ho
+    $patient_name = (!empty($patient_data) && isset($patient_data['wife_name'])) ? $patient_data['wife_name'] : 'N/A';
+
+	$session_biller_name = $_SESSION['logged_billing_manager']['name'];
+	
+	$sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $_SESSION['logged_billing_manager']['center'] . "'";
+    $session_center_name = run_select_query($sql4);
+    
     $reason       = $this->input->post('reason');
     $biller_id    = $this->input->post('biller_id');
     $billing_from = $this->input->post('billing_from');
-    $ceo_email    = 'webdesign@indiaivf.in';
-
-    // 1. Employee (Biller) Name Fetch Karein
-    $biller_name = "N/A";
-    if(!empty($biller_id)) {
-        $employee_q = $this->db->get_where('hms_employees', array('ID' => $biller_id))->row_array();
-        if(!empty($employee_q)) {
-            $biller_name = $employee_q['name'];
-        }
-    }
-
-    // 2. Center Name Fetch Karein (billing_from -> center_number ya ID jo bhi match kare)
-    $center_name = "N/A";
-    if(!empty($billing_from)) {
-        // Agar aapke database mein ID ya center_number pass ho raha hai, uske hisaab se check karein
-        $center_q = $this->db->get_where('hms_centers', array('center_number' => $billing_from))->row_array();
-        
-        // Agar center_number se nahi mila, toh primary ID (ID) se check karein
-        if(empty($center_q)) {
-            $center_q = $this->db->get_where('hms_centers', array('ID' => $billing_from))->row_array();
-        }
-
-        if(!empty($center_q)) {
-            $center_name = $center_q['center_name'];
-        }
-    }
+    $ceo_email    = 'ceo@indiaivf.in';
 
     // SMTP Configuration
     $config = array(
@@ -2875,12 +2862,13 @@ public function request_ceo_approval() {
     // Unique Token/Link for Approval
     $approve_link = base_url("Billings/approve_consultation/" . $patient_id);
 
-    // Email Body (Biller aur Center details ke sath)
+    // FIX 2: Email body mein $patient_name variable safely add kiya gaya hai
     $message = "<h3>Consultation Approval Required</h3>
                 <p><b>Patient ID:</b> $patient_id</p>
+                <p><b>Patient Name:</b> $patient_name</p>
                 <p><b>Reason:</b> $reason</p>
-                <p><b>Biller (Employee Name):</b> $biller_name</p>
-                <p><b>Billing Center:</b> $center_name</p>
+                <p><b>Biller :</b> " . $session_biller_name . "</p>
+                <p><b>Billing Center:</b>". $session_center_name['center_name'] ." </p>
                 <p>No paid procedure found. Please approve to clear this billing.</p>
                 <br>
                 <a href='$approve_link' style='background:green;color:white;padding:10px;text-decoration:none;border-radius:5px;'>APPROVE BILLING</a>";
@@ -2891,7 +2879,9 @@ public function request_ceo_approval() {
     
     $this->email->from('digital@indiaivf.in', 'HMS Billing');
     $this->email->to($ceo_email);
-    $this->email->subject("Approval Required - $patient_id");
+    
+    // Subject line mein bhi naam add kar diya hai, taaki mail inbox mein jaldi samajh aaye
+    $this->email->subject("Approval Required - $patient_id - $patient_name");
     $this->email->message($message);
 
     if($this->email->send()) { 
