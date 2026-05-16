@@ -11709,4 +11709,38 @@ public function bulk_returns_tally() {
     }
 }
 
+public function stocks_monitoring_sheet()
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
+            $center_id = $this->input->get("center_id");
+            $medicine_id = $this->input->get("medicine_id");
+            $batch_number = $this->input->get("batch_number");
+            $status = $this->input->get("status");
+            $department = $this->input->get("department");
+            $data["center_stocks"] = $this->Stock_model_new->get_center_stocks(
+                $center_id,
+                $medicine_id,
+                $batch_number,
+                $status,
+                $department,
+            );
+            $data["centers"] = $this->Stock_model_new->get_all_centers();
+            $data["medicines"] = $this->Stock_model_new->get_all_medicines();
+            // $data["departments"] = $this->Stock_model_new->get_departments_by_center();
+            $data["selected_center_id"] = $center_id;
+            $data["selected_medicine_id"] = $medicine_id;
+            $data["selected_batch_number"] = $batch_number;
+            $data["selected_status"] = $status;
+            $data["selected_department"] = $department;
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/stocks_monitoring_sheet", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
+
 }
