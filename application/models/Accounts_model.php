@@ -705,7 +705,7 @@ function approve_billing($request, $type, $status, $reason, $reason_of_cancle, $
     }
 
     // Get Center Prefix
-    $center = get_center_name($row['billing_at']);
+    $center = get_center_name($row['billing_from']);
     $center_data = center_detail($center);
     $state_prefix = !empty($center_data['state_prefix']) ? $center_data['state_prefix'] : 'NOD';
 
