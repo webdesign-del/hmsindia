@@ -1132,7 +1132,7 @@ function approve_procedure($ID) {
     }
 
     // 2. Get Center Details
-    $center = get_center_name($row['billing_at']);
+    $center = get_center_name($row['billing_from']);
     $center_data = center_detail($center);
     $state_prefix = !empty($center_data['state_prefix']) ? $center_data['state_prefix'] : 'NOD';
 
