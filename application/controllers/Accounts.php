@@ -3349,7 +3349,7 @@ WHERE sm.movement_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
 	AND s.sale_date >= '2026-04-21 00:00:00' 
-AND s.sale_date <= '2026-04-30 23:59:59'
+AND s.sale_date <= '2026-04-25 23:59:59'
 ORDER BY s.updated_at ASC 
 LIMIT 900
     ";
