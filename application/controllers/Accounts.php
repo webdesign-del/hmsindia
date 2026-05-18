@@ -3442,7 +3442,7 @@ $sql_ret = "
     r.return_number, r.return_date, r.status, r.return_reason,
     m.medicine_name, mb.batch_number, mb.expiry_date, 
     m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
-    ri.quantity_returned, ri.total_amount AS item_total,
+    ri.quantity_returned,ri.final_amount, ri.total_amount AS item_total,
     ri.final_amount AS item_final, ri.discount_amount AS item_discount,
     r.tally_status
 FROM medicine_returns r
@@ -3490,7 +3490,7 @@ foreach ($ret_results as $row) {
             'biller_name'      => 'System Approved', // Or join with employee table
             'payment_method'   => 'Refund',
             'status'           => $row['status'],
-			'total_amount'           => $row['total_amount'],
+			'total_amount'     => $row['final_amount'],
             'reason'           => $row['return_reason'],
             'items'            => []
         ];
@@ -3749,44 +3749,70 @@ foreach($ret_grouped as $return) {
     // PART 7: PARTIAL PAYMENTS
     // =========================================================================
     $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 400");
-    $payment_rows = $partial_q->result_array();
+$payment_rows = $partial_q->result_array();
 
-    foreach ($payment_rows as $payment_row) {
-        $pt = $this->db->query("SELECT wife_name, husband_name FROM hms_patients WHERE patient_id = ?", [$payment_row["patient_id"]])->row_array();
-        $receipt_no = $payment_row['billing_id'];
+foreach ($payment_rows as $payment_row) {
+    // 1. Patient data fetch
+    $pt = $this->db->query("SELECT wife_name, husband_name FROM hms_patients WHERE patient_id = ?", [$payment_row["patient_id"]])->row_array();
+    
+    $receipt_no = $payment_row['billing_id'];
+    
+    // 2. Procedure data fetch
+    $proc_q = $this->db->query("SELECT * FROM hms_patient_procedure WHERE receipt_number = ?", [$receipt_no]);
+    $procedures = $proc_q->result_array();
+
+    $partial_items = [];
+    $series_number = ''; // Default khali rakhein
+    
+    if (!empty($procedures)) {
+        // Fix: Series number pehle row se nikal lein
+        $series_number = isset($procedures[0]['series_number']) ? $procedures[0]['series_number'] : '';
         
-        $proc_q = $this->db->query("SELECT * FROM hms_patient_procedure WHERE receipt_number = ?", [$receipt_no]);
-        $procedures = $proc_q->result_array();
-
-        $partial_items = [];
         foreach($procedures as $proc) {
             $partial_items[] = [
                 'item_name'       => $proc['procedure_name'],
                 'code'            => $proc['code'] ?? '',
-                'batch_no'        => '', 'expiry' => '', 'quantity' => 1,
+                'batch_no'        => '', 
+                'expiry'          => '', 
+                'quantity'        => 1,
                 'unit_price'      => number_format((float)$proc['totalpackage'], 2, '.', ''),
                 'discount_amt'    => number_format((float)$proc['discount_amount'], 2, '.', ''),
-                'taxable_value'   => '', 'gst_rate' => 0, 'gst_amount' => 0,
-                'receive_amount'    => number_format((float)$payment_row['payment_done'], 2, '.', ''),
+                'taxable_value'   => '', 
+                'gst_rate'        => 0, 
+                'gst_amount'      => 0,
+                'receive_amount'  => number_format((float)$payment_row['payment_done'], 2, '.', ''),
             ];
         }
-
-        $all_transactions[] = [
-            'type'             => 'Partial Payment',
-            'patient_id'       => $payment_row['patient_id'],
-            'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
-            'billing_center'   => 'N/A',
-            'origin_center'    => 'N/A',
-			'order_number'   => $payment_row['billing_id'],
-            'receipt_number'   => $payment_row['refrence_number'],
-            'on_date'          => date('d-m-Y', strtotime($payment_row['on_date'])),
-            'biller_name'      => 'N/A',
-            'payment_method'   => $payment_row['payment_method'],
-			'total_amount'     => $payment_row['payment_done'],
-            'status'           => ($payment_row['status'] == 1) ? 'Approved' : 'Cancel',
-            'items'            => $partial_items
+    } else {
+        // Agar us payment ke against procedure delete ho gaya ho ya na mile
+        $partial_items[] = [
+            'item_name'       => 'Unknown Procedure',
+            'code'            => '',
+            'batch_no'        => '', 'expiry' => '', 'quantity' => 1,
+            'unit_price'      => 0.00,
+            'discount_amt'    => 0.00,
+            'taxable_value'   => '', 'gst_rate' => 0, 'gst_amount' => 0,
+            'receive_amount'  => number_format((float)$payment_row['payment_done'], 2, '.', ''),
         ];
     }
+
+    $all_transactions[] = [
+        'type'             => 'Partial Payment',
+        'patient_id'       => $payment_row['patient_id'],
+        'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
+        'billing_center'   => 'N/A',
+        'origin_center'    => 'N/A',
+        'order_number'     => $payment_row['billing_id'],
+        'receipt_number'   => $payment_row['refrence_number'],
+        'on_date'          => date('d-m-Y', strtotime($payment_row['on_date'])),
+        'biller_name'      => 'N/A',
+        'payment_method'   => $payment_row['payment_method'],
+        'total_amount'     => $payment_row['payment_done'],
+        'status'           => ($payment_row['status'] == 1) ? 'Approved' : 'Cancel',
+        'series_number'    => $series_number, // Updated fix here
+        'items'            => $partial_items
+    ];
+}
 
     // =========================================================================
     // FINAL OUTPUT
