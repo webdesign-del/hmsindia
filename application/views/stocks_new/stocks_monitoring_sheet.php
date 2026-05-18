@@ -191,41 +191,6 @@
         <tr><td>Air Pressure [cite: 18]</td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td>Positive [cite: 18]</td><td><input type="text"></td></tr>
     </table>
 
-    <h3>B. Andrology Lab Conditions [cite: 19]</h3>
-    <table>
-        <tr>
-            <th>Parameter [cite: 20]</th><th>Reading [cite: 20]</th><th>Acceptable Range [cite: 20]</th><th>Remarks [cite: 20]</th>
-        </tr>
-        <tr><td>Temperature [cite: 20]</td><td><input type="text"></td><td>22–25°C [cite: 20]</td><td><input type="text"></td></tr>
-        <tr><td>Humidity [cite: 20]</td><td><input type="text"></td><td>40–60% [cite: 20]</td><td><input type="text"></td></tr>
-    </table>
-
-    <h2>⚙️ SECTION 3: Equipment Status [cite: 21]</h2>
-    
-    <h3>A. Incubators [cite: 22]</h3>
-    <table>
-        <tr><th>Equipment ID [cite: 23]</th><th>Temp (°C) [cite: 23]</th><th>CO₂ (%) [cite: 23]</th><th>Alarm Status [cite: 23]</th><th>Water Level [cite: 23]</th><th>Remarks [cite: 23]</th></tr>
-        <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-    </table>
-
-    <h3>B. Laminar Air Flow / Workstations [cite: 24]</h3>
-    <table>
-        <tr><th>Unit ID [cite: 25]</th><th>UV Working [cite: 25]</th><th>Airflow OK [cite: 25]</th><th>Last Cleaning [cite: 25]</th><th>Remarks [cite: 25]</th></tr>
-        <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-    </table>
-
-    <h3>C. Microscopes [cite: 26]</h3>
-    <table>
-        <tr><th>ID [cite: 27]</th><th>Working Condition [cite: 27]</th><th>Cleaned [cite: 27]</th><th>Remarks [cite: 27]</th></tr>
-        <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-    </table>
-
-    <h3>D. Cryo Storage [cite: 28]</h3>
-    <table>
-        <tr><th>Tank ID [cite: 29]</th><th>LN₂ Level [cite: 29]</th><th>Refilled (Y/N) [cite: 29]</th><th>Alarm [cite: 29]</th><th>Remarks [cite: 29]</th></tr>
-        <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-    </table>
-
      <?php if(!empty($center_stocks)): ?>
                     <div class="table-responsive">
                         <table id="centerStocksTable" class="table table-striped table-bordered table-hover">
@@ -306,15 +271,6 @@
                         <i class="fa fa-info-circle"></i> No center stocks found matching your criteria.
                     </div>
                 <?php endif; ?>
-
-    <h2>🧪 SECTION 4: Consumables & Media Check [cite: 30]</h2>
-    <table>
-        <tr><th>Item [cite: 31]</th><th>Status (OK/Low/Expired) [cite: 31]</th><th>Expiry Checked [cite: 31]</th><th>Remarks [cite: 31]</th></tr>
-        <tr><td>Culture media [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
-        <tr><td>Pipettes [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
-        <tr><td>Dishes [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
-        <tr><td>Gloves [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
-    </table>
 
     <h2>🚨 SECTION 5-a: Deviations / Incidents [cite: 32]</h2>
     <div class="form-group">

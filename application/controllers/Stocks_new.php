@@ -11718,7 +11718,7 @@ public function stocks_monitoring_sheet()
             $batch_number = $this->input->get("batch_number");
             $status = $this->input->get("status");
             $department = $this->input->get("department");
-            $data["center_stocks"] = $this->Stock_model_new->get_center_stocks(
+            $data["center_stocks"] = $this->Stock_model_new->get_stocks_monitoring(
                 $center_id,
                 $medicine_id,
                 $batch_number,
@@ -11726,7 +11726,7 @@ public function stocks_monitoring_sheet()
                 $department,
             );
             $data["centers"] = $this->Stock_model_new->get_all_centers();
-            $data["medicines"] = $this->Stock_model_new->get_all_medicines();
+            $data["medicines"] = $this->Stock_model_new->stock_monitoring_medicines();
             // $data["departments"] = $this->Stock_model_new->get_departments_by_center();
             $data["selected_center_id"] = $center_id;
             $data["selected_medicine_id"] = $medicine_id;

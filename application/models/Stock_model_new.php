@@ -10110,4 +10110,135 @@ private function apply_return_filters($f) {
     if(!empty($f['end_date']))   $this->db->where('return_date <=', $f['end_date']);
 }
 
+    // ===============================================
+    // MEDICINES FUNCTIONS
+    // ===============================================
+
+    public function stock_monitoring_medicines($medicine_name = null, $generic_name = null, $brand_id = null, $category = null, $selected_medicine_id = null)
+    {
+        $this->db->reset_query();
+        $this->db->select("m.*, mb.brand_name as brand_name");
+        $this->db->from("medicines m");
+        $this->db->join("medicine_brands mb", "m.brand_id = mb.id", "left");
+
+        // $this->db->join(
+        //     $this->config->item("db_prefix") . "brands mb",
+        //     "m.brand_id = mb.ID"
+        // );
+        $this->db->where("m.status", "active");
+        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
+
+        if (!empty($selected_medicine_id)) {
+            $this->db->where("m.ID", $selected_medicine_id);
+        }
+
+        // --- APPLY FILTERS ---
+        if (!empty($medicine_name)) {
+            $this->db->like("m.medicine_name", $medicine_name);
+        }
+        if (!empty($generic_name)) {
+            $this->db->like("m.generic_name", $generic_name);
+        }
+        if (!empty($brand_id)) {
+            $this->db->where("m.brand_id", $brand_id);
+        }
+        if (!empty($category)) {
+            $this->db->like("m.category", $category);
+        }
+        // --- END FILTERS ---
+
+        $this->db->order_by("m.medicine_name", "ASC");
+
+        return $this->db->get()->result();
+    }
+
+
+    public function get_stocks_monitoring($center_id = null,$medicine_id = null,$batch_number = null,$status = null,$department = null) 
+    {
+            $this->db->select(
+                "ccs.*, mb.batch_number, mb.medicine_id, IFNULL(m.pack_size, 1) as pack_size, mb.expiry_date, mb.purchase_price, mb.selling_price, mb.mrp, m.medicine_name, m.medicine_code, b.brand_name as brand_name, v.name as vendor_name, c.center_name, DATEDIFF(mb.expiry_date, CURDATE()) as expiry_days",
+            );
+            $this->db->from("center_stocks ccs");
+            $this->db->join("medicine_batches mb", "ccs.batch_id = mb.id");
+            $this->db->join("medicines m", "mb.medicine_id = m.id");
+            
+            // Filters for specific medicine codes
+            $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+            $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
+            
+            $this->db->join("medicine_brands b", "m.brand_id = b.id", 'left'); // Added left join safely
+            $this->db->join($this->config->item("db_prefix") . "vendors v", "mb.vendor_id = v.ID", 'left');
+            $this->db->join("hms_centers c", "ccs.center_id = c.ID");
+            
+            // ==========================================
+            // FIX: Jiska stock 0 hai wo yahan filter ho jayega
+            // ==========================================
+            $this->db->where("ccs.quantity >", 0); 
+            // Agar aapke system me negative stock (-1) bhi ata hai aur wo bhi dekhna hai to ise use karein: 
+            // $this->db->where("ccs.quantity !=", 0);
+
+            if ($center_id && $center_id != "") {
+                $this->db->where("ccs.center_id", $center_id);
+            }
+
+            if ($medicine_id && $medicine_id != "") {
+                $this->db->where("mb.medicine_id", $medicine_id);
+            }
+
+            if ($batch_number && $batch_number != "") {
+                $this->db->like("mb.batch_number", $batch_number);
+            }
+
+            if ($status && $status != "") {
+                $this->db->where("ccs.status", $status);
+            }
+
+            $center = null;
+            if (!empty($_SESSION['logged_billing_manager']) &&
+                ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
+                $center = $_SESSION['logged_billing_manager']['center'];
+                $department = $_SESSION['logged_billing_manager']['department'] ?? null;
+            }
+            if (!empty($_SESSION['logged_stock_manager']) &&
+                ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
+                $center = $_SESSION['logged_stock_manager']['center'];
+                $department = $_SESSION['logged_stock_manager']['department'] ?? null;
+            }
+            if ($center !== null) {
+                $this->db->where('ccs.center_id', $this->get_center_id($center));
+            }
+            
+            // Filter by department if available
+            if ($department !== null && $department !== '') {
+                if ($department == 'billing') {
+                    $this->db->like('ccs.department', 'CASH MEDICINE');
+                } elseif($department == 'Embryologist Basant Lok') {
+                    $this->db->like('ccs.department', 'Embryology Basant Lok');
+                } else {
+                    $this->db->like('ccs.department', $department);
+                }
+            }
+            
+            $this->db->order_by("mb.expiry_date", "ASC");
+            $results = $this->db->get()->result();
+            
+            // Post-process results to ensure pack_size is always set (fallback safety)
+            foreach ($results as $result) {
+                // Ensure pack_size is always set and valid
+                if (!isset($result->pack_size) || $result->pack_size === null || $result->pack_size === '' || $result->pack_size == 0) {
+                    $result->pack_size = 1;
+                } else {
+                    // Ensure pack_size is numeric
+                    $result->pack_size = floatval($result->pack_size);
+                    if ($result->pack_size <= 0) {
+                        $result->pack_size = 1;
+                    }
+                }
+            }
+            
+            return $results;
+    }
+
+
 }
