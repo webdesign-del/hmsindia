@@ -226,56 +226,7 @@
         <tr><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
     </table>
 
-    <h2>🧪 SECTION 4: Consumables & Media Check [cite: 30]</h2>
-    <table>
-        <tr><th>Item [cite: 31]</th><th>Status (OK/Low/Expired) [cite: 31]</th><th>Expiry Checked [cite: 31]</th><th>Remarks [cite: 31]</th></tr>
-        <tr><td>Culture media [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
-        <tr><td>Pipettes [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
-        <tr><td>Dishes [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
-        <tr><td>Gloves [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
-    </table>
-
-    <h2>🚨 SECTION 5-a: Deviations / Incidents [cite: 32]</h2>
-    <div class="form-group">
-        <label>Any parameter out of range? → Yes / No [cite: 33]</label>
-        <select><option>No</option><option>Yes</option></select>
-    </div>
-    <div class="form-group">
-        <label>If yes, details: [cite: 34]</label>
-        <textarea rows="3"></textarea>
-    </div>
-    <div class="form-group">
-        <label>Corrective Action Taken: [cite: 35]</label>
-        <textarea rows="3"></textarea>
-    </div>
-
-    <h2>👨‍⚕️ SECTION 5-b: Authorization [cite: 36]</h2>
-    <div class="meta-grid">
-        <div class="form-group"><label>Technician Name & Signature: [cite: 37]</label><input type="text"></div>
-        <div class="form-group"><label>Embryologist Review: [cite: 38]</label><input type="text"></div>
-        <div class="form-group"><label>Supervisor Remarks: [cite: 39]</label><input type="text"></div>
-    </div>
-
-    <div class="pro-tip">
-        <label><strong>🔥 Pro Tip (For Remote Monitoring):</strong> Upload photos for Lab cleaning proof, Incubator readings, or LN₂ levels. [cite: 54, 55, 56, 57, 58]</label><br><br>
-        <input type="file" accept="image/*" multiple>
-    </div>
-
-    <button class="btn-submit">Submit Daily Report</button>
-</div>
-
-
-
-<!-- Center Stocks Table -->
-<div class="row">
-    <div class="col-md-12">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <i class="fa fa-list"></i> Center Stocks List
-                <span class="badge pull-right"><?php echo count($center_stocks); ?> items</span>
-            </div>
-            <div class="panel-body">
-                <?php if(!empty($center_stocks)): ?>
+     <?php if(!empty($center_stocks)): ?>
                     <div class="table-responsive">
                         <table id="centerStocksTable" class="table table-striped table-bordered table-hover">
                             <thead>
@@ -283,11 +234,8 @@
                                     <th>Center</th>
                                     <th>Medicine</th>
                                     <th>Batch Number</th>
-                                    <th>Brand</th>
-                                    <th>Vendor</th>
                                     <th>Department</th>
                                     <th>Expiry Date</th>
-                                    <th>Expiry Days</th>
                                     <th>Pack Size</th>
                                     <th>Quantity</th>
                                     <th>Vendor Price With gst</th>
@@ -312,19 +260,8 @@
                                             <small class="text-muted"><?php echo $stock->medicine_code; ?></small>
                                         </td>
                                         <td><?php echo $stock->batch_number; ?></td>
-                                        <td><?php echo $stock->brand_name; ?></td>
-                                        <td><?php echo $stock->vendor_name; ?></td>
                                         <td><?php echo $stock->department; ?></td>
                                         <td><?php echo date('d/m/Y', strtotime($stock->expiry_date)); ?></td>
-                                        <td>
-                                            <?php if($stock->expiry_days < 0): ?>
-                                                <span class="label label-danger">Expired (<?php echo abs($stock->expiry_days); ?> days)</span>
-                                            <?php elseif($stock->expiry_days <= 30): ?>
-                                                <span class="label label-warning">Expiring Soon (<?php echo $stock->expiry_days; ?> days)</span>
-                                            <?php else: ?>
-                                                <span class="label label-success"><?php echo $stock->expiry_days; ?> days</span>
-                                            <?php endif; ?>
-                                        </td>
                                         <td>
                                             <strong><?php echo isset($stock->pack_size) && $stock->pack_size !== null ? $stock->pack_size : '1'; ?></strong>
                                         </td>
@@ -369,9 +306,43 @@
                         <i class="fa fa-info-circle"></i> No center stocks found matching your criteria.
                     </div>
                 <?php endif; ?>
-            </div>
-        </div>
+
+    <h2>🧪 SECTION 4: Consumables & Media Check [cite: 30]</h2>
+    <table>
+        <tr><th>Item [cite: 31]</th><th>Status (OK/Low/Expired) [cite: 31]</th><th>Expiry Checked [cite: 31]</th><th>Remarks [cite: 31]</th></tr>
+        <tr><td>Culture media [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
+        <tr><td>Pipettes [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
+        <tr><td>Dishes [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
+        <tr><td>Gloves [cite: 31]</td><td><input type="text"></td><td><input type="checkbox"></td><td><input type="text"></td></tr>
+    </table>
+
+    <h2>🚨 SECTION 5-a: Deviations / Incidents [cite: 32]</h2>
+    <div class="form-group">
+        <label>Any parameter out of range? → Yes / No [cite: 33]</label>
+        <select><option>No</option><option>Yes</option></select>
     </div>
+    <div class="form-group">
+        <label>If yes, details: [cite: 34]</label>
+        <textarea rows="3"></textarea>
+    </div>
+    <div class="form-group">
+        <label>Corrective Action Taken: [cite: 35]</label>
+        <textarea rows="3"></textarea>
+    </div>
+
+    <h2>👨‍⚕️ SECTION 5-b: Authorization [cite: 36]</h2>
+    <div class="meta-grid">
+        <div class="form-group"><label>Technician Name & Signature: [cite: 37]</label><input type="text"></div>
+        <div class="form-group"><label>Embryologist Review: [cite: 38]</label><input type="text"></div>
+        <div class="form-group"><label>Supervisor Remarks: [cite: 39]</label><input type="text"></div>
+    </div>
+
+    <div class="pro-tip">
+        <label><strong>🔥 Pro Tip (For Remote Monitoring):</strong> Upload photos for Lab cleaning proof, Incubator readings, or LN₂ levels. [cite: 54, 55, 56, 57, 58]</label><br><br>
+        <input type="file" accept="image/*" multiple>
+    </div>
+
+    <button class="btn-submit">Submit Daily Report</button>
 </div>
 
 <script>

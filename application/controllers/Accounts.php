@@ -3750,7 +3750,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 7: PARTIAL PAYMENTS
     // =========================================================================
-    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 400");
+    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 500");
 $payment_rows = $partial_q->result_array();
 
 foreach ($payment_rows as $payment_row) {
