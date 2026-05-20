@@ -439,7 +439,7 @@
                </div>
             </div>
 
-            <div class="section-card">
+            <!--<div class="section-card">
                <div class="section-header">
                   <i class="fa fa-medkit"></i> Withdrawal Date
                   
@@ -454,7 +454,7 @@
                      </div>
                   </div>
                </div>
-            </div>
+            </div>-->
 
             <!-- Medication Section opd -->
             <div class="section-card">
@@ -529,7 +529,7 @@
                </div>
             </div>
             <!-- Medication Section ipd -->
-            <div class="section-card">
+           <!-- <div class="section-card">
                <div class="section-header">
                   <i class="fa fa-medkit"></i> Medication Advised Ipd
                   <label class="checkbox-enhanced pull-right">
@@ -599,7 +599,7 @@
                      </div>
                   </div>
                </div>
-            </div>
+            </div> -->
             <!-- Management Section -->
             <div class="section-card">
                <div class="section-header">
@@ -1059,7 +1059,7 @@ if (!empty($billed_data)) {
             </tr>
             <?php } ?>
             <!-- Advisory Section -->
-            <div class="section-card">
+            <!--<div class="section-card">
                <div class="section-header">
                   <i class="fa fa-file-text-o"></i> Advisory Templates
                </div>
@@ -1079,7 +1079,7 @@ if (!empty($billed_data)) {
                      </select>
                   </div>
                </div>
-            </div>
+            </div>-->
             <!-- Follow-up Appointment Section -->
             <div class="follow-up-section">
                <h4><i class="fa fa-calendar"></i> Next Follow-up Appointment</h4>

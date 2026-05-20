@@ -72,7 +72,7 @@
                 <label for="item_name">Free Reason (Required)</label>
                 <select id="free_reason">
                		<option value="">Select</option>
-                    <option value="First Consultation">First Consultation</option>
+                    <option value="First Visit">First Visit</option>
                		  <option value="For TVS (Under Package)">For TVS (Under Package)</option>
                     <option value="Under Package">Under Package</option>
                     <option value="BHCG Counselling">BHCG Counselling</option>

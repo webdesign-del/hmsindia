@@ -4605,7 +4605,7 @@ public function bulk_approve_sales()
         // Assuming your centers table is named 'hms_centers' or 'centers'
         // Adjust 'centers' to your actual table name if different
         $center_query = $this->db->get_where('hms_centers', ['id' => $row['center_id']])->row_array();
-        $state_prefix = (!empty($center_query['state_prefix'])) ? $center_query['state_prefix'] : 'NOD';
+        $state_prefix = (!empty($center_query['state_prefix'])) ? $center_query['state_prefix'] : 'NDA';
 
         // 3. Financial Year Logic
         $year = date('Y');

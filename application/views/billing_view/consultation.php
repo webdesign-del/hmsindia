@@ -206,7 +206,7 @@
                   </span>
                   <select id="reason_of_visit" name="reason_of_visit" class="form-control">
                     <option value="">Select Reason</option>
-                    <option value="First Consultation">First Consultation</option>
+                    <option value="First Visit">First Visit</option>
                     <option value="For TVS (Under Package)">For TVS (Under Package)</option>
                     <option value="Under Package">Under Package</option>
                     <option value="BHCG Counselling">BHCG Counselling</option>
@@ -934,7 +934,7 @@ $(document).ready(function() {
     // Dropdown change validation
     $('#reason_of_visit').on('change', function() {
         var reason = $(this).val();
-        if (reason === "First Consultation" && isFirstVisit === false) {
+        if (reason === "First Visit" && isFirstVisit === false) {
             alert("This is not a first-time consultation. Please select another reason.");
             $(this).val("");
             return false;

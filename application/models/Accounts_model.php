@@ -707,7 +707,7 @@ function approve_billing($request, $type, $status, $reason, $reason_of_cancle, $
     // Get Center Prefix
     $center = get_center_name($row['billing_from']);
     $center_data = center_detail($center);
-    $state_prefix = !empty($center_data['state_prefix']) ? $center_data['state_prefix'] : 'NOD';
+    $state_prefix = !empty($center_data['state_prefix']) ? $center_data['state_prefix'] : 'NDA';
 
     // Financial Year Logic
     $year = date('Y');
@@ -1134,7 +1134,7 @@ function approve_procedure($ID) {
     // 2. Get Center Details
     $center = get_center_name($row['billing_from']);
     $center_data = center_detail($center);
-    $state_prefix = !empty($center_data['state_prefix']) ? $center_data['state_prefix'] : 'NOD';
+    $state_prefix = !empty($center_data['state_prefix']) ? $center_data['state_prefix'] : 'NDA';
 
     // 3. Financial Year Logic
     $year = date('Y');
