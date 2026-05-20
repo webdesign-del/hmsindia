@@ -2201,7 +2201,7 @@ function approve_procedure($ID) {
                 $response[] = array(
                         'patient_id' => $val['patient_id'],
                         'wife_name' => $patient_name1,
-						'receipt_number' => '="' . $val['receipt_number'] . '"',
+						'receipt_number' => $val['receipt_number'],
 				        'totalpackage' => $val['totalpackage'],
                         'discounted_package' => $val['discounted_package'],
                         'payment_done' => $val['payment_done'],
