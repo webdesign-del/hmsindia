@@ -799,7 +799,7 @@ class Accounts extends CI_Controller {
 						$billing_from = get_center_name($billing_from);
 					}
 					$billing_at = get_center_name($val['billing_at']);
-					$lead_arr = array($val['patient_id'], $val['wife_name'], '=' . $val['receipt_number'] . '', $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'], $val['on_date'], $val['status']);
+					$lead_arr = array($val['patient_id'], $val['wife_name'], "'" . $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'], $val['on_date'], $val['status']);
 					fputcsv($fp, $lead_arr);
 				}
 				fclose($fp);
