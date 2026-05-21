@@ -18,10 +18,6 @@
         </ol>
     </div>
 </div>
-
-
-
-
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -152,11 +148,13 @@
             <th>Time [cite: 9]</th>
             <th>Remarks [cite: 9]</th>
         </tr>
-        <tr><td>Work benches cleaned (IVF lab) [cite: 9]</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
-        <tr><td>Andrology workstations cleaned [cite: 9]</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
-        <tr><td>Microscopes external cleaning [cite: 9]</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
-        <tr><td>Laminar hood surface cleaned [cite: 9]</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
-        <tr><td>Incubator outer surface cleaned [cite: 9]</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
+        <tr><td>box incubator- forma 160i </td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
+        <tr><td>planner -BT37- tri gas</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
+        <tr><td>spovum LAF with display -embryology</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
+        <tr><td>narishigae micromanipulator with olympus (ICSI machine)</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
+        <tr><td>ICSI machine- display monitor with recording</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
+        <tr><td>positive pressure tower</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
+        <tr><td>digital aspirtion pump- ASPIRE-HP-100D</td><td><input type="checkbox"></td><td><input type="time"></td><td><input type="text"></td></tr>
     </table>
 
     <h3>B. Disinfection [cite: 10]</h3>
@@ -301,80 +299,3 @@
     <button class="btn-submit">Submit Daily Report</button>
 </div>
 
-<script>
-$(document).ready(function() {
-    <?php if(!empty($center_stocks)): ?>
-    $('#centerStocksTable').DataTable({
-        "pageLength": 25,
-        "order": [[ 6, "asc" ]], // Sort by Expiry Date column (0-based index 6)
-        "columnDefs": [
-            { "orderable": false, "targets": 12 } // Actions column (0-based index 12)
-        ],
-        "language": {
-            "emptyTable": "No center stocks found",
-            "zeroRecords": "No matching center stocks found"
-        },
-        "responsive": true,
-        "autoWidth": false
-    });
-    <?php endif; ?>
-});
-function updateCenterStockStatus(stockId, status) {
-    if(confirm('Are you sure you want to update the stock status?')) {
-        $.ajax({
-            url: '<?php echo base_url("stocks_new/update_center_stock_status"); ?>',
-            type: 'POST',
-            data: {
-                stock_id: stockId,
-                status: status
-            },
-            dataType: 'json',
-            success: function(response) {
-                if(response.success) {
-                    alert('Stock status updated successfully!');
-                    location.reload();
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            },
-            error: function() {
-                alert('An error occurred while updating stock status.');
-            }
-        });
-    }
-}
-function deleteCenterStock(stockId) {
-    if(confirm('Are you sure you want to delete this center stock? This action cannot be undone.')) {
-        $.ajax({
-            url: '<?php echo base_url("stocks_new/delete_center_stock"); ?>',
-            type: 'POST',
-            data: {
-                stock_id: stockId
-            },
-            dataType: 'json',
-            success: function(response) {
-                if(response.success) {
-                    alert('Center stock deleted successfully!');
-                    location.reload();
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            },
-            error: function() {
-                alert('An error occurred while deleting center stock.');
-            }
-        });
-    }
-}
-function exportCenterStockReport() {
-    var filters = {
-        center_id: $('#centerFilter').val(),
-        medicine_id: $('#medicineFilter').val(),
-        batch_number: $('#batchFilter').val(),
-        status: $('#statusFilter').val(),
-        department: $('#departmentFilter').val(),
-    };
-    var queryString = $.param(filters);
-    window.open('<?php echo base_url("stocks_new/center_stocks_export"); ?>?' + queryString, '_blank');
-}
-</script>

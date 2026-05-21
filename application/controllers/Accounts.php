@@ -2221,41 +2221,68 @@ public function approve($request = NULL) {
             if(isset($table_map[$type])) {
                 $billing_info = india_ivf_billing($request, $table_map[$type]);
                 
-                // FIX: Pehle check karein ki data mil raha hai ya nahi
                 if(!empty($billing_info) && is_array($billing_info) && isset($billing_info['payment_done']) && $billing_info['payment_done'] > 0) {
-                    $p_id = $billing_info['patient_id'];
-                    $refund_amt = $billing_info['payment_done'];
-                    $wallet_column = ($type == 'procedure') ? 'wallet_2_balance' : 'wallet_1_balance';
+                    
+                    // ==============================================================
+                    // FIX 1: Sirf tabhi refund karein jab payment 'wallet' se hui ho
+                    // ==============================================================
+                    $payment_method = isset($billing_info['payment_method']) ? strtolower(trim($billing_info['payment_method'])) : '';
 
-                    // Update Wallet
-                    $this->db->query("UPDATE hms_patient_wallets SET $wallet_column = $wallet_column + $refund_amt, updated_at = NOW() WHERE patient_id = ?", array($p_id));
-                    
-                    $new_wallet = $this->db->get_where('hms_patient_wallets', array('patient_id' => $p_id))->row_array();
-                    $log_remarks = 'Refund: '.ucfirst($type).' '.ucfirst($status);
-                    
-                    // Log Entry
-                    $wallet_log = array(
-                        'patient_id'  => $p_id,
-                        'amount'      => $refund_amt,
-                        'action_type' => 'credit',
-                        'opening_w1'  => ($type != 'procedure') ? ($new_wallet['wallet_1_balance'] - $refund_amt) : $new_wallet['wallet_1_balance'],
-                        'closing_w1'  => $new_wallet['wallet_1_balance'],
-                        'opening_w2'  => ($type == 'procedure') ? ($new_wallet['wallet_2_balance'] - $refund_amt) : $new_wallet['wallet_2_balance'],
-                        'closing_w2'  => $new_wallet['wallet_2_balance'],
-                        'reference_id'=> isset($billing_info['receipt_number']) ? $billing_info['receipt_number'] : $request,
-                        'mode'        => 'refund',
-                        'remarks'     => $log_remarks,
-                        'created_by'  => $_SESSION['logged_accountant']['username'],
-                        'created_at'  => date('Y-m-d H:i:s'),
-                        'status'      => 'success'
-                    );
-                    $this->db->insert('hms_wallet_logs', $wallet_log);
+                    if ($payment_method === 'wallet') {
+                        
+                        $p_id = $billing_info['patient_id'];
+                        $refund_amt = $billing_info['payment_done'];
+                        $wallet_column = ($type == 'procedure') ? 'wallet_2_balance' : 'wallet_1_balance';
+
+                        // Check karein kya purane record ke patient ka wallet data database me hai?
+                        $check_wallet = $this->db->get_where('hms_patient_wallets', array('patient_id' => $p_id))->row_array();
+                        if(empty($check_wallet)) {
+                            // Agar row missing hai toh pehle create karein taaki null crash na ho
+                            $this->db->insert('hms_patient_wallets', array(
+                                'patient_id' => $p_id,
+                                'wallet_1_balance' => 0,
+                                'wallet_2_balance' => 0,
+                                'created_at' => date('Y-m-d H:i:s')
+                            ));
+                        }
+
+                        // Update Wallet Balance
+                        $this->db->query("UPDATE hms_patient_wallets SET $wallet_column = $wallet_column + $refund_amt, updated_at = NOW() WHERE patient_id = ?", array($p_id));
+                        
+                        // Fetch fresh data for logs
+                        $new_wallet = $this->db->get_where('hms_patient_wallets', array('patient_id' => $p_id))->row_array();
+                        
+                        // ==============================================================
+                        // FIX 2: Lines 2241-2244 Safe-coalescing (Null Warnings permanent band)
+                        // ==============================================================
+                        $w1_balance = isset($new_wallet['wallet_1_balance']) ? $new_wallet['wallet_1_balance'] : 0;
+                        $w2_balance = isset($new_wallet['wallet_2_balance']) ? $new_wallet['wallet_2_balance'] : 0;
+
+                        $log_remarks = 'Refund: '.ucfirst($type).' '.ucfirst($status);
+                        
+                        // Log Entry array mapping
+                        $wallet_log = array(
+                            'patient_id'  => $p_id,
+                            'amount'      => $refund_amt,
+                            'action_type' => 'credit',
+                            'opening_w1'  => ($type != 'procedure') ? ($w1_balance - $refund_amt) : $w1_balance, // Line 2241 fix
+                            'closing_w1'  => $w1_balance, // Line 2242 fix
+                            'opening_w2'  => ($type == 'procedure') ? ($w2_balance - $refund_amt) : $w2_balance, // Line 2243 fix
+                            'closing_w2'  => $w2_balance, // Line 2244 fix
+                            'reference_id'=> isset($billing_info['receipt_number']) ? $billing_info['receipt_number'] : $request,
+                            'mode'        => 'refund',
+                            'remarks'     => $log_remarks,
+                            'created_by'  => isset($_SESSION['logged_accountant']['username']) ? $_SESSION['logged_accountant']['username'] : 'system',
+                            'created_at'  => date('Y-m-d H:i:s'),
+                            'status'      => 'success'
+                        );
+                        $this->db->insert('hms_wallet_logs', $wallet_log);
+                    }
                 }
             }
         }
 
         // --- BILLING PROCESS LOGIC ---
-        // FIX: Har block mein empty() check add kiya gaya hai
         if($type == 'consultation') {            
             $billing_records = india_ivf_billing($request, "consultation"); 
             if(!empty($billing_records) && is_array($billing_records)) {
