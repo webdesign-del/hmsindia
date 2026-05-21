@@ -94,6 +94,8 @@
 
                   <th>Biller</th>
 
+                  <th>Center Name</th>
+
                   <th>invoices No</th>
 
                   <th>Status</th>
@@ -165,6 +167,8 @@
                   <td><?php echo $currency.$vl['remaining_amount']?></td>
 
                   <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
+
+                  <td><?php echo $all_method->get_center_name($vl['billing_from']); ?></td>
 
                   <td><?php echo $vl['series_number']; ?></td>
 

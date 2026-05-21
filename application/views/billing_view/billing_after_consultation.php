@@ -777,6 +777,7 @@ if (!empty($stored_procedures)) {
                   <div class="form-group col-sm-6 col-xs-12" id="subvention_box" style="display:none;">
                      <label for="item_name">Subvention charges (Required)</label>
                      <input value="" placeholder="Subvention charges" id="subvention_charges" name="subvention_charges" type="text" class="form-control validate">
+                     
                   </div>
                </div>
                <?php } ?>
@@ -844,6 +845,7 @@ if (!empty($stored_procedures)) {
                      <input type="file" class="required_value" name="transaction_img" id="transaction_img"  />
                   </div>
                </div>
+               <input type="hidden" name="billing_from" value="<?php echo $_SESSION['logged_billing_manager']['center']?>" />
                <?php } ?>
                <div class="row">
                   <div class="form-group col-sm-6 col-xs-12 role" style="display:none;">
