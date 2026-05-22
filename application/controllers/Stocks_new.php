@@ -11743,4 +11743,232 @@ public function stocks_monitoring_sheet()
         }
     }
 
+public function save_ivf_daily_report() {
+    if ($this->input->post('submit_report')) {
+        
+        // Form main meta elements
+        $lab_name    = $this->input->post('lab_name');
+        $report_date = $this->input->post('report_date');
+        $shift       = $this->input->post('shift');
+        $reported_by = $this->input->post('reported_by');
+
+        // Capture raw arrays for email formatting before JSON encoding
+        $sc_post          = $this->input->post('sc') ? $this->input->post('sc') : array();
+        $disinfection_post= $this->input->post('disinfection') ? $this->input->post('disinfection') : array();
+        $weekly_post      = $this->input->post('weekly') ? $this->input->post('weekly') : array();
+        $env_post         = $this->input->post('env') ? $this->input->post('env') : array();
+        $eq_post          = $this->input->post('eq') ? $this->input->post('eq') : array();
+        $consumables_post = $this->input->post('consumables') ? $this->input->post('consumables') : array();
+
+        // Encode arrays for database storage
+        $sc_data          = json_encode($sc_post);
+        $disinfection     = json_encode($disinfection_post);
+        $weekly_tasks     = json_encode($weekly_post);
+        $lab_conditions   = json_encode($env_post);
+        $equipment_status = json_encode($eq_post);
+        $consumables      = json_encode($consumables_post);
+        
+        $deviations = json_encode(array(
+            'out_of_range' => $this->input->post('deviation_out_of_range'),
+            'details'      => $this->input->post('deviation_details'),
+            'action_taken' => $this->input->post('deviation_action')
+        ));
+
+        $authorization = json_encode(array(
+            'technician'   => $this->input->post('auth_technician'),
+            'embryologist' => $this->input->post('auth_embryologist'),
+            'supervisor'   => $this->input->post('auth_supervisor')
+        ));
+
+        // Insert array structure mapping
+        $insert_data = array(
+            'lab_name'              => $lab_name,
+            'report_date'           => $report_date,
+            'shift'                 => $shift,
+            'reported_by'           => $reported_by,
+            'surface_cleaning'      => $sc_data,
+            'disinfection'          => $disinfection,
+            'weekly_tasks'          => $weekly_tasks,
+            'lab_conditions'        => $lab_conditions,
+            'equipment_status'      => $equipment_status,
+            'consumables_check'     => $consumables,
+            'deviations_incidents'  => $deviations,
+            'authorization_details' => $authorization,
+            'created_at'            => date('Y-m-d H:i:s')
+        );
+
+        // 1. Save Report Data to Database
+        $this->db->insert('hms_ivf_lab_daily_reports', $insert_data);
+        $insert_id = $this->db->insert_id();
+
+        if($insert_id) {
+            
+            // FETCH STOCKS DATA FOR EMAIL: Current snapshot nikalein email me bhejane ke liye
+            // Agar aapke pas model method hai to $this->YOUR_MODEL->get_stocks_monitoring() bhi call kar sakte hain.
+            $center_stocks_query = $this->db->query("
+                SELECT ccs.*, m.medicine_name, m.medicine_code, c.center_name, mb.batch_number, mb.expiry_date, mb.purchase_price, mb.selling_price 
+                FROM center_stocks ccs 
+                INNER JOIN medicines m ON ccs.batch_id = m.id -- ya batch routing adjustments mapping
+                LEFT JOIN hms_centers c ON ccs.center_id = c.ID 
+                LEFT JOIN medicine_batches mb ON ccs.batch_id = mb.id
+                WHERE ccs.quantity > 0 AND ccs.status = 'ACTIVE' LIMIT 100
+            ");
+            $email_stocks = $center_stocks_query->result();
+
+            // 2. EMAIL SETUP
+            $this->load->library('email');
+            $config['mailtype']  = 'html';
+            $config['charset']   = 'utf-8';
+            $config['wordwrap']  = TRUE;
+            $this->email->initialize($config);
+
+            $this->email->from('no-reply@hmsindiaivf.com', 'HMS IVF Lab System');
+            $this->email->to('drpooja.awasthi@indiaivf.in'); // Apni email ID set karein
+            $this->email->subject("📊 Complete IVF Lab Daily Monitoring Summary Report - $lab_name ($report_date)");
+
+            // Dynamic HTML Styling variables for email table scannability
+            $th_style = "style='background-color:#2c3e50; color:#fff; padding:8px; border:1px solid #dee2e6; text-align:left; font-size:12px;'";
+            $td_style = "style='padding:6px; border:1px solid #dee2e6; font-size:12px;'";
+            $header_sec = "style='background-color:#3498db; color:white; padding:6px 10px; margin-top:15px; margin-bottom:5px; font-size:14px; border-radius:3px;'";
+
+            // BUILDING EMAIL CONTENT BODY
+            $html = "<html><body style='font-family:Arial, sans-serif; color:#2c3e50; line-height:1.4;'>";
+            $html .= "<div style='max-width:800px; margin:0 auto; border:1px solid #dcdde1; padding:20px; border-radius:6px; background:#fff;'>";
+            $html .= "<h2 style='text-align:center; color:#2c3e50; border-bottom:2px solid #3498db; padding-bottom:10px;'>IVF Lab Daily Monitoring System Summary Report</h2>";
+            
+            // Meta Information
+            $html .= "<table style='width:100%; border-collapse:collapse; margin-bottom:15px; background:#f8f9fa;'>
+                        <tr><td $td_style><b>Lab Name:</b> $lab_name</td><td $td_style><b>Report Date:</b> ".date('d-m-Y', strtotime($report_date))."</td></tr>
+                        <tr><td $td_style><b>Shift Log:</b> $shift</td><td $td_style><b>Reported By:</b> $reported_by</td></tr>
+                     </table>";
+
+            // Section A: Surface Cleaning
+            $html .= "<div $header_sec>A. Surface Cleaning Status</div>";
+            $html .= "<table style='width:100%; border-collapse:collapse;'>
+                        <thead><tr><th $th_style>Area</th><th $th_style>Done</th><th $th_style>Time</th><th $th_style>Remarks</th></tr></thead><tbody>";
+            $areas = [
+                'box_incubator' => 'box incubator- forma 160i', 'planner' => 'planner -BT37- tri gas',
+                'spovum_laf' => 'spovum LAF with display -embryology', 'icsi_machine' => 'narishigae micromanipulator (ICSI)',
+                'icsi_display' => 'ICSI machine- display monitor', 'pressure_tower' => 'positive pressure tower',
+                'aspiration_pump' => 'digital aspirtion pump- ASPIRE-HP-100D'
+            ];
+            foreach($areas as $key => $title) {
+                $done = isset($sc_post[$key]['done']) ? '✔ Done' : '✘ No';
+                $time = isset($sc_post[$key]['time']) ? $sc_post[$key]['time'] : '';
+                $rem  = isset($sc_post[$key]['remarks']) ? $sc_post[$key]['remarks'] : '';
+                $html .= "<tr><td $td_style>$title</td><td $td_style>$done</td><td $td_style>$time</td><td $td_style>$rem</td></tr>";
+            }
+            $html .= "</tbody></table>";
+
+            // Section B: Disinfection
+            $html .= "<div $header_sec>B. Disinfection Status</div>";
+            $html .= "<table style='width:100%; border-collapse:collapse;'>
+                        <thead><tr><th $th_style>Item</th><th $th_style>Agent Used</th><th $th_style>Done</th><th $th_style>Remarks</th></tr></thead><tbody>";
+            $dis_items = ['floor' => 'Floor mopping', 'laf_uv' => 'Laminar airflow UV', 'handles' => 'Door handles & switches'];
+            foreach($dis_items as $key => $title) {
+                $agent = isset($disinfection_post[$key]['agent']) ? $disinfection_post[$key]['agent'] : '';
+                $done  = isset($disinfection_post[$key]['done']) ? '✔ Done' : '✘ No';
+                $rem   = isset($disinfection_post[$key]['remarks']) ? $disinfection_post[$key]['remarks'] : '';
+                $html .= "<tr><td $td_style>$title</td><td $td_style>$agent</td><td $td_style>$done</td><td $td_style>$rem</td></tr>";
+            }
+            $html .= "</tbody></table>";
+
+            // Section C: Weekly Tasks
+            $html .= "<div $header_sec>C. Weekly / Rotational Tasks</div><ul>";
+            $html .= "<li>Incubator internal cleaning: ".(isset($weekly_post['incubator_cleaning']) ? '<b>✔ Done Today</b>' : '✘ Pending')."</li>";
+            $html .= "<li>HEPA filter check: ".(isset($weekly_post['hepa_check']) ? '<b>✔ Done Today</b>' : '✘ Pending')."</li>";
+            $html .= "<li>Deep cleaning (walls/storage): ".(isset($weekly_post['deep_cleaning']) ? '<b>✔ Done Today</b>' : '✘ Pending')."</li></ul>";
+
+            // Section 2: Environmental Conditions
+            $html .= "<div $header_sec>🌡️ Lab Environmental Conditions</div>";
+            $html .= "<table style='width:100%; border-collapse:collapse;'>
+                        <thead><tr><th $th_style>Parameter</th><th $th_style>Morning</th><th $th_style>Afternoon</th><th $th_style>Evening</th><th $th_style>Range</th><th $th_style>Remarks</th></tr></thead><tbody>";
+            $env_items = [
+                'ivf_temp' => ['IVF Temperature', '22–25°C'], 'ivf_humidity' => ['IVF Humidity', '40–60%'],
+                'ivf_co2' => ['IVF CO₂', '5–6%'], 'ivf_voc' => ['IVF VOC Level', 'Low'], 'ivf_pressure' => ['IVF Air Pressure', 'Positive']
+            ];
+            foreach($env_items as $key => $meta) {
+                $m = isset($env_post[$key]['morn']) ? $env_post[$key]['morn'] : '';
+                $a = isset($env_post[$key]['aft']) ? $env_post[$key]['aft'] : '';
+                $e = isset($env_post[$key]['eve']) ? $env_post[$key]['eve'] : '';
+                $r = isset($env_post[$key]['remarks']) ? $env_post[$key]['remarks'] : '';
+                $html .= "<tr><td $td_style>{$meta[0]}</td><td $td_style>$m</td><td $td_style>$a</td><td $td_style>$e</td><td $td_style>{$meta[1]}</td><td $td_style>$r</td></tr>";
+            }
+            $html .= "<tr><td $td_style>Andrology Temp</td><td $td_style colspan='3'>".($env_post['andro_temp']['val'] ?? '')."</td><td $td_style>22–25°C</td><td $td_style>".($env_post['andro_temp']['remarks'] ?? '')."</td></tr>";
+            $html .= "<tr><td $td_style>Andrology Humidity</td><td $td_style colspan='3'>".($env_post['andro_humidity']['val'] ?? '')."</td><td $td_style>40–60%</td><td $td_style>".($env_post['andro_humidity']['remarks'] ?? '')."</td></tr>";
+            $html .= "</tbody></table>";
+
+            // Section 3: Equipment Status
+            $html .= "<div $header_sec>⚙️ Equipment Operational Logs</div>";
+            $html .= "<p><b>Incubator Setup</b> [ID: ".($eq_post['incubator']['id']??'')."] → Temp: ".($eq_post['incubator']['temp']??'')."°C, CO₂: ".($eq_post['incubator']['co2']??'')."%, Alarm: ".($eq_post['incubator']['alarm']??'').", Water: ".($eq_post['incubator']['water']??'')."</p>";
+            $html .= "<p><b>Laminar Flow Status</b> [ID: ".($eq_post['laf']['id']??'')."] → UV: ".($eq_post['laf']['uv']??'').", Airflow: ".($eq_post['laf']['airflow']??'').", Last Cleaned: ".($eq_post['laf']['last_clean']??'')."</p>";
+            $html .= "<p><b>Microscopes Log</b> [ID: ".($eq_post['microscope']['id']??'')."] → Condition: ".($eq_post['microscope']['condition']??'').", Cleaned: ".($eq_post['microscope']['cleaned']??'')."</p>";
+            $html .= "<p><b>Cryo Storage Tank</b> [Tank: ".($eq_post['cryo']['id']??'')."] → LN₂ Level: ".($eq_post['cryo']['ln2']??'').", Refilled: ".($eq_post['cryo']['refilled']??'').", Alarm: ".($eq_post['cryo']['alarm']??'')."</p>";
+
+            // Section 4: Consumables
+            $html .= "<div $header_sec>🧪 Consumables Inventory Checklist</div>";
+            $html .= "<table style='width:100%; border-collapse:collapse;'><thead><tr><th $th_style>Item</th><th $th_style>Status</th><th $th_style>Expiry Checked</th><th $th_style>Remarks</th></tr></thead><tbody>";
+            foreach(['media'=>'Culture media','pipettes'=>'Pipettes','dishes'=>'Dishes','gloves'=>'Gloves'] as $k => $t) {
+                $st = $consumables_post[$k]['status'] ?? '';
+                $ex = isset($consumables_post[$k]['expiry']) ? 'Checked' : 'Not Checked';
+                $rm = $consumables_post[$k]['remarks'] ?? '';
+                $html .= "<tr><td $td_style>$t</td><td $td_style>$st</td><td $td_style>$ex</td><td $td_style>$rm</td></tr>";
+            }
+            $html .= "</tbody></table>";
+
+            // ==============================================================
+            // NEW INCLUSION: ACTIVE REAL-TIME CENTER STOCKS PRINT TABLE
+            // ==============================================================
+            $html .= "<div $header_sec>📦 CURRENT ACTIVE CENTER STOCKS DETAILS</div>";
+            if(!empty($email_stocks)) {
+                $html .= "<table style='width:100%; border-collapse:collapse;'>
+                            <thead>
+                                <tr>
+                                    <th $th_style>Center</th><th $th_style>Medicine</th><th $th_style>Batch</th>
+                                    <th $th_style>Expiry</th><th $th_style>Qty</th><th $th_style>MRP</th>
+                                </tr>
+                            </thead><tbody>";
+                foreach($email_stocks as $stk) {
+                    $html .= "<tr>
+                                <td $td_style>$stk->center_name</td>
+                                <td $td_style><b>$stk->medicine_name</b><br><small>$stk->medicine_code</small></td>
+                                <td $td_style>$stk->batch_number</td>
+                                <td $td_style>".date('d/m/Y', strtotime($stk->expiry_date))."</td>
+                                <td $td_style style='color:#27ae60; font-weight:bold;'>$stk->quantity</td>
+                                <td $td_style>₹".number_format($stk->selling_price, 2)."</td>
+                              </tr>";
+                }
+                $html .= "</tbody></table>";
+            } else {
+                $html .= "<p $td_style>No active live stocks entries monitored today.</p>";
+            }
+
+            // Deviations & Incident tracking
+            $html .= "<div $header_sec>🚨 Deviations / Incident Parameters</div>";
+            $html .= "<p><b>Out of Range Parameters?:</b> ".$this->input->post('deviation_out_of_range')."</p>";
+            $html .= "<p><b>Details if any:</b> ".nl2br(htmlentities($this->input->post('deviation_details')))."</p>";
+            $html .= "<p><b>Corrective Action Logs:</b> ".nl2br(htmlentities($this->input->post('deviation_action')))."</p>";
+
+            // Authorization
+            $html .= "<div $header_sec>👨‍⚕️ Verification & Signature Sign-off</div>";
+            $html .= "<p><b>Technician Sign Name:</b> ".$this->input->post('auth_technician')."</p>";
+            $html .= "<p><b>Reviewing Embryologist:</b> ".$this->input->post('auth_embryologist')."</p>";
+            $html .= "<p><b>Supervisor Tracking Remarks:</b> ".$this->input->post('auth_supervisor')."</p>";
+            
+            $html .= "<hr style='border:0; border-top:1px solid #dee2e6; margin-top:20px;'>";
+            $html .= "<p style='font-size:11px; color:#7f8c8d; text-align:center;'>This summary is mapped instantly inside HMS India IVF Database servers.</p>";
+            $html .= "</div></body></html>";
+
+            $this->email->message($html);
+            $this->email->send(); // Triggers automated dispatch
+
+            $this->session->set_flashdata('success', 'IVF Lab Monitoring Report saved and complete field data with stocks dispatched via email successfully!');
+            redirect($_SERVER['HTTP_REFERER']);
+        } else {
+            $this->session->set_flashdata('error', 'Database tracking failed!');
+            redirect($_SERVER['HTTP_REFERER']);
+        }
+    }
+}
+
 }
