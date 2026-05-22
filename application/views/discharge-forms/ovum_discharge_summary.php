@@ -67,7 +67,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	
 ?>
 
-
+<a href="<?php echo site_url(); ?>patients/discharge_summary?iic_id=<?php echo $iic_id;?>&appoitmented_date=<?php echo date('Y-m-d');  ?>&discharge=12">Add New</a>
 <form action="" enctype='multipart/form-data' method="post">
 
 
@@ -158,7 +158,8 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td width="100%" colspan="10">
-<label>No. of oocytes retrieved</label> 
+<label>No. of oocytes retrieved</label><br/><br/> 
+<?php echo isset($select_result['oocytes_retrieved'])?$select_result['oocytes_retrieved']:""; ?>
 <input type="number" class="oocytes_retrieved" name="oocytes_retrieved" value="<?php echo isset($select_result['oocytes_retrieved'])?$select_result['oocytes_retrieved']:""; ?>"></strong>
 <!--
 <textarea name="oocytes_retrieved" style="width:100%; height:80px!important;"> <?php echo isset($select_result['oocytes_retrieved'])?$select_result['oocytes_retrieved']:""; ?></textarea>-->
