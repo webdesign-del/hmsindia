@@ -178,9 +178,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
     <strong>Indication:</strong><br>
     
     <?php if ($has_any_data): ?>
-        <textarea name="indication" class="form-control" style="width:100%; height:80px!important; border: 1px solid #ccc; padding: 5px;">
-            <?php echo $final_indication; ?>
-        </textarea>
+        <textarea name="indication" class="form-control" style="width:100%; height:80px!important; border: 1px solid #ccc; padding: 5px;"><?php echo $final_indication; ?></textarea>
     <?php else: ?>
         <div class="alert alert-danger" style="margin-top: 5px; padding: 15px; border-left: 5px solid #a94442;">
             <i class="fa fa-exclamation-triangle"></i> 
