@@ -2851,8 +2851,8 @@ public function request_ceo_approval() {
         'smtp_host'   => 'smtp.gmail.com',
         'smtp_port'   => 587,
         'smtp_crypto' => 'tls',
-        'smtp_user'   => 'digital@indiaivf.in', 
-        'smtp_pass'   => 'ynjy icnk dtua uybb', // Google App Password
+        'smtp_user'   => 'noreply@indiaivf.in', 
+        'smtp_pass'   => 'fvve bzgn oesk tava', // Google App Password
         'mailtype'    => 'html',
         'charset'     => 'utf-8',
         'newline'     => "\r\n",
@@ -2877,7 +2877,7 @@ public function request_ceo_approval() {
     $this->load->library('email');
     $this->email->initialize($config); 
     
-    $this->email->from('digital@indiaivf.in', 'HMS Billing');
+    $this->email->from('noreply@indiaivf.in', 'HMS Billing');
     $this->email->to($ceo_email);
     
     // Subject line mein bhi naam add kar diya hai, taaki mail inbox mein jaldi samajh aaye
