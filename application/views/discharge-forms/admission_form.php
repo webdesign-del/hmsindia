@@ -71,8 +71,12 @@ $appoitmented_date = $_GET['appoitmented_date'];
     $sql_et = "SELECT indication FROM pre_embryo_transfer WHERE patient_id='".trim($iic_id)."' LIMIT 1";
     $res_et = run_select_query($sql_et);
 
-    // 3. LOGIC: Kisi bhi EK table me data hona chahiye (OR Logic)
-    $has_any_data = (!empty($res_ov) || !empty($res_et));
+    // 3. Check Table 2: Pre Embryo Transfer
+    $sql_et = "SELECT indication FROM ovarian_prp WHERE patient_id='".trim($iic_id)."' LIMIT 1";
+    $res_op = run_select_query($sql_et);
+
+    // 4. LOGIC: Kisi bhi EK table me data hona chahiye (OR Logic)
+    $has_any_data = (!empty($res_ov) || !empty($res_et) || !empty($res_op));
 
     // 4. Get the Indication value (Prioritize Ovulation, then ET)
     $final_indication = "";
@@ -80,6 +84,8 @@ $appoitmented_date = $_GET['appoitmented_date'];
         $final_indication = $res_ov['indication'];
     } elseif (!empty($res_et['indication'])) {
         $final_indication = $res_et['indication'];
+    } elseif (!empty($res_op['indication'])) {
+        $final_indication = $res_op['indication'];
     }
 ?>
 

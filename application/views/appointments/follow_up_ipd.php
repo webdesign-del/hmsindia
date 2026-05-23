@@ -427,27 +427,7 @@
             </div>
                          
 
-            <div class="section-card">
-               <div class="section-header">
-                  <i class="fa fa-file-text-o"></i> Advisory Templates
-               </div>
-               <div class="section-content">
-                  <div class="form-group-enhanced">
-                     <label>Select Advisory Templates</label>
-                     <select class="form-control multidselect_dropdown_2" multiple="multiple" id="advisory_templates" name="advisory_templates[]">
-                        <option value="pre_embryo_transfer_html">PRE EMBRYO TRANSFER</option>
-                        <option value="post_operative_instructions_after_ovum_pick_up_html">POST OPERATIVE INSTRUCTIONS AFTER OVUM PICK UP</option>
-                        <option value="post_operative_instructions_after_ovarian_prp_html">POST OPERATIVE INSTRUCTIONS AFTER OVARIAN PRP</option>
-                        <option value="post_fnac_testes_tprp_tesa_pesa_micro_tese_html">POST FNAC TESTES/ TPRP/TESA/PESA/MICRO TESE</option>
-                        <option value="post_embryo_transfer_html">POST EMBRYO TRANSFER</option>
-                        <option value="patient_information_section_html">PATIENT INFORMATION</option>
-                        <option value="ivf_vitro_fertilization_ivf_information_package_html">IN VITRO FERTILIZATION (IVF) INFORMATION PACKAGE</option>
-                        <option value="instructions_for_semen_collection_html">INSTRUCTIONS FOR SEMEN COLLECTION</option>
-                        <option value="day_2_day_5_fet_prescription_html">DAY 2 - DAY 5 FET PRESCRIPTION</option>
-                     </select>
-                  </div>
-               </div>
-            </div>-
+           
             <div class="follow-up-section">
                <h4><i class="fa fa-calendar"></i> Next Follow-up Appointment</h4>
                <input type="hidden" id="follow_up" checked value="1" name="follow_up" />
