@@ -1473,16 +1473,16 @@ function partial_billing($appointment_id){
 				$post_arr['payment_in'] = $_POST['payment_in'];unset($_POST['payment_in']);
 			    $post_arr['origins'] = $_POST['origins'];unset($_POST['origins']);
 				$post_arr['series_number'] = $_POST['series_number'] ; unset($_POST['series_number']);
-
 				// ==================================================================
 				// --- MONEY WALLET DEDUCTION LOGIC START (For Investigations) ---
 				// ==================================================================
 				$total_wallet_amount_to_deduct = 0;
 
-				// 1. Grab global payment method
-				$global_method = isset($post_arr['payment_method']) ? strtolower(trim($post_arr['payment_method'])) : '';
+				// 1. Grab global payment method (Dono variables check kar rahe hain safety ke liye: payment_method aur payment_mode)
+				$method_source = isset($post_arr['payment_method']) ? $post_arr['payment_method'] : (isset($_POST['payment_mode']) ? $_POST['payment_mode'] : '');
+				$global_method = strtolower(trim($method_source));
 
-				// FIX 1: Flexible string matching (strpos) lagaya hai taaki 'wallet', 'Wallet', 'money wallet' sab auto-detect ho sakein
+				// Flexible string matching taaki 'wallet' keyword detect ho sake
 				if ($global_method == 'wallet' || $global_method == 'money wallet' || $global_method == 'money_wallet' || strpos($global_method, 'wallet') !== false) {
 					$total_wallet_amount_to_deduct = isset($post_arr['payment_done']) ? (float)$post_arr['payment_done'] : 0;
 				}
@@ -1494,7 +1494,7 @@ function partial_billing($appointment_id){
 					// A. Fetch current wallet balances
 					$wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $wallet_patient_id])->row();
 
-					// FIX 2: Agar purana record hai aur patient ka wallet table me nahi hai, toh crash ya bypass karne ke bajaye pehle create karein
+					// Agar patient ka wallet table me nahi hai, toh automatic generate karein
 					if (!$wallet) {
 						$this->db->insert('hms_patient_wallets', [
 							'patient_id'       => $wallet_patient_id,
@@ -1528,23 +1528,28 @@ function partial_billing($appointment_id){
 						'updated_at'       => date('Y-m-d H:i:s')
 					]);
 
-					// FIX 3: Safety check for empty or missing biller_id to prevent log entry failure
+					// Safety checks to prevent empty string database failures
 					$created_by_user = !empty($post_arr['biller_id']) ? $post_arr['biller_id'] : (isset($_SESSION['logged_accountant']['username']) ? $_SESSION['logged_accountant']['username'] : 'system');
+					
+					// Receipt Number Fetch mapping
+					$ref_receipt = isset($receipt_number) ? $receipt_number : (isset($post_arr['receipt_number']) ? $post_arr['receipt_number'] : '');
 
 					// E. Insert the Log History into hms_wallet_logs
+					// CRITICAL FIX: reference_id mapping added and status matched to schema rules
 					$log_data = [
-						'patient_id'  => $wallet_patient_id,
-						'amount'      => $total_wallet_amount_to_deduct,
-						'action_type' => 'INVESTIGATION_USAGE', 
-						'opening_w1'  => $opening_w1,
-						'closing_w1'  => $closing_w1,
-						'opening_w2'  => $opening_w2,
-						'closing_w2'  => $closing_w2,
-						'mode'        => 'Wallet',
-						'remarks'     => 'Paid for Investigation/Medicine. Appt ID: ' . $post_arr['appointment_id'],
-						'created_by'  => $created_by_user,
-						'created_at'  => date('Y-m-d H:i:s'),
-						'status'      => 'approved'
+						'patient_id'   => $wallet_patient_id,
+						'amount'       => $total_wallet_amount_to_deduct,
+						'action_type'  => 'INVESTIGATION_USAGE', 
+						'opening_w1'   => $opening_w1,
+						'closing_w1'   => $closing_w1,
+						'opening_w2'   => $opening_w2,
+						'closing_w2'   => $closing_w2,
+						'reference_id' => $ref_receipt, // FIX 1: Column map kar diya, ab query fail nahi hogi
+						'mode'         => 'Wallet',
+						'remarks'      => 'Paid for Investigation/Medicine. Appt ID: ' . $post_arr['appointment_id'],
+						'created_by'   => $created_by_user,
+						'created_at'   => date('Y-m-d H:i:s'),
+						'status'       => 'success' // FIX 2: Accounts file structure ke mutabik 'success' string map kiya
 					];
 					$this->db->insert('hms_wallet_logs', $log_data);
 

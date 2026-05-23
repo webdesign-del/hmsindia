@@ -11,8 +11,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $config['protocol']    = 'smtp';
 $config['smtp_host']   = 'smtp.gmail.com';        // From your file
 $config['smtp_port']   = 587;                     // From your file
-$config['smtp_user']   = 'digital@indiaivf.in'; // From your file
-$config['smtp_pass']   = 'ynjy icnk dtua uybb'; // Your NEW App Password
+$config['smtp_user']   = 'noreply@indiaivf.in'; // From your file
+$config['smtp_pass']   = 'fvve bzgn oesk tava'; // Your NEW App Password
 $config['smtp_crypto'] = 'tls';                     // From your file
 $config['mailtype']    = 'html';
 $config['charset']     = 'iso-8859-1';
