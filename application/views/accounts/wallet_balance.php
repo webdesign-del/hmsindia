@@ -189,9 +189,11 @@
                     </div>
                     <div class="form-group">
                         <label>Payment Mode</label>
-                        <select name="mode" class="form-control">
-                            <option value="Cash">Cash</option>
+                        <select name="mode" class="form-control" require>
+                            <option value=""> - - - Select - - - </option>
                             <option value="UPI">UPI</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
                         </select>
                     </div>
@@ -290,10 +292,13 @@
 
                     <div class="form-group">
                         <label>Payment Mode</label>
-                        <select name="mode" class="form-control">
-                            <option value="Cash">Cash</option>
+                        <select name="mode" class="form-control" require>
+                            <option value=""> - - - Select - - - </option>
                             <option value="UPI">UPI</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Cash">Cash</option>
                             <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="Loan">Loan</option>
                         </select>
                     </div>
 

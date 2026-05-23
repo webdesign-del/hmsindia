@@ -12097,19 +12097,29 @@ public function export_patient_journey() {
 		redirect($_SERVER['HTTP_REFERER']);
 	}
 
-	public function add_money_to_package() {
+public function add_money_to_package() {
     $patient_id = $this->input->post('patient_id');
     $amount     = (float)$this->input->post('amount');
-	$mode    = $this->input->post('mode');
+    $mode       = $this->input->post('mode');
     $remarks    = $this->input->post('remarks');
 
     // 1. Get current balance for Wallet 2 (Package Wallet)
     $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row();
     
+    // ==============================================================
+    // FIX: Agar patient ka wallet nahi mila, toh use AUTO-CREATE karein
+    // ==============================================================
     if (!$wallet) {
-        // If no wallet exists for this patient, handle error or create one
-        show_error('Patient wallet not found.');
-        return;
+        $this->db->insert('hms_patient_wallets', [
+            'patient_id'       => $patient_id,
+            'wallet_1_balance' => 0,
+            'wallet_2_balance' => 0,
+            'created_at'       => date('Y-m-d H:i:s'),
+            'updated_at'       => date('Y-m-d H:i:s')
+        ]);
+        
+        // Dubara fetch karein taaki aage ki calculations bina kisi dikkat ke chal sakein
+        $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row();
     }
 
     $opening_w2 = (float)$wallet->wallet_2_balance;
@@ -12126,12 +12136,12 @@ public function export_patient_journey() {
     $log_data = [
         'patient_id'  => $patient_id,
         'amount'      => $amount,
-        'action_type' => 'DEPOSIT_PACKAGE_WALLET', // or "Deposit"
+        'action_type' => 'DEPOSIT_PACKAGE_WALLET', 
         'opening_w1'  => $wallet->wallet_1_balance, // W1 stays the same
         'closing_w1'  => $wallet->wallet_1_balance,
         'opening_w2'  => $opening_w2,
         'closing_w2'  => $closing_w2,
-		'mode'        => $mode,
+        'mode'        => $mode,
         'remarks'     => $remarks,
         'created_at'  => date('Y-m-d H:i:s'),
         'status'      => 1
