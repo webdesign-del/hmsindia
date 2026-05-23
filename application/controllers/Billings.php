@@ -2852,7 +2852,7 @@ public function request_ceo_approval() {
         'smtp_port'   => 587,
         'smtp_crypto' => 'tls',
         'smtp_user'   => 'digital@indiaivf.in', 
-        'smtp_pass'   => 'mboo fuem kfsy qsdr', // Google App Password
+        'smtp_pass'   => 'ynjy icnk dtua uybb', // Google App Password
         'mailtype'    => 'html',
         'charset'     => 'utf-8',
         'newline'     => "\r\n",
