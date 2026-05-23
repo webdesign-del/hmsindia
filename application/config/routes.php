@@ -228,6 +228,8 @@ $route['follow-up-clean/(:any)'] = 'doctors/follow_up_clean/$1';
 
 $route['follow-up-form/(:any)'] = 'doctors/follow_up_form/$1';
 
+$route['follow-up-ipd/(:any)'] = 'doctors/follow_up_ipd/$1';
+
 $route['follow-up-print/(:any)'] = 'doctors/follow_up_print/$1';
 
 $route['print-submitted-consultation/(:any)'] = 'doctors/print_submitted_consultation/$1';

@@ -5266,6 +5266,16 @@ foreach ($urls as $key => $url) {
 			die();
 		}
 	}
+
+	function follow_up_ipd($appointment_id) {
+		$logg = checklogin();
+		if($logg['status'] == true) {
+			$this->load_follow_up_ipd($appointment_id);
+		} else {
+			header("location:" . base_url() . "");
+			die();
+		}
+	}
 	
 	/**
 	 * Process structured consultation data from the new form submission
@@ -5470,6 +5480,42 @@ foreach ($urls as $key => $url) {
 		$template = get_header_template($logg['role']);
 		$this->load->view($template['header']);
 		$this->load->view('appointments/follow_up', $data);
+		$this->load->view($template['footer']);
+	}
+
+	private function load_follow_up_ipd($appointment_id) {
+		$appointments = $this->appointment_model->doctor_appointment_details($appointment_id);
+		if(!$appointments) {
+			header("location:" . base_url() . "doctor_appointments?m=" . base64_encode('Appointment not found') . '&t=' . base64_encode('error'));
+			die();
+		}
+		$consultation_data = $this->get_consultation($appointment_id);
+		$patient_data = get_patient_detail($consultation_data['patient_id']);
+		$patient_doctor_consultation = patient_doctor_consultation_data($appointment_id, $consultation_data['patient_id']);
+		// Load master data using correct model methods
+		$master_investigations = $this->investigation_model->get_master_investigations_list();
+		$consultation_medicine = $this->doctors_model->consultation_medicine();
+		$consultation_medicine_ipd = $this->doctors_model->consultation_medicine_ipd();
+		$procedures = $this->procedures_model->get_procedures_list();
+		$package = $this->procedures_model->get_procedure_package_list();
+		// Load view data
+		$data = [
+			'appointments' => $appointments,
+			'consultation_data' => $consultation_data,
+			'patient_data' => $patient_data,
+			'patient_doctor_consultation' => $patient_doctor_consultation,
+			'master_investigations' => $master_investigations,
+			'consultation_medicine' => $consultation_medicine,
+			'consultation_medicine_ipd'=>$consultation_medicine_ipd,
+			'procedures' => $procedures,
+			'package' => $package
+		];
+		
+		// Load template and view
+		$logg = checklogin();
+		$template = get_header_template($logg['role']);
+		$this->load->view($template['header']);
+		$this->load->view('appointments/follow_up_ipd', $data);
 		$this->load->view($template['footer']);
 	}
 	
