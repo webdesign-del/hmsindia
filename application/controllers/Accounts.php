@@ -2297,7 +2297,7 @@ public function approve($request = NULL) {
                             'reference_id'=> isset($billing_info['receipt_number']) ? $billing_info['receipt_number'] : $request,
                             'payment_method' => 'wallet',
                             'remarks'     => $log_remarks,
-                            'created_by'  => isset($_SESSION['logged_accountant']['username']) ? $_SESSION['logged_accountant']['username'] : 'system',
+                            'created_by'  => isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'system',
                             'created_at'  => date('Y-m-d H:i:s'),
                             'status'      => 'success'
                         );
@@ -2424,7 +2424,7 @@ public function partial_approve($request = NULL) {
                         'reference_id'=> $request,
                         'payment_method' => 'wallet',
                         'remarks'     => $log_remarks,
-                        'created_by'  => isset($_SESSION['logged_accountant']['username']) ? $_SESSION['logged_accountant']['username'] : 'system',
+                        'created_by'  => isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'system',
                         'created_at'  => date('Y-m-d H:i:s'),
                         'status'      => 'success'
                     ];
@@ -12330,67 +12330,98 @@ public function export_patient_journey() {
 		}
 	}
 
-	public function approve_wallet_transfer($log_id) {
-		// 1. Log se details nikalein
-		$log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id])->row_array();
-		
-		if($log && $log['status'] == 'pending') {
-			$p_id = $log['patient_id'];
-			$amt = $log['amount'];
-			
-			$wallets = $this->Wallet_model->get_wallets($p_id);
-			
-			// 2. Balance update karein (B se minus, A mein plus)
-			$this->db->where('patient_id', $p_id)->update('hms_patient_wallets', [
-				'wallet_1_balance' => $wallets['wallet_1_balance'] + $amt,
-				'wallet_2_balance' => $wallets['wallet_2_balance'] - $amt
-			]);
-			
-			// 3. Status 'approved' karein
-			$this->db->where('log_id', $log_id)->update('hms_wallet_logs', ['status' => 'approved']);
-			
-			$this->session->set_flashdata('success', 'Transfer Approved Successfully');
-		}
-		redirect($_SERVER['HTTP_REFERER']);
-	}
+public function wallet_transfer_requests() {
+    $logg = checklogin();
+    if($logg['status'] == true) {
+        
+        // Pending wale top par rakhne ke liye custom Order By
+        $this->db->order_by("status = 'pending'", "DESC"); 
+        $this->db->order_by("created_at", "DESC");
+        
+        $data['pending_logs'] = $this->db->get('hms_wallet_logs')->result_array();
 
-	public function wallet_transfer_requests() {
-		$logg = checklogin();
-		if($logg['status'] == true) {
-			
-			// डेटाबेस से pending ट्रांसफर रिक्वेस्ट निकालें
-			$this->db->where('status', 'pending');
-			// अगर कोई specific action_type है (जैसे 'Transfer'), तो उसे भी लगा सकते हैं:
-			// $this->db->where('action_type', 'Transfer'); 
-			$this->db->order_by('log_id', 'DESC');
-			$data['pending_logs'] = $this->db->get('hms_wallet_logs')->result_array();
+        $template = get_header_template($logg['role']);
+        $this->load->view($template['header']);
+        $this->load->view('accounts/wallet_transfer_list', $data); 
+        $this->load->view($template['footer']);
+        
+    } else {
+        redirect(base_url());
+    }
+}	
 
-			// पेज लोड करें
-			$template = get_header_template($logg['role']);
-			$this->load->view($template['header']);
-			$this->load->view('accounts/wallet_transfer_list', $data); // View file 
-			$this->load->view($template['footer']);
-			
-		} else {
-			redirect(base_url());
-		}
-	}
+public function approve_wallet_transfer($log_id) {
+    $logg = checklogin();
+    
+    // Yahan par humne $_SESSION['logged_accountant']['name'] ka use kiya hai
+    $approver_name = isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'Accountant';
 
-	public function request_w2_to_w1() {
-		$p_id = $this->input->post('patient_id');
-		$amt  = (float)$this->input->post('amount');
-		$rem  = $this->input->post('remarks');
-		$user = $this->session->userdata('user_id');
+    // 1. Log se details nikalein
+    $log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id])->row_array();
+    
+    if($log && $log['status'] == 'pending') {
+        $p_id = $log['patient_id'];
+        $amt = $log['amount'];
+        
+        $wallets = $this->Wallet_model->get_wallets($p_id);
+        
+        // 2. Balance update karein (W2 se minus, W1 mein plus)
+        $this->db->where('patient_id', $p_id)->update('hms_patient_wallets', [
+            'wallet_1_balance' => $wallets['wallet_1_balance'] + $amt,
+            'wallet_2_balance' => $wallets['wallet_2_balance'] - $amt
+        ]);
+        
+        // 3. Status 'approved' karein aur Appover ki details save karein
+        $this->db->where('log_id', $log_id)->update('hms_wallet_logs', [
+            'status' => 'approved',
+            'approved_by' => $approver_name, // Ab yahan sahi naam aayega
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+        
+        $this->session->set_flashdata('success', 'Transfer Approved Successfully');
+    }
+    redirect($_SERVER['HTTP_REFERER']);
+}
 
-		$result = $this->Wallet_model->request_transfer_2_to_1($p_id, $amt, $rem, $user);
+public function disapprove_wallet_transfer($log_id) {
+    $logg = checklogin();
+    
+    // Yahan par bhi humne session update kar diya hai
+    $approver_name = isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'Accountant';
 
-		if ($result === true) {
-			$this->session->set_flashdata('success', 'Transfer request sent to Accountant.');
-		} else {
-			$this->session->set_flashdata('error', $result);
-		}
-		redirect($_SERVER['HTTP_REFERER']);
-	}
+    $log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id])->row_array();
+    
+    if($log && $log['status'] == 'pending') {
+        
+        // Status 'disapproved' karein aur jisne reject kiya uska naam save karein
+        $this->db->where('log_id', $log_id)->update('hms_wallet_logs', [
+            'status' => 'disapproved',
+            'approved_by' => $approver_name, // Ab yahan sahi naam aayega
+            'updated_at' => date('Y-m-d H:i:s') 
+        ]);
+        
+        $this->session->set_flashdata('error', 'Transfer Request Disapproved.');
+    }
+    redirect($_SERVER['HTTP_REFERER']);
+}
+
+public function request_w2_to_w1() {
+    $p_id = $this->input->post('patient_id');
+    $amt  = (float)$this->input->post('amount');
+    $rem  = $this->input->post('remarks');
+    
+    // Yahan par humne $_SESSION['logged_billing_manager']['name'] set kar diya hai
+    $user = isset($_SESSION['logged_billing_manager']['name']) ? $_SESSION['logged_billing_manager']['name'] : 'Billing Manager';
+
+    $result = $this->Wallet_model->request_transfer_2_to_1($p_id, $amt, $rem, $user);
+
+    if ($result === true) {
+        $this->session->set_flashdata('success', 'Transfer request sent to Accountant.');
+    } else {
+        $this->session->set_flashdata('error', $result);
+    }
+    redirect($_SERVER['HTTP_REFERER']);
+}
 
 public function add_money_to_package() {
     $patient_id = $this->input->post('patient_id');
@@ -12436,7 +12467,7 @@ public function add_money_to_package() {
         'closing_w1'  => $wallet->wallet_1_balance,
         'opening_w2'  => $opening_w2,
         'closing_w2'  => $closing_w2,
-        'payment_method'        => $payment_method,
+        'payment_method'     => $payment_method,
         'remarks'     => $remarks,
         'created_at'  => date('Y-m-d H:i:s'),
         'status'      => 1
