@@ -12354,6 +12354,28 @@ public function export_patient_journey() {
 		redirect($_SERVER['HTTP_REFERER']);
 	}
 
+	public function wallet_transfer_requests() {
+		$logg = checklogin();
+		if($logg['status'] == true) {
+			
+			// डेटाबेस से pending ट्रांसफर रिक्वेस्ट निकालें
+			$this->db->where('status', 'pending');
+			// अगर कोई specific action_type है (जैसे 'Transfer'), तो उसे भी लगा सकते हैं:
+			// $this->db->where('action_type', 'Transfer'); 
+			$this->db->order_by('log_id', 'DESC');
+			$data['pending_logs'] = $this->db->get('hms_wallet_logs')->result_array();
+
+			// पेज लोड करें
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('accounts/wallet_transfer_list', $data); // View file 
+			$this->load->view($template['footer']);
+			
+		} else {
+			redirect(base_url());
+		}
+	}
+
 	public function request_w2_to_w1() {
 		$p_id = $this->input->post('patient_id');
 		$amt  = (float)$this->input->post('amount');
