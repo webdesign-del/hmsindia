@@ -92,6 +92,7 @@
                     <?php if(($vl['status'] == 'consultation' || $vl['status'] == 'visited') && $vl['billed'] == '1'){ ?>
                             <?php if($vl['follow_up_appointment'] == 1){?>
                               <a class="btn btn-primary" href="<?php echo base_url('follow-up-form/'.$vl['ID']);?>">Follow up</a>
+                               <a class="btn btn-primary" href="<?php echo base_url('follow-up-ipd/'.$vl['ID']);?>">IPD Follow up</a>
                             <?php }else { ?>
                               <a class="btn btn-primary" href="<?php echo base_url('consultation_done/'.$vl['ID']);?>">Initiate Consultation</a>
                             <?php } ?>
