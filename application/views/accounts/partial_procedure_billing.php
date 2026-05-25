@@ -173,6 +173,33 @@
 			 
 		$pendingbalance = $paid_total - $pending_bill_total;
 		?>
+<?php 
+    // Load our smart helper
+    $this->load->helper('billing');
+    
+    // Check if parent page passed $patient_data, otherwise let helper find it
+    $p_id = $patient_data['patient_id'] ?? $patient_data['uhid'] ?? null;
+    $wallet = get_universal_wallet($p_id); 
+?>
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9; min-height: 100px;">
+            <div class="card-body">
+                <h6 class="text-success font-weight-bold">Money Wallet</h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet['wallet_1'], 2); ?></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2; min-height: 100px;">
+            <div class="card-body">
+                <h6 class="text-warning font-weight-bold">Package Wallet</h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet['wallet_2'], 2); ?></h2>
+            </div>
+        </div>
+    </div>
+</div>		
 	<?php  $procedures = unserialize($data['data']); if(isset($procedures) && !empty($procedures)) {  ?>
              
 			  <form class="col-sm-12 col-xs-12" method="post" action="" enctype="multipart/form-data" >
@@ -248,27 +275,6 @@
                        <input value="" placeholder="Transaction ID" id="transaction_id" name="transaction_id" type="text" class="form-control validate">
                        <input type="file" name="transaction_img" id="transaction_img"  />
                     </div>
-					
-					 <div class="form-group col-sm-6 col-xs-12">
-                  <label for="item_name">Cash Payment</label>
-                  <input value="" placeholder="Cash Payment" id="cash_payment" name="cash_payment" type="text" class="form-control ">
-                </div>
-				<div class="form-group col-sm-6 col-xs-12">
-                  <label for="item_name">Card Payment</label>
-                  <input value="" placeholder="Card Payment" id="card_payment" name="card_payment" type="text" class="form-control ">
-                </div>
-				<div class="form-group col-sm-6 col-xs-12">
-                  <label for="item_name">UPI Payment</label>
-                  <input value="" placeholder="UPI Payment" id="upi_payment" name="upi_payment" type="text" class="form-control ">
-                </div>
-				<div class="form-group col-sm-6 col-xs-12">
-                  <label for="item_name">NEFT Payment</label>
-                  <input value="" placeholder="NEFT Payment" id="neft_payment" name="neft_payment" type="text" class="form-control ">
-                </div>
-				<div class="form-group col-sm-6 col-xs-12">
-                  <label for="item_name">Wallet Payment</label>
-				  <input type="number" wallet_payment="<?php echo $balance; ?>" name="wallet_payment" id="wallet_payment" onchange="consumables_quantity_update(this)">
-                </div>
 				  <div class="form-group col-sm-6 col-xs-12 hospital_id_section role">
                   <label for="item_name">Center Source</label>
                   <select name="biller" class="required_value" id="biller" required>

@@ -189,7 +189,7 @@
                     </div>
                     <div class="form-group">
                         <label>Payment Mode</label>
-                        <select name="mode" class="form-control" require>
+                        <select name="payment_method" class="form-control" require>
                             <option value=""> - - - Select - - - </option>
                             <option value="UPI">UPI</option>
                             <option value="Credit Card">Credit Card</option>
@@ -292,7 +292,7 @@
 
                     <div class="form-group">
                         <label>Payment Mode</label>
-                        <select name="mode" class="form-control" require>
+                        <select name="payment_method" class="form-control" require>
                             <option value=""> - - - Select - - - </option>
                             <option value="UPI">UPI</option>
                             <option value="Credit Card">Credit Card</option>

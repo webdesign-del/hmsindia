@@ -4763,7 +4763,7 @@ public function bulk_approve_sales()
         }
     }
 
-    public function edit_sale($id)
+  /*  public function edit_sale($id)
     {
         $logg = checklogin();
         if ($logg["status"] == true) {
@@ -4834,7 +4834,219 @@ public function bulk_approve_sales()
             $this->load->view("stocks_new/edit_sale", $data);
             $this->load->view($template["footer"]);
         }
+    } */
+
+        public function edit_sale($id)
+{
+    $logg = checklogin();
+    if ($logg["status"] == true) {
+        
+        // 1. Sale details fetch करें
+        $sale_details = $this->Stock_model_new->get_sale_by_id($id);
+        $patient_id = isset($sale_details->patient_id) ? $sale_details->patient_id : 0; 
+        
+        // पेमेंट मेथड को छोटे अक्षरों (lowercase) में ले रहे हैं ताकि चेक करने में आसानी हो
+        $payment_method = strtolower(trim($sale_details->payment_method)); 
+
+        if ($this->input->post("action") == "add_sale_item") {
+            
+            $this->form_validation->set_rules("batch_id", "Batch", "required");
+            $this->form_validation->set_rules("quantity_sold", "Quantity", "required|numeric");
+            // यहाँ से payment_method का वैलिडेशन हटा दिया गया है
+
+            if ($this->form_validation->run() == true) {
+                $quantity = (float)$this->input->post("quantity_sold");
+                $unit_price_one = (float)$this->input->post("unit_price_one");
+                $discount_percent = (float)$this->input->post("discount_percent");
+                $gst_rate = (float)$this->input->post("gst_rate");
+                
+                $subtotal = $quantity * $unit_price_one;
+                $discount_amount = $subtotal * ($discount_percent / 100);
+                $total = $subtotal - $discount_amount;
+                $taxable_Value = $total/(1+ ($gst_rate/100));
+                $tax_amount = $taxable_Value*($gst_rate/100);
+
+                // --- WALLET BALANCE CHECK ---
+                // चेक करें कि क्या पेमेंट मेथड wallet है
+                if ($payment_method == "wallet") {
+                    $wallet_balance = $this->Stock_model_new->get_wallet_balance($patient_id);
+                    
+                    if ($wallet_balance < $total) {
+                        $this->session->set_flashdata(
+                            "error",
+                            "Wallet में पर्याप्त बैलेंस नहीं है! उपलब्ध बैलेंस: ₹" . $wallet_balance . " | इस आइटम के लिए आवश्यक: ₹" . $total
+                        );
+                        redirect("stocks_new/edit_sale/" . $id);
+                    }
+                }
+                // -----------------------------
+
+                $item_data = [
+                    'sale_id'             => $id,
+                    'batch_id'            => $this->input->post('batch_id'),
+                    'quantity_sold'       => $quantity,
+                    'unit_price'          => $unit_price_one, 
+                    'subtotal'            => $subtotal,        
+                    'discount_amount'     => $discount_amount, 
+                    'discount_percentage' => $discount_percent,  
+                    'taxable_Value'       => $taxable_Value,
+                    'tax_amount'          => $tax_amount,      
+                    'total'               => $total,       
+                    'remarks'             => $this->input->post('remarks')
+                ];
+                
+                $result = $this->Stock_model_new->add_sale_item($item_data);
+                
+                if ($result) {
+                    
+                    // --- WALLET DEDUCTION & LOGGING ---
+                    if ($payment_method == "wallet") {
+                        $logged_in_user_id = isset($logg['id']) ? $logg['id'] : 1; 
+                        $this->Stock_model_new->deduct_wallet_balance($patient_id, $total, $id, $logged_in_user_id);
+                    }
+                    // ----------------------------------
+
+                    $this->session->set_flashdata("success", "Sale item added successfully!");
+                } else {
+                    $this->session->set_flashdata("error", "Error adding sale item!");
+                }
+                redirect("stocks_new/edit_sale/" . $id);
+            }
+        }
+
+        $data["sale"] = $sale_details;
+        $data["sale_items"] = $this->Stock_model_new->get_sale_items($id);
+        $data["batches"] = $this->Stock_model_new->get_available_batches_for_sale($data["sale"]->center_id);
+        $data["centers"] = $this->Stock_model_new->get_all_centers();
+
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/edit_sale", $data);
+        $this->load->view($template["footer"]);
     }
+}
+
+public function accountant_approve_sale()
+{
+    // Clean any output buffers
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+    
+    $response = [];
+    
+    // Check if user is logged in as accountant
+    if (!isset($_SESSION['logged_accountant']) || empty($_SESSION['logged_accountant'])) {
+        $response = [
+            'success' => false,
+            'message' => 'Unauthorized. Only accountants can approve/disapprove sales.'
+        ];
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response, JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+    
+    // Get POST data
+    $sale_id = $this->input->post('sale_id');
+    $approval_action = $this->input->post('approval_action'); // APPROVED, DISAPPROVED, CANCELLED
+    $remarks = $this->input->post('remarks');
+    
+    // Validation
+    if (!$sale_id || !$approval_action) {
+        $response = [
+            'success' => false,
+            'message' => 'Sale ID and action are required.'
+        ];
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response, JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+    
+    if (!in_array($approval_action, ['APPROVED', 'DISAPPROVED', 'CANCELLED'])) {
+        $response = [
+            'success' => false,
+            'message' => 'Invalid action. Must be APPROVED, DISAPPROVED, or CANCELLED.'
+        ];
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response, JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+    
+    // Get accountant info
+    $accountant_id = $_SESSION['logged_accountant']['employee_number'] ?? null;
+    $accountant_name = $_SESSION['logged_accountant']['name'] ?? 'Accountant';
+
+    // --- FETCH SALE DETAILS FOR REFUND LOGIC ---
+    $sale = $this->Stock_model_new->get_sale_by_id($sale_id);
+    
+    if (!$sale) {
+        $response = [
+            'success' => false,
+            'message' => 'Sale details not found in the system.'
+        ];
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($response, JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+    
+    // If DISAPPROVED or CANCELLED, restore stock and process refund
+    if ($approval_action == 'DISAPPROVED' || $approval_action == 'CANCELLED') {
+        
+        // 1. Restore Stock
+        $restore_result = $this->Stock_model_new->restore_sale_stock($sale_id, $accountant_id);
+        
+        if ($restore_result['status'] == 'error') {
+            log_message('info', 'Stock restoration note for sale ' . $sale_id . ': ' . $restore_result['message']);
+        }
+
+        // 2. Wallet Refund Logic
+        $payment_method = strtolower(trim($sale->payment_method));
+        $patient_id = $sale->patient_id ?? 0;
+        $refund_amount = $sale->total_amount ?? 0;
+        
+        // Check if payment was made via wallet and amount is valid
+        if ($payment_method == 'wallet' && $refund_amount > 0 && $patient_id > 0) {
+            $reason = "Refund for " . strtolower($approval_action) . " sale";
+            
+            // Call the refund function we created in the model
+            $this->Stock_model_new->refund_wallet_balance($patient_id, $refund_amount, $sale_id, $accountant_id, $reason);
+            
+            log_message('info', "Wallet refund of ₹{$refund_amount} processed for Patient ID {$patient_id} for Sale ID {$sale_id}.");
+        }
+    }
+    
+    // Update the sale with accountant approval
+    $result = $this->Stock_model_new->update_accountant_approval(
+        $sale_id,
+        $approval_action,
+        $accountant_id,
+        $accountant_name,
+        $remarks
+    );
+    
+    if ($result) {
+        $action_text = $approval_action == 'APPROVED' ? 'approved' : ($approval_action == 'DISAPPROVED' ? 'disapproved' : 'cancelled');
+        $message = 'Sale has been ' . $action_text . ' by ' . $accountant_name . '.';
+        
+        if ($approval_action == 'DISAPPROVED' || $approval_action == 'CANCELLED') {
+            $message .= ' Stock has been restored and any wallet deduction has been refunded.';
+        }
+        
+        $response = [
+            'success' => true,
+            'message' => $message
+        ];
+    } else {
+        $response = [
+            'success' => false,
+            'message' => 'Failed to update sale approval status.'
+        ];
+    }
+    
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($response, JSON_UNESCAPED_SLASHES);
+    exit;
+}
 
     public function remove_sale_item($id)
     {
@@ -10108,7 +10320,7 @@ public function bulk_approve_sales()
     /**
      * Accountant Sale Approval - Approve, Disapprove, or Cancel a confirmed sale
      * Only accessible by accountant role
-     */
+     */ /*
     public function accountant_approve_sale()
     {
         // Clean any output buffers
@@ -10199,7 +10411,7 @@ public function bulk_approve_sales()
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($response, JSON_UNESCAPED_SLASHES);
         exit;
-    }
+    } */
 
     public function get_payment_details()
     {

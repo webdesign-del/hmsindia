@@ -43,6 +43,34 @@
                 </ol>
             </div>
         </div>
+
+        <?php 
+    // Load our smart helper
+    $this->load->helper('billing');
+    
+    // Check if parent page passed $patient_data, otherwise let helper find it
+    $p_id = $patient_id  ?? $patient_data['uhid'] ?? null;
+    $wallet = get_universal_wallet($p_id); 
+?>
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9; min-height: 100px;">
+            <div class="card-body">
+                <h6 class="text-success font-weight-bold">Money Wallet</h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet['wallet_1'], 2); ?></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2; min-height: 100px;">
+            <div class="card-body">
+                <h6 class="text-warning font-weight-bold">Package Wallet</h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet['wallet_2'], 2); ?></h2>
+            </div>
+        </div>
+    </div>
+</div>
         
         <!-- Sale Form -->
         <div class="row">
@@ -161,9 +189,7 @@
                                                 <option value="CASH" <?php echo set_select('payment_method', 'CASH'); ?>>Cash</option>
                                                 <option value="CARD" <?php echo set_select('payment_method', 'CARD'); ?>>Card</option>
                                                 <option value="UPI" <?php echo set_select('payment_method', 'UPI'); ?>>UPI</option>
-                                                <option value="CHEQUE" <?php echo set_select('payment_method', 'CHEQUE'); ?>>Cheque</option>
-                                                <option value="INSURANCE" <?php echo set_select('payment_method', 'INSURANCE'); ?>>Insurance</option>
-                                                <option value="CREDIT" <?php echo set_select('payment_method', 'CREDIT'); ?>>Credit</option>
+                                                <option value="Wallet" <?php echo set_select('payment_method', 'WALLET'); ?>>WALLET</option>
                                             </select>
                                         </div>
                                     </div>

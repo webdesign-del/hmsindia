@@ -301,7 +301,7 @@
 			var  cancle_reason = $('#cancle_reason').val();
 			if(cancle_suggestion != '' || cancle_reason != ''){
 				if(cancle_suggestion !== ''){ cancle_reason = cancle_suggestion; }
-				window.location.href = '<?php echo base_url();?>accounts/approve/'+bill_id+'?t='+bill_type+'&u='+bill_actions+'&c='+cancle_reason+'&cn='+cn_invoice+'&ua='+used_amount+'';			
+				window.location.href = '<?php echo base_url();?>accounts/partial_approve/'+bill_id+'?t='+bill_type+'&u='+bill_actions+'&c='+cancle_reason+'&cn='+cn_invoice+'&ua='+used_amount+'';			
 			}else{
 				$('#cancle_pop p.error.hidden_field').empty().append('Select any reason!').show();
 			}

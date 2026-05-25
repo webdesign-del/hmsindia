@@ -2215,24 +2215,46 @@ public function approve($request = NULL) {
                 'registation' => 'registation',
                 'investigation' => 'patient_investigations',
                 'medicine' => 'patient_medicine',
-                'procedure' => 'patient_procedure'
+                'procedure' => 'patient_procedure',
             ];
 
             if(isset($table_map[$type])) {
                 $billing_info = india_ivf_billing($request, $table_map[$type]);
                 
-                if(!empty($billing_info) && is_array($billing_info) && isset($billing_info['payment_done']) && $billing_info['payment_done'] > 0) {
+                // Note: amount column check depends on the table structure. Handled below dynamically.
+                $refund_amt = 0;
+                if(isset($billing_info['payment_done']) && $billing_info['payment_done'] > 0) {
+                    $refund_amt = $billing_info['payment_done'];
+                } elseif(isset($billing_info['amount']) && $billing_info['amount'] > 0) {
+                    $refund_amt = $billing_info['amount']; // For payments table where column might be 'amount'
+                }
+                
+                if(!empty($billing_info) && is_array($billing_info) && $refund_amt > 0) {
                     
                     // ==============================================================
-                    // FIX 1: Sirf tabhi refund karein jab payment 'wallet' se hui ho
+                    // Check if payment was made via 'wallet'
                     // ==============================================================
-                    $payment_method = isset($billing_info['payment_method']) ? strtolower(trim($billing_info['payment_method'])) : '';
+                    $payment_method = '';
+                    if(isset($billing_info['payment_method'])) {
+                        $payment_method = strtolower(trim($billing_info['payment_method']));
+                    } elseif(isset($billing_info['payment_mode'])) {
+                        $payment_method = strtolower(trim($billing_info['payment_mode']));
+                    }
 
-                    if ($payment_method === 'wallet') {
+                    if (strpos($payment_method, 'wallet') !== false) {
                         
                         $p_id = $billing_info['patient_id'];
-                        $refund_amt = $billing_info['payment_done'];
-                        $wallet_column = ($type == 'procedure') ? 'wallet_2_balance' : 'wallet_1_balance';
+                        
+                        // ==============================================================
+                        // LOGIC: 'procedure' or 'payments' -> Wallet 2, Others -> Wallet 1
+                        // ==============================================================
+                        if ($type == 'procedure' || $type == 'payments') {
+                            $wallet_column = 'wallet_2_balance';
+                            $is_wallet_2 = true;
+                        } else {
+                            $wallet_column = 'wallet_1_balance';
+                            $is_wallet_2 = false;
+                        }
 
                         // Check karein kya purane record ke patient ka wallet data database me hai?
                         $check_wallet = $this->db->get_where('hms_patient_wallets', array('patient_id' => $p_id))->row_array();
@@ -2246,31 +2268,34 @@ public function approve($request = NULL) {
                             ));
                         }
 
-                        // Update Wallet Balance
-                        $this->db->query("UPDATE hms_patient_wallets SET $wallet_column = $wallet_column + $refund_amt, updated_at = NOW() WHERE patient_id = ?", array($p_id));
+                        // Update Wallet Balance in Database
+                        $this->db->query("UPDATE hms_patient_wallets SET $wallet_column = $wallet_column + ?, updated_at = NOW() WHERE patient_id = ?", array($refund_amt, $p_id));
                         
                         // Fetch fresh data for logs
                         $new_wallet = $this->db->get_where('hms_patient_wallets', array('patient_id' => $p_id))->row_array();
                         
-                        // ==============================================================
-                        // FIX 2: Lines 2241-2244 Safe-coalescing (Null Warnings permanent band)
-                        // ==============================================================
                         $w1_balance = isset($new_wallet['wallet_1_balance']) ? $new_wallet['wallet_1_balance'] : 0;
                         $w2_balance = isset($new_wallet['wallet_2_balance']) ? $new_wallet['wallet_2_balance'] : 0;
 
-                        $log_remarks = 'Refund: '.ucfirst($type).' '.ucfirst($status);
+                        $log_remarks = 'Refund for '.ucfirst($status).' ('.ucfirst($type).')';
+                        if(!empty($reason)) {
+                            $log_remarks .= ' - Reason: ' . $reason;
+                        } elseif (!empty($reason_of_cancle)) {
+                            $log_remarks .= ' - Reason: ' . $reason_of_cancle;
+                        }
                         
                         // Log Entry array mapping
                         $wallet_log = array(
                             'patient_id'  => $p_id,
                             'amount'      => $refund_amt,
                             'action_type' => 'credit',
-                            'opening_w1'  => ($type != 'procedure') ? ($w1_balance - $refund_amt) : $w1_balance, // Line 2241 fix
-                            'closing_w1'  => $w1_balance, // Line 2242 fix
-                            'opening_w2'  => ($type == 'procedure') ? ($w2_balance - $refund_amt) : $w2_balance, // Line 2243 fix
-                            'closing_w2'  => $w2_balance, // Line 2244 fix
+                            // Logic applied for calculating opening balances safely
+                            'opening_w1'  => (!$is_wallet_2) ? ($w1_balance - $refund_amt) : $w1_balance,
+                            'closing_w1'  => $w1_balance,
+                            'opening_w2'  => ($is_wallet_2) ? ($w2_balance - $refund_amt) : $w2_balance,
+                            'closing_w2'  => $w2_balance,
                             'reference_id'=> isset($billing_info['receipt_number']) ? $billing_info['receipt_number'] : $request,
-                            'mode'        => 'refund',
+                            'payment_method' => 'wallet',
                             'remarks'     => $log_remarks,
                             'created_by'  => isset($_SESSION['logged_accountant']['username']) ? $_SESSION['logged_accountant']['username'] : 'system',
                             'created_at'  => date('Y-m-d H:i:s'),
@@ -2327,6 +2352,112 @@ public function approve($request = NULL) {
         die();
     }
 }
+
+public function partial_approve($request = NULL) {
+    $logg = checklogin();
+    if($logg['status'] == true) {
+        $data = array();
+
+        // Parameters catch karein 
+        $type = isset($_GET['t']) ? $_GET['t'] : '';
+        $status = isset($_GET['u']) ? $_GET['u'] : '';
+        $cn_invoice = isset($_GET['cn']) ? $_GET['cn'] : '';
+        $used_amount = isset($_GET['ua']) ? $_GET['ua'] : 0;
+        $reason_of_cancle = isset($_GET['c']) ? $_GET['c'] : '';
+        $request = $request; // Bill ID
+
+        // =========================================================================
+        // --- FRESH LOGIC: ONLY FOR PARTIAL PAYMENTS CANCELLATION (status '3') ---
+        // =========================================================================
+        if ($type == 'partialpayments' && $status == '3') { 
+            
+            // 1. Partial Payment ki details fetch karein
+            $this->db->where('ID', $request);
+            $payment_info = $this->db->get('hms_patient_payments')->row_array(); 
+
+            if (!empty($payment_info)) {
+                $p_id = $payment_info['patient_id'];
+                $refund_amt = isset($payment_info['payment_done']) ? (float)$payment_info['payment_done'] : 0;
+                
+                // Payment method ko lowercase mein format karein
+                $payment_method = isset($payment_info['payment_method']) ? strtolower(trim($payment_info['payment_method'])) : '';
+                
+                // 2. MAIN CONDITION: Sirf tabhi refund hoga agar payment 'wallet' se hui thi
+                if (strpos($payment_method, 'wallet') !== false && $refund_amt > 0) {
+                    
+                    // Patient ka current wallet balance fetch karein
+                    $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $p_id])->row_array();
+                    
+                    if(empty($wallet)) {
+                        $this->db->insert('hms_patient_wallets', [
+                            'patient_id' => $p_id,
+                            'wallet_1_balance' => 0,
+                            'wallet_2_balance' => 0,
+                            'created_at' => date('Y-m-d H:i:s')
+                        ]);
+                        $wallet = ['wallet_1_balance' => 0, 'wallet_2_balance' => 0];
+                    }
+
+                    $w1_balance = (float)$wallet['wallet_1_balance'];
+                    $w2_balance = (float)$wallet['wallet_2_balance'];
+
+                    // 3. REFUND TO WALLET 2 (Sirf Wallet 2 me amount add hoga)
+                    $new_w2_balance = $w2_balance + $refund_amt;
+                    
+                    // Database me Wallet 2 update karein
+                    $this->db->query("UPDATE hms_patient_wallets SET wallet_2_balance = ?, updated_at = NOW() WHERE patient_id = ?", [$new_w2_balance, $p_id]);
+
+                    // 4. LOG THE REFUND IN LOGS TABLE
+                    $log_remarks = 'Refund for Cancelled Partial Payment (Bill ID: '.$request.')';
+                    if (!empty($reason_of_cancle)) {
+                        $log_remarks .= ' - Reason: ' . $reason_of_cancle;
+                    }
+
+                    $wallet_log = [
+                        'patient_id'  => $p_id,
+                        'amount'      => $refund_amt,
+                        'action_type' => 'credit',
+                        'opening_w1'  => $w1_balance,
+                        'closing_w1'  => $w1_balance,     // Wallet 1 Untouched
+                        'opening_w2'  => $w2_balance,
+                        'closing_w2'  => $new_w2_balance, // Wallet 2 Credited
+                        'reference_id'=> $request,
+                        'payment_method' => 'wallet',
+                        'remarks'     => $log_remarks,
+                        'created_by'  => isset($_SESSION['logged_accountant']['username']) ? $_SESSION['logged_accountant']['username'] : 'system',
+                        'created_at'  => date('Y-m-d H:i:s'),
+                        'status'      => 'success'
+                    ];
+                    $this->db->insert('hms_wallet_logs', $wallet_log);
+                }
+
+                // 5. UPDATE STATUS TO CANCELLED (3)
+                $update_data = [
+                    'status' => 3, 
+                    'reason_of_cancle' => $reason_of_cancle,
+                    'cn_invoice' => $cn_invoice,
+                    'modified_on' => date('Y-m-d H:i:s')
+                ];
+                
+                if (!empty($used_amount)) {
+                    $update_data['used_amount'] = $used_amount;
+                }
+
+                $this->db->where('ID', $request)->update('hms_patient_payments', $update_data);
+            }
+
+            // Process hone ke baad wapas usi page par bhej dein
+            header("location:" .$_SERVER['HTTP_REFERER']. "?m=".base64_encode('Partial Payment Cancelled Successfully').'&t='.base64_encode('success'));
+            die();
+        }
+        // ========================================================================= 
+
+    } else {
+        // Agar user login nahi hai to usko wapas redirect karein
+        header("location:" .base_url(). "");
+        die();
+    }
+} // <-- Yahan function properly close ho raha hai
 	
 	function approve_registation($ID){
 		$approved = $this->accounts_model->approve_registation($ID);
@@ -5162,16 +5293,78 @@ public function moulist(){
 	
 
 	function disapprove_payment($id){
-		$disapprove_reason = isset($_GET['t'])?$_GET['t']:"";
-		$payment = $this->accounts_model->disapprove_payment($id, $disapprove_reason);
-		if($payment > 0){
-			header("location:" .base_url(). "accounts/partial_payments?m=".base64_encode('Payment disapproved').'&t='.base64_encode('success'));
-			die();
-		}else{
-			header("location:" .base_url(). "accounts/partial_payments?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
-			die();
-		}
-	}
+    // लॉग इन यूजर की डिटेल्स निकालें (लॉग्स में एंट्री के लिए)
+    $logg = checklogin(); 
+    
+    $disapprove_reason = isset($_GET['t']) ? $_GET['t'] : "";
+    
+    // --- STEP 1: Fetch Payment Details BEFORE Disapproving ---
+    // (ध्यान दें: आपको अपने मॉडल में पेमेंट की डिटेल्स निकालने वाले फंक्शन का सही नाम इस्तेमाल करना होगा)
+    // उदाहरण के लिए मैंने get_payment_details माना है, आप इसे अपने डेटाबेस टेबल के हिसाब से बदल सकते हैं
+    $payment_details = $this->db->get_where('hms_patient_payments', ['id' => $id])->row(); 
+    // ^ कृपया 'patient_payments_table' को अपनी असली टेबल के नाम से रिप्लेस करें
+
+    // अब पेमेंट डिसअप्रूव करें
+    $payment = $this->accounts_model->disapprove_payment($id, $disapprove_reason);
+    
+    if($payment > 0){
+        
+        // --- WALLET REFUND LOGIC START (Package Wallet - W2) ---
+        if(!empty($payment_details)) {
+            $payment_method = strtolower(trim($payment_details->payment_method));
+            $patient_id = $payment_details->patient_id;
+            
+            // अमाउंट कॉलम का नाम अपने डेटाबेस के हिसाब से रखें (जैसे payment_done, amount, etc.)
+            $refund_amount = (float)$payment_details->payment_done; 
+            
+            // चेक करें कि पेमेंट वॉलेट से हुआ था या नहीं
+            if((strpos($payment_method, 'wallet') !== false) && $refund_amount > 0 && $patient_id > 0) {
+                
+                // A. Fetch current wallet balances
+                $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row();
+                
+                if($wallet) {
+                    // B. Refund mathematical mapping (Adding back to Wallet 2)
+                    $opening_w1 = (float)$wallet->wallet_1_balance;
+                    $closing_w1 = $opening_w1; // Wallet 1 untouched
+                    
+                    $opening_w2 = (float)$wallet->wallet_2_balance;
+                    $closing_w2 = $opening_w2 + $refund_amount; // Amount Added Back (+)
+                    
+                    // C. Update Wallet 2 Balance directly
+                    $this->db->query("UPDATE `hms_patient_wallets` SET `wallet_2_balance` = " . (float)$closing_w2 . ", `updated_at` = NOW() WHERE `patient_id` = " . $this->db->escape($patient_id));
+                    
+                    $created_by_user = isset($logg['employee_number']) ? $logg['employee_number'] : 'system';
+                    
+                    // D. Insert Refund Log into hms_wallet_logs
+                    $log_data = [
+                        'patient_id'     => $patient_id,
+                        'amount'         => $refund_amount,
+                        'action_type'    => 'REFUND', // पैसे वापस आ रहे हैं
+                        'opening_w1'     => $opening_w1,
+                        'closing_w1'     => $closing_w1,
+                        'opening_w2'     => $opening_w2,
+                        'closing_w2'     => $closing_w2,
+                        'reference_id'   => $id, 
+                        'payment_method' => 'Wallet', 
+                        'remarks'        => 'Refund for Disapproved Payment. Reason: ' . $disapprove_reason,
+                        'created_by'     => $created_by_user,
+                        'created_at'     => date('Y-m-d H:i:s'),
+                        'status'         => 'success'
+                    ];
+                    $this->db->insert('hms_wallet_logs', $log_data);
+                }
+            }
+        }
+        // --- WALLET REFUND LOGIC END ---
+
+        header("location:" .base_url(). "accounts/partial_payments?m=".base64_encode('Payment disapproved and refunded to wallet').'&t='.base64_encode('success'));
+        die();
+    }else{
+        header("location:" .base_url(). "accounts/partial_payments?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+        die();
+    }
+}
 	
 	function cancle_payment($id){
 		$disapprove_reason = isset($_GET['t'])?$_GET['t']:"";
@@ -6519,110 +6712,195 @@ public function indiaivf_document_list(){
 		}
 	}*/
 	
-	function partial_procedure_billing($receipt){
+function partial_procedure_billing($receipt){
 
-		$logg = checklogin();
-		if($logg['status'] == true){
-			$data = array();
-			$type = $_GET['t'];
-			$template = get_header_template($logg['role']);
-			$this->load->view($template['header']);
+    $logg = checklogin();
+    if($logg['status'] == true){
+        $data = array();
+        $type = $_GET['t'];
+        $template = get_header_template($logg['role']);
+        $this->load->view($template['header']);
 
-			if($type == 'procedure'){
-				if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_partial_procedure'){
-				unset($_POST['action']);
-				
-				$post_arr = array();
+        if($type == 'procedure'){
+            if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_partial_procedure'){
+                unset($_POST['action']);
+                
+                $post_arr = array();
 
-				$post_arr['patient_id'] = $_POST['patient_id'];unset($_POST['patient_id']);
-				
-				$post_arr['billing_id'] = isset($_POST['billing_id'])?$_POST['billing_id']:''; unset($_POST['billing_id']);
-				
-				$post_arr['refrence_number'] = getGUID();
-				
-				$post_arr['type'] = 'procedure';
-				
-				$post_arr['transaction_id'] = $_POST['transaction_id'];unset($_POST['transaction_id']);
+                $post_arr['patient_id'] = $_POST['patient_id'];unset($_POST['patient_id']);
+                
+                $post_arr['billing_id'] = isset($_POST['billing_id'])?$_POST['billing_id']:''; unset($_POST['billing_id']);
+                
+                $post_arr['refrence_number'] = getGUID();
+                
+                $post_arr['type'] = 'procedure';
+                
+                $post_arr['transaction_id'] = $_POST['transaction_id'];unset($_POST['transaction_id']);
 
-				$post_arr['billing_from'] = $_POST['billing_from'];unset($_POST['billing_from']);
+                $post_arr['billing_from'] = $_POST['billing_from'];unset($_POST['billing_from']);
 
-				$post_arr['billing_at'] = $_POST['billing_at'];unset($_POST['billing_at']);
+                $post_arr['billing_at'] = $_POST['billing_at'];unset($_POST['billing_at']);
 
-				$post_arr['employee_number'] = $_POST['employee_number'];unset($_POST['employee_number']);
+                $post_arr['employee_number'] = $_POST['employee_number'];unset($_POST['employee_number']);
 
-				$post_arr['on_date'] = date("Y-m-d H:i:s");unset($_POST['on_date']);
+                $post_arr['on_date'] = date("Y-m-d H:i:s");unset($_POST['on_date']);
 
-				$transaction_img = '';
+                $transaction_img = '';
 
-				if(!empty($_FILES['transaction_img']['tmp_name'])){
+                if(!empty($_FILES['transaction_img']['tmp_name'])){
 
-					$dest_path = $this->config->item('upload_path');
+                    $dest_path = $this->config->item('upload_path');
+                    $destination = $dest_path.'patient_files/';
+                    $NewImageName = rand(4,10000)."-".$post_arr['patient_id']."-". $_FILES['transaction_img']['name'];
+                    $transaction_img = base_url().'assets/patient_files/'.$NewImageName;
 
-					$destination = $dest_path.'patient_files/';
+                    move_uploaded_file($_FILES['transaction_img']['tmp_name'], $destination.$NewImageName);
+                    $post_arr['transaction_img'] = $transaction_img;
+                }
 
-					$NewImageName = rand(4,10000)."-".$post_arr['patient_id']."-". $_FILES['transaction_img']['name'];
+                $post_arr['payment_method'] = $_POST['payment_method'];unset($_POST['payment_method']);
+                // Reserving individual payment fields into post array safely
+                $post_arr['biller'] = $_POST['biller'];unset($_POST['biller']);
+                $post_arr['origins'] = $_POST['origins']; unset($_POST['origins']);
+                $post_arr['series_number'] = $_POST['series_number'] ; unset($_POST['series_number']);
 
-					$transaction_img = base_url().'assets/patient_files/'.$NewImageName;
+                $post_arr['status'] = '0';
 
-					move_uploaded_file($_FILES['transaction_img']['tmp_name'], $destination.$NewImageName);
+                // ==================================================================
+                // --- STEP 1: CALCULATE TOTAL PAID AMOUNT EARLY ---
+                // ==================================================================
+                $calculated_payment = 0;
+                foreach($_POST as $key => $val){
+                    if (strpos($key, 'sub_procedures_paid_price_') !== false) {
+                        $calculated_payment += (float)$val;
+                    }
+                }
+                
+                // Set total paid amount (check if payment_done is sent directly, else use calculation)
+                $total_paid_amount = isset($_POST['payment_done']) ? (float)$_POST['payment_done'] : $calculated_payment;
+                
+                // Store in post_arr for later use
+                $post_arr['payment_done'] = $total_paid_amount;
 
-					$post_arr['transaction_img'] = $transaction_img;
+// ==================================================================
+                // --- SMART WALLET DEDUCTION LOGIC START (Package Wallet - W2) ---
+                // ==================================================================
+                $total_wallet_amount_to_deduct = 0;
 
-				}
+                // Use the newly calculated $total_paid_amount
+                if (isset($_POST['wallet_payment']) && (float)$_POST['wallet_payment'] > 0) {
+                    $total_wallet_amount_to_deduct = (float)$_POST['wallet_payment'];
+                } else {
+                    $global_method = isset($post_arr['payment_method']) ? strtolower(trim($post_arr['payment_method'])) : '';
+                    if ($global_method == 'wallet' || $global_method == 'package wallet' || strpos($global_method, 'wallet') !== false) {
+                        $total_wallet_amount_to_deduct = $total_paid_amount;
+                    }
+                }
 
-				$post_arr['payment_method'] = $_POST['payment_method'];unset($_POST['payment_method']);
-				
-				$post_arr['cash_payment'] = $_POST['cash_payment'];unset($_POST['cash_payment']);
-				$post_arr['card_payment'] = $_POST['card_payment'];unset($_POST['card_payment']);
-				$post_arr['upi_payment'] = $_POST['upi_payment'];unset($_POST['upi_payment']);
-				$post_arr['neft_payment'] = $_POST['neft_payment'];unset($_POST['neft_payment']);
-				$post_arr['wallet_payment'] = $_POST['wallet_payment'];unset($_POST['wallet_payment']);
-				$post_arr['biller'] = $_POST['biller'];unset($_POST['biller']);
-				
-				$post_arr['origins'] = $_POST['origins']; unset($_POST['origins']);
-				
-				$post_arr['series_number'] = $_POST['series_number'] ; unset($_POST['series_number']);
+                // DEDUCT THE MONEY: Agar valid tracking price mila tabhi execute hoga
+                if ($total_wallet_amount_to_deduct > 0) {
+                    $wallet_patient_id = $post_arr['patient_id'];
 
-				$post_arr['status'] = '0';
-				
-				$extract_procedure_array = $procedure_array = array();
-				
-				$icounte = $mcounte = $ccounte = $spcounte = 1;
-				$i_counte = $m_counte = $c_counte = $s_pcounte = array();
-				$i_counter = $m_counter = $c_counter = $s_pcounter = array();
-				foreach($_POST as $key => $val){
-					$pos_c = strpos($key, 'sub_procedure_');
-					if ($pos_c === false) {} else {
-						$cid = $int = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
-						$c_counter[] = $cid;
-					}	
-				}
-				
-				if(!empty($c_counter)){
-					foreach($c_counter as $key => $ccounte){
-						if($_POST['sub_procedure_'.$ccounte] == ''){
-							unset($_POST['sub_procedure_'.$ccounte]);
-							unset($_POST['sub_procedures_code_'.$ccounte]);
-							unset($_POST['sub_procedures_price_'.$ccounte]);
-							unset($_POST['sub_procedures_paid_price_'.$ccounte]);
-						}else{
-							// insert query
-							$sub_procedure = $_POST['sub_procedure_'.$ccounte];
-							$sub_procedures_code = $_POST['sub_procedures_code_'.$ccounte];
-							$sub_procedures_price = $_POST['sub_procedures_price_'.$ccounte];
-							$sub_procedures_paid_price = $_POST['sub_procedures_paid_price_'.$ccounte];
-							$c_counte[] = array('sub_procedure'=> $_POST['sub_procedure_'.$ccounte],'sub_procedures_code'=> $_POST['sub_procedures_code_'.$ccounte],'sub_procedures_price'=> $_POST['sub_procedures_price_'.$ccounte],'sub_procedures_paid_price'=> $_POST['sub_procedures_paid_price_'.$ccounte]);
-							
-						}
-					}
-				}
-				$details = array();
-				$details['patient_procedures'] = $c_counte;
-				$post_arr['data'] = serialize($details);
-				
-				$post_arr['payment_done'] = $sub_procedures_paid_price = $_POST['sub_procedures_paid_price_1'] + $_POST['sub_procedures_paid_price_2'] + $_POST['sub_procedures_paid_price_3'];
-					
-				$curl = curl_init();
+                    // A. Fetch current wallet balances
+                    $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $wallet_patient_id])->row();
+
+                    // Auto-create wallet configuration entry structure if completely empty
+                    if (!$wallet) {
+                        $this->db->insert('hms_patient_wallets', [
+                            'patient_id'       => $wallet_patient_id,
+                            'wallet_1_balance' => 0,
+                            'wallet_2_balance' => 0,
+                            'created_at'       => date('Y-m-d H:i:s'),
+                            'updated_at'       => date('Y-m-d H:i:s')
+                        ]);
+                        $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $wallet_patient_id])->row();
+                    }
+
+                    // B. Balance Check inside Wallet 2 (Package Wallet)
+                    if ((float)$wallet->wallet_2_balance < $total_wallet_amount_to_deduct) {
+                        header("location:" . base_url() . "accounts/partial_procedure_billing/".$post_arr['billing_id']."?t=procedure&m=" . base64_encode('Insufficient balance in Package Wallet!'));
+                        die();
+                    }
+
+                    // C. New Mathematical Balances Mapping (Changes applied here for W2)
+                    $opening_w1 = (float)$wallet->wallet_1_balance;
+                    $closing_w1 = $opening_w1; // Wallet 1 remains untouched
+                    
+                    $opening_w2 = (float)$wallet->wallet_2_balance;
+                    $closing_w2 = $opening_w2 - $total_wallet_amount_to_deduct; // Successfully deducted from Wallet 2
+
+                    // D. Force Direct SQL Core Update command on Wallet 2 balance row
+                    $this->db->query("UPDATE `hms_patient_wallets` SET `wallet_2_balance` = " . (float)$closing_w2 . ", `updated_at` = NOW() WHERE `patient_id` = " . $this->db->escape($wallet_patient_id));
+
+                    // Normalizing user logs properties
+                    $created_by_user = !empty($post_arr['biller']) ? $post_arr['biller'] : 'system';
+
+                    // E. Insert Log History into hms_wallet_logs table
+                    $log_data = [
+                        'patient_id'     => $wallet_patient_id,
+                        'amount'         => $total_wallet_amount_to_deduct,
+                        'action_type'    => 'PROCEDURE_USAGE', 
+                        'opening_w1'     => $opening_w1,
+                        'closing_w1'     => $closing_w1,
+                        'opening_w2'     => $opening_w2,
+                        'closing_w2'     => $closing_w2,
+                        'reference_id'   => $receipt, 
+                        'payment_method' => 'Wallet', 
+                        'remarks'        => 'Partial Procedure Payment deducted from Package Wallet. Bill ID: ' . $post_arr['billing_id'],
+                        'created_by'     => $created_by_user,
+                        'created_at'     => date('Y-m-d H:i:s'),
+                        'status'         => 'success'
+                    ];
+                    $this->db->insert('hms_wallet_logs', $log_data);
+                }
+
+                // Cleaning up array mapping constraint after logic ends safely
+                if(isset($_POST['wallet_payment'])) {
+                    unset($_POST['wallet_payment']);
+                }
+                // ==================================================================
+                // --- SMART WALLET DEDUCTION LOGIC END ---
+                // ==================================================================
+            
+                $extract_procedure_array = $procedure_array = array();
+                $c_counte = array();
+                $c_counter = array();
+                
+                foreach($_POST as $key => $val){
+                    $pos_c = strpos($key, 'sub_procedure_');
+                    if ($pos_c === false) {} else {
+                        $cid = (int) filter_var($key, FILTER_SANITIZE_NUMBER_INT);
+                        $c_counter[] = $cid;
+                    }   
+                }
+                
+                if(!empty($c_counter)){
+                    foreach($c_counter as $key => $ccounte){
+                        if($_POST['sub_procedure_'.$ccounte] == ''){
+                            unset($_POST['sub_procedure_'.$ccounte]);
+                            unset($_POST['sub_procedures_code_'.$ccounte]);
+                            unset($_POST['sub_procedures_price_'.$ccounte]);
+                            unset($_POST['sub_procedures_paid_price_'.$ccounte]);
+                        } else {
+                            // insert query array push
+                            $c_counte[] = array(
+                                'sub_procedure'             => $_POST['sub_procedure_'.$ccounte],
+                                'sub_procedures_code'       => $_POST['sub_procedures_code_'.$ccounte],
+                                'sub_procedures_price'      => $_POST['sub_procedures_price_'.$ccounte],
+                                'sub_procedures_paid_price' => $_POST['sub_procedures_paid_price_'.$ccounte]
+                            );
+                        }
+                    }
+                }
+                
+                $details = array();
+                $details['patient_procedures'] = $c_counte;
+                $post_arr['data'] = serialize($details);
+                
+                // NOTE: Here I have removed the old hardcoded $post_arr['payment_done'] line 
+                // because we already calculated and assigned it at STEP 1 above.
+                    
+                $curl = curl_init();
                 curl_setopt_array($curl, array(
                   CURLOPT_URL => 'https://hms.indiaivf.website/old_reports/patient_payment/',
                   CURLOPT_RETURNTRANSFER => true,
@@ -6639,35 +6917,30 @@ public function indiaivf_document_list(){
                 ));
                 
                 $response = curl_exec($curl);
-                
                 curl_close($curl);
+                
                 echo $response;
-					
-				$p_procd = $this->accounts_model->partial_procedure_insert($post_arr);
-				
-				
-
-				if($p_procd > 0){
-
-					header("location:" .base_url(). "accounts/partial_procedure_billing/".$post_arr['billing_id']."?t=procedure");
-
-					die();
-
-				}else{
-
-					header("location:" .base_url(). "accounts/partial_procedure_billing?m=".base64_encode('something went wrong!').'&t='.base64_encode('error'));
-					die();
-				}
-			}
-				$data['data'] = $this->accounts_model->get_details($receipt, $type);
-				$this->load->view('accounts/partial_procedure_billing', $data);
-			}
-			$this->load->view($template['footer']);
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}
+                    
+                $p_procd = $this->accounts_model->partial_procedure_insert($post_arr);
+                
+                if($p_procd > 0){
+                    header("location:" .base_url(). "accounts/partial_procedure_billing/".$post_arr['billing_id']."?t=procedure");
+                    die();
+                } else {
+                    header("location:" .base_url(). "accounts/partial_procedure_billing?m=".base64_encode('something went wrong!').'&t='.base64_encode('error'));
+                    die();
+                }
+            }
+            
+            $data['data'] = $this->accounts_model->get_details($receipt, $type);
+            $this->load->view('accounts/partial_procedure_billing', $data);
+        }
+        $this->load->view($template['footer']);
+    } else {
+        header("location:" .base_url(). "");
+        die();
+    }
+}
 	
 		public function add_donor()
 	{
@@ -11974,7 +12247,7 @@ public function export_patient_journey() {
 	public function add_money_to_w1() {
 		$p_id = $this->input->post('patient_id');
 		$amt  = (float)$this->input->post('amount');
-		$mode = $this->input->post('mode');
+		$payment_method = $this->input->post('payment_method');
 		$remarks = $this->input->post('remarks');
 		$user = $this->session->userdata('user_id');
 		$screenshot_name = ""; // Default empty
@@ -12002,7 +12275,7 @@ public function export_patient_journey() {
 		}
 
 		// 2. Model call karte waqt screenshot_name ZAROOR bhejein
-		$status = $this->Wallet_model->deposit_w1($p_id, $amt, $mode, $remarks, $user, $screenshot_name);
+		$status = $this->Wallet_model->deposit_w1($p_id, $amt, $payment_method, $remarks, $user, $screenshot_name);
 
 		if($status) {
 			$this->session->set_flashdata('success', 'Amount Deposited Successfully');
@@ -12100,7 +12373,7 @@ public function export_patient_journey() {
 public function add_money_to_package() {
     $patient_id = $this->input->post('patient_id');
     $amount     = (float)$this->input->post('amount');
-    $mode       = $this->input->post('mode');
+    $payment_method       = $this->input->post('payment_method');
     $remarks    = $this->input->post('remarks');
 
     // 1. Get current balance for Wallet 2 (Package Wallet)
@@ -12141,7 +12414,7 @@ public function add_money_to_package() {
         'closing_w1'  => $wallet->wallet_1_balance,
         'opening_w2'  => $opening_w2,
         'closing_w2'  => $closing_w2,
-        'mode'        => $mode,
+        'payment_method'        => $payment_method,
         'remarks'     => $remarks,
         'created_at'  => date('Y-m-d H:i:s'),
         'status'      => 1

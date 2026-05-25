@@ -10240,5 +10240,103 @@ private function apply_return_filters($f) {
             return $results;
     }
 
+    // पेशेंट का वॉलेट 1 बैलेंस प्राप्त करने के लिए
+public function get_wallet_balance($patient_id) {
+    $this->db->select('wallet_1_balance');
+    $this->db->where('patient_id', $patient_id);
+    $query = $this->db->get('hms_patient_wallets');
+    
+    if ($query->num_rows() > 0) {
+        return (float) $query->row()->wallet_1_balance;
+    }
+    return 0.00;
+}
+
+// वॉलेट से अमाउंट काटने और लॉग्स मेंटेन करने के लिए
+public function deduct_wallet_balance($patient_id, $amount, $sale_id, $logged_in_user) {
+    // 1. लॉग्स के लिए करंट बैलेंस निकालें
+    $this->db->where('patient_id', $patient_id);
+    $wallet = $this->db->get('hms_patient_wallets')->row();
+    
+    if (!$wallet) {
+        return false;
+    }
+
+    // Opening और Closing बैलेंस कैलकुलेट करें
+    $opening_w1 = $wallet->wallet_1_balance;
+    $closing_w1 = $opening_w1 - $amount;
+    
+    $opening_w2 = $wallet->wallet_2_balance; // इसे हम टच नहीं कर रहे, इसलिए same रहेगा
+    $closing_w2 = $opening_w2;
+
+    // 2. hms_patient_wallets से अमाउंट काटें (Wallet 1 से)
+    $this->db->set('wallet_1_balance', 'wallet_1_balance - ' . (float)$amount, FALSE);
+    $this->db->set('updated_at', date('Y-m-d H:i:s'));
+    $this->db->where('patient_id', $patient_id);
+    $this->db->update('hms_patient_wallets');
+
+    // 3. hms_wallet_logs में ट्रांजैक्शन की एंट्री करें
+    $log_data = [
+        'patient_id'     => $patient_id,
+        'amount'         => $amount,
+        'action_type'    => 'debit', // पैसे कट रहे हैं इसलिए debit
+        'opening_w1'     => $opening_w1,
+        'closing_w1'     => $closing_w1,
+        'opening_w2'     => $opening_w2,
+        'closing_w2'     => $closing_w2,
+        'reference_id'   => $sale_id, // Sale ID ताकि पता रहे किस बिल के लिए पैसे कटे
+        'payment_method' => 'wallet',
+        'remarks'        => 'Amount deducted for Sale ID: ' . $sale_id,
+        'created_by'     => $logged_in_user, // जिसने लॉगिन किया है उसकी ID
+        'created_at'     => date('Y-m-d H:i:s'),
+        'status'         => 'Success' // आपके DB के अनुसार इसे 1 या 'Success' रखें
+    ];
+    
+    return $this->db->insert('hms_wallet_logs', $log_data);
+}
+
+// वॉलेट में अमाउंट वापस (Refund) करने और लॉग्स मेंटेन करने के लिए
+public function refund_wallet_balance($patient_id, $amount, $sale_id, $logged_in_user, $reason = "Refund") {
+    // 1. लॉग्स के लिए करंट बैलेंस निकालें
+    $this->db->where('patient_id', $patient_id);
+    $wallet = $this->db->get('hms_patient_wallets')->row();
+    
+    if (!$wallet) {
+        return false;
+    }
+
+    // Opening और Closing बैलेंस कैलकुलेट करें (पैसे वापस आ रहे हैं, इसलिए + होगा)
+    $opening_w1 = $wallet->wallet_1_balance;
+    $closing_w1 = $opening_w1 + $amount; 
+    
+    $opening_w2 = $wallet->wallet_2_balance; 
+    $closing_w2 = $opening_w2;
+
+    // 2. hms_patient_wallets में अमाउंट वापस जोड़ें (Wallet 1 में)
+    $this->db->set('wallet_1_balance', 'wallet_1_balance + ' . (float)$amount, FALSE);
+    $this->db->set('updated_at', date('Y-m-d H:i:s'));
+    $this->db->where('patient_id', $patient_id);
+    $this->db->update('hms_patient_wallets');
+
+    // 3. hms_wallet_logs में रिफंड की एंट्री करें
+    $log_data = [
+        'patient_id'     => $patient_id,
+        'amount'         => $amount,
+        'action_type'    => 'credit', // पैसे वापस आ रहे हैं इसलिए 'credit'
+        'opening_w1'     => $opening_w1,
+        'closing_w1'     => $closing_w1,
+        'opening_w2'     => $opening_w2,
+        'closing_w2'     => $closing_w2,
+        'reference_id'   => $sale_id, 
+        'payment_method' => 'wallet',
+        'remarks'        => $reason . ' - Sale ID: ' . $sale_id,
+        'created_by'     => $logged_in_user,
+        'created_at'     => date('Y-m-d H:i:s'),
+        'status'         => 'Success' 
+    ];
+    
+    return $this->db->insert('hms_wallet_logs', $log_data);
+}
+
 
 }

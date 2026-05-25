@@ -1,6 +1,6 @@
 
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
-<?php $w = get_final_wallet_balance($sale->patient_id); ?>
+<?php //$w = get_final_wallet_balance($sale->patient_id); ?>
             <div class="row">
                 <div class="col-md-12">
                     <h1 class="page-header">
@@ -8,11 +8,39 @@
                         <small>Add items to sale with FEFO batch selection</small>
                     </h1>
                 </div>
-
+<!--
 <div class="wallet-info" style="background: #f9f9f9; padding: 10px; border: 1px solid #ddd;">
-    <p><strong>Current Wallet Balance:</strong> <span style="color:green; font-size: 18px;"><?php echo number_format($w['balance'], 2); ?></span></p>
-</div>
+    <p><strong>Current Wallet Balance:</strong> <span style="color:green; font-size: 18px;"><?php //echo number_format($w['balance'], 2); ?></span></p>
+</div>-->
             </div>
+
+<?php 
+    // Load our smart helper
+    $this->load->helper('billing');
+    
+    // Check if parent page passed $patient_data, otherwise let helper find it
+    $p_id = $sale->patient_id ?? $patient_data['uhid'] ?? null;
+    $wallet = get_universal_wallet($p_id); 
+?>
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9; min-height: 100px;">
+            <div class="card-body">
+                <h6 class="text-success font-weight-bold">Money Wallet</h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet['wallet_1'], 2); ?></h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2; min-height: 100px;">
+            <div class="card-body">
+                <h6 class="text-warning font-weight-bold">Package Wallet</h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet['wallet_2'], 2); ?></h2>
+            </div>
+        </div>
+    </div>
+</div>   
             
             <!-- Sale Information -->
             <div class="row">
@@ -27,6 +55,7 @@
                                     <p><strong>Sale Number:</strong> <?php echo $sale->sale_number; ?></p>
                                     <p><strong>Patient:</strong> <?php echo $sale->patient_name; ?></p>
                                     <p><strong>Center:</strong> <?php echo $sale->center_name; ?></p>
+                                    <p><strong>Payment Method:</strong> <?php echo $sale->payment_method; ?></p>
                                     <p><strong>Date:</strong> <?php echo date('M d, Y', strtotime($sale->sale_date)); ?></p>
                                 </div>
                                 <div class="col-md-6">

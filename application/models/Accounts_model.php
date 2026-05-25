@@ -661,6 +661,9 @@ function approve_billing($request, $type, $status, $reason, $reason_of_cancle, $
     $prefix = $this->config->item('db_prefix');
     $date_now = date('Y-m-d H:i:s');
 
+    $table = '';
+    $code = '';
+
     // 1. Identify table and invoice letter code
     if ($type == 'consultation') {
         $table = $prefix . 'consultation';
@@ -671,35 +674,55 @@ function approve_billing($request, $type, $status, $reason, $reason_of_cancle, $
     } elseif ($type == 'investigation') {
         $table = $prefix . 'patient_investigations';
         $code = 'D';
+    } elseif ($type == 'medicine') {
+        $table = $prefix . 'patient_medicine';
+        $code = ''; // मेडिसिन के लिए इनवॉइस कोड जनरेट नहीं करना है
     } else {
-        // Simple update for other types (medicine, payments)
-        $simple_table = ($type == 'medicine') ? $prefix . 'patient_medicine' : $prefix . 'patient_payments';
-        $this->db->where('ID', $request)->update($simple_table, [
-            'status' => $status,
-            'reason_of_disapprove' => $reason,
-            'reason_of_cancle' => $reason_of_cancle,
-            'cn_invoice' => $cn_invoice,
-            'modified_on' => $date_now
-        ]);
-        return 1;
+        $table = $prefix . $type; // Fallback
+        $code = '';
     }
 
     // 2. Fetch the Record
     $row = $this->db->get_where($table, ['ID' => $request])->row_array();
     if (!$row) return false;
 
-    // 3. Handle Disapproval/Cancellation
+    // 3. Handle Disapproval / Cancellation / Adjustments
     if ($status != 'approved') {
-        $this->db->where('ID', $request)->update($table, [
+        $update_data = [
             'status' => $status,
             'reason_of_disapprove' => $reason,
             'modified_on' => $date_now
-        ]);
+        ];
+        
+        // मेडिसिन या रजिस्ट्रेशन कैंसल होने पर अतिरिक्त फील्ड्स
+        if ($type == 'medicine' || $type == 'registation') {
+            $update_data['reason_of_cancle'] = $reason_of_cancle;
+            $update_data['cn_invoice'] = $cn_invoice;
+        }
+
+        $this->db->where('ID', $request)->update($table, $update_data);
         return 1;
     }
 
-    // 4. Handle Approval & Invoice Generation
-    // If it's already approved and has a number, don't change it
+    // --- नीचे का कोड सिर्फ 'approved' स्टेटस के लिए चलेगा ---
+
+    // 4. अगर टाइप 'medicine' है (जिसका कोई invoice code नहीं है), तो सिम्पल अपडेट करें
+    if (empty($code)) {
+        $update_data = [
+            'status' => 'approved',
+            'reason_of_disapprove' => $reason,
+            'modified_on' => $date_now
+        ];
+        if ($type == 'medicine') {
+            $update_data['reason_of_cancle'] = $reason_of_cancle;
+            $update_data['cn_invoice'] = $cn_invoice;
+        }
+        $this->db->where('ID', $request)->update($table, $update_data);
+        return 1;
+    }
+
+    // 5. Handle Approval & Invoice Generation (C, R, D, P के लिए)
+    // अगर पहले से अप्रूव है और सीरीज़ नंबर मौजूद है, तो उसे न बदलें
     if ($row['status'] == 'approved' && !empty($row['series_number'])) {
         return 1;
     }
@@ -726,7 +749,7 @@ function approve_billing($request, $type, $status, $reason, $reason_of_cancle, $
     $next_number = (!empty($res['max_val'])) ? $res['max_val'] + 1 : 1;
     $invoice_string = $search_pattern . str_pad($next_number, 5, '0', STR_PAD_LEFT);
 
-    // 5. Execute Update
+    // 6. Execute Final Update
     $update_data = [
         'status' => 'approved',
         'series_number' => $invoice_string,
@@ -742,9 +765,6 @@ function approve_billing($request, $type, $status, $reason, $reason_of_cancle, $
 
     $this->db->where('ID', $request);
     $this->db->update($table, $update_data);
-
-//echo $this->db->last_query(); 
-//die();
 
     return 1;
 }

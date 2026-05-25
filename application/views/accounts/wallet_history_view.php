@@ -89,7 +89,7 @@
                             <td class="font-weight-bold text-primary">₹ <?php echo number_format($row['amount'], 2); ?></td>
                             <td>₹ <?php echo number_format($row['closing_w1'], 2); ?></td>
                             <td>₹ <?php echo number_format($row['closing_w2'], 2); ?></td>
-                            <td><?php echo $row['mode']; ?></td>
+                            <td><?php echo $row['payment_method']; ?></td>
                             <td class="text-center">
                                 <?php if(!empty($row['screenshot'])): ?>
                                     <a href="<?php echo base_url('uploads/wallet_screenshots/'.$row['screenshot']); ?>" target="_blank" class="btn btn-outline-secondary btn-sm">
