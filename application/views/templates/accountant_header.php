@@ -130,6 +130,7 @@
                      <li> <a href="<?php echo base_url(); ?>accounts/consultation_patients">Consultation Patients</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/registration_patients">Registration Patients</a> </li>
                      <li> <a href="<?php echo base_url(); ?>accounts/partialpayments_request">Partial Payments Request</a> </li>
+                     <li> <a href="<?php echo base_url(); ?>accounts/wallet_transfer_requests">Wallet Transfer</a> </li>
                      <?php if(isset($_SESSION['logged_accountant']) && !empty($_SESSION['logged_accountant'])){
                         $center = $_SESSION['logged_accountant']['center'];
                         if($center == 0){
