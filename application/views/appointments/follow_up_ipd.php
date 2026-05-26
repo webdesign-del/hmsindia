@@ -375,57 +375,111 @@
                   </table>
                </div>
             </div>
-            
-            <div class="section-card">
+
+              <div class="section-card">
                <div class="section-header">
-                  <i class="fa fa-medkit"></i> Medication Advised Ipd
+                  <i class="fa fa-flask"></i> IIC Investigations Advised
                   <label class="checkbox-enhanced pull-right">
-                     <input type="checkbox" id="medicine_suggestion_ipd" value="1" name="medicine_suggestion_ipd" checked />
-                     Enable Medication
+                  <input type="checkbox" id="investigation_suggestion" value="1" name="investigation_suggestion" />
+                  Enable Investigations
                   </label>
                </div>
-               <div class="section-content">
-                  <div class="row">
-                     <div class="col-md-12">
-                        <div class="form-group-enhanced">
-                           <label><i class="fa fa-female"></i> Patient Medication</label>
-                           <select class="form-control multidselect_dropdown" multiple id="female_medicine_suggestion_list_ipd" name="female_medicine_suggestion_list_ipd[]">
-                              <?php if(!empty($consultation_medicine_ipd)) { 
-                                 foreach($consultation_medicine_ipd as $key => $val) { 
-                                    $is_selected = in_array($val['item_number'], array('OPD_21','OPD_23','OPD_35','OPD_44', 'OPD_46')) ? 'selected' : '';
-                              ?>
-                                 <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>" <?php echo $is_selected; ?>>
-                                    <?php echo $val['item_name']; ?>
-                                 </option>
-                              <?php  } 
-                              } ?>
-                              <option value="0" medicine="NA">NA</option>
-                           </select>
-                        </div>
-                        
-                        <div class="table-responsive">
-                           <table id="female_medicine_table_ipd" class="table table-bordered medicine-table" style="display:none;">
-                              <thead>
-                                 <tr>
-                                    <th>Medicine</th>
-                                    <th>Dosage</th>
-                                    <th>Remarks</th>
-                                    <th>Start on</th>
-                                    <th>Days</th>
-                                    <th>Route</th>
-                                    <th>Frequency</th>
-                                    <th>Timing</th>
-                                    <th>Take</th>
-                                 </tr>
-                              </thead>
-                              <tbody id="female_medicine_suggestion_table_ipd"></tbody>
-                           </table>
-                        </div>
-                     </div>
-                  </div>
+               <div class="section-content" style="margin-bottom: 80px;">
+                  <table class="table table-enhanced">
+                     <thead>
+                        <tr >
+                           <!-- <th style="width: 30%;">Investigation Type</th> -->
+                           <th style="width: 35%;">Patient</th>
+                           <th style="width: 35%;">Spouse</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <!-- <td><strong>IIC Investigations</strong></td> -->
+                           <td>
+                              <select class="form-control multidselect_dropdown_1" multiple id="female_minvestigation_suggestion_list" disabled name="female_minvestigation_suggestion_list[]">
+                                 <?php if(!empty($master_investigations)) { 
+                                    echo "<!-- Debug: Found " . count($master_investigations) . " investigations -->";
+                                    foreach($master_investigations as $key => $val) { ?>
+                                 <option value="<?php echo $val['master_id']; ?>" ><?php echo $val['investigation_name']; ?></option>
+                                 <?php  } } else { 
+                                    echo "<!-- Debug: No master_investigations data found -->";
+                                    } ?>
+                                 <option value="0">NA</option>
+                              </select>
+                           </td>
+                           <td>
+                              <select class="form-control multidselect_dropdown_1" multiple id="male_minvestigation_suggestion_list" disabled name="male_minvestigation_suggestion_list[]">
+                                 <?php if(!empty($master_investigations)) { foreach($master_investigations as $key => $val) { ?>
+                                 <option value="<?php echo $val['master_id']; ?>"><?php echo $val['investigation_name']; ?></option>
+                                 <?php  } } ?>
+                                 <option value="0">NA</option>
+                              </select>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
                </div>
             </div>
-                         
+
+            
+        <div class="section-card">
+   <div class="section-header">
+      <i class="fa fa-medkit"></i> Medication Advised Ipd
+      <label class="checkbox-enhanced pull-right">
+         <input type="checkbox" id="medicine_suggestion_ipd" value="1" name="medicine_suggestion_ipd" checked />
+         Enable Medication
+      </label>
+   </div>
+   <div class="section-content">
+      <div class="row">
+         <div class="col-md-12">
+            <div class="form-group-enhanced">
+               <label><i class="fa fa-female"></i> Patient Medication</label>
+               <select class="form-control multidselect_dropdown" multiple id="female_medicine_suggestion_list_ipd" name="female_medicine_suggestion_list_ipd[]">
+                  <?php 
+                  if(!empty($consultation_medicine_ipd)) { 
+                     // जिन 5 मेडिसिन को दिखाना है, उनका एक एरे बना लें
+                     $allowed_medicines = array('OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46');
+                     
+                     foreach($consultation_medicine_ipd as $key => $val) { 
+                        // चेक करें कि क्या मौजूदा मेडिसिन allowed लिस्ट में है
+                        if(in_array($val['item_number'], $allowed_medicines)) {
+                  ?>
+                     <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>">
+                        <?php echo $val['item_name']; ?>
+                     </option>
+                  <?php 
+                        } 
+                     } 
+                  } 
+                  ?>
+                  <option value="0" medicine="NA">NA</option>
+               </select>
+            </div>
+            
+            <div class="table-responsive">
+               <table id="female_medicine_table_ipd" class="table table-bordered medicine-table" style="display:none;">
+                  <thead>
+                     <tr>
+                        <th>Medicine</th>
+                        <th>Dosage</th>
+                        <th>Remarks</th>
+                        <th>Start on</th>
+                        <th>Days</th>
+                        <th>Route</th>
+                        <th>Frequency</th>
+                        <th>Timing</th>
+                        <th>Take</th>
+                     </tr>
+                  </thead>
+                  <tbody id="female_medicine_suggestion_table_ipd"></tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>                 
 
            
             <div class="follow-up-section">
@@ -499,7 +553,7 @@
       </form>
       </div>
    </div>
-</div>
+</div>s
 <script>
    // Performance optimizations - cache DOM elements
    var $appointmentFor = $('#appoitment_for');

@@ -457,78 +457,101 @@
             </div>-->
 
             <!-- Medication Section opd -->
-            <div class="section-card">
-               <div class="section-header">
-                  <i class="fa fa-medkit"></i> Medication Advised Opd
-                  <label class="checkbox-enhanced pull-right">
-                  <input type="checkbox" id="medicine_suggestion" value="1" name="medicine_suggestion" />
-                  Enable Medication
-                  </label>
-               </div>
-               <div class="section-content">
-                  <div class="row">
-                     <div class="col-md-12">
-                        <div class="form-group-enhanced">
-                           <label><i class="fa fa-female"></i> Patient Medication</label>
-                           <select class="form-control multidselect_dropdown" multiple id="female_medicine_suggestion_list" name="female_medicine_suggestion_list[]" disabled>
-                              <?php if(!empty($consultation_medicine)) { foreach($consultation_medicine as $key => $val) { ?>
-                              <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
-                              <?php  } } ?>
-                              <option value="0">NA</option>
-                           </select>
-                        </div>
-                        <div class="table-responsive">
-                           <table id="female_medicine_table" class="table table-bordered medicine-table" style="display:none;">
-                              <thead>
-                                 <tr>
-                                    <th>Medicine</th>
-                                    <th>Dosage</th>
-                                    <th>Remarks</th>
-                                    <th>Start on</th>
-                                    <th>Days</th>
-                                    <th>Route</th>
-                                    <th>Frequency</th>
-                                    <th>Timing</th>
-                                    <th>Take</th>
-                                 </tr>
-                              </thead>
-                              <tbody id="female_medicine_suggestion_table"></tbody>
-                           </table>
-                        </div>
-                     </div>
-                     <div class="col-md-12">
-                        <div class="form-group-enhanced">
-                           <label><i class="fa fa-male"></i> Spouse Medication</label>
-                           <select class="form-control multidselect_dropdown" multiple id="male_medicine_suggestion_list" name="male_medicine_suggestion_list[]" disabled>
-                              <?php if(!empty($consultation_medicine)) { foreach($consultation_medicine as $key => $val) { ?>
-                              <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
-                              <?php  } } ?>
-                              <option value="0">NA</option>
-                           </select>
-                        </div>
-                        <div class="table-responsive">
-                           <table id="male_medicine_table" class="table table-bordered medicine-table" style="display:none;">
-                              <thead>
-                                 <tr>
-                                    <th>Medicine</th>
-                                    <th>Dosage</th>
-                                    <th>Remarks</th>
-                                    <th>Start on</th>
-                                    <th>Days</th>
-                                    <th>Route</th>
-                                    <th>Frequency</th>
-                                    <th>Timing</th>
-                                    <th>Take</th>
-                                 </tr>
-                              </thead>
-                              <tbody id="male_medicine_suggestion_table"></tbody>
-                           </table>
-                        </div>
-                     </div>
-                  </div>
-               </div>
+       <div class="section-card">
+   <div class="section-header">
+      <i class="fa fa-medkit"></i> Medication Advised Opd
+      <label class="checkbox-enhanced pull-right">
+      <input type="checkbox" id="medicine_suggestion" value="1" name="medicine_suggestion" />
+      Enable Medication
+      </label>
+   </div>
+   <div class="section-content">
+      <div class="row">
+         <div class="col-md-12">
+            <div class="form-group-enhanced">
+               <label><i class="fa fa-female"></i> Patient Medication</label>
+               <select class="form-control multidselect_dropdown" multiple id="female_medicine_suggestion_list" name="female_medicine_suggestion_list[]" disabled>
+                  <?php 
+                  if(!empty($consultation_medicine)) { 
+                     // जिन मेडिसिन को छुपाना है, उनका एरे बनाएं
+                     $excluded_medicines = array('OPD_20','OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46');
+                     
+                     foreach($consultation_medicine as $key => $val) { 
+                        // चेक करें कि आइटम excluded लिस्ट में "नहीं" (!) है
+                        if(!in_array($val['item_number'], $excluded_medicines)) {
+                  ?>
+                  <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
+                  <?php  
+                        } 
+                     } 
+                  } 
+                  ?>
+                  <option value="0">NA</option>
+               </select>
             </div>
-            <!-- Medication Section ipd -->
+            <div class="table-responsive">
+               <table id="female_medicine_table" class="table table-bordered medicine-table" style="display:none;">
+                  <thead>
+                     <tr>
+                        <th>Medicine</th>
+                        <th>Dosage</th>
+                        <th>Remarks</th>
+                        <th>Start on</th>
+                        <th>Days</th>
+                        <th>Route</th>
+                        <th>Frequency</th>
+                        <th>Timing</th>
+                        <th>Take</th>
+                     </tr>
+                  </thead>
+                  <tbody id="female_medicine_suggestion_table"></tbody>
+               </table>
+            </div>
+         </div>
+         <div class="col-md-12">
+            <div class="form-group-enhanced">
+               <label><i class="fa fa-male"></i> Spouse Medication</label>
+               <select class="form-control multidselect_dropdown" multiple id="male_medicine_suggestion_list" name="male_medicine_suggestion_list[]" disabled>
+                  <?php 
+                  if(!empty($consultation_medicine)) { 
+                     // जिन मेडिसिन को छुपाना है, उनका एरे बनाएं (Spouse के लिए भी)
+                     $excluded_medicines = array('OPD_20','OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46');
+                     
+                     foreach($consultation_medicine as $key => $val) { 
+                        // चेक करें कि आइटम excluded लिस्ट में "नहीं" (!) है
+                        if(!in_array($val['item_number'], $excluded_medicines)) {
+                  ?>
+                  <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>"><?php echo $val['item_name']; ?></option>
+                  <?php  
+                        } 
+                     } 
+                  } 
+                  ?>
+                  <option value="0">NA</option>
+               </select>
+            </div>
+            <div class="table-responsive">
+               <table id="male_medicine_table" class="table table-bordered medicine-table" style="display:none;">
+                  <thead>
+                     <tr>
+                        <th>Medicine</th>
+                        <th>Dosage</th>
+                        <th>Remarks</th>
+                        <th>Start on</th>
+                        <th>Days</th>
+                        <th>Route</th>
+                        <th>Frequency</th>
+                        <th>Timing</th>
+                        <th>Take</th>
+                     </tr>
+                  </thead>
+                  <tbody id="male_medicine_suggestion_table"></tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+   </div>
+</div>     <!-- Medication Section ipd -->
            <!-- <div class="section-card">
                <div class="section-header">
                   <i class="fa fa-medkit"></i> Medication Advised Ipd
