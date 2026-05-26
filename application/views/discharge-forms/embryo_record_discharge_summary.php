@@ -37,11 +37,7 @@
    // Get existing data using model
    $select_result = $all_method->embryo_record_discharge_summary_model->get_by_iic_id($iic_id, $appoitmented_date);
    
-   // Get appointment and patient data
-   $sql1 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$iic_id."'";
-   $select_result1 = run_select_query($sql1);
-   
-   $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
+   $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
    $select_result2 = run_select_query($sql2);
    
    $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";

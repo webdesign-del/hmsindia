@@ -1,62 +1,59 @@
-<?php  $all_method =&get_instance();
-$appoitmented_date = $_GET['appoitmented_date'];
+<?php 
+$all_method =& get_instance();
+$appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
-    	   
-		   
-		   	if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `hms_discard_discharge` WHERE iic_id='$iic_id' AND appoitmented_date='$appoitmented_date'";
-	} else {
-			$sql = "SELECT * FROM `hms_discard_discharge` WHERE iic_id='$iic_id'";
-	}
-	$select_result = run_select_query($sql);
-	    
+           
+        // डुप्लीकेट रोकने के लिए सिर्फ iic_id से चेक करें (Date को इग्नोर करें)
+        $sql = "SELECT * FROM `hms_discard_discharge` WHERE iic_id='$iic_id'";
+        $select_result = run_select_query($sql);
+        
         if(empty($select_result)){
             // mysql query to insert data
             $query = "INSERT INTO `hms_discard_discharge` SET ";
-			 $sqlArr = array();
-            foreach( $_POST as $key=> $value )
-            {
-              $sqlArr[] = " $key = '".addslashes($value)."'";
-            }		
+            $sqlArr = array();
+            foreach($_POST as $key => $value) {
+              $sqlArr[] = " `$key` = '".addslashes($value)."'";
+            }       
             $query .= implode(',' , $sqlArr);
-			 //Insert into freezing table
-        }else{
-            // mysql query to update data
-            $query = "UPDATE hms_discard_discharge SET ";
-            foreach( $_POST as $key=> $value )
-            {
-              $sqlArr[] = " $key = '".$value."'"	;
+             //Insert into freezing table
+             
+        } else {
+            // mysql query to update data (Added addslashes to prevent SQL errors)
+            $query = "UPDATE `hms_discard_discharge` SET ";
+            $sqlArr = array();
+            foreach($_POST as $key => $value) {
+              $sqlArr[] = " `$key` = '".addslashes($value)."'";
             }
             $query .= implode(',' , $sqlArr);
-              $query .= " WHERE iic_id='$iic_id' and appoitmented_date='$appoitmented_date'";
-		}
+            
+            // सिर्फ iic_id के आधार पर अपडेट करें
+            $query .= " WHERE iic_id='$iic_id'";
+        }
+        
         $result = run_form_query($query);          
+        
         if($result){
-         header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form inserted!').'&t='.base64_encode('error'));
-        	die();
-        }else{
-         header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-		  die();
+            // यहाँ t=error को t=success कर दिया गया है
+            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
+            die();
+        } else {
+            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+            die();
         }
     }
-	
-      	if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `hms_discard_discharge` WHERE iic_id='$iic_id' AND appoitmented_date='$appoitmented_date'";
-	} else {
-			$sql = "SELECT * FROM `hms_discard_discharge` WHERE iic_id='$iic_id'";
-	}
-	$select_result = run_select_query($sql);
-	
-	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."'";
-	$select_result1 = run_select_query($sql1);
-	
-	$sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
-	$select_result2 = run_select_query($sql2);
-	
-	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-	$select_result3 = run_select_query($sql3);
+    
+    // फॉर्म में पुराना डेटा दिखाने के लिए भी सिर्फ iic_id से फेच करें
+    $sql = "SELECT * FROM `hms_discard_discharge` WHERE iic_id='$iic_id'";
+    $select_result = run_select_query($sql);
+    
+    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
+    $select_result2 = run_select_query($sql2);
+    
+    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+    $select_result3 = run_select_query($sql3);
 ?>
 
 <form action="" enctype='multipart/form-data' method="post">
