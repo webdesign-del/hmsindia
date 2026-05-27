@@ -2874,7 +2874,7 @@ if (!empty($med_results)) {
         // 3. Fetch Center info based on the appointment
         $app_center_name = "N/A"; // Default if not found
         if (!empty($app_result['appoitment_for'])) {
-            $sql_center = "SELECT center_name FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+            $sql_center = "SELECT center_name, state_name, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
             $center_data = run_select_query($sql_center);
             $app_center_name = $center_data['center_name'] ?? "N/A";
         }
@@ -2906,6 +2906,10 @@ if (!empty($med_results)) {
                 'payment_method'   => $row['payment_method'],
                 'status'           => $row['payment_status'],
                 'series_number'    => $row['series_number'],
+				'company_state'    => $center_data['state_name'],
+				'company_gstin'    => $center_data['center_gst'],
+				'party_state'      => $center_data['state_name'],
+				'place_of_supply'  => $center_data['state_name'],
                 'items'            => []
             ];
         }
@@ -2974,7 +2978,7 @@ if (!empty($ret_results)) {
 
             $app_center_name = "N/A";
             if (!empty($app_result['appoitment_for'])) {
-                $sql_center = "SELECT center_name FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+                $sql_center = "SELECT center_name, state_name, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
                 $center_data = run_select_query($sql_center);
                 $app_center_name = $center_data['center_name'] ?? "N/A";
             }
@@ -2992,6 +2996,10 @@ if (!empty($ret_results)) {
                 'payment_method'   => 'Refund',
                 'status'           => $row['status'],
                 'reason'           => $row['return_reason'],
+				'company_state'    => $center_data['state_name'],
+				'company_gstin'    => $center_data['center_gst'],
+				'party_state'      => $center_data['state_name'],
+				'place_of_supply'  => $center_data['state_name'],
                 'items'            => []
             ];
         }
@@ -3054,6 +3062,10 @@ foreach($ret_grouped as $return) {
                 'payment_method'   => $sale["payment_method"] ?? "",
                 'status'           => $sale["status"] ?? "",
 				'series_number'    => $sale["series_number"],
+				'company_state'    => $billing['state_name'],
+				'company_gstin'    => $billing['center_gst'],
+				'party_state'      => $billing['state_name'],
+				'place_of_supply'  => $billing['state_name'],
                 'items'            => []
             ];
 
@@ -3084,19 +3096,27 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 3: CONSULTATION SALES
     // =========================================================================
-    $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
+ $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
+        bill_center.center_name as billing_center_name, 
+        bill_center.state_name as center_state_name, 
+        bill_center.center_gst as center_gst_number, 
+        origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_consultation');
     $this->db->join('hms_patients', 'hms_patients.patient_id = hms_consultation.patient_id', 'left');
+    
+    // यहाँ hms_centers टेबल बिलिंग सेंटर के रूप में जॉइन है
     $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
     $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
-   // $this->db->where('hms_consultation.status', 'approved');
-	$this->db->where_in('hms_consultation.status', ['adjust', 'approved']);
+    
+    $this->db->where_in('hms_consultation.status', ['adjust', 'approved']);
     $this->db->where('hms_consultation.tally_status', '1');
     $this->db->limit(300);
+    
     $consult_rows = $this->db->get()->result_array();
+
+    //$all_transactions = []; // ऐरे को पहले डिक्लेयर करना अच्छी प्रैक्टिस है
 
     foreach ($consult_rows as $row) {
         $all_transactions[] = [
@@ -3105,13 +3125,17 @@ foreach($ret_grouped as $return) {
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
-			'cost_center'   => $row['billing_center_name'] ?? 'N/A',
+            'cost_center'      => $row['billing_center_name'] ?? 'N/A',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',
-            'payment_method'   => $row['payment_method'],
-			'series_number'    => $row["series_number"],
-            'status'           => $row['status'],
+            'payment_method'   => $row['payment_method'] ?? '',
+            'series_number'    => $row["series_number"] ?? '',
+            'status'           => $row['status'] ?? '',
+            'company_state'    => $row['center_state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'company_gstin'    => $row['center_gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'party_state'      => $row['center_state_name'] ?? '',
+            'place_of_supply'  => $row['center_state_name'] ?? '',
             'items'            => [[
                 'item_name'       => 'Consultation Charges',
                 'code'            => 'CONS',
@@ -3123,7 +3147,7 @@ foreach($ret_grouped as $return) {
                 'taxable_value'   => '', 
                 'gst_rate'        => 0,
                 'gst_amount'      => 0,
-                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'  => number_format((float)($row['payment_done']??0), 2, '.', '')
             ]]
         ];
     }
@@ -3132,7 +3156,8 @@ foreach($ret_grouped as $return) {
     // PART 4: REGISTRATION SALES
     // =========================================================================
     $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
+        bill_center.center_name as billing_center_name, bill_center.state_name, 
+        bill_center.center_gst, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_registation');
     $this->db->join('hms_patients', 'hms_patients.patient_id = hms_registation.patient_id', 'left');
@@ -3158,6 +3183,10 @@ foreach($ret_grouped as $return) {
             'payment_method'   => $row['payment_method'],
 			'series_number'    => $row['series_number'],
             'status'           => $row['status'],
+			'company_state'    => $row['state_name'],
+			'company_gstin'    => $row['center_gst'],
+			'party_state'      => $row['state_name'],
+			'place_of_supply'  => $row['state_name'],
             'items'            => [[
                 'item_name'       => 'Registration Fees',
                 'code'            => 'REG',
@@ -3198,6 +3227,10 @@ foreach($ret_grouped as $return) {
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
 			'series_number'    => $sale['series_number'],
+			'company_state'    => $bill_c['state_name'],
+			'company_gstin'    => $bill_c['center_gst'],
+			'party_state'      => $bill_c['state_name'],
+			'place_of_supply'  => $bill_c['state_name'],
             'items'            => []
         ];
 
@@ -3262,6 +3295,10 @@ foreach($ret_grouped as $return) {
             'biller_name'      => 'N/A', 
             'payment_method'   => $row['payment_method'],
             'status'           => $status_text,
+			'company_state'    => '',
+			'company_gstin'    => '',
+			'party_state'      => '',
+			'place_of_supply'  => '',
             'items'            => [[
                 'item_name'       => 'Fellowship: ' . ($row['course'] ?? ''),
                 'code'            => $row['code'] ?? '',
@@ -3529,7 +3566,7 @@ if (!empty($med_results)) {
         // 3. Fetch Center info based on the appointment
         $app_center_name = "N/A"; // Default if not found
         if (!empty($app_result['appoitment_for'])) {
-            $sql_center = "SELECT center_name FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+            $sql_center = "SELECT center_name,state_name,center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
             $center_data = run_select_query($sql_center);
             $app_center_name = $center_data['center_name'] ?? "N/A";
         }
@@ -3562,6 +3599,10 @@ if (!empty($med_results)) {
                 'status'           => $row['payment_status'],
 				'total_amount'           => $row['total_amount'],
                 'series_number'    => $row['series_number'],
+				'company_state'    => $center_data['state_name'],
+				'company_gstin'    => $center_data['center_gst'],
+				'party_state'      => $center_data['state_name'],
+				'place_of_supply'  => $center_data['state_name'],
                 'items'            => []
             ];
         }
@@ -3596,7 +3637,7 @@ if (!empty($med_grouped)) {
 // =========================================================================
 $sql_ret = "
     SELECT 
-    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,
+    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,c.state_name,c.state_name,
     r.return_number, r.return_date, r.status, r.return_reason,
     m.medicine_name, mb.batch_number, mb.expiry_date, 
     m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -3650,6 +3691,10 @@ foreach ($ret_results as $row) {
             'status'           => $row['status'],
 			'total_amount'     => $row['final_amount'],
             'reason'           => $row['return_reason'],
+			'company_state'    => $center_data['state_name'],
+			'company_gstin'    => $center_data['center_gst'],
+			'party_state'      => $center_data['state_name'],
+			'place_of_supply'  => $center_data['state_name'],
             'items'            => []
         ];
     }
@@ -3683,6 +3728,7 @@ foreach($ret_grouped as $return) {
             $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
             $origin = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["origins"]])->row_array();
             $billing = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
+			$billing_from = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_from"]])->row_array();
             $biller = $this->db->query("SELECT * FROM hms_employees WHERE employee_number = ?", [$sale["biller_id"]])->row_array();
 
             $formatted_proc = [
@@ -3699,6 +3745,10 @@ foreach($ret_grouped as $return) {
                 'status'           => $sale["status"] ?? "",
 				'total_amount'     => $sale['payment_done'],
 				'series_number'    => $sale['series_number'],
+				'company_state'    => $billing_from['state_name'],
+				'company_gstin'    => $billing_from['center_gst'],
+				'party_state'      => $billing_from['state_name'],
+				'place_of_supply'  => $billing_from['state_name'],
                 'items'            => []
             ];
 
@@ -3726,7 +3776,8 @@ foreach($ret_grouped as $return) {
     // PART 3: CONSULTATION SALES
     // =========================================================================
     $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
+        bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name, 
+        bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_consultation');
     $this->db->join('hms_patients', 'hms_patients.patient_id = hms_consultation.patient_id', 'left');
@@ -3753,6 +3804,10 @@ foreach($ret_grouped as $return) {
 			'total_amount'     => $row['payment_done'],
 			'series_number'    => $row['series_number'],
             'status'           => $row['status'],
+			'company_state'    => $row['center_state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'company_gstin'    => $row['center_gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'party_state'      => $row['center_state_name'] ?? '',
+            'place_of_supply'  => $row['center_state_name'] ?? '',
             'items'            => [[
                 'item_name'       => 'Consultation Charges',
                 'code'            => 'CONS',
@@ -3769,7 +3824,8 @@ foreach($ret_grouped as $return) {
     // PART 4: REGISTRATION SALES
     // =========================================================================
       $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
+        bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name, 
+        bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_registation');
     $this->db->join('hms_patients', 'hms_patients.patient_id = hms_registation.patient_id', 'left');
@@ -3797,6 +3853,10 @@ foreach($ret_grouped as $return) {
 			'total_amount'     => $row['payment_done'],
 			'series_number'    => $row['series_number'],
             'status'           => $row['status'],
+			'company_state'    => $row['center_state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'company_gstin'    => $row['center_gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'party_state'      => $row['center_state_name'] ?? '',
+            'place_of_supply'  => $row['center_state_name'] ?? '',
             'items'            => [[
                 'item_name'       => 'Registration Fees',
                 'code'            => 'REG',
@@ -3834,6 +3894,10 @@ foreach($ret_grouped as $return) {
             'status'           => $sale["status"] ?? "",
 			'total_amount'     => $sale['payment_done'],
 			'series_number'    => $sale['series_number'],
+			'company_state'    => $bill_c['state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'company_gstin'    => $bill_c['gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'party_state'      => $bill_c['state_name'] ?? '',
+            'place_of_supply'  => $bill_c['state_name'] ?? '',
             'items'            => []
         ];
 
@@ -3903,15 +3967,23 @@ foreach($ret_grouped as $return) {
         ];
     }
 
-    // =========================================================================
+ // =========================================================================
     // PART 7: PARTIAL PAYMENTS
     // =========================================================================
     $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' ORDER BY modified_on DESC LIMIT 500");
-$payment_rows = $partial_q->result_array();
+    $payment_rows = $partial_q->result_array();
+
+    // यहाँ से पुरानी गलत $bill_c वाली लाइन हटा दी गई है
 
 foreach ($payment_rows as $payment_row) {
     // 1. Patient data fetch
     $pt = $this->db->query("SELECT wife_name, husband_name FROM hms_patients WHERE patient_id = ?", [$payment_row["patient_id"]])->row_array();
+    
+    // [FIX] सेंटर की जानकारी को हर मरीज की पेमेंट रो के 'billing_at' के आधार पर लूप के अंदर फेच करें
+    $bill_c = [];
+    if (!empty($payment_row["billing_at"])) {
+        $bill_c = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$payment_row["billing_at"]])->row_array();
+    }
     
     $receipt_no = $payment_row['billing_id'];
     
@@ -3967,7 +4039,11 @@ foreach ($payment_rows as $payment_row) {
         'payment_method'   => $payment_row['payment_method'],
         'total_amount'     => $payment_row['payment_done'],
         'status'           => ($payment_row['status'] == 1) ? 'Approved' : 'Cancel',
-        'series_number'    => $series_number, // Updated fix here
+        'series_number'    => $series_number, 
+        'company_state'    => $bill_c['state_name'] ?? '', 
+        'company_gstin'    => $bill_c['center_gst'] ?? '', // [FIX] यहाँ gst_number की जगह center_gst कर दिया है
+        'party_state'      => $bill_c['state_name'] ?? '',
+        'place_of_supply'  => $bill_c['state_name'] ?? '',
         'items'            => $partial_items
     ];
 }
@@ -4158,7 +4234,7 @@ public function sales_completion_order()
     // =========================================================================
     $sql_med = "
        SELECT 
-    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,
+    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name, c.state_name, c.center_gst,
     s.sale_number, s.sale_date, s.payment_method, s.payment_status,
     s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
     mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -4226,6 +4302,10 @@ if (!empty($med_results)) {
                 'payment_method'   => $row['payment_method'],
                 'status'           => $row['payment_status'],
                 'series_number'    => $row['series_number'],
+				'company_state'    => $row['state_name'] ?? '', 
+        		'company_gstin'    => $row['center_gst'] ?? '', // [FIX] यहाँ gst_number की जगह center_gst कर दिया है
+        		'party_state'      => $row['state_name'] ?? '',
+        		'place_of_supply'  => $row['state_name'] ?? '',
                 'items'            => []
             ];
         }
@@ -4259,7 +4339,7 @@ if (!empty($med_grouped)) {
 // =========================================================================
 $sql_ret = "
     SELECT 
-    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,
+    r.id AS return_id, r.patient_id, r.patient_name, c.center_name, c.state_name, c.center_gst,
     r.return_number, r.return_date, r.status, r.return_reason,
     m.medicine_name, mb.batch_number, mb.expiry_date, 
     m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -4312,6 +4392,10 @@ foreach ($ret_results as $row) {
             'status'           => $row['status'],
             'reason'           => $row['return_reason'],
 			'series_number'    => '',
+			'company_state'    => $row['state_name'] ?? '', 
+        	'company_gstin'    => $row['center_gst'] ?? '', // [FIX] यहाँ gst_number की जगह center_gst कर दिया है
+        	'party_state'      => $row['state_name'] ?? '',
+        	'place_of_supply'  => $row['state_name'] ?? '',
             'items'            => []
         ];
     }
@@ -4348,6 +4432,7 @@ if (!empty($procedure_raw)) {
         $pt      = $this->db->query("SELECT wife_name, husband_name FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
         $origin  = $this->db->query("SELECT center_name FROM hms_centers WHERE center_number = ?", [$sale["origins"]])->row_array();
         $billing = $this->db->query("SELECT center_name FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
+		$billing_from = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_from"]])->row_array();
         $biller  = $this->db->query("SELECT name FROM hms_employees WHERE employee_number = ?", [$sale["biller_id"]])->row_array();
 
         $formatted_proc = [
@@ -4363,6 +4448,10 @@ if (!empty($procedure_raw)) {
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
 			'series_number'    => $sale['series_number'],
+			'company_state'    => $billing_from['state_name'] ?? '', 
+        	'company_gstin'    => $billing_from['center_gst'] ?? '', // [FIX] यहाँ gst_number की जगह center_gst कर दिया है
+        	'party_state'      => $billing_from['state_name'] ?? '',
+        	'place_of_supply'  => $billing_from['state_name'] ?? '',
             'items'            => []
         ];
 
@@ -4428,7 +4517,8 @@ if (!empty($embryo['date_of_procedure']) &&
     // PART 3: CONSULTATION SALES
     // =========================================================================
  $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
-    bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
+    bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name, 
+        bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
     hms_employees.name as biller_name');
 $this->db->from('hms_consultation');
 
@@ -4466,6 +4556,10 @@ $consult_rows = $this->db->get()->result_array();
             'payment_method'   => $row['payment_method'],
             'status'           => $row['status'],
 			'series_number'    => $row['series_number'],
+			'company_state'    => $row['center_state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'company_gstin'    => $row['center_gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'party_state'      => $row['center_state_name'] ?? '',
+            'place_of_supply'  => $row['center_state_name'] ?? '',
             'items'            => [[
                 'item_name'       => 'Consultation Charges',
                 'code'            => 'CONS',
@@ -4486,7 +4580,8 @@ $consult_rows = $this->db->get()->result_array();
     // PART 4: REGISTRATION SALES
     // =========================================================================
     $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name, origin_center.center_name as origin_center_name,
+        bill_center.center_name as billing_center_name, bill_center.state_name as center_state_name, 
+        bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_registation');
     $this->db->join('hms_patients', 'hms_patients.patient_id = hms_registation.patient_id', 'left');
@@ -4512,6 +4607,10 @@ $consult_rows = $this->db->get()->result_array();
             'payment_method'   => $row['payment_method'],
             'status'           => $row['status'],
 			'series_number'    => $row['series_number'],
+			'company_state'    => $row['center_state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'company_gstin'    => $row['center_gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'party_state'      => $row['center_state_name'] ?? '',
+            'place_of_supply'  => $row['center_state_name'] ?? '',
             'items'            => [[
                 'item_name'       => 'Registration Fees',
                 'code'            => 'REG',
@@ -4551,6 +4650,10 @@ $consult_rows = $this->db->get()->result_array();
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
 			'series_number'    => $sale['series_number'],
+			'company_state'    => $bill_c['state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'company_gstin'    => $bill_c['gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'party_state'      => $bill_c['state_name'] ?? '',
+            'place_of_supply'  => $bill_c['state_name'] ?? '',
             'items'            => []
         ];
 
