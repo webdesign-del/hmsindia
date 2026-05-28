@@ -95,12 +95,22 @@
                         ?>
                   </select>
                </div>
-               <div class="form-group col-sm-6 col-xs-12 role">
+               <div class="form-group col-sm-3 col-xs-6 role">
                   <label for="item_name">Procedure Form (Required)</label> <br/>
                   <select class="form-control multidselect_dropdown_2"  multiple="multiple" name="procedure_form[]">
                   <?php
                       foreach($procedure_forms as $key => $val){
                           echo '<option value="'.$val['ID'].'">'.ucfirst(strtolower(str_replace("_", " ", $val['form_name']))).' ('.$val['form_for'].')</option>'; 
+                      } 
+                      ?>
+                  </select>
+                </div>
+                <div class="form-group col-sm-3 col-xs-6 role">
+                  <label for="item_name">Dischage Form (Required)</label> <br/>
+                  <select class="form-control multidselect_dropdown_2"  multiple="multiple" name="discharge_form[]">
+                  <?php
+                      foreach($discharge_forms as $key => $val){
+                          echo '<option value="'.$val['id'].'">'.ucfirst(strtolower(str_replace("_", " ", $val['form_name']))).' ('.$val['form_for'].')</option>'; 
                       } 
                       ?>
                   </select>

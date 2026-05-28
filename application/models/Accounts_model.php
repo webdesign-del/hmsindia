@@ -789,6 +789,8 @@ public function get_all_sales_for_tally()
     $this->db->where_in('status', ['approved', 'cancel']);
     
     $this->db->where('tally_status', '1'); 
+
+	$this->db->where('modified_on >', '2026-04-30');
     
     $this->db->order_by('modified_on', 'DESC');
     $this->db->limit(600); // Increased limit to match your other functions

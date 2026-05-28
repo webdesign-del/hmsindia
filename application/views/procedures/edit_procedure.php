@@ -108,7 +108,7 @@
                   </select>
 
                </div>
-               <div class="form-group col-sm-6 col-xs-12 role">
+               <div class="form-group col-sm-3 col-xs-6 role">
                   <label for="item_name">Procedure Form (Required)</label> <br/>
                   <select class="form-control multidselect_dropdown_2"  multiple="multiple" name="procedure_form[]">
                   <?php
@@ -120,6 +120,22 @@
                      foreach($procedure_forms as $key => $val){
                            $selected = in_array($val['ID'], $selected_procedure_forms) ? 'selected="selected"' : '';
                            echo '<option value="'.$val['ID'].'" '.$selected.'>'.ucfirst(strtolower(str_replace("_", " ", $val['form_name']))).' ('.$val['form_for'].')</option>'; 
+                     }
+                     ?>
+                  </select>
+                </div>
+                <div class="form-group col-sm-3 col-xs-6 role">
+                  <label for="item_name">Discharge Form (Required)</label> <br/>
+                  <select class="form-control multidselect_dropdown_2"  multiple="multiple" name="discharge_form[]">
+                  <?php
+                     $selected_discharge_forms = array();
+                     if (!empty($data['discharge_form'])) {
+                           $selected_discharge_forms = explode(',', $data['discharge_form']);
+                     }
+                     
+                     foreach($discharge_forms as $key => $val){
+                           $selected = in_array($val['id'], $selected_discharge_forms) ? 'selected="selected"' : '';
+                           echo '<option value="'.$val['id'].'" '.$selected.'>'.ucfirst(strtolower(str_replace("_", " ", $val['form_name']))).' ('.$val['form_for'].')</option>'; 
                      }
                      ?>
                   </select>

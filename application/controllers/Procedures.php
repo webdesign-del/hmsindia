@@ -96,6 +96,7 @@ class Procedures extends CI_Controller {
 				$post_arr['category'] = $_POST['category'];unset($_POST['category']);
 				$post_arr['center_id'] = $_POST['center_id'];unset($_POST['center_id']);
 				$post_arr['procedure_form'] = $_POST['procedure_form'];unset($_POST['procedure_form']);
+				$post_arr['discharge_form'] = $_POST['discharge_form'];unset($_POST['discharge_form']);
 				$post_arr['price'] = $_POST['price'];
 				$post_arr['usd_price'] = round($_POST['price']/get_converstion_rate(), 2);unset($_POST['price']); 
 				$post_arr['code'] = $_POST['code'];unset($_POST['code']);
@@ -109,11 +110,15 @@ class Procedures extends CI_Controller {
 				
 				// Store procedure_form before it gets unset
 				$procedure_form_data = $post_arr['procedure_form'];
+				$discharge_form_data = $post_arr['discharge_form'];
 				
 				$data = $this->procedures_model->add_procedure($post_arr);
 				if($data > 0){
 				    if(!empty($procedure_form_data)){
 					    $insert_procedure_forms = $this->procedures_model->insert_form_relation(array('procedure_form' => $procedure_form_data), $data);
+				    }
+					if(!empty($discharge_form_data)){
+					    $insert_discharge_forms = $this->procedures_model->insert_dischargeform_relation(array('discharge_form' => $discharge_form_data), $data);
 				    }
 					header("location:" .base_url(). "procedures/add?m=".base64_encode('Procedure added successfully !').'&t='.base64_encode('success'));
 					die();
@@ -125,6 +130,7 @@ class Procedures extends CI_Controller {
 			$data = array();
 			$data['procedures'] = $this->procedures_model->get_procedures();
 			$data['procedure_forms'] = $this->procedures_model->get_procedures_forms();
+			$data['discharge_forms'] = $this->procedures_model->get_discharge_forms();
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
 			
@@ -136,7 +142,7 @@ class Procedures extends CI_Controller {
 		}
 	}
 	
-	public function edit()
+/*	public function edit()
 	{
 		$logg = checklogin();
 		if($logg['status'] == true){
@@ -149,10 +155,12 @@ class Procedures extends CI_Controller {
 					unset($_POST['action']);unset($_POST['id']);
 					
 					$procedure_form = $post_arr = array();
+					$discharge_form = $post_arr = array();
 					$post_arr['procedure_name'] = $_POST['procedure_name'];unset($_POST['procedure_name']);
 					$post_arr['category'] = $_POST['category'];unset($_POST['category']);
 					$post_arr['center_id'] = $_POST['center_id'];unset($_POST['center_id']);
 					$post_arr['procedure_form'] = $_POST['procedure_form'];
+					$post_arr['discharge_form'] = $_POST['discharge_form'];
 					$post_arr['price'] = $_POST['price'];
 				    $post_arr['usd_price'] = round($_POST['price']/get_converstion_rate(), 2);unset($_POST['price']); 
 					$post_arr['code'] = $_POST['code'];unset($_POST['code']);
@@ -164,6 +172,7 @@ class Procedures extends CI_Controller {
 					$data = $this->procedures_model->update_procedure_data($post_arr, $item_id);
 					if($data > 0){
     					$update_procedure_form = $this->procedures_model->update_form_relations($_POST, $item_id);
+						$update_discharge_form = $this->procedures_model->update_dischargeform_relations($_POST, $item_id);
 						header("location:" .base_url(). "procedures?m=".base64_encode('Procedure updated successfully !').'&t='.base64_encode('success').'&id='.$item_id);
 						die();
 					}else{
@@ -173,8 +182,10 @@ class Procedures extends CI_Controller {
 				}
 				$data['data'] = $this->procedures_model->get_procedure_data($item_id);
 				$data['data']['procedure_form'] = $this->procedures_model->get_procedure_form_relationships($item_id);
+				$data['data']['discharge_form'] = $this->procedures_model->get_discharge_form_relationships($item_id);
 				$data['procedures'] = $this->procedures_model->get_procedures();
 				$data['procedure_forms'] = $this->procedures_model->get_procedures_forms();
+				$data['discharge_forms'] = $this->procedures_model->get_discharge_forms();
 				$template = get_header_template($logg['role']);
 				$this->load->view($template['header']);
 				$this->load->view('procedures/edit_procedure', $data);
@@ -188,7 +199,86 @@ class Procedures extends CI_Controller {
 			die();
 		}
 	}
-	
+*/
+
+public function edit()
+    {
+        $logg = checklogin();
+        if($logg['status'] == true){
+            $data = array();
+            
+            if(isset($_GET['id'])){
+                $item_id = $_GET['id'];
+                
+                if(isset($_POST['action']) && $_POST['action'] == 'update_procedure'){
+                    unset($_POST['action']); unset($_POST['id']);
+                    
+                    // [FIX 1] 'procedure_form' को सुरक्षित चेक करें और ऐरे को कॉमा-सेपरेटेड स्ट्रिंग में बदलें
+                    $p_form_string = '';
+                    if(!empty($_POST['procedure_form']) && is_array($_POST['procedure_form'])){
+                        $p_form_string = implode(',', $_POST['procedure_form']);
+                    }
+                    
+                    // [FIX 2] 'discharge_form' को सुरक्षित चेक करें और ऐरे को कॉमा-सेपरेटेड स्ट्रिंग में बदलें
+                    $d_form_string = '';
+                    if(!empty($_POST['discharge_form']) && is_array($_POST['discharge_form'])){
+                        $d_form_string = implode(',', $_POST['discharge_form']);
+                    }
+
+                    // रिलेशनशिप फंक्शंस को भेजने के लिए $_POST का एक बैकअप बना लें
+                    // क्योंकि नीचे unset() करने से $_POST खाली हो रहा था
+                    $original_post = $_POST;
+                    
+                    $post_arr = array();
+                    $post_arr['procedure_name'] = $_POST['procedure_name']; unset($_POST['procedure_name']);
+                    $post_arr['category'] = $_POST['category']; unset($_POST['category']);
+                    $post_arr['center_id'] = $_POST['center_id']; unset($_POST['center_id']);
+                    
+                    // यहाँ अब ऐरे के बजाय सुरक्षित स्ट्रिंग जाएगी (addslashes एरर खत्म)
+                    $post_arr['procedure_form'] = $p_form_string;
+                    $post_arr['discharge_form'] = $d_form_string;
+                    
+                    $post_arr['price'] = $_POST['price'];
+                    $post_arr['usd_price'] = round($_POST['price']/get_converstion_rate(), 2); unset($_POST['price']); 
+                    $post_arr['code'] = $_POST['code']; unset($_POST['code']);
+                    $post_arr['procedures'] = $_POST['procedures']; unset($_POST['procedures']);
+                    $post_arr['broad_procedure'] = $_POST['broad_procedure']; unset($_POST['broad_procedure']);
+                    $post_arr['broad_procedure_count'] = $_POST['broad_procedure_count']; unset($_POST['broad_procedure_count']);
+                    $post_arr['status'] = $_POST['status']; unset($_POST['status']);
+                    
+                    $data = $this->procedures_model->update_procedure_data($post_arr, $item_id);
+					if($data > 0){
+                        // [FIX 3] यहाँ $_POST की जगह $original_post भेजा गया है ताकि रिलेशनशिप टेबल्स में पूरा डेटा मिले
+                        $update_procedure_form = $this->procedures_model->update_form_relations($original_post, $item_id);
+                        $update_discharge_form = $this->procedures_model->update_dischargeform_relations($original_post, $item_id);
+                        
+                        header("location:" .base_url(). "procedures?m=".base64_encode('Procedure updated successfully !').'&t='.base64_encode('success').'&id='.$item_id);
+                        die();
+                    }else{
+                        header("location:" .base_url(). "procedures/edit?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error').'&id='.$item_id);
+                        die();
+                    }               
+                }
+                $data['data'] = $this->procedures_model->get_procedure_data($item_id);
+                $data['data']['procedure_form'] = $this->procedures_model->get_procedure_form_relationships($item_id);
+                $data['data']['discharge_form'] = $this->procedures_model->get_discharge_form_relationships($item_id);
+                $data['procedures'] = $this->procedures_model->get_procedures();
+                $data['procedure_forms'] = $this->procedures_model->get_procedures_forms();
+                $data['discharge_forms'] = $this->procedures_model->get_discharge_forms();
+                $template = get_header_template($logg['role']);
+                $this->load->view($template['header']);
+                $this->load->view('procedures/edit_procedure', $data);
+                $this->load->view($template['footer']);
+            }else{
+                header("location:" .base_url(). "procedures");
+                die();
+            }
+        }else{
+            header("location:" .base_url(). "");
+            die();
+        }
+    }
+
 	public function delete()
 	{
 		$logg = checklogin();

@@ -117,6 +117,25 @@ class Procedures_model extends CI_Model
             return '';
         }
 	}
+
+	function get_discharge_form_relationships($procedure_id){
+		$result = array();
+		$sql = "Select form_id from ".$this->config->item('db_prefix')."dischargeform_relationship where procedure_id='".$procedure_id."'";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            $form_ids = array();
+            foreach($result as $row){
+                $form_ids[] = $row['form_id'];
+            }
+            return implode(',', $form_ids);
+        }
+        else
+        {
+            return '';
+        }
+	}
 	
 	public function update_procedure_data($data, $item)
 	{	
@@ -127,6 +146,9 @@ class Procedures_model extends CI_Model
 				$value = implode(',', $value);
 			}
 			if ($key == 'procedure_form' && is_array($value)) {
+				$value = implode(',', $value);
+			}
+			if ($key == 'discharge_form' && is_array($value)) {
 				$value = implode(',', $value);
 			}
 			$sqlArr[] = " $key = '" . addslashes($value) . "'";
@@ -308,6 +330,22 @@ class Procedures_model extends CI_Model
         }
 	}
 
+	function get_discharge_forms(){
+		$result = array();
+		$sql_condition = '';
+		$sql = "Select * from ".$this->config->item('db_prefix')."discharge_forms where status='active'";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result;
+        }
+        else
+        {
+            return $result;
+        }
+	}
+
 	function get_procedures_form_list(){
 		$result = array();
 		$sql_condition = '';
@@ -380,6 +418,17 @@ class Procedures_model extends CI_Model
 
 	}
 
+	function insert_dischargeform_relation($data, $procedure){
+		foreach( $data['discharge_form'] as $ky=> $val )
+		{
+			$sql = "";
+			$sql = "INSERT INTO `".$this->config->item('db_prefix')."dischargeform_relationship` (`procedure_id`, `form_id`) VALUES ('$procedure','$val')";
+			$res =  $this->db->query($sql);
+		}
+		return 1;
+
+	}
+
 	function update_form_relations($data, $procedure){
 		$sql = "DELETE FROM " . $this->config->item('db_prefix') . "form_relationship WHERE procedure_id = '".$procedure."'";
 		$res =  $this->db->query($sql);
@@ -390,6 +439,25 @@ class Procedures_model extends CI_Model
     			{
     				$sql = "";
     				$sql = "INSERT INTO `".$this->config->item('db_prefix')."form_relationship` (`procedure_id`, `form_id`) VALUES ('$procedure','$val')";
+    				$res =  $this->db->query($sql);
+    			}
+		    }
+			return 1;
+		}
+		else
+			return 0;
+	}
+
+	function update_dischargeform_relations($data, $procedure){
+		$sql = "DELETE FROM " . $this->config->item('db_prefix') . "dischargeform_relationship WHERE procedure_id = '".$procedure."'";
+		$res =  $this->db->query($sql);
+		if ($res)
+		{
+		    if(!empty($data['discharge_form'])){
+    			foreach( $data['discharge_form'] as $ky=> $val )
+    			{
+    				$sql = "";
+    				$sql = "INSERT INTO `".$this->config->item('db_prefix')."dischargeform_relationship` (`procedure_id`, `form_id`) VALUES ('$procedure','$val')";
     				$res =  $this->db->query($sql);
     			}
 		    }
