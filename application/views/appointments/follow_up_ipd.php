@@ -422,8 +422,7 @@
                </div>
             </div>
 
-            
-        <div class="section-card">
+      <div class="section-card">
    <div class="section-header">
       <i class="fa fa-medkit"></i> Medication Advised Ipd
       <label class="checkbox-enhanced pull-right">
@@ -439,27 +438,28 @@
               <select class="form-control multidselect_dropdown" multiple id="female_medicine_suggestion_list_ipd" name="female_medicine_suggestion_list_ipd[]">
                   <?php 
                   if(!empty($consultation_medicine_ipd)) { 
-                     // [लॉजिक चेंज] आप यहाँ जो मेडिसिन जितनी बार लिखेंगे, वह ड्रॉपडाउन में उतनी ही बार दिखेगी
-                     $allowed_medicines = array(
-                        'IPD_20', 'OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46', // पहली बार
-                        'IPD_20', 'OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46'  // दूसरी बार
-                     );
+                     // मेडिसिन्स का बेस एरे
+                     $base_medicines = array('IPD_20', 'OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46');
                      
-                     // सर्च को आसान बनाने के लिए डेटाबेस डेटा का एक लुकअप बना लेते हैं
+                     // डेटाबेस डेटा का लुकअप
                      $medicine_lookup = array();
                      foreach($consultation_medicine_ipd as $med) {
                          $medicine_lookup[$med['item_number']] = $med['item_name'];
                      }
                      
-                     // अब लूप आपकी अपनी $allowed_medicines लिस्ट पर चलेगा, जिससे डुप्लीकेट नाम भी प्रिंट होंगे
-                     foreach($allowed_medicines as $item_number) { 
-                        if(isset($medicine_lookup[$item_number])) {
-                  ?>
-                     <option value="<?php echo $item_number; ?>" medicine="<?php echo $medicine_lookup[$item_number]; ?>">
-                        <?php echo $medicine_lookup[$item_number]; ?>
-                     </option>
-                  <?php 
-                        } 
+                     // [FIX] लूप को 2 बार चलाएंगे और वैल्यू में '_1' और '_2' जोड़ेंगे ताकि JS उसे अलग-अलग पहचान सके
+                     for ($i = 1; $i <= 2; $i++) {
+                         foreach($base_medicines as $item_number) { 
+                            if(isset($medicine_lookup[$item_number])) {
+                                // यूनिक वैल्यू जैसे: IPD_20_1 या IPD_20_2
+                                $unique_value = $item_number . '_' . $i; 
+                      ?>
+                         <option value="<?php echo $unique_value; ?>" medicine="<?php echo $medicine_lookup[$item_number]; ?>">
+                            <?php echo $medicine_lookup[$item_number]; ?> (Set <?php echo $i; ?>)
+                         </option>
+                      <?php 
+                            } 
+                         }
                      } 
                   } 
                   ?>
