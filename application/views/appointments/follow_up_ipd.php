@@ -436,18 +436,27 @@
          <div class="col-md-12">
             <div class="form-group-enhanced">
                <label><i class="fa fa-female"></i> Patient Medication</label>
-               <select class="form-control multidselect_dropdown" multiple id="female_medicine_suggestion_list_ipd" name="female_medicine_suggestion_list_ipd[]">
+              <select class="form-control multidselect_dropdown" multiple id="female_medicine_suggestion_list_ipd" name="female_medicine_suggestion_list_ipd[]">
                   <?php 
                   if(!empty($consultation_medicine_ipd)) { 
-                     // जिन 5 मेडिसिन को दिखाना है, उनका एक एरे बना लें
-                     $allowed_medicines = array('OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46');
+                     // [लॉजिक चेंज] आप यहाँ जो मेडिसिन जितनी बार लिखेंगे, वह ड्रॉपडाउन में उतनी ही बार दिखेगी
+                     $allowed_medicines = array(
+                        'IPD_20', 'OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46', // पहली बार
+                        'IPD_20', 'OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46'  // दूसरी बार
+                     );
                      
-                     foreach($consultation_medicine_ipd as $key => $val) { 
-                        // चेक करें कि क्या मौजूदा मेडिसिन allowed लिस्ट में है
-                        if(in_array($val['item_number'], $allowed_medicines)) {
+                     // सर्च को आसान बनाने के लिए डेटाबेस डेटा का एक लुकअप बना लेते हैं
+                     $medicine_lookup = array();
+                     foreach($consultation_medicine_ipd as $med) {
+                         $medicine_lookup[$med['item_number']] = $med['item_name'];
+                     }
+                     
+                     // अब लूप आपकी अपनी $allowed_medicines लिस्ट पर चलेगा, जिससे डुप्लीकेट नाम भी प्रिंट होंगे
+                     foreach($allowed_medicines as $item_number) { 
+                        if(isset($medicine_lookup[$item_number])) {
                   ?>
-                     <option value="<?php echo $val['item_number']; ?>" medicine="<?php echo $val['item_name']; ?>">
-                        <?php echo $val['item_name']; ?>
+                     <option value="<?php echo $item_number; ?>" medicine="<?php echo $medicine_lookup[$item_number]; ?>">
+                        <?php echo $medicine_lookup[$item_number]; ?>
                      </option>
                   <?php 
                         } 
@@ -479,7 +488,164 @@
          </div>
       </div>
    </div>
-</div>                 
+</div>
+
+    <!-- Management Section -->
+            <div class="section-card">
+               <div class="section-header">
+                  <i class="fa fa-cogs"></i> Management Advised
+                  <label class="checkbox-enhanced pull-right">
+                  <input type="checkbox" id="procedure_suggestion" value="1" name="procedure_suggestion" />
+                  Enable Management
+                  </label>
+               </div>
+             
+                <div class="section-content">
+        <div class="row">
+            <div class="col-md-6">
+               <label>Only Indian Patient</label>
+                <!--<select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
+                    <?php foreach($procedures as $val) { 
+                        if(isset($val['code_type']) && $val['code_type'] == "india") { ?>
+                            <option value="<?= $val['ID']; ?>"><?= $val['procedure_name']." (".$val['code'].")"; ?></option>
+                    <?php } } ?>
+                </select>-->
+
+<?php
+$patient_id = $patient_data['patient_id'];
+
+// CodeIgniter Query
+$billed_data = $this->db->select('code')
+                        ->where('patient_id', $patient_id)
+                        ->get('hms_patient_procedure')
+                        ->result_array();
+
+$billed_codes = [];
+
+// List of codes you want to ALLOW (not disable even if billed)
+$exclude_from_disabling = ['IP218', 'IP219','IP64'];
+
+if (!empty($billed_data)) {
+    foreach ($billed_data as $row) {
+        $trimmed_code = trim($row['code']);
+        
+        /* Check: Agar code 'IP218' ya 'IP219' array mein NAHI hai, 
+           tabhi use $billed_codes mein daalo (taaki wo disable ho sake).
+        */
+        if (!in_array($trimmed_code, $exclude_from_disabling)) {
+            $billed_codes[] = $trimmed_code;
+        }
+    }
+}
+?>
+<select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
+    <?php 
+    if(!empty($procedures)) {
+        $grouped_procedures = [];
+        foreach($procedures as $val) {
+            if(isset($val['code_type']) && $val['code_type'] == "india") {
+                $p_id = !empty($val['package_id']) ? $val['package_id'] : 'General';
+                $grouped_procedures[$p_id][] = $val;
+            }
+        }
+
+        foreach($grouped_procedures as $package_id => $items) {
+            $label = ($package_id == 'General' || $package_id == 'General Procedure') ? "General Procedures" : "Package Name: " . $package_id;
+            echo '<optgroup label="' . $label . '">';
+            
+            foreach($items as $item) {
+                $current_code = trim($item['code']);
+                
+                $disabled_attr = '';
+                $already_billed_text = '';
+                $style_attr = ''; // Red color ke liye variable
+
+                if (in_array($current_code, $billed_codes)) {
+                    $disabled_attr = 'disabled';
+                    $already_billed_text = ' [ALREADY ADVICES]';
+                    // Red color aur background light grey taaki alag dikhe
+                    $style_attr = 'style="color: red !important; background-color: #ffe6e6;"';
+                }
+                ?>
+                <option value="<?= $item['ID']; ?>" <?= $disabled_attr; ?> <?= $style_attr; ?>>
+                    <?= $item['procedure_name'] . " (" . $current_code . ")" . $already_billed_text; ?>
+                </option>
+                <?php
+            }
+            echo '</optgroup>';
+        }
+    } else {
+        echo '<option disabled>No procedures found</option>';
+    }
+    ?>
+</select>
+
+<style>
+   /* 1. Default browser select ke liye */
+#sub_procedure_suggestion_list option:disabled {
+    color: red !important;
+    background-color: #fff0f0; /* Light red background taaki highlight ho */
+    -webkit-text-fill-color: red; /* Safari/Chrome fix */
+}
+
+/* 2. Agar Select2 Plugin use kar rahe hain (Most likely) */
+.select2-container--default .select2-results__option[aria-disabled=true] {
+    color: red !important;
+    font-weight: bold;
+}
+
+/* 3. Bootstrap Multiselect ke liye */
+.multiselect-container > li.disabled > a > label {
+    color: red !important;
+}
+</style>
+
+
+            </div>
+            <div class="col-md-6">
+               <label style="color:#ff0000;">International Patient</label>
+                <!--<select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
+                    <?php foreach($procedures as $val) { 
+                        if(isset($val['code_type']) && $val['code_type'] == "non-india") { ?>
+                            <option value="<?= $val['ID']; ?>"><?= $val['procedure_name']." (".$val['code'].")"; ?></option>
+                    <?php } } ?>
+                </select>-->
+                <select class="form-control multidselect_dropdown_2" multiple="multiple" id="sub_procedure_suggestion_list" name="sub_procedure_suggestion_list[]" disabled>
+    <?php 
+    if(!empty($procedures)) {
+        // 1. Group the procedures by Package ID in a temporary array
+        $grouped_procedures = [];
+        foreach($procedures as $val) {
+            if(isset($val['code_type']) && $val['code_type'] == "non-india") {
+                $p_id = !empty($val['package_id']) ? $val['package_id'] : 'General';
+                $grouped_procedures[$p_id][] = $val;
+            }
+        }
+
+        // 2. Loop through the grouped array to create the dropdown
+        foreach($grouped_procedures as $package_id => $items) {
+            // Label the group (e.g., Package 1, Package 2)
+            $label = ($package_id == 'General Procedure') ? "General Procedures" : "Package Name: " . $package_id;
+            echo '<optgroup label="' . $label . '">';
+            
+            foreach($items as $item) {
+                ?>
+                <option value="<?= $item['ID']; ?>">
+                    <?= $item['procedure_name']." (".$item['code'].")"; ?>
+                </option>
+                <?php
+            }
+            
+            echo '</optgroup>';
+        }
+    } 
+    ?>
+</select>
+            </div>
+        </div>
+    </div>
+            </div>
+
 
            
             <div class="follow-up-section">
