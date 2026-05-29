@@ -515,7 +515,7 @@
                   <?php 
                   if(!empty($consultation_medicine)) { 
                      // जिन मेडिसिन को छुपाना है, उनका एरे बनाएं (Spouse के लिए भी)
-                     $excluded_medicines = array('OPD_20','OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46');
+                     $excluded_medicines = array('OPD_21', 'OPD_23', 'OPD_35', 'OPD_46');
                      
                      foreach($consultation_medicine as $key => $val) { 
                         // चेक करें कि आइटम excluded लिस्ट में "नहीं" (!) है
