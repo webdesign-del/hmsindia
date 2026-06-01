@@ -1,20 +1,51 @@
 <?php
+    // ==============================================================================
+    // [CRITICAL FIX] $patient_id को व्यू फ़ाइल में डिफाइन और सेफगार्ड करना
+    // ==============================================================================
+    $patient_id = '';
+    
+    // 1. अगर कंट्रोलर से डेटा ऑब्जेक्ट या एरे के रूप में आ रहा है (जैसे $patient->id या $patient_data['id'])
+    if (isset($patient_data['id'])) {
+        $patient_id = $patient_data['id'];
+    } elseif (isset($patient['id'])) {
+        $patient_id = $patient['id'];
+    } 
+    // 2. अगर यूआरएल क्वेरी स्ट्रिंग में मौजूद है (?patient_id=...)
+    elseif (isset($_GET['patient_id'])) {
+        $patient_id = $_GET['patient_id'];
+    } 
+    // 3. CodeIgniter URL Segment से निकालने की कोशिश (जैसे: patients/discharge_summary/123)
+    else {
+        $CI =& get_instance();
+        // यूआरएल के तीसरे या चौथे सेगमेंट में अमूमन आईडी होती है, इसे अपने यूआरएल के हिसाब से एडजस्ट कर सकते हैं
+        $patient_id = $CI->uri->segment(3); 
+    }
+
+    // URL से अपॉइंटमेंट डेट और अपॉइंटमेंट आईडी लें (ताकि हर विजिट ट्रैक हो सके)
     $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+    // हर बार नया फॉर्म बनाने के लिए आपके पास appointment_id या visit_id होना जरूरी है
+    $appointment_id = isset($_GET['appointment_id']) ? $_GET['appointment_id'] : ''; 
 
     // php code to Insert data into mysql database from input text
-    if(isset($_POST['submit'])){
+    if(isset($_POST['submit']) && !empty($patient_id)){
         unset($_POST['submit']);        
 
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `day2_day5_fet_prescription` WHERE iic_id='$iic_id'";
+        // सिर्फ patient_id नहीं, बल्कि इस अपॉइंटमेंट आईडी का डेटा चेक करें 
+        $sql = "SELECT * FROM `day2_day5_fet_prescription` WHERE patient_id='$patient_id' AND appointment_id='$appointment_id'";
         $select_result = run_select_query($sql);
         
         if(!empty($_POST['applicablemedicine']) && isset($_POST['applicablemedicine'])){
              $_POST['applicablemedicine'] = implode(',', $_POST['applicablemedicine']);
         }
         
-        // अगर डेटा नहीं है, तो सिर्फ तभी INSERT करें
+        // अगर इस पर्टिकुलर अपॉइंटमेंट का डेटा नहीं है, तभी INSERT करें
         if(empty($select_result)){
+            
+            // सुनिश्चित करें कि POST एरे में ये वैल्यूज जा रही हैं
+            $_POST['patient_id'] = $patient_id;
+            $_POST['appointment_id'] = $appointment_id;
+            $_POST['created_at'] = date('Y-m-d H:i:s');
+
             // mysql query to insert data
             $query = "INSERT INTO `day2_day5_fet_prescription` SET ";
             $sqlArr = array();
@@ -26,31 +57,61 @@
             $result = run_form_query($query);  
         
             if($result){
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Form saved successfully!').'&t='.base64_encode('success'));
+                header("location:" .$_SERVER['HTTP_REFERER']."&m=".base64_encode('Form saved successfully!').'&t='.base64_encode('success'));
                 die();
             } else {
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+                header("location:" .$_SERVER['HTTP_REFERER']."&m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
                 die();
             }
             
         } else {
-            // अगर डेटा पहले से मौजूद है, तो UPDATE ना करें, बल्कि सीधा वापस भेज दें
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
+            // अगर इस विजिट का डेटा पहले से है, तो डुप्लिकेट एंट्री रोकें
+            header("location:" .$_SERVER['HTTP_REFERER']."&m=".base64_encode('Data for this visit is already saved!').'&t='.base64_encode('error'));
             die();
         }
     }
     
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `day2_day5_fet_prescription` WHERE iic_id='$iic_id'";
-    $select_result = run_select_query($sql);
-    
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
-    $select_result2 = run_select_query($sql2);
-    
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-    $select_result3 = run_select_query($sql3);
+    // फॉर्म में सिर्फ उसी विशिष्ट विजिट/अपॉइंटमेंट का पुराना डेटा दिखाएं
+    if(!empty($patient_id)) {
+        $sql = "SELECT * FROM `day2_day5_fet_prescription` WHERE patient_id='$patient_id' AND appointment_id='$appointment_id'";
+        $select_result = run_select_query($sql);
+        
+        $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+        $select_result2 = run_select_query($sql2);
+        
+        if(!empty($select_result2)) {
+           echo  $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+            $select_result3 = run_select_query($sql3);
+        }
+    } else {
+        $select_result = array();
+    }
 ?>
 <?php 
+    // ==============================================================================
+    // [CRITICAL FIX] नया फॉर्म होने पर सभी एरे डिफ़ॉल्ट्स सेट करना ताकि 'Undefined' एरर न आए
+    // ==============================================================================
+    if (empty($select_result)) {
+        $select_result = array(
+            'ID' => '',
+            'applicablemedicine' => '',
+            'updated_by' => '',
+            'updated_type' => '',
+            'updated_at' => ''
+        );
+    }
+
+    // अगर ऊपर की क्वेरीज़ में ये वेरिएबल्स नहीं बने, तो इन्हें डिफ़ॉल्ट खाली एरे असाइन करें
+    if (!isset($select_result2) || empty($select_result2)) {
+        $select_result2 = array('uhid' => '');
+    }
+    if (!isset($select_result3) || empty($select_result3)) {
+        $select_result3 = array('center_code' => '');
+    }
+
+    // $select_result1 को डेटा असाइन करें
+    $select_result1 = $select_result;
+
     $applicablemedicine = array();
     if(!empty($select_result['applicablemedicine'])){
         $applicablemedicine = explode(',', $select_result['applicablemedicine']);
@@ -62,12 +123,14 @@
 <h3>Please strike out whichever is not applicable</h3>
 
 <form action="" enctype='multipart/form-data' method="post">
-<input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
-<input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
-<input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
-<input type="hidden" name="appointment_id" value="<?php echo $select_result1['ID']; ?>" />
+<input type="hidden" value="<?php echo $updated_by ?? ''; ?>" class="form" name="updated_by">
+<input type="hidden" value="<?php echo $updated_type ?? ''; ?>" class="form" name="updated_type">
+<input type="hidden" value="<?php echo $updated_at ?? ''; ?>" class="form" name="updated_at">
+
+<input type="hidden" name="appointment_id" value="<?php echo !empty($select_result1['appointment_id']) ? $select_result1['appointment_id'] : $appointment_id; ?>" />
+
 <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
-<input type="hidden" value="<?php echo $iic_id; ?>" class="form" name="iic_id">
+<input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
 <table width="100%">
 <tbody>
 <tr style="background: #b3b9b7;">
@@ -77,10 +140,10 @@
   </tr>
 <tr style="background: #b3b9b7;">
 <td colspan="2" width="50%" style="border:1px solid;padding:5px;">
-<strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
+<strong>UHID : <?php echo ($select_result3['center_code'] ?? '')."/".($select_result2['uhid'] ?? ''); ?></strong>
 </td>
 <td colspan="2" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -741,7 +804,7 @@
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="2" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>

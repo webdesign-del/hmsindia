@@ -137,27 +137,24 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <strong>Name of Procedure : Ovum Pickup</strong>
 </td>
 <td colspan="5" width="50%">
- <strong>Date of procedure:  
- <input type="date" class="date_of_procedure" name="date_of_procedure" value="<?php echo isset($select_result['date_of_procedure'])?$select_result['date_of_procedure']:""; ?>">   </strong>
+<strong>Date of procedure:  
+<input type="date" class="date_of_procedure" name="date_of_procedure" value="<?php echo isset($select_result['date_of_procedure'])?$select_result['date_of_procedure']:""; ?>">   </strong>
 </td>
 </tr>
 <tr>
 <td width="100%" colspan="10">
 <label>No. of oocytes retrieved</label><br/><br/> 
-<?php echo isset($select_result['oocytes_retrieved'])?$select_result['oocytes_retrieved']:""; ?>
-<input type="number" class="oocytes_retrieved" name="oocytes_retrieved" value="<?php echo isset($select_result['oocytes_retrieved'])?$select_result['oocytes_retrieved']:""; ?>"></strong>
-<!--
-<textarea name="oocytes_retrieved" style="width:100%; height:80px!important;"> <?php echo isset($select_result['oocytes_retrieved'])?$select_result['oocytes_retrieved']:""; ?></textarea>-->
- </td>
+<textarea name="oocytes_retrieved" style="width:100%; height:80px!important;"> <?php echo isset($select_result['oocytes_retrieved'])?$select_result['oocytes_retrieved']:""; ?></textarea>
+</td>
 </tr>
 
 <tr>
 <td colspan="2" width="20%">
 <p>IVF</p>
 <input type="radio" id="IVF" name="IVF" value="Yes" <?php if(isset($select_result['IVF']) && $select_result['IVF']== "Yes"){ echo "checked";} ?>>
-  <label for="age1">Yes</label><br>
-  <input type="radio" id="IVF" name="IVF" value="No" <?php if(isset($select_result['IVF']) && $select_result['IVF'] == "No"){ echo "checked";} ?>>
-  <label for="age2">No</label><br> 
+<label for="age1">Yes</label><br>
+<input type="radio" id="IVF" name="IVF" value="No" <?php if(isset($select_result['IVF']) && $select_result['IVF'] == "No"){ echo "checked";} ?>>
+<label for="age2">No</label><br> 
 </td>
 
 <td colspan="2" width="20%">

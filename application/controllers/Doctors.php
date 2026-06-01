@@ -3945,61 +3945,6 @@ foreach ($urls as $key => $url) {
 		echo json_encode($html);
 		die;
 	}
-	
-	public function procedure_upload_donor(){
-		$procedure_id = $_POST['procedure_id'];
-		$appointment_id = $_POST['appointment_id'];
-		$patient_id = $_POST['patient_id'];
-        $html = "";
-        
-		$patient_procedure_datas = $this->get_patient_prodedures_data($appointment_id, $patient_id);
-		//var_dump($patient_procedure_datas);die;
-		if(!empty($patient_procedure_datas)){
-		$procedures_forms = get_prodecure_forms($procedure_id);
-		
-		if(count($procedures_forms) > 0){
-		    
-		    foreach($patient_procedure_datas as $ky => $patient_procedure_data)
-		    $count=1;
-			foreach($procedures_forms as $key => $val){
-				$form_details = get_prodecure_form($val['form_id']);
-				if(isset($_SESSION['logged_doctor'])){
-					if($form_details['form_for'] != "lab_procedure"){
-						$check_form_data = check_form_data($patient_id, $patient_procedure_data['receipt_number'], $form_details['form_area']);
-						if(count($check_form_data) == 0){
-							$html .= "<a target='_blank' count='".$count."' href='".base_url('procedure_form_donor/'.$val['form_id'].'/'.$procedure_id.'/'.$appointment_id)."'>".$form_details['form_name']."</a> | ";
-						}else if($form_details['type'] == "multiple"){
-							$html .= "<a target='_blank' count='".$count."' href='".base_url('procedure_form_donor/'.$val['form_id'].'/'.$procedure_id.'/'.$appointment_id)."'>".$form_details['form_name']."</a> | ";
-						}
-					}
-				}if(isset($_SESSION['logged_embryologist'])){
-					if($form_details['form_for'] == "lab_procedure"){
-						$check_form_data = check_form_data($patient_id, $patient_procedure_data['receipt_number'], $form_details['form_area']);
-						if(count($check_form_data) == 0){
-							$html .= "<a target='_blank' count='".$count."' href='".base_url('procedure_form_donor/'.$val['form_id'].'/'.$procedure_id.'/'.$appointment_id)."'>".$form_details['form_name']."</a> | ";
-						}else if($form_details['type'] == "multiple"){
-							$html .= "<a target='_blank' count='".$count."' href='".base_url('procedure_form_donor/'.$val['form_id'].'/'.$procedure_id.'/'.$appointment_id)."'>".$form_details['form_name']."</a> | ";
-						}
-					}
-				}
-				$count++;
-			}
-			
-			$html = substr($html, 0, -3);
-			if(empty($html)){
-				$html = "<p class='error'>NA!</p>   ";
-			}
-		}else{
-			if(empty($html)){
-				$html = "<p class='error'>Procedure Form not assigned!</p>   ";
-			}
-		}
-		}else{
-		   $html = "<p class='error'>Procedure billing disapproved!</p>   ";
-		}
-		echo json_encode($html);
-		die;
-	}
 
 	public function procedure_form($form_id, $procedure_id, $appointment_id, $patient_procedure_id){
 		$logg = checklogin();
@@ -4043,75 +3988,6 @@ foreach ($urls as $key => $url) {
 			$data['procedure_id'] = $procedure_id;
 			$data['appointment_id'] = $appointment_id;
 			$data['patient_procedure_id'] = $patient_procedure_id;
-			$data['patient_id'] = $patient_id;
-			$data['receipt_number'] = $receipt_number;
-			$data['form_name'] = $form_name;
-			$data['form_from'] = isset($_GET['t'])?$_GET['t']:"";
-			
-			$data['updated_by'] = "";
-			$data['updated_type'] = "";
-			$data['updated_at'] = date('Y-m-d H:i:s');
-
-			if(isset($_SESSION['logged_doctor'])){
-				$data['updated_by'] = $_SESSION['logged_doctor']['username'];
-				$data['updated_type'] = "doctor";
-			}else if(isset($_SESSION['logged_embryologist'])){
-				$data['updated_by'] = $_SESSION['logged_embryologist']['username'];
-				$data['updated_type'] = "embryologist";
-			}
-			
-			$template = get_header_template($logg['role']);
-			$this->load->view($template['header']);
-			$this->load->view('doctors/procedure_upload', $data);
-			$this->load->view($template['footer']);
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}
-	
-	
-	public function procedure_form_donor($form_id, $procedure_id, $appointment_id){
-		$logg = checklogin();
-		if($logg['status'] == true){
-			$patient_procedure_data = get_procedure($patient_procedure_id);
-			$patient_id = $patient_procedure_data['patient_id'];
-			$receipt_number = $patient_procedure_data['receipt_number'];
-
-			if(isset($_POST['action']) && !empty($_POST['action']) && $_POST['action']=="prodedure_form"){
-				unset($_POST['action']);
-				if(count($patient_procedure_data) > 0){
-					$_POST['patient_id'] = $patient_id;
-					$_POST['receipt_number'] = $receipt_number;
-					$form_from = $_POST['form_from'];unset($_POST['form_from']);
-					$path = base_url(). "ipd-records/".$patient_id;
-					if($form_from == "lab"){
-						$path = base_url(). "procedure_reports/".$appointment_id;
-					}
-					$form_area = $_POST['form_area']; unset($_POST['form_area']);
-					$insert_form_data = $this->doctors_model->procedure_form_insert($_POST, $form_area);
-					if($insert_form_data > 0){
-						header("location:" .$path."?m=".base64_encode('Procedure uploaded successfully!').'&t='.base64_encode('success'));
-						die();
-					}else{
-						header("location:" .$path."?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
-						die();
-					}
-				}else{
-					header("location:" .$path."?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
-					die();
-				}
-			}
-			
-			$data = array();
-			$form_data = get_prodecure_form($form_id);
-			
-			$form_name = $form_data['form_name'];
-			$form_name = str_replace(" ", "-", $form_name);
-			$data['form_id'] = $form_id;
-			$data['form_name'] = $form_name;
-			$data['procedure_id'] = $procedure_id;
-			$data['appointment_id'] = $appointment_id;
 			$data['patient_id'] = $patient_id;
 			$data['receipt_number'] = $receipt_number;
 			$data['form_name'] = $form_name;
@@ -5753,7 +5629,211 @@ foreach ($urls as $key => $url) {
 			die();
 		}
 	}
+
+	public function my_discharge(){
+		$logg = checklogin();
+		error_reporting(0);
+		if($logg['status'] == true){
+
+			$per_page = $this->input->get('per_page', true);
+			if(empty($per_page)){
+				$per_page = 0;
+			}
+			$wife_name = $this->input->get('wife_name', true);
+			$paitent_id = $this->input->get('paitent_id', true);
+			
+			$config = array();
+        	$config["base_url"] = base_url() . "doctors/my_discharge";
+        	$config["total_rows"] = $this->doctors_model->ipd_data_count($wife_name, $paitent_id);
+        	$config["per_page"] = 50;
+        	$config["uri_segment"] = 2;
+			$config['use_page_numbers'] = true;
+			$config['num_links'] = 5;
+			$config['page_query_string'] = true;
+			$config['reuse_query_string'] = true;
+        	$this->pagination->initialize($config);
+        	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
+			
+        	$data["links"] = $this->pagination->create_links();
+			$data['ipd_data'] = $this->doctors_model->ipd_data_list_patination($config["per_page"], $per_page, $wife_name, $paitent_id);
+			$data["wife_name"] = $wife_name;
+			$data["paitent_id"] = $paitent_id;
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('doctors/my_discharge', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
     
+	public function discharge_upload(){
+		$procedure_id = $_POST['procedure_id'];
+		$appointment_id = $_POST['appointment_id'];
+		$patient_procedure_id = $_POST['patient_procedure_id'];
+		$patient_id = $_POST['patient_id'];
+        $html = "";
+        
+		$patient_procedure_datas = $this->get_patient_prodedures_data($appointment_id, $patient_id);
+		//var_dump($patient_procedure_datas);die;
+		if(!empty($patient_procedure_datas)){
+		$dischagres_forms = get_discharge_forms($procedure_id);
+		
+		if(count($dischagres_forms) > 0){
+		    
+		    foreach($patient_procedure_datas as $ky => $patient_procedure_data)
+		    $count=1;
+			foreach($dischagres_forms as $key => $val){
+				$form_details = get_discharge_form($val['form_id']);
+				//var_dump($form_details['form_area']);die;
+				if(isset($_SESSION['logged_doctor'])){
+					if($form_details['form_for'] != "lab_procedure"){
+						$check_form_discharge_data = check_form_discharge_data($patient_id, $patient_procedure_data['receipt_number'], $form_details['form_area']);
+						if(count($check_form_discharge_data) == 0){
+							$html .= "<a target='_blank' count='".$count."' href='".base_url('discharge_form/'.$val['form_id'].'/'.$procedure_id.'/'.$appointment_id.'/'.$patient_procedure_id)."'>".$form_details['form_name']."</a> | ";
+						}else if($form_details['type'] == "multiple"){
+							$html .= "<a target='_blank' count='".$count."' href='".base_url('discharge_form/'.$val['form_id'].'/'.$procedure_id.'/'.$appointment_id.'/'.$patient_procedure_id)."'>".$form_details['form_name']."</a> | ";
+						}
+					}
+				}
+				if(isset($_SESSION['logged_embryologist'])){
+					if($form_details['form_for'] == "lab_procedure"){
+						$check_form_discharge_data = check_form_discharge_data($patient_id, $patient_procedure_data['receipt_number'], $form_details['form_area']);
+						if(count($check_form_discharge_data) == 0){
+							$html .= "<a target='_blank' count='".$count."' href='".base_url('discharge_form/'.$val['form_id'].'/'.$procedure_id.'/'.$appointment_id.'/'.$patient_procedure_id)."'>".$form_details['form_name']."</a> | ";
+						}else if($form_details['type'] == "multiple"){
+							$html .= "<a target='_blank' count='".$count."' href='".base_url('discharge_form/'.$val['form_id'].'/'.$procedure_id.'/'.$appointment_id.'/'.$patient_procedure_id)."'>".$form_details['form_name']."</a> | ";
+						}
+					}
+				}
+				$count++;
+			}
+			
+			$html = substr($html, 0, -3);
+			if(empty($html)){
+				$html = "<p class='error'>NA!</p>   ";
+			}
+		}else{
+			if(empty($html)){
+				$html = "<p class='error'>Procedure Form not assigned!</p>   ";
+			}
+		}
+		}else{
+		   $html = "<p class='error'>Procedure billing disapproved!</p>   ";
+		}
+		echo json_encode($html);
+		die;
+	}
 	
+	public function check_discharge_form($form_id, $patient_procedure_id, $appointment_id, $procedure_id){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$discharge_form_data = $this->doctors_model->check_discharge_form($form_id, $patient_procedure_id, $procedure_id);
+			if(count($discharge_form_data) > 0){
+				$form_data = get_discharge_form($form_id);
+				$data['form_data'] = $form_data;
+				$data['form_id'] = $form_id;
+				$data['procedure_id'] = $procedure_id;
+				$data['patient_procedure_id'] = $patient_procedure_id;
+				$data['appointment_id'] = $appointment_id;
+				$data['discharge_form_data'] = $discharge_form_data[0];
+				
+				$data['updated_by'] = "";
+    			$data['updated_type'] = "";
+    			$data['updated_at'] = date('Y-m-d H:i:s');
+    
+    			if(isset($_SESSION['logged_doctor'])){
+    				$data['updated_by'] = $_SESSION['logged_doctor']['username'];
+    				$data['updated_type'] = "doctor";
+    			}else if(isset($_SESSION['logged_embryologist'])){
+    				$data['updated_by'] = $_SESSION['logged_embryologist']['username'];
+    				$data['updated_type'] = "embryologist";
+    			}
+			
+				$template = get_header_template($logg['role']);
+				$this->load->view($template['header']);
+				$this->load->view('doctors/check_discharge_form', $data);
+				$this->load->view($template['footer']);	
+			}else{
+				header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Form data not uploaded yet!').'&t='.base64_encode('error'));
+				die();
+			}
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
+
+	public function discharge_form($form_id, $procedure_id, $appointment_id, $patient_procedure_id){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$patient_procedure_data = get_procedure($patient_procedure_id);
+			$patient_id = $patient_procedure_data['patient_id'];
+			$receipt_number = $patient_procedure_data['receipt_number'];
+
+			if(isset($_POST['action']) && !empty($_POST['action']) && $_POST['action']=="discharge_form"){
+				unset($_POST['action']);
+				if(count($patient_procedure_data) > 0){
+					$_POST['patient_id'] = $patient_id;
+					$_POST['receipt_number'] = $receipt_number;
+					$form_from = $_POST['form_from'];unset($_POST['form_from']);
+					$path = base_url(). "discharge-records/".$patient_id."/".$patient_procedure_id;
+					if($form_from == "lab"){
+						$path = base_url(). "procedure_reports/".$appointment_id;
+					}
+					$form_area = $_POST['form_area']; unset($_POST['form_area']);
+					$insert_form_data = $this->doctors_model->procedure_form_insert($_POST, $form_area);
+					if($insert_form_data > 0){
+						header("location:" .$path."?m=".base64_encode('Procedure uploaded successfully!').'&t='.base64_encode('success'));
+						die();
+					}else{
+						header("location:" .$path."?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+						die();
+					}
+				}else{
+					header("location:" .$path."?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+					die();
+				}
+			}
+			
+			$data = array();
+			$form_data = get_discharge_form($form_id);
+			
+			$form_name = $form_data['form_name'];
+			$form_name = str_replace(" ", "-", $form_name);
+			$data['form_id'] = $form_id;
+			$data['form_name'] = $form_name;
+			$data['procedure_id'] = $procedure_id;
+			$data['appointment_id'] = $appointment_id;
+			$data['patient_procedure_id'] = $patient_procedure_id;
+			$data['patient_id'] = $patient_id;
+			$data['receipt_number'] = $receipt_number;
+			$data['form_name'] = $form_name;
+			$data['form_from'] = isset($_GET['t'])?$_GET['t']:"";
+			
+			$data['updated_by'] = "";
+			$data['updated_type'] = "";
+			$data['updated_at'] = date('Y-m-d H:i:s');
+
+			if(isset($_SESSION['logged_doctor'])){
+				$data['updated_by'] = $_SESSION['logged_doctor']['username'];
+				$data['updated_type'] = "doctor";
+			}else if(isset($_SESSION['logged_embryologist'])){
+				$data['updated_by'] = $_SESSION['logged_embryologist']['username'];
+				$data['updated_type'] = "embryologist";
+			}
+			
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('doctors/discharge_upload', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
 
 }

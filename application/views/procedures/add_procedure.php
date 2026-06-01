@@ -106,7 +106,7 @@
                   </select>
                 </div>
                 <div class="form-group col-sm-3 col-xs-6 role">
-                  <label for="item_name">Dischage Form (Required)</label> <br/>
+                  <label for="item_name">Discharge Form (Required)</label> <br/>
                   <select class="form-control multidselect_dropdown_2"  multiple="multiple" name="discharge_form[]">
                   <?php
                       foreach($discharge_forms as $key => $val){

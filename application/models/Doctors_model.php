@@ -1864,6 +1864,78 @@ function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $
         }
 
 	}
+
+		function check_discharge_form($form_id, $patient_procedure_id, $procedure_id){
+
+		$result = array();
+
+		$sql = "Select * from ".$this->config->item('db_prefix')."discharge_forms where ID='$form_id'";
+
+        $q = $this->db->query($sql);
+
+        $result = $q->result_array();
+
+        if (!empty($result))
+
+        {
+
+			$form_area = $result[0]['form_area'];
+
+			$prod_result = array();
+
+			$prod_sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where ID='$patient_procedure_id'";
+
+			
+
+			$prod_q = $this->db->query($prod_sql);
+
+			$prod_result = $prod_q->result_array();
+
+			if (!empty($prod_result))
+
+			{
+
+				$patient_id = $prod_result[0]['patient_id'];
+
+				$receipt_number = $prod_result[0]['receipt_number'];
+
+
+
+				$form_result = array();
+
+				$form_sql = "Select * from ".strtolower($form_area)." where patient_id='$patient_id' and receipt_number='$receipt_number' and procedure_id='$procedure_id'";
+
+				
+
+				$form_q = $this->db->query($form_sql);
+
+				$form_result = $form_q->result_array();
+
+				if (!empty($form_result))
+
+				{
+
+					return $form_result;
+
+				}else{
+
+					return $form_result;
+
+				}
+
+			}else{
+
+				return $prod_result;
+
+			}
+
+        }else{
+
+			return $result;
+
+		}
+
+	}
 		
 }
 

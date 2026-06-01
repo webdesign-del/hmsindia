@@ -132,7 +132,7 @@
         </ul>
       </li>
 	<?php if($_SESSION['logged_billing_manager']['username'] == "iicmeddoggn@indiaivf.in"){?>
-		<li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Dischage Summary<span class="fa arrow"></span></a>
+		<li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Discharge Summary<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>patients/embryo_freezing">Embryo Freezing</a> </li>
 		  <li> <a href="<?php echo base_url(); ?>patients/opu">OPU</a> </li>

@@ -1905,7 +1905,7 @@ function approve_procedure($ID) {
         
         $res_arr = array();
 	    foreach($res as $rs){
-	        $sql = "SELECT id, iic_id, updated_by, updated_at, appoitmented_date, updated_type FROM `".$rs['db_name']."` WHERE iic_id='".$patient_id."'";
+	        $sql = "SELECT id, patient_id, updated_by, updated_at, appoitmented_date, updated_type FROM `".$rs['db_name']."` WHERE patient_id='".$patient_id."'";
             $q = $this->db->query($sql);
             $result = $q->result_array();
             if(!empty($result)){
@@ -4121,6 +4121,27 @@ public function generate_advance_receipt_number() {
 			$conditions .= " and on_date='$end_date'";
 		}
 		$medicine_sql = "SELECT sum(`payment_done`) as payment_done, sum(`discount_amount`) as discount_amount from ".$this->config->item('db_prefix')."patient_medicine where status='approved' AND stutus_type='0' AND 1".$conditions;
+		$medicine_q = $this->db->query($medicine_sql);
+		$medicine_payment = $medicine_q->result_array();
+		return $medicine_payment;
+	}
+
+	function dashboard_medicine_sale_payment($center, $start_date, $end_date){
+		$medicine_payment = array();
+		$conditions = '';
+		if (!empty($center)){
+			$conditions .= " and billing_at='$center'";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			$conditions .= " and sale_date between '".$start_date."' AND '".$end_date."' ";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$conditions .= " and sale_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$conditions .= " and sale_date='$end_date'";
+		}
+		$medicine_sql = "SELECT sum(`total_amount`) as payment_done, sum(`discount_amount`) as discount_amount, sum(`subtotal`) as subtotal from sales where accountant_approval_status='approved' AND 1".$conditions;
 		$medicine_q = $this->db->query($medicine_sql);
 		$medicine_payment = $medicine_q->result_array();
 		return $medicine_payment;

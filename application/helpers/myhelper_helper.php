@@ -3753,6 +3753,34 @@ function get_prodecure_forms($procedure){
 
 }
 
+function get_discharge_forms($procedure){
+
+    $ci= &get_instance();
+
+    $ci->load->database();
+
+    $db_prefix = $ci->config->config['db_prefix'];
+
+    
+
+    $sql = "SELECT * FROM  ".$db_prefix."dischargeform_relationship	 WHERE procedure_id  = '".$procedure."'";
+
+    $q   = $ci->db->query($sql);
+
+    $result = $q->result_array();
+
+    if(count($result) > 0)
+
+    {
+
+	    return $result;
+
+    }
+
+    return $result;
+
+}
+
 function get_procedure_package_id($procedure){
 
     $ci= &get_instance();
@@ -3792,6 +3820,34 @@ function get_prodecure_form($form_id){
     
 
     $sql = "SELECT * FROM  ".$db_prefix."procedure_forms WHERE ID  = '".$form_id."'";
+
+    $q   = $ci->db->query($sql);
+
+    $result = $q->result_array();    
+
+    if(count($result) > 0)
+
+    {
+
+	    return $result[0];
+
+    }
+
+    return $result;
+
+}
+
+function get_discharge_form($form_id){
+
+    $ci= &get_instance();
+
+    $ci->load->database();
+
+    $db_prefix = $ci->config->config['db_prefix'];
+
+    
+
+    $sql = "SELECT * FROM  ".$db_prefix."discharge_forms WHERE ID  = '".$form_id."'";
 
     $q   = $ci->db->query($sql);
 
@@ -4306,6 +4362,32 @@ function procedure_form_data($form_name, $patient_id, $receipt_number){
 }
 
 
+function discharge_form_data($form_name, $patient_id, $receipt_number){
+
+    $ci = &get_instance();
+
+    $ci->load->database();
+
+    $db_prefix = $ci->config->config['db_prefix'];
+
+	$sql = "SELECT * FROM ".$form_name." WHERE receipt_number = '".$receipt_number."' and patient_id='".$patient_id."' order by id desc limit 1";
+
+	$q = $ci->db->query($sql);
+
+	$result = $q->result_array();
+
+	if(count($result) > 0)
+
+	{
+
+        return $result[0];
+
+	}
+
+	return $result;
+
+}
+
 
 function get_converstion_rate()
 
@@ -4452,11 +4534,7 @@ function check_billing_status($patient_id, $receipt_number, $type){
 
 }
 
-
-
 function check_form_data($patient_id, $receipt_number, $form_area){
-
-    
 
     $ci = &get_instance();
 
@@ -4466,11 +4544,7 @@ function check_form_data($patient_id, $receipt_number, $form_area){
 
     $result = array();
 
-
-
     $sql = "Select * from ".$form_area." where patient_id='".$patient_id."' and receipt_number='".$receipt_number."' and status!='disapproved' order by id desc limit 1";
-
-    
 
     $qry = $ci->db->query($sql);
 
@@ -4486,7 +4560,33 @@ function check_form_data($patient_id, $receipt_number, $form_area){
 
     }
 
-    
+}
+
+function check_form_discharge_data($patient_id, $receipt_number, $form_area){
+
+    $ci = &get_instance();
+
+    $ci->load->database();
+
+    $db_prefix = $ci->config->config['db_prefix'];
+
+    $result = array();
+
+    $sql = "Select * from ".$form_area." where patient_id='".$patient_id."' and receipt_number='".$receipt_number."' and status!='disapproved' order by id desc limit 1";
+
+    $qry = $ci->db->query($sql);
+
+    $result = $qry->result_array();
+
+    if(!empty($result)){
+
+        return $result;
+
+    }else{
+
+        return $result;
+
+    }
 
 }
 
@@ -4505,6 +4605,36 @@ function have_form($procedure_id, $type){
     $result = array();
 
     $sql = "Select * from ".$db_prefix."form_relationship where  procedure_id='".$procedure_id."' ".$condition."";
+
+    $q = $ci->db->query($sql);
+
+    $result = $q->result_array();
+
+    if(count($result) > 0){
+
+        return true;
+
+    }else{
+
+        return false;
+
+    }
+
+}
+
+function have_discharge_form($procedure_id, $type){
+
+    $ci = &get_instance();
+
+    $ci->load->database();
+
+    $db_prefix = $ci->config->config['db_prefix'];
+
+    $condition = "";
+
+    $result = array();
+
+    $sql = "Select * from ".$db_prefix."dischargeform_relationship where  procedure_id='".$procedure_id."' ".$condition."";
 
     $q = $ci->db->query($sql);
 
@@ -4556,7 +4686,35 @@ function have_procedure_assign($procedure_id, $type){
 
 }
 
+function have_discharge_assign($procedure_id, $type){
 
+    $ci = &get_instance();
+
+    $ci->load->database();
+
+    $db_prefix = $ci->config->config['db_prefix'];
+
+    $return = false;
+
+    $result = array();
+
+    $sql = "SELECT * FROM `".$db_prefix."dischargeform_relationship` RIGHT JOIN `".$db_prefix."discharge_forms` ON ".$db_prefix."dischargeform_relationship.form_id = ".$db_prefix."discharge_forms.ID WHERE ".$db_prefix."dischargeform_relationship.procedure_id = '".$procedure_id."' and ".$db_prefix."discharge_forms.form_for='".$type."'";
+
+    $q = $ci->db->query($sql);
+
+    $result = $q->result_array();
+
+    if(count($result) > 0){
+
+        return true;
+
+    }else{
+
+       return $return;
+
+    }
+
+}
 
 function patient_balance($patient_id){
 		$ci = &get_instance();

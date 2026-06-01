@@ -152,7 +152,7 @@ if (isset($_SESSION['logged_viewer']['username']) && in_array($_SESSION['logged_
 		</ul>
       </li>
 	
-		<li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Dischage Summary<span class="fa arrow"></span></a>
+		<li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Discharge Summary<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
       <li> <a href="<?php echo base_url(); ?>patients/embryo_freezing">Embryo Freezing</a> </li>
 		  <li> <a href="<?php echo base_url(); ?>patients/embryo_pesa">Embryo Pesa Tese</a> </li>

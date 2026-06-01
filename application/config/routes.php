@@ -242,10 +242,6 @@ $route['procedure_form/(:any)/(:any)/(:any)/(:any)'] = 'doctors/procedure_form/$
 
 $route['check_procedure_form/(:any)/(:any)/(:any)/(:any)'] = 'doctors/check_procedure_form/$1/$2/$3/$4';
 
-$route['procedure_form_donor/(:any)/(:any)/(:any)'] = 'doctors/procedure_form_donor/$1/$2/$3';
-
-$route['check_procedure_form_donor/(:any)/(:any)/(:any)'] = 'doctors/check_procedure_form_donor/$1/$2/$3';
-
 $route['my-reports/(:any)/(:any)'] = 'doctors/lab_reports/$1/$2';
 
 $route['procedure_report_status/(:any)/(:any)/(:any)/(:any)'] = 'doctors/procedure_report_status/$1/$2/$3/$4';
@@ -507,3 +503,11 @@ $route['accounts/generate_final_bill/(:num)'] = 'accounts/generate_final_bill/$1
 $route['accounts/check_final_billing_eligibility'] = 'accounts/check_final_billing_eligibility';
 $route['accounts/search_patients_for_final_billing'] = 'accounts/search_patients_for_final_billing';
 $route['accounts/get_patient_procedure_details'] = 'accounts/get_patient_procedure_details';
+
+$route['my_discharge'] = 'doctors/my_discharge';
+$route['discharge-records/(:any)/(:any)'] = 'patients/patient_discharge_records/$1/$2';
+
+$route['discharge_form/(:any)/(:any)/(:any)/(:any)'] = 'doctors/discharge_form/$1/$2/$3/$4';
+$route['check_discharge_form/(:any)/(:any)/(:any)/(:any)'] = 'doctors/check_discharge_form/$1/$2/$3/$4';
+
+$route['discharge_upload/(:any)/(:any)'] = 'doctors/discharge_upload/$1/$2';

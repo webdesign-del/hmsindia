@@ -1,6 +1,5 @@
 <?php 
 $all_method =& get_instance();
-$appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
@@ -118,13 +117,13 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     }
     
     // फॉर्म में डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `iui_discharge_summary` WHERE iic_id='$iic_id'";
+    $sql = "SELECT * FROM `iui_discharge_summary` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
-    $sql4 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id=$iic_id";
+    $sql4 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id=$patient_id";
     $select_result4 = run_select_query($sql4);
     
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
+    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
     $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
@@ -133,7 +132,10 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     $sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
     $select_result5 = run_select_query($sql5); 
 
-    $select_iui = "SELECT * FROM `intrauterine` WHERE patient_id='$iic_id'";
+    $sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+    $patient_data = run_select_query($sql_data); 
+
+    $select_iui = "SELECT * FROM `intrauterine` WHERE patient_id='$patient_id'";
     $select_result_iui = run_select_query($select_iui); 
 
     // 2. Define the 'is_complete' flag based on the result
@@ -150,9 +152,8 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
   <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
   <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
   <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
-  <input type="hidden" value="<?php echo $iic_id;?>" class="form" name="iic_id">
-  <input type="hidden" name="appointment_id" value="<?php echo $select_result1['ID']; ?>" />
-  <input type="hidden" value="<?php echo $patient_data['center_id']; ?>" class="form" name="center">
+  <input type="hidden" value="<?php echo $patient_id;?>" class="form" name="patient_id">
+  <input type="hidden" value="<?php echo $select_result5['center_id']; ?>" class="form" name="center">
   <input type="hidden" value="<?php echo $patient_data['wife_name']; ?>" class="form" name="wife_name">
   <input type="hidden" value="<?php echo $patient_data['wife_phone']; ?>" class="form" name="wife_phone">
   <input type="hidden" value="<?php echo $patient_data['husband_name']; ?>" class="form" name="husband_name">
@@ -162,7 +163,6 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_l']; ?>" class="form" name="female_pregnancy_other_l">
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_a']; ?>" class="form" name="female_pregnancy_other_a">
   <input type="hidden" value="<?php echo $select_result4['details_management_advised']; ?>" class="form" name="details_management_advised">
-  <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
   <?php if ($is_complete): ?>
     <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
     
@@ -253,7 +253,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>

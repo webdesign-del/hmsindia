@@ -157,6 +157,27 @@
             <?php } ?>
         </tr>
     </tbody>
+     <tbody id="partial_payment">
+        <tr>
+            <td>New Medicine</td>
+            <?php 
+            $medicine_net = 0;
+            $medicine_receive = 0;
+            $medicine_total = 0;
+            $medicine_discount = 0;
+            foreach($medicine_sale_payment as $ky => $vl){
+                $medicine_net += round($vl['subtotal'] - $vl['discount_amount'],2);
+                $medicine_receive += round($vl['payment_done'],2);
+                $medicine_total += round($vl['fees'],2);
+                $medicine_discount += round($vl['discount_amount'],2);
+            ?>
+            <td><?php echo round($vl['subtotal'],2); ?></td>
+            <td><?php echo round($vl['discount_amount'],2); ?></td>
+            <td><?php echo round($vl['subtotal'] - $vl['discount_amount'],2); ?></td>
+            <td><?php echo round($vl['payment_done'],2); ?></td>
+            <?php } ?>
+        </tr>
+    </tbody>
     <tbody id="registration">
         <tr>
             <td>Registration</td>

@@ -1035,6 +1035,20 @@ class Patients extends CI_Controller {
     }
 }
 
-
+	public function patient_discharge_records($patient_id, $appointment_id){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();			
+			$data['patient_id'] = $patient_id;	
+			$data['appointment_id'] = $appointment_id;			
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('patients/patient_discharge_records', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
 
 }

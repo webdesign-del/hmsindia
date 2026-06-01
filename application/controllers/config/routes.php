@@ -246,3 +246,7 @@ $route['doctors'] = 'doctors/consent_form_for_withdrawal';
 $route['doctors'] = 'doctors/screening_of_the_surrogate';
 
 $route['doctors'] = 'doctors/acknowledgment';
+
+$route['my_discharge'] = 'doctors/my_discharge';
+
+$route['discharge-records/(:any)/(:any)'] = 'patients/patient_discharge_records/$1/$2';

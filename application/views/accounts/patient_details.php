@@ -26,7 +26,7 @@
    <button class="btn btn-primary" onclick="window.history.go(-1)">Back</button>
    <div  style="text-align:center;">
       <form method="get" action="<?= base_url('/');?>patients/discharge_summary">
-         <input type="hidden" name="iic_id" value="<?php echo $data['patient_id']; ?>">
+         <input type="hidden" name="patient_id" value="<?php echo $data['patient_id']; ?>">
          <input type="hidden" name="appoitmented_date" value="<?php echo $appoitmented_date; ?>">
          <Select name="discharge" style="display: inline; width:300px;" >
             <option value="0"> Select Details </option>
@@ -261,16 +261,16 @@
          <tbody>
             <?php if(!empty($patient_discharge)){ ?>
             <?php foreach($patient_discharge as $ky => $val){
-               $patient_infor = get_patient_detail($val['iic_id']);
+               $patient_infor = get_patient_detail($val['patient_id']);
                $employee_infor = employee_detail_number($val['updated_by']);
                // var_dump($val);die;
                ?>
             <tr class="odd gradeX">
-               <td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;" class="role"><?php echo $val['iic_id']; ?></td>
+               <td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;" class="role"><?php echo $val['patient_id']; ?></td>
                <td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;" class="role"><?php echo $patient_infor['wife_name']; ?></td>
                <td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;" class="role"><?php echo str_replace("_", " ", $val['form_name']); ?></td>
                <td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;" class="role"><?php echo $val['updated_at']; ?></td>
-               <td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;" class="role"><a href="<?php echo base_url(); ?>patient-discharge/<?php echo $val['id']; ?>/<?php echo $val['iic_id']; ?>/<?php echo $val['form_id']; ?>?appoitmented_date=<?php echo $val['appoitmented_date']; ?>">Details</a></td>
+               <td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;" class="role"><a href="<?php echo base_url(); ?>patient-discharge/<?php echo $val['id']; ?>/<?php echo $val['patient_id']; ?>/<?php echo $val['form_id']; ?>?appoitmented_date=<?php echo $val['appoitmented_date']; ?>">Details</a></td>
             </tr>
             <?php } ?>
             <?php } ?>
@@ -469,7 +469,7 @@
    $(document).on('click',".sendfollowwhatsapp",function(e) {
        var printing_id = $(this).attr('printid');
        
-       var data = {'iic_id':<?php echo $data['patient_id']; ?>, 'html': $("#"+printing_id).html()};
+       var data = {'patient_id':<?php echo $data['patient_id']; ?>, 'html': $("#"+printing_id).html()};
        $('span.'+printing_id).hide();
    	$.ajax({
    		url: '<?php echo base_url('accounts/prephtmltopdf')?>',
@@ -490,7 +490,7 @@
    
    function sendonwhatsapp() 
    {
-       var data = {'iic_id':<?php echo $data['patient_id']; ?>, 'html': $("#print_this_section").html()};
+       var data = {'patient_id':<?php echo $data['patient_id']; ?>, 'html': $("#print_this_section").html()};
        $('#whatsappmessg').hide();
    	$.ajax({
    		url: '<?php echo base_url('accounts/prephtmltopdf')?>',

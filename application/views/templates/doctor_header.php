@@ -92,6 +92,7 @@ ul.nav.nav-second-level.collapse.in li {
       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Patients<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
           <li> <a href="<?php echo base_url(); ?>my_ipd">My IPD</a> </li>
+          <li> <a href="<?php echo base_url(); ?>my_discharge">My Discharge</a> </li>
           <li> <a href="<?php echo base_url(); ?>my_reports">My Reports</a> </li>    
           <!-- <li> <a href="<?php echo base_url(); ?>check_reports">Check reports</a> </li> -->
         </ul>

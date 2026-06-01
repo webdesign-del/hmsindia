@@ -2851,10 +2851,9 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-05-01'
+	AND s.sale_date > '2026-04-30'
 ORDER BY s.updated_at DESC 
-LIMIT 700
-    ";
+LIMIT 700";
     
 	// Change result_array() to row_array()
 	// 1. Change back to result_array() to handle all 50 potential records
@@ -3546,7 +3545,7 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-05-01'
+	AND s.sale_date > '2026-04-30'
 ORDER BY s.updated_at DESC 
 LIMIT 800
     ";
@@ -4255,7 +4254,7 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-05-01'
+	AND s.sale_date > '2026-04-30'
 ORDER BY s.updated_at ASC 
 LIMIT 700";
     
@@ -6413,6 +6412,7 @@ public function financial_clearance_details($receipt = null) {
 			$data['partial_payment_investigation'] = $this->accounts_model->dashboard_partial_payment_investigation($center, $start_date, $end_date);
 			$data['registration_payment'] = $this->accounts_model->dashboard_registration_payment($center, $start_date, $end_date);
 			$data['medicine_payment'] = $this->accounts_model->dashboard_medicine_payment($center, $start_date, $end_date);
+			$data['medicine_sale_payment'] = $this->accounts_model->dashboard_medicine_sale_payment($center, $start_date, $end_date);
 			$data['medicine_return'] = $this->accounts_model->dashboard_medicine_return($center, $start_date, $end_date);
 			$data['product_advisory'] = $this->accounts_model->dashboard_product_advisory($start_date, $end_date);
 			$data['fellowship_training'] = $this->accounts_model->dashboard_fellowship_training($start_date, $end_date);
