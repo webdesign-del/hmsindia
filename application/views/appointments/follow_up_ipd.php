@@ -434,38 +434,39 @@
       <div class="row">
          <div class="col-md-12">
             <div class="form-group-enhanced">
-               <label><i class="fa fa-female"></i> Patient Medication</label>
-              <select class="form-control multidselect_dropdown" multiple id="female_medicine_suggestion_list_ipd" name="female_medicine_suggestion_list_ipd[]">
-                  <?php 
-                  if(!empty($consultation_medicine_ipd)) { 
-                     // मेडिसिन्स का बेस एरे
-                     $base_medicines = array('IPD_20', 'OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46');
-                     
-                     // डेटाबेस डेटा का लुकअप
-                     $medicine_lookup = array();
-                     foreach($consultation_medicine_ipd as $med) {
-                         $medicine_lookup[$med['item_number']] = $med['item_name'];
-                     }
-                     
-                     // [FIX] लूप को 2 बार चलाएंगे और वैल्यू में '_1' और '_2' जोड़ेंगे ताकि JS उसे अलग-अलग पहचान सके
-                     for ($i = 1; $i <= 2; $i++) {
-                         foreach($base_medicines as $item_number) { 
-                            if(isset($medicine_lookup[$item_number])) {
-                                // यूनिक वैल्यू जैसे: IPD_20_1 या IPD_20_2
-                                $unique_value = $item_number . '_' . $i; 
-                      ?>
-                         <option value="<?php echo $unique_value; ?>" medicine="<?php echo $medicine_lookup[$item_number]; ?>">
-                            <?php echo $medicine_lookup[$item_number]; ?> (Set <?php echo $i; ?>)
-                         </option>
-                      <?php 
-                            } 
-                         }
-                     } 
-                  } 
-                  ?>
-                  <option value="0" medicine="NA">NA</option>
-               </select>
-            </div>
+   <label><i class="fa fa-female"></i> Patient Medication</label>
+   <select class="form-control multidselect_dropdown" multiple id="female_medicine_suggestion_list_ipd" name="female_medicine_suggestion_list_ipd[]">
+      <?php 
+      if(!empty($consultation_medicine_ipd)) { 
+         // मेडिसिन्स का बेस एरे
+         $base_medicines = array('IPD_20', 'OPD_21', 'OPD_23', 'OPD_35', 'OPD_44', 'OPD_46');
+         
+         // डेटाबेस डेटा का लुकअप
+         $medicine_lookup = array();
+         foreach($consultation_medicine_ipd as $med) {
+             $medicine_lookup[$med['item_number']] = $med['item_name'];
+         }
+         
+         // लूप को 2 बार चलाएंगे लेकिन वैल्यू सिर्फ बेस कोड ही रहेगी (जैसे: IPD_20)
+         for ($i = 1; $i <= 2; $i++) {
+             foreach($base_medicines as $item_number) { 
+                if(isset($medicine_lookup[$item_number])) {
+                    
+                    // [CHANGED] अब $unique_value की जगह सीधे $item_number का इस्तेमाल किया है
+                    $clean_value = $item_number; 
+          ?>
+             <option value="<?php echo $clean_value; ?>" medicine="<?php echo $medicine_lookup[$item_number]; ?>">
+                <?php echo $medicine_lookup[$item_number]; ?> (Set <?php echo $i; ?>)
+             </option>
+          <?php 
+                } 
+             }
+         } 
+      } 
+      ?>
+      <option value="0" medicine="NA">NA</option>
+   </select>
+</div>
             
             <div class="table-responsive">
                <table id="female_medicine_table_ipd" class="table table-bordered medicine-table" style="display:none;">
@@ -1641,19 +1642,26 @@ $(document).ready(function() {
         }
     });
 
-    // ==============================================================================
+   // ==============================================================================
     // CRITICAL FIXED AUTO-TRIGGER: Page load hone par dynamic rows generate karne ke liye
     // ==============================================================================
     setTimeout(function() {
         var ipdSelect = $('#female_medicine_suggestion_list_ipd');
-        // Agar select block null nahi hai aur isme pre-selected values ('OPD_44', 'OPD_46') hain
-        if (ipdSelect.val() !== null && ipdSelect.val().length > 0) {
-            // Forcefully change trigger execute karein taaki data rows populate ho jayein
-            ipdSelect.trigger('change');
+        
+        // Check करें कि क्या ड्रॉपडाउन एलिमेंट DOM में मौजूद है
+        if (ipdSelect.length > 0) {
             
-            // Multiselect UI update karne ke liye refresh hit karein
-            if (typeof ipdSelect.multiselect === 'function') {
-                ipdSelect.multiselect('refresh');
+            // ऑप्शंस के अंदर सिलेक्टेड एलिमेंट्स को सीधे ट्रैक करें (val() के डुप्लिकेट रिस्क से बचने के लिए)
+            var selectedOptions = ipdSelect.find('option:selected');
+            
+            if (selectedOptions.length > 0) {
+                // Forcefully change trigger execute karein taaki clean data rows populate ho jayein
+                ipdSelect.trigger('change');
+                
+                // Multiselect UI update karne ke liye refresh hit karein
+                if (typeof ipdSelect.multiselect === 'function') {
+                    ipdSelect.multiselect('refresh');
+                }
             }
         }
     }, 400); // 400ms delay taaki dropdown plugin core successfully init ho sake
