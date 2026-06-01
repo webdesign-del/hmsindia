@@ -389,10 +389,10 @@ class Patients extends CI_Controller {
 			$data['updated_type'] = "";
 			$data['updated_at'] = date('Y-m-d H:i:s');
 
-			$iic_id = $_GET['iic_id'];
+			$patient_id = $_GET['patient_id'];
    			$form_id = $_GET['discharge'];
-   			$data['iic_id'] = $iic_id;
-   			$data['form_id'] = $form_id;
+   			$data['patient_id'] = $patient_id;
+   			$data['form_id'] = $patient_id;
 
 			$formname = $this->patients_model->get_discharge_form($form_id);
 
