@@ -1,52 +1,89 @@
 <?php 
-$all_method =& get_instance();
-$appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+    $all_method =& get_instance();
+    $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+
+    // ==============================================================================
+    // [FIX 1] $patient_id को सुरक्षित तरीके से डिफाइन करना (ताकि Undefined Error न आए)
+    // ==============================================================================
+    $patient_id = '';
+    if (isset($patient_data['id'])) {
+        $patient_id = $patient_data['id'];
+    } elseif (isset($patient['id'])) {
+        $patient_id = $patient['id'];
+    } elseif (isset($_GET['patient_id'])) {
+        $patient_id = $_GET['patient_id'];
+    } else {
+        $CI =& get_instance();
+        $patient_id = $CI->uri->segment(3); 
+    }
 
     // php code to Insert data into mysql database from input text
-    if(isset($_POST['submit'])){
+    if(isset($_POST['submit']) && !empty($patient_id)){
         unset($_POST['submit']);
   
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `embryology_discharge_summary` WHERE iic_id='$iic_id'";
+        // चेक करें कि क्या इस patient_id का डेटा पहले से मौजूद है
+        $sql = "SELECT * FROM `embryology_discharge_summary` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
        
-        // अगर डेटा मौजूद नहीं है, सिर्फ तभी INSERT करें
+        $sqlArr = array(); // [CRITICAL FIX] लूप से पहले एरे को डिक्लेयर करें
+
         if(empty($select_result)){
-            // mysql query to insert data
+            // INSERT Query: नया रिकॉर्ड बनाने के लिए
+            $_POST['patient_id'] = $patient_id;
+            $_POST['created_at'] = date('Y-m-d H:i:s');
+
             $query = "INSERT INTO `embryology_discharge_summary` SET ";
-            $sqlArr = array();
             foreach($_POST as $key => $value) {
               $sqlArr[] = " `$key` = '".addslashes($value)."'";
             }   
             $query .= implode(',' , $sqlArr);
             
-            $result = run_form_query($query); 
-        
-            if($result){
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
-                die();
-            } else {
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-                die();
-            }
-            
         } else {
-            // अगर डेटा पहले से मौजूद है, तो UPDATE ना करें, बल्कि सीधा एरर मैसेज के साथ रिडायरेक्ट करें
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
+            // UPDATE Query: [FIXED] डेटा लॉक करने के बजाय सुरक्षित तरीके से अपडेट करने के लिए
+            $query = "UPDATE `embryology_discharge_summary` SET ";
+            foreach($_POST as $key => $value) {
+                $sqlArr[] = " `$key` = '".addslashes($value)."'";
+            }
+            $query .= implode(',' , $sqlArr);
+            $query .= " WHERE patient_id='$patient_id'";
+        }
+
+        $result = run_form_query($query); 
+    
+        if($result){
+            $redirect_url = strtok($_SERVER['HTTP_REFERER'], '?');
+            header("location:" .$redirect_url."?patient_id=".$patient_id."&m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
+            die();
+        } else {
+            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
             die();
         }
     }
   
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `embryology_discharge_summary` WHERE iic_id='$iic_id'";
-    $select_result = run_select_query($sql);
-  
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
-    $select_result2 = run_select_query($sql2);
-  
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-    $select_result3 = run_select_query($sql3);
-     
+    // ==============================================================================
+    // VIEW / PRINT MODE LOGIC: पुराना डेटा सुरक्षित दिखाने के लिए
+    // ==============================================================================
+    $select_result = array();
+    $select_result2 = array('appoitment_for' => '', 'uhid' => '');
+    $select_result3 = array('center_code' => '');
+
+    if (!empty($patient_id)) {
+        // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ patient_id से फेच करें
+        $sql = "SELECT * FROM `embryology_discharge_summary` WHERE patient_id='$patient_id'";
+        $select_result = run_select_query($sql);
+      
+        $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+        $res2 = run_select_query($sql2);
+        if(!empty($res2)) {
+            $select_result2 = $res2;
+            
+            $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
+            $res3 = run_select_query($sql3);
+            if(!empty($res3)) { 
+                $select_result3 = $res3; 
+            }
+        }
+    }
 ?>
 <div class="ga-pro">
 <table class="fg45yu">
@@ -55,7 +92,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </table>
     
 <form action="" enctype='multipart/form-data' method="post">
-  <input type="hidden" value="<?php echo $iic_id;?>" class="form" name="iic_id">
+  <input type="hidden" value="<?php echo $patient_id;?>" class="form" name="patient_id">
   <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
   <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
   <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
@@ -102,7 +139,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="6" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -289,7 +326,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="6" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
