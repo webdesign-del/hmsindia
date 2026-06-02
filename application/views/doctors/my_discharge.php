@@ -5,7 +5,7 @@
 		 <div class="row card-content" style="margin-bottom:20px;">
       <div class="col-md-12"><h3>My Discharge</h3></div>
       <div class="clearfix"></div>
-	    <form action="<?php echo base_url().'doctors/my_ipd'; ?>" method="get">
+	    <form action="<?php echo base_url().'doctors/my_discharge'; ?>" method="get">
 			<div class="col-sm-3 col-xs-12" style="margin-top:10px;">
             	<label>Patient Name </label>
                 <input type="text" class="form-control" id="wife_name" name="wife_name" value="<?php echo $wife_name;?>" />
