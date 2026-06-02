@@ -1,65 +1,84 @@
 <?php
-    $id = isset($_GET['id']) ? $_GET['id'] : '';
-    $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
-
+$id = $_GET['id'];
+$appoitmented_date = $_GET['appoitmented_date'];
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);   
         
-        // Convert arrays to comma-separated strings safely
         if(!empty($_POST['physical_examination']) && isset($_POST['physical_examination'])){
             $_POST['physical_examination'] = implode(',', $_POST['physical_examination']);
         }
         if(!empty($_POST['applicablemedicine']) && isset($_POST['applicablemedicine'])){
              $_POST['applicablemedicine'] = implode(',', $_POST['applicablemedicine']);
         }
-        if(!empty($_POST['Agglutination']) && isset($_POST['Agglutination'])){
+		if(!empty($_POST['Agglutination']) && isset($_POST['Agglutination'])){
              $_POST['Agglutination'] = implode(',', $_POST['Agglutination']);
         }
-        if(!empty($_POST['Debris']) && isset($_POST['Debris'])){
+		if(!empty($_POST['Debris']) && isset($_POST['Debris'])){
              $_POST['Debris'] = implode(',', $_POST['Debris']);
         }
+		
 
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `semen_analysis` WHERE iic_id='$iic_id'";
-        $select_result = run_select_query($sql);
-        
-        // अगर डेटा नहीं है, तो सिर्फ तभी INSERT करें
+    if (!empty($appoitmented_date)) {
+			$sql = "SELECT * FROM `semen_analysis` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
+	} else {
+			$sql = "SELECT * FROM `semen_analysis` WHERE patient_id='$patient_id'";
+	}
+	$select_result = run_select_query($sql);
+		
+        $select_result = array();
         if(empty($select_result)){
             // mysql query to insert data
             $query = "INSERT INTO `semen_analysis` SET ";
             $sqlArr = array();
-            foreach( $_POST as $key => $value ) {
-              $sqlArr[] = " `$key` = '".addslashes($value)."'";
-            }   
+            foreach( $_POST as $key=> $value )
+            {
+              $sqlArr[] = " $key = '".addslashes($value)."'";
+            }		
             $query .= implode(',' , $sqlArr);
-            
-            $result = run_form_query($query);     
-            
-            if($result){
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Form saved successfully!').'&t='.base64_encode('success'));
-                die();
-            } else {
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-                die();
+        }else{
+            // mysql query to update data
+            $query = "UPDATE  semen_analysis SET ";
+            foreach( $_POST as $key=> $value )
+            {
+              $sqlArr[] = " $key = '".$value."'"	;
             }
-            
-        } else {
-            // अगर डेटा पहले से मौजूद है, तो UPDATE ना करें, बल्कि सीधा वापस भेज दें
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
-            die();
+            $query .= implode(',' , $sqlArr);
+            if($_SESSION['logged_doctor']['username']){
+				$query .= " WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
+	        }else{
+				$query .= " WHERE patient_id='$patient_id' and id='$id'";
+	        }
+
+             //Insert into freezing table
+        }
+		
+    $result = run_form_query($query);     
+    if($result){
+         header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form inserted!').'&t='.base64_encode('success'));
+        	die();
+        }else{
+          header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+		      die();
         }
     }
-  
-    // फॉर्म में पुराना डेटा दिखाने के लिए भी सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `semen_analysis` WHERE iic_id='$iic_id'";
-    $select_result = run_select_query($sql);
-  
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
-    $select_result2 = run_select_query($sql2);
-  
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-    $select_result3 = run_select_query($sql3);    
+	
+	 if (!empty($appoitmented_date)) {
+			$sql = "SELECT * FROM `semen_analysis` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
+	} else {
+			 $sql = "SELECT * FROM `semen_analysis` WHERE patient_id='$patient_id'";
+	}
+	$select_result = run_select_query($sql);
+	
+	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
+	$select_result1 = run_select_query($sql1);
+	
+	$sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
+	$select_result2 = run_select_query($sql2);
+	
+	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+	$select_result3 = run_select_query($sql3);		
+
 ?>
 <div class="ga-pro">
  <form action="" enctype='multipart/form-data' method="post">
@@ -67,7 +86,7 @@
   <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
   <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
   <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
-  <input type="hidden" value="<?php echo $iic_id;?>" class="form" name="iic_id">
+  <input type="hidden" value="<?php echo $patient_id;?>" class="form" name="patient_id">
   <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
   <?php $physical = $applicablemedicine= $Agglutination = $Debris = array();
     if(!empty($select_result['physical_examination'])){
@@ -95,7 +114,7 @@
   
   </tr>
    <tr>
-    <td>PT.ID - <?php echo $iic_id;?></td>
+    <td>PT.ID - <?php echo $patient_id;?></td>
     <td>DATE: <input type="date" id="date" name="date" value="<?php echo isset($select_result['date'])?$select_result['date']:""; ?>">  </td>
     </tr>
  </table>
@@ -466,7 +485,7 @@ Checked By:-  <input type="text" style="width:100%" class="Prepared" name="check
   
   </tr>
 <tr>
-    <td colspan="2" style="width:50%; border:1px solid; padding:5px;">PT.ID - <?php echo $iic_id;?></td>
+    <td colspan="2" style="width:50%; border:1px solid; padding:5px;">PT.ID - <?php echo $patient_id;?></td>
     <td colspan="2" style="width:50%; border:1px solid; padding:5px;">DATE: <?php echo isset($select_result['date'])?$select_result['date']:""; ?></td>
 </tr>
 	
