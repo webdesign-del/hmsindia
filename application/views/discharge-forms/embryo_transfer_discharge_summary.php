@@ -29,7 +29,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         unset($_POST['details_management_advised']);
         
         // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE iic_id='$iic_id'";
+        $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
         
         if(!empty($_POST['physical_examination']) && isset($_POST['physical_examination'])){
@@ -51,8 +51,8 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
             $query .= implode(',' , $sqlArr);
             
             // Insert into pcp_ndt table (Assuming $further_referredfor_dellvery, $outcome_of_pregnancy, $malformation_in_newborn are declared above)
-            $query2 = "INSERT INTO `pcp_ndt` (iic_id, wife_name, husband_name, wife_phone, wife_age, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
-           ('$iic_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised','$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'ET/FET','IVF','" . date('Y-m-d H:i:s') . "')";
+            $query2 = "INSERT INTO `pcp_ndt` (patient_id, wife_name, husband_name, wife_phone, wife_age, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
+           ('$patient_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised','$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'ET/FET','IVF','" . date('Y-m-d H:i:s') . "')";
             $result2 = run_form_query($query2);
             
             $result = run_form_query($query); 
@@ -99,8 +99,8 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         unset($_POST['details_management_advised']);
         unset($_POST['center']);
        
-        $query1 = "INSERT INTO `pcp_ndt` (iic_id, wife_name, husband_name, wife_phone, wife_age, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
-        ('$iic_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised','$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'ET/FET','IVF','" . date('Y-m-d H:i:s') . "')";
+        $query1 = "INSERT INTO `pcp_ndt` (patient_id, wife_name, husband_name, wife_phone, wife_age, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
+        ('$patient_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised','$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'ET/FET','IVF','" . date('Y-m-d H:i:s') . "')";
         
         $result = run_form_query($query1); 
         
@@ -114,13 +114,13 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     }
     
     // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE iic_id='$iic_id'";
+    $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
-    $sql4 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id=$iic_id";
+    $sql4 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id=$patient_id";
     $select_result4 = run_select_query($sql4);
    
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
+    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
     $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
@@ -129,10 +129,10 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     $sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
     $select_result5 = run_select_query($sql5); 
 
-    $select_embryo_transfer = "SELECT receipt_number FROM `embryo_transfer` WHERE patient_id='$iic_id' LIMIT 1";
+    $select_embryo_transfer = "SELECT receipt_number FROM `embryo_transfer` WHERE patient_id='$patient_id' LIMIT 1";
     $embryo_transfer_result = run_select_query($select_embryo_transfer);
 
-    $select_embryo_transfer_fet = "SELECT receipt_number FROM `hms_embryo_transfer_fet` WHERE patient_id='$iic_id' LIMIT 1";
+    $select_embryo_transfer_fet = "SELECT receipt_number FROM `hms_embryo_transfer_fet` WHERE patient_id='$patient_id' LIMIT 1";
     $fet_result = run_select_query($select_embryo_transfer_fet);
 
     // 'is_complete' सेट करें: अगर किसी एक में भी डेटा है तो TRUE
@@ -156,7 +156,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     }
 ?>
 <form action="" enctype='multipart/form-data' method="post">
-<input type="hidden" value="<?php echo $iic_id; ?>" class="form" name="iic_id">
+<input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
 <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
 <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
 <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
@@ -262,7 +262,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -1762,7 +1762,7 @@ if (!empty($select_result['applicablemedicine']) && in_array($medicine, $applica
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>

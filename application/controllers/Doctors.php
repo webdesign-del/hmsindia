@@ -5770,6 +5770,9 @@ foreach ($urls as $key => $url) {
 	public function discharge_form($form_id, $procedure_id, $appointment_id, $patient_procedure_id){
 		$logg = checklogin();
 		if($logg['status'] == true){
+
+var_dump($patient_procedure_data);
+
 			$patient_procedure_data = get_procedure($patient_procedure_id);
 			$patient_id = $patient_procedure_data['patient_id'];
 			$receipt_number = $patient_procedure_data['receipt_number'];
