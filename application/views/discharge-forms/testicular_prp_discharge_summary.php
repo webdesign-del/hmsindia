@@ -185,6 +185,7 @@
 	<input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
 	<input type="hidden" name="appointment_id" value="<?php echo $select_result1['ID']; ?>" />
 	<input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
+  <input type="hidden" value="<?php echo $receipt_number; ?>" class="form" name="receipt_number">
 	<input type="hidden" value="<?php echo $_SESSION['logged_doctor']['doctor_id'] ?>" class="form" name="doctor_id">				 
 				 
 
