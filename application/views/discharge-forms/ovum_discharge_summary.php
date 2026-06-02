@@ -49,6 +49,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 
     $select_opu_query = "SELECT * FROM `hms_opu` WHERE patient_id='$patient_id'";
     $select_opu_result = run_select_query($select_opu_query); 
+
+    $select_patients = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+    $patient_data = run_select_query($select_patients);
   
 ?>
 
