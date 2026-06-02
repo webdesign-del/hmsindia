@@ -41,7 +41,7 @@ $all_method =& get_instance();
         }
         
         // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `iui_discharge_summary` WHERE patient_id='$patient_id'";
+        $sql = "SELECT * FROM `iui_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
         $select_result = run_select_query($sql);
         
         // अगर डेटा मौजूद नहीं है, सिर्फ तभी INSERT करें
@@ -117,7 +117,7 @@ $all_method =& get_instance();
     }
     
     // फॉर्म में डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `iui_discharge_summary` WHERE patient_id='$patient_id'";
+    $sql = "SELECT * FROM `iui_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
     $select_result = run_select_query($sql);
     
     $sql4 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id=$patient_id";
@@ -135,11 +135,11 @@ $all_method =& get_instance();
     $sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
     $patient_data = run_select_query($sql_data); 
 
-    $select_iui = "SELECT * FROM `intrauterine` WHERE patient_id='$patient_id'";
-    $select_result_iui = run_select_query($select_iui); 
+  //  $select_iui = "SELECT * FROM `intrauterine` WHERE patient_id='$patient_id'";
+   // $select_result_iui = run_select_query($select_iui); 
 
     // 2. Define the 'is_complete' flag based on the result
-    $is_complete = !empty($select_result_iui);
+  //  $is_complete = !empty($select_result_iui);
 
     // 3. Set the receipt number for the hidden input
    // $final_receipt = ($is_complete) ? $select_result_iui['receipt_number'] : "";
