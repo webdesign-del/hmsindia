@@ -1,9 +1,24 @@
 <?php 
-$all_method =& get_instance();
-$appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+    $all_method =& get_instance();
+    $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+
+    // ==============================================================================
+    // [CRITICAL FIX] $patient_id को सुरक्षित तरीके से डिफाइन करना (ताकि Undefined Error न आए)
+    // ==============================================================================
+    $patient_id = '';
+    if (isset($patient_data['id'])) {
+        $patient_id = $patient_data['id'];
+    } elseif (isset($patient['id'])) {
+        $patient_id = $patient['id'];
+    } elseif (isset($_GET['patient_id'])) {
+        $patient_id = $_GET['patient_id'];
+    } else {
+        $CI =& get_instance();
+        $patient_id = $CI->uri->segment(3); 
+    }
 
     // php code to Insert data into mysql database from input text
-    if(isset($_POST['submit'])){
+    if(isset($_POST['submit']) && !empty($patient_id)){
         unset($_POST['submit']);
       
         // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
@@ -12,6 +27,11 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
           
         // अगर डेटा मौजूद नहीं है, सिर्फ तभी INSERT करें
         if(empty($select_result)){
+            
+            // सुनिश्चित करें कि डेटाबेस में पेशेंट की आईडी जा रही है
+            $_POST['patient_id'] = $patient_id;
+            $_POST['created_at'] = date('Y-m-d H:i:s');
+
             // mysql query to insert data
             $query = "INSERT INTO `ovum_discharge_summary` SET ";
             $sqlArr = array();
@@ -37,22 +57,38 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         }
     }
   
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `ovum_discharge_summary` WHERE patient_id='$patient_id'";
-    $select_result = run_select_query($sql);
-  
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
-    $select_result2 = run_select_query($sql2);
-  
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-    $select_result3 = run_select_query($sql3);
+    // ==============================================================================
+    // VIEW / PRINT MODE LOGIC: डेटाबेस से पुराने रिकॉर्ड्स सुरक्षित निकालना
+    // ==============================================================================
+    $select_result = array();
+    $select_result2 = array('appoitment_for' => '', 'uhid' => '');
+    $select_result3 = array('center_code' => '');
+    $select_opu_result = array();
+    $patient_data = array();
 
-    $select_opu_query = "SELECT * FROM `hms_opu` WHERE patient_id='$patient_id'";
-    $select_opu_result = run_select_query($select_opu_query); 
+    if (!empty($patient_id)) {
+        // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
+        $sql = "SELECT * FROM `ovum_discharge_summary` WHERE patient_id='$patient_id'";
+        $select_result = run_select_query($sql);
+      
+        $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+        $res2 = run_select_query($sql2);
+        if(!empty($res2)) {
+            $select_result2 = $res2;
+            
+            $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
+            $res3 = run_select_query($sql3);
+            if(!empty($res3)) {
+                $select_result3 = $res3;
+            }
+        }
 
-    $select_patients = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
-    $patient_data = run_select_query($select_patients);
-  
+        $select_opu_query = "SELECT * FROM `hms_opu` WHERE patient_id='$patient_id'";
+        $select_opu_result = run_select_query($select_opu_query); 
+
+        $select_patients = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+        $patient_data = run_select_query($select_patients);
+    }
 ?>
 
 <a href="<?php echo site_url(); ?>patients/discharge_summary?patient_id=<?php echo $patient_id;?>&appoitmented_date=<?php echo date('Y-m-d');  ?>&discharge=12">Add New</a>
