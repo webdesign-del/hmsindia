@@ -5771,11 +5771,13 @@ foreach ($urls as $key => $url) {
 		$logg = checklogin();
 		if($logg['status'] == true){
 
-var_dump($patient_procedure_data);
+
 
 			$patient_procedure_data = get_procedure($patient_procedure_id);
 			$patient_id = $patient_procedure_data['patient_id'];
 			$receipt_number = $patient_procedure_data['receipt_number'];
+
+			//var_dump($patient_procedure_data); die();
 
 			if(isset($_POST['action']) && !empty($_POST['action']) && $_POST['action']=="discharge_form"){
 				unset($_POST['action']);
