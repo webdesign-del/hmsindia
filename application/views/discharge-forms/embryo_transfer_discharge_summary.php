@@ -1,106 +1,117 @@
 <?php 
-$all_method =& get_instance();
-$appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+    $all_method =& get_instance();
+    $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+
+    // ==============================================================================
+    // [FIX 1] $patient_id को सुरक्षित तरीके से डिफाइन करना (ताकि Undefined Error न आए)
+    // ==============================================================================
+    $patient_id = '';
+    if (isset($patient_data['id'])) {
+        $patient_id = $patient_data['id'];
+    } elseif (isset($patient['id'])) {
+        $patient_id = $patient['id'];
+    } elseif (isset($_GET['patient_id'])) {
+        $patient_id = $_GET['patient_id'];
+    } else {
+        $CI =& get_instance();
+        $patient_id = $CI->uri->segment(3); 
+    }
+
+    // PCP NDT के लिए अन्य आवश्यक वेरिएबल्स को सेफगार्ड करना
+    $further_referredfor_dellvery = isset($further_referredfor_dellvery) ? $further_referredfor_dellvery : '';
+    $outcome_of_pregnancy = isset($outcome_of_pregnancy) ? $outcome_of_pregnancy : '';
+    $malformation_in_newborn = isset($malformation_in_newborn) ? $malformation_in_newborn : '';
 
     // php code to Insert data into mysql database from input text
-    if(isset($_POST['submit'])){
+    if(isset($_POST['submit']) && !empty($patient_id)){
         unset($_POST['submit']);
         
-        $wife_name  = $_POST['wife_name'];
-        $husband_name  = $_POST['husband_name'];
-        $wife_phone  = $_POST['wife_phone'];
-        $wife_age  = $_POST['wife_age'];
-        $wife_address  = $_POST['wife_address'];
-        $female_pregnancy_other_p  = $_POST['female_pregnancy_other_p'];
-        $female_pregnancy_other_l  = $_POST['female_pregnancy_other_l'];
-        $female_pregnancy_other_a  = $_POST['female_pregnancy_other_a'];
-        $details_management_advised  = $_POST['details_management_advised'];
-        $IVF_Consultant  = $_POST['IVF_Consultant'];
-        $center  = $_POST['center'];
+        $wife_name  = $_POST['wife_name'] ?? '';
+        $husband_name  = $_POST['husband_name'] ?? '';
+        $wife_phone  = $_POST['wife_phone'] ?? '';
+        $wife_age  = $_POST['wife_age'] ?? '';
+        $wife_address  = $_POST['wife_address'] ?? '';
+        $female_pregnancy_other_p  = $_POST['female_pregnancy_other_p'] ?? '';
+        $female_pregnancy_other_l  = $_POST['female_pregnancy_other_l'] ?? '';
+        $female_pregnancy_other_a  = $_POST['female_pregnancy_other_a'] ?? '';
+        $details_management_advised  = $_POST['details_management_advised'] ?? '';
+        $IVF_Consultant  = $_POST['IVF_Consultant'] ?? '';
+        $center  = $_POST['center'] ?? '';
       
-        unset($_POST['wife_name']);
-        unset($_POST['wife_phone']);
-        unset($_POST['husband_name']);
-        unset($_POST['wife_age']);
-        unset($_POST['wife_address']);
-        unset($_POST['female_pregnancy_other_p']);
-        unset($_POST['female_pregnancy_other_l']);
-        unset($_POST['female_pregnancy_other_a']);
-        unset($_POST['details_management_advised']);
+        unset($_POST['wife_name'], $_POST['wife_phone'], $_POST['husband_name'], $_POST['wife_age'], $_POST['wife_address']);
+        unset($_POST['female_pregnancy_other_p'], $_POST['female_pregnancy_other_l'], $_POST['female_pregnancy_other_a'], $_POST['details_management_advised']);
         
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$patient_id'";
-        $select_result = run_select_query($sql);
-        
+        // चेकबॉक्स एरे डेटा को कोमा-सेपरेटेड स्ट्रिंग में बदलना
         if(!empty($_POST['physical_examination']) && isset($_POST['physical_examination'])){
             $_POST['physical_examination'] = implode(',', $_POST['physical_examination']);
         }
         if(!empty($_POST['applicablemedicine']) && isset($_POST['applicablemedicine'])){
              $_POST['applicablemedicine'] = implode(',', $_POST['applicablemedicine']);
         }
+
+        // चेक करें कि क्या इस patient_id का डेटा पहले से मौजूद है
+        $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$patient_id'";
+        $select_result = run_select_query($sql);
         
-        // अगर डेटा मौजूद नहीं है, सिर्फ तभी INSERT करें
+        $sqlArr = array(); // [CRITICAL FIX] लूप से पहले हमेशा री-डिक्लेयर करें
+
         if(empty($select_result)){
-            // mysql query to insert data
+            // INSERT Query
+            $_POST['patient_id'] = $patient_id;
             $query = "INSERT INTO `embryo_transfer_discharge_summary` SET ";
-            $sqlArr = array();
-           
             foreach($_POST as $key => $value) {
               $sqlArr[] = " `$key` = '".addslashes($value)."'";
             }       
             $query .= implode(',' , $sqlArr);
             
-            // Insert into pcp_ndt table (Assuming $further_referredfor_dellvery, $outcome_of_pregnancy, $malformation_in_newborn are declared above)
+            // Insert into pcp_ndt table 
             $query2 = "INSERT INTO `pcp_ndt` (patient_id, wife_name, husband_name, wife_phone, wife_age, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
-           ('$patient_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised','$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'ET/FET','IVF','" . date('Y-m-d H:i:s') . "')";
-            $result2 = run_form_query($query2);
-            
-            $result = run_form_query($query); 
-            
-            if($result){
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
-                die();
-            } else {
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-                die();
-            }
+           ('$patient_id', '".addslashes($wife_name)."', '".addslashes($husband_name)."', '".addslashes($wife_phone)."', '".addslashes($wife_age)."', '".addslashes($wife_address)."', 'P:".addslashes($female_pregnancy_other_p)."', 'L:".addslashes($female_pregnancy_other_l)."', 'A:".addslashes($female_pregnancy_other_a)."', '".addslashes($details_management_advised)."', '".addslashes($IVF_Consultant)."', '".addslashes($further_referredfor_dellvery)."', '".addslashes($outcome_of_pregnancy)."', '".addslashes($malformation_in_newborn)."', '".addslashes($center)."', 'ET/FET','IVF','" . date('Y-m-d H:i:s') . "')";
+            run_form_query($query2);
             
         } else {
-            // अगर डेटा पहले से मौजूद है, तो UPDATE ना करें, बल्कि सीधा एरर मैसेज के साथ रिडायरेक्ट करें
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
+            // [FIXED] अगर डेटा पहले से मौजूद है, तो एरर देने के बजाय इसे सुरक्षित तरीके से UPDATE करें
+            $query = "UPDATE `embryo_transfer_discharge_summary` SET ";
+            foreach($_POST as $key => $value) {
+                $sqlArr[] = " `$key` = '".addslashes($value)."'";
+            }
+            $query .= implode(',' , $sqlArr);
+            $query .= " WHERE patient_id='$patient_id'";
+        }
+            
+        $result = run_form_query($query); 
+        
+        if($result){
+            $redirect_url = strtok($_SERVER['HTTP_REFERER'], '?');
+            header("location:" .$redirect_url."?patient_id=".$patient_id."&m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
+            die();
+        } else {
+            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
             die();
         }
     }
     
     // php code to Insert data into mysql database from input text (submit2)
-    if(isset($_POST['submit2'])){
+    if(isset($_POST['submit2']) && !empty($patient_id)){
         unset($_POST['submit2']);
     
-        $wife_name  = $_POST['wife_name'];
-        $husband_name  = $_POST['husband_name'];
-        $wife_phone  = $_POST['wife_phone'];
-        $wife_age  = $_POST['wife_age'];
-        $wife_address  = $_POST['wife_address'];
-        $female_pregnancy_other_p  = $_POST['female_pregnancy_other_p'];
-        $female_pregnancy_other_l  = $_POST['female_pregnancy_other_l'];
-        $female_pregnancy_other_a  = $_POST['female_pregnancy_other_a'];
-        $details_management_advised  = $_POST['details_management_advised'];
-        $IVF_Consultant  = $_POST['IVF_Consultant'];
-        $center  = $_POST['center'];
+        $wife_name  = $_POST['wife_name'] ?? '';
+        $husband_name  = $_POST['husband_name'] ?? '';
+        $wife_phone  = $_POST['wife_phone'] ?? '';
+        $wife_age  = $_POST['wife_age'] ?? '';
+        $wife_address  = $_POST['wife_address'] ?? '';
+        $female_pregnancy_other_p  = $_POST['female_pregnancy_other_p'] ?? '';
+        $female_pregnancy_other_l  = $_POST['female_pregnancy_other_l'] ?? '';
+        $female_pregnancy_other_a  = $_POST['female_pregnancy_other_a'] ?? '';
+        $details_management_advised  = $_POST['details_management_advised'] ?? '';
+        $IVF_Consultant  = $_POST['IVF_Consultant'] ?? '';
+        $center  = $_POST['center'] ?? '';
       
-        unset($_POST['wife_name']);
-        unset($_POST['wife_phone']);
-        unset($_POST['husband_name']);
-        unset($_POST['wife_age']);
-        unset($_POST['wife_address']);
-        unset($_POST['female_pregnancy_other_p']);
-        unset($_POST['female_pregnancy_other_l']);
-        unset($_POST['female_pregnancy_other_a']);
-        unset($_POST['details_management_advised']);
-        unset($_POST['center']);
+        unset($_POST['wife_name'], $_POST['wife_phone'], $_POST['husband_name'], $_POST['wife_age'], $_POST['wife_address']);
+        unset($_POST['female_pregnancy_other_p'], $_POST['female_pregnancy_other_l'], $_POST['female_pregnancy_other_a'], $_POST['details_management_advised'], $_POST['center']);
        
         $query1 = "INSERT INTO `pcp_ndt` (patient_id, wife_name, husband_name, wife_phone, wife_age, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
-        ('$patient_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised','$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'ET/FET','IVF','" . date('Y-m-d H:i:s') . "')";
+        ('$patient_id', '".addslashes($wife_name)."', '".addslashes($husband_name)."', '".addslashes($wife_phone)."', '".addslashes($wife_age)."', '".addslashes($wife_address)."', 'P:".addslashes($female_pregnancy_other_p)."', 'L:".addslashes($female_pregnancy_other_l)."', 'A:".addslashes($female_pregnancy_other_a)."', '".addslashes($details_management_advised)."', '".addslashes($IVF_Consultant)."', '".addslashes($further_referredfor_dellvery)."', '".addslashes($outcome_of_pregnancy)."', '".addslashes($malformation_in_newborn)."', '".addslashes($center)."', 'ET/FET','IVF','" . date('Y-m-d H:i:s') . "')";
         
         $result = run_form_query($query1); 
         
@@ -113,40 +124,65 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         }
     }
     
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$patient_id'";
-    $select_result = run_select_query($sql);
-    
-    $sql4 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id=$patient_id";
-    $select_result4 = run_select_query($sql4);
-   
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
-    $select_result2 = run_select_query($sql2);
-    
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-    $select_result3 = run_select_query($sql3);
-    
-    $sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
-    $select_result5 = run_select_query($sql5); 
+    // ==============================================================================
+    // VIEW / PRINT MODE LOGIC: पुराना डेटा सुरक्षित दिखाने के लिए
+    // ==============================================================================
+    $select_result = array();
+    $select_result2 = array('appoitment_for' => '', 'uhid' => '');
+    $select_result3 = array('center_code' => '');
+    $select_result4 = array('female_pregnancy_other_p'=>'', 'female_pregnancy_other_l'=>'', 'female_pregnancy_other_a'=>'', 'details_management_advised'=>'');
+    $select_result5 = array('doctor_name' => '');
+    $embryo_transfer_result = array();
+    $fet_result = array();
 
-    $select_embryo_transfer = "SELECT receipt_number FROM `embryo_transfer` WHERE patient_id='$patient_id' LIMIT 1";
-    $embryo_transfer_result = run_select_query($select_embryo_transfer);
+    if (!empty($patient_id)) {
+        $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$patient_id'";
+        $select_result = run_select_query($sql);
+        
+        // [FIXED] $patient_id को कोट्स ('$patient_id') में सेफ किया गया
+        $sql4 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id='$patient_id'";
+        $res4 = run_select_query($sql4);
+        if(!empty($res4)) { $select_result4 = $res4; }
+       
+        $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+        $res2 = run_select_query($sql2);
+        if(!empty($res2)) {
+            $select_result2 = $res2;
+            
+            $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
+            $res3 = run_select_query($sql3);
+            if(!empty($res3)) { $select_result3 = $res3; }
+        }
 
-    $select_embryo_transfer_fet = "SELECT receipt_number FROM `hms_embryo_transfer_fet` WHERE patient_id='$patient_id' LIMIT 1";
-    $fet_result = run_select_query($select_embryo_transfer_fet);
+        $select_embryo_transfer = "SELECT receipt_number FROM `embryo_transfer` WHERE patient_id='$patient_id' LIMIT 1";
+        $embryo_transfer_result = run_select_query($select_embryo_transfer);
+
+        $select_embryo_transfer_fet = "SELECT receipt_number FROM `hms_embryo_transfer_fet` WHERE patient_id='$patient_id' LIMIT 1";
+        $fet_result = run_select_query($select_embryo_transfer_fet);
+    }
+
+    if(empty($select_result)) {
+        $select_result = array('physical_examination' => '', 'applicablemedicine' => '');
+    }
+
+    if (isset($_SESSION['logged_doctor']['doctor_id'])) {
+        $sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
+        $res5 = run_select_query($sql5); 
+        if(!empty($res5)) { $select_result5 = $res5; }
+    }
 
     // 'is_complete' सेट करें: अगर किसी एक में भी डेटा है तो TRUE
     $is_complete = !empty($embryo_transfer_result) || !empty($fet_result);
 
     // रसीद नंबर सेट करें (पहले पहली टेबल चेक करें, नहीं तो दूसरी)
-    if (!empty($embryo_transfer_result)) {
+    $final_receipt = ""; 
+    if (!empty($embryo_transfer_result) && isset($embryo_transfer_result['receipt_number'])) {
         $final_receipt = $embryo_transfer_result['receipt_number'];
-    } elseif (!empty($fet_result)) {
+    } elseif (!empty($fet_result) && isset($fet_result['receipt_number'])) {
         $final_receipt = $fet_result['receipt_number'];
-    } else {
-        $final_receipt = ""; 
     }
 
+    // एरे एक्सप्लोड सेटिंग्स
     $physical = $applicablemedicine = array();
     if(!empty($select_result['physical_examination'])){
         $physical = explode(',', $select_result['physical_examination']);
