@@ -2,18 +2,6 @@
     // ==============================================================================
     // [FIX 1] मुख्य वेरिएबल्स को सेफगार्ड करना (ताकि Undefined Error न आए)
     // ==============================================================================
-    $patient_id = '';
-    if (isset($patient_data['id'])) {
-        $patient_id = $patient_data['id'];
-    } elseif (isset($patient['id'])) {
-        $patient_id = $patient['id'];
-    } elseif (isset($_GET['patient_id'])) {
-        $patient_id = $_GET['patient_id'];
-    } else {
-        $CI =& get_instance();
-        $patient_id = $CI->uri->segment(3); 
-    }
-
     $receipt_number = isset($_GET['receipt_number']) ? $_GET['receipt_number'] : (isset($_POST['receipt_number']) ? $_POST['receipt_number'] : '');
     
     // PCP NDT के लिए अतिरिक्त वेरिएबल्स को इनिशियलाइज़ करना
