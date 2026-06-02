@@ -6,9 +6,9 @@ $appoitmented_date = $_GET['appoitmented_date'];
         unset($_POST['submit']);
 		
 	    if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `admission_form` WHERE iic_id='$iic_id' AND appoitmented_date='$appoitmented_date'";
+			$sql = "SELECT * FROM `admission_form` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
 		} else {
-			$sql = "SELECT * FROM `admission_form` WHERE iic_id='$iic_id'";
+			$sql = "SELECT * FROM `admission_form` WHERE patient_id='$patient_id'";
 		}
 		$select_result = run_select_query($sql);
         
@@ -31,7 +31,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
               $sqlArr[] = " $key = '".$value."'"	;
             }
             $query .= implode(',' , $sqlArr);
-            $query .= " WHERE iic_id='$iic_id' and appoitmented_date='$appoitmented_date'";
+            $query .= " WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
         }
         $result = run_form_query($query); 
         if($result){
@@ -44,16 +44,16 @@ $appoitmented_date = $_GET['appoitmented_date'];
     }
 	
 	if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `admission_form` WHERE iic_id='$iic_id' AND appoitmented_date='$appoitmented_date'";
+			$sql = "SELECT * FROM `admission_form` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
 	} else {
-			$sql = "SELECT * FROM `admission_form` WHERE iic_id='$iic_id'";
+			$sql = "SELECT * FROM `admission_form` WHERE patient_id='$patient_id'";
 	}
 	$select_result = run_select_query($sql);
 	
     $sql2 = "SELECT RIGHT(CAST(ipid AS CHAR), 3) FROM `admission_form` ORDER BY ID DESC LIMIT 1";
     $select_result2 = run_select_query($sql2);
 	
-	$sql4 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
+	$sql4 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
 	$select_result4 = run_select_query($sql4);
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
@@ -64,15 +64,15 @@ $appoitmented_date = $_GET['appoitmented_date'];
     $form_list = $CI->db->query($sql_forms)->result_array(); 
 
     // 1. Check Table 1: Ovulation Induction
-    $sql_ov = "SELECT indication FROM ovulation_induction_protocol WHERE patient_id='".trim($iic_id)."' LIMIT 1";
+    $sql_ov = "SELECT indication FROM ovulation_induction_protocol WHERE patient_id='".trim($patient_id)."' LIMIT 1";
     $res_ov = run_select_query($sql_ov);
 
     // 2. Check Table 2: Pre Embryo Transfer
-    $sql_et = "SELECT indication FROM pre_embryo_transfer WHERE patient_id='".trim($iic_id)."' LIMIT 1";
+    $sql_et = "SELECT indication FROM pre_embryo_transfer WHERE patient_id='".trim($patient_id)."' LIMIT 1";
     $res_et = run_select_query($sql_et);
 
     // 3. Check Table 2: Pre Embryo Transfer
-    $sql_et = "SELECT indication FROM ovarian_prp WHERE patient_id='".trim($iic_id)."' LIMIT 1";
+    $sql_et = "SELECT indication FROM ovarian_prp WHERE patient_id='".trim($patient_id)."' LIMIT 1";
     $res_op = run_select_query($sql_et);
 
     // 4. LOGIC: Kisi bhi EK table me data hona chahiye (OR Logic)
@@ -96,7 +96,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 	<input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
 	<input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
 	<input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
-	<input type="hidden" value="<?php echo $iic_id;?>" class="form" name="iic_id">
+	<input type="hidden" value="<?php echo $patient_id;?>" class="form" name="patient_id">
 	<input type="hidden" value="<?php echo date('Y-m-d'); ?>" class="form" name="date_of_addmission">
 	<input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">  
     <input type="hidden" value="<?php echo $select_result5['center_code']; ?>/<?php $year = date("y"); echo $year-1, $year; ?>/<?php echo $select_result2['RIGHT(CAST(ipid AS CHAR), 3)'] + 1;?>" class="form" id="ipid" name="ipid">	
@@ -153,7 +153,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 <strong>IPID: <?php echo $select_result['ipid']; ?></strong>
 </td>
 <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -183,7 +183,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
         <div class="alert alert-danger" style="margin-top: 5px; padding: 15px; border-left: 5px solid #a94442;">
             <i class="fa fa-exclamation-triangle"></i> 
             <strong>Please Fill Ovulation Induction / Pre Embryo transfer IPD Form!</strong><br>
-            <small>No Indication found in Ovulation or Pre-ET forms for ID: <?php echo $iic_id; ?></small>
+            <small>No Indication found in Ovulation or Pre-ET forms for ID: <?php echo $patient_id; ?></small>
         </div>
         
         <style> #submitbutton, button[type="submit"] { display: none !important; } </style>
@@ -239,7 +239,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -271,7 +271,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -303,7 +303,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -339,7 +339,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -371,7 +371,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -403,7 +403,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -439,7 +439,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -471,7 +471,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -503,7 +503,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -539,7 +539,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -571,7 +571,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -603,7 +603,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -639,7 +639,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -671,7 +671,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -703,7 +703,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -739,7 +739,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -771,7 +771,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -803,7 +803,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -839,7 +839,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -871,7 +871,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -903,7 +903,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -939,7 +939,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -971,7 +971,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -1003,7 +1003,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
