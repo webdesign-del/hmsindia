@@ -1,84 +1,111 @@
 <?php
-$id = $_GET['id'];
-$appoitmented_date = $_GET['appoitmented_date'];
-    // php code to Insert data into mysql database from input text
-    if(isset($_POST['submit'])){
+    // ==============================================================================
+    // [FIX 1] $patient_id को सुरक्षित तरीके से निकालना ताकि 'Undefined variable' न आए
+    // ==============================================================================
+    $patient_id = '';
+    if (isset($patient_data['id'])) {
+        $patient_id = $patient_data['id'];
+    } elseif (isset($patient['id'])) {
+        $patient_id = $patient['id'];
+    } elseif (isset($_GET['patient_id'])) {
+        $patient_id = $_GET['patient_id'];
+    } else {
+        $CI =& get_instance();
+        $patient_id = $CI->uri->segment(3); 
+    }
+
+    // URL से बाकी वेरिएबल्स को सेफगार्ड करना
+    $id = isset($_GET['id']) ? $_GET['id'] : '';
+    $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+
+    // ==============================================================================
+    // MULTIPLE TIME ENTRY LOGIC (हर सबमिशन पर नया रिकॉर्ड INSERT होगा)
+    // ==============================================================================
+    if(isset($_POST['submit']) && !empty($patient_id)){
         unset($_POST['submit']);   
         
+        // चेकबॉक्स डेटा को एरे से स्ट्रिंग में बदलना
         if(!empty($_POST['physical_examination']) && isset($_POST['physical_examination'])){
             $_POST['physical_examination'] = implode(',', $_POST['physical_examination']);
         }
         if(!empty($_POST['applicablemedicine']) && isset($_POST['applicablemedicine'])){
              $_POST['applicablemedicine'] = implode(',', $_POST['applicablemedicine']);
         }
-		if(!empty($_POST['Agglutination']) && isset($_POST['Agglutination'])){
+        if(!empty($_POST['Agglutination']) && isset($_POST['Agglutination'])){
              $_POST['Agglutination'] = implode(',', $_POST['Agglutination']);
         }
-		if(!empty($_POST['Debris']) && isset($_POST['Debris'])){
+        if(!empty($_POST['Debris']) && isset($_POST['Debris'])){
              $_POST['Debris'] = implode(',', $_POST['Debris']);
         }
-		
-
-    if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `semen_analysis` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
-	} else {
-			$sql = "SELECT * FROM `semen_analysis` WHERE patient_id='$patient_id'";
-	}
-	$select_result = run_select_query($sql);
-		
-        $select_result = array();
-        if(empty($select_result)){
-            // mysql query to insert data
-            $query = "INSERT INTO `semen_analysis` SET ";
-            $sqlArr = array();
-            foreach( $_POST as $key=> $value )
-            {
-              $sqlArr[] = " $key = '".addslashes($value)."'";
-            }		
-            $query .= implode(',' , $sqlArr);
-        }else{
-            // mysql query to update data
-            $query = "UPDATE  semen_analysis SET ";
-            foreach( $_POST as $key=> $value )
-            {
-              $sqlArr[] = " $key = '".$value."'"	;
-            }
-            $query .= implode(',' , $sqlArr);
-            if($_SESSION['logged_doctor']['username']){
-				$query .= " WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
-	        }else{
-				$query .= " WHERE patient_id='$patient_id' and id='$id'";
-	        }
-
-             //Insert into freezing table
+    
+        // आवश्यक वेरिएबल्स को POST डेटा में जबरदस्ती पास करना
+        $_POST['patient_id'] = $patient_id;
+        if(!empty($appoitmented_date)) {
+            $_POST['appoitmented_date'] = $appoitmented_date;
         }
-		
-    $result = run_form_query($query);     
-    if($result){
-         header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form inserted!').'&t='.base64_encode('success'));
-        	die();
-        }else{
-          header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-		      die();
+        $_POST['created_at'] = date('Y-m-d H:i:s'); // नया रिकॉर्ड ट्रैक करने के लिए टाइमस्टैम्प
+
+        // हमेशा नया रिकॉर्ड जनरेट करने के लिए डायरेक्ट INSERT
+        $query = "INSERT INTO `semen_analysis` SET ";
+        $sqlArr = array();
+        foreach( $_POST as $key => $value ) {
+            $sqlArr[] = " `$key` = '".addslashes($value)."'";
+        }   
+        $query .= implode(',' , $sqlArr);
+        
+        $result = run_form_query($query);     
+        if($result){
+            $redirect_url = strtok($_SERVER['HTTP_REFERER'], '?');
+            header("location:" .$redirect_url."?patient_id=".$patient_id."&appoitmented_date=".$appoitmented_date."&m=".base64_encode('Semen Analysis Form inserted!').'&t='.base64_encode('success'));
+            die();
+        } else {
+            header("location:" .$_SERVER['HTTP_REFERER']."&m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+            die();
         }
     }
-	
-	 if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `semen_analysis` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
-	} else {
-			 $sql = "SELECT * FROM `semen_analysis` WHERE patient_id='$patient_id'";
-	}
-	$select_result = run_select_query($sql);
-	
-	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
-	$select_result1 = run_select_query($sql1);
-	
-	$sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
-	$select_result2 = run_select_query($sql2);
-	
-	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-	$select_result3 = run_select_query($sql3);		
+  
+    // ==============================================================================
+    // VIEW MODE LOGIC: फॉर्म या प्रिंट स्क्रीन पर डेटा दिखाने के लिए
+    // ==============================================================================
+    $select_result = array();
+    if (!empty($patient_id)) {
+        if (!empty($appoitmented_date)) {
+            // मल्टीपल एंट्रीज होने के कारण सबसे लेटेस्ट (ORDER BY id DESC) रिकॉर्ड ही लाएगा
+            $sql = "SELECT * FROM `semen_analysis` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date' ORDER BY id DESC LIMIT 1";
+        } else {
+            $sql = "SELECT * FROM `semen_analysis` WHERE patient_id='$patient_id' ORDER BY id DESC LIMIT 1";
+        }
+        $select_result = run_select_query($sql);
+    }
 
+    // अगर रिकॉर्ड नहीं मिला, तो खाली एरे सेट करें ताकि नीचे इनपुट्स क्रैश न हों
+    if (empty($select_result)) {
+        $select_result = array(
+            'physical_examination' => '',
+            'applicablemedicine' => '',
+            'Agglutination' => '',
+            'Debris' => ''
+        );
+    }
+  
+    // अपॉइंटमेंट्स और सेंटर्स का डेटा सुरक्षित निकालना (एरर सेफगार्ड के साथ)
+    $select_result1 = array('appoitment_for' => '', 'uhid' => '');
+    $select_result3 = array('center_code' => '');
+
+    if (!empty($patient_id)) {
+        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+        $res1 = run_select_query($sql1);
+        if(!empty($res1)) {
+            $select_result1 = $res1;
+            
+            // [FIXED TYPO] यहाँ $select_result2 की जगह सही वेरिएबल $select_result1['appoitment_for'] कर दिया गया है
+            $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".($select_result1['appoitment_for'] ?? '')."'";
+            $res3 = run_select_query($sql3);
+            if(!empty($res3)) {
+                $select_result3 = $res3;
+            }
+        }
+    }
 ?>
 <div class="ga-pro">
  <form action="" enctype='multipart/form-data' method="post">
@@ -109,7 +136,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
   <tr>
     
 	  <td colspan="1" width="25%" style="border:1px solid;padding:5px;">UHID</td>
-<td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?>
+<td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo ($select_result3['center_code'] ?? '') . "/" . ($select_result1['uhid'] ?? ''); ?>
 </td>
   
   </tr>
