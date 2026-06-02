@@ -41,7 +41,7 @@ $all_method =& get_instance();
         }
         
         // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `iui_discharge_summary` WHERE iic_id='$iic_id'";
+        $sql = "SELECT * FROM `iui_discharge_summary` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
         
         // अगर डेटा मौजूद नहीं है, सिर्फ तभी INSERT करें
@@ -56,8 +56,8 @@ $all_method =& get_instance();
             
             // Insert into pcp_ndt table
             // Note: $female_issues, $further_referredfor_dellvery, $outcome_of_pregnancy, $malformation_in_newborn variables should be defined before using here.
-            $query2 = "INSERT INTO `pcp_ndt` (iic_id, wife_name, husband_name, wife_phone, wife_age, female_issues, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
-           ('$iic_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$female_issues', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised', '$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'IUI','IUI','" . date('Y-m-d H:i:s') . "')";
+            $query2 = "INSERT INTO `pcp_ndt` (patient_id, wife_name, husband_name, wife_phone, wife_age, female_issues, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
+           ('$patient_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$female_issues', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised', '$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'IUI','IUI','" . date('Y-m-d H:i:s') . "')";
             $result2 = run_form_query($query2);
             
             $result = run_form_query($query);     
@@ -104,8 +104,8 @@ $all_method =& get_instance();
       unset($_POST['details_management_advised']);
       unset($_POST['center']);
        
-            $query2 = "INSERT INTO `pcp_ndt` (iic_id, wife_name, husband_name, wife_phone, wife_age, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
-           ('$iic_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised','$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'IUI','IUI','" . date('Y-m-d H:i:s') . "')";
+            $query2 = "INSERT INTO `pcp_ndt` (patient_id, wife_name, husband_name, wife_phone, wife_age, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
+           ('$patient_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised','$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'IUI','IUI','" . date('Y-m-d H:i:s') . "')";
             $result = run_form_query($query2); 
            if($result){
          header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Pcp Ndt inserted!').'&t='.base64_encode('success'));
@@ -142,7 +142,7 @@ $all_method =& get_instance();
     $is_complete = !empty($select_result_iui);
 
     // 3. Set the receipt number for the hidden input
-    $final_receipt = ($is_complete) ? $select_result_iui['receipt_number'] : "";
+   // $final_receipt = ($is_complete) ? $select_result_iui['receipt_number'] : "";
 ?>
 
 <div class="ga-pro">
@@ -157,6 +157,7 @@ $all_method =& get_instance();
   <input type="hidden" value="<?php echo $patient_data['wife_name']; ?>" class="form" name="wife_name">
   <input type="hidden" value="<?php echo $patient_data['wife_phone']; ?>" class="form" name="wife_phone">
   <input type="hidden" value="<?php echo $patient_data['husband_name']; ?>" class="form" name="husband_name">
+  <input type="hidden" value="<?php echo $receipt_number;?>" class="form" name="receipt_number">
   <input type="hidden" value="<?php echo $patient_data['wife_address']; ?>" class="form" name="wife_address">
   <input type="hidden" value="<?php echo $patient_data['wife_age']; ?>" class="form" name="wife_age">
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_p']; ?>" class="form" name="female_pregnancy_other_p">
@@ -164,7 +165,7 @@ $all_method =& get_instance();
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_a']; ?>" class="form" name="female_pregnancy_other_a">
   <input type="hidden" value="<?php echo $select_result4['details_management_advised']; ?>" class="form" name="details_management_advised">
   <?php if ($is_complete): ?>
-    <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
+    <input type="hidden" value="<?php echo $final_receipt; ?>" name="">
     
     <div class="alert alert-success" style="padding: 10px; border-left: 5px solid #00a65a; margin-top: 5px;">
         <i class="fa fa-check-circle"></i> 
@@ -1627,7 +1628,7 @@ if (!empty($select_result['applicablemedicine']) && in_array($medicine, $applica
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
