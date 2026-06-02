@@ -1,90 +1,128 @@
 <?php
+    // ==============================================================================
+    // [FIX 1] $patient_id को सुरक्षित तरीके से डिफाइन करना (ताकि Undefined Error न आए)
+    // ==============================================================================
+    $patient_id = '';
+    if (isset($patient_data['id'])) {
+        $patient_id = $patient_data['id'];
+    } elseif (isset($patient['id'])) {
+        $patient_id = $patient['id'];
+    } elseif (isset($_GET['patient_id'])) {
+        $patient_id = $_GET['patient_id'];
+    } else {
+        $CI =& get_instance();
+        $patient_id = $CI->uri->segment(3); 
+    }
 
-$appoitmented_date = $_GET['appoitmented_date'];
-    // php code to Insert data into mysql database from input text
-    if(isset($_POST['submit'])){
+    // [FIX 2] यूआरएल से आने वाली डेट को सेफगार्ड करना
+    $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+
+    // MySQL Database Insertion / Update Logic
+    if(isset($_POST['submit']) && !empty($patient_id)){
         unset($_POST['submit']);
         
-      	
-			if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `pre_embryo_transfer_iui` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
-	} else {
-			$sql = "SELECT * FROM `pre_embryo_transfer_iui` WHERE patient_id='$patient_id'";
-	}
-	$select_result = run_select_query($sql);
-		
-		
-	 if(!empty($_POST['procedures']) && isset($_POST['procedures'])){
-            //$_POST['physical_examination'] = serialize($_POST['physical_examination']);
-			$_POST['procedures']=implode(',', $_POST['procedures']);
+        if (!empty($appoitmented_date)) {
+            $sql = "SELECT * FROM `pre_embryo_transfer_iui` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
+        } else {
+            $sql = "SELECT * FROM `pre_embryo_transfer_iui` WHERE patient_id='$patient_id'";
+        }
+        $select_result = run_select_query($sql);
+        
+        // एरे को स्ट्रिंग (Comma-separated) में बदलना
+        if(!empty($_POST['procedures']) && isset($_POST['procedures'])){
+            $_POST['procedures'] = implode(',', $_POST['procedures']);
         }
         if(!empty($_POST['applicablemedicine']) && isset($_POST['applicablemedicine'])){
-            // $_POST['applicablemedicine'] = serialize($_POST['applicablemedicine']);
-			 $_POST['applicablemedicine']=implode(',', $_POST['applicablemedicine']);
-			 
+            $_POST['applicablemedicine'] = implode(',', $_POST['applicablemedicine']);
         }
-		
+        
+        $sqlArr = array(); // [CRITICAL FIX] एरे को लूप से पहले हमेशा री-डिक्लेयर करें
+
         if(empty($select_result)){
-            // mysql query to insert data
+            // INSERT Query: डेटाबेस में नया रिकॉर्ड सुरक्षित करने के लिए
+            $_POST['patient_id'] = $patient_id;
+            if(!empty($appoitmented_date)) {
+                $_POST['appoitmented_date'] = $appoitmented_date;
+            }
+
             $query = "INSERT INTO `pre_embryo_transfer_iui` SET ";
-            $sqlArr = array();
-         
-            foreach( $_POST as $key=> $value )
-            {
-              $sqlArr[] = " $key = '".addslashes($value)."'";
-            }		
+            foreach( $_POST as $key => $value ) {
+                $sqlArr[] = " `$key` = '".addslashes($value)."'";
+            }       
             $query .= implode(',' , $sqlArr);
-        }else{
-            // mysql query to update data
-            $query = "UPDATE  pre_embryo_transfer_iui SET ";
-          
-            foreach( $_POST as $key=> $value )
-            {
-              $sqlArr[] = " $key = '".$value."'"	;
+        } else {
+            // UPDATE Query: [FIXED] पुराने रिकॉर्ड को सुरक्षित अपडेट करने के लिए
+            $query = "UPDATE pre_embryo_transfer_iui SET ";
+            foreach( $_POST as $key => $value ) {
+                $sqlArr[] = " `$key` = '".addslashes($value)."'"; // addslashes यहाँ भी जोड़ा गया है
             }
             $query .= implode(',' , $sqlArr);
-            $query .= " WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
+            $query .= " WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
         }
+        
         $result = run_form_query($query);  
         
-     
-	  if($result){
-         header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form inserted!').'&t='.base64_encode('success'));
-        	die();
-        }else{
-          header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-		  die();
+        if($result){
+            // रीडायरेक्शन यूआरएल को क्लीन किया गया ताकि पुराना '?' या '&' सिंटैक्स न टूटे
+            $redirect_url = strtok($_SERVER['HTTP_REFERER'], '?');
+            header("location:" .$redirect_url."?patient_id=".$patient_id."&appoitmented_date=".$appoitmented_date."&m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
+            die();
+        } else {
+            header("location:" .$_SERVER['HTTP_REFERER']."&m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+            die();
         }
-	 
-	 
     } 
-	
-	
-	if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `pre_embryo_transfer_iui` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
-	} else {
-			$sql = "SELECT * FROM `pre_embryo_transfer_iui` WHERE patient_id='$patient_id'";
-	}
-	$select_result = run_select_query($sql);
-	
-	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
-	$select_result1 = run_select_query($sql1);
-	
-	$sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
-	$select_result2 = run_select_query($sql2);
-	
-	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-	$select_result3 = run_select_query($sql3);
-?>
+    
+    // ==============================================================================
+    // व्यू मोड (View Mode) के लिए डेटाबेस से डेटा खींचना
+    // ==============================================================================
+    $select_result = array();
+    if (!empty($patient_id)) {
+        if (!empty($appoitmented_date)) {
+            $sql = "SELECT * FROM `pre_embryo_transfer_iui` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
+        } else {
+            $sql = "SELECT * FROM `pre_embryo_transfer_iui` WHERE patient_id='$patient_id'";
+        }
+        $select_result = run_select_query($sql);
+    }
 
- <?php $procedures = $applicablemedicine = array();
+    // डिफ़ॉल्ट एरे कीज़ सेट करना ताकि HTML फ़ील्ड्स में Undefined Array Key एरर न आए
+    if(empty($select_result)) {
+        $select_result = array(
+            'procedures' => '',
+            'applicablemedicine' => ''
+        );
+    }
+    
+    // अप्वाइंटमेंट और सेंटर्स का डेटा सुरक्षित तरीके से निकालना
+    $select_result1 = array('appoitment_for' => '', 'uhid' => '');
+    $select_result3 = array('center_code' => '');
+
+    if (!empty($patient_id)) {
+        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+        $res1 = run_select_query($sql1);
+        if(!empty($res1)) {
+            $select_result1 = $res1;
+            
+            $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".($select_result1['appoitment_for'] ?? '')."'";
+            $res3 = run_select_query($sql3);
+            if(!empty($res3)) {
+                $select_result3 = $res3;
+            }
+        }
+    }
+
+    // चैकबॉक्स और मल्टी-सिलेक्ट के लिए स्ट्रिंग को वापस एरे में एक्सप्लोश करना
+    $procedures = array();
+    $applicablemedicine = array();
+
     if(!empty($select_result['procedures'])){
-        $procedures = explode(',',$select_result['procedures']);
+        $procedures = explode(',', $select_result['procedures']);
     }
     if(!empty($select_result['applicablemedicine'])){
         $applicablemedicine = explode(',', $select_result['applicablemedicine']);
     }
-  ?>
+?>
 
 <div class="ga-pro">
 <h3>Please strike out whichever is not applicable</h3>
