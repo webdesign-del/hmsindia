@@ -1267,467 +1267,176 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>How many days</p>
 </td>
 </tr>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('TabCrocin',$applicablemedicine)){ ?>
+<!-- प्रिंट सेक्शन के अंदर दवाओं की लिस्ट का सुधरा हुआ कोड -->
+<?php 
+// डेटाबेस से आई दवाओं की पूरी स्ट्रिंग को एक वेरिएबल में ले लिया ताकि सर्च आसान हो
+$med_string = isset($select_result['applicablemedicine']) ? $select_result['applicablemedicine'] : ''; 
+?>
+
+<?php if(strpos($med_string, 'TabCrocin') !== false){ ?>
 <tr>
 <td width="100" colspan="1" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="TabCrocin" <?php if(!empty($select_result['applicablemedicine']) && in_array('TabCrocin',$applicablemedicine)){echo "checked";}?>>
+ <input type="checkbox" checked readonly>
 </td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Tab Crocin</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>500 mg</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Oral</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>SOS
-<strong>Maximum three times at interval of 6 hrs (if Require )</strong></p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>SOS (if pain)</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p></p>
-</td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Tab Crocin</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>500 mg</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Oral</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>SOS <strong>Maximum three times at interval of 6 hrs</strong></p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After meals</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>SOS (if pain)</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p></p></td>
 </tr>
 <?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('Sypcremaffin',$applicablemedicine)){ ?>
+
+<?php if(strpos($med_string, 'Tab Ceftum') !== false || strpos($med_string, 'Ceftum') !== false){ ?>
 <tr>
 <td width="100" colspan="1" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="Sypcremaffin"  <?php if(!empty($select_result['applicablemedicine']) && in_array('Sypcremaffin',$applicablemedicine)){echo "checked";}?>>
+ <input type="checkbox" checked readonly>
 </td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Sypcremaffin</p>
+<td width="100" style="border:1px solid;padding:5px;"><p>Tab Ceftum(500 mg)</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>500 mg</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Oral</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>SOS <strong>Maximum three times at interval of 6 hrs</strong></p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After meals</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>SOS (if pain)</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p></p></td>
+</tr>
+<?php } ?>
+
+<?php if(strpos($med_string, 'Sypcremaffin') !== false){ ?>
+<tr>
+<td width="100" colspan="1" style="border:1px solid;padding:5px;">
+ <input type="checkbox" checked readonly>
 </td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>ONE TSF</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Oral</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>SOS</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After dinner</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>SOS (if constipation)</p>
-</td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Sypcremaffin</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>ONE TSF</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Oral</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>SOS</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After dinner</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>SOS (if constipation)</p></td>
 <td width="100" style="border:1px solid;padding:5px;"></td>
 </tr>
 <?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('EndofertTab2MG',$applicablemedicine)){ ?>
+
+<?php if(strpos($med_string, 'EndofertTab2MG') !== false){ ?>
 <tr>
-<td  width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="EndofertTab2MG" <?php if(!empty($select_result['applicablemedicine']) && in_array('EndofertTab2MG',$applicablemedicine)){echo "checked";}?>>
-</td>
 <td width="100" style="border:1px solid;padding:5px;">
-<p>Endofert Tab 2MG</p>
+ <input type="checkbox" checked readonly>
 </td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Endofert Tab 2MG</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>1TAB</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Oral</p></td>
 <td width="100" style="border:1px solid;padding:5px;">
-<p>1TAB</p>
+    <p>
+    <input type="checkbox" <?php echo (strpos($med_string, 'gufitwice') !== false)?'checked':''; ?>> Twice  
+    <input type="checkbox" <?php echo (strpos($med_string, 'gufithrice') !== false)?'checked':''; ?>> thrice  
+    <input type="checkbox" <?php echo (strpos($med_string, 'gufifour') !== false)?'checked':''; ?>> four times daily
+    </p>
 </td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After meals</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>immediately</p></td>
 <td width="100" style="border:1px solid;padding:5px;">
-<p>Oral</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p> <input type="checkbox" name="applicablemedicine[]" value="gufitwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufitwice',$applicablemedicine)){echo "checked";}?>>
-    Twice 
-    <input type="checkbox" name="applicablemedicine[]" value="gufithrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufithrice',$applicablemedicine)){echo "checked";}?>>
-    thrice 
-    <input type="checkbox" name="applicablemedicine[]" value="gufifour" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufifour',$applicablemedicine)){echo "checked";}?>>
-    four times daily</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p> <input type="checkbox" name="applicablemedicine[]" value="gufi5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi5days',$applicablemedicine)){echo "checked";}?>>
-    5 Days 
-    <input type="checkbox" name="applicablemedicine[]" value="gufi10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi10days',$applicablemedicine)){echo "checked";}?>>
-    10 Days 
-    <input type="checkbox" name="applicablemedicine[]" value="gufi15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi15days',$applicablemedicine)){echo "checked";}?>>
-    15 Days
-    <input type="checkbox" name="applicablemedicine[]" value="gufi21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi21days',$applicablemedicine)){echo "checked";}?>>
-    21 Days
-    <input type="checkbox" name="applicablemedicine[]" value="gufi30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi30days',$applicablemedicine)){echo "checked";}?>>
-    30 Days
+    <p>
+    <input type="checkbox" <?php echo (strpos($med_string, 'gufi5days') !== false)?'checked':''; ?>> 5 Days  
+    <input type="checkbox" <?php echo (strpos($med_string, 'gufi10days') !== false)?'checked':''; ?>> 10 Days  
+    <input type="checkbox" <?php echo (strpos($med_string, 'gufi15days') !== false)?'checked':''; ?>> 15 Days
+    <input type="checkbox" <?php echo (strpos($med_string, 'gufi21days') !== false)?'checked':''; ?>> 21 Days
+    <input type="checkbox" <?php echo (strpos($med_string, 'gufi30days') !== false)?'checked':''; ?>> 30 Days
     </p>
 </td>
 </tr>
 <?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('BiophilL',$applicablemedicine)){ ?>
+
+<?php if(strpos($med_string, 'BiophilL') !== false){ ?>
 <tr>
-<td width="100" style="border:1px solid;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="BiophilL" <?php if(!empty($select_result['applicablemedicine']) && in_array('BiophilL',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Biophil L</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>1 CAP</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Oral</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Once daily</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>30 Days</p>
-</td>
+<td width="100" style="border:1px solid;padding:5px;"><input type="checkbox" checked readonly></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Biophil L</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>1 CAP</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Oral</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Once daily</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After meals</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>immediately</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>30 Days</p></td>
 </tr>
 <?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('BiophilO',$applicablemedicine)){ ?>
+
+<?php if(strpos($med_string, 'BiophilO') !== false){ ?>
 <tr>
-<td width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="BiophilO" <?php if(!empty($select_result['applicablemedicine']) && in_array('BiophilO',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Biophil O</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>1 CAP</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Oral</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Once daily</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>30 Days</p>
-</td>
+<td width="100" style="border:1px solid;padding:5px;"><input type="checkbox" checked readonly></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Biophil O</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>1 CAP</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Oral</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Once daily</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After meals</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>immediately</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>30 Days</p></td>
 </tr>
 <?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('BiophilQ3',$applicablemedicine)){ ?>
+
+<?php if(strpos($med_string, 'BiophilQ3') !== false){ ?>
 <tr>
-<td width="100" style="border:1px solid;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="BiophilQ3" <?php if(!empty($select_result['applicablemedicine']) && in_array('BiophilQ3',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Biophil Q3</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>1 CAP</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Oral</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Once daily</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>30 Days</p>
-</td>
+<td width="100" style="border:1px solid;padding:5px;"><input type="checkbox" checked readonly></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Biophil Q3</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>1 CAP</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Oral</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Once daily</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After meals</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>immediately</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>30 Days</p></td>
 </tr>
 <?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('BIOLARG',$applicablemedicine)){ ?>
+
+<?php if(strpos($med_string, 'BIOLARG') !== false){ ?>
 <tr>
-<td width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="BIOLARG" <?php if(!empty($select_result['applicablemedicine']) && in_array('BIOLARG',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>BIOLARG</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>1 SACHET</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Oral</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Once daily</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>30 Days</p>
-</td>
+<td width="100" style="border:1px solid;padding:5px;"><input type="checkbox" checked readonly></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>BIOLARG</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>1 SACHET</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Oral</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Once daily</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After meals</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>immediately</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>30 Days</p></td>
 </tr>
 <?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('BIOPHILVITA',$applicablemedicine)){ ?>
+
+<?php if(strpos($med_string, 'BIOPHILVITA') !== false){ ?>
 <tr>
-<td width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="BIOPHILVITA" <?php if(!empty($select_result['applicablemedicine']) && in_array('BIOPHILVITA',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>BIOPHIL VITA</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>1 cap</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>oral</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Once daily</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>30 days</p>
-</td>
+<td width="100" style="border:1px solid;padding:5px;"><input type="checkbox" checked readonly></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>BIOPHIL VITA</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>1 cap</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>oral</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Once daily</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After meals</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>immediately</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>30 days</p></td>
 </tr>
 <?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('INFAGESTRONSR200',$applicablemedicine)){ ?>
+
+<?php if(strpos($med_string, 'CEROXITUM500') !== false){ ?>
 <tr>
-<td width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="INFAGESTRONSR200" <?php if(!empty($select_result['applicablemedicine']) && in_array('INFAGESTRONSR200',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>INFAGESTRON SR 200</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>200mg</p>  
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Oral/vaginally</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p> <input type="checkbox" name="applicablemedicine[]" value="genonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('genonce',$applicablemedicine)){echo "checked";}?>> Once
-    <input type="checkbox" name="applicablemedicine[]" value="gentwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gentwice',$applicablemedicine)){echo "checked";}?>> twice
-    <input type="checkbox" name="applicablemedicine[]" value="genthrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('genthrice',$applicablemedicine)){echo "checked";}?>> four times daily</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>16 Days</p>
-</td>
-</tr><?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('Estogel',$applicablemedicine)){ ?>
-<tr>
-<td width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="Estogel" <?php if(!empty($select_result['applicablemedicine']) && in_array('Estogel',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Estogel</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>2.5 gm</p>  
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Locally</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>
-    <input type="checkbox" name="applicablemedicine[]" value="estoonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('estoonce',$applicablemedicine)){echo "checked";}?>> Once
-    <input type="checkbox" name="applicablemedicine[]" value="estotwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('estotwice',$applicablemedicine)){echo "checked";}?>> twice 
-    <input type="checkbox" name="applicablemedicine[]" value="estothrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('estothrice',$applicablemedicine)){echo "checked";}?>> thrice 
-    <input type="checkbox" name="applicablemedicine[]" value="estofour" <?php if(!empty($select_result['applicablemedicine']) && in_array('estofour',$applicablemedicine)){echo "checked";}?>> four  times to be applied locally daily</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p> <input type="checkbox" name="applicablemedicine[]" value="esto5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto5days',$applicablemedicine)){echo "checked";}?>> 5 Days 
-    <input type="checkbox" name="applicablemedicine[]" value="esto10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto10days',$applicablemedicine)){echo "checked";}?>> 10 Days 
-    <input type="checkbox" name="applicablemedicine[]" value="esto15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto15days',$applicablemedicine)){echo "checked";}?>> 15 Days
-    <input type="checkbox" name="applicablemedicine[]" value="esto21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto21days',$applicablemedicine)){echo "checked";}?>> 21 Days
-    <input type="checkbox" name="applicablemedicine[]" value="esto30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto30days',$applicablemedicine)){echo "checked";}?>> 30 Days
-    </p>
-</td>
+<td width="100" style="border:1px solid;padding:5px;"><input type="checkbox" checked readonly></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>CEROXITUM 500</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>500MG</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>1 Tab</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Twice Daily</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After meals</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>immediately</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>3 Days</p></td>
 </tr>
 <?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('Lenzettospray',$applicablemedicine)){ ?>
+
+<?php if(strpos($med_string, 'Meprate10mgTab') !== false){ ?>
 <tr>
-<td width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="Lenzettospray" <?php if(!empty($select_result['applicablemedicine']) && in_array('Lenzettospray',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Lenzetto Spray</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>1 spray</p>    
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Locally</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>
-    <input type="checkbox" name="applicablemedicine[]" value="lenonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('lenonce',$applicablemedicine)){echo "checked";}?>> Once
-    <input type="checkbox" name="applicablemedicine[]" value="lentwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('lentwice',$applicablemedicine)){echo "checked";}?>> twice 
-    times to be applied</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p></p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p> <input type="checkbox" name="applicablemedicine[]" value="len5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len5days',$applicablemedicine)){echo "checked";}?>> 5 Days 
-    <input type="checkbox" name="applicablemedicine[]" value="len10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len10days',$applicablemedicine)){echo "checked";}?>> 10 Days 
-    <input type="checkbox" name="applicablemedicine[]" value="len15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len15days',$applicablemedicine)){echo "checked";}?>> 15 Days
-    <input type="checkbox" name="applicablemedicine[]" value="len21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len21days',$applicablemedicine)){echo "checked";}?>> 21 Days
-    <input type="checkbox" name="applicablemedicine[]" value="len30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len30days',$applicablemedicine)){echo "checked";}?>> 30 Days
-    </p>
-</td>
+<td width="100" style="border:1px solid;padding:5px;"><input type="checkbox" checked readonly></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Meprate 10mg Tab</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>10 MG</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>Tab</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>once Daily</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>After meals</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>immediately</p></td>
+<td width="100" style="border:1px solid;padding:5px;"><p>5 Days</p></td>
 </tr>
-<?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('Luprorin4MGInj',$applicablemedicine)){ ?>
-<tr>
-<td width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="Luprorin4MGInj" <?php if(!empty($select_result['applicablemedicine']) && in_array('Luprorin4MGInj',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Luprorin 4MG Inj</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p> <input type="checkbox" name="applicablemedicine[]" value="lupro1ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro1ml',$applicablemedicine)){echo "checked";}?>> 1 ML 
-    <input type="checkbox" name="applicablemedicine[]" value="lupro2ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro2ml',$applicablemedicine)){echo "checked";}?>> 2 ML 
-    <input type="checkbox" name="applicablemedicine[]" value="lupro3ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro3ml',$applicablemedicine)){echo "checked";}?>> 3 ML
-    <input type="checkbox" name="applicablemedicine[]" value="lupro4ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro4ml',$applicablemedicine)){echo "checked";}?>> 4 ML
-    </p>    
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Subcutaneous</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>
-    <input type="checkbox" name="applicablemedicine[]" value="eurodaily" <?php if(!empty($select_result['applicablemedicine']) && in_array('eurodaily',$applicablemedicine)){echo "checked";}?>> Daily
-    <input type="checkbox" name="applicablemedicine[]" value="euroalternate day" <?php if(!empty($select_result['applicablemedicine']) && in_array('euroalternate day',$applicablemedicine)){echo "checked";}?>> alternate day
-    <input type="checkbox" name="applicablemedicine[]" value="eurobiweekly" <?php if(!empty($select_result['applicablemedicine']) && in_array('eurobiweekly',$applicablemedicine)){echo "checked";}?>> biweekly 
-    <input type="checkbox" name="applicablemedicine[]" value="euroweekly" <?php if(!empty($select_result['applicablemedicine']) && in_array('euroweekly',$applicablemedicine)){echo "checked";}?>> weekly</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p></p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>30 Days</p>
-</td>
-</tr>
-<?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('CapCalcitasD3',$applicablemedicine)){ ?>
-<tr>
-<td width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="CapCalcitasD3" <?php if(!empty($select_result['applicablemedicine']) && in_array('CapCalcitasD3',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Cap Calcitas D3</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>60000IU</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>oral</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>weekly</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>30 Days</p>
-</td>
-</tr>
-<?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('CEROXITUM500',$applicablemedicine)){ ?>
-<tr>
-<td width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="CEROXITUM500" <?php if(!empty($select_result['applicablemedicine']) && in_array('CEROXITUM500',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>CEROXITUM 500</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>500MG</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>1 Tab</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Twice Daily</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>3 Days</p>
-</td>
-</tr>
-<?php } ?>
-<?php if(!empty($select_result['applicablemedicine']) && in_array('Meprate10mgTab',$applicablemedicine)){ ?>
-<tr>
-<td width="100" style="border:1px solid;padding:5px;">
- <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="Meprate10mgTab" <?php if(!empty($select_result['applicablemedicine']) && in_array('Meprate10mgTab',$applicablemedicine)){echo "checked";}?>>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Meprate 10mg Tab</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>10 MG</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>Tab</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>once Daily</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>After meals</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>immediately</p>
-</td>
-<td width="100" style="border:1px solid;padding:5px;">
-<p>5 Days</p>
-</td>
-</tr>
-<?php } ?>
-</tbody>
+<?php } ?></tbody>
 </table>
 <table width="100%">
 <tbody>
