@@ -1,4 +1,5 @@
 <?php 
+// कोडइग्नाइटर का इंस्टेंस वेरिएबल में लिया
 $all_method =& get_instance();
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
@@ -6,7 +7,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
                
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
+        // चेक करें कि क्या इस patient_id का डेटा पहले से मौजूद है
         $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql); 
         
@@ -50,17 +51,18 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         }
     }
     
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
+    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ patient_id से फेच करें
     $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
   
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+    // 💡 FIX: $this की जगह $all_method का उपयोग किया गया ताकि 500 Error न आए
+    $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
   
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+    $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
     $select_result3 = run_select_query($sql3);  
   
-    $sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
+    $sql5 = "Select * from ".$all_method->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
     $select_result5 = run_select_query($sql5); 
   
     $select_query_laparoscopy = "SELECT * FROM `laparoscopy_hysteroscopy` WHERE patient_id='$patient_id'";
@@ -68,15 +70,14 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 
     $is_complete = !empty($select_result_laparoscopy);
 
-    // 3. Set the receipt number for the hidden input
+    // Set the receipt number for the hidden input
     $final_receipt = ($is_complete) ? $select_result_laparoscopy['receipt_number'] : "";
        
 ?>
 
 <?php 
-    $phyical = $applicablemedicine = $procedures = array();
-    // (Note: variable was typo'd as $phyical but used as $physical inside block, aligning it below)
-    $physical = array(); 
+    // 💡 FIX: $phyical वेरिएबल की स्पेलिंग नीचे $physical यूज़ हो रही थी, उसे सही किया
+    $physical = $applicablemedicine = $procedures = array();
     
     if(!empty($select_result['physical_examination'])){
         $physical = explode(',', $select_result['physical_examination']);
