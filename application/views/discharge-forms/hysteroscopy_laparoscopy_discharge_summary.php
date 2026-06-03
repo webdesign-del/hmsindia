@@ -1,16 +1,17 @@
 <?php 
+// कोडइग्नाइटर का इंस्टेंस वेरिएबल में लिया
 $all_method =& get_instance();
-
-// URL से आ रही अपॉइंटमेंट डेट को सुरक्षित तरीके से पकड़ें
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
-    // php code to Insert or Update data into mysql database from input text
+    // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
                
-        $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
+        // चेक करें कि क्या इस patient_id का डेटा पहले से मौजूद है
+        $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql); 
         
+        // Convert arrays to strings safely
         if(!empty($_POST['physical_examination']) && isset($_POST['physical_examination'])){
             $_POST['physical_examination'] = implode(',', $_POST['physical_examination']);
         }
@@ -21,48 +22,44 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
              $_POST['procedures'] = implode(',', $_POST['procedures']);
         }
     
-        $sqlArr = array(); // एरे को ऊपर ही डिफाइन कर दिया
-        
+        // अगर डेटा नहीं है, तो सिर्फ तभी INSERT करें
         if(empty($select_result)){
-            // 1. INSERT QUERY SETUP
+            
+            // mysql query to insert data
             $query = "INSERT INTO `hysteroscopy_laparoscopy_discharge_summary` SET ";
+            $sqlArr = array();
+            
             foreach($_POST as $key => $value) {
-                $sqlArr[] = " `$key` = '".addslashes($value)."'";
+              $sqlArr[] = " `$key` = '".addslashes($value)."'";
             }   
             $query .= implode(',' , $sqlArr);
-            $msg = 'Discharge form inserted successfully!';
-        } else {
-            // 2. UPDATE QUERY SETUP 
-            // (💡 FIX: पुराने कोड में यहाँ एरे खाली न होने से इंसर्ट का डेटा मिक्स हो जाता)
-            $query = "UPDATE `hysteroscopy_laparoscopy_discharge_summary` SET ";
-            foreach($_POST as $key => $value) {
-                $sqlArr[] = " `$key` = '".addslashes($value)."'";
+            
+            $result = run_form_query($query); 
+        
+            if($result){
+                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
+                die();
+            } else {
+                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+                die();
             }
-            $query .= implode(',' , $sqlArr);
-            $query .= " WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
-            $msg = 'Discharge form updated successfully!';
-        }
-        
-        $result = run_form_query($query); 
-        
-        if($result){
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode($msg).'&t='.base64_encode('success'));
-            die();
+            
         } else {
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+            // अगर डेटा पहले से मौजूद है, तो UPDATE ना करें, बल्कि सीधा वापस भेज दें
+            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
             die();
         }
     }
-
-    // व्यू मोड में डेटा लोड करने के लिए क्वेरीज़
-    $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
+    
+    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ patient_id से फेच करें
+    $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
   
-    // 💡 FIX: $this->config को $all_method->config से बदला ताकि 500 Fatal Error न आए
+    // 💡 FIX: $this की जगह $all_method का उपयोग किया गया ताकि 500 Error न आए
     $sql1 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
     $select_result1 = run_select_query($sql1);
   
-    $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where wife_phone='".($select_result1['wife_phone'] ?? '')."' and paitent_type='new_patient'";
+    $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
   
     $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
@@ -78,34 +75,39 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 
     // Set the receipt number for the hidden input
     $final_receipt = ($is_complete) ? $select_result_laparoscopy['receipt_number'] : "";
+    $receipt_number = isset($receipt_number) ? $receipt_number : '';
+       
 ?>
 
- <?php $phyical = $applicablemedicine = $procedures = array();
+<?php 
+    // 💡 FIX: $phyical वेरिएबल की स्पेलिंग नीचे $physical यूज़ हो रही थी, उसे सही किया
+    $physical = $applicablemedicine = $procedures = array();
+    
     if(!empty($select_result['physical_examination'])){
-        $physical = explode(',',$select_result['physical_examination']);
+        $physical = explode(',', $select_result['physical_examination']);
     }
     if(!empty($select_result['applicablemedicine'])){
-        $applicablemedicine = explode(',',$select_result['applicablemedicine']);
+        $applicablemedicine = explode(',', $select_result['applicablemedicine']);
     }
-	
-	 if(!empty($select_result['procedures'])){
-        $procedures = explode(',',$select_result['procedures']);
+    if(!empty($select_result['procedures'])){
+        $procedures = explode(',', $select_result['procedures']);
     }
-	
-  ?>
+    
+    $center = isset($select_result['center']) ? $select_result['center'] : '';
+?>
 
 <div class="ga-pro">
 <h3>Discharge Summary</h3>
 
 <form action="" enctype='multipart/form-data' method="post">
 
-<input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
-<input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
-<input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
-<input type="hidden" name="appointment_id" value="<?php echo $select_result1['ID']; ?>" />
+<input type="hidden" value="<?php echo isset($updated_by)?$updated_by:''; ?>" class="form" name="updated_by">
+<input type="hidden" value="<?php echo isset($updated_type)?$updated_type:''; ?>" class="form" name="updated_type">
+<input type="hidden" value="<?php echo isset($updated_at)?$updated_at:''; ?>" class="form" name="updated_at">
+<input type="hidden" name="appointment_id" value="<?php echo isset($select_result1['ID'])?$select_result1['ID']:''; ?>" />
 <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
 <input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
-<input type="hidden" value="<?php echo $_SESSION['logged_doctor']['doctor_id'] ?>" class="form" name="doctor_id">				 
+<input type="hidden" value="<?php echo isset($_SESSION['logged_doctor']['doctor_id'])?$_SESSION['logged_doctor']['doctor_id']:''; ?>" class="form" name="doctor_id">                 
 <?php if ($is_complete): ?>
     <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
     
@@ -129,26 +131,26 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     
     <style>
         /* Automatically hides the save button if clinical data is missing */
-        #submitbutton, .btn-submit, button[type="submit"] { 
+        #submitbutton, .btn-submit, button[type="submit"], input[type="submit"] { 
             display: none !important; 
         } 
     </style>
-<?php endif; ?>	
+<?php endif; ?> 
   
-<div class="col-sm-12 col-md-12">	
+<div class="col-sm-12 col-md-12"> 
 <div class="col-sm-12 col-md-4" style="margin-bottom: 10px;">
 <label for="Center">Center</label>
 <select class="form-control" id="center" name="center">
     <option value=''>--Select From--</option>
     <?php $all_centers = $all_method->get_all_centers();
-	foreach($all_centers as $key => $val){ //var_dump($val);die;
+    foreach($all_centers as $key => $val){ 
     if($center == $val['center_number']){
     echo '<option value="'.$val['center_number'].'" selected>'.$val['center_name'].'</option>';
     }else{
-	echo '<option value="'.$val['center_number'].'">'.$val['center_name'].'</option>';
+    echo '<option value="'.$val['center_number'].'">'.$val['center_name'].'</option>';
     }
     } 
-	?>
+    ?>
 </select> 
  </div> 
 <div class="col-sm-12 col-md-2" style="margin-bottom: 10px;">
@@ -173,11 +175,11 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <tbody>
 <tr style="background: #b3b9b7;">
     <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-	<strong>Details of Female Partner</strong>
-	</td>
-	<td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-	<strong>Details of Male Partner</strong>
-	</td>
+    <strong>Details of Female Partner</strong>
+    </td>
+    <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
+    <strong>Details of Male Partner</strong>
+    </td>
   </tr>
 <tr style="background: #b3b9b7;">
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
@@ -189,34 +191,31 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </tr>
 <tr>
 <td colspan="3" width="50%">
-<strong>Female Partner : <?php echo $patient_data['wife_name']; ?> </strong>
+<strong>Female Partner : <?php echo isset($patient_data['wife_name'])?$patient_data['wife_name']:''; ?> </strong>
 </td>
 <td colspan="3" width="50%">
-<strong>Male Partner : <?php echo $patient_data['husband_name']; ?> </strong>
+<strong>Male Partner : <?php echo isset($patient_data['husband_name'])?$patient_data['husband_name']:''; ?> </strong>
 </td>
 </tr>
 <tr>
 <td colspan="3" width="50%">
-<strong>Age: <?php echo $patient_data['wife_age']; ?></strong>
+<strong>Age: <?php echo isset($patient_data['wife_age'])?$patient_data['wife_age']:''; ?></strong>
 </td>
 <td colspan="3" width="50%">
-<strong>Age: <?php echo $patient_data['husband_age']; ?></strong>
+<strong>Age: <?php echo isset($patient_data['husband_age'])?$patient_data['husband_age']:''; ?></strong>
 </td>
 </tr>
 
 <tr>
 <td colspan="3" width="50%">
 <strong>Provisional Diagnosis:
-
  <textarea name="female_issues" style="width:100%; height:150px;" > <?php echo isset($select_result['female_issues'])?$select_result['female_issues']:""; ?> </textarea>
 </strong>
 </td>
 <td colspan="3" width="50%">
 <strong>Final Diagnosis:
-
  <textarea name="male_issues" style="width:100%; height:150px;" > <?php echo isset($select_result['male_issues'])?$select_result['male_issues']:""; ?> </textarea>
 </strong>
-
 </td>
 </tr>
 
@@ -234,9 +233,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <div class="sec2">
 <p><strong>Physical Examination: </strong></p>
 <p>
-  <input type="radio" id="Conscious" name="conscious" value="Conscious" <?php if(isset($select_result['Conscious'])  && $select_result['Conscious'] == "Conscious"){ echo "checked";} ?> >
+  <input type="radio" id="Conscious" name="conscious" value="Conscious" <?php if(isset($select_result['conscious'])  && $select_result['conscious'] == "Conscious"){ echo "checked";} ?> >
   <label for="Conscious">Conscious</label><br>
-  <input type="radio" id="oriented" name="conscious" value="Oriented" <?php if(isset($select_result['Conscious'])  && $select_result['Conscious'] == "Oriented"){ echo "checked";} ?> >
+  <input type="radio" id="oriented" name="conscious" value="Oriented" <?php if(isset($select_result['conscious'])  && $select_result['conscious'] == "Oriented"){ echo "checked";} ?> >
   <label for="oriented">Oriented</label><br>  
 </p>
 <p>
@@ -248,9 +247,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
  <label for="Condition">cyanosis</label>
 <input type="checkbox" class="clubbing" name="physical_examination[]" value="digital clubbing" <?php if(!empty($select_result['physical_examination']) && in_array('digital clubbing',$physical)){echo "checked";}?>>
  <label for="Condition">digital clubbing</label>
-<input type="checkbox" class="lymphadenopathy" name="physical_examination[]" value="lymphadenopathy" <?php if(!empty($select_result['physical_examination']) && in_array('digital clubbing',$physical)){echo "checked";}?>>
+<input type="checkbox" class="lymphadenopathy" name="physical_examination[]" value="lymphadenopathy" <?php if(!empty($select_result['physical_examination']) && in_array('lymphadenopathy',$physical)){echo "checked";}?>>
  <label for="Condition">lymphadenopathy</label>
- <input type="checkbox" class="oedema" name="physical_examination[]" value="pedal oedema" <?php if(!empty($select_result['physical_examination']) && in_array('digital clubbing',$physical)){echo "checked";}?>>
+ <input type="checkbox" class="oedema" name="physical_examination[]" value="pedal oedema" <?php if(!empty($select_result['physical_examination']) && in_array('pedal oedema',$physical)){echo "checked";}?>>
  <label for="Condition">pedal oedema</label>
  </p>
  <label for="BP">BP</label>
@@ -271,7 +270,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
   <input type="text" class="PA" name="Patient_PA" value="<?php echo isset($select_result['Patient_PA'])?$select_result['Patient_PA']:""; ?>"><br>
  <label for="CNS">CNS</label>
   <input type="text" class="CNS" name="Patient_CNS" value="<?php echo isset($select_result['Patient_CNS'])?$select_result['Patient_CNS']:""; ?>"><br>
-</div>  
+</div>   
 
 
 <div class="sec2">
@@ -365,6 +364,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>Drink plenty of fluids</p>
 </td>
 </tr>
+</tbody>
 </table>
 <h4>ADVICE ON DISCHARGE</h4>   
 <table width="585">
@@ -398,7 +398,6 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <tr>
 <td>
  <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="TabCrocin" <?php if(!empty($select_result['applicablemedicine']) && in_array('TabCrocin',$applicablemedicine)){echo "checked";}?>>
-
 </td>
 <td width="117">
 <p>Tab Crocin</p>
@@ -410,8 +409,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>Oral</p>
 </td>
 <td width="83">
-<p>SOS
-<strong>Maximum three times at interval of 6 hrs (if Require )</strong></p>
+<p>SOS <strong>Maximum three times at interval of 6 hrs (if Require )</strong></p>
 </td>
 <td width="68">
 <p>After meals</p>
@@ -426,7 +424,6 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <tr>
 <td>
  <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="Tab Ceftum(500 mg)" <?php if(!empty($select_result['applicablemedicine']) && in_array('Tab Ceftum(500 mg)',$applicablemedicine)){echo "checked";}?>>
-
 </td>
 <td width="117">
 <p>Tab Ceftum(500 mg)</p>
@@ -438,8 +435,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>Oral</p>
 </td>
 <td width="83">
-<p>SOS
-<strong>Maximum three times at interval of 6 hrs (if Require )</strong></p>
+<p>SOS <strong>Maximum three times at interval of 6 hrs (if Require )</strong></p>
 </td>
 <td width="68">
 <p>After meals</p>
@@ -454,7 +450,6 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <tr>
 <td>
  <input type="checkbox" class="checkmedicine" name="applicablemedicine[]" value="Sypcremaffin"  <?php if(!empty($select_result['applicablemedicine']) && in_array('Sypcremaffin',$applicablemedicine)){echo "checked";}?>>
-
 </td>
 <td width="117">
 <p>Sypcremaffin</p>
@@ -490,12 +485,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>Oral</p>
 </td>
 <td width="83">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="gufitwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufitwice',$applicablemedicine)){echo "checked";}?>>
-	Twice 
-	<input type="checkbox" name="applicablemedicine[]" value="gufithrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufithrice',$applicablemedicine)){echo "checked";}?>>
-	thrice 
-	<input type="checkbox" name="applicablemedicine[]" value="gufifour" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufifour',$applicablemedicine)){echo "checked";}?>>
-	four times daily</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="gufitwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufitwice',$applicablemedicine)){echo "checked";}?>> Twice 
+    <input type="checkbox" name="applicablemedicine[]" value="gufithrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufithrice',$applicablemedicine)){echo "checked";}?>> thrice 
+    <input type="checkbox" name="applicablemedicine[]" value="gufifour" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufifour',$applicablemedicine)){echo "checked";}?>> four times daily</p>
 </td>
 <td width="68">
 <p>After meals</p>
@@ -504,17 +496,12 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>immediately</p>
 </td>
 <td width="57">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="gufi5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi5days',$applicablemedicine)){echo "checked";}?>>
-	5 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="gufi10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi10days',$applicablemedicine)){echo "checked";}?>>
-	10 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="gufi15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi15days',$applicablemedicine)){echo "checked";}?>>
-	15 Days
-	<input type="checkbox" name="applicablemedicine[]" value="gufi21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi21days',$applicablemedicine)){echo "checked";}?>>
-	21 Days
-	<input type="checkbox" name="applicablemedicine[]" value="gufi30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi30days',$applicablemedicine)){echo "checked";}?>>
-	30 Days
-	</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="gufi5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi5days',$applicablemedicine)){echo "checked";}?>> 5 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="gufi10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi10days',$applicablemedicine)){echo "checked";}?>> 10 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="gufi15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi15days',$applicablemedicine)){echo "checked";}?>> 15 Days
+    <input type="checkbox" name="applicablemedicine[]" value="gufi21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi21days',$applicablemedicine)){echo "checked";}?>> 21 Days
+    <input type="checkbox" name="applicablemedicine[]" value="gufi30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi30days',$applicablemedicine)){echo "checked";}?>> 30 Days
+    </p>
 </td>
 </tr>
 <tr>
@@ -661,12 +648,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>Oral/vaginally</p>
 </td>
 <td width="83">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="genonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('genonce',$applicablemedicine)){echo "checked";}?>>
-	Once
-	<input type="checkbox" name="applicablemedicine[]" value="gentwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gentwice',$applicablemedicine)){echo "checked";}?>>
-	twice
-	<input type="checkbox" name="applicablemedicine[]" value="genthrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('genthrice',$applicablemedicine)){echo "checked";}?>>
-	four times daily</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="genonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('genonce',$applicablemedicine)){echo "checked";}?>> Once
+    <input type="checkbox" name="applicablemedicine[]" value="gentwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gentwice',$applicablemedicine)){echo "checked";}?>> twice
+    <input type="checkbox" name="applicablemedicine[]" value="genthrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('genthrice',$applicablemedicine)){echo "checked";}?>> four times daily</p>
 </td>
 <td width="68">
 <p>After meals</p>
@@ -693,14 +677,10 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </td>
 <td width="83">
 <p>
-	<input type="checkbox" name="applicablemedicine[]" value="estoonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('estoonce',$applicablemedicine)){echo "checked";}?>>
-	Once
-	<input type="checkbox" name="applicablemedicine[]" value="estotwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('estotwice',$applicablemedicine)){echo "checked";}?>>
-	twice 
-	<input type="checkbox" name="applicablemedicine[]" value="estothrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('estothrice',$applicablemedicine)){echo "checked";}?>>
-	thrice 
-	<input type="checkbox" name="applicablemedicine[]" value="estofour" <?php if(!empty($select_result['applicablemedicine']) && in_array('estofour',$applicablemedicine)){echo "checked";}?>>
-	four  times to be applied locally daily</p>
+    <input type="checkbox" name="applicablemedicine[]" value="estoonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('estoonce',$applicablemedicine)){echo "checked";}?>> Once
+    <input type="checkbox" name="applicablemedicine[]" value="estotwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('estotwice',$applicablemedicine)){echo "checked";}?>> twice 
+    <input type="checkbox" name="applicablemedicine[]" value="estothrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('estothrice',$applicablemedicine)){echo "checked";}?>> thrice 
+    <input type="checkbox" name="applicablemedicine[]" value="estofour" <?php if(!empty($select_result['applicablemedicine']) && in_array('estofour',$applicablemedicine)){echo "checked";}?>> four  times to be applied locally daily</p>
 </td>
 <td width="68">
 <p>After meals</p>
@@ -709,17 +689,12 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>immediately</p>
 </td>
 <td width="57">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="esto5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto5days',$applicablemedicine)){echo "checked";}?>>
-	5 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="esto10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto10days',$applicablemedicine)){echo "checked";}?>>
-	10 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="esto15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto15days',$applicablemedicine)){echo "checked";}?>>
-	15 Days
-	<input type="checkbox" name="applicablemedicine[]" value="esto21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto21days',$applicablemedicine)){echo "checked";}?>>
-	21 Days
-	<input type="checkbox" name="applicablemedicine[]" value="esto30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto30days',$applicablemedicine)){echo "checked";}?>>
-	30 Days
-	</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="esto5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto5days',$applicablemedicine)){echo "checked";}?>> 5 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="esto10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto10days',$applicablemedicine)){echo "checked";}?>> 10 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="esto15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto15days',$applicablemedicine)){echo "checked";}?>> 15 Days
+    <input type="checkbox" name="applicablemedicine[]" value="esto21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto21days',$applicablemedicine)){echo "checked";}?>> 21 Days
+    <input type="checkbox" name="applicablemedicine[]" value="esto30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto30days',$applicablemedicine)){echo "checked";}?>> 30 Days
+    </p>
 </td>
 </tr>
 <tr>
@@ -737,11 +712,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </td>
 <td width="83">
 <p>
-	<input type="checkbox" name="applicablemedicine[]" value="lenonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('lenonce',$applicablemedicine)){echo "checked";}?>>
-	Once
-	<input type="checkbox" name="applicablemedicine[]" value="lentwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('lentwice',$applicablemedicine)){echo "checked";}?>>
-	twice 
-	times to be applied</p>
+    <input type="checkbox" name="applicablemedicine[]" value="lenonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('lenonce',$applicablemedicine)){echo "checked";}?>> Once
+    <input type="checkbox" name="applicablemedicine[]" value="lentwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('lentwice',$applicablemedicine)){echo "checked";}?>> twice 
+    times to be applied</p>
 </td>
 <td width="68">
 <p></p>
@@ -750,17 +723,12 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>immediately</p>
 </td>
 <td width="57">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="len5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len5days',$applicablemedicine)){echo "checked";}?>>
-	5 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="len10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len10days',$applicablemedicine)){echo "checked";}?>>
-	10 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="len15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len15days',$applicablemedicine)){echo "checked";}?>>
-	15 Days
-	<input type="checkbox" name="applicablemedicine[]" value="len21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len21days',$applicablemedicine)){echo "checked";}?>>
-	21 Days
-	<input type="checkbox" name="applicablemedicine[]" value="len30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len30days',$applicablemedicine)){echo "checked";}?>>
-	30 Days
-	</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="len5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len5days',$applicablemedicine)){echo "checked";}?>> 5 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="len10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len10days',$applicablemedicine)){echo "checked";}?>> 10 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="len15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len15days',$applicablemedicine)){echo "checked";}?>> 15 Days
+    <input type="checkbox" name="applicablemedicine[]" value="len21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len21days',$applicablemedicine)){echo "checked";}?>> 21 Days
+    <input type="checkbox" name="applicablemedicine[]" value="len30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len30days',$applicablemedicine)){echo "checked";}?>> 30 Days
+    </p>
 </td>
 </tr>
 <tr>
@@ -771,29 +739,21 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>Luprorin 4MG Inj</p>
 </td>
 <td width="76">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="lupro1ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro1ml',$applicablemedicine)){echo "checked";}?>>
-	1 ML 
-	<input type="checkbox" name="applicablemedicine[]" value="lupro2ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro2ml',$applicablemedicine)){echo "checked";}?>>
-	2 ML 
-	<input type="checkbox" name="applicablemedicine[]" value="lupro3ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro3ml',$applicablemedicine)){echo "checked";}?>>
-	3 ML
-	<input type="checkbox" name="applicablemedicine[]" value="lupro4ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro4ml',$applicablemedicine)){echo "checked";}?>>
-	4 ML
-	</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="lupro1ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro1ml',$applicablemedicine)){echo "checked";}?>> 1 ML 
+    <input type="checkbox" name="applicablemedicine[]" value="lupro2ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro2ml',$applicablemedicine)){echo "checked";}?>> 2 ML 
+    <input type="checkbox" name="applicablemedicine[]" value="lupro3ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro3ml',$applicablemedicine)){echo "checked";}?>> 3 ML
+    <input type="checkbox" name="applicablemedicine[]" value="lupro4ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro4ml',$applicablemedicine)){echo "checked";}?>> 4 ML
+    </p>
 </td>
 <td width="76">
 <p>Subcutaneous</p>
 </td>
 <td width="83">
 <p>
-	<input type="checkbox" name="applicablemedicine[]" value="eurodaily" <?php if(!empty($select_result['applicablemedicine']) && in_array('eurodaily',$applicablemedicine)){echo "checked";}?>>
-	Daily
-	<input type="checkbox" name="applicablemedicine[]" value="euroalternate day" <?php if(!empty($select_result['applicablemedicine']) && in_array('euroalternate',$applicablemedicine)){echo "checked";}?>>
-	alternate day
-	<input type="checkbox" name="applicablemedicine[]" value="eurobiweekly" <?php if(!empty($select_result['applicablemedicine']) && in_array('eurobiweekly',$applicablemedicine)){echo "checked";}?>>
-	biweekly 
-	<input type="checkbox" name="applicablemedicine[]" value="euroweekly" <?php if(!empty($select_result['applicablemedicine']) && in_array('euroweekly',$applicablemedicine)){echo "checked";}?>>
-	weekly</p>
+    <input type="checkbox" name="applicablemedicine[]" value="eurodaily" <?php if(!empty($select_result['applicablemedicine']) && in_array('eurodaily',$applicablemedicine)){echo "checked";}?>> Daily
+    <input type="checkbox" name="applicablemedicine[]" value="euroalternate day" <?php if(!empty($select_result['applicablemedicine']) && in_array('euroalternate day',$applicablemedicine)){echo "checked";}?>> alternate day
+    <input type="checkbox" name="applicablemedicine[]" value="eurobiweekly" <?php if(!empty($select_result['applicablemedicine']) && in_array('eurobiweekly',$applicablemedicine)){echo "checked";}?>> biweekly 
+    <input type="checkbox" name="applicablemedicine[]" value="euroweekly" <?php if(!empty($select_result['applicablemedicine']) && in_array('euroweekly',$applicablemedicine)){echo "checked";}?>> weekly</p>
 </td>
 <td width="68">
 <p></p>
@@ -884,20 +844,21 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </td>
 </tr>
 <tr>
-<td width="12.5%">
+<td colspan="8" width="100%">
 <p>There are No Substitutes</p>
 </td>
 </tr>
 </tbody>
 </table>
 <table>
+<tbody>
 <tr>
   <td>
 <div class="nb56ty">
  <label for="other">Medicine Advice1:</label>
   <input type="text" class="other1" name="Medicine_Advice1" value="<?php echo isset($select_result['Medicine_Advice1'])?$select_result['Medicine_Advice1']:""; ?>"><br>
 <label for="other">Medicine Advice2:</label>
-  <input type="text" class="other2" name="Medicine_Advice2" value="<?php echo isset($select_result['Medicine_Advice2'])?$select_result['Patient_BP']:""; ?>"><br>
+  <input type="text" class="other2" name="Medicine_Advice2" value="<?php echo isset($select_result['Medicine_Advice2'])?$select_result['Medicine_Advice2']:""; ?>"><br>
  <label for="other">Medicine Advice3:</label>
   <input type="text" class="other3" name="Medicine_Advice3" value="<?php echo isset($select_result['Medicine_Advice3'])?$select_result['Medicine_Advice3']:""; ?>"><br>
  <label for="other">Medicine Advice4:</label>
@@ -926,8 +887,6 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 
 </div>
 
-
-
 <div class="sec2" style="display: flex; padding-top: 5px;">
  <label for="BP"><b>Follow Up Advice:</b> Review with DR.</label>
   <input type="text" class="followup" name="Doctor_name" value="<?php echo isset($select_result['Doctor_name'])?$select_result['Doctor_name']:""; ?>"> <br>
@@ -953,8 +912,8 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 
 <div class="sec2">
  <label for="Sr IVF Consultant">Sr IVF Consultant</label>
-	<input type="text" class="IVFConsultant" name="" value="<?php echo $select_result['IVF_Consultant']; ?>" readonly>
-	<input type="hidden" class="IVFConsultant" name="IVF_Consultant" value="<?php echo $select_result5['name'];?>" readonly>
+    <input type="text" class="IVFConsultant" name="" value="<?php echo isset($select_result['IVF_Consultant'])?$select_result['IVF_Consultant']:""; ?>" readonly>
+    <input type="hidden" class="IVFConsultant" name="IVF_Consultant" value="<?php echo isset($select_result5['name'])?$select_result5['name']:"";?>" readonly>
 </div>
 <div class="sec2">
   
@@ -967,10 +926,12 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <div class="row" id="print_this_section" style="display:none;">
 <div class="ga-pro">
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
+<tbody>
 <tr>
    <td style="width:50%;padding:5px;" colspan="2"><img src="https://indiaivf.website/assets/images/india-ivf-logo.webp"></td>
    <td style="width:50%;padding:5px;" colspan="2"><h3 style="margin-top:20px;">Discharge Summary</h3></td>
 </tr>
+</tbody>
 </table>
 <form action="" enctype='multipart/form-data' method="post">   
 <table width="100%" class="vb45rt">
@@ -987,15 +948,15 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </tr>
 <tr style="background: #b3b9b7;">
     <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-	<strong>Details of Female Partner</strong>
-	</td>
-	<td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-	<strong>Details of Male Partner</strong>
-	</td>
+    <strong>Details of Female Partner</strong>
+    </td>
+    <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
+    <strong>Details of Male Partner</strong>
+    </td>
   </tr>
 <tr style="background: #b3b9b7;">
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-<strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
+<strong>UHID : <?php echo (isset($select_result3['center_code'])?$select_result3['center_code']:'')."/".(isset($select_result2['uhid'])?$select_result2['uhid']:''); ?></strong>
 </td>
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
 <strong>IIC ID: <?php echo $patient_id; ?></strong>
@@ -1003,18 +964,18 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </tr>
 <tr>
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-<strong>Female Partner : <?php echo $patient_data['wife_name']; ?> </strong>
+<strong>Female Partner : <?php echo isset($patient_data['wife_name'])?$patient_data['wife_name']:''; ?> </strong>
 </td>
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-<strong>Male Partner : <?php echo $patient_data['husband_name']; ?> </strong>
+<strong>Male Partner : <?php echo isset($patient_data['husband_name'])?$patient_data['husband_name']:''; ?> </strong>
 </td>
 </tr>
 <tr>
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-<strong>Age: <?php echo $patient_data['wife_age']; ?></strong>
+<strong>Age: <?php echo isset($patient_data['wife_age'])?$patient_data['wife_age']:''; ?></strong>
 </td>
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-<strong>Age: <?php echo $patient_data['husband_age']; ?></strong>
+<strong>Age: <?php echo isset($patient_data['husband_age'])?$patient_data['husband_age']:''; ?></strong>
 </td>
 </tr>
 
@@ -1045,10 +1006,10 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <td colspan="6" width="100%" style="border:1px solid;padding:5px;">
 <p><strong>Physical Examination: </strong></p>
 <p>
-  <input type="radio" id="Conscious" name="conscious" value="Conscious" <?php if(isset($select_result['Conscious'])  && $select_result['Conscious'] == "Conscious"){ echo "checked";} ?> >
-  <label for="Conscious">Conscious</label><br>
-  <input type="radio" id="oriented" name="conscious" value="Oriented" <?php if(isset($select_result['Conscious'])  && $select_result['Conscious'] == "Oriented"){ echo "checked";} ?> >
-  <label for="oriented">Oriented</label><br>  
+  <input type="radio" id="Conscious_print" name="conscious_print" value="Conscious" <?php if(isset($select_result['conscious'])  && $select_result['conscious'] == "Conscious"){ echo "checked";} ?> >
+  <label for="Conscious_print">Conscious</label><br>
+  <input type="radio" id="oriented_print" name="conscious_print" value="Oriented" <?php if(isset($select_result['conscious'])  && $select_result['conscious'] == "Oriented"){ echo "checked";} ?> >
+  <label for="oriented_print">Oriented</label><br>  
 </p></td>
 </tr>
 
@@ -1063,9 +1024,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
  <label for="Condition">cyanosis</label>
 <input type="checkbox" class="clubbing" name="physical_examination[]" value="digital clubbing" <?php if(!empty($select_result['physical_examination']) && in_array('digital clubbing',$physical)){echo "checked";}?>>
  <label for="Condition">digital clubbing</label>
-<input type="checkbox" class="lymphadenopathy" name="physical_examination[]" value="lymphadenopathy" <?php if(!empty($select_result['physical_examination']) && in_array('digital clubbing',$physical)){echo "checked";}?>>
+<input type="checkbox" class="lymphadenopathy" name="physical_examination[]" value="lymphadenopathy" <?php if(!empty($select_result['physical_examination']) && in_array('lymphadenopathy',$physical)){echo "checked";}?>>
  <label for="Condition">lymphadenopathy</label>
- <input type="checkbox" class="oedema" name="physical_examination[]" value="pedal oedema" <?php if(!empty($select_result['physical_examination']) && in_array('digital clubbing',$physical)){echo "checked";}?>>
+ <input type="checkbox" class="oedema" name="physical_examination[]" value="pedal oedema" <?php if(!empty($select_result['physical_examination']) && in_array('pedal oedema',$physical)){echo "checked";}?>>
  <label for="Condition">pedal oedema</label>
  </p>
  </td>
@@ -1273,6 +1234,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>Drink plenty of fluids</p>
 </td>
 </tr>
+</tbody>
 </table>
 <table width="100%">
 <tbody>
@@ -1375,12 +1337,12 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>Oral</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="gufitwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufitwice',$applicablemedicine)){echo "checked";}?>>
-	Twice 
-	<input type="checkbox" name="applicablemedicine[]" value="gufithrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufithrice',$applicablemedicine)){echo "checked";}?>>
-	thrice 
-	<input type="checkbox" name="applicablemedicine[]" value="gufifour" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufifour',$applicablemedicine)){echo "checked";}?>>
-	four times daily</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="gufitwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufitwice',$applicablemedicine)){echo "checked";}?>>
+    Twice 
+    <input type="checkbox" name="applicablemedicine[]" value="gufithrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufithrice',$applicablemedicine)){echo "checked";}?>>
+    thrice 
+    <input type="checkbox" name="applicablemedicine[]" value="gufifour" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufifour',$applicablemedicine)){echo "checked";}?>>
+    four times daily</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
 <p>After meals</p>
@@ -1389,17 +1351,17 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>immediately</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="gufi5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi5days',$applicablemedicine)){echo "checked";}?>>
-	5 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="gufi10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi10days',$applicablemedicine)){echo "checked";}?>>
-	10 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="gufi15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi15days',$applicablemedicine)){echo "checked";}?>>
-	15 Days
-	<input type="checkbox" name="applicablemedicine[]" value="gufi21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi21days',$applicablemedicine)){echo "checked";}?>>
-	21 Days
-	<input type="checkbox" name="applicablemedicine[]" value="gufi30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi30days',$applicablemedicine)){echo "checked";}?>>
-	30 Days
-	</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="gufi5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi5days',$applicablemedicine)){echo "checked";}?>>
+    5 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="gufi10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi10days',$applicablemedicine)){echo "checked";}?>>
+    10 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="gufi15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi15days',$applicablemedicine)){echo "checked";}?>>
+    15 Days
+    <input type="checkbox" name="applicablemedicine[]" value="gufi21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi21days',$applicablemedicine)){echo "checked";}?>>
+    21 Days
+    <input type="checkbox" name="applicablemedicine[]" value="gufi30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('gufi30days',$applicablemedicine)){echo "checked";}?>>
+    30 Days
+    </p>
 </td>
 </tr>
 <?php } ?>
@@ -1558,12 +1520,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>Oral/vaginally</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="genonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('genonce',$applicablemedicine)){echo "checked";}?>>
-	Once
-	<input type="checkbox" name="applicablemedicine[]" value="gentwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gentwice',$applicablemedicine)){echo "checked";}?>>
-	twice
-	<input type="checkbox" name="applicablemedicine[]" value="genthrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('genthrice',$applicablemedicine)){echo "checked";}?>>
-	four times daily</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="genonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('genonce',$applicablemedicine)){echo "checked";}?>> Once
+    <input type="checkbox" name="applicablemedicine[]" value="gentwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('gentwice',$applicablemedicine)){echo "checked";}?>> twice
+    <input type="checkbox" name="applicablemedicine[]" value="genthrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('genthrice',$applicablemedicine)){echo "checked";}?>> four times daily</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
 <p>After meals</p>
@@ -1591,14 +1550,10 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
 <p>
-	<input type="checkbox" name="applicablemedicine[]" value="estoonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('estoonce',$applicablemedicine)){echo "checked";}?>>
-	Once
-	<input type="checkbox" name="applicablemedicine[]" value="estotwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('estotwice',$applicablemedicine)){echo "checked";}?>>
-	twice 
-	<input type="checkbox" name="applicablemedicine[]" value="estothrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('estothrice',$applicablemedicine)){echo "checked";}?>>
-	thrice 
-	<input type="checkbox" name="applicablemedicine[]" value="estofour" <?php if(!empty($select_result['applicablemedicine']) && in_array('estofour',$applicablemedicine)){echo "checked";}?>>
-	four  times to be applied locally daily</p>
+    <input type="checkbox" name="applicablemedicine[]" value="estoonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('estoonce',$applicablemedicine)){echo "checked";}?>> Once
+    <input type="checkbox" name="applicablemedicine[]" value="estotwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('estotwice',$applicablemedicine)){echo "checked";}?>> twice 
+    <input type="checkbox" name="applicablemedicine[]" value="estothrice" <?php if(!empty($select_result['applicablemedicine']) && in_array('estothrice',$applicablemedicine)){echo "checked";}?>> thrice 
+    <input type="checkbox" name="applicablemedicine[]" value="estofour" <?php if(!empty($select_result['applicablemedicine']) && in_array('estofour',$applicablemedicine)){echo "checked";}?>> four  times to be applied locally daily</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
 <p>After meals</p>
@@ -1607,17 +1562,12 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>immediately</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="esto5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto5days',$applicablemedicine)){echo "checked";}?>>
-	5 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="esto10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto10days',$applicablemedicine)){echo "checked";}?>>
-	10 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="esto15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto15days',$applicablemedicine)){echo "checked";}?>>
-	15 Days
-	<input type="checkbox" name="applicablemedicine[]" value="esto21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto21days',$applicablemedicine)){echo "checked";}?>>
-	21 Days
-	<input type="checkbox" name="applicablemedicine[]" value="esto30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto30days',$applicablemedicine)){echo "checked";}?>>
-	30 Days
-	</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="esto5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto5days',$applicablemedicine)){echo "checked";}?>> 5 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="esto10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto10days',$applicablemedicine)){echo "checked";}?>> 10 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="esto15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto15days',$applicablemedicine)){echo "checked";}?>> 15 Days
+    <input type="checkbox" name="applicablemedicine[]" value="esto21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto21days',$applicablemedicine)){echo "checked";}?>> 21 Days
+    <input type="checkbox" name="applicablemedicine[]" value="esto30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('esto30days',$applicablemedicine)){echo "checked";}?>> 30 Days
+    </p>
 </td>
 </tr>
 <?php } ?>
@@ -1637,11 +1587,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
 <p>
-	<input type="checkbox" name="applicablemedicine[]" value="lenonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('lenonce',$applicablemedicine)){echo "checked";}?>>
-	Once
-	<input type="checkbox" name="applicablemedicine[]" value="lentwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('lentwice',$applicablemedicine)){echo "checked";}?>>
-	twice 
-	times to be applied</p>
+    <input type="checkbox" name="applicablemedicine[]" value="lenonce" <?php if(!empty($select_result['applicablemedicine']) && in_array('lenonce',$applicablemedicine)){echo "checked";}?>> Once
+    <input type="checkbox" name="applicablemedicine[]" value="lentwice" <?php if(!empty($select_result['applicablemedicine']) && in_array('lentwice',$applicablemedicine)){echo "checked";}?>> twice 
+    times to be applied</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
 <p></p>
@@ -1650,17 +1598,12 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>immediately</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="len5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len5days',$applicablemedicine)){echo "checked";}?>>
-	5 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="len10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len10days',$applicablemedicine)){echo "checked";}?>>
-	10 Days 
-	<input type="checkbox" name="applicablemedicine[]" value="len15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len15days',$applicablemedicine)){echo "checked";}?>>
-	15 Days
-	<input type="checkbox" name="applicablemedicine[]" value="len21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len21days',$applicablemedicine)){echo "checked";}?>>
-	21 Days
-	<input type="checkbox" name="applicablemedicine[]" value="len30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len30days',$applicablemedicine)){echo "checked";}?>>
-	30 Days
-	</p>
+<p> <input type="checkbox" name="applicablemedicine[]" value="len5days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len5days',$applicablemedicine)){echo "checked";}?>> 5 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="len10days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len10days',$applicablemedicine)){echo "checked";}?>> 10 Days 
+    <input type="checkbox" name="applicablemedicine[]" value="len15days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len15days',$applicablemedicine)){echo "checked";}?>> 15 Days
+    <input type="checkbox" name="applicablemedicine[]" value="len21days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len21days',$applicablemedicine)){echo "checked";}?>> 21 Days
+    <input type="checkbox" name="applicablemedicine[]" value="len30days" <?php if(!empty($select_result['applicablemedicine']) && in_array('len30days',$applicablemedicine)){echo "checked";}?>> 30 Days
+    </p>
 </td>
 </tr>
 <?php } ?>
@@ -1673,29 +1616,21 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <p>Luprorin 4MG Inj</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
-<p>	<input type="checkbox" name="applicablemedicine[]" value="lupro1ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro1ml',$applicablemedicine)){echo "checked";}?>>
-	1 ML 
-	<input type="checkbox" name="applicablemedicine[]" value="lupro2ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro2ml',$applicablemedicine)){echo "checked";}?>>
-	2 ML 
-	<input type="checkbox" name="applicablemedicine[]" value="lupro3ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro3ml',$applicablemedicine)){echo "checked";}?>>
-	3 ML
-	<input type="checkbox" name="applicablemedicine[]" value="lupro4ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro4ml',$applicablemedicine)){echo "checked";}?>>
-	4 ML
-	</p>    
+<p> <input type="checkbox" name="applicablemedicine[]" value="lupro1ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro1ml',$applicablemedicine)){echo "checked";}?>> 1 ML 
+    <input type="checkbox" name="applicablemedicine[]" value="lupro2ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro2ml',$applicablemedicine)){echo "checked";}?>> 2 ML 
+    <input type="checkbox" name="applicablemedicine[]" value="lupro3ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro3ml',$applicablemedicine)){echo "checked";}?>> 3 ML
+    <input type="checkbox" name="applicablemedicine[]" value="lupro4ml" <?php if(!empty($select_result['applicablemedicine']) && in_array('lupro4ml',$applicablemedicine)){echo "checked";}?>> 4 ML
+    </p>    
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
 <p>Subcutaneous</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
 <p>
-	<input type="checkbox" name="applicablemedicine[]" value="eurodaily" <?php if(!empty($select_result['applicablemedicine']) && in_array('eurodaily',$applicablemedicine)){echo "checked";}?>>
-	Daily
-	<input type="checkbox" name="applicablemedicine[]" value="euroalternate day" <?php if(!empty($select_result['applicablemedicine']) && in_array('euroalternate',$applicablemedicine)){echo "checked";}?>>
-	alternate day
-	<input type="checkbox" name="applicablemedicine[]" value="eurobiweekly" <?php if(!empty($select_result['applicablemedicine']) && in_array('eurobiweekly',$applicablemedicine)){echo "checked";}?>>
-	biweekly 
-	<input type="checkbox" name="applicablemedicine[]" value="euroweekly" <?php if(!empty($select_result['applicablemedicine']) && in_array('euroweekly',$applicablemedicine)){echo "checked";}?>>
-	weekly</p>
+    <input type="checkbox" name="applicablemedicine[]" value="eurodaily" <?php if(!empty($select_result['applicablemedicine']) && in_array('eurodaily',$applicablemedicine)){echo "checked";}?>> Daily
+    <input type="checkbox" name="applicablemedicine[]" value="euroalternate day" <?php if(!empty($select_result['applicablemedicine']) && in_array('euroalternate day',$applicablemedicine)){echo "checked";}?>> alternate day
+    <input type="checkbox" name="applicablemedicine[]" value="eurobiweekly" <?php if(!empty($select_result['applicablemedicine']) && in_array('eurobiweekly',$applicablemedicine)){echo "checked";}?>> biweekly 
+    <input type="checkbox" name="applicablemedicine[]" value="euroweekly" <?php if(!empty($select_result['applicablemedicine']) && in_array('euroweekly',$applicablemedicine)){echo "checked";}?>> weekly</p>
 </td>
 <td width="100" style="border:1px solid;padding:5px;">
 <p></p>
@@ -1792,9 +1727,10 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </td>
 </tr>
 <?php } ?>
-<tr><td width="100%"></td></tr>
+</tbody>
 </table>
 <table width="100%">
+<tbody>
 <tr>
   <td>
 <div class="nb56ty">
@@ -1807,7 +1743,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
   <td colspan="4" width="100%" style="border:1px solid;padding:5px;">
 <div class="nb56ty">
 <label for="other">Medicine Advice2:</label>
- <?php echo isset($select_result['Medicine_Advice2'])?$select_result['Patient_BP']:""; ?>
+ <?php echo isset($select_result['Medicine_Advice2'])?$select_result['Medicine_Advice2']:""; ?>
  </div>
 </td>
 </tr>
@@ -1903,8 +1839,6 @@ input[type=text], textarea {
     width: 100%!important;
 }
 
-
-
 .sec3 p {
     color: red;
 }
@@ -1948,4 +1882,4 @@ form {
     width: 100%;
 }
 .vb45rt td {text-align: left; padding-left: 10px;}
-</style>    
+</style>
