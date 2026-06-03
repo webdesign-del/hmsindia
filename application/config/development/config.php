@@ -13,7 +13,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 */
 
 // Development-specific overrides
-$config['base_url'] = getenv('BASE_URL') ?: 'http://localhost/hmsindia/';
+$config['base_url'] = getenv('BASE_URL') ?: 'https://indiaivf.website/';
 $config['log_threshold'] = 4; // All messages in development
 $config['cookie_secure'] = FALSE; // HTTP allowed in development
 $config['cookie_httponly'] = FALSE;
