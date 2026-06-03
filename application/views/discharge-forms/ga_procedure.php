@@ -6,7 +6,7 @@
         unset($_POST['submit']);
         
         // डुप्लीकेट रोकने के लिए सिर्फ iic_id से चेक करें (Date को इग्नोर करें)
-        $sql = "SELECT * FROM `ga_procedure` WHERE iic_id='$iic_id'";
+        $sql = "SELECT * FROM `ga_procedure` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
     
         if(empty($select_result)){
@@ -26,7 +26,7 @@
             }
             $query .= implode(',' , $sqlArr);
             // सिर्फ iic_id के आधार पर अपडेट करें
-            $query .= " WHERE iic_id='$iic_id'";
+            $query .= " WHERE patient_id='$patient_id'";
         }
         
         $result = run_form_query($query);  
@@ -41,11 +41,11 @@
     }
   
     // फॉर्म में डेटा दिखाने के लिए भी सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `ga_procedure` WHERE iic_id='$iic_id'";
+    $sql = "SELECT * FROM `ga_procedure` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
   
     // बाकी का कोड वैसा ही रहेगा
-    $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."'";
+    $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
     $select_result1 = run_select_query($sql1);
   
     $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
@@ -61,7 +61,7 @@
   <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
   <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
   <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
-<input type="hidden" value="<?php echo $iic_id; ?>" class="form" name="iic_id">
+<input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
 
 
 <h3 style="color: #4141ab;">GENERAL INSTRUCTIONS PRIOR TO OVUM PICK UP/OVARIAN CYST/ ASPIRATION /PRP/ STEM CELLS / LAP/ HYSTERO/FNAC TESTES/TESA/TESE/TESA/M TESE</h3>
@@ -121,7 +121,7 @@
 </div> 
 </div>  
 <td width="42%">
-<strong>IIC ID: <input type="text" name="iic_id" value="<?php echo $iic_id;?>"  readonly></strong>
+<strong>IIC ID: <input type="text" name="patient_id" value="<?php echo $patient_id;?>"  readonly></strong>
 </td>
 <input type="submit" name="submit" value="submit">
 
@@ -171,7 +171,7 @@
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="2" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 </table>    

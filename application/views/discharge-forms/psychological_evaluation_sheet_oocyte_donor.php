@@ -22,9 +22,9 @@
 		}
         
        if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `psychological_evaluation_sheet_oocyte_donor` WHERE iic_id='$iic_id' AND appoitmented_date='$appoitmented_date'";
+			$sql = "SELECT * FROM `psychological_evaluation_sheet_oocyte_donor` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
 	} else {
-			$sql = "SELECT * FROM `psychological_evaluation_sheet_oocyte_donor` WHERE iic_id='$iic_id'";
+			$sql = "SELECT * FROM `psychological_evaluation_sheet_oocyte_donor` WHERE patient_id='$patient_id'";
 	}
 	$select_result = run_select_query($sql);
 		
@@ -60,9 +60,9 @@
   
 
  if (!empty($appoitmented_date)) {
-			$sql = "SELECT * FROM `psychological_evaluation_sheet_oocyte_donor` WHERE iic_id='$iic_id' AND appoitmented_date='$appoitmented_date'";
+			$sql = "SELECT * FROM `psychological_evaluation_sheet_oocyte_donor` WHERE patient_id='$patient_id' AND appoitmented_date='$appoitmented_date'";
 	} else {
-			$sql = "SELECT * FROM `psychological_evaluation_sheet_oocyte_donor` WHERE iic_id='$iic_id'";
+			$sql = "SELECT * FROM `psychological_evaluation_sheet_oocyte_donor` WHERE patient_id='$patient_id'";
 	}
 	$select_result = run_select_query($sql);	
 	
@@ -3999,7 +3999,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4025,7 +4025,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4053,7 +4053,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4079,7 +4079,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4107,7 +4107,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4133,7 +4133,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4165,7 +4165,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4191,7 +4191,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4219,7 +4219,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4245,7 +4245,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4273,7 +4273,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4299,7 +4299,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4331,7 +4331,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4357,7 +4357,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4385,7 +4385,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4411,7 +4411,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4439,7 +4439,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4465,7 +4465,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4497,7 +4497,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4523,7 +4523,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4551,7 +4551,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4577,7 +4577,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4605,7 +4605,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4631,7 +4631,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4663,7 +4663,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4689,7 +4689,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4717,7 +4717,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4743,7 +4743,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4771,7 +4771,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4797,7 +4797,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4829,7 +4829,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4855,7 +4855,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4883,7 +4883,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4909,7 +4909,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4937,7 +4937,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -4963,7 +4963,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -4995,7 +4995,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -5021,7 +5021,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -5049,7 +5049,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -5075,7 +5075,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -5103,7 +5103,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -5129,7 +5129,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -5161,7 +5161,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -5187,7 +5187,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -5215,7 +5215,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -5241,7 +5241,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -5269,7 +5269,7 @@
 <tr>
 <td>
 <strong>UHID : <?php 
-	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' limit 1 "; 
+	        $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' limit 1 "; 
 			   $query = $this->db->query($sql1);
                   $select_result1 = $query->result(); 
 					foreach ($select_result1 as $res_val2){
@@ -5295,7 +5295,7 @@
 </tr>
 <tr>
 <td colspan="1" style="width:28%;">
-<strong>IIC ID : <?php echo $iic_id; ?></strong>
+<strong>IIC ID : <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>

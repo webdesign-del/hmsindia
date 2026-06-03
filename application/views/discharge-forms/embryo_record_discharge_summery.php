@@ -7,7 +7,7 @@
        
        // Validate form data
        $validation_errors = array();
-       $required_fields = array('iic_id', 'center', 'date_of_addmission', 'date_of_discharge');
+       $required_fields = array('patient_id', 'center', 'date_of_addmission', 'date_of_discharge');
        foreach ($required_fields as $field) {
            if (empty($_POST[$field])) {
                $validation_errors[] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
@@ -27,7 +27,7 @@
            $message_type = 'error';
        } else {
            // Check if record exists
-           $check_sql = "SELECT * FROM embryo_record_discharge_summery WHERE iic_id='".$_POST['iic_id']."' AND appoitmented_date='".$_POST['appoitmented_date']."'";
+           $check_sql = "SELECT * FROM embryo_record_discharge_summery WHERE patient_id='".$_POST['patient_id']."' AND appoitmented_date='".$_POST['appoitmented_date']."'";
            $existing_record = run_select_query($check_sql);
            
            if(empty($existing_record)) {
@@ -58,12 +58,12 @@
                $update_sql = "UPDATE embryo_record_discharge_summery SET ";
                $update_fields = array();
                foreach($_POST as $key => $value) {
-                   if($key != 'iic_id' && $key != 'appoitmented_date') {
+                   if($key != 'patient_id' && $key != 'appoitmented_date') {
                        $update_fields[] = "`$key`='".addslashes($value)."'";
                    }
                }
                $update_sql .= implode(', ', $update_fields);
-               $update_sql .= " WHERE iic_id='".$_POST['iic_id']."' AND appoitmented_date='".$_POST['appoitmented_date']."'";
+               $update_sql .= " WHERE patient_id='".$_POST['patient_id']."' AND appoitmented_date='".$_POST['appoitmented_date']."'";
                
                $result = run_form_query($update_sql);
                if($result) {
@@ -89,7 +89,7 @@
        
        // Validate form data
        $validation_errors = array();
-       $required_fields = array('iic_id', 'center', 'date_of_addmission', 'date_of_discharge');
+       $required_fields = array('patient_id', 'center', 'date_of_addmission', 'date_of_discharge');
        foreach ($required_fields as $field) {
            if (empty($_POST[$field])) {
                $validation_errors[] = ucfirst(str_replace('_', ' ', $field)) . ' is required';
@@ -109,7 +109,7 @@
            $message_type = 'error';
        } else {
            // Check if record exists
-           $check_sql = "SELECT * FROM embryo_record_discharge_summery WHERE iic_id='".$_POST['iic_id']."' AND appoitmented_date='".$_POST['appoitmented_date']."'";
+           $check_sql = "SELECT * FROM embryo_record_discharge_summery WHERE patient_id='".$_POST['patient_id']."' AND appoitmented_date='".$_POST['appoitmented_date']."'";
            $existing_record = run_select_query($check_sql);
            
            if(empty($existing_record)) {
@@ -143,12 +143,12 @@
                $update_sql = "UPDATE embryo_record_discharge_summery SET ";
                $update_fields = array();
                foreach($_POST as $key => $value) {
-                   if($key != 'iic_id' && $key != 'appoitmented_date') {
+                   if($key != 'patient_id' && $key != 'appoitmented_date') {
                        $update_fields[] = "`$key`='".addslashes($value)."'";
                    }
                }
                $update_sql .= implode(', ', $update_fields);
-               $update_sql .= " WHERE iic_id='".$_POST['iic_id']."' AND appoitmented_date='".$_POST['appoitmented_date']."'";
+               $update_sql .= " WHERE patient_id='".$_POST['patient_id']."' AND appoitmented_date='".$_POST['appoitmented_date']."'";
                
                $result = run_form_query($update_sql);
                if($result) {
@@ -169,7 +169,7 @@
    }
    
    // Get existing data using direct SQL
-   $select_sql = "SELECT * FROM embryo_record_discharge_summery WHERE iic_id='".$iic_id."'";
+   $select_sql = "SELECT * FROM embryo_record_discharge_summery WHERE patient_id='".$patient_id."'";
    if(!empty($appoitmented_date)) {
        $select_sql .= " AND appoitmented_date='".$appoitmented_date."'";
    }
@@ -182,7 +182,7 @@
    }
    
    // Get appointment and patient data
-   $sql1 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$iic_id."'";
+   $sql1 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
    $select_result1 = run_select_query($sql1);
    
    $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
@@ -191,7 +191,7 @@
    $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
    $select_result3 = run_select_query($sql3);
 
-   $embryo_record_query = "SELECT * FROM `embryo_record` WHERE patient_id='$iic_id'";
+   $embryo_record_query = "SELECT * FROM `embryo_record` WHERE patient_id='$patient_id'";
    $embryo_record_result = run_select_query($embryo_record_query); 
    
    // Display success/error messages
@@ -236,7 +236,7 @@
       </tr>
    </table>
    <form action="" enctype='multipart/form-data' method="post" id="embryoRecordForm" onsubmit="return validateForm()">
-      <input type="hidden" value="<?php echo $iic_id;?>" class="form" name="iic_id">
+      <input type="hidden" value="<?php echo $patient_id;?>" class="form" name="patient_id">
       <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
       <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
       <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
@@ -280,7 +280,7 @@
                   <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
                </td>
                <td colspan="6" width="50%" style="border:1px solid;padding:5px;">
-                  <strong>IIC ID: <?php echo $iic_id; ?></strong>
+                  <strong>IIC ID: <?php echo $patient_id; ?></strong>
                </td>
             </tr>
             <tr>
@@ -447,7 +447,7 @@
             <strong>UHID : <span class="center-value"><?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></span></strong>
          </td>
          <td colspan="6" width="50%" style="border:1px solid;padding:5px;">
-            <strong>IIC ID: <span class="iic_id-value"><?php echo $iic_id; ?></span></strong>
+            <strong>IIC ID: <span class="iic_id-value"><?php echo $patient_id; ?></span></strong>
          </td>
       </tr>
       <tr>

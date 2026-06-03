@@ -17,7 +17,7 @@
         }
        
         // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `sperm_dna_fragmentation2` WHERE iic_id='$iic_id'";
+        $sql = "SELECT * FROM `sperm_dna_fragmentation2` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
         
         // अगर डेटा नहीं है, तो सिर्फ तभी INSERT करें
@@ -49,16 +49,16 @@
     }
    
     // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `sperm_dna_fragmentation2` WHERE iic_id='$iic_id'";
+    $sql = "SELECT * FROM `sperm_dna_fragmentation2` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
+    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
     $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
     $select_result3 = run_select_query($sql3);
 
-    $select_query = "SELECT * FROM `dna_fragmentation` WHERE patient_id='$iic_id' ";
+    $select_query = "SELECT * FROM `dna_fragmentation` WHERE patient_id='$patient_id' ";
     $dna_result = run_select_query($select_query); 
 
     // 2. Define the 'is_complete' flag based on the result
@@ -138,7 +138,7 @@ function isNumber(evt) {
     <td>WIFE NAME</td>
     <td><input type="text" class="WIFENAME" name="WIFE_NAME" value="<?php echo $patient_data['wife_name']; ?>"></td>
     <td>ID NO</td>
-     <td> <input type="text" name="iic_id" value="<?php echo $iic_id;?>" readonly  > </td>
+     <td> <input type="text" name="patient_id" value="<?php echo $patient_id;?>" readonly  > </td>
   
   </tr>
   <tr>
@@ -207,7 +207,7 @@ function isNumber(evt) {
 <?php 
 
 $Fragmented= $Not_Fragmented= 0;
-@ $id=$select_result['iic_id'];
+@ $id=$select_result['patient_id'];
 //echo $id; ?>
 <?php if(!$id==null)  { ?>
 
@@ -440,7 +440,7 @@ function drawChart()
 	  <td colspan="1" width="25%" style="border:1px solid;padding:5px;">UHID</td>
 <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></td>
     <td colspan="1" width="25%" style="border:1px solid;padding:5px;">ID NO</td>
-    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"> <?php echo $iic_id;?></td>
+    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"> <?php echo $patient_id;?></td>
   
   </tr>
   <tr>
@@ -508,7 +508,7 @@ function drawChart()
 <?php 
 
 $Fragmented= $Not_Fragmented= 0;
-@ $id=$select_result['iic_id'];
+@ $id=$select_result['patient_id'];
 //echo $id; ?>
 <?php if(!$id==null)  { ?>
 

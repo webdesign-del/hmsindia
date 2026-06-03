@@ -6,7 +6,7 @@
         unset($_POST['submit']);
         
         // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `day_2_day_5_ovarian_stimulation_investigation` WHERE iic_id='$iic_id'";
+        $sql = "SELECT * FROM `day_2_day_5_ovarian_stimulation_investigation` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
         
         if(!empty($_POST['ovarian_stimulation']) && isset($_POST['ovarian_stimulation'])){
@@ -40,11 +40,11 @@
         }
     }
     
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `day_2_day_5_ovarian_stimulation_investigation` WHERE iic_id='$iic_id'";
+    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ patient_id से फेच करें
+    $sql = "SELECT * FROM `day_2_day_5_ovarian_stimulation_investigation` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
+    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
     $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
@@ -64,7 +64,7 @@
 <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
 <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
 <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
-<input type="hidden" value="<?php echo $iic_id; ?>" class="form" name="iic_id">
+<input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
 <div style="float: left; margin-bottom: 10px;">
 <label for="Center">Center</label>
 <select name="center" required="" class="empty-field" id="center">
@@ -91,7 +91,7 @@
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="2" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -168,7 +168,7 @@
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="2" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>

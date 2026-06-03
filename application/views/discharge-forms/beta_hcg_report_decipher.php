@@ -4,7 +4,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
       
-        $sql = "SELECT * FROM `hcg_report_decipher_negative` WHERE iic_id='$iic_id' and appoitmented_date='$appoitmented_date'";
+        $sql = "SELECT * FROM `hcg_report_decipher_negative` WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
         $select_result = run_select_query($sql); 
         if(empty($select_result)){
             // mysql query to insert data
@@ -23,7 +23,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
               $sqlArr[] = " $key = '".$value."'"	;
             }
             $query .= implode(',' , $sqlArr);
-            $query .= " WHERE iic_id='$iic_id' and appoitmented_date='$appoitmented_date'";
+            $query .= " WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
         }
           $result = run_form_query($query);  
         
@@ -35,10 +35,10 @@ $appoitmented_date = $_GET['appoitmented_date'];
 		  die();
         }
     }
-	$sql = "SELECT * FROM `hcg_report_decipher_negative` WHERE iic_id='$iic_id' and appoitmented_date='$appoitmented_date'";
+	$sql = "SELECT * FROM `hcg_report_decipher_negative` WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
     $select_result = run_select_query($sql);
 	
-	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."'";
+	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
 	$select_result1 = run_select_query($sql1);
 	
 	$sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
@@ -56,7 +56,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
   <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
   <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
    <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
-   <input type="hidden" value="<?php echo $iic_id; ?>" class="form" name="iic_id">
+   <input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
 
 <div style="float: left; margin-bottom: 10px;">
 <label for="Center">Center</label>
@@ -86,7 +86,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="2" width="50%">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -165,7 +165,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>

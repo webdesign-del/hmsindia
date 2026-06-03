@@ -35,9 +35,9 @@
    }
    
    // Get existing data using model
-   $select_result = $all_method->embryo_record_discharge_summary_model->get_by_iic_id($iic_id, $appoitmented_date);
+   $select_result = $all_method->embryo_record_discharge_summary_model->get_by_iic_id($patient_id, $appoitmented_date);
    
-   $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
+   $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
    $select_result2 = run_select_query($sql2);
    
    $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
@@ -72,7 +72,7 @@
       </tr>
    </table>
    <form action="" enctype='multipart/form-data' method="post" id="embryoRecordForm" onsubmit="return validateForm()">
-      <input type="hidden" value="<?php echo $iic_id;?>" class="form" name="iic_id">
+      <input type="hidden" value="<?php echo $patient_id;?>" class="form" name="patient_id">
       <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
       <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
       <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
@@ -115,7 +115,7 @@
                   <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
                </td>
                <td colspan="6" width="50%" style="border:1px solid;padding:5px;">
-                  <strong>IIC ID: <?php echo $iic_id; ?></strong>
+                  <strong>IIC ID: <?php echo $patient_id; ?></strong>
                </td>
             </tr>
             <tr>
@@ -273,7 +273,7 @@
             <strong>UHID : <span class="center-value"><?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></span></strong>
          </td>
          <td colspan="6" width="50%" style="border:1px solid;padding:5px;">
-            <strong>IIC ID: <span class="iic_id-value"><?php echo $iic_id; ?></span></strong>
+            <strong>IIC ID: <span class="patient_id-value"><?php echo $patient_id; ?></span></strong>
          </td>
       </tr>
       <tr>

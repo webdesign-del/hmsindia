@@ -7,7 +7,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         unset($_POST['submit']);
            
         // डुप्लीकेट रोकने के लिए सिर्फ iic_id से चेक करें (Date को इग्नोर करें)
-        $sql = "SELECT * FROM `hms_discard_discharge` WHERE iic_id='$iic_id'";
+        $sql = "SELECT * FROM `hms_discard_discharge` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
         
         if(empty($select_result)){
@@ -30,7 +30,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
             $query .= implode(',' , $sqlArr);
             
             // सिर्फ iic_id के आधार पर अपडेट करें
-            $query .= " WHERE iic_id='$iic_id'";
+            $query .= " WHERE patient_id='$patient_id'";
         }
         
         $result = run_form_query($query);          
@@ -46,10 +46,10 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     }
     
     // फॉर्म में पुराना डेटा दिखाने के लिए भी सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `hms_discard_discharge` WHERE iic_id='$iic_id'";
+    $sql = "SELECT * FROM `hms_discard_discharge` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$iic_id."' and paitent_type='new_patient'";
+    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
     $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
@@ -61,7 +61,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
  <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
   <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
   <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
-  <input type="hidden" value="<?php echo $iic_id;?>" class="form" name="iic_id">
+  <input type="hidden" value="<?php echo $patient_id;?>" class="form" name="patient_id">
  <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
  
 <div class="ga-pro">
@@ -104,7 +104,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="2" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
@@ -212,7 +212,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
 </td>
 <td colspan="2" width="50%" style="border:1px solid;padding:5px;">
-<strong>IIC ID: <?php echo $iic_id; ?></strong>
+<strong>IIC ID: <?php echo $patient_id; ?></strong>
 </td>
 </tr>
 <tr>
