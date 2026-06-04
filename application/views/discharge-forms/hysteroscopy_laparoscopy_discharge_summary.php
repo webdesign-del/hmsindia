@@ -1,108 +1,109 @@
-<?php $all_method =&get_instance();
-$appoitmented_date = $_GET['appoitmented_date'];
-    // php code to Insert data into mysql database from input text
-    if(isset($_POST['submit'])){
+<?php 
+$all_method =& get_instance();
+
+if(isset($_POST['submit'])){
         unset($_POST['submit']);
-               
-        $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
-        $select_result = run_select_query($sql); 
-				
-		if(!empty($_POST['physical_examination']) && isset($_POST['physical_examination'])){
-            $_POST['physical_examination'] = implode(',', $_POST['physical_examination']);
-        }
-        if(!empty($_POST['applicablemedicine']) && isset($_POST['applicablemedicine'])){
-             $_POST['applicablemedicine'] = implode(',', $_POST['applicablemedicine']);
-        }
-		
-		if(!empty($_POST['procedures']) && isset($_POST['procedures'])){
-             $_POST['procedures'] = implode(',', $_POST['procedures']);
-        }
-		
+  
+        $select_query = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+        $select_result = run_select_query($select_query); 
+
+        $sqlArr = array(); // एरे को ऊपर ही डिफाइन कर दिया ताकि दोनों ब्लॉक्स में सेफ रहे
+
         if(empty($select_result)){
-			
-			
+            // 1. MYSQL QUERY TO INSERT DATA
             $query = "INSERT INTO `hysteroscopy_laparoscopy_discharge_summary` SET ";
-            $sqlArr = array();
-            
-            foreach( $_POST as $key=> $value )
-            {
-              $sqlArr[] = " $key = '".addslashes($value)."'";
-            }		
+
+            foreach($_POST as $key => $value) {
+                // 💡 FIX 1: अगर वैल्यू एरे (Checkboxes) है, तो उसे पहले स्ट्रिंग में बदलें ताकि addslashes() क्रैश न हो
+                if (is_array($value)) {
+                    $value = implode(',', $value);
+                }
+                $sqlArr[] = " `$key` = '".addslashes($value)."'";
+            }   
+
             $query .= implode(',' , $sqlArr);
-        }else{
-            // mysql query to update data
-            $query = "UPDATE  hysteroscopy_laparoscopy_discharge_summary SET ";
-           
-            foreach( $_POST as $key=> $value )
-            {
-              $sqlArr[] = " $key = '".$value."'"	;
+            $msg = 'Procedure form inserted successfully!';
+
+        } else {
+            // 2. MYSQL QUERY TO UPDATE DATA
+            $query = "UPDATE `hysteroscopy_laparoscopy_discharge_summary` SET ";
+
+            foreach($_POST as $key => $value) {
+                // 💡 FIX 2: अपडेट में भी एरे को स्ट्रिंग में बदलना ज़रूरी है
+                if (is_array($value)) {
+                    $value = implode(',', $value);
+                }
+                // 💡 FIX 3: अपडेट में भी addslashes() लगाया ताकि डॉक्टर अगर सिंगल कोट (') यूज़ करे तो क्वेरी न टूटे
+                $sqlArr[] = " `$key` = '".addslashes($value)."'";
             }
+
             $query .= implode(',' , $sqlArr);
-            $query .= " WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
+            $query .= " WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+            $msg = 'Procedure form updated successfully!';
         }
-          $result = run_form_query($query); 
-        
-     if($result){
-         header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form inserted!').'&t='.base64_encode('success'));
-        	die();
+
+        $result = run_form_query($query);        
+        if($result){
+          header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode($msg).'&t='.base64_encode('success'));
+          die();
         }else{
           header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-		  die();
+          die();
         }
     }
-	$sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id' and appoitmented_date='$appoitmented_date'";
+
+    // डेटा फेच करने की क्वेरीज़
+    $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
     $select_result = run_select_query($sql);
-	
-	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
-	$select_result1 = run_select_query($sql1);
-	
-	$sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
-	$select_result2 = run_select_query($sql2);
-	
-	$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-	$select_result3 = run_select_query($sql3);	
-	
-	$sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
-	$select_result5 = run_select_query($sql5); 
+
+    $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+    $patient_data = run_select_query($sql3); 
   
-  $select_query_laparoscopy = "SELECT * FROM `laparoscopy_hysteroscopy` WHERE patient_id='$patient_id'";
-  $select_result_laparoscopy = run_select_query($select_query_laparoscopy); 
+    // 💡 FIX 2: $this->config को $all_method->config से बदला ताकि प्रिंट स्क्रीन पर 500 एरर न आए
+    $sql1 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient' ";
+    $select_result1 = run_select_query($sql1);
+  
+    $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".($select_result1['appoitment_for'] ?? '')."'";
+    $select_result3 = run_select_query($sql3);  
+  
+    $sql5 = "Select * from ".$all_method->config->item('db_prefix')."doctors where ID='".($_SESSION['logged_doctor']['doctor_id'] ?? '')."'";
+    $select_result5 = run_select_query($sql5); 
+  
+    $select_query_laparoscopy = "SELECT * FROM `laparoscopy_hysteroscopy` WHERE patient_id='$patient_id'";
+    $select_result_laparoscopy = run_select_query($select_query_laparoscopy); 
 
-  $is_complete = !empty($select_result_laparoscopy);
-
-	// 3. Set the receipt number for the hidden input
-	$final_receipt = ($is_complete) ? $select_result_laparoscopy['receipt_number'] : "";
+    $is_complete = !empty($select_result_laparoscopy);
+    $final_receipt = ($is_complete) ? $select_result_laparoscopy['receipt_number'] : "";
        
 ?>
 
- <?php $phyical = $applicablemedicine = $procedures = array();
+<?php 
+    // 💡 FIX 3: एरे और स्पेलिंग चेक वेरिएबल्स को सुधारा गया
+    $physical = $applicablemedicine = $procedures = array();
     if(!empty($select_result['physical_examination'])){
         $physical = explode(',',$select_result['physical_examination']);
     }
     if(!empty($select_result['applicablemedicine'])){
         $applicablemedicine = explode(',',$select_result['applicablemedicine']);
     }
-	
-	 if(!empty($select_result['procedures'])){
+    if(!empty($select_result['procedures'])){
         $procedures = explode(',',$select_result['procedures']);
     }
-	
-  ?>
-
+?>
 <div class="ga-pro">
 <h3>Discharge Summary</h3>
 
 <form action="" enctype='multipart/form-data' method="post">
 
-<input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
-<input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
-<input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
-<input type="hidden" name="appointment_id" value="<?php echo $select_result1['ID']; ?>" />
-<input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
-<input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
-<input type="hidden" value="<?php echo $_SESSION['logged_doctor']['doctor_id'] ?>" class="form" name="doctor_id">				 
+<input type="hidden" value="<?php echo isset($updated_by) ? $updated_by : ''; ?>" class="form" name="updated_by">
+<input type="hidden" value="<?php echo isset($updated_type) ? $updated_type : ''; ?>" class="form" name="updated_type">
+<input type="hidden" value="<?php echo isset($updated_at) ? $updated_at : ''; ?>" class="form" name="updated_at">
+<input type="hidden" value="<?php echo isset($appoitmented_date) ? $appoitmented_date : ''; ?>" class="form" name="appoitmented_date">
+<input type="hidden" value="<?php echo isset($patient_id) ? $patient_id : ''; ?>" class="form" name="patient_id">
+<input type="hidden" value="<?php echo isset($_SESSION['logged_doctor']['doctor_id']) ? $_SESSION['logged_doctor']['doctor_id'] : ''; ?>" class="form" name="doctor_id">        
+
 <?php if ($is_complete): ?>
-    <input type="hidden" value="<?php echo $final_receipt; ?>" name="receipt_number">
+    <input type="hidden" value="<?php echo isset($final_receipt) ? $final_receipt : ''; ?>" name="receipt_number">
     
     <div class="alert alert-success" style="padding: 10px; border-left: 5px solid #00a65a; margin-top: 5px;">
         <i class="fa fa-check-circle"></i> 
@@ -115,7 +116,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
         <strong>Clinical Data Incomplete!</strong><br>
         The following mandatory record is missing:
         <ul style="margin-top:10px;">
-            <li>Laparoscopy Form (Missing for Receipt: <?php echo $receipt_number; ?>)</li>
+            <li>Laparoscopy Form (Missing for Receipt: <?php echo isset($receipt_number) ? $receipt_number : ''; ?>)</li>
         </ul>
         <p style="margin-top:10px;"><em>Please fill the Laparoscopy form before proceeding with this entry.</em></p>
     </div>
@@ -123,12 +124,12 @@ $appoitmented_date = $_GET['appoitmented_date'];
     <input type="hidden" name="receipt_number" value="">
     
     <style>
-        /* Automatically hides the save button if clinical data is missing */
-        #submitbutton, .btn-submit, button[type="submit"] { 
+        /* 💡 FIX: आपकी फ़ाइल के नीचे बटन input[type="submit"] है, उसे भी यहाँ छुपाने का रूल जोड़ दिया */
+        #submitbutton, .btn-submit, button[type="submit"], input[type="submit"] { 
             display: none !important; 
         } 
     </style>
-<?php endif; ?>	
+<?php endif; ?>
   
 <div class="col-sm-12 col-md-12">	
 <div class="col-sm-12 col-md-4" style="margin-bottom: 10px;">
@@ -957,8 +958,14 @@ $appoitmented_date = $_GET['appoitmented_date'];
     
 </div> 
 <input type="submit" name="submit" value="submit">
+<!-- 🖨️ नया प्रिंट बटन (यह सिर्फ तभी दिखेगा जब डेटाबेस में रिकॉर्ड पहले से मौजूद हो) -->
+  
 </form>
-
+  <?php if(!empty($select_result)): ?>
+        <button type="button" onclick="printDischargeSummary();" class="btn btn-primary" style="background-color: #007bff; border-color: #007bff; padding: 10px 30px; font-size: 16px; margin-left: 10px; color: white; border: none; cursor: pointer; id="printButton">
+            <i class="fa fa-print"></i> Print Summary
+        </button>
+    <?php endif; ?>
 <div class="row" id="print_this_section" style="display:none;">
 <div class="ga-pro">
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
@@ -990,7 +997,7 @@ $appoitmented_date = $_GET['appoitmented_date'];
   </tr>
 <tr style="background: #b3b9b7;">
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
-<strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong>
+<strong>UHID : <?php echo $select_result3['center_code']."/".$select_result1['uhid']; ?></strong>
 </td>
 <td colspan="3" width="50%" style="border:1px solid;padding:5px;">
 <strong>IIC ID: <?php echo $patient_id; ?></strong>
@@ -1943,4 +1950,47 @@ form {
     width: 100%;
 }
 .vb45rt td {text-align: left; padding-left: 10px;}
-</style>    
+</style>
+<style>
+/* 🖨️ CSS प्रिंट मीडिया रूल: यह पक्का करता है कि प्रिंटर सिर्फ इस सेक्शन को देखे */
+@media print {
+    body * { 
+        visibility: hidden; 
+    }
+    #print_this_section, #print_this_section * { 
+        visibility: visible; 
+    }
+    #print_this_section { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        display: block !important; 
+    }
+}
+</style>
+<script type="text/javascript">
+function printDischargeSummary() {
+    // 1. प्रिंट एरिया (#print_this_section) का सारा कंटेंट वेरिएबल में लें
+    var printContents = document.getElementById('print_this_section').innerHTML;
+    
+    // 2. वर्तमान पूरे पेज के कंटेंट का बैकअप लें
+    var originalContents = document.body.innerHTML;
+
+    // 3. बॉडी के कंटेंट को सिर्फ प्रिंट वाले लेआउट से बदलें
+    document.body.innerHTML = printContents;
+    
+    // 4. प्रिंट एरिया के छुपे हुए (display:none) होने की वजह से उसे स्क्रीन पर 'block' करें
+    var elements = document.getElementsByClassName('row');
+    for(var i=0; i<elements.length; i++) {
+        elements[i].style.display = 'block';
+    }
+
+    // 5. ब्राउज़र का प्रिंटर कमांड चालू करें
+    window.print();
+
+    // 6. प्रिंटर विजेट बंद होते ही पुराना पेज वापस लोड कर दें (ताकि बटन्स दोबारा काम करें)
+    document.body.innerHTML = originalContents;
+    window.location.reload(); 
+}
+</script> 

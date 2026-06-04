@@ -130,9 +130,9 @@ if (isset($ID) && !empty($ID)) {
                 <tr class="odd gradeX">
 				     <td>
 					 <?php if($_SESSION['logged_doctor']['username'] == "trainingdoctor@indiaivf.in" || $_SESSION['logged_doctor']['username'] == "drnoida@indiaivf.in") { ?>
-					 <a href="<?php echo base_url()?>doctors/pcp_ndt_update?ID=<?php echo $vl['ID']; ?>"><?php echo $vl['iic_id']; ?></a></td>
+					 <a href="<?php echo base_url()?>doctors/pcp_ndt_update?ID=<?php echo $vl['ID']; ?>"><?php echo $vl['patient_id']; ?></a></td>
                      <?php }else{ ?>
-					 <?php echo $vl['iic_id']; ?>
+					 <?php echo $vl['patient_id']; ?>
 					 <?php  } ?>
 					 <td><?php echo $vl['wife_name'] ?></td>
 					 <td><?php echo $vl['wife_age'] ?></td>
@@ -197,7 +197,7 @@ if (isset($ID) && !empty($ID)) {
 			  ?>
                 <tr class="odd gradeX" style="border:1px solid;">
                      <td style="border:1px solid;"><?php echo $a++; ?></td>
-					 <td style="border:1px solid;"><?php echo $vl['iic_id']; ?></td>
+					 <td style="border:1px solid;"><?php echo $vl['patient_id']; ?></td>
                      <td style="border:1px solid;"><?php echo $vl['wife_name'] ?></td>
 					 <td style="border:1px solid;"><?php echo $vl['wife_age'] ?></td>
                      <td style="border:1px solid;"><?php echo $vl['husband_name']; ?></td>
