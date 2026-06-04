@@ -303,6 +303,42 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </td>
 <?php } ?>
 </tr>
+
+<tr><td style="padding:10px!important;" colspan="3"></td></tr>
+
+<tr>
+<?php for($i=1; $i<=3; $i++){ ?>
+<td style="padding:10px;">
+<table width="280px" class="vb45rt" style="border:1px solid;padding:5px;" >
+<tbody>
+<tr><td><strong>Pt Name : <?php echo isset($patient_data['wife_name']) ? $patient_data['wife_name'] : ''; ?></strong></td></tr>
+<tr><td><strong>Age / Sex : <?php echo isset($patient_data['wife_age']) ? $patient_data['wife_age'] : ''; ?> / F</strong></td></tr>
+<tr><td><strong>UHID : <?php echo ($select_result5['center_code'] ?? '')."/".($select_result4['uhid'] ?? ''); ?></strong></td></tr>
+<tr><td><strong>IIC ID : <?php echo $patient_id; ?></strong></td></tr>
+<tr><td><strong>IPID : <?php echo isset($select_result['ipid'])?$select_result['ipid']:""; ?></strong></td></tr>
+</tbody>
+</table> 
+</td>
+<?php } ?>
+</tr>
+
+<tr><td style="padding:10px!important;" colspan="3"></td></tr>
+
+<tr>
+<?php for($i=1; $i<=3; $i++){ ?>
+<td style="padding:10px;">
+<table width="280px" class="vb45rt" style="border:1px solid;padding:5px;" >
+<tbody>
+<tr><td><strong>Pt Name : <?php echo isset($patient_data['wife_name']) ? $patient_data['wife_name'] : ''; ?></strong></td></tr>
+<tr><td><strong>Age / Sex : <?php echo isset($patient_data['wife_age']) ? $patient_data['wife_age'] : ''; ?> / F</strong></td></tr>
+<tr><td><strong>UHID : <?php echo ($select_result5['center_code'] ?? '')."/".($select_result4['uhid'] ?? ''); ?></strong></td></tr>
+<tr><td><strong>IIC ID : <?php echo $patient_id; ?></strong></td></tr>
+<tr><td><strong>IPID : <?php echo isset($select_result['ipid'])?$select_result['ipid']:""; ?></strong></td></tr>
+</tbody>
+</table> 
+</td>
+<?php } ?>
+</tr>
 </tbody>
 </table>
 </div>
