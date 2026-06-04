@@ -257,7 +257,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <td style="padding:10px;">
 <table width="280px" class="vb45rt" style="border:1px solid;padding:5px;" >
 <tbody>
-<tr><td><strong>Pt Name : <?php echo isset($patient_data['wife_name']) ? $patient_data['wife_name'] : ''; ?></strong></td></tr>
+<tr><td colspan="1" style="width:28%;"><strong>Pt Name : <?php echo isset($patient_data['wife_name']) ? $patient_data['wife_name'] : ''; ?></strong></td></tr>
 <tr><td><strong>Age / Sex : <?php echo isset($patient_data['wife_age']) ? $patient_data['wife_age'] : ''; ?> / F</strong></td></tr>
 <tr><td><strong>UHID : <?php echo ($select_result5['center_code'] ?? '')."/".($select_result4['uhid'] ?? ''); ?></strong></td></tr>
 <tr><td><strong>IIC ID : <?php echo $patient_id; ?></strong></td></tr>
@@ -267,6 +267,8 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </td>
 <?php } ?>
 </tr>
+
+
 
 <tr><td style="padding:10px!important;" colspan="3"></td></tr>
 
@@ -355,6 +357,17 @@ input[type=checkbox], input[type=radio] {
 select#center {
     display: block!important;
 }
+.sec3 {
+    border: 1px solid #000;
+    padding: 5px;
+}
+.sec2 {
+    border: 1px solid #000;
+}
+.sec2 p {
+    margin: 0px;
+    padding: 2px 10px;
+}
 table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
@@ -366,15 +379,20 @@ td {
   padding: 5px; 
 }
 .ga-pro h3 {
-    text-align: center;
+      text-align: center;
     font-size: 25px;
 }
 form {
     padding-left: 10px;
     margin-bottom: 4px;
 }
+.nb56ty {
+    border: 1px solid #000;
+}
+.nb56ty input {
+    width: 100%;
+}
 .vb45rt td {text-align: left; padding-left: 10px;}
-
 @media print {
     body * { visibility: hidden; }
     #print_this_section, #print_this_section * { visibility: visible; }
