@@ -1,12 +1,22 @@
 <?php 
 $all_method =& get_instance();
+
+// 💡 FIX 1: URL (GET) रिक्वेस्ट से मरीज की ID को सुरक्षित तरीके से कैप्चर करें
+if (isset($_GET['patient_id'])) {
+    $patient_id = $_GET['patient_id'];
+} elseif (isset($_GET['paitent_id'])) {
+    $patient_id = $_GET['paitent_id'];
+} else {
+    $patient_id = isset($patient_id) ? $patient_id : ''; 
+}
+
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
            
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
+        // चेक करें कि क्या इस patient_id का डेटा पहले से मौजूद है
         $sql = "SELECT * FROM `discharge_summary` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
         
@@ -15,11 +25,15 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
             // mysql query to insert data
             $query = "INSERT INTO `discharge_summary` SET ";
             $sqlArr = array();
+            
             foreach($_POST as $key => $value) {
-              $sqlArr[] = " `$key` = '".addslashes($value)."'";
+                // 💡 FIX 2: अगर कोई इनपुट Array (जैसे मल्टीपल चेकबॉक्स) है, तो उसे स्ट्रिंग में बदलें ताकि addslashes क्रैश न हो
+                if (is_array($value)) {
+                    $value = implode(',', $value);
+                }
+                $sqlArr[] = " `$key` = '".addslashes($value)."'";
             }       
             $query .= implode(',' , $sqlArr);
-            //Insert into freezing table
             
             $result = run_form_query($query);          
         
@@ -37,15 +51,20 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
             die();
         }
     }
+
+    // डेटा फेच करने की क्वेरीज़
+    $sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+    $patient_data = run_select_query($sql_data); 
     
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
+    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ patient_id से फेच करें
     $sql = "SELECT * FROM `discharge_summary` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+    // 💡 FIX 3: $this->config को $all_method->config से रिप्लेस किया ताकि 'Fatal Error' न आए
+    $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+    $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
     $select_result3 = run_select_query($sql3);
 ?>
 
