@@ -150,9 +150,9 @@
                 $medicine_total += round($vl['fees'],2);
                 $medicine_discount += round($vl['discount_amount'],2);
             ?>
-            <td><?php echo round($vl['fees'],2); ?></td>
+            <td><?php echo round($vl['payment_done'] + $vl['discount_amount'],2); ?></td>
             <td><?php echo round($vl['discount_amount'],2); ?></td>
-            <td><?php echo round($vl['fees'] - $vl['discount_amount'],2); ?></td>
+            <td><?php echo round($vl['payment_done'],2); ?></td>
             <td><?php echo round($vl['payment_done'],2); ?></td>
             <?php } ?>
         </tr>
