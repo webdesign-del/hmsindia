@@ -27,7 +27,7 @@ if (isset($_POST['submit'])) {
 <tbody>
 <tr>
 <td colspan="2" width="50%">
-<strong>IIC ID: <input type="text" name="iic_id" value="<?php echo $res_val->iic_id; ?>" readonly></strong>
+<strong>IIC ID: <input type="text" name="patient_id" value="<?php echo $res_val->patient_id; ?>" readonly></strong>
 </td>
 <td colspan="2" width="50%">
 <strong>Wife Name: <input type="text" name="wife_name" value="<?php echo $res_val->wife_name; ?>"> </strong>
