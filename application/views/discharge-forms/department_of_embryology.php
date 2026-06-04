@@ -1,8 +1,10 @@
 <?php 
 $all_method =& get_instance();
 
-// 💡 FIX 1: URL (GET) रिक्वेस्ट से मरीज की ID को सुरक्षित तरीके से कैप्चर करें
-if (isset($_GET['patient_id'])) {
+// 💡 FIX 1: कोडइग्नाइटर सेगमेंट्स लॉजिक - यूआरएल की तीसरी पोजीशन से मरीज की आईडी सुरक्षित निकालें
+if ($all_method->uri->segment(3)) {
+    $patient_id = $all_method->uri->segment(3);
+} elseif (isset($_GET['patient_id'])) {
     $patient_id = $_GET['patient_id'];
 } elseif (isset($_GET['paitent_id'])) {
     $patient_id = $_GET['paitent_id'];
@@ -27,7 +29,6 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
             $sqlArr = array();
             
             foreach($_POST as $key => $value) {
-                // 💡 FIX 2: अगर कोई इनपुट Array (जैसे मल्टीपल चेकबॉक्स) है, तो उसे स्ट्रिंग में बदलें ताकि addslashes क्रैश न हो
                 if (is_array($value)) {
                     $value = implode(',', $value);
                 }
@@ -52,7 +53,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         }
     }
 
-    // डेटा फेच करने की क्वेरीज़
+    // 💡 अब सभी क्वेरीज़ सही मरीज का ही डेटा निकालेंगी क्योंकि $patient_id में '17735801421399' आ चुका है
     $sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
     $patient_data = run_select_query($sql_data); 
     
@@ -60,12 +61,18 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     $sql = "SELECT * FROM `discharge_summary` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
-    // 💡 FIX 3: $this->config को $all_method->config से रिप्लेस किया ताकि 'Fatal Error' न आए
+    // XAMPP 500 एरर फिक्स
     $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
     $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
     $select_result3 = run_select_query($sql3);
+    
+    // व्यू के लिए वेरिएबल्स सेट करें ताकि अनडिफाइंड एरर न आए
+    $center = isset($select_result['center']) ? $select_result['center'] : '';
+    $updated_by = isset($updated_by) ? $updated_by : '';
+    $updated_type = isset($updated_type) ? $updated_type : '';
+    $updated_at = isset($updated_at) ? $updated_at : '';
 ?>
 
 <form action="" enctype='multipart/form-data' method="post">
