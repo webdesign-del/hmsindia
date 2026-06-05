@@ -1,12 +1,24 @@
 <?php 
 $all_method =& get_instance();
+
+// 💡 FIX 1: कोडइग्नाइटर सेगमेंट्स लॉजिक - यूआरएल की तीसरी पोजीशन से मरीज की आईडी सुरक्षित निकालें
+if ($all_method->uri->segment(3)) {
+    $patient_id = $all_method->uri->segment(3);
+} elseif (isset($_GET['patient_id'])) {
+    $patient_id = $_GET['patient_id'];
+} elseif (isset($_GET['paitent_id'])) {
+    $patient_id = $_GET['paitent_id'];
+} else {
+    $patient_id = isset($patient_id) ? $patient_id : ''; 
+}
+
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
         
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
+        // चेक करें कि क्या इस patient_id का डेटा पहले से मौजूद है
         $sql = "SELECT * FROM `intra_uterine_insemination_discharge_summary` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql); 
         
@@ -17,7 +29,8 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
             $query = "INSERT INTO `intra_uterine_insemination_discharge_summary` SET ";
             $sqlArr = array();
             foreach($_POST as $key => $value) {
-              $sqlArr[] = " `$key` = '".addslashes($value)."'";
+                if (is_array($value)) { $value = implode(',', $value); }
+                $sqlArr[] = " `$key` = '".addslashes($value)."'";
             }       
             $query .= implode(',' , $sqlArr);
             
@@ -38,15 +51,25 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         }
     }
     
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
+    // 💡 अब सभी क्वेरीज़ सही मरीज का ही डेटा निकालेंगी क्योंकि $patient_id में सही आईडी आ चुकी है
     $sql = "SELECT * FROM `intra_uterine_insemination_discharge_summary` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+    // 💡 FIX 2: $this->config को $all_method->config से बदला ताकि 500 Fatal Error न आए
+    $sql2 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+    $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
     $select_result3 = run_select_query($sql3);  
+
+    $sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+    $patient_data = run_select_query($sql_data);
+
+    // फ़ॉलबैक वेरिएबल्स ताकि अनडिफाइंड एरर्स न आएं
+    $center = isset($select_result['center']) ? $select_result['center'] : '';
+    $updated_by = isset($updated_by) ? $updated_by : '';
+    $updated_type = isset($updated_type) ? $updated_type : '';
+    $updated_at = isset($updated_at) ? $updated_at : '';
 ?>
 
 <form action="" enctype='multipart/form-data' method="post">
