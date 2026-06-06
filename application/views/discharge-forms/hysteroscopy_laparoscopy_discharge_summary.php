@@ -52,9 +52,7 @@ if(isset($_POST['submit'])){
         }
     }
 
-    // डेटा फेच करने की क्वेरीज़
-    $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
-    $select_result = run_select_query($sql);
+  
 
     $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
     $patient_data = run_select_query($sql3); 
@@ -74,6 +72,10 @@ if(isset($_POST['submit'])){
 
     $is_complete = !empty($select_result_laparoscopy);
     $final_receipt = ($is_complete) ? $select_result_laparoscopy['receipt_number'] : "";
+
+      // डेटा फेच करने की क्वेरीज़
+    $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$final_receipt'";
+    $select_result = run_select_query($sql);
        
 ?>
 
@@ -98,7 +100,7 @@ if(isset($_POST['submit'])){
 <input type="hidden" value="<?php echo isset($updated_by) ? $updated_by : ''; ?>" class="form" name="updated_by">
 <input type="hidden" value="<?php echo isset($updated_type) ? $updated_type : ''; ?>" class="form" name="updated_type">
 <input type="hidden" value="<?php echo isset($updated_at) ? $updated_at : ''; ?>" class="form" name="updated_at">
-<input type="hidden" value="<?php echo isset($appoitmented_date) ? $appoitmented_date : ''; ?>" class="form" name="appoitmented_date">
+<input type="hidden" value="<?php echo date('y-m-d'); ?>" class="form" name="appoitmented_date">
 <input type="hidden" value="<?php echo isset($patient_id) ? $patient_id : ''; ?>" class="form" name="patient_id">
 <input type="hidden" value="<?php echo isset($_SESSION['logged_doctor']['doctor_id']) ? $_SESSION['logged_doctor']['doctor_id'] : ''; ?>" class="form" name="doctor_id">        
 
@@ -120,8 +122,6 @@ if(isset($_POST['submit'])){
         </ul>
         <p style="margin-top:10px;"><em>Please fill the Laparoscopy form before proceeding with this entry.</em></p>
     </div>
-    
-    <input type="hidden" name="receipt_number" value="">
     
     <style>
         /* 💡 FIX: आपकी फ़ाइल के नीचे बटन input[type="submit"] है, उसे भी यहाँ छुपाने का रूल जोड़ दिया */

@@ -45,6 +45,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         }
     }
     
+    $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+    $patient_data = run_select_query($sql3); 
+
     // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
     $sql = "SELECT * FROM `ovarian_cyst_aspiration_discharge_summary` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);

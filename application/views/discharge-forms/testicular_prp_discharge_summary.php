@@ -1,19 +1,8 @@
 <?php  $all_method =& get_instance();
-    // ==============================================================================
-    // [FIX 1] मुख्य वेरिएबल्स को सेफगार्ड करना (ताकि Undefined Error न आए)
-    // ==============================================================================
-    $receipt_number = isset($_GET['receipt_number']) ? $_GET['receipt_number'] : (isset($_POST['receipt_number']) ? $_POST['receipt_number'] : '');
-    
-    // PCP NDT के लिए अतिरिक्त वेरिएबल्स को इनिशियलाइज़ करना
-    $female_issues = isset($female_issues) ? $female_issues : '';
-    $further_referredfor_dellvery = isset($further_referredfor_dellvery) ? $further_referredfor_dellvery : '';
-    $outcome_of_pregnancy = isset($outcome_of_pregnancy) ? $outcome_of_pregnancy : '';
-    $malformation_in_newborn = isset($malformation_in_newborn) ? $malformation_in_newborn : '';
 
-    // php code to Insert data into mysql database from input text
-    if(isset($_POST['submit']) && !empty($patient_id)){
+if(isset($_POST['submit'])){
         unset($_POST['submit']);
-    
+
         $wife_name  = $_POST['wife_name'] ?? '';
         $husband_name  = $_POST['husband_name'] ?? '';
         $wife_phone  = $_POST['wife_phone'] ?? '';
@@ -25,66 +14,59 @@
         $details_management_advised  = $_POST['details_management_advised'] ?? '';
         $IVF_Consultant  = $_POST['IVF_Consultant'] ?? '';
         $center  = $_POST['center'] ?? '';
-        
-        unset($_POST['wife_name'], $_POST['wife_phone'], $_POST['husband_name'], $_POST['wife_age'], $_POST['wife_address']);
-        unset($_POST['female_pregnancy_other_p'], $_POST['female_pregnancy_other_l'], $_POST['female_pregnancy_other_a'], $_POST['details_management_advised']);
-        
-        // चेकबॉक्स एरे को कोमा-सेपरेटेड स्ट्रिंग्स में बदलना
-        if(!empty($_POST['physical_examination']) && isset($_POST['physical_examination'])){
-            $_POST['physical_examination'] = implode(',', $_POST['physical_examination']);
-        }
-        if(!empty($_POST['procedures']) && isset($_POST['procedures'])){
-            $_POST['procedures'] = implode(',', $_POST['procedures']);
-        }
-        if(!empty($_POST['applicablemedicine']) && isset($_POST['applicablemedicine'])){
-            $_POST['applicablemedicine'] = implode(',', $_POST['applicablemedicine']);
-        }
-        if(!empty($_POST['Conscious']) && isset($_POST['Conscious'])){
-            $_POST['Conscious'] = implode(',', $_POST['Conscious']);
-        }
+        $female_issues = isset($female_issues) ? $female_issues : '';
+        $further_referredfor_dellvery = isset($further_referredfor_dellvery) ? $further_referredfor_dellvery : '';
+        $outcome_of_pregnancy = isset($outcome_of_pregnancy) ? $outcome_of_pregnancy : '';
+        $malformation_in_newborn = isset($malformation_in_newborn) ? $malformation_in_newborn : '';
 
-        // चेक करें कि क्या डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `testicular_prp_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number' ";
-        $select_result = run_select_query($sql);
-        
-        $sqlArr = array(); // [CRITICAL FIX] एरे को री-डिक्लेयर करना ताकि UPDATE क्रैश न हो
+        $select_query = "SELECT * FROM `testicular_prp_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+        $select_result = run_select_query($select_query); 
+
+        $sqlArr = array(); // एरे को लूप से पहले बिल्कुल खाली करें
 
         if(empty($select_result)){
-            // INSERT Query 
-            $_POST['patient_id'] = $patient_id;
-            $_POST['receipt_number'] = $receipt_number;
 
+            // 💾 INSERT OPERATION
             $query = "INSERT INTO `testicular_prp_discharge_summary` SET ";
+
             foreach($_POST as $key => $value) {
+                // 💡 FIX: अगर वैल्यू कोई एरे (चेकबॉक्स) है, तो उसे पहले स्ट्रिंग में बदलें ताकि addslashes क्रैश न हो
+                if (is_array($value)) {
+                    $value = implode(',', $value);
+                }
                 $sqlArr[] = " `$key` = '".addslashes($value)."'";
             }   
+
             $query .= implode(',' , $sqlArr);
             
-            // PCP NDT टेबल में एंट्री
             $query2 = "INSERT INTO `pcp_ndt` (patient_id, wife_name, husband_name, wife_phone, wife_age, female_issues, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
             ('$patient_id', '".addslashes($wife_name)."', '".addslashes($husband_name)."', '".addslashes($wife_phone)."', '".addslashes($wife_age)."', '".addslashes($female_issues)."', '".addslashes($wife_address)."', 'P:".addslashes($female_pregnancy_other_p)."', 'L:".addslashes($female_pregnancy_other_l)."', 'A:".addslashes($female_pregnancy_other_a)."', '".addslashes($details_management_advised)."', '".addslashes($IVF_Consultant)."', '".addslashes($further_referredfor_dellvery)."', '".addslashes($outcome_of_pregnancy)."', '".addslashes($malformation_in_newborn)."', '".addslashes($center)."', 'TESA', 'TESA', '" . date('Y-m-d H:i:s') . "')";
             run_form_query($query2);
 
         } else {
-            // UPDATE Query [CRITICAL FIX STRUCTURE]
-            $query = "UPDATE testicular_prp_discharge_summary SET ";
-            foreach( $_POST as $key => $value ) {
+
+            // 🔄 UPDATE OPERATION
+            $query = "UPDATE `testicular_prp_discharge_summary` SET ";
+
+            foreach($_POST as $key => $value) {
+                // 💡 FIX: अपडेट लूप में भी एरे और स्पेशल कैरेक्टर्स (addslashes) को सुरक्षित हैंडल करें
+                if (is_array($value)) {
+                    $value = implode(',', $value);
+                }
                 $sqlArr[] = " `$key` = '".addslashes($value)."'";
             }
+
             $query .= implode(',' , $sqlArr);
             $query .= " WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
         }
-            
-        // मुख्य क्वेरी को एक्सक्यूट करना
-        $result = run_form_query($query);  
-    
+
+        $result = run_form_query($query);        
         if($result){
-            $redirect_url = strtok($_SERVER['HTTP_REFERER'], '?');
-            header("location:" .$redirect_url."?patient_id=".$patient_id."&receipt_number=".$receipt_number."&m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
-            die();
-        } else {
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-            die();
+          header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Procedure form inserted!').'&t='.base64_encode('success'));
+          die();
+        }else{
+          header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+          die();
         }
     }
   
@@ -144,6 +126,9 @@
         }
     }
 
+    $sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+    $patient_data = run_select_query($sql_data); 
+
     if(empty($select_result)) {
         $select_result = array('physical_examination' => '', 'procedures' => '', 'Conscious' => '', 'applicablemedicine' => '');
     }
@@ -183,8 +168,7 @@
 	<input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
 	<input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
 	<input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
-	<input type="hidden" name="appointment_id" value="<?php echo $select_result1['ID']; ?>" />
-	<input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
+	<input type="hidden" value="<?php echo date('y-m-d'); ?>" class="form" name="appoitmented_date">
   <input type="hidden" value="<?php echo $receipt_number; ?>" class="form" name="receipt_number">
 	<input type="hidden" value="<?php echo $_SESSION['logged_doctor']['doctor_id'] ?>" class="form" name="doctor_id">				 
 				 
@@ -505,7 +489,11 @@
 <input type="submit" name="submit" value="submit">
 <input type="submit" name="submit2" value="PCP NDT">
 </form>
-
+ <?php if(!empty($select_result)): ?>
+        <button type="button" onclick="printDischargeSummary();" class="btn btn-primary" style="background-color: #007bff; border-color: #007bff; padding: 10px 30px; font-size: 16px; margin-left: 10px; color: white; border: none; cursor: pointer; id="printButton">
+            <i class="fa fa-print"></i> Print Summary
+        </button>
+    <?php endif; ?>
 <div class="row" id="print_this_section" style="display:none;">
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
@@ -862,17 +850,20 @@
 </form>
 </div>
 </div>
-
 <style>
-select#center {
-    display: block!important;
-}
+
 input[type=checkbox], input[type=radio] {
     opacity: 1 !important;
     left: 0 !important;
     position: unset !important;
     margin: 9px !important;
 }
+input[type=text], textarea {
+    width: 100%!important;
+}
+
+
+
 .sec3 p {
     color: red;
 }
@@ -909,16 +900,54 @@ form {
     padding-left: 10px;
     margin-bottom: 4px;
 }
-
 .sec3 label {
     color: red;
-}
-
-.nb56ty {
-    border: 1px solid #000;
 }
 .nb56ty input {
     width: 100%;
 }
+.vb45rt td {text-align: left; padding-left: 10px;}
+</style>
+<style>
+/* 🖨️ CSS प्रिंट मीडिया रूल: यह पक्का करता है कि प्रिंटर सिर्फ इस सेक्शन को देखे */
+@media print {
+    body * { 
+        visibility: hidden; 
+    }
+    #print_this_section, #print_this_section * { 
+        visibility: visible; 
+    }
+    #print_this_section { 
+        position: absolute; 
+        left: 0; 
+        top: 0; 
+        width: 100%; 
+        display: block !important; 
+    }
+}
+</style>
+<script type="text/javascript">
+function printDischargeSummary() {
+    // 1. प्रिंट एरिया (#print_this_section) का सारा कंटेंट वेरिएबल में लें
+    var printContents = document.getElementById('print_this_section').innerHTML;
+    
+    // 2. वर्तमान पूरे पेज के कंटेंट का बैकअप लें
+    var originalContents = document.body.innerHTML;
 
-</style>    
+    // 3. बॉडी के कंटेंट को सिर्फ प्रिंट वाले लेआउट से बदलें
+    document.body.innerHTML = printContents;
+    
+    // 4. प्रिंट एरिया के छुपे हुए (display:none) होने की वजह से उसे स्क्रीन पर 'block' करें
+    var elements = document.getElementsByClassName('row');
+    for(var i=0; i<elements.length; i++) {
+        elements[i].style.display = 'block';
+    }
+
+    // 5. ब्राउज़र का प्रिंटर कमांड चालू करें
+    window.print();
+
+    // 6. प्रिंटर विजेट बंद होते ही पुराना पेज वापस लोड कर दें (ताकि बटन्स दोबारा काम करें)
+    document.body.innerHTML = originalContents;
+    window.location.reload(); 
+}
+</script> 
