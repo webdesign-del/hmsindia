@@ -991,10 +991,10 @@ $(document).ready(function() {
         var rows = $('#consumables_table_body tr').length;
         var count = parseInt(rows) + 1;
         
-        var markup = '<tr class="female_ivt_tr" id="fmale_invstg_'+count+'" trcount="'+count+'">' +
-            '<td><input type="checkbox" class="active-statuss" rel="consumables" index="'+count+'"></td>' +
+        var markup = '<tr class="female_ivt_tr" id="fmale_invstg_'+count+'" trcount="' + count + '">' +
+            '<td><input type="checkbox" class="active-statuss" rel="consumables" index="' + count + '"></td>' +
             '<td class="role cons_cls_'+count+'">' +
-                '<select name="consumables_name_'+count+'" class="cons-cls-'+count+' item_select consumables_select form-control" id="consumables_name_'+count+'" count="'+count+'">' +
+                '<select name="consumables_name_'+count+'" class="cons-cls-'+count+' item_select consumables_select form-control" id="consumables_name_'+count+'" count="' + count + '">' +
                     '<?php echo $inved_options; ?>' +
                 '</select>' +
             '</td>' +
@@ -1013,10 +1013,17 @@ $(document).ready(function() {
     });
 
     $(".delete-investigations-row").click(function() {
-        $("table tbody").find('input[name="record"]').each(function() {
+        var billing_in_progress = $('#billing_type').val();
+        var target_tbody = (billing_in_progress === 'investigation') ? "#consumables_table_body" : (billing_in_progress === 'procedure' ? "#procedure_table tbody" : "#package_table tbody");
+        
+        $(target_tbody).find('input[name="record"]').each(function() {
             if($(this).is(":checked")) {
                 $(this).parents("tr").remove();
             }
+        });
+        
+        // टोटल री-कैलकुलेट करें
+        if(billing_in_progress === 'investigation') {
             var fee_total = 0;
             $('.price_field').each(function() {
                 var price_total = $(this).val();
@@ -1025,10 +1032,11 @@ $(document).ready(function() {
                 }
             });
             $('#investigation_total').text(fee_total.toFixed(2));
-        });
+        } else {
+            $(".sub_procedures_discount").trigger('keyup');
+        }
     });
 
-    // 🎯 चेकबॉक्स एक्टिवेशन स्टेटस
     $(document).on('click', ".active-statuss", function(e) {
         var count = $(this).attr('index');
         var type = $(this).attr('rel');
@@ -1044,7 +1052,6 @@ $(document).ready(function() {
         }       
     });
 
-    // 🎯 ड्रॉपडाउन टेस्ट सिलेक्शन हैंडलर
     $(document).on('change', ".consumables_select", function(e) {
         var selected_data = $(this).val();
         var count = $(this).attr('count');
@@ -1082,7 +1089,7 @@ $(document).ready(function() {
         }
     });
    
-    $(document).on('keyup', ".sub_procedures_discount", function(e) {
+    $(document).on('keyup', ".sub_procedures_discount, .sub_procedures_paid_price", function(e) {
         $(".payment_in").prop('checked', false);
         $('#grand_total_section').hide();
    
@@ -1098,7 +1105,9 @@ $(document).ready(function() {
         $('#rs_after_discount').val(grand_total.toFixed(2));
         $('#rs_totalpackage').val(grand_total.toFixed(2));
         $('#discount_amount').val(given_discount);
-        var us_converstion_discount = (given_discount / <?php echo $converstion_rate; ?>);
+        
+        var conversion_rate = <?php echo isset($converstion_rate) && $converstion_rate > 0 ? $converstion_rate : 1; ?>;
+        var us_converstion_discount = (given_discount / conversion_rate);
         $('#us_discount').val(us_converstion_discount.toFixed(2));
         $('#rs_discount').val(given_discount.toFixed(2));
     });
@@ -1123,7 +1132,9 @@ $(document).ready(function() {
         $('#rs_after_discount').val(grand_total.toFixed(2));
         $('#rs_totalpackage').val(total_without_discount.toFixed(2));
         $('#discount_amount').val(given_discount);
-        var us_converstion_discount = (given_discount / <?php echo $converstion_rate; ?>);
+        
+        var conversion_rate = <?php echo isset($converstion_rate) && $converstion_rate > 0 ? $converstion_rate : 1; ?>;
+        var us_converstion_discount = (given_discount / conversion_rate);
         $('#us_discount').val(us_converstion_discount.toFixed(2));
         $('#rs_discount').val(given_discount.toFixed(2));
     });
@@ -1132,17 +1143,26 @@ $(document).ready(function() {
         $('#remaining_amount').val('');
         var payment_in = $(this).val();
         var billing_type = $('#billing_type').val();
+        var conversion_rate = <?php echo isset($converstion_rate) && $converstion_rate > 0 ? $converstion_rate : 1; ?>;
         
         if(billing_type == 'investigation') {
             var medicine_sub_total = parseFloat($('#medicine_sub_total').val()) || 0;
             var actual_investigation_sub_total = parseFloat($('#investigation_sub_total').val()) || 0;
             var medicine_plus_investigation = medicine_sub_total + actual_investigation_sub_total;
-            var medicine_plus_investigation_usd = (medicine_plus_investigation / <?php echo $converstion_rate; ?>).toFixed(2);
+            var medicine_plus_investigation_usd = (medicine_plus_investigation / conversion_rate).toFixed(2);
             $('.usd_dhee').val(parseFloat(medicine_plus_investigation_usd));
             $('.rs_dhee').val(parseFloat(medicine_plus_investigation));
             $('#usd_after_discount').val(parseFloat(medicine_plus_investigation_usd));
             $('#rs_after_discount').val(parseFloat(medicine_plus_investigation));
             $('#rs_totalpackage').val(parseFloat(medicine_plus_investigation));
+        } else {
+            // Procedure/Package Billing Total
+            var proc_fees = parseFloat($('#rs_fees').val()) || 0;
+            $('.rs_dhee').val(proc_fees);
+            $('#rs_after_discount').val(proc_fees);
+            var proc_fees_usd = (proc_fees / conversion_rate).toFixed(2);
+            $('.usd_dhee').val(parseFloat(proc_fees_usd));
+            $('#usd_after_discount').val(parseFloat(proc_fees_usd));
         }
         cal_discount(payment_in);
         $('#grand_total_section').show();
@@ -1263,7 +1283,6 @@ $(document).ready(function() {
         }
         
         var billing_in_progress = $('#billing_type').val();
-        var entered_amount = parseFloat($('#payment_done').val()) || 0;
         
         // सबमिशन के समय वॉलेट ओवरड्राफ्ट सेफ्टी लॉक
         if (billing_in_progress === 'procedure' || billing_in_progress === 'package') {
@@ -1282,6 +1301,7 @@ $(document).ready(function() {
         }
 
         if (billing_in_progress === 'investigation' && $('#payment_method').val() === 'wallet') {
+            var entered_amount = parseFloat($('#payment_done').val()) || 0;
             var wallet_1_max = parseFloat($('#current_wallet_1_balance').val()) || 0;
             if (entered_amount > wallet_1_max) {
                 alert("❌ फॉर्म सबमिट नहीं हो सकता! भुगतान राशि Wallet 1 लिमिट से अधिक है।");
@@ -1289,10 +1309,8 @@ $(document).ready(function() {
             }
         }
 
-        // आवश्यक फील्ड्स को चिन्हित करें
-        $('#investigation_main_table tbody tr, #procedure_table tbody tr, #package_table tbody tr').each(function() {
-            $(this).find('input:not([type="file"]), select').addClass('required_value');
-        });
+        // 💡 फिक्स: आवश्यक क्लास केवल उन्हीं इनपुट को दें जो अभी स्क्रीन पर विज़िबल (मजबूत) हैं
+        $('input:visible:not([type="file"]), select:visible').addClass('required_value');
         
         var originalButton = $(this);
         var originalText = originalButton.text();
@@ -1308,7 +1326,7 @@ $(document).ready(function() {
              
              $(target_table + ' tbody tr').each(function() {
                  var row = $(this);
-                 var name = row.find('input[id^="female_investigation_name_"]').attr('invest') || row.find('input[id^="male_investigation_name_"]').attr('invest') || row.find('input[id^="sub_procedure_name_"]').val();
+                 var name = row.find('input[id^="female_investigation_name_"]').attr('invest') || row.find('input[id^="male_investigation_name_"]').attr('invest') || row.find('input[id^="sub_procedure_name_"]').val() || row.find('input[name^="sub_procedure_"]').attr('procedure');
                  var code = row.find('input[id^="female_investigation_code_"]').val() || row.find('input[id^="male_investigation_code_"]').val() || row.find('input[id^="sub_procedures_code_"]').val();
                  var price = row.find('input[id^="female_price_field_"]').val() || row.find('input[id^="male_price_field_"]').val() || row.find('input[id^="sub_procedures_price_"]').val();
                  var discount = row.find('input[id^="female_investigation_discount_"]').val() || row.find('input[id^="male_investigation_discount_"]').val() || row.find('input[id^="sub_procedures_discount_"]').val();
@@ -1318,18 +1336,28 @@ $(document).ready(function() {
                  }
              });
              
-             var paramedic_name = $('#paramedic_name').val() || 'N/A';
-             var after_discount = ($('.payment_in:checked').val() == "us_payment") ? (parseFloat($("#usd_after_discount").val()) || 0) : (parseFloat($("#rs_after_discount").val()) || 0);
+             // 💡 फिक्स: गायब वेरिएबल्स पर फॉल-बैक स्ट्रिंग्स सेट की गईं
+             var paramedic_name = $('#paramedic_name').val() || 'Procedure Billing';
+             var payment_method = $('#payment_method').val() || 'Table Itemized Method';
+             var payment_done = $('#payment_done').val() || 'Calculated in Rows';
+             
+             var after_discount = 0;
+             var payment_in = $('.payment_in:checked').val();
+             if(payment_in == "us_payment"){
+               after_discount = parseFloat($("#usd_after_discount").val()) || 0;
+             } else {
+               after_discount = parseFloat($("#rs_after_discount").val()) || 0;
+             }
              
              $('#paramedic_text').empty().append(paramedic_name);
              $('#fees_text').empty().append(after_discount.toFixed(2));
-             $('#payment_done_text').empty().append(payment_done || $('#payment_done').val() || '0.00');
+             $('#payment_done_text').empty().append(payment_done);
              $('#remaining_amount_text').empty().append($('#remaining_amount').val() || '0.00');
              $('#transaction_id_text').empty().append($('#transaction_id').val() || '-');
-             $('#payment_method_text').empty().append($('#payment_method').val() || 'Row Level');
+             $('#payment_method_text').empty().append(payment_method);
              $('#billing_id_text').empty().append($('#billing_id').val() || '-');
              $('#discount_text').empty().append($('#discount_amount').val() || '0.00');
-             $('#hospital_id_text').empty().append($('#hospital_id').val() || 'Selected Center');
+             $('#hospital_id_text').empty().append($('#hospital_id').val() || 'Default Center');
              
              $('#consultation_details').hide();
              $('#consultation_preview').show();
