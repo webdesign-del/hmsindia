@@ -67,7 +67,8 @@ public function deposit_w1($patient_id, $amount, $payment_method, $remarks, $use
         'payment_method'        => $payment_method,
         'remarks'     => $remarks,
         'screenshot'  => $screenshot, // Ye value database mein jayegi
-        'created_by'  => (!empty($user_id)) ? $user_id : 1,
+        'created_by'  => $_SESSION['logged_billing_manager']['employee_number'],
+        'center' => $_SESSION['logged_billing_manager']['center'],
         'created_at'  => date('Y-m-d H:i:s')
     ];
 
@@ -112,7 +113,8 @@ public function deposit_w1($patient_id, $amount, $payment_method, $remarks, $use
             'opening_w2' => $wallets['wallet_2_balance'],
             'closing_w2' => $new_w2_balance,
             'remarks' => "Deducted for: " . $procedure_name,
-            'created_by' => $user_id
+            'created_by'  => $_SESSION['logged_billing_manager']['employee_number'],
+            'center' => $_SESSION['logged_billing_manager']['center'],
         ]);
 
         $this->db->trans_complete();
@@ -128,7 +130,8 @@ public function deposit_w1($patient_id, $amount, $payment_method, $remarks, $use
             'action_type' => 'TRANSFER_B_TO_A_REQUEST',
             'status'      => 'pending',
             'remarks'     => "Approval Required: " . $reason,
-            'created_by'  => $user_id,
+            'created_by'  => $_SESSION['logged_billing_manager']['employee_number'],
+            'center' => $_SESSION['logged_billing_manager']['center'],
             'created_at'  => date('Y-m-d H:i:s')
         ];
         return $this->db->insert('hms_wallet_logs', $data);
@@ -149,7 +152,8 @@ public function deposit_w1($patient_id, $amount, $payment_method, $remarks, $use
             'action_type' => 'TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET',
             'status'      => 'pending', // Ye Accountant ke pass dikhega
             'remarks'     => "Request: " . $remarks,
-            'created_by'  => $user_id,
+            'created_by'  => $_SESSION['logged_billing_manager']['employee_number'],
+            'center' => $_SESSION['logged_billing_manager']['center'],
             'created_at'  => date('Y-m-d H:i:s')
         ];
         return $this->db->insert('hms_wallet_logs', $data);

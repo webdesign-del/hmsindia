@@ -42,6 +42,7 @@
                                 <th>Action By</th>
                                 <th>Action Time</th>
                                 <th>Status</th>
+                                <th>Receipt Link</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -80,21 +81,35 @@
                                             <?php endif; ?>
                                         </td>
                                         
+                                        <!-- 💡 यहाँ सुधार किया गया है: reference_id न होने पर log_id का उपयोग करके रसीद हमेशा खुलेगी -->
+                                        <td>
+                                            <?php 
+                                                // जो भी आईडी मौजूद हो उसे चुनें ताकि "Add Amount" की भी रसीद बने
+                                                $receipt_param = !empty($log['reference_id']) ? $log['reference_id'] : $log['log_id']; 
+                                            ?>
+                                            <a href="<?php echo base_url('accounts/print_invoice/'.$receipt_param); ?>" 
+                                               target="_blank" 
+                                               class="btn btn-info btn-xs" 
+                                               style="font-weight: 600;">
+                                                <i class="fa fa-print"></i> Print Receipt
+                                            </a>
+                                        </td>
+                                        
                                         <td>
                                             <?php if($log['status'] == 'pending'): ?>
                                                 <a href="<?php echo base_url('accounts/approve_wallet_transfer/'.$log['log_id']); ?>" 
                                                    class="btn btn-success btn-xs"
-                                                   onclick="return confirm('Are you sure you want to approve this transfer? Amount will be deducted from Wallet 2 and added to Wallet 1.');" style="margin-bottom: 5px;">
+                                                   onclick="return confirm('Are you sure you want to approve this transfer? Amount will be deducted from Wallet 2 and added to Wallet 1.');" style="margin-bottom: 5px; width: 100%;">
                                                     <i class="fa fa-check"></i> Approve
                                                 </a>
                                                 <br>
                                                 <a href="<?php echo base_url('accounts/disapprove_wallet_transfer/'.$log['log_id']); ?>" 
                                                    class="btn btn-danger btn-xs"
-                                                   onclick="return confirm('Are you sure you want to DISAPPROVE this request? No money will be transferred.');">
+                                                   onclick="return confirm('Are you sure you want to DISAPPROVE this request? Amount will be deducted from wallet balance.');" style="width: 100%;">
                                                     <i class="fa fa-times"></i> Disapprove
                                                 </a>
                                             <?php elseif($log['status'] == 'approved'): ?>
-                                                <span class="text-success"><i class="fa fa-check-circle"></i> Done</span>
+                                                <span class="text-success"><i class="fa fa-check-circle"></i> Approved</span>
                                             <?php elseif($log['status'] == 'disapproved'): ?>
                                                 <span class="text-danger"><i class="fa fa-times-circle"></i> Rejected</span>
                                             <?php endif; ?>
@@ -103,7 +118,7 @@
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
-                                    <td colspan="10" class="text-center">No transfers found.</td>
+                                    <td colspan="11" class="text-center">No transfers found.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>

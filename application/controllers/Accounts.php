@@ -12499,22 +12499,56 @@ public function approve_wallet_transfer($log_id) {
 public function disapprove_wallet_transfer($log_id) {
     $logg = checklogin();
     
-    // Yahan par bhi humne session update kar diya hai
+    // एकाउंटेंट का नाम सेशन से सुरक्षित निकालें
     $approver_name = isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'Accountant';
 
+    // लॉग आईडी से पूरी जानकारी निकालें
     $log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id])->row_array();
     
     if($log && $log['status'] == 'pending') {
         
-        // Status 'disapproved' karein aur jisne reject kiya uska naam save karein
+        $patient_id = $log['patient_id'];
+        $amount_to_deduct = floatval($log['amount']); // जो अमाउंट रिक्वेस्ट में था
+
+        // मरीज का मौजूदा वॉलेट रिकॉर्ड निकालें
+        $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row_array();
+        
+        if (!empty($wallet)) {
+            
+            // 💡 कदम 1: यह तय करें कि किस वॉलेट से पैसा माइनस करना है
+            // अगर लॉग में 'closing_w2' इस्तेमाल हो रहा है तो Wallet 2, अन्यथा मुख्य Wallet 1
+            $target_wallet = 'wallet_1_balance';
+            
+            if (isset($log['action_type']) && (strpos(strtolower($log['action_type']), 'w2') !== false || strpos(strtolower($log['action_type']), 'wallet_2') !== false)) {
+                $target_wallet = 'wallet_2_balance';
+            } elseif (floatval($log['opening_w2']) > 0 || floatval($log['closing_w2']) > 0) {
+                // एक बैकअप चेक: अगर w2 का डेटा भरा हुआ है तो w2 टारगेट करें
+                $target_wallet = 'wallet_2_balance';
+            }
+
+            // 💡 कदम 2: गणितीय गणना (Current Wallet Balance - Request Amount)
+            $current_balance = floatval($wallet[$target_wallet]);
+            $new_balance = $current_balance - $amount_to_deduct;
+
+            // 💡 कदम 3: मुख्य वॉलेट टेबल में सही कॉलम को अपडेट (Minus) करें
+            $this->db->where('patient_id', $patient_id)->update('hms_patient_wallets', [
+                $target_wallet => $new_balance,
+                'updated_at'   => date('Y-m-d H:i:s')
+            ]);
+        }
+        
+        // 💡 कदम 4: लॉग स्टेटस को 'disapproved' करें
         $this->db->where('log_id', $log_id)->update('hms_wallet_logs', [
             'status' => 'disapproved',
-            'approved_by' => $approver_name, // Ab yahan sahi naam aayega
+            'approved_by' => $approver_name,
             'updated_at' => date('Y-m-d H:i:s') 
         ]);
         
-        $this->session->set_flashdata('error', 'Transfer Request Disapproved.');
+        $this->session->set_flashdata('error', 'Transfer Request Disapproved. Amount deducted from wallet.');
+    } else {
+        $this->session->set_flashdata('error', 'Invalid Request or Request already processed.');
     }
+    
     redirect($_SERVER['HTTP_REFERER']);
 }
 
@@ -12583,7 +12617,7 @@ public function add_money_to_package() {
         'payment_method'     => $payment_method,
         'remarks'     => $remarks,
         'created_at'  => date('Y-m-d H:i:s'),
-        'status'      => 1
+        'status'      => 'pending'
     ];
 
     // Handle Screenshot Upload (if file was selected)
@@ -12623,6 +12657,142 @@ public function apply_discount() {
     } else {
         echo json_encode(['error' => $result['message']]);
     }
+}
+
+public function print_invoice($reference_id = '') {
+    $logg = checklogin();
+    if(empty($reference_id)){ show_404(); }
+
+    // 💡 कदम 1: l.created_by = e.employee_number करके कर्मचारी का असली नाम निकाला (JOIN लगाया)
+    $this->db->select('l.*, p.wife_name, p.husband_name, p.wife_phone, p.patient_id as pt_id, e.name as employee_name');
+    $this->db->from('hms_wallet_logs l');
+    $this->db->join('hms_patients p', 'p.patient_id = l.patient_id', 'left');
+    $this->db->join('hms_employees e', 'e.employee_number = l.created_by', 'left'); // 🎯 कर्मचारी नाम के लिए JOIN
+    $this->db->where('l.reference_id', $reference_id);
+    $log_data = $this->db->get()->row_array();
+
+    // अगर reference_id से न मिले तो log_id से ढूंढने का बैकअप
+    if (empty($log_data)) {
+        $this->db->select('l.*, p.wife_name, p.husband_name, p.wife_phone, p.patient_id as pt_id, e.name as employee_name');
+        $this->db->from('hms_wallet_logs l');
+        $this->db->join('hms_patients p', 'p.patient_id = l.patient_id', 'left');
+        $this->db->join('hms_employees e', 'e.employee_number = l.created_by', 'left'); // 🎯 कर्मचारी नाम के लिए JOIN
+        $this->db->where('l.log_id', $reference_id);
+        $log_data = $this->db->get()->row_array();
+    }
+
+    // अगर रिकॉर्ड मिल जाता है तो ऑन-द-स्पॉट ब्रांड न्यू रसीद ड्रा करें
+    if(!empty($log_data)) {
+        $this->generate_brand_new_receipt($log_data);
+    } else {
+        echo "<script>alert('No transaction log found for this receipt.'); window.close();</script>";
+        die();
+    }
+}
+
+// 💡 कदम 2: न्यू डायनेमिक रसीद का HTML/CSS लेआउट इंजन
+private function generate_brand_new_receipt($log) {
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Transaction Receipt #<?php echo $log['reference_id'] ?? $log['log_id']; ?></title>
+        <style>
+            body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; background: #f9f9f9; color: #333; }
+            .invoice-card { max-width: 700px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-top: 6px solid #aa183c; }
+            .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 25px; }
+            .logo-area img { max-height: 55px; }
+            .title-area { text-align: right; }
+            .title-area h2 { margin: 0; color: #aa183c; font-size: 24px; font-weight: 700; }
+            .title-area p { margin: 4px 0 0 0; color: #64748b; font-size: 13px; font-weight: 600; }
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; font-size: 13px; line-height: 1.6; }
+            .info-block strong { color: #0f172a; }
+            .info-block span { color: #475569; }
+            .receipt-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            .receipt-table th { background: #f8fafc; color: #475569; font-weight: 700; font-size: 12px; text-transform: uppercase; padding: 12px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+            .receipt-table td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; color: #334155; }
+            .amount-big { font-size: 20px; font-weight: 800; color: #16a34a; }
+            .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+            .badge-pending { background: #fef3c7; color: #d97706; }
+            .badge-approved { background: #dcfce7; color: #15803d; }
+            .badge-disapproved { background: #fee2e2; color: #b91c1c; }
+            .footer-note { text-align: center; margin-top: 40px; font-size: 11px; color: #94a3b8; border-top: 1px dashed #e2e8f0; padding-top: 15px; }
+            .no-print-btn { background: #0f172a; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; float: right; font-size: 12px; }
+            .no-print-btn:hover { background: #1e293b; }
+            @media print { .no-print { display: none !important; } body { padding: 0; background: #fff; } .invoice-card { box-shadow: none; padding: 0; } }
+        </style>
+    </head>
+    <body>
+
+    <div class="invoice-card">
+        <div class="header-row">
+            <div class="logo-area">
+                <img src="https://www.indiaivf.in/images/IVF-Centre-IndiaIVF.webp" alt="Logo">
+            </div>
+            <div class="title-area">
+                <h2>INDIA IVF CENTRE</h2>
+                <p>Wallet Transaction Receipt</p>
+            </div>
+        </div>
+
+        <button class="no-print no-print-btn" onclick="window.print()"><i class="fa fa-print"></i> Print Receipt</button>
+
+        <div class="info-grid">
+            <div class="info-block">
+                <strong>Patient Details:</strong><br>
+                <span>ID: <?php echo $log['pt_id'] ?? 'N/A'; ?></span><br>
+                <span>Name: <?php echo $log['wife_name'] ?? 'N/A'; ?></span><br>
+                <span>Spouse: <?php echo $log['husband_name'] ?? 'N/A'; ?></span><br>
+            </div>
+            <div class="info-block" style="text-align: right;">
+                <strong>Receipt Details:</strong><br>
+                <span>Receipt No: #<?php echo $log['log_id'] ?? $log['log_id']; ?></span><br>
+                <span>Created By: <?php echo !empty($log['employee_name']) ? $log['employee_name'] : (!empty($log['created_by']) ? $log['created_by'] : 'System'); ?></span><br>
+                <span>Date: <?php echo date('d-m-y, h:i A', strtotime($log['created_at'])); ?></span><br>
+            </div>
+        </div>
+
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th style="width: 50%;">Transaction Description</th>
+                    <th style="width: 25%;">Method</th>
+                    <th style="width: 25%; text-align: right;">Total Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <strong><?php echo ucfirst(str_replace('_', ' ', $log['action_type'] ?? 'Wallet Transfer')); ?></strong><br>
+                        <small style="color: #64748b; font-size: 11px;">
+                            Remarks: <?php echo !empty($log['remarks']) ? $log['remarks'] : 'Wallet request processed.'; ?>
+                        </small>
+                    </td>
+                    <td><span style="text-transform: uppercase;"><?php echo !empty($log['payment_method']) ? $log['payment_method'] : 'Wallet System'; ?> (<?php echo !empty($log['reference_id']) ? $log['reference_id'] : 'Wallet System'; ?>)</span></td>
+                    <td style="text-align: right;" class="amount-big">₹<?php echo number_format($log['amount'], 2); ?></td>
+                </tr>
+                <tr>
+                    <td style="text-align: right; font-size: 11px; color: #64748b; padding-top: 20px;">
+                        <?php if(!empty($log['approved_by'])): ?>
+                            <strong>Processed By:</strong> <?php echo $log['approved_by']; ?> 
+                            <?php if(!empty($log['updated_at'])) { echo "<br>on ".date('d-m-y, h:i A', strtotime($log['updated_at'])); } ?>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer-note">
+            <p><strong>*Note:</strong> This is a provisional computer-generated receipt. The credited wallet balance is subject to actual realization of funds and final approval by the Accounts Department. If a payment (UPI/Cheque/Card) is declined or reversed by the bank, the equivalent wallet balance will be automatically deducted.*</p>
+            <p>This is a certified digital receipt issued against your wallet action. For any queries, please visit the billing desk.</p>
+            <p style="margin-top: 5px; font-weight: bold;">© <?php echo date('Y'); ?> India IVF Centre. All Rights Reserved.</p>
+        </div>
+    </div>
+
+    </body>
+    </html>
+    <?php
 }
 
 } // End of class - MAKE SURE THIS IS THE LAST LINE
