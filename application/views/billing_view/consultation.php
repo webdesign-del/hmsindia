@@ -83,6 +83,12 @@
                 <div class="input-group">
                   <span class="input-group-addon" style="background-color: #ecf0f1; border-color: #bdc3c7;">
                     <i class="fa fa-hashtag"></i>
+                     <?php 
+                    if ($appointments['paitent_type'] == 'new_patient' ){
+                      foreach ($select_result1 as $res_val){
+                   ?>
+                      <input value="<?php echo $res_val->uhid+1; ?>" id="uhid" name="uhid" type="text" class="form-control">
+                   <?php } } ?>
                   </span>
                 </div>
               </div>

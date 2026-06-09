@@ -1,4 +1,9 @@
 <?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
+<?php 
+if (!isset($all_method) || $all_method === null) {
+    $all_method =& get_instance(); 
+}
+?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -26,7 +31,19 @@
 <script src="<?php echo base_url();?>assets/js/select2.min.js"></script>
 <!-- Google Fonts-->
 <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+<style type="text/css">
+.blink-text {
+    animation: textBlink 1.8s linear infinite;
+    font-weight: bold;
+    color: #ce5679; /* 💡 आप अपनी पसंद का कलर (जैसे रेड या ऑरेंज) यहाँ सेट कर सकते हैं */
+}
 
+@keyframes textBlink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+</style>
 </head>
 <body>
 <div id="wrapper">
@@ -39,6 +56,18 @@
   </div>
   <?php $notice = get_center_notification(); ?>
   <ul class="nav navbar-top-links navbar-right">
+     <li>
+    <a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown4">
+        <i class="fa fa-map-marker fa-fw" aria-hidden="true"></i>
+        <?php 
+        // 🎯 फिक्स: सीधे डेटाबेस से सेंटर का नाम निकालें
+        $center_id_session = $_SESSION['logged_billing_manager']['center'];
+        $center_query = $this->db->get_where('hms_centers', array('center_number' => $center_id_session))->row_array();
+        $center_name = isset($center_query['center_name']) ? $center_query['center_name'] : 'Unknown Center';
+        ?>
+        <span class="blink-text"><?php echo $center_name; ?></span>
+    </a>
+</li>
     <li><a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown4">
     	<?php if($notice['count'] > 0){
 			echo '<span class="notice_count">'.$notice['count'].'</span>';

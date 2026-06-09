@@ -977,9 +977,6 @@ if (!empty($stored_procedures)) {
       </div>
    </div>
 </form>
-<script src="https://code.google.com/p/crypto-js/"></script>
-<script src="https://www.youtube.com/iframe_api"></script>
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
 <script type="text/javascript">
 $(document).ready(function() {
