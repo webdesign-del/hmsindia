@@ -28,8 +28,9 @@
 <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
 <style type="text/css">
 .blink-text {
-    animation: textBlink 1.8s linear infinite;
+    animation: textBlink 10.8s linear infinite;
     font-weight: bold;
+    font-size: 18px;
     color: #ce5679; /* 💡 आप अपनी पसंद का कलर (जैसे रेड या ऑरेंज) यहाँ सेट कर सकते हैं */
 }
 

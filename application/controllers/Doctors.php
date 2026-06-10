@@ -1471,6 +1471,56 @@ class Doctors extends CI_Controller {
 		}
 	}
 
+	public function appointment_doctor(){
+		$logg = checklogin();
+		error_reporting(0);
+		if($logg['status'] == true){
+			$data = array(); $doctor_id = "";
+			// Get Parameter from front end
+			$per_page = $this->input->get('per_page', true);
+			if(empty($per_page)){
+				$per_page = 0;
+			}
+			$status = $this->input->get('status', true);
+			$start_date = $this->input->get('start_date', true);
+			$end_date = $this->input->get('end_date', true);
+			$patient_id = $this->input->get('patient_id', true);
+			$patient_name = $this->input->get('patient_name', true);
+
+			$doctor_id = $_SESSION['logged_doctor']['doctor_id'];
+			$config = array();
+        	$config["base_url"] = base_url() . "appointment_doctor";
+        	$config["total_rows"] = $this->doctors_model->get_app_doctor_count($doctor_id, $status, $start_date, $end_date, $patient_id, $patient_name);
+        	$config["per_page"] = 20;
+        	$config["uri_segment"] = 2;
+			$config['use_page_numbers'] = true;
+			$config['num_links'] = 5;
+			$config['page_query_string'] = true;
+			$config['reuse_query_string'] = true;
+			
+        	$this->pagination->initialize($config);
+        	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
+			
+        	$data["links"] = $this->pagination->create_links();
+			
+			//$data['appointments'] = $this->doctors_model->doctor_appointment_lists($doctor_id);
+			$data['appointments'] = $this->doctors_model->doctor_appo_lists_pagination($doctor_id, $config["per_page"], $per_page, $status, $start_date, $end_date, $patient_id, $patient_name);
+			$data["status"] = $status;
+			$data["start_date"] = $start_date;
+			$data["end_date"] = $end_date;
+			$data["patient_name"] = $patient_name;
+			$data["patient_id"] = $patient_id;
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('doctors/appointment_doctor', $data);
+			$this->load->view($template['footer']);
+			
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
 	public function junior_doctor_appointments(){
 		$logg = checklogin();
 		if($logg['status'] == true){

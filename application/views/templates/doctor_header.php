@@ -40,6 +40,18 @@ ul.nav.nav-second-level.collapse.in li {
     font-size: 13px;
     margin-left: -5px;
 }
+.blink-text {
+    animation: textBlink 10.8s linear infinite;
+    font-weight: bold;
+    font-size: 18px;
+    color: #ce5679; /* 💡 आप अपनी पसंद का कलर (जैसे रेड या ऑरेंज) यहाँ सेट कर सकते हैं */
+}
+
+@keyframes textBlink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
 </style>
 </head>
 <body>
@@ -53,6 +65,18 @@ ul.nav.nav-second-level.collapse.in li {
   </div>
   <?php //$notice = get_center_notification(); ?>
   <ul class="nav navbar-top-links navbar-right">
+     <li>
+    <a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown4">
+        <i class="fa fa-map-marker fa-fw" aria-hidden="true"></i>
+        <?php 
+        // 🎯 फिक्स: सीधे डेटाबेस से सेंटर का नाम निकालें
+        $center_id_session = $_SESSION['logged_doctor']['center'];
+        $center_query = $this->db->get_where('hms_centers', array('center_number' => $center_id_session))->row_array();
+        $center_name = isset($center_query['center_name']) ? $center_query['center_name'] : 'Unknown Center';
+        ?>
+        <span class="blink-text"><?php echo $center_name; ?></span>
+    </a>
+</li>
     <li><a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown4">
     	<?php /*if($notice['count'] > 0){
 			echo '<span class="notice_count">'.$notice['count'].'</span>';

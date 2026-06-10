@@ -1936,6 +1936,78 @@ function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $
 		}
 
 	}
+
+
+	function get_app_doctor_count($doctor_id, $status, $start_date, $end_date, $patient_id, $patient_name){
+		$center = get_doctor_centre($doctor_id);
+		$sql_condition = "appoitmented_doctor='$doctor_id'";
+		if($center > 0){
+			$sql_condition = "appoitmented_doctor='$doctor_id'";
+		}
+		if (!empty($status)){
+			$sql_condition .= " and status='$status'";
+		}
+		if (!empty($patient_id)){
+			$sql_condition .= " and paitent_id='$patient_id'";
+		}
+		if (!empty($patient_name)){
+			$sql_condition .= " and (wife_name='$patient_name' or wife_phone = '$patient_name')";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			$sql_condition .= " and appoitmented_date >='$start_date' and  appoitmented_date <= '$end_date'";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$sql_condition .= " and appoitmented_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$sql_condition .= " and appoitmented_date='$end_date'";
+		}
+		$result = array();
+	echo $sql = "Select * from ".$this->config->item('db_prefix')."appointments where $sql_condition and status!='no_show' and status!='cancelled' order by appoitmented_date desc";
+		$q = $this->db->query($sql);
+		return $q->num_rows();
+	}
+
+	function doctor_appo_lists_pagination($doctor_id, $limit, $page, $status, $start_date, $end_date, $patient_id, $patient_name){
+		if(empty($page)){
+			$offset = 0;
+		}else{
+			$offset = ($page - 1) * $limit;
+		}
+	
+		$center = get_doctor_centre($doctor_id);
+		$sql_condition = "appoitmented_doctor='$appoitmented_doctor'";
+		if($center > 0){
+			$sql_condition = "appoitmented_doctor='$doctor_id'";
+		}
+		if (!empty($status)){
+			$sql_condition .= " and status='$status'";
+		}
+		if (!empty($patient_id)){
+			$sql_condition .= " and paitent_id='$patient_id'";
+		}
+		if (!empty($patient_name)){
+			$sql_condition .= " and (wife_name like'%$patient_name%' or wife_phone = '$patient_name')";
+		}
+		if (!empty($start_date) && !empty($end_date)){
+			$sql_condition .= " and appoitmented_date >='$start_date' and  appoitmented_date <= '$end_date'";
+		}
+		else if (!empty($start_date) && empty($end_date)){
+			$sql_condition .= " and appoitmented_date='$start_date'";
+		}
+		else if (empty($start_date) && !empty($end_date)){
+			$sql_condition .= " and appoitmented_date='$end_date'";
+		}
+		$result = array();
+		echo $sql = "Select * from ".$this->config->item('db_prefix')."appointments where $sql_condition and status not in('no_show', 'cancelled') order by appoitmented_date desc limit ". $limit." OFFSET ".$offset."";
+		$q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result)){
+			return $result;
+        }else{
+			return $result;
+		}
+	}
 		
 }
 
