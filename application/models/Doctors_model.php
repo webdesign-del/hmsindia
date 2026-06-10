@@ -1963,7 +1963,7 @@ function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $
 			$sql_condition .= " and appoitmented_date='$end_date'";
 		}
 		$result = array();
-	echo $sql = "Select * from ".$this->config->item('db_prefix')."appointments where $sql_condition and status!='no_show' and status!='cancelled' order by appoitmented_date desc";
+	    $sql = "Select * from ".$this->config->item('db_prefix')."appointments where $sql_condition and status!='no_show' and status!='cancelled' order by appoitmented_date desc";
 		$q = $this->db->query($sql);
 		return $q->num_rows();
 	}
@@ -1999,7 +1999,7 @@ function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $
 			$sql_condition .= " and appoitmented_date='$end_date'";
 		}
 		$result = array();
-		echo $sql = "Select * from ".$this->config->item('db_prefix')."appointments where $sql_condition and status not in('no_show', 'cancelled') order by appoitmented_date desc limit ". $limit." OFFSET ".$offset."";
+		$sql = "Select * from ".$this->config->item('db_prefix')."appointments where $sql_condition and status not in('no_show', 'cancelled') order by appoitmented_date desc limit ". $limit." OFFSET ".$offset."";
 		$q = $this->db->query($sql);
         $result = $q->result_array();
         if (!empty($result)){

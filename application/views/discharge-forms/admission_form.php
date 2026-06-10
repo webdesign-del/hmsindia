@@ -67,7 +67,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     $select_result = run_select_query($sql);
     
     // 1. Pehle current year ke hisab se prefix format taiyar karein (e.g., "2526" ya "2627")
-$current_year_suffix = (date("y")-1).date("y"); 
+$current_year_suffix = (date("y").date("y")+1); 
 
 // 2. Query ko bolein ki sirf isi saal ke IPID mein se sabse bada (MAX) number uthaye
 $sql2 = "SELECT MAX(CAST(RIGHT(ipid, 3) AS UNSIGNED)) as last_three 

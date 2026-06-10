@@ -109,7 +109,12 @@ ul.nav.nav-second-level.collapse.in li {
       <li> <a class="active-menu waves-effect waves-dark" href="<?php echo base_url(); ?>"><i class="fa fa-dashboard"></i> Dashboard</a> </li>
       <li> <a href="#" class="waves-effect waves-dark"><i class="fa fa-sitemap"></i>Manage Appointments<span class="fa arrow"></span></a>
         <ul class="nav nav-second-level">
+          
+           <?php if($_SESSION['logged_doctor']['is_primary'] == "1"){?>
           <li> <a href="<?php echo base_url(); ?>doctor_appointments">My Appointment</a> </li>
+          <?php }else{  ?>
+           <li> <a href="<?php echo base_url(); ?>doctors/appointment_doctor">My Appointment</a> </li>
+          <?php  }  ?>
           <li> <a href="<?php echo base_url(); ?>doctors/manage_discharge_forms">Discharge Forms</a> </li>
         </ul>
       </li>
