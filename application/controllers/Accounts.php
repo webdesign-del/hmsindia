@@ -2851,7 +2851,7 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-06-01'
+	AND s.sale_date > '2026-05-31'
 ORDER BY s.updated_at DESC 
 LIMIT 700";
     

@@ -397,7 +397,7 @@ class Patients extends CI_Controller {
 			$formname = $this->patients_model->get_discharge_form($form_id);
 
 			$data['formname'] = $formname['form_name'];
-			$data['patient_data'] = get_patient_detail($iic_id);
+			$data['patient_data'] = get_patient_detail($patient_id);
 
 			if(isset($_SESSION['logged_doctor'])){
 				$data['updated_by'] = $_SESSION['logged_doctor']['username'];

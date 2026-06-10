@@ -66,8 +66,20 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     }
     $select_result = run_select_query($sql);
     
-    $sql2 = "SELECT RIGHT(CAST(ipid AS CHAR), 3) as last_three FROM `admission_form` ORDER BY ID DESC LIMIT 1";
-    $select_result2 = run_select_query($sql2);
+    // 1. Pehle current year ke hisab se prefix format taiyar karein (e.g., "2526" ya "2627")
+$current_year_suffix = (date("y")-1).date("y"); 
+
+// 2. Query ko bolein ki sirf isi saal ke IPID mein se sabse bada (MAX) number uthaye
+$sql2 = "SELECT MAX(CAST(RIGHT(ipid, 3) AS UNSIGNED)) as last_three 
+         FROM `admission_form` 
+         WHERE ipid LIKE '%/".$current_year_suffix."/%'";
+$select_result2 = run_select_query($sql2);
+
+// 3. Agar is saal ka pehla admission hai toh 000 se shuru karein, nahi toh last number uthaye
+$last_ipid_num = (!empty($select_result2['last_three'])) ? intval($select_result2['last_three']) : 0;
+
+// 4. Agla number generate karein aur use hamesha 3 digit format mein rakhein (jaise 001, 002, 015)
+$next_ipid_num = str_pad(($last_ipid_num + 1), 3, '0', STR_PAD_LEFT);
     
     // 💡 FIX 1: $this->config को $all_method->config से रिप्लेस किया ताकि Fatal 500 एरर खत्म हो
     $sql4 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
@@ -127,24 +139,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     <input type="hidden" value="<?php echo $patient_id;?>" class="form" name="patient_id">
     <input type="hidden" value="<?php echo date('Y-m-d'); ?>" class="form" name="date_of_addmission">
     <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">  
-    <input type="hidden" value="<?php echo ($select_result5['center_code'] ?? 'CENTER').'/'.(date("y")-1).date("y").'/'.($last_ipid_num + 1);?>" class="form" id="ipid" name="ipid">   
-    
+    <input type="hidden" value="<?php echo ($select_result5['center_code'] ?? 'CENTER').'/'.$current_year_suffix.'/'.$next_ipid_num + 1;?>" class="form" id="ipid" name="ipid">
 <div class="col-sm-12 col-md-12" style="margin-bottom:15px; padding:0;">
-    <div class="col-sm-12 col-md-4">
-        <label for="Center">Center</label>
-        <select class="form-control" id="center" name="center" required="">
-            <option value=''>--Select From--</option>
-            <?php $all_centers = $all_method->get_all_centers();
-            foreach($all_centers as $key => $val){ 
-                if($center == $val['center_number']){
-                    echo '<option value="'.$val['center_number'].'" selected>'.$val['center_name'].'</option>';
-                }else{
-                    echo '<option value="'.$val['center_number'].'">'.$val['center_name'].'</option>';
-                }
-            } 
-            ?>
-        </select>
-     </div> 
+   
     <div class="col-sm-12 col-md-4">
       <label for="Admission">Date of Admission:</label>
       <input type="date" class="form-control" required="" name="date_of_addmission" value="<?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?>">
