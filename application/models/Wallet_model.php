@@ -42,7 +42,7 @@ class Wallet_model extends CI_Model {
     }
 
 // Check karein ki yahan $screenshot parameter hai
-public function deposit_w1($patient_id, $amount, $payment_method, $remarks, $user_id, $screenshot = "") {
+public function deposit_w1($patient_id, $amount, $payment_method, $remarks, $user_id, $reference_id, $receipt_number, $screenshot = "") {
     
     $wallets = $this->get_wallets($patient_id);
     $new_w1 = $wallets['wallet_1_balance'] + $amount;
@@ -64,7 +64,9 @@ public function deposit_w1($patient_id, $amount, $payment_method, $remarks, $use
         'action_type' => 'DEPOSIT_MONEY_WALLET',
         'opening_w1'  => $wallets['wallet_1_balance'],
         'closing_w1'  => $new_w1,
-        'payment_method'        => $payment_method,
+        'reference_id' => $reference_id,
+		'receipt_number' => $receipt_number,
+        'payment_method' => $payment_method,
         'remarks'     => $remarks,
         'screenshot'  => $screenshot, // Ye value database mein jayegi
         'created_by'  => $_SESSION['logged_billing_manager']['employee_number'],

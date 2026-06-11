@@ -12361,6 +12361,8 @@ public function export_patient_journey() {
 		$p_id = $this->input->post('patient_id');
 		$amt  = (float)$this->input->post('amount');
 		$payment_method = $this->input->post('payment_method');
+		$reference_id       = $this->input->post('reference_id');
+		$receipt_number       = $this->input->post('receipt_number');
 		$remarks = $this->input->post('remarks');
 		$user = $this->session->userdata('user_id');
 		$screenshot_name = ""; // Default empty
@@ -12388,8 +12390,16 @@ public function export_patient_journey() {
 		}
 
 		// 2. Model call karte waqt screenshot_name ZAROOR bhejein
-		$status = $this->Wallet_model->deposit_w1($p_id, $amt, $payment_method, $remarks, $user, $screenshot_name);
-
+		$status = $this->Wallet_model->deposit_w1(
+            $p_id,             // 1. $patient_id
+            $amt,              // 2. $amount
+            $payment_method,   // 3. $payment_method
+            $remarks,          // 4. $remarks  <-- Yeh pehle aayega
+            $user,             // 5. $user_id
+            $reference_id,     // 6. $reference_id
+            $receipt_number,   // 7. $receipt_number
+            $screenshot_name   // 8. $screenshot
+        );
 		if($status) {
 			$this->session->set_flashdata('success', 'Amount Deposited Successfully');
 		}
@@ -12447,12 +12457,73 @@ public function wallet_transfer_requests() {
     $logg = checklogin();
     if($logg['status'] == true) {
         
-        // Pending wale top par rakhne ke liye custom Order By
+        $this->load->library('pagination');
+
+        // 1. Filter Inputs Check (GET methods se data uthana)
+        $filter_patient_id = $this->input->get('patient_id') ? trim($this->input->get('patient_id')) : '';
+        $filter_status     = $this->input->get('status') ? trim($this->input->get('status')) : '';
+
+        // 2. Base Query Filters Setup (Total Rows Count karne ke liye)
+        if(!empty($filter_patient_id)) {
+            $this->db->where('patient_id', $filter_patient_id);
+        }
+        if(!empty($filter_status)) {
+            $this->db->where('status', $filter_status);
+        }
+        // Count total rows matching the filters
+        $total_rows = $this->db->count_all_results('hms_wallet_logs');
+
+        // 3. Pagination & Query String Configuration
+        $config['base_url']             = base_url('accounts/wallet_transfer_requests');
+        $config['total_rows']           = $total_rows;
+        $config['per_page']             = 10; // Ek page par 10 records
+        $config['page_query_string']    = TRUE; // 🎯 TRUE kiya taaki URL parameters ?per_page= block na ho
+        $config['query_string_segment'] = 'per_page'; // CI query string offset variable
+
+        // URL Maintainer Logic: Taaki link badalne par filter ke parameters (?patient_id=...&status=...) sath rahein
+        $config['reuse_query_string']   = TRUE; 
+
+        // 4. Bootstrap Styling Tags for Pagination
+        $config['full_tag_open']   = '<ul class="pagination" style="margin:0;">';
+        $config['full_tag_close']  = '</ul>';
+        $config['num_tag_open']    = '<li>';
+        $config['num_tag_close']   = '</li>';
+        $config['cur_tag_open']    = '<li class="active"><a href="#">';
+        $config['cur_tag_close']   = '</a></li>';
+        $config['next_tag_open']   = '<li>';
+        $config['next_tag_close']  = '</li>';
+        $config['prev_tag_open']   = '<li>';
+        $config['prev_tag_close']  = '</li>';
+        $config['first_tag_open']  = '<li>';
+        $config['first_tag_close'] = '</li>';
+        $config['last_tag_open']   = '<li>';
+        $config['last_tag_close']  = '</li>';
+
+        $this->pagination->initialize($config);
+
+        // Current offset value read karna url se
+        $page = $this->input->get('per_page') ? $this->input->get('per_page') : 0;
+
+        // 5. Data Fetch Query with Limit & Active Filters
+        if(!empty($filter_patient_id)) {
+            $this->db->where('patient_id', $filter_patient_id);
+        }
+        if(!empty($filter_status)) {
+            $this->db->where('status', $filter_status);
+        }
+
         $this->db->order_by("status = 'pending'", "DESC"); 
         $this->db->order_by("created_at", "DESC");
+        $this->db->limit($config['per_page'], $page);
         
         $data['pending_logs'] = $this->db->get('hms_wallet_logs')->result_array();
+        $data['pagination_links'] = $this->pagination->create_links();
 
+        // 6. View file mein puraane filters ko selected rakhne ke liye values pass karna
+        $data['search_patient_id'] = $filter_patient_id;
+        $data['search_status']     = $filter_status;
+
+        // View load engine
         $template = get_header_template($logg['role']);
         $this->load->view($template['header']);
         $this->load->view('accounts/wallet_transfer_list', $data); 
@@ -12573,15 +12644,18 @@ public function request_w2_to_w1() {
 public function add_money_to_package() {
     $patient_id = $this->input->post('patient_id');
     $amount     = (float)$this->input->post('amount');
-    $payment_method       = $this->input->post('payment_method');
+    $payment_method = $this->input->post('payment_method');
+    $reference_id   = $this->input->post('reference_id');
+    $receipt_number = $this->input->post('receipt_number');
     $remarks    = $this->input->post('remarks');
+    
+    // 🎯 [FIX 1]: Default empty string rakhein, post() se file data nahi uthaya jata
+    $screenshot_name = ""; 
 
     // 1. Get current balance for Wallet 2 (Package Wallet)
     $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row();
     
-    // ==============================================================
     // FIX: Agar patient ka wallet nahi mila, toh use AUTO-CREATE karein
-    // ==============================================================
     if (!$wallet) {
         $this->db->insert('hms_patient_wallets', [
             'patient_id'       => $patient_id,
@@ -12591,12 +12665,34 @@ public function add_money_to_package() {
             'updated_at'       => date('Y-m-d H:i:s')
         ]);
         
-        // Dubara fetch karein taaki aage ki calculations bina kisi dikkat ke chal sakein
         $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row();
     }
 
     $opening_w2 = (float)$wallet->wallet_2_balance;
     $closing_w2 = $opening_w2 + $amount;
+
+    // 🎯 [FIX 2]: Handle Screenshot Upload (INSERT se PEHLE hona chahiye)
+    if (!empty($_FILES['screenshot']['name'])) {
+        $config['upload_path']   = './uploads/screenshots/';
+        $config['allowed_types'] = 'jpg|jpeg|png|gif';
+        $config['max_size']      = 2048; // 2MB Max
+        $config['file_name']     = 'PKG_WLT_' . time() . '_' . $patient_id; // Unique Name
+
+        // Folder checking & creation backup
+        if (!is_dir($config['upload_path'])) {
+            mkdir($config['upload_path'], 0777, TRUE);
+        }
+
+        $this->load->library('upload', $config);
+
+        if ($this->upload->do_upload('screenshot')) {
+            $uploadData = $this->upload->data();
+            $screenshot_name = $uploadData['file_name']; // Successfully uploaded file name
+        } else {
+            // Debugging ke liye agar upload fail ho toh flashdata mein error dikhegi
+            // $this->session->set_flashdata('error', $this->upload->display_errors());
+        }
+    }
 
     // 2. Update the Balance in hms_patient_wallets
     $this->db->where('patient_id', $patient_id);
@@ -12610,29 +12706,22 @@ public function add_money_to_package() {
         'patient_id'  => $patient_id,
         'amount'      => $amount,
         'action_type' => 'DEPOSIT_PACKAGE_WALLET', 
-        'opening_w1'  => $wallet->wallet_1_balance, // W1 stays the same
+        'opening_w1'  => $wallet->wallet_1_balance,
         'closing_w1'  => $wallet->wallet_1_balance,
         'opening_w2'  => $opening_w2,
         'closing_w2'  => $closing_w2,
-        'payment_method'     => $payment_method,
+        'reference_id' => $reference_id,
+        'receipt_number' => $receipt_number,
+        'payment_method' => $payment_method,
+        'screenshot'  => $screenshot_name, // 🎯 [FIX 3]: Ab sahi file name database mein jayega
+        'created_by'  => $_SESSION['logged_billing_manager']['employee_number'],
+        'center'      => $_SESSION['logged_billing_manager']['center'],
         'remarks'     => $remarks,
         'created_at'  => date('Y-m-d H:i:s'),
         'status'      => 'pending'
     ];
 
-    // Handle Screenshot Upload (if file was selected)
-    if (!empty($_FILES['screenshot']['name'])) {
-        $config['upload_path']   = './uploads/screenshots/';
-        $config['allowed_types'] = 'jpg|jpeg|png';
-        $config['max_size']      = 2048;
-        $this->load->library('upload', $config);
-
-        if ($this->upload->do_upload('screenshot')) {
-            $uploadData = $this->upload->data();
-            $log_data['screenshot'] = $uploadData['file_name'];
-        }
-    }
-
+    // 🎯 Final Database Insertion
     $this->db->insert('hms_wallet_logs', $log_data);
 
     // 4. Success Message and Redirect
@@ -12658,7 +12747,6 @@ public function apply_discount() {
         echo json_encode(['error' => $result['message']]);
     }
 }
-
 public function print_invoice($reference_id = '') {
     $logg = checklogin();
     if(empty($reference_id)){ show_404(); }
@@ -12692,17 +12780,31 @@ public function print_invoice($reference_id = '') {
 
 // 💡 कदम 2: न्यू डायनेमिक रसीद का HTML/CSS लेआउट इंजन
 private function generate_brand_new_receipt($log) {
+    // 🎯 [BACKEND DETECT]: log data ke center validation se dynamic data uthana
+    $CI =& get_instance();
+    $center_data = array('center_name' => 'Main Center', 'center_gst' => 'N/A'); // Fallback structure
+
+    if (!empty($log['center'])) {
+        $db_prefix = $CI->config->item('db_prefix');
+        $sql_center = "SELECT center_name, center_gst FROM `".$db_prefix."centers` WHERE center_number = '".$log['center']."' LIMIT 1";
+        $res_center = $CI->db->query($sql_center)->row_array();
+        if (!empty($res_center)) {
+            $center_data = $res_center;
+        }
+    }
     ?>
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Transaction Receipt #<?php echo $log['reference_id'] ?? $log['log_id']; ?></title>
+        <title>Transaction Receipt #<?php echo $log['receipt_number'] ?? 'N/A'; ?></title>
         <style>
             body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; background: #f9f9f9; color: #333; }
             .invoice-card { max-width: 700px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-top: 6px solid #aa183c; }
             .header-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 25px; }
-            .logo-area img { max-height: 55px; }
+            .logo-area img { max-height: 55px; display: block; margin-bottom: 5px; }
+            /* 🎯 Center Text dynamic layout styling */
+            .center-details-text { font-size: 11px; color: #475569; line-height: 1.4; font-weight: 500; margin-top: 5px; }
             .title-area { text-align: right; }
             .title-area h2 { margin: 0; color: #aa183c; font-size: 24px; font-weight: 700; }
             .title-area p { margin: 4px 0 0 0; color: #64748b; font-size: 13px; font-weight: 600; }
@@ -12729,37 +12831,42 @@ private function generate_brand_new_receipt($log) {
         <div class="header-row">
             <div class="logo-area">
                 <img src="https://www.indiaivf.in/images/IVF-Centre-IndiaIVF.webp" alt="Logo">
+                <!-- 🎯 [DYNAMIC BLOCK]: Displaying center name and center gst dynamically -->
+                <div class="center-details-text">
+                    <strong>Branch:</strong> <?php echo $center_data['center_name']; ?><br>
+                    <strong>GSTIN:</strong> <?php echo !empty($center_data['center_gst']) ? $center_data['center_gst'] : 'N/A'; ?>
+                </div>
             </div>
             <div class="title-area">
                 <h2>INDIA IVF CENTRE</h2>
-                <p>Wallet Transaction Receipt</p>
+                <p>Transaction Receipt</p>
             </div>
         </div>
 
-        <button class="no-print no-print-btn" onclick="window.print()"><i class="fa fa-print"></i> Print Receipt</button>
+       
 
         <div class="info-grid">
             <div class="info-block">
                 <strong>Patient Details:</strong><br>
-                <span>IIC ID: <?php echo $log['pt_id'] ?? 'N/A'; ?></span><br>
+                <span>IIC ID: <?php echo $log['pt_id'] ?? $log['patient_id'] ?? 'N/A'; ?></span><br>
                 <span>Patient Name: <?php echo $log['wife_name'] ?? 'N/A'; ?></span><br>
                 <span>Spouse Name: <?php echo $log['husband_name'] ?? 'N/A'; ?></span><br>
             </div>
             <div class="info-block" style="text-align: right;">
                 <strong>Receipt Details:</strong><br>
-                <span>Receipt No: #<?php echo $log['log_id'] ?? $log['log_id']; ?></span><br>
+                <span>Receipt No: <?php echo $log['receipt_number'] ?? 'N/A'; ?></span><br>
                 <span>Created By: <?php echo !empty($log['employee_name']) ? $log['employee_name'] : (!empty($log['created_by']) ? $log['created_by'] : 'System'); ?></span><br>
-                <span>Date: <?php echo date('d-m-y, h:i A', strtotime($log['created_at'])); ?></span><br>
+                <span>Date: <?php echo date('d-m-Y, h:i A', strtotime($log['created_at'])); ?></span><br>
             </div>
         </div>
 
         <table class="receipt-table">
             <thead>
                 <tr>
-                    <th style="width: 25%;">Transaction Description</th>
-					<th style="width: 25%;">Method</th>
-                    <th style="width: 25%;">Transaction No</th>
-                    <th style="width: 25%; text-align: right;">Total Amount</th>
+                    <th style="width: 35%;">Transaction Description</th>
+                    <th style="width: 20%;">Method</th>
+                    <th style="width: 25%;">Transaction No / Ref ID</th>
+                    <th style="width: 20%; text-align: right;">Total Amount</th>
                 </tr>
             </thead>
             <tbody>
@@ -12770,18 +12877,18 @@ private function generate_brand_new_receipt($log) {
                             Remarks: <?php echo !empty($log['remarks']) ? $log['remarks'] : 'Wallet request processed.'; ?>
                         </small>
                     </td>
-					<td><span style="text-transform: uppercase;"><?php echo !empty($log['payment_method']) ? $log['payment_method'] : 'Wallet System'; ?></span></td>
-                    <td>(<?php echo !empty($log['reference_id']) ? $log['reference_id'] : ''; ?>)</span></td>
+                    <td><span style="text-transform: uppercase;"><?php echo !empty($log['payment_method']) ? $log['payment_method'] : 'Wallet System'; ?></span></td>
+                    <td><?php echo !empty($log['reference_id']) ? $log['reference_id'] : '<span class="text-muted">-</span>'; ?></td>
                     <td style="text-align: right;" class="amount-big">₹<?php echo number_format($log['amount'], 2); ?></td>
                 </tr>
+                <?php if(!empty($log['approved_by'])): ?>
                 <tr>
-                    <td style="text-align: right; font-size: 11px; color: #64748b; padding-top: 20px;">
-                        <?php if(!empty($log['approved_by'])): ?>
-                            <strong>Processed By:</strong> <?php echo $log['approved_by']; ?> 
-                            <?php if(!empty($log['updated_at'])) { echo "<br>on ".date('d-m-y, h:i A', strtotime($log['updated_at'])); } ?>
-                        <?php endif; ?>
+                    <td colspan="4" style="text-align: right; font-size: 11px; color: #64748b; padding-top: 15px; border-bottom: none;">
+                        <strong>Processed By:</strong> <?php echo $log['approved_by']; ?> 
+                        <?php if(!empty($log['updated_at'])) { echo " on ".date('d-m-Y, h:i A', strtotime($log['updated_at'])); } ?>
                     </td>
                 </tr>
+                <?php endif; ?>
             </tbody>
         </table>
 
@@ -12790,13 +12897,13 @@ private function generate_brand_new_receipt($log) {
             <p>This is a certified digital receipt issued against your wallet action. For any queries, please visit the billing desk.</p>
             <p style="margin-top: 5px; font-weight: bold;">© <?php echo date('Y'); ?> India IVF Centre. All Rights Reserved.</p>
         </div>
+		 <button class="no-print no-print-btn" onclick="window.print()"><i class="fa fa-print"></i> Print Receipt</button>
     </div>
 
     </body>
     </html>
     <?php
 }
-
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 
 	

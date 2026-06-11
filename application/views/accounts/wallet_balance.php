@@ -7,32 +7,35 @@
     $w = get_final_wallet_balance($patient_data['patient_id']); 
     $balance = $w['balance']; 
 ?>
- <?php 
-// 1. Current Financial Year nikalyein (Jaise 2026 ke liye: 2526)
-$current_year_suffix = (date("y").date("y")+1); 
+<?php 
+$all_method =& get_instance();
+$CI =& get_instance();
 
-// 2. Patient ke table ya session se center number/code uthayein (Maan lijiye center variable pass hai, fallback 'CENTER' rakha hai)
-$sql2 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$_SESSION['logged_billing_manager']['center']."'"; 
+// 1. Current Financial Year nikalyein (2026 ke liye: 2627)
+$current_year_suffix = date("y") . (date("y") + 1); 
+
+// 2. Billing manager ke session se center number ke hisab se prefix uthayein
+$db_prefix = $all_method->config->item('db_prefix');
+$sql2 = "SELECT * FROM `".$db_prefix."centers` WHERE center_number='".$_SESSION['logged_billing_manager']['center']."'"; 
 $center_result = run_select_query($sql2);
 
-$center_code = $center_result['state_prefix'];
+$center_code = !empty($center_result['state_prefix']) ? $center_result['state_prefix'] : 'CENTER';
 
-// 3. Database se is saal ka sabse bada dynamic receipt number nikalein
-$CI =& get_instance();
-$sql_receipt = "SELECT MAX(CAST(SUBSTRING_INDEX(receipt_number, '/', +1) AS UNSIGNED)) as last_number 
+// 🎯 [CRITICAL FIX]: SUBSTRING_INDEX mein -1 kiya taaki last 4-digit (0001) mile, aur LIKE filter ko robust kiya
+$sql_receipt = "SELECT MAX(CAST(SUBSTRING_INDEX(receipt_number, '/', -1) AS UNSIGNED)) as last_number 
                 FROM `hms_wallet_logs` 
                 WHERE receipt_number LIKE 'PR/".$center_code."/".$current_year_suffix."/%'";
 $query_res = $CI->db->query($sql_receipt)->row_array();
 
-// 4. Agar is saal ka pehla receipt hai toh 0, nahi toh purana number uthayein
+// 4. Agar is saal ka pehla receipt hai toh 0, nahi toh purana max number uthayein
 $last_receipt_num = (!empty($query_res['last_number'])) ? intval($query_res['last_number']) : 0;
 
-// 5. Agle number ko 4 digit format mein pad karein (e.g., 0001, 0012, 0145)
+// 5. Agle number ko 4 digit format mein badhayein (e.g., 0002, 0003)
 $next_receipt_num = str_pad(($last_receipt_num + 1), 4, '0', STR_PAD_LEFT);
 
-// 6. Final String taiyar karein (PR/CENTER/2526/0001)
+// 6. Final String taiyar karein (PR/BSL/2627/0002)
 $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_receipt_num;
-?> 
+?>
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-4 mb-3">
@@ -230,7 +233,7 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                      <div class="form-group">
                         <label>Transaction ID</label>
                         <input type="text" name="reference_id" class="form-control" required>
-                        <input type="text" name="receipt_number" class="form-control" value="<?php echo $final_receipt_number; ?>">
+                        <input type="text" name="receipt_number" class="form-control" value="<?php echo $final_receipt_number; ?>" readonly="">
                     </div>
                     <div class="form-group">
                         <label>Remarks</label>
@@ -341,6 +344,8 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                      <div class="form-group">
                         <label>Transaction ID</label>
                         <input type="text" name="reference_id" class="form-control" required>
+                        <input type="text" name="receipt_number" class="form-control" value="<?php echo $final_receipt_number; ?>" readonly="">
+                    
                     </div>
                     <div class="form-group">
                         <label>Remarks</label>
@@ -372,200 +377,184 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
     </div>
 </div>
 
-<form method="post" action="" enctype="multipart/form-data">
-    <input type="hidden" name="action" value="wallet_balance" />
-    <input type="hidden" name="patient_id" value="<?php echo $patient_data['patient_id']; ?>" id="patient_id" />
 
-    <div class="box box-primary">
-        <div class="box-header with-border">
-            <h3 class="box-title">Patient ID: <?php echo $patient_data['patient_id']; ?></h3>
-        </div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="page-header">
+            <i class="fa fa-exchange"></i> Wallet Transfer Requests
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <?php if($this->session->flashdata('success')): ?>
+            <div class="alert alert-success">
+                <i class="fa fa-check-circle"></i> <?php echo $this->session->flashdata('success'); ?>
+            </div>
+        <?php endif; ?>
         
-        <div class="box-body">
-            <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                        <tr class="bg-gray">
-                            <th colspan="7">Money Added to Wallet (Refunds/Cancellations)</th>
-                        </tr>
-                        <tr class="info">
-                            <th>Receipt #</th>
-                            <th>Type</th>
-                            <th>Date</th>
-                            <th>Amount Added</th>
-                            <th>Status</th>
-                            <th>CN Invoice</th>
-                        </tr>
-                    </thead>
-                              <?php
+        <?php if($this->session->flashdata('error')): ?>
+            <div class="alert alert-danger">
+                <i class="fa fa-times-circle"></i> <?php echo $this->session->flashdata('error'); ?>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
 
-$sql_par = "Select * from medicine_returns where patient_id='".$patient_data['patient_id']."' and status='APPROVED'";
-
-$query = $this->db->query($sql_par);
-
-$select_result_par = $query->result();
-
-foreach ($select_result_par as $res_val_par){ ?>
-
-<tbody id="procedure_result">
-
-<tr class="odd gradeX">
-
-<td><?php echo $res_val_par->receipt_number; ?></td>
-
-<td>Medicine</td>
-
-<td><?php echo date('d-M-y', strtotime($res_val_par->return_date)); ?></td>
-
-<td class="text-green">+ <?php echo number_format($res_val_par->final_return_amount, 2); ?></td>
-
-<td><?php echo $res_val_par->status; ?></td>
-
-<td><?php echo $res_val_par->return_number; ?></td>
-
-</tr>
-
-</tbody>
-
-<?php } ?>
-                    <tbody>
-                        <?php 
-                        $db_prefix = $this->config->item('db_prefix');
-                        $inflow_types = [
-                            'consultation' => "status='adjust'",
-                            'registation'  => "status='adjust'",
-                            'patient_procedure' => "status='cancel'",
-                            'patient_payments' => "status='3'",
-                            'patient_medicine' => "status='cancel'"
-                        ];
-
-                        foreach($inflow_types as $tbl => $where):
-                            $results = $this->db->query("SELECT * FROM {$db_prefix}{$tbl} WHERE patient_id='{$patient_data['patient_id']}' AND $where")->result();
-                            foreach($results as $res): ?>
-                            <tr>
-                                <td><?php echo $res->receipt_number ?? ($res->billing_id ?? '-'); ?></td>
-                                <td><?php echo ucfirst(str_replace('patient_', '', $tbl)); ?></td>
-                                <td><?php echo date('d-M-y', strtotime($res->on_date)); ?></td>
-                                <td class="text-green">+ <?php echo number_format($res->payment_done, 2); ?></td>
-                                <td><span class="label label-info"><?php echo $res->status; ?></span></td>
-                                <td><?php echo $res->cn_invoice ?? '-'; ?></td>
+<div class="row" style="margin-top: 30px;">
+    <div class="col-md-12">
+        <div class="panel panel-primary" style="border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <div class="panel-heading" style="background-color: #2c3e50; border-color: #2c3e50; font-weight: bold; font-size: 15px;">
+                <i class="fa fa-history"></i> Complete Wallet Transaction History (Ledger)
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover align-middle" style="margin-bottom: 0;">
+                        <thead>
+                            <tr style="background-color: #f5f7fa; color: #333;">
+                                <th style="width: 50px; text-align: center;">S.No.</th>
+                                <th>Receipt No. / Txn ID</th>
+                                <th>Date & Time</th>
+                                <th>Type / Action</th>
+                                <th style="text-align: right;">Money Wallet (W1)</th>
+                                <th style="text-align: right;">Package Wallet (W2)</th>
+                                <th>Method</th>
+                                <th>Remarks / Notes</th>
+                                <th style="text-align: center;">Status</th> <th style="text-align: center;">Screenshot</th>
+                                <th style="text-align: center; width: 110px;">Action</th> 
                             </tr>
-                        <?php endforeach; endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            <?php 
+                                // hms_wallet_logs se is patient ka poora data nikalna (Latest First)
+                                $this->db->where('patient_id', $patient_data['patient_id']);
+                                $this->db->order_by('log_id', 'DESC');
+                                $wallet_history = $this->db->get('hms_wallet_logs')->result_array();
 
-            <br>
+                                if(!empty($wallet_history)): 
+                                    $sno = 1;
+                                    foreach($wallet_history as $history): 
+                            ?>
+                                    <tr <?php if(($history['status'] ?? '') == 'pending') echo 'style="background-color: #fcf8e3;"'; ?>>
+                                        <td style="text-align: center; font-weight: bold;"><?php echo $sno++; ?></td>
+                                        
+                                        <td>
+                                            <span class="text-primary" style="font-weight: 600; display: block;">
+                                                <?php echo !empty($history['receipt_number']) ? $history['receipt_number'] : 'N/A'; ?>
+                                            </span>
+                                            <small class="text-muted">
+                                                Ref: <?php echo !empty($history['reference_id']) ? $history['reference_id'] : '-'; ?>
+                                            </small>
+                                        </td>
+                                        
+                                        <td>
+                                            <i class="fa fa-calendar-o text-muted"></i> 
+                                            <?php echo date('d M Y', strtotime($history['created_at'])); ?><br>
+                                            <small class="text-muted"><i class="fa fa-clock-o"></i> <?php echo date('h:i A', strtotime($history['created_at'])); ?></small>
+                                        </td>
+                                        
+                                        <td>
+                                            <?php 
+                                                $action = $history['action_type'];
+                                                if (strpos($action, 'DEPOSIT') !== false) {
+                                                    echo '<span class="label label-success" style="font-size:11px; padding: 4px 8px;"><i class="fa fa-arrow-down"></i> Deposit</span>';
+                                                } elseif (strpos($action, 'TRANSFER') !== false) {
+                                                    echo '<span class="label label-warning" style="font-size:11px; padding: 4px 8px;"><i class="fa fa-exchange"></i> Transfer</span>';
+                                                } else {
+                                                    echo '<span class="label label-danger" style="font-size:11px; padding: 4px 8px;"><i class="fa fa-arrow-up"></i> Spent</span>';
+                                                }
+                                                echo '<br><small class="text-muted" style="display:block; margin-top:3px;">'.str_replace('_', ' ', $action).'</small>';
+                                            ?>
+                                        </td>
+                                        
+                                        <td style="text-align: right; vertical-align: middle;">
+                                            <span style="font-weight: 600; color: <?php echo ($history['closing_w1'] >= $history['opening_w1']) ? '#27ae60' : '#c0392b'; ?>;">
+                                                ₹ <?php echo number_format($history['amount'], 2); ?>
+                                            </span>
+                                            <br>
+                                            <small class="text-muted" style="font-size: 11px;">
+                                                Bal: ₹<?php echo number_format($history['closing_w1'], 2); ?>
+                                            </small>
+                                        </td>
+                                        
+                                        <td style="text-align: right; vertical-align: middle;">
+                                            <?php if(isset($history['opening_w2'])): ?>
+                                                <span style="font-weight: 600; color: #2980b9;">
+                                                    ₹ <?php echo number_format($history['closing_w2'] - $history['opening_w2'], 2); ?>
+                                                </span>
+                                                <br>
+                                                <small class="text-muted" style="font-size: 11px;">
+                                                    Bal: ₹<?php echo number_format($history['closing_w2'], 2); ?>
+                                                </small>
+                                            <?php else: ?>
+                                                <span class="text-muted">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        
+                                        <td style="vertical-align: middle;">
+                                            <span class="badge" style="background-color: #7f8c8d; color:#fff; font-weight: normal; padding: 3px 6px;">
+                                                <?php echo !empty($history['payment_method']) ? $history['payment_method'] : 'Wallet'; ?>
+                                            </span>
+                                        </td>
+                                        
+                                        <td style="vertical-align: middle; color: #555; max-width: 200px; word-wrap: break-word;">
+                                            <?php echo !empty($history['remarks']) ? $history['remarks'] : '<em class="text-muted">No remarks</em>'; ?>
+                                            <br><small class="text-muted">By: <?php echo $history['created_by'] ?? 'Staff'; ?></small>
+                                        </td>
 
-            <div class="table-responsive">
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                        <tr class="bg-black" style="background:#333; color:#fff;">
-                            <th colspan="7">Wallet Expenditure (Money Used)</th>
-                        </tr>
-                        <tr class="warning">
-                            <th>Receipt #</th>
-                            <th>Type</th>
-                            <th>Date</th>
-                            <th>Amount Deducted</th>
-                            <th>Status</th>
-                            <th>Payment Method</th>
-                        </tr>
-                    </thead>
-                    <?php
+                                        <td style="text-align: center; vertical-align: middle;">
+                                            <?php 
+                                                $status = $history['status'] ?? 'approved'; // Default fallback approved agar value khali ho
+                                                if($status == 'pending'): 
+                                            ?>
+                                                <span class="label label-warning" style="padding: 4px 8px; font-weight: bold;"><i class="fa fa-spinner fa-spin"></i> Pending</span>
+                                            <?php elseif($status == 'approved' || $status == 'success'): ?>
+                                                <span class="label label-success" style="padding: 4px 8px; font-weight: bold;"><i class="fa fa-check-circle"></i> Approved</span>
+                                            <?php elseif($status == 'disapproved' || $status == 'rejected'): ?>
+                                                <span class="label label-danger" style="padding: 4px 8px; font-weight: bold;"><i class="fa fa-times-circle"></i> Rejected</span>
+                                            <?php else: ?>
+                                                <span class="label label-default" style="padding: 4px 8px; font-weight: bold;"><?php echo ucfirst($status); ?></span>
+                                            <?php endif; ?>
+                                        </td>
+                                        
+                                        <td style="text-align: center; vertical-align: middle;">
+                                            <?php if(!empty($history['screenshot'])): ?>
+                                                <a href="<?php echo base_url('uploads/screenshots/'.$history['screenshot']); ?>" target="_blank" class="btn btn-default btn-xs" title="View Attachment">
+                                                    <i class="fa fa-picture-o text-primary" style="font-size: 14px;"></i> View
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="text-muted" style="font-size: 12px;">No Doc</span>
+                                            <?php endif; ?>
+                                        </td>
 
-$sql_par = "Select * from sales where patient_id='".$patient_data['patient_id']."' and payment_method='wallet' and status='CONFIRMED'";
-
-$query = $this->db->query($sql_par);
-
-$select_result_par = $query->result();
-
-foreach ($select_result_par as $res_val_par){ ?>
-
-<tbody id="procedure_result">
-
-<tr class="odd gradeX">
-
-<td><?php echo $res_val_par->sale_number; ?></td>
-
-<td>Medicine</td>
-
-<td><?php echo date('d-M-y', strtotime($res->on_date)); ?></td>
-
-<td class="text-red">- <?php echo number_format($res_val_par->total_amount, 2); ?></td>
-
-<td><?php echo $res_val_par->accountant_approval_status; ?></td>
-
-<td><span class="label label-default">Wallet</span></td>
-
-</tr>
-
-</tbody>
-
-<?php } ?>
-                    <tbody>
-                        <?php 
-                        // Tables where wallet is used as a payment method
-                        $outflow_tables = ['patient_procedure', 'patient_medicine', 'patient_investigations', 'consultation', 'patient_payments'];
-                        $found_outflow = false;
-
-                        foreach($outflow_tables as $tbl):
-                            $results = $this->db->query("SELECT * FROM {$db_prefix}{$tbl} WHERE patient_id='{$patient_data['patient_id']}' AND LOWER(payment_method)='wallet'")->result();
-                            foreach($results as $res): 
-                                $found_outflow = true; ?>
-                            <tr>
-                                <td><?php echo $res->receipt_number ?? ($res->billing_id ?? '-'); ?></td>
-                                <td><?php echo ucfirst(str_replace('patient_', '', $tbl)); ?></td>
-                                <td><?php echo date('d-M-y', strtotime($res->on_date)); ?></td>
-                                <td class="text-red">- <?php echo number_format($res->payment_done, 2); ?></td>
-                                <td><span class="label label-success"><?php echo $res->status; ?></span></td>
-                                <td><span class="label label-default">Wallet</span></td>
-                            </tr>
-                        <?php endforeach; endforeach; 
-                        
-                        if(!$found_outflow): ?>
-                            <tr><td colspan="6" class="text-center text-muted">No wallet deductions found.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <hr>
-
-            <h4>Deduct from Wallet</h4>
-            <div class="row">
-                <div class="form-group col-sm-4">
-                    <label>Package Code</label>
-                    <input type="text" name="package_code" required class="form-control">
+                                        <td style="text-align: center; vertical-align: middle;">
+                                            <a href="<?php echo base_url('accounts/print_invoice/'.$history['log_id']); ?>" 
+                                               target="_blank" 
+                                               class="btn btn-info btn-xs btn-block" 
+                                               style="font-weight: bold; padding: 4px 8px;">
+                                                <i class="fa fa-print"></i> Print Receipt
+                                            </a>
+                                        </td>
+                                    </tr>
+                            <?php 
+                                    endforeach;
+                                else: 
+                            ?>
+                                <tr>
+                                    <td colspan="11" class="text-center text-muted" style="padding: 20px;">
+                                        <i class="fa fa-info-circle" style="font-size: 20px;"></i><br>No transaction history found for this patient.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="form-group col-sm-4">
-                    <label>Consultation Fee</label>
-                    <input type="number" id="consultation_fee" name="consultation_fee" value="0" class="form-control calc" oninput="checkTotalAmount()">
-                </div>
-                <div class="form-group col-sm-4">
-                    <label>USG Scan Charge</label>
-                    <input type="number" id="usg_scan_charge" name="usg_scan_charge" value="0" class="form-control calc" oninput="checkTotalAmount()">
-                </div>
-                <div class="form-group col-sm-4">
-                    <label>Consumable Charges</label>
-                    <input type="number" id="consumable_charges" name="consumable_charges" value="0" class="form-control calc" oninput="checkTotalAmount()">
-                </div>
-                <div class="form-group col-sm-4">
-                    <label>Refund Amount</label>
-                    <input type="number" id="refund_amount" name="refund_amount" value="0" class="form-control calc" oninput="checkTotalAmount()">
-                </div>
-            </div>
-
-            <div id="error_message" class="alert alert-danger" style="display: none;">
-                <i class="fa fa-warning"></i> Total exceeds available wallet balance of <strong>₹<?php echo number_format($balance, 2); ?></strong>
-            </div>
-
-            <div class="box-footer">
-                <button type="submit" id="submitbutton" class="btn btn-primary">Process Wallet Update</button>
             </div>
         </div>
     </div>
-</form>
+</div>
 
 <script>
 function checkTotalAmount() {
