@@ -1,53 +1,67 @@
 <?php 
 $all_method =& get_instance();
+$CI =& get_instance(); // CodeIgniter Instance cleanly initialized
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
+
+// 🎯 [CRITICAL FIX 1]: $patient_id को सुरक्षित तरीके से डिफाइन करना (ताकि क्वेरी खाली न जाए)
+$patient_id = '';
+if (isset($patient_data['id']) && !empty($patient_data['id'])) {
+    $patient_id = $patient_data['id'];
+} elseif (isset($patient['id']) && !empty($patient['id'])) {
+    $patient_id = $patient['id'];
+} elseif (isset($_GET['patient_id'])) {
+    $patient_id = $_GET['patient_id'];
+} else {
+    $patient_id = $CI->uri->segment(3); // URL के 3rd segment से ID उठाएगा
+}
+
+// Fallback empty strings for PCP_NDT variables to avoid undefined index crash
+$further_referredfor_dellvery = isset($further_referredfor_dellvery) ? $further_referredfor_dellvery : '';
+$outcome_of_pregnancy = isset($outcome_of_pregnancy) ? $outcome_of_pregnancy : '';
+$malformation_in_newborn = isset($malformation_in_newborn) ? $malformation_in_newborn : '';
+
+// Ensure patient_id is not empty before executing anything
+if (!empty($patient_id)) {
 
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
     
-        $wife_name  = $_POST['wife_name'];
-        $husband_name  = $_POST['husband_name'];
-        $wife_phone  = $_POST['wife_phone'];
-        $wife_age  = $_POST['wife_age'];
-        $female_issues  = $_POST['female_issues'];
-        $wife_address  = $_POST['wife_address'];
-        $female_pregnancy_other_p  = $_POST['female_pregnancy_other_p'];
-        $female_pregnancy_other_l  = $_POST['female_pregnancy_other_l'];
-        $female_pregnancy_other_a  = $_POST['female_pregnancy_other_a'];
-        $details_management_advised  = $_POST['details_management_advised'];
-        $IVF_Consultant  = $_POST['IVF_Consultant'];
-        $center  = $_POST['center'];
+        $wife_name  = $_POST['wife_name'] ?? '';
+        $husband_name  = $_POST['husband_name'] ?? '';
+        $wife_phone  = $_POST['wife_phone'] ?? '';
+        $wife_age  = $_POST['wife_age'] ?? '';
+        $female_issues  = $_POST['female_issues'] ?? '';
+        $wife_address  = $_POST['wife_address'] ?? '';
+        $female_pregnancy_other_p  = $_POST['female_pregnancy_other_p'] ?? '';
+        $female_pregnancy_other_l  = $_POST['female_pregnancy_other_l'] ?? '';
+        $female_pregnancy_other_a  = $_POST['female_pregnancy_other_a'] ?? '';
+        $details_management_advised  = $_POST['details_management_advised'] ?? '';
+        $IVF_Consultant  = $_POST['IVF_Consultant'] ?? '';
+        $center  = $_POST['center'] ?? '';
         
-        unset($_POST['wife_name']);
-        unset($_POST['wife_phone']);
-        unset($_POST['husband_name']);
-        unset($_POST['wife_age']);
-        unset($_POST['female_issues']);
-        unset($_POST['wife_address']);
-        unset($_POST['female_pregnancy_other_p']);
-        unset($_POST['female_pregnancy_other_l']);
-        unset($_POST['female_pregnancy_other_a']);
-        unset($_POST['details_management_advised']);
-        unset($_POST['IVF_Consultant']);
+        unset($_POST['wife_name'], $_POST['wife_phone'], $_POST['husband_name'], $_POST['wife_age'], $_POST['female_issues'], $_POST['wife_address']);
+        unset($_POST['female_pregnancy_other_p'], $_POST['female_pregnancy_other_l'], $_POST['female_pregnancy_other_a'], $_POST['details_management_advised'], $_POST['IVF_Consultant']);
         
         // Convert arrays to strings safely
-        if(!empty($_POST['physical_examination']) && isset($_POST['physical_examination'])){
+        if(!empty($_POST['physical_examination']) && is_array($_POST['physical_examination'])){
             $_POST['physical_examination'] = implode(',', $_POST['physical_examination']);
         }
-        if(!empty($_POST['applicablemedicine']) && isset($_POST['applicablemedicine'])){
+        if(!empty($_POST['applicablemedicine']) && is_array($_POST['applicablemedicine'])){
             $_POST['applicablemedicine'] = implode(',', $_POST['applicablemedicine']);
         }
-        if(!empty($_POST['procedures']) && isset($_POST['procedures'])){
+        if(!empty($_POST['procedures']) && is_array($_POST['procedures'])){
             $_POST['procedures'] = implode(',', $_POST['procedures']);
         }
         
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
+        // चेक करें कि क्या इस patient_id का डेटा पहले से मौजूद है
         $sql = "SELECT * FROM `pesa_tesatesemicro_tese_discharge_summary` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
     
         // अगर डेटा मौजूद नहीं है, सिर्फ तभी INSERT करें
         if(empty($select_result)){
+            $_POST['patient_id'] = $patient_id; // Injecting missing patient_id into post data
+            
             // mysql query to insert data
             $query = "INSERT INTO `pesa_tesatesemicro_tese_discharge_summary` SET ";
             $sqlArr = array();
@@ -59,13 +73,13 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
             
             // Insert into pcp_ndt table
             $query2 = "INSERT INTO `pcp_ndt` (patient_id, wife_name, husband_name, wife_phone, wife_age, female_issues, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
-            ('$patient_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age','$female_issues', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised','$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'TESA','TESA','" . date('Y-m-d H:i:s') . "')";
-            $result2 = run_form_query($query2);
+            ('$patient_id','".addslashes($wife_name)."', '".addslashes($husband_name)."', '".addslashes($wife_phone)."', '".addslashes($wife_age)."','".addslashes($female_issues)."', '".addslashes($wife_address)."', 'P:".addslashes($female_pregnancy_other_p)."', 'L:".addslashes($female_pregnancy_other_l)."', 'A:".addslashes($female_pregnancy_other_a)."', '".addslashes($details_management_advised)."','".addslashes($IVF_Consultant)."', '".addslashes($further_referredfor_dellvery)."', '".addslashes($outcome_of_pregnancy)."', '".addslashes($malformation_in_newborn)."', '".addslashes($center)."', 'TESA','TESA','" . date('Y-m-d H:i:s') . "')";
+            run_form_query($query2);
             
             $result = run_form_query($query); 
         
             if($result){
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
+                header("location:" .$_SERVER['HTTP_REFERER']."?patient_id=".$patient_id."&m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
                 die();
             } else {
                 header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
@@ -73,8 +87,8 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
             }
             
         } else {
-            // अगर डेटा पहले से मौजूद है, तो UPDATE ना करें, बल्कि सीधा एरर मैसेज के साथ रिडायरेक्ट करें
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
+            // [FIXED]: Data duplicate hone par redirect ke saath patient_id pass ki taaki view break na ho
+            header("location:" .$_SERVER['HTTP_REFERER']."?patient_id=".$patient_id."&m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
             die();
         }
     }
@@ -83,37 +97,28 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     if(isset($_POST['submit2'])){
         unset($_POST['submit2']);
   
-        $wife_name  = $_POST['wife_name'];
-        $husband_name  = $_POST['husband_name'];
-        $wife_phone  = $_POST['wife_phone'];
-        $wife_age  = $_POST['wife_age'];
-        $wife_address  = $_POST['wife_address'];
-        $female_pregnancy_other_p  = $_POST['female_pregnancy_other_p'];
-        $female_pregnancy_other_l  = $_POST['female_pregnancy_other_l'];
-        $female_pregnancy_other_a  = $_POST['female_pregnancy_other_a'];
-        $details_management_advised  = $_POST['details_management_advised'];
-        $IVF_Consultant  = $_POST['IVF_Consultant'];
-        $center  = $_POST['center'];
+        $wife_name  = $_POST['wife_name'] ?? '';
+        $husband_name  = $_POST['husband_name'] ?? '';
+        $wife_phone  = $_POST['wife_phone'] ?? '';
+        $wife_age  = $_POST['wife_age'] ?? '';
+        $wife_address  = $_POST['wife_address'] ?? '';
+        $female_pregnancy_other_p  = $_POST['female_pregnancy_other_p'] ?? '';
+        $female_pregnancy_other_l  = $_POST['female_pregnancy_other_l'] ?? '';
+        $female_pregnancy_other_a  = $_POST['female_pregnancy_other_a'] ?? '';
+        $details_management_advised  = $_POST['details_management_advised'] ?? '';
+        $IVF_Consultant  = $_POST['IVF_Consultant'] ?? '';
+        $center  = $_POST['center'] ?? '';
         
-        unset($_POST['wife_name']);
-        unset($_POST['wife_phone']);
-        unset($_POST['husband_name']);
-        unset($_POST['wife_age']);
-        unset($_POST['wife_address']);
-        unset($_POST['female_pregnancy_other_p']);
-        unset($_POST['female_pregnancy_other_l']);
-        unset($_POST['female_pregnancy_other_a']);
-        unset($_POST['details_management_advised']);
-        unset($_POST['IVF_Consultant']);
-        unset($_POST['center']);
+        unset($_POST['wife_name'], $_POST['wife_phone'], $_POST['husband_name'], $_POST['wife_age'], $_POST['wife_address']);
+        unset($_POST['female_pregnancy_other_p'], $_POST['female_pregnancy_other_l'], $_POST['female_pregnancy_other_a'], $_POST['details_management_advised'], $_POST['IVF_Consultant'], $_POST['center']);
        
         $query2 = "INSERT INTO `pcp_ndt` (patient_id, wife_name, husband_name, wife_phone, wife_age, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
-        ('$patient_id','$wife_name', '$husband_name', '$wife_phone', '$wife_age', '$wife_address', 'P:$female_pregnancy_other_p', 'L:$female_pregnancy_other_l', 'A:$female_pregnancy_other_a', '$details_management_advised','$IVF_Consultant', '$further_referredfor_dellvery', '$outcome_of_pregnancy', '$malformation_in_newborn', '$center', 'TESA','TESA','" . date('Y-m-d H:i:s') . "')";
+        ('$patient_id','".addslashes($wife_name)."', '".addslashes($husband_name)."', '".addslashes($wife_phone)."', '".addslashes($wife_age)."', '".addslashes($wife_address)."', 'P:".addslashes($female_pregnancy_other_p)."', 'L:".addslashes($female_pregnancy_other_l)."', 'A:".addslashes($female_pregnancy_other_a)."', '".addslashes($details_management_advised)."','".addslashes($IVF_Consultant)."', '".addslashes($further_referredfor_dellvery)."', '".addslashes($outcome_of_pregnancy)."', '".addslashes($malformation_in_newborn)."', '".addslashes($center)."', 'TESA','TESA','" . date('Y-m-d H:i:s') . "')";
         
         $result = run_form_query($query2); 
         
         if($result){
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Pcp Ndt inserted!').'&t='.base64_encode('success'));
+            header("location:" .$_SERVER['HTTP_REFERER']."?patient_id=".$patient_id."&m=".base64_encode('Pcp Ndt inserted!').'&t='.base64_encode('success'));
             die();
         } else {
             header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
@@ -121,21 +126,38 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         }
     }
   
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
+    // ==============================================================================
+    // 🎯 [CRITICAL FIX 2]: डेटा फेचिंग ब्लॉक (प्रिंट/व्यू मोड के लिए)
+    // ==============================================================================
     $sql = "SELECT * FROM `pesa_tesatesemicro_tese_discharge_summary` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+    // 🎯 [CRITICAL FIX 3]: $this->config को $CI->config से रिप्लेस किया
+    $db_prefix = $CI->config->item('db_prefix');
+    
+    $sql2 = "Select * from ".$db_prefix."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+    if(empty($select_result2)) { $select_result2 = array('appoitment_for' => ''); }
+    
+    $sql3 = "Select * from ".$db_prefix."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
     $select_result3 = run_select_query($sql3);
 
-    $sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
-    $select_result5 = run_select_query($sql5);  
+    $select_result5 = array('doctor_name' => '');
+    if (isset($_SESSION['logged_doctor']['doctor_id'])) {
+        $sql5 = "Select * from ".$db_prefix."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
+        $select_result5 = run_select_query($sql5);  
+    }
   
-    $sql6 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id=$patient_id";
-    $select_result6 = run_select_query($sql6);
+    $select_result6 = array('female_pregnancy_other_p'=>'', 'female_pregnancy_other_l'=>'', 'female_pregnancy_other_a'=>'', 'details_management_advised'=>'');
+    $sql6 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id='$patient_id'";
+    $res6 = run_select_query($sql6);
+    if(!empty($res6)) { $select_result6 = $res6; }
+
+} else {
+    // Fallback block if patient_id is not passed properly
+    $select_result = $select_result2 = $select_result3 = $select_result5 = $select_result6 = array();
+}
 ?>
 <?php 
     $applicablemedicine = $procedures = $phyical = array();
