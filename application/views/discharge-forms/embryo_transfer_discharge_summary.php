@@ -1,28 +1,31 @@
 <?php 
     $all_method =& get_instance();
+    $CI =& get_instance(); // CI instances cleanly initialized
+    
     $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
     // ==============================================================================
-    // [FIX 1] $patient_id को सुरक्षित तरीके से डिफाइन करना (ताकि Undefined Error न आए)
+    // $patient_id को सुरक्षित तरीके से निकालना
     // ==============================================================================
     $patient_id = '';
-    if (isset($patient_data['id'])) {
+    if (isset($patient_data['id']) && !empty($patient_data['id'])) {
         $patient_id = $patient_data['id'];
-    } elseif (isset($patient['id'])) {
+    } elseif (isset($patient['id']) && !empty($patient['id'])) {
         $patient_id = $patient['id'];
     } elseif (isset($_GET['patient_id'])) {
         $patient_id = $_GET['patient_id'];
     } else {
-        $CI =& get_instance();
         $patient_id = $CI->uri->segment(3); 
     }
 
-    // PCP NDT के लिए अन्य आवश्यक वेरिएबल्स को सेफगार्ड करना
+    // PCP NDT Variables Safeguard
     $further_referredfor_dellvery = isset($further_referredfor_dellvery) ? $further_referredfor_dellvery : '';
     $outcome_of_pregnancy = isset($outcome_of_pregnancy) ? $outcome_of_pregnancy : '';
     $malformation_in_newborn = isset($malformation_in_newborn) ? $malformation_in_newborn : '';
 
-    // php code to Insert data into mysql database from input text
+    // ==============================================================================
+    // DATA INSERT / UPDATE LOGIC
+    // ==============================================================================
     if(isset($_POST['submit']) && !empty($patient_id)){
         unset($_POST['submit']);
         
@@ -41,22 +44,22 @@
         unset($_POST['wife_name'], $_POST['wife_phone'], $_POST['husband_name'], $_POST['wife_age'], $_POST['wife_address']);
         unset($_POST['female_pregnancy_other_p'], $_POST['female_pregnancy_other_l'], $_POST['female_pregnancy_other_a'], $_POST['details_management_advised']);
         
-        // चेकबॉक्स एरे डेटा को कोमा-सेपरेटेड स्ट्रिंग में बदलना
-        if(!empty($_POST['physical_examination']) && isset($_POST['physical_examination'])){
+        // Arrays ko comma separated string mein convert karna
+        if(!empty($_POST['physical_examination']) && is_array($_POST['physical_examination'])){
             $_POST['physical_examination'] = implode(',', $_POST['physical_examination']);
         }
-        if(!empty($_POST['applicablemedicine']) && isset($_POST['applicablemedicine'])){
+        if(!empty($_POST['applicablemedicine']) && is_array($_POST['applicablemedicine'])){
              $_POST['applicablemedicine'] = implode(',', $_POST['applicablemedicine']);
         }
 
-        // चेक करें कि क्या इस patient_id का डेटा पहले से मौजूद है
+        // Check if records already exist
         $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
         
-        $sqlArr = array(); // [CRITICAL FIX] लूप से पहले हमेशा री-डिक्लेयर करें
+        $sqlArr = array(); 
 
         if(empty($select_result)){
-            // INSERT Query
+            // INSERT Mode
             $_POST['patient_id'] = $patient_id;
             $query = "INSERT INTO `embryo_transfer_discharge_summary` SET ";
             foreach($_POST as $key => $value) {
@@ -64,13 +67,13 @@
             }       
             $query .= implode(',' , $sqlArr);
             
-            // Insert into pcp_ndt table 
+            // Insert into pcp_ndt
             $query2 = "INSERT INTO `pcp_ndt` (patient_id, wife_name, husband_name, wife_phone, wife_age, wife_address, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised, IVF_Consultant, further_referredfor_dellvery, outcome_of_pregnancy, malformation_in_newborn, center, test_type, type, date) values 
            ('$patient_id', '".addslashes($wife_name)."', '".addslashes($husband_name)."', '".addslashes($wife_phone)."', '".addslashes($wife_age)."', '".addslashes($wife_address)."', 'P:".addslashes($female_pregnancy_other_p)."', 'L:".addslashes($female_pregnancy_other_l)."', 'A:".addslashes($female_pregnancy_other_a)."', '".addslashes($details_management_advised)."', '".addslashes($IVF_Consultant)."', '".addslashes($further_referredfor_dellvery)."', '".addslashes($outcome_of_pregnancy)."', '".addslashes($malformation_in_newborn)."', '".addslashes($center)."', 'ET/FET','IVF','" . date('Y-m-d H:i:s') . "')";
             run_form_query($query2);
             
         } else {
-            // [FIXED] अगर डेटा पहले से मौजूद है, तो एरर देने के बजाय इसे सुरक्षित तरीके से UPDATE करें
+            // UPDATE Mode
             $query = "UPDATE `embryo_transfer_discharge_summary` SET ";
             foreach($_POST as $key => $value) {
                 $sqlArr[] = " `$key` = '".addslashes($value)."'";
@@ -91,7 +94,7 @@
         }
     }
     
-    // php code to Insert data into mysql database from input text (submit2)
+    // Submit2 Logic (Pcp Ndt direct insert)
     if(isset($_POST['submit2']) && !empty($patient_id)){
         unset($_POST['submit2']);
     
@@ -116,7 +119,7 @@
         $result = run_form_query($query1); 
         
         if($result){
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Pcp Ndt inserted!').'&t='.base64_encode('success'));
+            header("location:" .$_SERVER['HTTP_REFERER']."?patient_id=".$patient_id."&m=".base64_encode('Pcp Ndt inserted!').'&t='.base64_encode('success'));
             die();
         } else {
             header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
@@ -125,7 +128,7 @@
     }
     
     // ==============================================================================
-    // VIEW / PRINT MODE LOGIC: पुराना डेटा सुरक्षित दिखाने के लिए
+    // DATA FETCH / VIEW MODE LOGIC (FIXED FOR ALL BLANK PRINT ISSUES)
     // ==============================================================================
     $select_result = array();
     $select_result2 = array('appoitment_for' => '', 'uhid' => '');
@@ -136,20 +139,22 @@
     $fet_result = array();
 
     if (!empty($patient_id)) {
+        // Main data fetch
         $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$patient_id'";
-        $select_result = run_select_query($sql);
+        $res_main = run_select_query($sql);
+        if(!empty($res_main)) { $select_result = $res_main; }
         
-        // [FIXED] $patient_id को कोट्स ('$patient_id') में सेफ किया गया
         $sql4 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id='$patient_id'";
         $res4 = run_select_query($sql4);
         if(!empty($res4)) { $select_result4 = $res4; }
        
-        $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+        // 💡 FIXED: $this->config replaced with $CI->config
+        $sql2 = "Select * from ".$CI->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
         $res2 = run_select_query($sql2);
         if(!empty($res2)) {
             $select_result2 = $res2;
             
-            $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
+            $sql3 = "Select * from ".$CI->config->item('db_prefix')."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
             $res3 = run_select_query($sql3);
             if(!empty($res3)) { $select_result3 = $res3; }
         }
@@ -161,20 +166,20 @@
         $fet_result = run_select_query($select_embryo_transfer_fet);
     }
 
+    // Safety Fallback taaki niche checks array offsets fail na ho
     if(empty($select_result)) {
         $select_result = array('physical_examination' => '', 'applicablemedicine' => '');
     }
 
     if (isset($_SESSION['logged_doctor']['doctor_id'])) {
-        $sql5 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
+        // 💡 FIXED: $this->config replaced with $CI->config
+        $sql5 = "Select * from ".$CI->config->item('db_prefix')."doctors where ID='".$_SESSION['logged_doctor']['doctor_id']."'";
         $res5 = run_select_query($sql5); 
         if(!empty($res5)) { $select_result5 = $res5; }
     }
 
-    // 'is_complete' सेट करें: अगर किसी एक में भी डेटा है तो TRUE
     $is_complete = !empty($embryo_transfer_result) || !empty($fet_result);
 
-    // रसीद नंबर सेट करें (पहले पहली टेबल चेक करें, नहीं तो दूसरी)
     $final_receipt = ""; 
     if (!empty($embryo_transfer_result) && isset($embryo_transfer_result['receipt_number'])) {
         $final_receipt = $embryo_transfer_result['receipt_number'];
@@ -182,7 +187,7 @@
         $final_receipt = $fet_result['receipt_number'];
     }
 
-    // एरे एक्सप्लोड सेटिंग्स
+    // Explode setting safeguarded
     $physical = $applicablemedicine = array();
     if(!empty($select_result['physical_examination'])){
         $physical = explode(',', $select_result['physical_examination']);

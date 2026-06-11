@@ -2,16 +2,33 @@
 $all_method =& get_instance();
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
+// 🎯 [CRITICAL FIX 1]: $patient_id को सुरक्षित तरीके से डिफाइन करना (ताकि क्वेरी खाली न जाए)
+$patient_id = '';
+if (isset($patient_data['id']) && !empty($patient_data['id'])) {
+    $patient_id = $patient_data['id'];
+} elseif (isset($patient['id']) && !empty($patient['id'])) {
+    $patient_id = $patient['id'];
+} elseif (isset($_GET['patient_id'])) {
+    $patient_id = $_GET['patient_id'];
+} else {
+    $patient_id = $all_method->uri->segment(3); // URL से 3rd segment segment उठाएगा
+}
+
+// Ensure patient_id is not empty before doing anything
+if (!empty($patient_id)) {
+
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
         
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
+        // चेक करें कि क्या इस patient_id का डेटा पहले से मौजूद है
         $sql = "SELECT * FROM `fnactestes_discharge_summary` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
         
         // अगर डेटा मौजूद नहीं है, सिर्फ तभी INSERT करें
         if(empty($select_result)){
+            $_POST['patient_id'] = $patient_id; // Form data में patient_id इंजेक्ट किया
+            
             // mysql query to insert data
             $query = "INSERT INTO `fnactestes_discharge_summary` SET ";
             $sqlArr = array();
@@ -23,7 +40,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
             $result = run_form_query($query); 
         
             if($result){
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
+                header("location:" .$_SERVER['HTTP_REFERER']."?patient_id=".$patient_id."&m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
                 die();
             } else {
                 header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
@@ -31,21 +48,38 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
             }
             
         } else {
-            // अगर डेटा पहले से मौजूद है, तो UPDATE ना करें, बल्कि सीधा एरर मैसेज के साथ रिडायरेक्ट करें
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
+            // अगर डेटा पहले से मौजूद है, तो UPDATE ना करें, बल्कि सीधा एरer मैसेज के साथ रिडायरेक्ट करें
+            header("location:" .$_SERVER['HTTP_REFERER']."?patient_id=".$patient_id."&m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
             die();
         }
     }
 
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
+    // ==============================================================================
+    // 🎯 [CRITICAL FIX 2]: फॉर्म और प्रिंट मोड में पुराना डेटा दिखाने के लिए फेचिंग ब्लॉक
+    // ==============================================================================
     $sql = "SELECT * FROM `fnactestes_discharge_summary` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+    // 🎯 [CRITICAL FIX 3]: $this->config को $all_method->config से रिप्लेस किया (Fatal 500 एरर फिक्स)
+    $db_prefix = $all_method->config->item('db_prefix');
+    
+    $sql2 = "Select * from ".$db_prefix."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+    // Fallback array ताकि अगर अपॉइंटमेंट न हो तो एरर न आए
+    if(empty($select_result2)){
+        $select_result2 = array('appoitment_for' => '');
+    }
+    
+    $sql3 = "Select * from ".$db_prefix."centers where center_number='".($select_result2['appoitment_for'] ?? '')."'";
     $select_result3 = run_select_query($sql3);
+
+} else {
+    // अगर किसी वजह से patient_id नहीं मिला तो एम्प्टी एरे डिफाइन कर दें ताकि स्क्रीन क्रैश न हो
+    $select_result = array();
+    $select_result2 = array('appoitment_for' => '');
+    $select_result3 = array();
+}
 ?>
 
 

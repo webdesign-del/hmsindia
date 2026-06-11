@@ -7,7 +7,32 @@
     $w = get_final_wallet_balance($patient_data['patient_id']); 
     $balance = $w['balance']; 
 ?>
- 
+ <?php 
+// 1. Current Financial Year nikalyein (Jaise 2026 ke liye: 2526)
+$current_year_suffix = (date("y").date("y")+1); 
+
+// 2. Patient ke table ya session se center number/code uthayein (Maan lijiye center variable pass hai, fallback 'CENTER' rakha hai)
+$sql2 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$_SESSION['logged_billing_manager']['center']."'"; 
+$center_result = run_select_query($sql2);
+
+$center_code = $center_result['state_prefix'];
+
+// 3. Database se is saal ka sabse bada dynamic receipt number nikalein
+$CI =& get_instance();
+$sql_receipt = "SELECT MAX(CAST(SUBSTRING_INDEX(receipt_number, '/', +1) AS UNSIGNED)) as last_number 
+                FROM `hms_wallet_logs` 
+                WHERE receipt_number LIKE 'PR/".$center_code."/".$current_year_suffix."/%'";
+$query_res = $CI->db->query($sql_receipt)->row_array();
+
+// 4. Agar is saal ka pehla receipt hai toh 0, nahi toh purana number uthayein
+$last_receipt_num = (!empty($query_res['last_number'])) ? intval($query_res['last_number']) : 0;
+
+// 5. Agle number ko 4 digit format mein pad karein (e.g., 0001, 0012, 0145)
+$next_receipt_num = str_pad(($last_receipt_num + 1), 4, '0', STR_PAD_LEFT);
+
+// 6. Final String taiyar karein (PR/CENTER/2526/0001)
+$final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_receipt_num;
+?> 
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-md-4 mb-3">
@@ -202,6 +227,11 @@
                         <input type="file" name="screenshot" class="form-control" accept="image/*">
                         <small class="text-muted">Max size: 2MB (JPG/PNG)</small>
                     </div>
+                     <div class="form-group">
+                        <label>Transaction ID</label>
+                        <input type="text" name="reference_id" class="form-control" required>
+                        <input type="text" name="receipt_number" class="form-control" value="<?php echo $final_receipt_number; ?>">
+                    </div>
                     <div class="form-group">
                         <label>Remarks</label>
                         <input type="text" name="remarks" class="form-control" required>
@@ -308,7 +338,10 @@
                         <input type="file" name="screenshot" class="form-control" accept="image/*">
                         <small class="text-muted">Max size: 2MB (JPG/PNG)</small>
                     </div>
-
+                     <div class="form-group">
+                        <label>Transaction ID</label>
+                        <input type="text" name="reference_id" class="form-control" required>
+                    </div>
                     <div class="form-group">
                         <label>Remarks</label>
                         <input type="text" name="remarks" class="form-control" required>

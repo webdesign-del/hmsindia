@@ -12741,9 +12741,9 @@ private function generate_brand_new_receipt($log) {
         <div class="info-grid">
             <div class="info-block">
                 <strong>Patient Details:</strong><br>
-                <span>ID: <?php echo $log['pt_id'] ?? 'N/A'; ?></span><br>
-                <span>Name: <?php echo $log['wife_name'] ?? 'N/A'; ?></span><br>
-                <span>Spouse: <?php echo $log['husband_name'] ?? 'N/A'; ?></span><br>
+                <span>IIC ID: <?php echo $log['pt_id'] ?? 'N/A'; ?></span><br>
+                <span>Patient Name: <?php echo $log['wife_name'] ?? 'N/A'; ?></span><br>
+                <span>Spouse Name: <?php echo $log['husband_name'] ?? 'N/A'; ?></span><br>
             </div>
             <div class="info-block" style="text-align: right;">
                 <strong>Receipt Details:</strong><br>
@@ -12756,8 +12756,9 @@ private function generate_brand_new_receipt($log) {
         <table class="receipt-table">
             <thead>
                 <tr>
-                    <th style="width: 50%;">Transaction Description</th>
-                    <th style="width: 25%;">Method</th>
+                    <th style="width: 25%;">Transaction Description</th>
+					<th style="width: 25%;">Method</th>
+                    <th style="width: 25%;">Transaction No</th>
                     <th style="width: 25%; text-align: right;">Total Amount</th>
                 </tr>
             </thead>
@@ -12769,7 +12770,8 @@ private function generate_brand_new_receipt($log) {
                             Remarks: <?php echo !empty($log['remarks']) ? $log['remarks'] : 'Wallet request processed.'; ?>
                         </small>
                     </td>
-                    <td><span style="text-transform: uppercase;"><?php echo !empty($log['payment_method']) ? $log['payment_method'] : 'Wallet System'; ?> (<?php echo !empty($log['reference_id']) ? $log['reference_id'] : 'Wallet System'; ?>)</span></td>
+					<td><span style="text-transform: uppercase;"><?php echo !empty($log['payment_method']) ? $log['payment_method'] : 'Wallet System'; ?></span></td>
+                    <td>(<?php echo !empty($log['reference_id']) ? $log['reference_id'] : ''; ?>)</span></td>
                     <td style="text-align: right;" class="amount-big">₹<?php echo number_format($log['amount'], 2); ?></td>
                 </tr>
                 <tr>
