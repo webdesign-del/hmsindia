@@ -2837,7 +2837,7 @@ public function tally()
     // =========================================================================
     $sql_med = "
        SELECT 
-    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,
+    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,c.state_name,c.center_gst,
     s.sale_number, s.sale_date, s.payment_method, s.payment_status,
     s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
     mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -2906,10 +2906,10 @@ if (!empty($med_results)) {
                 'payment_method'   => $row['payment_method'],
                 'status'           => $row['payment_status'],
                 'series_number'    => $row['series_number'],
-				'company_state'    => $center_data['state_name'],
-				'company_gstin'    => $center_data['center_gst'],
-				'party_state'      => $center_data['state_name'],
-				'place_of_supply'  => $center_data['state_name'],
+				'company_state'    => $row['state_name'],
+				'company_gstin'    => $row['center_gst'],
+				'party_state'      => $row['state_name'],
+				'place_of_supply'  => $row['state_name'],
                 'items'            => []
             ];
         }
@@ -3531,7 +3531,7 @@ public function order_invoice()
     // =========================================================================
      $sql_med = "
        SELECT 
-    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,
+    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,c.state_name,c.center_gst,
     s.sale_number, s.sale_date, s.payment_method, s.payment_status,
     s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
     mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -3602,10 +3602,10 @@ if (!empty($med_results)) {
                 'status'           => $row['payment_status'],
 				'total_amount'           => $row['total_amount'],
                 'series_number'    => $row['series_number'],
-				'company_state'    => $center_data['state_name'],
-				'company_gstin'    => $center_data['center_gst'],
-				'party_state'      => $center_data['state_name'],
-				'place_of_supply'  => $center_data['state_name'],
+				'company_state'    => $row['state_name'],
+				'company_gstin'    => $row['center_gst'],
+				'party_state'      => $row['state_name'],
+				'place_of_supply'  => $row['state_name'],
                 'items'            => []
             ];
         }
@@ -3695,10 +3695,10 @@ foreach ($ret_results as $row) {
             'status'           => $row['status'],
 			'total_amount'     => $row['final_amount'],
             'reason'           => $row['return_reason'],
-			'company_state'    => $center_data['state_name'],
-			'company_gstin'    => $center_data['center_gst'],
-			'party_state'      => $center_data['state_name'],
-			'place_of_supply'  => $center_data['state_name'],
+			'company_state'    => $row['state_name'],
+			'company_gstin'    => $row['center_gst'],
+			'party_state'      => $row['state_name'],
+			'place_of_supply'  => $row['state_name'],
             'items'            => []
         ];
     }
