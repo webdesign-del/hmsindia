@@ -53,7 +53,7 @@ $select_result1 = run_select_query($sql1);
 $sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result1['appoitment_for']."'";
 $select_result5 = run_select_query($sql5);
 
-$sql_initial_details = "Select * from ".$this->config->item('db_prefix')."prp where patient_id='".$patient_id."' and type='First Cycle' ";
+echo $sql_initial_details = "Select * from ".$this->config->item('db_prefix')."prp where patient_id='".$patient_id."' and type='First Cycle'";
 $select_initial_details = run_select_query($sql_initial_details);
 
 // Year suffix format (e.g., 2627)
