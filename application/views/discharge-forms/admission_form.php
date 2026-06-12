@@ -157,7 +157,7 @@ $next_ipid_num = str_pad(($last_ipid_num + 1), 3, '0', STR_PAD_LEFT);
 <?php else: ?>
     <div class="alert alert-danger" style="margin-top: 5px; padding: 15px; border-left: 5px solid #d9534f; background-color: #fdf7f7; color: #a94442;">
         <i class="fa fa-ban" style="font-size: 16px;"></i> 
-        <strong>यह डेटा फील्ड नहीं है, यह फॉर्म सबमिट नहीं होगा!</strong><br>
+        <strong>Not Found Indication</strong><br>
         <span style="color: #666; font-size: 12px;">No 'First Cycle' data found in PRP table for Patient ID: <?php echo $patient_id; ?>. Kripya pehle use complete karein.</span>
     </div>
     

@@ -150,7 +150,7 @@ foreach ($procedure_list as $proc) {
                                         $sub_procedure_counter++; ?>
                                         <tr id="row_<?= $sub_procedure_counter ?>">
                                             <td style="border:1px solid #000; padding:5px;">
-                                                <select name="procedure_ID_<?= $sub_procedure_counter ?>" id="procedure_ID_<?= $sub_procedure_counter ?>" class="form-control select2-dropdown" onchange="getProcedureDetails(<?= $sub_procedure_counter ?>)">
+                                                <select name="procedure_ID_<?= $sub_procedure_counter ?>" id="procedure_ID_<?= $sub_procedure_counter ?>" class="form-control select2-dropdown" onchange="getProcedureDetails(<?= $sub_procedure_counter ?>)" disabled>
                                                     <option value="">Select Procedure</option>
                                                     <?php foreach (
                                                         $procedure_list
@@ -228,7 +228,7 @@ if ($select_result['status'] == '1' && !empty($select_result['procedure'])) {
                </table>
 
                     <div style="margin-top: 10px; text-align: right;">
-                    <button type="button" onclick="addNewRow()" class="btn btn-info">+ Add New Procedure</button>
+                   <!-- <button type="button" onclick="addNewRow()" class="btn btn-info">+ Add New Procedure</button>-->
                     <input type="hidden" id="last_counter_value" value="<?= $sub_procedure_counter ?>">
                </div>
                
