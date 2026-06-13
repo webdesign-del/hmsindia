@@ -687,10 +687,15 @@
       if(this.checked) { $appointmentFor.prop({'required': true, 'disabled': false}); }
    });
    
-   // 🎯 FIXED EXPLICIT MAPPING FOR INVESTIGATIONS DROPDOWNS
+   // ==============================================================================
+   // 🚀 THE ULTIMATE OPTION STRIPPER FIX FOR IIC INVESTIGATIONS
+   // ==============================================================================
    $("#investigation_suggestion").change(function() {
       var lists = "select#female_minvestigation_suggestion_list, select#male_minvestigation_suggestion_list";
+      
+      // Reset plugins data maps completely
       $(lists).prop('disabled', true);
+      $(lists).find('option').prop('disabled', true).removeAttr('disabled'); // Pre-clear option tags state
       
       if (typeof $(lists).multiselect === 'function') {
           $(lists).multiselect('deselectAll', false);
@@ -699,7 +704,10 @@
       }
       
       if(this.checked) {
+         // 🎯 CORE RECOVERY ACTION: select element aur uske andar ke sabhi <option> tags se disabled lock saaf karein
          $(lists).prop('disabled', false);
+         $(lists).find('option').prop('disabled', false).removeAttr('disabled');
+         
          if (typeof $(lists).multiselect === 'function') {
              $(lists).multiselect('enable');
              $(lists).multiselect('refresh');
@@ -789,10 +797,9 @@
        else { $('#female_medicine_table_ipd').hide(); }
    });
 
-   // 🎯 HARDENING AUTOMATION & SUBMIT LOCK BYPASS ENGINE
+   // HARDENING AUTOMATION & SUBMIT LOCK BYPASS ENGINE
    $(document).ready(function() {
        setTimeout(function() {
-           // Forcing Auto-populate for IPD values
            var ipdSelect = $('#female_medicine_suggestion_list_ipd');
            if (ipdSelect.length > 0) {
                var selectedOptions = ipdSelect.find('option:selected');
@@ -803,11 +810,18 @@
                    }
                }
            }
+           
+           // Extra structural safety: Agar page load par checkbox pehle se checked ho, toh options lock ukhad do
+           if($('#investigation_suggestion').is(':checked')) {
+               $('#female_minvestigation_suggestion_list, #male_minvestigation_suggestion_list').find('option').prop('disabled', false).removeAttr('disabled');
+               $('#female_minvestigation_suggestion_list, #male_minvestigation_suggestion_list').multiselect('refresh');
+           }
        }, 400);
 
-       // 🚀 CRITICAL FIX: Form submit se just pehle sabhi drop-downs ko safe force-enable karein taaki data POST ho sake
        $('form').on('submit', function() {
+           // Post parameters optimization override before submit
            $('#female_minvestigation_suggestion_list, #male_minvestigation_suggestion_list').prop('disabled', false);
+           $('#female_minvestigation_suggestion_list, #male_minvestigation_suggestion_list').find('option').prop('disabled', false).removeAttr('disabled');
            $('#list_india, #list_non_india').prop('disabled', false);
        });
    });
