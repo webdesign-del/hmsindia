@@ -391,7 +391,6 @@
                                  for ($i = 1; $i <= 2; $i++) {
                                      foreach($base_medicines as $item_number) { 
                                         if(isset($medicine_lookup[$item_number])) {
-                                           // Unique value matching indices fixed to ensure array uniqueness arrays parsing
                                            $clean_value = $item_number . "_set_" . $i; 
                                  ?>
                                     <option value="<?php echo $clean_value; ?>" medicine="<?php echo $medicine_lookup[$item_number]; ?>">
@@ -688,18 +687,27 @@
       if(this.checked) { $appointmentFor.prop({'required': true, 'disabled': false}); }
    });
    
+   // 🎯 FIXED EXPLICIT MAPPING FOR INVESTIGATIONS DROPDOWNS
    $("#investigation_suggestion").change(function() {
       var lists = "select#female_minvestigation_suggestion_list, select#male_minvestigation_suggestion_list";
-      $(lists).prop('disabled', true).parent().find('button').prop('disabled', true).addClass('disabled');
-      $('option', $(lists)).each(function() { $(this).removeAttr('selected').prop('selected', false); });
-      $(lists).multiselect('refresh');
+      $(lists).prop('disabled', true);
+      
+      if (typeof $(lists).multiselect === 'function') {
+          $(lists).multiselect('deselectAll', false);
+          $(lists).multiselect('updateButtonText');
+          $(lists).multiselect('disable');
+      }
+      
       if(this.checked) {
-         $("select#male_minvestigation_suggestion_list").prop('disabled', false).parent().find('button').prop('disabled', false).removeClass('disabled');
-         $("select#female_minvestigation_suggestion_list").prop({'required': true, 'disabled': false}).parent().find('button').prop('disabled', false).removeClass('disabled');
+         $(lists).prop('disabled', false);
+         if (typeof $(lists).multiselect === 'function') {
+             $(lists).multiselect('enable');
+             $(lists).multiselect('refresh');
+         }
       }
    });
    
-   // 🎯 Fixed Management Advised unique ID router mappings
+   // Management Advised toggle mappings
    $("#procedure_suggestion").change(function() {
       var $dropdowns = $('#list_india, #list_non_india');
       $dropdowns.prop('disabled', true);
@@ -781,9 +789,10 @@
        else { $('#female_medicine_table_ipd').hide(); }
    });
 
-   // 🎯 FIXED AUTO-TRIGGER HARDENING TIMEOUT OVERRIDE LAYER
+   // 🎯 HARDENING AUTOMATION & SUBMIT LOCK BYPASS ENGINE
    $(document).ready(function() {
        setTimeout(function() {
+           // Forcing Auto-populate for IPD values
            var ipdSelect = $('#female_medicine_suggestion_list_ipd');
            if (ipdSelect.length > 0) {
                var selectedOptions = ipdSelect.find('option:selected');
@@ -796,11 +805,10 @@
            }
        }, 400);
 
-       // Form compilation submit block unfreeze mechanism
+       // 🚀 CRITICAL FIX: Form submit se just pehle sabhi drop-downs ko safe force-enable karein taaki data POST ho sake
        $('form').on('submit', function() {
-           if ($('#procedure_suggestion').is(':checked')) {
-               $('#list_india, #list_non_india').prop('disabled', false);
-           }
+           $('#female_minvestigation_suggestion_list, #male_minvestigation_suggestion_list').prop('disabled', false);
+           $('#list_india, #list_non_india').prop('disabled', false);
        });
    });
 </script>
