@@ -2,6 +2,20 @@
 $all_method =& get_instance();
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
+// --- PATIENT ID FETCH LOGIC START ---
+// Agar variable pehle se set nahi hai, toh URL ya GET se nikalenge
+if (!isset($patient_id) || empty($patient_id)) {
+    if (isset($_GET['patient_id'])) {
+        $patient_id = $_GET['patient_id'];
+    } elseif (isset($_GET['id'])) {
+        $patient_id = $_GET['id'];
+    } else {
+        // CodeIgniter URL segments check (segment 3, 4 ya 5)
+        $patient_id = $this->uri->segment(3) ? $this->uri->segment(3) : ($this->uri->segment(4) ? $this->uri->segment(4) : $this->uri->segment(5));
+    }
+}
+// --- PATIENT ID FETCH LOGIC END ---
+
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
@@ -38,7 +52,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         }
     }
     
-    // FORM LOAD LOGIC: Ek-ek row ko nikal kar safe check lagaya hai
+    // FORM LOAD LOGIC: Database se data fetch karna
     $sql = "SELECT * FROM `pesa_tesatese_micro_tese_discharge_summary` WHERE patient_id='$patient_id'";
     $db_res1 = run_select_query($sql);
     $select_result = isset($db_res1[0]) ? $db_res1[0] : (isset($db_res1['patient_id']) ? $db_res1 : array());
@@ -64,9 +78,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 
 <form action="" enctype='multipart/form-data' method="post" class="no-print">
   <input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
-  <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
-  <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
-  <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
+  <input type="hidden" value="<?php echo isset($updated_by)?$updated_by:''; ?>" class="form" name="updated_by">
+  <input type="hidden" value="<?php echo isset($updated_type)?$updated_type:''; ?>" class="form" name="updated_type">
+  <input type="hidden" value="<?php echo isset($updated_at)?$updated_at:''; ?>" class="form" name="updated_at">
   <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
       
 <div class="ga-pro">
@@ -123,18 +137,18 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </tr>
 <tr>
 <td colspan="2" width="57%">
-<strong>Name : <?php echo isset($patient_data['wife_name']) ? $patient_data['wife_name'] : (isset($select_result2['wife_name']) ? $select_result2['wife_name'] : ''); ?> </strong>
+<strong>Name : <?php echo isset($select_result2['wife_name']) ? $select_result2['wife_name'] : ''; ?> </strong>
 </td>
 <td width="42%">
-<strong>Husband&rsquo;s name : <?php echo isset($patient_data['husband_name']) ? $patient_data['husband_name'] : (isset($select_result2['husband_name']) ? $select_result2['husband_name'] : ''); ?> </strong>
+<strong>Husband&rsquo;s name : <?php echo isset($select_result2['husband_name']) ? $select_result2['husband_name'] : ''; ?> </strong>
 </td>
 </tr>
 <tr>
 <td colspan="2" width="57%">
-<strong>Age: <?php echo isset($patient_data['wife_age']) ? $patient_data['wife_age'] : (isset($select_result2['wife_age']) ? $select_result2['wife_age'] : ''); ?></strong>
+<strong>Age: <?php echo isset($select_result2['wife_age']) ? $select_result2['wife_age'] : ''; ?></strong>
 </td>
 <td width="42%">
-<strong>Age: <?php echo isset($patient_data['husband_age']) ? $patient_data['husband_age'] : (isset($select_result2['husband_age']) ? $select_result2['husband_age'] : ''); ?> </strong>
+<strong>Age: <?php echo isset($select_result2['husband_age']) ? $select_result2['husband_age'] : ''; ?> </strong>
 </td>
 </tr>
 
@@ -193,7 +207,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <label for="other">Please take prescribed medicines / injections only. Dont skip/ stop any medicine on your own unless advised by the doctor.</label>
 </div> 
 <input type="submit"  name="submit" value="submit">
-<button type="button" onclick="window.print();" style="margin:10px; padding:5px 15px;">Print Summary</button>
+<button type="button" onclick="window.print();" style="margin:10px; padding:5px 15px; font-weight:bold; cursor:pointer;">Print Summary</button>
 </form>
 
 
@@ -216,10 +230,10 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 
 <tr style="background: #b3b9b7;">
 <td colspan="2" style="width:50%;border:1px solid;padding:5px;">
- <strong>Date of Admission: <?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?> <?php echo isset($select_result['time_of_addmission'])?$select_result['time_of_addmission']:""; ?></strong>
+ <strong>Date of Admission: <?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?>  <?php echo isset($select_result['time_of_addmission'])?$select_result['time_of_addmission']:""; ?></strong>
 </td>
 <td style="width:50%;border:1px solid;padding:5px;">
-<strong>Date of Discharge: <?php echo isset($select_result['date_of_discharge'])?$select_result['date_of_discharge']:""; ?> <?php echo isset($select_result['time_of_discharge'])?$select_result['time_of_discharge']:""; ?></strong>
+<strong>Date of Discharge: <?php echo isset($select_result['date_of_discharge'])?$select_result['date_of_discharge']:""; ?>  <?php echo isset($select_result['time_of_discharge'])?$select_result['time_of_discharge']:""; ?></strong>
 </td>
 </tr>
 
@@ -238,18 +252,18 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </tr>
 <tr>
 <td colspan="2" style="width:50%;border:1px solid;padding:5px;" >
-<strong>Name : <?php echo isset($patient_data['wife_name']) ? $patient_data['wife_name'] : (isset($select_result2['wife_name']) ? $select_result2['wife_name'] : ''); ?> </strong>
+<strong>Name : <?php echo isset($select_result2['wife_name']) ? $select_result2['wife_name'] : ''; ?> </strong>
 </td>
 <td style="width:50%;border:1px solid;padding:5px;">
-<strong>Husband&rsquo;s name : <?php echo isset($patient_data['husband_name']) ? $patient_data['husband_name'] : (isset($select_result2['husband_name']) ? $select_result2['husband_name'] : ''); ?> </strong>
+<strong>Husband&rsquo;s name : <?php echo isset($select_result2['husband_name']) ? $select_result2['husband_name'] : ''; ?> </strong>
 </td>
 </tr>
 <tr>
 <td colspan="2" style="width:50%;border:1px solid;padding:5px;">
-<strong>Age: <?php echo isset($patient_data['wife_age']) ? $patient_data['wife_age'] : (isset($select_result2['wife_age']) ? $select_result2['wife_age'] : ''); ?></strong>
+<strong>Age: <?php echo isset($select_result2['wife_age']) ? $select_result2['wife_age'] : ''; ?></strong>
 </td>
 <td style="width:50%;border:1px solid;padding:5px;">
-<strong>Age: <?php echo isset($patient_data['husband_age']) ? $patient_data['husband_age'] : (isset($select_result2['husband_age']) ? $select_result2['husband_age'] : ''); ?> </strong>
+<strong>Age: <?php echo isset($select_result2['husband_age']) ? $select_result2['husband_age'] : ''; ?> </strong>
 </td>
 </tr>
 
@@ -314,11 +328,12 @@ Please take prescribed medicines / injections only. Dont skip/ stop any medicine
 </div>
 
 <style>
-/* CSS PRINT LOGIC: Screen par print content chupega, par printer ko sab dikhega */
+/* Normal Screen par print layout hidden rahega */
 #print_this_section {
     display: none;
 }
 
+/* @media print: Printer ko trigger hote hi kya dikhega */
 @media print {
     body * {
         visibility: hidden;
