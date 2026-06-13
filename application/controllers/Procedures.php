@@ -799,6 +799,20 @@ public function edit()
 		}
 	}
 
+	public function oocyte_embryo_record_sheet_till_d3_donor(){
+		$logg = checklogin();
+		if($logg['status'] == true){
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('procedures/oocyte_embryo_record_sheet_till_d3_donor', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
+
 	// LIST VIEW
    
 	public function procedure_list(){
