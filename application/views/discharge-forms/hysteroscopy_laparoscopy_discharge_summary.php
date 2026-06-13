@@ -1,20 +1,26 @@
 <?php 
 $all_method =& get_instance();
+$appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
-if(isset($_POST['submit'])){
+// 🎯 GLOBAL CATCHER FOR PATIENT ID
+if (!isset($patient_id) || empty($patient_id)) {
+    $patient_id = isset($_GET['patient_id']) ? $_GET['patient_id'] : $this->uri->segment(3);
+}
+
+    // php code to Insert/Update data into mysql database from input text
+    if(isset($_POST['submit'])){
         unset($_POST['submit']);
   
-        $select_query = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
-        $select_result = run_select_query($select_query); 
+        $select_query = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id'";
+        $select_result_check = run_select_query($select_query); 
 
-        $sqlArr = array(); // एरे को ऊपर ही डिफाइन कर दिया ताकि दोनों ब्लॉक्स में सेफ रहे
+        $sqlArr = array(); 
 
-        if(empty($select_result)){
+        if(empty($select_result_check)){
             // 1. MYSQL QUERY TO INSERT DATA
             $query = "INSERT INTO `hysteroscopy_laparoscopy_discharge_summary` SET ";
 
             foreach($_POST as $key => $value) {
-                // 💡 FIX 1: अगर वैल्यू एरे (Checkboxes) है, तो उसे पहले स्ट्रिंग में बदलें ताकि addslashes() क्रैश न हो
                 if (is_array($value)) {
                     $value = implode(',', $value);
                 }
@@ -29,16 +35,14 @@ if(isset($_POST['submit'])){
             $query = "UPDATE `hysteroscopy_laparoscopy_discharge_summary` SET ";
 
             foreach($_POST as $key => $value) {
-                // 💡 FIX 2: अपडेट में भी एरे को स्ट्रिंग में बदलना ज़रूरी है
                 if (is_array($value)) {
                     $value = implode(',', $value);
                 }
-                // 💡 FIX 3: अपडेट में भी addslashes() लगाया ताकि डॉक्टर अगर सिंगल कोट (') यूज़ करे तो क्वेरी न टूटे
                 $sqlArr[] = " `$key` = '".addslashes($value)."'";
             }
 
             $query .= implode(',' , $sqlArr);
-            $query .= " WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+            $query .= " WHERE patient_id='$patient_id'";
             $msg = 'Procedure form updated successfully!';
         }
 
@@ -52,30 +56,37 @@ if(isset($_POST['submit'])){
         }
     }
 
-  
-
+    // 🎯 DATA RETRIEVAL LAYERS WITH ROW NORMALIZATION [INDEX 0 CHECK]
     $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
-    $patient_data = run_select_query($sql3); 
+    $db_res_p = run_select_query($sql3); 
+    $patient_data = isset($db_res_p[0]) ? $db_res_p[0] : (isset($db_res_p['wife_name']) ? $db_res_p : array());
   
-    // 💡 FIX 2: $this->config को $all_method->config से बदला ताकि प्रिंट स्क्रीन पर 500 एरर न आए
     $sql1 = "Select * from ".$all_method->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient' ";
-    $select_result1 = run_select_query($sql1);
+    $db_res_a = run_select_query($sql1);
+    $select_result1 = isset($db_res_a[0]) ? $db_res_a[0] : (isset($db_res_a['uhid']) ? $db_res_a : array());
   
-    $sql3 = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".($select_result1['appoitment_for'] ?? '')."'";
-    $select_result3 = run_select_query($sql3);  
+    $sql3_center = "Select * from ".$all_method->config->item('db_prefix')."centers where center_number='".($select_result1['appoitment_for'] ?? '')."'";
+    $db_res_c = run_select_query($sql3_center);  
+    $select_result3 = isset($db_res_c[0]) ? $db_res_c[0] : (isset($db_res_c['center_code']) ? $db_res_c : array());  
   
     $sql5 = "Select * from ".$all_method->config->item('db_prefix')."doctors where ID='".($_SESSION['logged_doctor']['doctor_id'] ?? '')."'";
-    $select_result5 = run_select_query($sql5); 
+    $db_res_d = run_select_query($sql5); 
+    $select_result5 = isset($db_res_d[0]) ? $db_res_d[0] : (isset($db_res_d['doctor_name']) ? $db_res_d : array()); 
   
     $select_query_laparoscopy = "SELECT * FROM `laparoscopy_hysteroscopy` WHERE patient_id='$patient_id'";
-    $select_result_laparoscopy = run_select_query($select_query_laparoscopy); 
+    $db_res_l = run_select_query($select_query_laparoscopy); 
+    $select_result_laparoscopy = isset($db_res_l[0]) ? $db_res_l[0] : (isset($db_res_l['receipt_number']) ? $db_res_l : array());
 
     $is_complete = !empty($select_result_laparoscopy);
-    $final_receipt = ($is_complete) ? $select_result_laparoscopy['receipt_number'] : "";
+    $final_receipt = ($is_complete && isset($select_result_laparoscopy['receipt_number'])) ? $select_result_laparoscopy['receipt_number'] : "";
 
-      // डेटा फेच करने की क्वेरीज़
-    $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$final_receipt'";
-    $select_result = run_select_query($sql);
+    // 🎯 FALLBACK BALANCING LOGIC FOR DISCHARGE SUMMARY SELECT
+    $sql = "SELECT * FROM `hysteroscopy_laparoscopy_discharge_summary` WHERE patient_id='$patient_id'";
+    if(!empty($final_receipt)) {
+        $sql .= " AND receipt_number='$final_receipt'";
+    }
+    $db_res_summary = run_select_query($sql);
+    $select_result = isset($db_res_summary[0]) ? $db_res_summary[0] : (isset($db_res_summary['patient_id']) ? $db_res_summary : array());
        
 ?>
 
