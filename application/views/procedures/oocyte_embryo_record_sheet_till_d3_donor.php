@@ -1,4 +1,13 @@
 <?php
+
+$patient_id = explode("/", $_SERVER['REQUEST_URI']);
+$patient_id = end($patient_id); // Get last part of 
+
+$select_query8 = "SELECT patient_id FROM `hms_doctor_consultation` WHERE patient_id='$patient_id' LIMIT 1";
+$select_result8 = run_select_query($select_query8);
+
+$patient_id = $select_result8['patient_id'];
+
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
@@ -59,7 +68,7 @@
 			$_POST['upload_photo_5'] = $transaction_img;
 		}
 
-        $select_query = "SELECT * FROM `embryo_record` WHERE patient_id='$patient_id' LIMIT 1";
+        $select_query = "SELECT * FROM `embryo_record` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($select_query); 
         if(empty($select_result)){
             // mysql query to insert data
