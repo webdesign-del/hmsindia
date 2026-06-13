@@ -2,58 +2,63 @@
 $all_method =& get_instance();
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
-    // php code to Insert data into mysql database from input text
-    if(isset($_POST['submit'])){
-        unset($_POST['submit']);
-        
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
-        $sql = "SELECT * FROM `pesa_tesatese_micro_tese_discharge_summary` WHERE patient_id='$patient_id'";
-        $select_result = run_select_query($sql);
-        
-        if(!empty($_POST['procedures']) && isset($_POST['procedures'])){
-            $_POST['procedures'] = implode(',', $_POST['procedures']);
-        }
-        
-        // अगर डेटा मौजूद नहीं है, सिर्फ तभी INSERT करें
-        if(empty($select_result)){
-            // mysql query to insert data
-            $query = "INSERT INTO `pesa_tesatese_micro_tese_discharge_summary` SET ";
-            $sqlArr = array();
-            
-            foreach( $_POST as $key => $value ) {
-              $sqlArr[] = " `$key` = '".addslashes($value)."'";
-            }       
-            $query .= implode(',' , $sqlArr);
-            
-            $result = run_form_query($query); 
-        
-            if($result){
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
-                die();
-            } else {
-                header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-                die();
-            }
-            
-        } else {
-            // अगर डेटा पहले से मौजूद है, तो UPDATE ना करें, बल्कि सीधा एरर मैसेज के साथ रिडायरेक्ट करें
-            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
-            die();
-        }
+// 1. Database se purana data fetch karein (Form load hote hi)
+$sql = "SELECT * FROM `pesa_tesatese_micro_tese_discharge_summary` WHERE patient_id='$patient_id'";
+$select_db_result = run_select_query($sql);
+
+// Row data ko aasan karne ke liye single array me daalein
+$existing_data = array();
+if(!empty($select_db_result)){
+    // Agar array ke andar pehli row hai toh use nikal lein
+    $existing_data = isset($select_db_result[0]) ? $select_db_result[0] : $select_db_result;
+}
+
+// php code to Insert data into mysql database from input text
+if(isset($_POST['submit'])){
+    unset($_POST['submit']);
+    
+    if(!empty($_POST['procedures']) && isset($_POST['procedures'])){
+        $_POST['procedures'] = implode(',', $_POST['procedures']);
     }
     
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `pesa_tesatese_micro_tese_discharge_summary` WHERE patient_id='$patient_id'";
-    $select_result = run_select_query($sql);
+    // Agar data pehle se maujood nahi hai, sirf tabhi INSERT karein
+    if(empty($existing_data)){
+        $query = "INSERT INTO `pesa_tesatese_micro_tese_discharge_summary` SET ";
+        $sqlArr = array();
+        
+        foreach( $_POST as $key => $value ) {
+          $sqlArr[] = " `$key` = '".addslashes($value)."'";
+        }       
+        $query .= implode(',' , $sqlArr);
+        
+        $result = run_form_query($query); 
     
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
-    $select_result2 = run_select_query($sql2);
-    
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-    $select_result3 = run_select_query($sql3);
-?>
+        if($result){
+            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Discharge form saved successfully!').'&t='.base64_encode('success'));
+            die();
+        } else {
+            header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+            die();
+        }
+        
+    } else {
+        header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Data is already saved and cannot be updated!').'&t='.base64_encode('error'));
+        die();
+    }
+}
 
+// Dusre Tables ka data fetch karna
+$sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+$select_result2 = run_select_query($sql2);
+// Agar select_result2 bhi array of array hai toh isko bhi thik karein
+$appointment_data = isset($select_result2[0]) ? $select_result2[0] : $select_result2;
+
+$sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".($appointment_data['appoitment_for'] ?? '')."'";
+$select_result3 = run_select_query($sql3);
+$center_data = isset($select_result3[0]) ? $select_result3[0] : $select_result3;
+?>
 <?php 
+    // Ab aapka purana logic bina kisi badlav ke perfectly kaam karega!
     $procedures = array();
     if(!empty($select_result['procedures'])){
         $procedures = explode(',', $select_result['procedures']);
