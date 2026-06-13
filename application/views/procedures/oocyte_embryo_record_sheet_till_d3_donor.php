@@ -59,7 +59,7 @@
 			$_POST['upload_photo_5'] = $transaction_img;
 		}
 
-        $select_query = "SELECT * FROM `embryo_record` WHERE patient_id='$patient_id'";
+        $select_query = "SELECT * FROM `embryo_record` WHERE patient_id='$patient_id' LIMIT 1";
         $select_result = run_select_query($select_query); 
         if(empty($select_result)){
             // mysql query to insert data
@@ -96,13 +96,10 @@
 	$sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
     $select_result3 = run_select_query($sql3); 	
 	
-	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
+	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
 	$select_result1 = run_select_query($sql1);
 	
-	$sql4 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
-	$select_result4 = run_select_query($sql4);
-	
-	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
+	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result1['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);
 	
 ?>
@@ -112,6 +109,7 @@
 <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
   <input type="hidden" value="<?php echo $procedure_id; ?>" class="form" name="procedure_id">
   <input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
+  <input type="hidden" value="<?php //echo $receipt_number; ?>" class="form" name="receipt_number">
   <input type="hidden" value="pending" name="status"> 
     			<div class="container2 red-field form mt-5 mb-5">
 				<table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
@@ -127,7 +125,7 @@
 <tr style="background: #b3b9b7;">
 
 <td colspan="3" width="34%" style="border:1px solid;padding:5px;">
-<strong>UHID : <?php echo $select_result5['center_code']."/".$select_result4['uhid']; ?></strong>
+<strong>UHID : <?php echo $select_result5['center_code']."/".$select_result1['uhid']; ?></strong>
 </td>
 <td colspan="3" width="100%" style="border:1px solid;padding:5px;">
 <strong>Patient Name : <?php echo $select_result3['wife_name']; ?> </strong>
