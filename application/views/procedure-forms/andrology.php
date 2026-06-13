@@ -1,93 +1,73 @@
 <?php
+$all_method =& get_instance();
+$appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
-    // php code to Insert data into mysql database from input text
-
+    // php code to Insert/Update data into mysql database from input text
     if(isset($_POST['submit'])){
-
         unset($_POST['submit']);
 
-        		if(!empty($_FILES['upload']['tmp_name'])){
-
-					$dest_path = $this->config->item('upload_path');
-
-					$destination = $dest_path.'procedure-forms-uploads/';
-
-					$NewImageName = rand(4,10000)."-".$_FILES['upload']['name'];
-
-					$transaction_img = base_url().'assets/procedure-forms-uploads/'.$NewImageName;
-
-					move_uploaded_file($_FILES['upload']['tmp_name'], $destination.$NewImageName);
-
-					$_POST['upload'] = $transaction_img;
-
-				}
+        if(!empty($_FILES['upload']['tmp_name'])){
+          $dest_path = $this->config->item('upload_path');
+          $destination = $dest_path.'procedure-forms-uploads/';
+          $NewImageName = rand(4,10000)."-".$_FILES['upload']['name'];
+          $transaction_img = base_url().'assets/procedure-forms-uploads/'.$NewImageName;
+          
+          move_uploaded_file($_FILES['upload']['tmp_name'], $destination.$NewImageName);
+          $_POST['upload'] = $transaction_img;
+        }
 
         $select_query = "SELECT * FROM `andrology` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
-        $select_result = run_select_query($select_query); 
+        $select_result_check = run_select_query($select_query); 
 
-        if(empty($select_result)){
+        $sqlArr = array(); // 🎯 FIX: Array ko upar hi initialize kar diya taaki dono blocks me chale
 
+        if(empty($select_result_check)){
             // mysql query to insert data
-
             $query = "INSERT INTO `andrology` SET ";
-
-            $sqlArr = array();
-
-            foreach( $_POST as $key=> $value )
-
-            {
-
-              $sqlArr[] = " $key = '".addslashes($value)."'";
-
-            }		
-
+            foreach( $_POST as $key=> $value ) {
+              $sqlArr[] = " `$key` = '".addslashes($value)."'";
+            }   
             $query .= implode(',' , $sqlArr);
-
-        }else{
-
+        } else {
             // mysql query to update data
-
-            $query = "UPDATE andrology SET ";
-
-            foreach( $_POST as $key=> $value )
-
-            {
-
-              $sqlArr[] = " $key = '".$value."'"	;
-
+            $query = "UPDATE `andrology` SET ";
+            foreach( $_POST as $key=> $value ) {
+              $sqlArr[] = " `$key` = '".addslashes($value)."'"; // 🎯 FIX: Update me bhi addslashes zaroori hai
             }
-
             $query .= implode(',' , $sqlArr);
-
             $query .= " WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
-
         }
 
         $result = run_form_query($query);        
 
         if($result){
           header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Procedure form inserted!').'&t='.base64_encode('success'));
-					die();
+          die();
         }else{
           header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-					die();
+          die();
         }
     }
 
+    // 🎯 FORM LOAD LOGIC: Ek-ek row ko index [0] se safe extract karna
     $select_query = "SELECT * FROM `andrology` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
-    $select_result = run_select_query($select_query); 
+    $db_res = run_select_query($select_query); 
+    $select_result = isset($db_res[0]) ? $db_res[0] : (isset($db_res['patient_id']) ? $db_res : array());
 
-	$sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
-    $select_result3 = run_select_query($sql3); 	
-	
-	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
-	$select_result1 = run_select_query($sql1);
-	
-	$sql4 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
-	$select_result4 = run_select_query($sql4);
-	
-	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
-	$select_result5 = run_select_query($sql5);	
+    $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+    $db_res3 = run_select_query($sql3);  
+    $select_result3 = isset($db_res3[0]) ? $db_res3[0] : (isset($db_res3['w_name']) ? $db_res3 : array()); // Apne columns ke hisab se fallback dekh lena
+  
+    // 🎯 FIX: 'AND' operator missing tha query me jisse data block ho raha tha
+    $sql1 = "SELECT * FROM ".$this->config->item('db_prefix')."appointments WHERE paitent_id='".$patient_id."' AND paitent_type='new_patient'";
+    $db_res1 = run_select_query($sql1);
+    $select_result1 = isset($db_res1[0]) ? $db_res1[0] : (isset($db_res1['uhid']) ? $db_res1 : array());
+  
+    $appointment_for = isset($select_result1['appoitment_for']) ? $select_result1['appoitment_for'] : '';
+    
+    $sql5 = "SELECT * FROM ".$this->config->item('db_prefix')."centers WHERE center_number='".$appointment_for."'";
+    $db_res5 = run_select_query($sql5);  
+    $select_result5 = isset($db_res5[0]) ? $db_res5[0] : (isset($db_res5['center_code']) ? $db_res5 : array());  
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
