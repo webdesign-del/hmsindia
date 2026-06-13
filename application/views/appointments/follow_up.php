@@ -666,7 +666,7 @@ $billed_data = $this->db->select('code')
 $billed_codes = [];
 
 // List of codes you want to ALLOW (not disable even if billed)
-$exclude_from_disabling = ['IP218', 'IP219','IP64'];
+$exclude_from_disabling = ['IP218', 'IP219','IP64','IP600','IP11'];
 
 if (!empty($billed_data)) {
     foreach ($billed_data as $row) {
