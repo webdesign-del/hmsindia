@@ -47,11 +47,14 @@ $select_result = run_select_query($select_query);
 $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
 $patient_data = run_select_query($sql3);    
 
-$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient' limit 1";
 $select_result1 = run_select_query($sql1);
 
-$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result1['appoitment_for']."'";
+// करंट सेंटर का कोड निकालें (उदा: 001, 002, 004)
+$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".($select_result1['appoitment_for'] ?? '')."' limit 1";
 $select_result5 = run_select_query($sql5);
+
+$current_center_code = (!empty($select_result5['center_code'])) ? $select_result5['center_code'] : '001';
 
 $sql_initial_details = "Select * from ".$this->config->item('db_prefix')."prp where patient_id='".$patient_id."' and type='First Cycle'";
 $select_initial_details = run_select_query($sql_initial_details);
@@ -59,14 +62,23 @@ $select_initial_details = run_select_query($sql_initial_details);
 // Year suffix format (e.g., 2627)
 $current_year_suffix = (date("y").(date("y")+1)); 
 
-// IPID assignment logic
-$sql2 = "SELECT MAX(CAST(RIGHT(ipid, 3) AS UNSIGNED)) as last_three 
+/* * 💡 मुख्य सुधार: 
+ * अब यह क्वेरी सिर्फ उसी सेंटर (जैसे: 002/2627/%) का मैक्स नंबर ढूंढेगी 
+ * जिसका फॉर्म अभी सबमिट किया जा रहा है।
+ */
+$sql2 = "SELECT MAX(CAST(SUBSTRING_INDEX(ipid, '/', -1) AS UNSIGNED)) as last_num 
          FROM `admission_form` 
-         WHERE ipid LIKE '%/".$current_year_suffix."/%'";
+         WHERE ipid LIKE '".$current_center_code."/".$current_year_suffix."/%'";
 $select_result2 = run_select_query($sql2);
 
-$last_ipid_num = (!empty($select_result2['last_three'])) ? intval($select_result2['last_three']) : 0;
-$next_ipid_num = str_pad(($last_ipid_num + 1), 3, '0', STR_PAD_LEFT);
+// लास्ट नंबर निकालें, अगर कोई रिकॉर्ड नहीं मिलता तो 0 से शुरू करें
+$last_ipid_num = (!empty($select_result2['last_num'])) ? intval($select_result2['last_num']) : 0;
+
+// अगला नंबर (+1)
+$next_ipid_num = $last_ipid_num + 1;
+
+// फाइनल जनरेटेड IPID (उदा: 002/2627/10)
+$generated_ipid = $current_center_code . '/' . $current_year_suffix . '/' . $next_ipid_num;
 ?>
 
 <div class="ga-pro">
@@ -79,7 +91,7 @@ $next_ipid_num = str_pad(($last_ipid_num + 1), 3, '0', STR_PAD_LEFT);
     <input type="hidden" value="<?php echo $patient_id;?>" class="form" name="patient_id">
     <input type="hidden" value="<?php echo $procedure_id;?>" class="form" name="procedure_id">
     <input type="hidden" value="<?php echo $receipt_number;?>" class="form" name="receipt_number">
-    <input type="hidden" value="<?php echo ($select_result5['center_code'] ?? 'CENTER').'/'.$current_year_suffix.'/'.$next_ipid_num + 1;?>" class="form" id="ipid" name="ipid">
+    <input type="hidden" value="<?php echo ($select_result5['center_code'] ?? 'CENTER').'/'.$current_year_suffix.'/'.$next_ipid_num;?>" class="form" id="ipid" name="ipid">
     <div class="col-sm-12 col-md-12" style="margin-bottom:15px; padding:0;">
    
     <div class="col-sm-12 col-md-4">

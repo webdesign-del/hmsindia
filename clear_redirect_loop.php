@@ -76,6 +76,7 @@ if ($user) {
     unset($_SESSION['logged_doctor']);
     unset($_SESSION['logged_investigation_manager']);
     unset($_SESSION['logged_counselor']);
+    unset($_SESSION['logged_center_head']);
     unset($_SESSION['logged_liason']);
     unset($_SESSION['logged_mrd']);
     unset($_SESSION['logged_embryologist']);

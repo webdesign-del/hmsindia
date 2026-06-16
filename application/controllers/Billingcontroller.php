@@ -1554,7 +1554,7 @@ function partial_billing($appointment_id){
                             'remarks'      => 'Paid for Investigation/Medicine from Money Wallet. Appt ID: ' . $post_arr['appointment_id'],
                             'created_by'   => $created_by_user,
                             'created_at'   => date('Y-m-d H:i:s'),
-                            'status'       => 'success'
+                            'status'       => 'pending'
                         ];
                         $this->db->insert('hms_wallet_logs', $log_data);
 
@@ -1792,7 +1792,7 @@ function partial_billing($appointment_id){
                             'remarks'     => 'Paid for Procedure. Appt ID: ' . $post_arr['appointment_id'],
                             'created_by'  => $post_arr['biller_id'],
                             'created_at'  => date('Y-m-d H:i:s'),
-                            'status'      => 'approved'
+                            'status'      => 'pending'
                         ];
                         $this->db->insert('hms_wallet_logs', $log_data);
 
@@ -2185,7 +2185,7 @@ function partial_billing($appointment_id){
                             'remarks'     => 'Paid for Procedure. Appt ID: ' . $post_arr['appointment_id'],
                             'created_by'  => $post_arr['biller_id'],
                             'created_at'  => date('Y-m-d H:i:s'),
-                            'status'      => 'approved'
+                            'status'      => 'pending'
                         ];
                         $this->db->insert('hms_wallet_logs', $log_data);
 

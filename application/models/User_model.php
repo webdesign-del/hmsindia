@@ -29,7 +29,7 @@ class User_model extends CI_Model
 					setcookie( "rememberme", '', time() + 36000 );
 				}
 				unset($_SESSION['logged_administrator']);unset($_SESSION['logged_accountant']);unset($_SESSION['logged_stock_manager']);
-				unset($_SESSION['logged_billing_manager']);unset($_SESSION['logged_central_stock_manager']);unset($_SESSION['logged_counselor']);
+				unset($_SESSION['logged_billing_manager']);unset($_SESSION['logged_central_stock_manager']);unset($_SESSION['logged_counselor']);unset($_SESSION['logged_center_head']);
 				
 				$role = $affected_rows[0]['role'];
 				if($role == 'administrator'){
@@ -63,6 +63,10 @@ class User_model extends CI_Model
 				if($role == 'counselor'){
 					$center = $this->get_center($affected_rows[0]['username']);
 					$_SESSION['logged_counselor'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => isset($center['center_number']) ? $center['center_number'] : 0, 'department' => $affected_rows[0]['department']);
+				}
+				if($role == 'center_head'){
+					$center = $this->get_center($affected_rows[0]['username']);
+					$_SESSION['logged_center_head'] = array('name'=>$affected_rows[0]['name'], 'username'=>$affected_rows[0]['username'], 'email'=>$affected_rows[0]['email'], 'role'=>$affected_rows[0]['role'], 'employee_number'=>$affected_rows[0]['employee_number'], 'center' => isset($center['center_number']) ? $center['center_number'] : 0, 'department' => $affected_rows[0]['department']);
 				}
 				if($role == 'embryologist'){
 					$center = $this->get_center($affected_rows[0]['username']);

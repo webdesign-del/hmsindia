@@ -24,28 +24,46 @@
 
 <div class="row" style="margin-bottom: 20px;">
     <div class="col-md-12">
-        <div class="well" style="background-color: #f5f7fa; padding: 15px; border-radius: 4px; margin-bottom: 0; border-left: 4px solid #337ab7;">
-            <form method="GET" action="<?php echo base_url('accounts/wallet_transfer_requests'); ?>" class="form-inline">
-                
-                <div class="form-group" style="margin-right: 15px;">
-                    <label style="margin-right: 5px; color: #333;">Patient ID:</label>
-                    <input type="text" name="patient_id" class="form-control input-sm" placeholder="e.g. IIC-0012" value="<?php echo isset($search_patient_id) ? htmlspecialchars($search_patient_id) : ''; ?>" style="min-width: 180px;">
-                </div>
+       <div class="well" style="background-color: #f5f7fa; padding: 15px; border-radius: 4px; margin-bottom: 0; border-left: 4px solid #337ab7;">
+    <form method="GET" action="<?php echo base_url('accounts/wallet_transfer_requests'); ?>">
+        <div class="row">
+            <div class="col-md-2 col-sm-6 form-group">
+                <label style="color: #333; font-size:12px;">Patient ID:</label>
+                <input type="text" name="patient_id" class="form-control input-sm" placeholder="e.g. IIC-0012" value="<?php echo isset($search_patient_id) ? htmlspecialchars($search_patient_id) : ''; ?>">
+            </div>
 
-                <div class="form-group" style="margin-right: 15px;">
-                    <label style="margin-right: 5px; color: #333;">Status:</label>
-                    <select name="status" class="form-control input-sm" style="min-width: 150px;">
-                        <option value="">-- All Status --</option>
-                        <option value="pending" <?php echo (isset($search_status) && $search_status == 'pending') ? 'selected' : ''; ?>>Pending</option>
-                        <option value="approved" <?php echo (isset($search_status) && $search_status == 'approved') ? 'selected' : ''; ?>>Approved</option>
-                        <option value="disapproved" <?php echo (isset($search_status) && $search_status == 'disapproved') ? 'selected' : ''; ?>>Rejected</option>
-                    </select>
-                </div>
+            <div class="col-md-2 col-sm-6 form-group">
+                <label style="color: #333; font-size:12px;">Status:</label>
+                <select name="status" class="form-control input-sm">
+                    <option value="">-- All Status --</option>
+                    <option value="pending" <?php echo (isset($search_status) && $search_status == 'pending') ? 'selected' : ''; ?>>Pending</option>
+                    <option value="approved" <?php echo (isset($search_status) && $search_status == 'approved') ? 'selected' : ''; ?>>Approved</option>
+                    <option value="disapproved" <?php echo (isset($search_status) && $search_status == 'disapproved') ? 'selected' : ''; ?>>Rejected</option>
+                </select>
+            </div>
 
-                <button type="submit" class="btn btn-primary btn-sm" style="font-weight: 600;"><i class="fa fa-filter"></i> Search Filter</button>
-                <a href="<?php echo base_url('accounts/wallet_transfer_requests'); ?>" class="btn btn-default btn-sm" style="font-weight: 600; margin-left: 5px;"><i class="fa fa-refresh"></i> Clear All</a>
-            </form>
+            <div class="col-md-2 col-sm-6 form-group">
+                <label style="color: #333; font-size:12px;">From Date:</label>
+                <input type="date" name="start_date" class="form-control input-sm" value="<?php echo isset($search_start_date) ? htmlspecialchars($search_start_date) : ''; ?>">
+            </div>
+
+            <div class="col-md-2 col-sm-6 form-group">
+                <label style="color: #333; font-size:12px;">To Date:</label>
+                <input type="date" name="end_date" class="form-control input-sm" value="<?php echo isset($search_end_date) ? htmlspecialchars($search_end_date) : ''; ?>">
+            </div>
+
+            <div class="col-md-2 col-sm-6 form-group">
+                <label style="color: #333; font-size:12px;">Remarks Search:</label>
+                <input type="text" name="remarks" class="form-control input-sm" placeholder="Keywords..." value="<?php echo isset($search_remarks) ? htmlspecialchars($search_remarks) : ''; ?>">
+            </div>
+
+            <div class="col-md-2 col-sm-6" style="margin-top: 23px;">
+                <button type="submit" class="btn btn-primary btn-sm" style="font-weight: 600;"><i class="fa fa-filter"></i> Filter</button>
+                <a href="<?php echo base_url('accounts/wallet_transfer_requests'); ?>" class="btn btn-default btn-sm" style="font-weight: 600; margin-left: 5px;"><i class="fa fa-refresh"></i> Clear</a>
+            </div>
         </div>
+    </form>
+</div>
     </div>
 </div>
 
@@ -92,8 +110,8 @@
                                             </strong>
                                         </td>
                                         
-                                        <td><?php echo !empty($log['created_by']) ? $log['created_by'] : 'System'; ?></td>
-                                        <td><?php echo date('d M Y, h:i A', strtotime($log['created_at'])); ?></td>
+                                        <td><?php echo !empty($log['employee_name']) ? htmlspecialchars($log['employee_name']) : (!empty($log['created_by']) ? $log['created_by'] : 'System'); ?></td>
+                                        <td><?php echo date('d M Y, h:i A', strtotime($log['created_at'])); ?><br/><?php echo !empty($log['remarks']) ? htmlspecialchars($log['remarks']) : '<span class="text-muted">N/A</span>'; ?></td>
                                         
                                         <td>
                                             <?php echo (!empty($log['approved_by'])) ? $log['approved_by'] : '<span class="text-muted">-</span>'; ?>
@@ -115,13 +133,17 @@
                                         </td>
                                         
                                         <td>
-                                            <?php $receipt_param = !empty($log['log_id']) ? $log['log_id'] : $log['log_id']; ?>
-                                            <a href="<?php echo base_url('accounts/print_invoice/'.$receipt_param); ?>" 
-                                               target="_blank" 
-                                               class="btn btn-info btn-xs" 
-                                               style="font-weight: 600;">
-                                                <i class="fa fa-print"></i> Print Receipt
-                                            </a>
+                                            <?php if($log['status'] != 'disapproved' && $log['status'] != 'rejected'): ?>
+                                                <?php $receipt_param = !empty($log['log_id']) ? $log['log_id'] : $log['log_id']; ?>
+                                                <a href="<?php echo base_url('accounts/print_invoice/'.$receipt_param); ?>" 
+                                                   target="_blank" 
+                                                   class="btn btn-info btn-xs" 
+                                                   style="font-weight: 600; width: 100%;">
+                                                    <i class="fa fa-print"></i> Print Receipt
+                                                </a>
+                                            <?php else: ?>
+                                                <span class="text-danger" style="font-size: 11px; font-style: italic; font-weight: 600;">Cancelled</span>
+                                            <?php endif; ?>
                                         </td>
                                         
                                         <td>

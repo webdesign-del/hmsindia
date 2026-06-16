@@ -28,6 +28,9 @@ function checklogin(){
   }else if(isset($_SESSION['logged_counselor'])){
     $return = array('status' => true, 'role'=>$_SESSION['logged_counselor']['role']);
 	return $return;
+  }else if(isset($_SESSION['logged_center_head'])){
+    $return = array('status' => true, 'role'=>$_SESSION['logged_center_head']['role']);
+	return $return;  
   }else if(isset($_SESSION['logged_liason'])){
     $return = array('status' => true, 'role'=>$_SESSION['logged_liason']['role']);
 	return $return;

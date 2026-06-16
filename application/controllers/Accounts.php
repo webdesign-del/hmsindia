@@ -6749,7 +6749,7 @@ public function indiaivf_document_list(){
 			if(empty($per_page)){
 				$per_page = 0;
 			}
-			$iic_id = $this->input->get('iic_id', true);			
+			$patient_id = $this->input->get('patient_id', true);			
 			$config = array();
         	$config["base_url"] = base_url() . "accounts/admission_form_list";
         	$config["total_rows"] = $this->accounts_model->admission_form_count($iic_id);
@@ -6762,8 +6762,8 @@ public function indiaivf_document_list(){
         	$this->pagination->initialize($config);
         	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;			
         	$data["links"] = $this->pagination->create_links();
-			$data['admission_result'] = $this->accounts_model->admission_form_patination($config["per_page"], $per_page, $iic_id);
-			$data["iic_id"] = $iic_id;
+			$data['admission_result'] = $this->accounts_model->admission_form_patination($config["per_page"], $per_page, $patient_id);
+			$data["patient_id"] = $patient_id;
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
 			$this->load->view('accounts/admission_form_list', $data);
@@ -12459,31 +12459,46 @@ public function wallet_transfer_requests() {
         
         $this->load->library('pagination');
 
-        // 1. Filter Inputs Check (GET methods se data uthana)
+        // 1. Filter Inputs Check
         $filter_patient_id = $this->input->get('patient_id') ? trim($this->input->get('patient_id')) : '';
         $filter_status     = $this->input->get('status') ? trim($this->input->get('status')) : '';
+        $filter_start_date = $this->input->get('start_date') ? trim($this->input->get('start_date')) : '';
+        $filter_end_date   = $this->input->get('end_date') ? trim($this->input->get('end_date')) : '';
+        $filter_remarks    = $this->input->get('remarks') ? trim($this->input->get('remarks')) : '';
 
         // 2. Base Query Filters Setup (Total Rows Count karne ke liye)
+        $this->db->from('hms_wallet_logs wl');
+        // 🎯 YAHAN CHANGE KIYA: Join ab employee_number se match karega
+        $this->db->join('hms_employees emp', 'wl.created_by = emp.employee_number', 'left');
+
         if(!empty($filter_patient_id)) {
-            $this->db->where('patient_id', $filter_patient_id);
+            $this->db->where('wl.patient_id', $filter_patient_id);
         }
         if(!empty($filter_status)) {
-            $this->db->where('status', $filter_status);
+            $this->db->where('wl.status', $filter_status);
         }
+        if(!empty($filter_start_date)) {
+            $this->db->where('DATE(wl.created_at) >=', $filter_start_date);
+        }
+        if(!empty($filter_end_date)) {
+            $this->db->where('DATE(wl.created_at) <=', $filter_end_date);
+        }
+        if(!empty($filter_remarks)) {
+            $this->db->like('wl.remarks', $filter_remarks);
+        }
+        
         // Count total rows matching the filters
-        $total_rows = $this->db->count_all_results('hms_wallet_logs');
+        $total_rows = $this->db->count_all_results();
 
         // 3. Pagination & Query String Configuration
         $config['base_url']             = base_url('accounts/wallet_transfer_requests');
         $config['total_rows']           = $total_rows;
-        $config['per_page']             = 10; // Ek page par 10 records
-        $config['page_query_string']    = TRUE; // 🎯 TRUE kiya taaki URL parameters ?per_page= block na ho
-        $config['query_string_segment'] = 'per_page'; // CI query string offset variable
-
-        // URL Maintainer Logic: Taaki link badalne par filter ke parameters (?patient_id=...&status=...) sath rahein
+        $config['per_page']             = 10; 
+        $config['page_query_string']    = TRUE; 
+        $config['query_string_segment'] = 'per_page'; 
         $config['reuse_query_string']   = TRUE; 
 
-        // 4. Bootstrap Styling Tags for Pagination
+        // Bootstrap Styling Tags for Pagination
         $config['full_tag_open']   = '<ul class="pagination" style="margin:0;">';
         $config['full_tag_close']  = '</ul>';
         $config['num_tag_open']    = '<li>';
@@ -12504,24 +12519,41 @@ public function wallet_transfer_requests() {
         // Current offset value read karna url se
         $page = $this->input->get('per_page') ? $this->input->get('per_page') : 0;
 
-        // 5. Data Fetch Query with Limit & Active Filters
+        // 4. Data Fetch Query with Limit, Join & Active Filters
+        $this->db->select('wl.*, emp.name as employee_name'); 
+        $this->db->from('hms_wallet_logs wl');
+        // 🎯 YAHAN BHI CHANGE KIYA: Join ab employee_number se match karega
+        $this->db->join('hms_employees emp', 'wl.created_by = emp.employee_number', 'left');
+
         if(!empty($filter_patient_id)) {
-            $this->db->where('patient_id', $filter_patient_id);
+            $this->db->where('wl.patient_id', $filter_patient_id);
         }
         if(!empty($filter_status)) {
-            $this->db->where('status', $filter_status);
+            $this->db->where('wl.status', $filter_status);
+        }
+        if(!empty($filter_start_date)) {
+            $this->db->where('DATE(wl.created_at) >=', $filter_start_date);
+        }
+        if(!empty($filter_end_date)) {
+            $this->db->where('DATE(wl.created_at) <=', $filter_end_date);
+        }
+        if(!empty($filter_remarks)) {
+            $this->db->like('wl.remarks', $filter_remarks);
         }
 
-        $this->db->order_by("status = 'pending'", "DESC"); 
-        $this->db->order_by("created_at", "DESC");
+        $this->db->order_by("wl.status = 'pending'", "DESC"); 
+        $this->db->order_by("wl.created_at", "DESC");
         $this->db->limit($config['per_page'], $page);
         
-        $data['pending_logs'] = $this->db->get('hms_wallet_logs')->result_array();
+        $data['pending_logs'] = $this->db->get()->result_array();
         $data['pagination_links'] = $this->pagination->create_links();
 
-        // 6. View file mein puraane filters ko selected rakhne ke liye values pass karna
+        // Pass filter values back to view
         $data['search_patient_id'] = $filter_patient_id;
         $data['search_status']     = $filter_status;
+        $data['search_start_date'] = $filter_start_date;
+        $data['search_end_date']   = $filter_end_date;
+        $data['search_remarks']    = $filter_remarks;
 
         // View load engine
         $template = get_header_template($logg['role']);
@@ -12532,7 +12564,7 @@ public function wallet_transfer_requests() {
     } else {
         redirect(base_url());
     }
-}	
+}
 
 public function approve_wallet_transfer($log_id) {
     $logg = checklogin();
@@ -12587,14 +12619,15 @@ public function disapprove_wallet_transfer($log_id) {
         if (!empty($wallet)) {
             
             // 💡 कदम 1: यह तय करें कि किस वॉलेट से पैसा माइनस करना है
-            // अगर लॉग में 'closing_w2' इस्तेमाल हो रहा है तो Wallet 2, अन्यथा मुख्य Wallet 1
             $target_wallet = 'wallet_1_balance';
+            $wallet_label = 'Wallet 1'; // रिमार्क्स में दिखाने के लिए
             
             if (isset($log['action_type']) && (strpos(strtolower($log['action_type']), 'w2') !== false || strpos(strtolower($log['action_type']), 'wallet_2') !== false)) {
                 $target_wallet = 'wallet_2_balance';
+                $wallet_label = 'Wallet 2';
             } elseif (floatval($log['opening_w2']) > 0 || floatval($log['closing_w2']) > 0) {
-                // एक बैकअप चेक: अगर w2 का डेटा भरा हुआ है तो w2 टारगेट करें
                 $target_wallet = 'wallet_2_balance';
+                $wallet_label = 'Wallet 2';
             }
 
             // 💡 कदम 2: गणितीय गणना (Current Wallet Balance - Request Amount)
@@ -12606,16 +12639,45 @@ public function disapprove_wallet_transfer($log_id) {
                 $target_wallet => $new_balance,
                 'updated_at'   => date('Y-m-d H:i:s')
             ]);
+
+            // 💡 कदम 5: वॉलेट से डिडक्शन का नया लॉग रिकॉर्ड (आपके डेटाबेस कॉलम के अनुसार)
+            $new_log_data = [
+                'patient_id'   => $patient_id,
+                'amount'       => $amount_to_deduct,
+                'action_type'  => 'deducted_due_to_disapproval', 
+                'status'       => 'success', 
+                'remarks'      => "Amount deducted from $wallet_label due to disapproval of Log ID: #$log_id",
+                'created_by'   => $approver_name, // नया रिकॉर्ड बनाने वाले का नाम
+                'approved_by'  => $approver_name,
+                'created_at'   => date('Y-m-d H:i:s'),
+                'updated_at'   => date('Y-m-d H:i:s')
+            ];
+
+            // आपके कॉलम स्कीमा (opening_w1, closing_w1 आदि) के अनुसार बैलेंस सेट करना
+            if ($target_wallet == 'wallet_1_balance') {
+                $new_log_data['opening_w1'] = $current_balance;
+                $new_log_data['closing_w1'] = $new_balance;
+                $new_log_data['opening_w2'] = floatval($wallet['wallet_2_balance']); // w2 को जैसा है वैसा ही रखें
+                $new_log_data['closing_w2'] = floatval($wallet['wallet_2_balance']);
+            } else {
+                $new_log_data['opening_w1'] = floatval($wallet['wallet_1_balance']); // w1 को जैसा है वैसा ही रखें
+                $new_log_data['closing_w1'] = floatval($wallet['wallet_1_balance']);
+                $new_log_data['opening_w2'] = $current_balance;
+                $new_log_data['closing_w2'] = $new_balance;
+            }
+
+            // नया रिकॉर्ड इन्सर्ट करें
+            $this->db->insert('hms_wallet_logs', $new_log_data);
         }
         
-        // 💡 कदम 4: लॉग स्टेटस को 'disapproved' करें
+        // 💡 कदम 4: पुराने पेंडिंग लॉग स्टेटस को 'disapproved' करें
         $this->db->where('log_id', $log_id)->update('hms_wallet_logs', [
             'status' => 'disapproved',
             'approved_by' => $approver_name,
             'updated_at' => date('Y-m-d H:i:s') 
         ]);
         
-        $this->session->set_flashdata('error', 'Transfer Request Disapproved. Amount deducted from wallet.');
+        $this->session->set_flashdata('error', 'Transfer Request Disapproved. Amount deducted and new log created.');
     } else {
         $this->session->set_flashdata('error', 'Invalid Request or Request already processed.');
     }
@@ -12833,7 +12895,7 @@ private function generate_brand_new_receipt($log) {
                 <img src="https://www.indiaivf.in/images/IVF-Centre-IndiaIVF.webp" alt="Logo">
                 <!-- 🎯 [DYNAMIC BLOCK]: Displaying center name and center gst dynamically -->
                 <div class="center-details-text">
-                    <strong>Branch:</strong> <?php echo $center_data['center_name']; ?><br>
+                    <strong>Address:</strong> <?php echo $center_data['center_name']; ?><br>
                     <strong>GSTIN:</strong> <?php echo !empty($center_data['center_gst']) ? $center_data['center_gst'] : 'N/A'; ?>
                 </div>
             </div>
@@ -12893,7 +12955,7 @@ private function generate_brand_new_receipt($log) {
         </table>
 
         <div class="footer-note">
-            <p><strong>*Note:</strong> This is a provisional computer-generated receipt. The credited wallet balance is subject to actual realization of funds and final approval by the Accounts Department. If a payment (UPI/Cheque/Card) is declined or reversed by the bank, the equivalent wallet balance will be automatically deducted.*</p>
+            <p><strong>*Note:</strong> This is a provisional computer-generated receipt. The credited balance is subject to actual realization of funds and final approval by the Accounts Department. If a payment (UPI/Cheque/Card/Loan) is declined or reversed by the bank, the equivalent balance & bank charge, if any will be automatically deducted and/or reversed.*</p>
             <p>This is a certified digital receipt issued against your wallet action. For any queries, please visit the billing desk.</p>
             <p style="margin-top: 5px; font-weight: bold;">© <?php echo date('Y'); ?> India IVF Centre. All Rights Reserved.</p>
         </div>

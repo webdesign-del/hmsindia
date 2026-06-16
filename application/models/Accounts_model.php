@@ -4823,18 +4823,18 @@ public function generate_advance_receipt_number() {
 	
 	/************Admission Form*********/
 	
-	function admission_form_count($iic_id){
+	function admission_form_count($patient_id){
 		$admission_result = array();
 		$conditions = '';
-		if (!empty($iic_id)){
-			$conditions .= " and iic_id='$iic_id'";
+		if (!empty($patient_id)){
+			$conditions .= " and patient_id='$patient_id'";
 		}
 		$investigation_r_sql = "Select * from admission_form where 1 ".$conditions."";
 		$q = $this->db->query($investigation_r_sql);
 		return $q->num_rows();
 	}
 	
-	function admission_form_patination($limit, $page, $iic_id){
+	function admission_form_patination($limit, $page, $patient_id){
 		$admission_result = array();
 		$conditions = '';
 		if(empty($page)){
@@ -4842,8 +4842,8 @@ public function generate_advance_receipt_number() {
 		}else{
 			$offset = ($page - 1) * $limit;
 		}
-		if (!empty($iic_id)){
-			$conditions .= " and iic_id='$iic_id'";
+		if (!empty($patient_id)){
+			$conditions .= " and patient_id='$patient_id'";
 		}
 		$investigation_r_sql = "Select * from admission_form where 1".$conditions." order by id desc limit ". $limit." OFFSET ".$offset."";
 		$investigation_r_q = $this->db->query($investigation_r_sql);
