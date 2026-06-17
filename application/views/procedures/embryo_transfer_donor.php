@@ -75,7 +75,10 @@ $select_result8 = run_select_query($select_query8);
 	$select_result4 = run_select_query($sql4);
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
-	$select_result5 = run_select_query($sql5);		
+	$select_result5 = run_select_query($sql5);	
+	
+	$select_prp = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id'";
+	$select_result_prp = run_select_query($select_prp);
 	  
 ?>
 
@@ -152,7 +155,7 @@ $select_result8 = run_select_query($select_query8);
 
 					<td>
 
-						Indication<br><input type="text" maxlength="50" name="indication" class="form-control" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"  >
+						Indication<br><input type="text" maxlength="50" name="indication" class="form-control" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>" readoonly="" >
 
 					</td>
 

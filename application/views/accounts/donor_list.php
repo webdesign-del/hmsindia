@@ -63,6 +63,7 @@ switch($vl['type']) {
         echo '<a href="' . base_url() . 'procedures/ovulation_induction_protocol_donor/'.$vl['donor_patient_id'].'" target="_blank">Ovulation Induction Protocol Donor, </a>&nbsp';
         echo '<a href="' . base_url() . 'procedures/embryo_transfer_donor/'.$vl['donor_patient_id'].'" target="_blank">Embryo Transfer Donor, </a>&nbsp';
         echo '<a href="' . base_url() . 'procedures/oocyte_embryo_record_sheet_till_d3_donor/'.$vl['donor_patient_id'].'" target="_blank">Oocyte Embryo Record Sheet Till D3 Donor, </a>&nbsp';
+        echo '<a href="' . base_url() . 'procedures/initial_details_donor/'.$vl['donor_patient_id'].'" target="_blank">Initial Details Donor, </a>&nbsp';
         break;
     case "Surrogate":
         echo '<a href="surrogate_mother_personal_details">Surrogate</a>';

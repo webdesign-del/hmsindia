@@ -44,6 +44,9 @@ $patient_id = $select_result8['patient_id'];
     }
 	$select_query = "SELECT * FROM `hms_opu` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($select_query);
+
+	$select_prp = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id'";
+	$select_result_prp = run_select_query($select_prp);
 	
 	$sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
     $select_result3 = run_select_query($sql3); 	
@@ -115,7 +118,7 @@ $patient_id = $select_result8['patient_id'];
 			</td>
 			<td>
 				Indication<br>
-				<input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"     maxlength="50" name="indication" class="form-control" >
+				<input  type="text" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>"     maxlength="50" name="indication" class="form-control" readonly="">
 			</td>
 			<td>
 				Allergies<br>
