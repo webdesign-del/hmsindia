@@ -2768,19 +2768,23 @@ public function generate_pdf($id) {
 	}
 	
 	public function withdrawl_prescription($patient_id){
-		$logg = checklogin();
-		if($logg['status'] == true){		
-			$data = array();
-			$template = get_header_template($logg['role']);
-			$data['data'] = $this->accounts_model->patient_details($patient_id);
-			$this->load->view($template['header']);
-			$this->load->view('billings/withdrawl_prescription', $data);
-			$this->load->view($template['footer']);
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}
+    $logg = checklogin();
+    if($logg['status'] == true){        
+        $data = array();
+        $template = get_header_template($logg['role']);
+        $data['data'] = $this->accounts_model->patient_details($patient_id);
+        
+        // FIX: Assign this to the $data array so the view can read it
+        $data['master_investigations'] = $this->investigation_model->get_master_investigations_list();
+        
+        $this->load->view($template['header']);
+        $this->load->view('billings/withdrawl_prescription', $data);
+       // $this->load->view($template['footer']);
+    }else{
+        header("location:" .base_url(). "");
+        die();
+    }
+}
 	
 	function doctor_name($doctor_id){
 		$doctor_name = $this->doctors_model->get_doctor_data($doctor_id);
@@ -2909,6 +2913,40 @@ public function approve_consultation($patient_id) {
     } else {
         echo "Error: Record not found or already approved.";
     }
+}
+
+// Application Controller File (e.g., Counselor.php)
+public function save_preview_log() {
+    // AJAX request data sanitization
+    $patient_id = $this->input->post('patient_id');
+    $appointment_id = $this->input->post('appointment_id');
+    $consultation_id = $this->input->post('consultation_id');
+    $logged_user = $_SESSION["logged_counselor"]["employee_number"] ?? 'SYSTEM';
+    
+    // Unique Preview ID Generate Karna (Format: PRV-2026-XXXXX)
+    $unique_preview_id = 'PRV-' . date('Ymd') . '-' . strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 5));
+    
+    // Array ready karna database log ke liye
+    $log_data = array(
+        'preview_id'     => $unique_preview_id,
+        'patient_id'     => $patient_id,
+        'appointment_id' => $appointment_id,
+        'consultation_id'=> $consultation_id,
+        'generated_by'   => $logged_user,
+        'created_at'     => date('Y-m-d H:i:s'),
+        'ip_address'     => $this->input->ip_address()
+    );
+    
+    // Database me log record insert karna
+    // Note: 'hms_preview_logs' table aapko DB me create karna hoga
+    $this->db->insert('hms_preview_logs', $log_data);
+    
+    if ($this->db->affected_rows() > 0) {
+        echo json_encode(array('status' => 'success', 'preview_id' => $unique_preview_id));
+    } else {
+        echo json_encode(array('status' => 'error', 'message' => 'Failed to write log row.'));
+    }
+    exit;
 }
 	
 } 

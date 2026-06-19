@@ -12568,116 +12568,176 @@ public function wallet_transfer_requests() {
 
 public function approve_wallet_transfer($log_id) {
     $logg = checklogin();
-    
-    // Yahan par humne $_SESSION['logged_accountant']['name'] ka use kiya hai
     $approver_name = isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'Accountant';
 
-    // 1. Log se details nikalein
-    $log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id])->row_array();
+    // 1. Modal form se aane wale remarks ko capture karein
+    $update_remarks = $this->input->post('remarks');
+
+    // Pending record nikalein
+    $log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id, 'status' => 'pending'])->row_array();
     
-    if($log && $log['status'] == 'pending') {
-        $p_id = $log['patient_id'];
-        $amt = $log['amount'];
+    if($log) {
+        $patient_id = $log['patient_id'];
+        $amt = floatval($log['amount']);
+        $action_type = isset($log['action_type']) ? trim($log['action_type']) : '';
         
-        $wallets = $this->Wallet_model->get_wallets($p_id);
+        // Patient ka current balances fetch karein
+        $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row_array();
         
-        // 2. Balance update karein (W2 se minus, W1 mein plus)
-        $this->db->where('patient_id', $p_id)->update('hms_patient_wallets', [
-            'wallet_1_balance' => $wallets['wallet_1_balance'] + $amt,
-            'wallet_2_balance' => $wallets['wallet_2_balance'] - $amt
-        ]);
-        
-        // 3. Status 'approved' karein aur Appover ki details save karein
-        $this->db->where('log_id', $log_id)->update('hms_wallet_logs', [
-            'status' => 'approved',
-            'approved_by' => $approver_name, // Ab yahan sahi naam aayega
-            'updated_at' => date('Y-m-d H:i:s')
-        ]);
-        
-        $this->session->set_flashdata('success', 'Transfer Approved Successfully');
+        if(!empty($wallet)) {
+            $current_w1 = floatval($wallet['wallet_1_balance']);
+            $current_w2 = floatval($wallet['wallet_2_balance']);
+            
+            $new_w1 = $current_w1;
+            $new_w2 = $current_w2;
+            
+            // 🎯 CONDITION: Wallet 2 se Wallet 1 me Transfer
+            if ($action_type === 'TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET') {
+                
+                $new_w1 = $current_w1 + $amt; // Wallet 1 (Money) me Add hua
+                $new_w2 = $current_w2 - $amt; // Wallet 2 (Package) se Deduct hua
+                
+                $this->db->where('patient_id', $patient_id)->update('hms_patient_wallets', [
+                    'wallet_1_balance' => $new_w1,
+                    'wallet_2_balance' => $new_w2,
+                    'updated_at'       => date('Y-m-d H:i:s')
+                ]);
+                $msg = 'Transfer Approved! Amount moved from Package Wallet to Money Wallet.';
+                
+            } else {
+                $msg = 'Request Approved Successfully. Status Updated.';
+            }
+            
+            // Pending log ko approved mark karein aur UPDATE REMARKS save karein
+            $this->db->where('log_id', $log_id)->update('hms_wallet_logs', [
+                'status'         => 'approved',
+                'update_remarks' => $update_remarks, // <-- YAHAN ADD KIYA HAI
+                'opening_w1'     => $current_w1,
+                'closing_w1'     => $new_w1,
+                'opening_w2'     => $current_w2,
+                'closing_w2'     => $new_w2,
+                'approved_by'    => $approver_name,
+                'updated_at'     => date('Y-m-d H:i:s')
+            ]);
+            
+            $this->session->set_flashdata('success', $msg);
+        } else {
+            $this->session->set_flashdata('error', 'Patient wallet record not found.');
+        }
+    } else {
+        $this->session->set_flashdata('error', 'Invalid request or already processed.');
     }
     redirect($_SERVER['HTTP_REFERER']);
 }
 
 public function disapprove_wallet_transfer($log_id) {
     $logg = checklogin();
-    
-    // एकाउंटेंट का नाम सेशन से सुरक्षित निकालें
     $approver_name = isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'Accountant';
 
-    // लॉग आईडी से पूरी जानकारी निकालें
-    $log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id])->row_array();
-    
-    if($log && $log['status'] == 'pending') {
-        
-        $patient_id = $log['patient_id'];
-        $amount_to_deduct = floatval($log['amount']); // जो अमाउंट रिक्वेस्ट में था
+    // 1. Modal form se aane wale remarks ko capture karein
+    $update_remarks = $this->input->post('remarks');
 
-        // मरीज का मौजूदा वॉलेट रिकॉर्ड निकालें
+    // Pending log record check karein
+    $log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id, 'status' => 'pending'])->row_array();
+    
+    if($log) {
+        $patient_id = $log['patient_id'];
+        $amount_action = floatval($log['amount']);
+        $action_type = isset($log['action_type']) ? trim($log['action_type']) : '';
+
+        // Current wallet balances get karein
         $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row_array();
         
         if (!empty($wallet)) {
+            $current_w1 = floatval($wallet['wallet_1_balance']);
+            $current_w2 = floatval($wallet['wallet_2_balance']);
             
-            // 💡 कदम 1: यह तय करें कि किस वॉलेट से पैसा माइनस करना है
-            $target_wallet = 'wallet_1_balance';
-            $wallet_label = 'Wallet 1'; // रिमार्क्स में दिखाने के लिए
+            $new_w1 = $current_w1;
+            $new_w2 = $current_w2;
+            $log_remarks = "";
+            $new_action_type = 'reversed_due_to_disapproval';
+            $update_balance_flag = true;
+
+            // 🌟 1. WALLET 2 SE WALLET 1 TRANSFER REJECT
+            if ($action_type === 'TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET') {
+                $update_balance_flag = false; 
+                $log_remarks = "Transfer Disapproved: No balance changes made as request was pending.";
+                $new_action_type = 'transfer_w2_w1_rejected';
+            }
             
-            if (isset($log['action_type']) && (strpos(strtolower($log['action_type']), 'w2') !== false || strpos(strtolower($log['action_type']), 'wallet_2') !== false)) {
-                $target_wallet = 'wallet_2_balance';
-                $wallet_label = 'Wallet 2';
-            } elseif (floatval($log['opening_w2']) > 0 || floatval($log['closing_w2']) > 0) {
-                $target_wallet = 'wallet_2_balance';
-                $wallet_label = 'Wallet 2';
+            // 🌟 2. WALLET 1 SE WALLET 2 TRANSFER REJECT
+            elseif ($action_type === 'TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET') {
+                $new_w1 = $current_w1 + $amount_action; 
+                $new_w2 = $current_w2 - $amount_action; 
+                $log_remarks = "Transfer Disapproved: Amount returned back to Money Wallet and deducted from Package Wallet.";
+                $new_action_type = 'transfer_w1_w2_rejected';
+            }
+            
+            // 🌟 3. ALL BILLING / USAGE REJECTIONS
+            elseif (in_array($action_type, ['PACKAGE_USAGE', 'INVESTIGATION_USAGE', 'Medicine_Sale'])) {
+                if ($action_type === 'PACKAGE_USAGE') {
+                    $new_w2 = $current_w2 + $amount_action; 
+                    $log_remarks = "Billing Disapproved: Amount reversed and credited back to Package Wallet.";
+                } else {
+                    $new_w1 = $current_w1 + $amount_action; 
+                    $log_remarks = "Billing Disapproved: Amount reversed and credited back to Money Wallet.";
+                }
+                $new_action_type = 'billing_reversed';
+            }
+            
+            // 🌟 4. NORMAL MONEY ADD REJECTIONS
+            else {
+                if ($action_type === 'DEPOSIT_PACKAGE_WALLET') {
+                    $new_w2 = $current_w2 - $amount_action; 
+                    $log_remarks = "Add Money Disapproved: Amount deducted from Package Wallet.";
+                } else {
+                    $new_w1 = $current_w1 - $amount_action; 
+                    $log_remarks = "Add Money Disapproved: Amount deducted from Money Wallet.";
+                }
+                $new_action_type = 'add_money_rejected';
             }
 
-            // 💡 कदम 2: गणितीय गणना (Current Wallet Balance - Request Amount)
-            $current_balance = floatval($wallet[$target_wallet]);
-            $new_balance = $current_balance - $amount_to_deduct;
+            if ($update_balance_flag) {
+                $this->db->where('patient_id', $patient_id)->update('hms_patient_wallets', [
+                    'wallet_1_balance' => $new_w1,
+                    'wallet_2_balance' => $new_w2,
+                    'updated_at'       => date('Y-m-d H:i:s')
+                ]);
+            }
 
-            // 💡 कदम 3: मुख्य वॉलेट टेबल में सही कॉलम को अपडेट (Minus) करें
-            $this->db->where('patient_id', $patient_id)->update('hms_patient_wallets', [
-                $target_wallet => $new_balance,
-                'updated_at'   => date('Y-m-d H:i:s')
-            ]);
-
-            // 💡 कदम 5: वॉलेट से डिडक्शन का नया लॉग रिकॉर्ड (आपके डेटाबेस कॉलम के अनुसार)
+            // Ledger traceability log
             $new_log_data = [
-                'patient_id'   => $patient_id,
-                'amount'       => $amount_to_deduct,
-                'action_type'  => 'deducted_due_to_disapproval', 
-                'status'       => 'success', 
-                'remarks'      => "Amount deducted from $wallet_label due to disapproval of Log ID: #$log_id",
-                'created_by'   => $approver_name, // नया रिकॉर्ड बनाने वाले का नाम
-                'approved_by'  => $approver_name,
-                'created_at'   => date('Y-m-d H:i:s'),
-                'updated_at'   => date('Y-m-d H:i:s')
+                'patient_id'       => $patient_id,
+                'amount'           => $amount_action,
+                'action_type'      => $new_action_type, 
+                'opening_w1'       => $current_w1,
+                'closing_w1'       => $new_w1,
+                'opening_w2'       => $current_w2,
+                'closing_w2'       => $new_w2,
+                'reference_id'     => $log['reference_id'],
+                'receipt_number'   => $log['receipt_number'],
+                'payment_method'   => $log['payment_method'],
+                'status'           => 'disapproved', 
+                'remarks'          => $log_remarks,
+                'update_remarks'   => $update_remarks, // <-- New Log me bhi show ho jayega (optional)
+                'center'           => $log['center'],
+                'created_by'       => $approver_name, 
+                'approved_by'      => $approver_name,
+                'created_at'       => date('Y-m-d H:i:s'),
+                'updated_at'       => date('Y-m-d H:i:s')
             ];
-
-            // आपके कॉलम स्कीमा (opening_w1, closing_w1 आदि) के अनुसार बैलेंस सेट करना
-            if ($target_wallet == 'wallet_1_balance') {
-                $new_log_data['opening_w1'] = $current_balance;
-                $new_log_data['closing_w1'] = $new_balance;
-                $new_log_data['opening_w2'] = floatval($wallet['wallet_2_balance']); // w2 को जैसा है वैसा ही रखें
-                $new_log_data['closing_w2'] = floatval($wallet['wallet_2_balance']);
-            } else {
-                $new_log_data['opening_w1'] = floatval($wallet['wallet_1_balance']); // w1 को जैसा है वैसा ही रखें
-                $new_log_data['closing_w1'] = floatval($wallet['wallet_1_balance']);
-                $new_log_data['opening_w2'] = $current_balance;
-                $new_log_data['closing_w2'] = $new_balance;
-            }
-
-            // नया रिकॉर्ड इन्सर्ट करें
             $this->db->insert('hms_wallet_logs', $new_log_data);
         }
         
-        // 💡 कदम 4: पुराने पेंडिंग लॉग स्टेटस को 'disapproved' करें
+        // Original pending log row ko update mark karein aur UPDATE REMARKS save karein
         $this->db->where('log_id', $log_id)->update('hms_wallet_logs', [
-            'status' => 'disapproved',
-            'approved_by' => $approver_name,
-            'updated_at' => date('Y-m-d H:i:s') 
+            'status'         => 'disapproved',
+            'update_remarks' => $update_remarks, // <-- YAHAN ADD KIYA HAI
+            'approved_by'    => $approver_name,
+            'updated_at'     => date('Y-m-d H:i:s') 
         ]);
         
-        $this->session->set_flashdata('error', 'Transfer Request Disapproved. Amount deducted and new log created.');
+        $this->session->set_flashdata('success', 'Request Disapproved Successfully. Wallet structured reversal completed.');
     } else {
         $this->session->set_flashdata('error', 'Invalid Request or Request already processed.');
     }
@@ -12966,6 +13026,8 @@ private function generate_brand_new_receipt($log) {
     </html>
     <?php
 }
+
+
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 
 	

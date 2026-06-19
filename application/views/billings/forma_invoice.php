@@ -70,6 +70,11 @@ foreach ($procedure_list as $proc) {
                             <td colspan="1" style="font-size:14px; font-weight: bold; border:none;">Age :</td>
                             <td colspan="1" style="border:none;"><b><?php echo $select_result3["husband_age"]; ?></b></td>
                          </tr>
+                         <!-- Is row ko existing table header me add karein (Name of Wife ke upar ya niche) -->
+<!--<tr id="preview_id_row" style="display:none;">
+   <td colspan="1" style="font-size:14px; font-weight: bold; border:none; color: #d32f2f;">Preview ID : </td>
+   <td colspan="3" style="border:none;"><b id="printed_preview_id" style="font-size:15px; color: #d32f2f;"></b></td>
+</tr>-->
                       </tbody>
                    </table>
 
@@ -266,15 +271,30 @@ foreach ($procedure_list as $proc) {
                       </tbody>
                    </table>
                </div>
-
                <div style="margin-top:20px;">
-                  <?php if ($select_result["status"] == "0") { ?>
+   <?php if ($select_result["status"] == "0") { ?>
+    <input type='submit' id='btnsubmit' value='Submit Data' class="btn btn-success pull-right" style="margin-left:10px;">
+   
+      <button type='button' id='btnpreview_log' class="btn btn-warning pull-right" style="margin-left:10px;" onclick='generatePreviewLog();'>Print Preview (Log)</button>
+   
+   <?php } ?>
+   
+   <!-- HUNDRED PERCENT STATUS 1 KE LIYE NAYA LOGGING PREVIEW BUTTON -->
+   <?php if ($select_result["status"] == "1") { ?>
+      <input type='button' id='btnprint' value='Direct Print' class="btn btn-primary pull-right" onclick='printDiv2();'>
+     
+   <?php } ?>
+</div>
+
+              <!--  <div style="margin-top:20px;">
+                
+                 <?php if ($select_result["status"] == "0") { ?>
                      <input type='submit' id='btnsubmit' value='Submit Data' class="btn btn-success pull-right" style="margin-left:10px;">
                   <?php } ?>
                   <?php if ($select_result["status"] == "1") { ?>
                      <input type='button' id='btnprint' value='Print Preview' class="btn btn-primary pull-right" onclick='printDiv2();'>
                   <?php } ?>
-               </div>
+               </div>-->
             </form>
          </div>
       </div>
@@ -437,4 +457,55 @@ foreach ($procedure_list as $proc) {
         `);
         newWin.document.close();
     }
+</script>
+
+<script>
+// 🚀 NEW FUNCTION: PREVIEW LOG GENERATION ENGINE
+function generatePreviewLog() {
+    var patientId = $('#patient_id').val();
+    var appointmentId = $('#appointment_id').val();
+    var idDocConsult = $('#ID').val(); // hms_doctor_consultation ID
+    
+    // Disable button to prevent double clicks
+    $('#btnpreview_log').attr('disabled', true).text('Generating Log...');
+
+    // AJAX call background me log record karne ke liye
+    $.ajax({
+        url: '<?php echo base_url("Billings/save_preview_log"); ?>', // Apne CRM ka sahi route path yahan dalein
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            patient_id: patientId,
+            appointment_id: appointmentId,
+            consultation_id: idDocConsult
+        },
+        success: function(response) {
+            if(response.status === 'success' || response.preview_id) {
+                // 1. Preview ID ko UI par dynamically set karein
+                $('#printed_preview_id').text(response.preview_id);
+                $('#preview_id_row').show(); // Print area me row ko visible karein
+                
+                // 2. Log generate hone ke baad directly print engine call karein
+                printDiv2();
+                
+                // 3. Print hone ke baad row ko wapas hide kar sakte hain agar screen par nahi dikhana
+                setTimeout(function(){
+                    $('#preview_id_row').hide();
+                }, 1000);
+            } else {
+                alert('Warning: Log could not be saved, but opening preview.');
+                printDiv2();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("Logging Error: ", error);
+            alert('Server error while recording log. Opening normal preview.');
+            printDiv2(); // Fallback: Kuch error aaye toh bhi print na ruke
+        },
+        complete: function() {
+            // Button ko wapas normal state me layen
+            $('#btnpreview_log').attr('disabled', false).text('Print Preview (Log)');
+        }
+    });
+}
 </script>

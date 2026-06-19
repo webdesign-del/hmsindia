@@ -64,7 +64,7 @@
 <input type="hidden" value="<?php echo $patient_id; ?>" class="form" name="patient_id">
 
 
-<h3 style="color: #4141ab;">GENERAL INSTRUCTIONS PRIOR TO OVUM PICK UP/OVARIAN CYST/ ASPIRATION /PRP/ STEM CELLS / LAP/ HYSTERO/FNAC TESTES/TESA/TESE/TESA/M TESE</h3>
+<!--<h3 style="color: #4141ab;">GENERAL INSTRUCTIONS PRIOR TO OVUM PICK UP/OVARIAN CYST/ ASPIRATION /PRP/ STEM CELLS / LAP/ HYSTERO/FNAC TESTES/TESA/TESE/TESA/M TESE</h3>-->
 <div class="ga-pro">
 <h3>GENERAL INSTRUCTIONS PRIOR TO PROCEDURE NEEDING GA</h3>
 <p>1.Stop Tablet Ecosprin/Aspirin/Baby aspirin 48 hrs prior to procedure</p>
@@ -131,7 +131,7 @@
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
    <td style="width:30%;padding:5px;" colspan="1"><img src="https://indiaivf.website/assets/images/india-ivf-logo.webp"></td>
-   <td style="width:70%;padding:5px;" colspan="3"><h3 style="margin-top:20px;color: #4141ab;">GENERAL INSTRUCTIONS PRIOR TO OVUM PICK UP/OVARIAN CYST/ ASPIRATION /PRP/ STEM CELLS/ LAP/ HYSTERO/FNAC TESTES/TESA/TESE/TESA/M TESE</h3></td>
+   <!--<td style="width:70%;padding:5px;" colspan="3"><h3 style="margin-top:20px;color: #4141ab;">GENERAL INSTRUCTIONS PRIOR TO OVUM PICK UP/OVARIAN CYST/ ASPIRATION /PRP/ STEM CELLS/ LAP/ HYSTERO/FNAC TESTES/TESA/TESE/TESA/M TESE</h3></td>-->
    </tr>
 </table>
 <form action="" enctype='multipart/form-data' method="post">

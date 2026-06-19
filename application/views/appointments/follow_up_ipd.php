@@ -823,46 +823,6 @@ if (!empty($billed_data)) {
    	});
    });
    
-   $("#medicine_suggestion").change(function() {
-   //Male Medicine
-   $("select#male_medicine_suggestion_list").prop('disabled',true);
-   $("select#male_medicine_suggestion_list").parent().find('button').prop('disabled',true);
-   $("select#male_medicine_suggestion_list").parent().find('button').addClass('disabled');
-   $('option', $('#male_medicine_suggestion_list')).each(function(element) {
-   	$(this).removeAttr('selected').prop('selected', false);
-   });
-   $("#male_medicine_suggestion_list").multiselect('refresh');	
-   $("select#male_medicine_suggestion_list").prop('required',false);
-   //Female Medicine
-   $("select#female_medicine_suggestion_list").prop('disabled',true);
-   $("select#female_medicine_suggestion_list").parent().find('button').prop('disabled',true);
-   $("select#female_medicine_suggestion_list").parent().find('button').addClass('disabled');
-   $('option', $('#female_medicine_suggestion_list')).each(function(element) {
-   	$(this).removeAttr('selected').prop('selected', false);
-   });
-   $("#female_medicine_suggestion_list").multiselect('refresh');	
-   $("select#female_medicine_suggestion_list").prop('required',false);
-   
-   $("#male_medicine_table").hide();
-   $("#female_medicine_table").hide();
-   $('div[id^="medicine_male_"]').remove();
-   $('div[id^="medicine_female_"]').remove();
-   $('input[name^="male_medicine_name_"]').remove();
-   $('input[name^="female_medicine_name_"]').remove();
-   
-   if(this.checked) {
-   	$("select#male_medicine_suggestion_list").prop('required',false);
-   	$("select#male_medicine_suggestion_list").prop('disabled',false);
-   	$("select#male_medicine_suggestion_list").parent().find('button').prop('disabled',false);
-   	$("select#male_medicine_suggestion_list").parent().find('button').removeClass('disabled');
-   	
-   	$("select#female_medicine_suggestion_list").prop('required',true);
-   	$("select#female_medicine_suggestion_list").prop('disabled',false);
-   	$("select#female_medicine_suggestion_list").parent().find('button').prop('disabled',false);
-   	$("select#female_medicine_suggestion_list").parent().find('button').removeClass('disabled');
-   }
-   });
-   
    $("#medicine_suggestion_ipd").change(function() {
    $("select#male_medicine_suggestion_list_ipd").prop('disabled',true);
    $("select#male_medicine_suggestion_list_ipd").parent().find('button').prop('disabled',true);
@@ -905,35 +865,6 @@ if (!empty($billed_data)) {
    });
    
    $("#investigation_suggestion").change(function() {
-   $("select#male_investigation_suggestion_list").prop('disabled',true);
-   $("select#male_investigation_suggestion_list").parent().find('button').prop('disabled',true);
-   $("select#male_investigation_suggestion_list").parent().find('button').addClass('disabled');
-   $('option', $('#male_investigation_suggestion_list')).each(function(element) {
-   	$(this).removeAttr('selected').prop('selected', false);
-   });
-   $("#male_investigation_suggestion_list").multiselect('refresh');
-   $("select#male_investigation_suggestion_list").prop('required',false);
-   
-   $("select#female_investigation_suggestion_list").prop('disabled',true);
-   $("select#female_investigation_suggestion_list").parent().find('button').prop('disabled',true);
-   $("select#female_investigation_suggestion_list").parent().find('button').addClass('disabled');
-   $('option', $('#female_investigation_suggestion_list')).each(function(element) {
-   	$(this).removeAttr('selected').prop('selected', false);
-   });
-   $("#female_investigation_suggestion_list").multiselect('refresh');
-   $("select#female_investigation_suggestion_list").prop('required',false);
-   
-   if(this.checked) {
-   	$("select#male_investigation_suggestion_list").prop('required',false);
-   	$("select#male_investigation_suggestion_list").prop('disabled',false);
-   	$("select#male_investigation_suggestion_list").parent().find('button').prop('disabled',false);
-   	$("select#male_investigation_suggestion_list").parent().find('button').removeClass('disabled');
-   	
-   	$("select#female_investigation_suggestion_list").prop('required',true);
-   	$("select#female_investigation_suggestion_list").prop('disabled',false);
-   	$("select#female_investigation_suggestion_list").parent().find('button').prop('disabled',false);
-   	$("select#female_investigation_suggestion_list").parent().find('button').removeClass('disabled');
-   }
    
    $("select#male_minvestigation_suggestion_list").prop('disabled',true);
    $("select#male_minvestigation_suggestion_list").parent().find('button').prop('disabled',true);
@@ -985,24 +916,6 @@ if (!empty($billed_data)) {
    }
    });
    
-   $("#package_suggestion").change(function() {
-   $("select#package_suggestion_list").prop('disabled',true);
-   $("select#package_suggestion_list").parent().find('button').prop('disabled',true);
-   $("select#package_suggestion_list").parent().find('button').addClass('disabled');
-   $('option', $('#package_suggestion_list')).each(function(element) {
-   	$(this).removeAttr('selected').prop('selected', false);
-   });
-   $("#package_suggestion_list").multiselect('refresh');
-   $("select#package_suggestion_list").prop('required',false);
-   
-   if(this.checked) {
-   	$("select#package_suggestion_list").prop('required',true);
-   	$("select#package_suggestion_list").prop('disabled',false);
-   	$("select#package_suggestion_list").parent().find('button').prop('disabled',false);
-   	$("select#package_suggestion_list").parent().find('button').removeClass('disabled');
-   }
-   });
-   
    var multiselectSelections = {};
    
    function forceCaptureMultiselectValues() {
@@ -1010,15 +923,11 @@ if (!empty($billed_data)) {
        console.log('Processing multiselect elements...');
        
        var selectors = [
-           'select[id="female_medicine_suggestion_list"]',
-           'select[id="male_medicine_suggestion_list"]',
            'select[id="female_medicine_suggestion_list_ipd"]',
            'select[id="male_medicine_suggestion_list_ipd"]',
            'select[id="female_minvestigation_suggestion_list"]',
            'select[id="male_minvestigation_suggestion_list"]',
-           'select[id="sub_procedure_suggestion_list"]',
-           'select[id="package_suggestion_list"]',
-           'select[name="advisory_templates[]"]'
+           'select[id="sub_procedure_suggestion_list"]'
        ];
        
        selectors.forEach(function(selector) {
@@ -1248,26 +1157,6 @@ if (!empty($billed_data)) {
        $(tableId).show();
    }
    
-   $('#female_medicine_suggestion_list').change(function() {
-       var selectedMedicines = $(this).val();
-       if (selectedMedicines && selectedMedicines.length > 0 && selectedMedicines[0] !== '0') {
-           generateMedicineFieldsFromArray('female', selectedMedicines, '');
-       } else {
-           $('#female_medicine_table').hide();
-           $('#female_medicine_suggestion_table').empty();
-       }
-   });
-   
-   $('#male_medicine_suggestion_list').change(function() {
-       var selectedMedicines = $(this).val();
-       if (selectedMedicines && selectedMedicines.length > 0 && selectedMedicines[0] !== '0') {
-           generateMedicineFieldsFromArray('male', selectedMedicines, '');
-       } else {
-           $('#male_medicine_table').hide();
-           $('#male_medicine_suggestion_table').empty();
-       }
-   });
-   
    $('#female_medicine_suggestion_list_ipd').change(function() {
        var selectedMedicines = $(this).val();
        if (selectedMedicines && selectedMedicines.length > 0 && selectedMedicines[0] !== '0') {
@@ -1325,14 +1214,6 @@ if (!empty($billed_data)) {
            };
        }
        
-       if ($('#medicine_suggestion').is(':checked')) {
-           data.sections.medicines_opd = {
-               enabled: true,
-               female_medicines: collectMedicineData('female', ''),
-               male_medicines: collectMedicineData('male', '')
-           };
-       }
-       
        if ($('#medicine_suggestion_ipd').is(':checked')) {
            data.sections.medicines_ipd = {
                enabled: true,
@@ -1345,13 +1226,6 @@ if (!empty($billed_data)) {
            data.sections.procedures = {
                enabled: true,
                sub_procedure_suggestion_list: getMultiselectValues('sub_procedure_suggestion_list')
-           };
-       }
-       
-       if ($('#package_suggestion').is(':checked')) {
-           data.sections.packages = {
-               enabled: true,
-               package_suggestion_list: getMultiselectValues('package_suggestion_list')
            };
        }
        
@@ -1497,7 +1371,6 @@ if (!empty($billed_data)) {
            ${generateInvestigationSection(formData)}
            ${generateMedicineSection(formData)}
            ${generateProcedureSection(formData)}
-           ${generatePackageSection(formData)}
            ${generateFollowUpSection(formData)}
            
            <div class="footer">
@@ -1531,16 +1404,6 @@ if (!empty($billed_data)) {
    
    function generateMedicineSection(formData) {
        var html = '';
-       if (formData.sections && formData.sections.medicines_opd && formData.sections.medicines_opd.enabled) {
-           html += '<div class="section"><div class="section-title">OPD Medicines</div>';
-           if (formData.sections.medicines_opd.female_medicines && formData.sections.medicines_opd.female_medicines.length > 0) {
-               html += '<div class="field"><span class="field-label">Female Medicines:</span></div>' + generateMedicineTable(formData.sections.medicines_opd.female_medicines);
-           }
-           if (formData.sections.medicines_opd.male_medicines && formData.sections.medicines_opd.male_medicines.length > 0) {
-               html += '<div class="field"><span class="field-label">Male Medicines:</span></div>' + generateMedicineTable(formData.sections.medicines_opd.male_medicines);
-           }
-           html += '</div>';
-       }
        if (formData.sections && formData.sections.medicines_ipd && formData.sections.medicines_ipd.enabled) {
            html += '<div class="section"><div class="section-title">IPD Medicines</div>';
            if (formData.sections.medicines_ipd.female_medicines && formData.sections.medicines_ipd.female_medicines.length > 0) {
@@ -1577,18 +1440,6 @@ if (!empty($billed_data)) {
        if (formData.sections.procedures.sub_procedure_suggestion_list && formData.sections.procedures.sub_procedure_suggestion_list.length > 0) {
            html += '<ul>';
            formData.sections.procedures.sub_procedure_suggestion_list.forEach(function(proc) { html += '<li>' + proc + '</li>'; });
-           html += '</ul>';
-       }
-       html += '</div>';
-       return html;
-   }
-   
-   function generatePackageSection(formData) {
-       if (!formData.sections || !formData.sections.packages || !formData.sections.packages.enabled) return '';
-       var html = '<div class="section"><div class="section-title">Packages Recommended</div>';
-       if (formData.sections.packages.package_suggestion_list && formData.sections.packages.package_suggestion_list.length > 0) {
-           html += '<ul>';
-           formData.sections.packages.package_suggestion_list.forEach(function(pkg) { html += '<li>' + pkg + '</li>'; });
            html += '</ul>';
        }
        html += '</div>';

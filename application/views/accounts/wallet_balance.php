@@ -211,13 +211,15 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                 </div>
                 <div class="modal-body">
                     <input type="hidden" name="patient_id" value="<?php echo $paitent_id; ?>">
+                    
                     <div class="form-group">
-                        <label>Deposit Amount</label>
+                        <label>Deposit Amount <span class="text-danger">*</span></label>
                         <input type="number" name="amount" class="form-control" step="0.01" required>
                     </div>
+                    
                     <div class="form-group">
-                        <label>Payment Mode</label>
-                        <select name="payment_method" class="form-control" require>
+                        <label>Payment Mode <span class="text-danger">*</span></label>
+                        <select name="payment_method" id="paymentModeSelect" class="form-control" required>
                             <option value=""> - - - Select - - - </option>
                             <option value="UPI">UPI</option>
                             <option value="Credit Card">Credit Card</option>
@@ -225,23 +227,26 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                             <option value="Bank Transfer">Bank Transfer</option>
                         </select>
                     </div>
+                    
                     <div class="form-group">
-                        <label>Upload Screenshot (Optional)</label>
-                        <input type="file" name="screenshot" class="form-control" accept="image/*">
+                        <label>Upload Screenshot <span id="screenshotLabelText" class="text-danger">*</span></label>
+                        <input type="file" name="screenshot" id="screenshotInput" class="form-control" accept="image/*" required>
                         <small class="text-muted">Max size: 2MB (JPG/PNG)</small>
                     </div>
+                    
                      <div class="form-group">
-                        <label>Transaction ID</label>
+                        <label>Transaction ID / Reference <span class="text-danger">*</span></label>
                         <input type="text" name="reference_id" class="form-control" required>
-                        <input type="text" name="receipt_number" class="form-control" value="<?php echo $final_receipt_number; ?>" readonly="">
+                        <input type="text" name="receipt_number" class="form-control mt-2" value="<?php echo $final_receipt_number; ?>" readonly>
                     </div>
+                    
                     <div class="form-group">
-                        <label>Remarks</label>
+                        <label>Remarks <span class="text-danger">*</span></label>
                         <input type="text" name="remarks" class="form-control" required>
                     </div>
+                    
                 </div>
                 <div class="modal-footer">
-                    
                     <button type="submit" class="btn btn-success">Add Amount</button>
                 </div>
             </form>
@@ -320,13 +325,13 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                     <input type="hidden" name="patient_id" value="<?php echo $paitent_id; ?>">
                     
                     <div class="form-group">
-                        <label>Deposit Amount</label>
+                        <label>Deposit Amount <span class="text-danger">*</span></label>
                         <input type="number" name="amount" class="form-control" step="0.01" required>
                     </div>
 
                     <div class="form-group">
-                        <label>Payment Mode</label>
-                        <select name="payment_method" class="form-control" require>
+                        <label>Payment Mode <span class="text-danger">*</span></label>
+                        <select name="payment_method" id="packagePaymentModeSelect" class="form-control" required>
                             <option value=""> - - - Select - - - </option>
                             <option value="UPI">UPI</option>
                             <option value="Credit Card">Credit Card</option>
@@ -337,20 +342,22 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                     </div>
 
                     <div class="form-group">
-                        <label>Upload Screenshot (Optional)</label>
-                        <input type="file" name="screenshot" class="form-control" accept="image/*">
+                        <label>Upload Screenshot <span id="packageScreenshotLabelText" class="text-danger">*</span></label>
+                        <input type="file" name="screenshot" id="packageScreenshotInput" class="form-control" accept="image/*" required>
                         <small class="text-muted">Max size: 2MB (JPG/PNG)</small>
                     </div>
-                     <div class="form-group">
-                        <label>Transaction ID</label>
-                        <input type="text" name="reference_id" class="form-control" required>
-                        <input type="text" name="receipt_number" class="form-control" value="<?php echo $final_receipt_number; ?>" readonly="">
                     
+                     <div class="form-group">
+                        <label>Transaction ID / Reference <span class="text-danger">*</span></label>
+                        <input type="text" name="reference_id" class="form-control" required>
+                        <input type="text" name="receipt_number" class="form-control mt-2" value="<?php echo $final_receipt_number; ?>" readonly>
                     </div>
+                    
                     <div class="form-group">
-                        <label>Remarks</label>
+                        <label>Remarks <span class="text-danger">*</span></label>
                         <input type="text" name="remarks" class="form-control" required>
                     </div>
+                    
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Add to Package</button>
@@ -422,7 +429,8 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                                 <th style="text-align: right;">Package Wallet (W2)</th>
                                 <th>Method</th>
                                 <th>Remarks / Notes</th>
-                                <th style="text-align: center;">Status</th> <th style="text-align: center;">Screenshot</th>
+                                <th style="text-align: center;">Status</th>
+                                <th style="text-align: center;">Screenshot</th>
                                 <th style="text-align: center; width: 110px;">Action</th> 
                             </tr>
                         </thead>
@@ -469,29 +477,95 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                                             ?>
                                         </td>
                                         
-                                        <td style="text-align: right; vertical-align: middle;">
-                                            <span style="font-weight: 600; color: <?php echo ($history['closing_w1'] >= $history['opening_w1']) ? '#27ae60' : '#c0392b'; ?>;">
-                                                ₹ <?php echo number_format($history['amount'], 2); ?>
-                                            </span>
-                                            <br>
-                                            <small class="text-muted" style="font-size: 11px;">
-                                                Bal: ₹<?php echo number_format($history['closing_w1'], 2); ?>
-                                            </small>
-                                        </td>
-                                        
-                                        <td style="text-align: right; vertical-align: middle;">
-                                            <?php if(isset($history['opening_w2'])): ?>
-                                                <span style="font-weight: 600; color: #2980b9;">
-                                                    ₹ <?php echo number_format($history['closing_w2'] - $history['opening_w2'], 2); ?>
-                                                </span>
-                                                <br>
-                                                <small class="text-muted" style="font-size: 11px;">
-                                                    Bal: ₹<?php echo number_format($history['closing_w2'], 2); ?>
-                                                </small>
-                                            <?php else: ?>
-                                                <span class="text-muted">-</span>
-                                            <?php endif; ?>
-                                        </td>
+     <td style="text-align: right; vertical-align: middle;">
+    <?php 
+        $amt = (float)$history['amount'];
+        $action = strtoupper(trim($history['action_type']));
+        $status = strtolower(trim($history['status']));
+        
+        // Math difference check
+        $diff_w1 = round((float)$history['closing_w1'] - (float)$history['opening_w1'], 2);
+        
+        // CONDITION 1: Agar sach mein calculation hui hai (Disapprovals ke liye)
+        if (abs($diff_w1) > 0) {
+            if ($diff_w1 > 0) {
+                echo '<span style="font-weight: 600; color: #27ae60;">+ ₹ ' . number_format($diff_w1, 2) . '</span>';
+            } else {
+                echo '<span style="font-weight: 600; color: #c0392b;">- ₹ ' . number_format(abs($diff_w1), 2) . '</span>';
+            }
+        } 
+        // CONDITION 2: Agar Math 0 hai (Approval ki wajah se), toh Name se pakdenge
+        elseif ($amt > 0) {
+            // W1 mein PLUS hone wale Actions
+            if (in_array($action, ['DEPOSIT_MONEY_WALLET', 'TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET'])) {
+                $color = ($status == 'pending') ? '#f39c12' : '#27ae60';
+                echo '<span style="font-weight: 600; color: '.$color.';">+ ₹ ' . number_format($amt, 2) . '</span>';
+            } 
+            // W1 se MINUS hone wale Actions
+            elseif (in_array($action, ['TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET', 'INVESTIGATION_USAGE', 'MEDICINE_SALE'])) {
+                $color = ($status == 'pending') ? '#f39c12' : '#c0392b';
+                echo '<span style="font-weight: 600; color: '.$color.';">- ₹ ' . number_format($amt, 2) . '</span>';
+            } 
+            else {
+                echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+            }
+        } 
+        else {
+            echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+        }
+    ?>
+    <br>
+    <small class="text-muted" style="font-size: 11px;">
+        Bal: ₹<?php echo number_format($history['closing_w1'], 2); ?>
+    </small>
+</td>
+
+<td style="text-align: right; vertical-align: middle;">
+    <?php if(isset($history['opening_w2'])): ?>
+        <?php 
+            $amt = (float)$history['amount'];
+            $action = strtoupper(trim($history['action_type']));
+            $status = strtolower(trim($history['status']));
+            
+            // Math difference check
+            $diff_w2 = round((float)$history['closing_w2'] - (float)$history['opening_w2'], 2);
+            
+            // CONDITION 1: Agar sach mein calculation hui hai (Disapprovals ke liye)
+            if (abs($diff_w2) > 0) {
+                if ($diff_w2 > 0) {
+                    echo '<span style="font-weight: 600; color: #27ae60;">+ ₹ ' . number_format($diff_w2, 2) . '</span>';
+                } else {
+                    echo '<span style="font-weight: 600; color: #c0392b;">- ₹ ' . number_format(abs($diff_w2), 2) . '</span>';
+                }
+            } 
+            // CONDITION 2: Agar Math 0 hai (Approval ki wajah se), toh Name se pakdenge
+            elseif ($amt > 0) {
+                // W2 mein PLUS hone wale Actions
+                if (in_array($action, ['DEPOSIT_PACKAGE_WALLET', 'TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET'])) {
+                    $color = ($status == 'pending') ? '#f39c12' : '#27ae60';
+                    echo '<span style="font-weight: 600; color: '.$color.';">+ ₹ ' . number_format($amt, 2) . '</span>';
+                } 
+                // W2 se MINUS hone wale Actions
+                elseif (in_array($action, ['TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET', 'PACKAGE_USAGE'])) {
+                    $color = ($status == 'pending') ? '#f39c12' : '#c0392b';
+                    echo '<span style="font-weight: 600; color: '.$color.';">- ₹ ' . number_format($amt, 2) . '</span>';
+                } 
+                else {
+                    echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+                }
+            } 
+            else {
+                echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+            }
+        ?>
+        <br>
+        <small class="text-muted" style="font-size: 11px;">
+            Bal: ₹<?php echo number_format($history['closing_w2'], 2); ?>
+        </small>
+    <?php else: ?>
+        <span class="text-muted">-</span>
+    <?php endif; ?>
+</td>
                                         
                                         <td style="vertical-align: middle;">
                                             <span class="badge" style="background-color: #7f8c8d; color:#fff; font-weight: normal; padding: 3px 6px;">
@@ -512,8 +586,8 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                                                 <span class="label label-warning" style="padding: 4px 8px; font-weight: bold;"><i class="fa fa-spinner fa-spin"></i> Pending</span>
                                             <?php elseif($status == 'approved' || $status == 'success'): ?>
                                                 <span class="label label-success" style="padding: 4px 8px; font-weight: bold;"><i class="fa fa-check-circle"></i> Approved</span>
-                                            <?php elseif($status == 'disapproved' || $status == 'rejected'): ?>
-                                                <span class="label label-danger" style="padding: 4px 8px; font-weight: bold;"><i class="fa fa-times-circle"></i> Rejected</span>
+                                            <?php elseif($status == 'disapproved' || $status == 'disapproved'): ?>
+                                                <span class="label label-danger" style="padding: 4px 8px; font-weight: bold;"><i class="fa fa-times-circle"></i> Disapproved</span>
                                             <?php else: ?>
                                                 <span class="label label-default" style="padding: 4px 8px; font-weight: bold;"><?php echo ucfirst($status); ?></span>
                                             <?php endif; ?>
@@ -606,5 +680,43 @@ $(document).ready(function() {
         $('.modal-backdrop').remove();
         $('body').removeClass('modal-open');
     });
+});
+</script>
+<script>
+$(document).ready(function() {
+    // Jab payment mode change ho
+    $('#paymentModeSelect').on('change', function() {
+        var selectedMode = $(this).val();
+        
+        if (selectedMode === 'Cash') {
+            // Agar Cash hai toh Screenshot optional banayein
+            $('#screenshotInput').removeAttr('required');
+            $('#screenshotLabelText').removeClass('text-danger').addClass('text-muted').text('(Optional)');
+        } else {
+            // Baki sab (UPI, Bank, Card) ke liye mandatory rakhein
+            $('#screenshotInput').attr('required', 'required');
+            $('#screenshotLabelText').removeClass('text-muted').addClass('text-danger').html('*');
+        }
+    });
+});
+</script>
+<script>
+$(document).ready(function() {
+    
+    // Package Wallet Modal ka logic
+    $('#packagePaymentModeSelect').on('change', function() {
+        var selectedMode = $(this).val();
+        
+        if (selectedMode === 'Cash') {
+            // Agar Cash select kiya hai toh (Optional) dikhayein aur required hata dein
+            $('#packageScreenshotInput').removeAttr('required');
+            $('#packageScreenshotLabelText').removeClass('text-danger').addClass('text-muted').text('(Optional)');
+        } else {
+            // Baaki sabhi (Loan, UPI, etc.) ke liye mandatory banayein
+            $('#packageScreenshotInput').attr('required', 'required');
+            $('#packageScreenshotLabelText').removeClass('text-muted').addClass('text-danger').html('*');
+        }
+    });
+
 });
 </script>

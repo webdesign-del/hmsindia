@@ -4891,7 +4891,7 @@ public function bulk_approve_sales()
                     'discount_percentage' => $discount_percent,  
                     'taxable_Value'       => $taxable_Value,
                     'tax_amount'          => $tax_amount,      
-                    'total'               => $total,       
+                    'total'               => $total,
                     'remarks'             => $this->input->post('remarks')
                 ];
                 

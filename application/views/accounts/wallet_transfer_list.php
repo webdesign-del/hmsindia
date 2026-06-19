@@ -146,25 +146,26 @@
                                             <?php endif; ?>
                                         </td>
                                         
-                                        <td>
-                                            <?php if($log['status'] == 'pending'): ?>
-                                                <a href="<?php echo base_url('accounts/approve_wallet_transfer/'.$log['log_id']); ?>" 
-                                                   class="btn btn-success btn-xs"
-                                                   onclick="return confirm('Are you sure you want to approve this transfer? Amount will be deducted from Wallet 2 and added to Wallet 1.');" style="margin-bottom: 5px; width: 100%;">
-                                                    <i class="fa fa-check"></i> Approve
-                                                </a>
-                                                <br>
-                                                <a href="<?php echo base_url('accounts/disapprove_wallet_transfer/'.$log['log_id']); ?>" 
-                                                   class="btn btn-danger btn-xs"
-                                                   onclick="return confirm('Are you sure you want to DISAPPROVE this request? Amount will be deducted from wallet balance.');" style="width: 100%;">
-                                                    <i class="fa fa-times"></i> Disapprove
-                                                </a>
-                                            <?php elseif($log['status'] == 'approved' || $log['status'] == 'success'): ?>
-                                                <span class="text-success"><i class="fa fa-check-circle"></i> Approved</span>
-                                            <?php elseif($log['status'] == 'disapproved' || $log['status'] == 'rejected'): ?>
-                                                <span class="text-danger"><i class="fa fa-times-circle"></i> Rejected</span>
-                                            <?php endif; ?>
-                                        </td>
+                                       <td>
+    <?php if($log['status'] == 'pending'): ?>
+        <!-- Approve Button -->
+        <button type="button" class="btn btn-success btn-xs" style="margin-bottom: 5px; width: 100%;"
+                onclick="openActionModal('<?php echo base_url('accounts/approve_wallet_transfer/'.$log['log_id']); ?>', 'Approve')">
+            <i class="fa fa-check"></i> Approve
+        </button>
+        <br>
+        <!-- Disapprove Button -->
+        <button type="button" class="btn btn-danger btn-xs" style="width: 100%;"
+                onclick="openActionModal('<?php echo base_url('accounts/disapprove_wallet_transfer/'.$log['log_id']); ?>', 'Disapprove')">
+            <i class="fa fa-times"></i> Disapprove
+        </button>
+    <?php elseif($log['status'] == 'approved' || $log['status'] == 'success'): ?>
+        <span class="text-success"><i class="fa fa-check-circle"></i> Approved</span>
+    <?php elseif($log['status'] == 'disapproved'): ?>
+        <span class="text-danger"><i class="fa fa-times-circle"></i> Disapproved</span>
+    <?php endif; ?>
+    
+</td>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
@@ -190,3 +191,61 @@
         </div>
     </div>
 </div>
+
+<!-- Action Modal -->
+ <button type="button" id="hiddenModalTrigger" data-toggle="modal" data-target="#actionModal" style="display: none;"></button>
+
+<div class="modal fade" id="actionModal" tabindex="-1" role="dialog" aria-labelledby="actionModalLabel">
+  <div class="modal-dialog" role="document">
+    <!-- Form set to POST method -->
+    <form id="actionForm" method="POST" action="">
+      <div class="modal-content">
+        
+        <div class="modal-header">
+          <h4 class="modal-title" id="actionModalTitle">Action</h4>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        
+        <div class="modal-body">
+          <p id="actionWarningMessage" class="text-danger"></p>
+          <div class="form-group">
+            <label for="remarks">Remarks / Reason (Required):</label>
+            <textarea name="remarks" id="remarks" class="form-control" rows="3" placeholder="Enter remarks here..." required></textarea>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary" id="actionSubmitBtn">Submit</button>
+        </div>
+        
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openActionModal(actionUrl, actionType) {
+    // 1. Form ka action URL dynamically set karein
+    document.getElementById('actionForm').action = actionUrl;
+    
+    // 2. Title aur Warning message set karein action ke according
+    if(actionType === 'Approve') {
+        document.getElementById('actionModalTitle').innerText = 'Approve Transaction';
+        document.getElementById('actionWarningMessage').innerText = 'Are you sure you want to approve this transaction?';
+        document.getElementById('actionSubmitBtn').className = 'btn btn-success';
+    } else if (actionType === 'Disapprove') {
+        document.getElementById('actionModalTitle').innerText = 'Disapprove Transaction';
+        document.getElementById('actionWarningMessage').innerText = 'Are you sure you want to DISAPPROVE this request? Amount will be deducted from wallet balance.';
+        document.getElementById('actionSubmitBtn').className = 'btn btn-danger';
+    }
+    
+    // 3. Purane remarks clear karein
+    document.getElementById('remarks').value = '';
+    
+    // 4. JAVASCRIPT CONFLICT FIX: jQuery ki jagah hidden button pe click karwayein
+    document.getElementById('hiddenModalTrigger').click();
+}
+</script>

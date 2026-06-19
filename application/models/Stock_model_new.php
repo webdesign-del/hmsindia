@@ -10279,7 +10279,7 @@ public function deduct_wallet_balance($patient_id, $amount, $sale_id, $logged_in
     $log_data = [
         'patient_id'     => $patient_id,
         'amount'         => $amount,
-        'action_type'    => 'debit', // पैसे कट रहे हैं इसलिए debit
+        'action_type'    => 'Medicine_Sale', // पैसे कट रहे हैं इसलिए debit
         'opening_w1'     => $opening_w1,
         'closing_w1'     => $closing_w1,
         'opening_w2'     => $opening_w2,
@@ -10289,8 +10289,10 @@ public function deduct_wallet_balance($patient_id, $amount, $sale_id, $logged_in
         'remarks'        => 'Amount deducted for Sale ID: ' . $sale_id,
         'created_by'     => $logged_in_user, // जिसने लॉगिन किया है उसकी ID
         'created_at'     => date('Y-m-d H:i:s'),
-        'status'         => 'Success' // आपके DB के अनुसार इसे 1 या 'Success' रखें
-    ];
+        'status'         => 'pending' // आपके DB के अनुसार इसे 1 या 'Success' रखें
+    ];     
+                    
+                   
     
     return $this->db->insert('hms_wallet_logs', $log_data);
 }
