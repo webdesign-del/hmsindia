@@ -5470,86 +5470,6 @@ $countdownDuration = 7200;
 						</td>
 					</tr>
 
-					<!--<?php if($appointments['partial_billing'] == 0){ ?>
-					<tr>
-						<th style="color: red;">INVESTIGATIONS ADVISED  <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="investigation_suggestion" <?php if(isset($patient_doctor_consultation['investation_suggestion']) && $patient_doctor_consultation['investation_suggestion'] == "1"){echo 'checked="checked"';}?> value="1" name="investigation_suggestion"   /></th>
-						<td>
-						<div class="col-sm-12 col-xs-12 role">
-							<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['investation_suggestion']) && $patient_doctor_consultation['investation_suggestion'] == "1"){
-									$female_investigation_suggestion_list = unserialize($patient_doctor_consultation['female_investigation_suggestion_list']); 
-									$disabled = "";
-									//var_dump($sub_procedure_suggestion_list);die;
-							}?>
-							<select class="multidselect_dropdown_1" multiple id="female_investigation_suggestion_list" <?php echo $disabled; ?> name="female_investigation_suggestion_list[]"  >
-								<?php if(!empty($investigations)) { foreach($investigations as $key => $val) { ?>
-										<option value="<?php echo $val['ID']; ?>"><?php echo $val['investigation']; ?></option>
-								<?php  } } ?>
-							</select>
-							<script type='text/javascript'>
-								$('#female_investigation_suggestion_list').val(<?php echo json_encode($female_investigation_suggestion_list); ?>);
-							</script>
-						</div>
-						<!-- <script type='text/javascript'>
-							$('#female_investigation_suggestion_list').val(<?php echo "";//json_encode($sub_procedure_suggestion_list); ?>);
-						</script> -->
-						<!--</td>
-						<td>
-							<div class="col-sm-12 col-xs-12 role">
-								<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['investation_suggestion']) && $patient_doctor_consultation['investation_suggestion'] == "1"){
-										$male_investigation_suggestion_list = unserialize($patient_doctor_consultation['male_investigation_suggestion_list']); 
-										$disabled = "";
-										//var_dump($sub_procedure_suggestion_list);die;
-								}?>
-								<select class="multidselect_dropdown_1" multiple id="male_investigation_suggestion_list" <?php echo $disabled; ?> name="male_investigation_suggestion_list[]">
-									<?php if(!empty($investigations)) { foreach($investigations as $key => $val) { ?>
-											<option value="<?php echo $val['ID']; ?>"><?php echo $val['investigation']; ?></option>
-									<?php  } } ?>
-								</select>
-								<script type='text/javascript'>
-								$('#male_investigation_suggestion_list').val(<?php echo json_encode($male_investigation_suggestion_list); ?>);
-								</script>
-							</div>
-						</td>
-					</tr>
-					<?php } else { ?>
-						<tr>
-						<th style="color: red;">INVESTIGATIONS ADVISED</th>
-						<td>
-						<div class="col-sm-12 col-xs-12 role">
-							<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['investation_suggestion']) && $patient_doctor_consultation['investation_suggestion'] == "1"){
-									$female_investigation_suggestion_list = unserialize($patient_doctor_consultation['female_investigation_suggestion_list']); 
-									$disabled = "";
-									//var_dump($sub_procedure_suggestion_list);die;
-							}?>
-							
-							<?php if(!empty($female_investigation_suggestion_list)) {
-								$cis = 1;
-									foreach($female_investigation_suggestion_list as $key => $val) { ?>
-									<?php echo $cis.". ".get_investigation_name($val); ?><br/>
-							<?php  $cis++; } } ?>
-							
-						</div>
-						<!-- <script type='text/javascript'>
-							$('#female_investigation_suggestion_list').val(<?php echo "";//json_encode($sub_procedure_suggestion_list); ?>);
-						</script> -->
-						<!--</td>
-						<td>
-							<div class="col-sm-12 col-xs-12 role">
-								<?php $disabled = "disabled";  if(isset($patient_doctor_consultation['investation_suggestion']) && $patient_doctor_consultation['investation_suggestion'] == "1"){
-										$male_investigation_suggestion_list = unserialize($patient_doctor_consultation['male_investigation_suggestion_list']); 
-										$disabled = "";
-										//var_dump($sub_procedure_suggestion_list);die;
-								}?>
-								<?php if(!empty($male_investigation_suggestion_list)) {
-									$cis = 1;
-										foreach($male_investigation_suggestion_list as $key => $val) { ?>
-										<?php echo $cis.". ".get_investigation_name($val); ?><br/>
-								<?php  $cis++; } } ?>
-							</div>
-						</td>
-					</tr>
-					<?php } ?>-->
-					
 					<?php if($appointments['partial_billing'] == 0){ ?>
 					<tr>
 						<th style="color: red;">IIC INVESTIGATIONS ADVISED  <input style="left: 5px;position: relative;opacity: 1; top:3px;" type="checkbox" id="investigation_suggestion" <?php if(isset($patient_doctor_consultation['investation_suggestion']) && $patient_doctor_consultation['investation_suggestion'] == "1"){echo 'checked="checked"';}?> value="1" name="investigation_suggestion"   /></th>
@@ -7947,65 +7867,11 @@ if(this.checked) {
 
 
 
-// $("#procedure_suggestion_list").change(function() {
 
-// 	$('option', $('#sub_procedure_suggestion_list')).each(function(element) {
-
-// 		$(this).removeAttr('selected').prop('selected', false);
-
-// 	});
-
-// 	$("#sub_procedure_suggestion_list").multiselect('refresh');
-
-// 	$("select#sub_procedure_suggestion_list").prop('disabled',true);
-
-
-
-// 	$('#loader_div').show();
-
-// 	var parent_parents = $(this).val();
-
-// 	$.ajax({
-
-// 		url: '<?php echo base_url('billingcontroller/get_sub_procedures')?>',
-
-// 		data: {parent_parents : parent_parents,patient_id:'<?php echo $patient_data['patient_id']?>'},
-
-// 		dataType: 'json',
-
-// 		method:'post',
-
-// 		success: function(data)
-
-// 		{
-
-// 			$('#sub_procedure_suggestion_list').empty().append(data.html);
-
-// 			$("select#sub_procedure_suggestion_list").multiselect('rebuild');
-
-// 			$("select#sub_procedure_suggestion_list").prop('disabled',false);
-
-// 			$("select#sub_procedure_suggestion_list").parent().find('button').prop('disabled',false);
-
-// 			$("select#sub_procedure_suggestion_list").parent().find('button').removeClass('disabled');
-
-// 			$('#loader_div').hide();
-
-// 		} 
-
-// 	});
-
-// });
 
 
 
 $(function() {
-
-    // $('.multidselect_dropdown').multiselect({ includeSelectAllOption: true });
-
-    // $('.multidselect_dropdown_1').multiselect({ includeSelectAllOption: true });
-
-    // $('.multidselect_dropdown_2').multiselect({ includeSelectAllOption: true });
 
     $('.multidselect_dropdown').multiselect({
 

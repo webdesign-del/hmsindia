@@ -4,7 +4,7 @@
       <div class="card">
        <div class="card-action"><h3>My Appointments</h3></div>
         <div class="col-sm-12 col-xs-12">
-            <form action="<?php echo base_url().'doctor_appointments'; ?>" method="get">
+            <form action="<?php echo base_url().'doctors/appointment_doctor'; ?>" method="get">
               <div class="col-sm-3 col-xs-12 ">
                   <label>Filter by status</label>
                     <select class="form-control" id="status" name="status" style="height:40px!important;">
@@ -37,7 +37,7 @@
                 </div>
             </form>  
             <div class="col-sm-1" style="margin-top: 22px;">
-            	<a href="<?php echo base_url().'doctor_appointments'; ?>" style="text-decoration: none;">
+            	<a href="<?php echo base_url().'doctors/appointment_doctor'; ?>" style="text-decoration: none;">
                 <button name="search" type="submit"  class="btn btn-secondary">RESET</button>
                </a>
             </div>          
