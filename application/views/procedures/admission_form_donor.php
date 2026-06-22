@@ -106,21 +106,6 @@ $generated_ipid = $current_center_code . '/' . $current_year_suffix . '/' . $nex
       <label for="Admission">Date of Admission:</label>
       <input type="date" class="form-control" required="" name="date_of_addmission" value="<?php echo isset($select_result['date_of_addmission'])?$select_result['date_of_addmission']:""; ?>">
     </div>  
-    <div class="form-group col-md-4">
-        <label>Select Discharge Form:</label>
-        <select class="form-control" name="form_type" required>
-            <option value="">-- Choose Form --</option>
-            <?php if(!empty($form_list)): ?>
-                <?php foreach($form_list as $form): ?>
-                    <option value="<?php echo $form['name']; ?>" <?php echo (isset($select_result['form_type']) && $select_result['form_type'] == $form['name']) ? 'selected' : ''; ?>>
-                        <?php echo $form['name']; ?>
-                    </option>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <option value="">No forms found in database</option>
-            <?php endif; ?>
-        </select>
-    </div>
  </div>  
 
 <table width="100%" class="vb45rt">
@@ -163,34 +148,8 @@ $generated_ipid = $current_center_code . '/' . $current_year_suffix . '/' . $nex
 
 <tr>
 <td colspan="3" width="50%" style="vertical-align: top; border:1px solid #ccc; padding:8px;">
-   <strong>Indication:</strong><br>
-<?php 
-    // 🎯 Only check the hms_prp table dataset ($select_initial_details)
-    if (!empty($select_initial_details)): 
-        
-        // Case A: Agar hms_prp table me data HAI, toh normal textarea show karein
-        // Pehle se saved indication uthayenge, nahi to empty string
-        $indication_val = isset($select_initial_details['indication']) ? $select_initial_details['indication'] : '';
-?>
-        <textarea name="indication" class="form-control" style="width:100%; height:80px!important; border: 1px solid #ccc; padding: 5px;"><?php echo $indication_val; ?></textarea>
-
-<?php else: ?>
-    <div class="alert alert-danger" style="margin-top: 5px; padding: 15px; border-left: 5px solid #d9534f; background-color: #fdf7f7; color: #a94442;">
-        <i class="fa fa-ban" style="font-size: 16px;"></i> 
-        <strong>Not Found Indication</strong><br>
-        <span style="color: #666; font-size: 12px;">No 'First Cycle' data found in PRP table for Patient ID: <?php echo $patient_id; ?>. Kripya pehle use complete karein.</span>
-    </div>
-    
-    <style> 
-        #submitbutton, 
-        button[type="submit"], 
-        input[type="submit"],
-        .btn-success,
-        .btn-primary { 
-            display: none !important; 
-        } 
-    </style>
-<?php endif; ?>
+    <strong>Indication:</strong><br>
+    <textarea name="indication" class="form-control" style="width:100%; height:80px!important; border: 1px solid #ccc; padding: 5px;"></textarea>
 </td>
 <td width="50%" colspan="3" style="vertical-align: top;">
 <strong>Name Of Procedure: 

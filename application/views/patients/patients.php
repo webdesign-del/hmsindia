@@ -37,7 +37,7 @@
             <button name="btnreset" id="btnreset" type="button"  class="btn btn-secondary">RESET</button>
             </a>
          </div>
-         <?php if($_SESSION['logged_doctor']['username'] == "webdesign@indiaivf.in"){?>
+        <?php if($_SESSION['logged_administrator']['username']){ ?>
          <div class="col-sm-2" style="margin-top: 10px;">
             <a href="<?php echo base_url('patients/Patients'); ?>" style="text-decoration: none;">
             <button name="export-patient" type="submit"  class="btn btn-secondary" id="export-patient">Export Patient</button>
