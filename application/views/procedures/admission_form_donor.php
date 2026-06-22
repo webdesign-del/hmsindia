@@ -1,6 +1,14 @@
 <?php 
 $all_method =& get_instance();
 
+$segments = explode("/", $_SERVER['REQUEST_URI']);
+$patient_id = end($segments); // Get last part of 
+
+$select_query8 = "SELECT patient_id FROM `hms_doctor_consultation` WHERE patient_id='$patient_id' LIMIT 1";
+$select_result8 = run_select_query($select_query8);
+
+    $patient_id = $select_result8['patient_id'];
+
 if(isset($_POST['submit'])){
     unset($_POST['submit']);
 

@@ -1,8 +1,17 @@
 <?php
+
+$segments = explode("/", $_SERVER['REQUEST_URI']);
+$patient_id = end($segments); // Get last part of 
+
+$select_query8 = "SELECT patient_id FROM `hms_doctor_consultation` WHERE patient_id='$patient_id' LIMIT 1";
+$select_result8 = run_select_query($select_query8);
+
+    $patient_id = $select_result8['patient_id'];
+
 	    if(isset($_POST['submit'])){
 			unset($_POST['submit']);
 					
-			$select_query = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+			$select_query = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id'";
 			$select_result = run_select_query($select_query); 
 			if(empty($select_result)){
 				// mysql query to insert data
@@ -21,7 +30,7 @@
 				  $sqlArr[] = " $key = '".$value."'"	;
 				}
 				$query .= implode(',' , $sqlArr);
-				$query .= " WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+				$query .= " WHERE patient_id='$patient_id'";
 			}
 			$result = run_form_query($query);        
 	
@@ -33,7 +42,7 @@
     					die();
             }
 		}
-		$select_query = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+		$select_query = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id'";
 		$select_result = run_select_query($select_query);
 		
 		$sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
