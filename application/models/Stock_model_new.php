@@ -5378,7 +5378,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
             $result = $this->db->get()->result();
             return $result;
         }
-        public function process_medicine_return($return_data, $return_items,$is_old = false)
+       /* public function process_medicine_return($return_data, $return_items,$is_old = false)
         {
             if (empty($return_items)) {
                 return false;
@@ -5446,7 +5446,154 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
             }
             $this->db->trans_complete();
             return $this->db->trans_status();
+        }*/
+
+            public function process_medicine_return($return_data, $return_items, $is_old = false)
+{
+    if (empty($return_items)) {
+        return false;
+    }
+
+    $this->db->trans_start();
+
+    // 1. Generate Return Number and Insert Header
+    $prefix = $is_old ? "ORET" : "RET";
+    $next_id = $this->db->count_all_results('medicine_returns') + 1;
+    $return_data["return_number"] = $prefix . date("Ymd") . str_pad($next_id, 4, "0", STR_PAD_LEFT);
+    $return_data["status"] = "PENDING"; // You might want to change this to 'COMPLETED' if it auto-refunds to wallet
+    
+    $this->db->insert("medicine_returns", $return_data);
+    $return_id = $this->db->insert_id();
+    
+    if (!$return_id) {
+        $this->db->trans_rollback();
+        return false;
+    }
+
+    // 2. Resolve Sale ID and Patient ID from Receipt Number
+    $sale_id = null;
+    $patient_id = isset($return_data['patient_id']) ? $return_data['patient_id'] : null;
+
+    if (!$is_old && !empty($return_data['receipt_number'])) {
+        $sale = $this->db->get_where('sales', ['sale_number' => $return_data['receipt_number']])->row();
+        if ($sale) {
+            $sale_id = $sale->id;
+            // Fallback: If patient_id wasn't in return_data, get it from the original sale
+            if (empty($patient_id) && isset($sale->patient_id)) {
+                $patient_id = $sale->patient_id;
+            }
         }
+    }
+
+    $items_processed = 0;
+    $total_refund_amount = 0; // 🚀 WALLET INTEGRATION: Variable to track total refund
+
+    foreach ($return_items as $item) {
+        $batch_id = isset($item["batch_id"]) ? (int)$item["batch_id"] : 0;
+        $quantity = isset($item["return_quantity"]) ? (float)$item["return_quantity"] : 0;
+        $price = isset($item["price"]) ? (float)$item["price"] : 0;
+        
+        if ($batch_id <= 0 || $quantity <= 0) continue;
+        
+        // Calculate item totals and discounts
+        $item_discount_percentage = isset($item["discount_percentage"]) ? (float)$item["discount_percentage"] : 0;
+        $item_total = $quantity * $price;
+        $item_discount_amount = ($item_total * $item_discount_percentage) / 100;
+        $item_final_amount = $item_total - $item_discount_amount;
+        
+        // 🚀 WALLET INTEGRATION: Accumulate the total refund amount
+        $total_refund_amount += $item_final_amount;
+
+        // 3. Insert into medicine_return_items
+        $item_entry = [
+            "return_id" => $return_id,
+            "batch_id" => $batch_id,
+            "quantity_returned" => $quantity,
+            "return_price" => $price,
+            "total_amount" => $item_total,
+            "discount_percentage" => $item_discount_percentage,
+            "discount_amount" => $item_discount_amount,
+            "final_amount" => $item_final_amount,
+            "created_at" => date("Y-m-d H:i:s")
+        ];
+        $this->db->insert("medicine_return_items", $item_entry);
+        
+        // 4. Update sale_items IMMEDIATELY
+        if (!$is_old && $sale_id) {
+            $this->db->set('quantity_returned', 'COALESCE(quantity_returned, 0) + ' . $quantity, FALSE);
+            $this->db->set('updated_at', date('Y-m-d H:i:s'));
+            $this->db->where(['sale_id' => $sale_id, 'batch_id' => $batch_id]);
+            $this->db->update('sale_items');
+        }
+        $items_processed++;
+    }
+
+    if ($items_processed == 0) {
+        $this->db->trans_rollback();
+        return false;
+    }
+
+    // 🚀 WALLET INTEGRATION: Credit the calculated amount to the patient's wallet
+    if ($total_refund_amount > 0 && !empty($patient_id)) {
+        
+        // Get current wallet balance
+        $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row_array();
+        
+        $current_w1 = !empty($wallet) ? floatval($wallet['wallet_1_balance']) : 0;
+        $current_w2 = !empty($wallet) ? floatval($wallet['wallet_2_balance']) : 0;
+        
+        $new_w1 = $current_w1 + $total_refund_amount; // Adding refund to main wallet (Wallet 1)
+
+        // Update or Insert Wallet
+        if (!empty($wallet)) {
+            $this->db->where('patient_id', $patient_id)->update('hms_patient_wallets', [
+                'wallet_1_balance' => $new_w1,
+                'updated_at'       => date('Y-m-d H:i:s')
+            ]);
+        } else {
+            // If patient doesn't have a wallet yet, create one
+            $this->db->insert('hms_patient_wallets', [
+                'patient_id'       => $patient_id,
+                'wallet_1_balance' => $new_w1,
+                'wallet_2_balance' => 0,
+                'wallet_3_balance' => 0,
+                'created_at'       => date('Y-m-d H:i:s'),
+                'updated_at'       => date('Y-m-d H:i:s')
+            ]);
+        }
+
+        // Insert log into hms_wallet_logs
+        $user_name = isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'System';
+        
+        $log_data = [
+            'patient_id'     => $patient_id,
+            'amount'         => $total_refund_amount,
+            'action_type'    => 'PHARMACY_RETURN_REFUND',
+            'opening_w1'     => $current_w1,
+            'closing_w1'     => $new_w1,
+            'opening_w2'     => $current_w2,
+            'closing_w2'     => $current_w2,
+            'reference_id'   => $return_id,
+            'receipt_number' => $return_data["return_number"],
+            'payment_method' => 'WALLET',
+            'remarks'        => 'Refund for Medicine Return # ' . $return_data["return_number"],
+            'created_by'     => $user_name,
+            'created_at'     => date('Y-m-d H:i:s'),
+            'approved_by'    => 'System', // Auto-approved since it's a system generated refund
+            'updated_at'     => date('Y-m-d H:i:s'),
+            'status'         => 'pending'
+        ];
+        
+        $this->db->insert('hms_wallet_logs', $log_data);
+        
+        // Optional: Automatically mark the return status as COMPLETED since refund is processed
+        $this->db->where('id', $return_id)->update('medicine_returns', ['status' => 'PENDING']);
+    }
+
+    $this->db->trans_complete();
+    return $this->db->trans_status();
+}
+
         public function approve_medicine_return($return_id)
         {
             $this->db->trans_start();

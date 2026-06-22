@@ -468,60 +468,88 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                                             <small class="text-muted"><i class="fa fa-clock-o"></i> <?php echo date('h:i A', strtotime($history['created_at'])); ?></small>
                                         </td>
                                         
-                                        <td>
-                                            <?php 
-                                                $action = $history['action_type'];
-                                                if (strpos($action, 'DEPOSIT') !== false) {
-                                                    echo '<span class="label label-success" style="font-size:11px; padding: 4px 8px;"><i class="fa fa-arrow-down"></i> Deposit</span>';
-                                                } elseif (strpos($action, 'TRANSFER') !== false) {
-                                                    echo '<span class="label label-warning" style="font-size:11px; padding: 4px 8px;"><i class="fa fa-exchange"></i> Transfer</span>';
-                                                } else {
-                                                    echo '<span class="label label-danger" style="font-size:11px; padding: 4px 8px;"><i class="fa fa-arrow-up"></i> Spent</span>';
-                                                }
-                                                echo '<br><small class="text-muted" style="display:block; margin-top:3px;">'.str_replace('_', ' ', $action).'</small>';
-                                            ?>
-                                        </td>
+                                       <td style="text-align: right; vertical-align: middle;">
+    <?php 
+        $amt = (float)$history['amount'];
+        $action = strtoupper(trim($history['action_type'])); // Sabko Uppercase me convert kiya
+        $status = strtolower(trim($history['status']));
+        
+        // Math difference check
+        $diff_w1 = round((float)$history['closing_w1'] - (float)$history['opening_w1'], 2);
+        
+        // CONDITION 1: Agar sach mein calculation hui hai
+        if (abs($diff_w1) > 0) {
+            if ($diff_w1 > 0) {
+                echo '<span style="font-weight: 600; color: #27ae60;">+ ₹ ' . number_format($diff_w1, 2) . '</span>';
+            } else {
+                echo '<span style="font-weight: 600; color: #c0392b;">- ₹ ' . number_format(abs($diff_w1), 2) . '</span>';
+            }
+        } 
+        // CONDITION 2: Agar Math 0 hai, toh Action Type Name se pakdenge
+        elseif ($amt > 0) {
+            // W1 ME PAISE AANE WALE ACTIONS (+)
+            if (in_array($action, ['DEPOSIT_MONEY_WALLET', 'TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET', 'CREDIT', 'PHARMACY_RETURN_REFUND'])) {
+                $color = ($status == 'pending') ? '#f39c12' : '#27ae60';
+                echo '<span style="font-weight: 600; color: '.$color.';">+ ₹ ' . number_format($amt, 2) . '</span>';
+            } 
+            // W1 SE PAISE KATNE WALE ACTIONS (-)
+            elseif (in_array($action, ['TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET', 'INVESTIGATION_USAGE', 'MEDICINE_SALE', 'DEDUCTED_DUE_TO_DISAPPROVAL'])) {
+                $color = ($status == 'pending') ? '#f39c12' : '#c0392b';
+                echo '<span style="font-weight: 600; color: '.$color.';">- ₹ ' . number_format($amt, 2) . '</span>';
+            } 
+            else {
+                echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+            }
+        } 
+        else {
+            echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+        }
+    ?>
+    <br>
+    <small class="text-muted" style="font-size: 11px;">
+        Bal: ₹<?php echo number_format($history['closing_w1'], 2); ?>
+    </small>
+</td>
                                         
                                         <td style="text-align: right; vertical-align: middle;">
-                                        <?php 
-                                            $amt = (float)$history['amount'];
-                                            $action = strtoupper(trim($history['action_type']));
-                                            $status = strtolower(trim($history['status']));
-                                            
-                                            // Math difference check
-                                            $diff_w1 = round((float)$history['closing_w1'] - (float)$history['opening_w1'], 2);
-                                            
-                                            // CONDITION 1: Agar sach mein calculation hui hai
-                                            if (abs($diff_w1) > 0) {
-                                                if ($diff_w1 > 0) {
-                                                    echo '<span style="font-weight: 600; color: #27ae60;">+ ₹ ' . number_format($diff_w1, 2) . '</span>';
-                                                } else {
-                                                    echo '<span style="font-weight: 600; color: #c0392b;">- ₹ ' . number_format(abs($diff_w1), 2) . '</span>';
-                                                }
-                                            } 
-                                            // CONDITION 2: Agar Math 0 hai, toh Name se pakdenge
-                                            elseif ($amt > 0) {
-                                                if (in_array($action, ['DEPOSIT_MONEY_WALLET', 'TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET'])) {
-                                                    $color = ($status == 'pending') ? '#f39c12' : '#27ae60';
-                                                    echo '<span style="font-weight: 600; color: '.$color.';">+ ₹ ' . number_format($amt, 2) . '</span>';
-                                                } 
-                                                elseif (in_array($action, ['TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET', 'INVESTIGATION_USAGE', 'MEDICINE_SALE'])) {
-                                                    $color = ($status == 'pending') ? '#f39c12' : '#c0392b';
-                                                    echo '<span style="font-weight: 600; color: '.$color.';">- ₹ ' . number_format($amt, 2) . '</span>';
-                                                } 
-                                                else {
-                                                    echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
-                                                }
-                                            } 
-                                            else {
-                                                echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
-                                            }
-                                        ?>
-                                        <br>
-                                        <small class="text-muted" style="font-size: 11px;">
-                                            Bal: ₹<?php echo number_format($history['closing_w1'], 2); ?>
-                                        </small>
-                                    </td>
+    <?php if(isset($history['opening_w2'])): ?>
+        <?php 
+            $diff_w2 = round((float)$history['closing_w2'] - (float)$history['opening_w2'], 2);
+            
+            if (abs($diff_w2) > 0) {
+                if ($diff_w2 > 0) {
+                    echo '<span style="font-weight: 600; color: #27ae60;">+ ₹ ' . number_format($diff_w2, 2) . '</span>';
+                } else {
+                    echo '<span style="font-weight: 600; color: #c0392b;">- ₹ ' . number_format(abs($diff_w2), 2) . '</span>';
+                }
+            } 
+            elseif ($amt > 0) {
+                // W2 ME PAISE AANE WALE ACTIONS (+)
+                if (in_array($action, ['DEPOSIT_PACKAGE_WALLET', 'TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET'])) {
+                    $color = ($status == 'pending') ? '#f39c12' : '#27ae60';
+                    echo '<span style="font-weight: 600; color: '.$color.';">+ ₹ ' . number_format($amt, 2) . '</span>';
+                } 
+                // W2 SE PAISE KATNE WALE ACTIONS (-)
+                elseif (in_array($action, ['TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET', 'PACKAGE_USAGE'])) {
+                    $color = ($status == 'pending') ? '#f39c12' : '#c0392b';
+                    echo '<span style="font-weight: 600; color: '.$color.';">- ₹ ' . number_format($amt, 2) . '</span>';
+                } 
+                else {
+                    echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+                }
+            } 
+            else {
+                echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+            }
+        ?>
+        <br>
+        <small class="text-muted" style="font-size: 11px;">
+            Bal: ₹<?php echo number_format($history['closing_w2'], 2); ?>
+        </small>
+    <?php else: ?>
+        <span class="text-muted">-</span>
+    <?php endif; ?>
+</td>
 
                                     <td style="text-align: right; vertical-align: middle;">
                                         <?php if(isset($history['opening_w2'])): ?>

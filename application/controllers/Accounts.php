@@ -2208,7 +2208,7 @@ public function approve($request = NULL) {
         $patient_id = 0;
         $receipt_number = 0;
 
-        // --- WALLET REFUND LOGIC ---
+        // --- WALLET REFUND & ADJUST LOGIC ---
         if(in_array($status, ['cancel', 'disapproved', 'adjust'])) {
             $table_map = [
                 'consultation' => 'consultation',
@@ -2221,19 +2221,15 @@ public function approve($request = NULL) {
             if(isset($table_map[$type])) {
                 $billing_info = india_ivf_billing($request, $table_map[$type]);
                 
-                // Note: amount column check depends on the table structure. Handled below dynamically.
                 $refund_amt = 0;
                 if(isset($billing_info['payment_done']) && $billing_info['payment_done'] > 0) {
                     $refund_amt = $billing_info['payment_done'];
                 } elseif(isset($billing_info['amount']) && $billing_info['amount'] > 0) {
-                    $refund_amt = $billing_info['amount']; // For payments table where column might be 'amount'
+                    $refund_amt = $billing_info['amount'];
                 }
                 
                 if(!empty($billing_info) && is_array($billing_info) && $refund_amt > 0) {
                     
-                    // ==============================================================
-                    // Check if payment was made via 'wallet'
-                    // ==============================================================
                     $payment_method = '';
                     if(isset($billing_info['payment_method'])) {
                         $payment_method = strtolower(trim($billing_info['payment_method']));
@@ -2241,13 +2237,15 @@ public function approve($request = NULL) {
                         $payment_method = strtolower(trim($billing_info['payment_mode']));
                     }
 
-                    if (strpos($payment_method, 'wallet') !== false) {
+                    // 🚀 MAIN CHANGE:
+                    // Agar payment wallet se hui thi, YAA status 'adjust' ho, YAA 'cancel' ho, toh amount seedha wallet me jayega.
+                    if (strpos($payment_method, 'wallet') !== false || in_array($status, ['adjust', 'cancel'])) {
                         
                         $p_id = $billing_info['patient_id'];
                         
-                        // ==============================================================
-                        // LOGIC: 'procedure' or 'payments' -> Wallet 2, Others -> Wallet 1
-                        // ==============================================================
+                        // 🚀 ROUTING LOGIC: 
+                        // 'procedure' -> Wallet 2 (Package Wallet)
+                        // Baki sab ('investigation', 'registation', 'consultation') -> Wallet 1 (Money Wallet)
                         if ($type == 'procedure' || $type == 'payments') {
                             $wallet_column = 'wallet_2_balance';
                             $is_wallet_2 = true;
@@ -2259,7 +2257,6 @@ public function approve($request = NULL) {
                         // Check karein kya purane record ke patient ka wallet data database me hai?
                         $check_wallet = $this->db->get_where('hms_patient_wallets', array('patient_id' => $p_id))->row_array();
                         if(empty($check_wallet)) {
-                            // Agar row missing hai toh pehle create karein taaki null crash na ho
                             $this->db->insert('hms_patient_wallets', array(
                                 'patient_id' => $p_id,
                                 'wallet_1_balance' => 0,
@@ -2277,7 +2274,15 @@ public function approve($request = NULL) {
                         $w1_balance = isset($new_wallet['wallet_1_balance']) ? $new_wallet['wallet_1_balance'] : 0;
                         $w2_balance = isset($new_wallet['wallet_2_balance']) ? $new_wallet['wallet_2_balance'] : 0;
 
-                        $log_remarks = 'Refund for '.ucfirst($status).' ('.ucfirst($type).')';
+                        // Dynamic Remarks based on Action
+                        if ($status === 'adjust') {
+                            $log_remarks = 'Amount Adjusted to Wallet ('.ucfirst($type).')';
+                        } elseif ($status === 'cancel') {
+                            $log_remarks = 'Refund for Cancelled '.ucfirst($type).' credited to Wallet';
+                        } else {
+                            $log_remarks = 'Refund for '.ucfirst($status).' ('.ucfirst($type).')';
+                        }
+
                         if(!empty($reason)) {
                             $log_remarks .= ' - Reason: ' . $reason;
                         } elseif (!empty($reason_of_cancle)) {
@@ -2289,7 +2294,6 @@ public function approve($request = NULL) {
                             'patient_id'  => $p_id,
                             'amount'      => $refund_amt,
                             'action_type' => 'credit',
-                            // Logic applied for calculating opening balances safely
                             'opening_w1'  => (!$is_wallet_2) ? ($w1_balance - $refund_amt) : $w1_balance,
                             'closing_w1'  => $w1_balance,
                             'opening_w2'  => ($is_wallet_2) ? ($w2_balance - $refund_amt) : $w2_balance,
