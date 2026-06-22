@@ -50,6 +50,9 @@
 					die();
         }
     }
+	$select_prp = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id'";
+	$select_result_prp = run_select_query($select_prp);
+	
     $select_query = "SELECT * FROM `sonosalpingography` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
 	$select_result = run_select_query($select_query);  
 	
@@ -63,7 +66,7 @@
 	$select_result4 = run_select_query($sql4);
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
-	$select_result5 = run_select_query($sql5);
+	$select_result5 = run_select_query($sql5);a
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
@@ -110,19 +113,19 @@
 			</td>
 			<td style="color: red;">
 				Date<br>
-				<input  type="date" value="<?php echo isset($select_result['date'])?$select_result['date']:""; ?>"     name="date" class="form-control" >
+				<input  type="date" value="<?php echo isset($select_result_prp['date'])?$select_result_prp['date']:""; ?>"     name="date" class="form-control" >
 			</td>
 			<td style="color: red;">
 				Time<br>
-				<input  type="time" value="<?php echo isset($select_result['time'])?$select_result['time']:""; ?>"     name="time" class="form-control" >
+				<input  type="time" value="<?php echo isset($select_result_prp['time'])?$select_result_prp['time']:""; ?>"     name="time" class="form-control" >
 			</td>
 			<td style="color: red;">
 				Indication<br>
-				<input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>"     maxlength="50" name="indication" class="form-control" >
+				<input  type="text" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>" maxlength="50" name="indication" class="form-control" >
 			</td>
 			<td style="color: red;">
 				Allergies<br>
-				<input  type="text" value="<?php echo isset($select_result['allergies'])?$select_result['allergies']:""; ?>"     maxlength="50" name="allergies" class="form-control" >
+				<input  type="text" value="<?php echo isset($select_result_prp['allergies'])?$select_result_prp['allergies']:""; ?>"     maxlength="50" name="allergies" class="form-control" >
 			</td>
 			<td style="color: red;">
 				Consent<br>
@@ -138,14 +141,14 @@
 			</td>
 			<td style="color: red;">
 				Date<br>
-				<input  type="date" value="<?php echo isset($select_result['date2'])?$select_result['date2']:""; ?>"     name="date2" class="form-control" >
+				<input  type="date" value="<?php echo isset($select_result_prp['date2'])?$select_result_prp['date2']:""; ?>"     name="date2" class="form-control" >
 			</td>
 		</tr>
 		<tr>
 			<td style="color: red;">PRE ASSESSMENT</td>
 			<td style="color: red;">
 				BP<br>
-				<input  type="text" value="<?php echo isset($select_result['bp'])?$select_result['bp']:""; ?>"     maxlength="20" name="bp" class="form-control" >
+				<input  type="text" value="<?php echo isset($select_result_prp['bp'])?$select_result_prp['bp']:""; ?>"     maxlength="20" name="bp" class="form-control" >
 			</td>
 			<td style="color: red;">
 				PULSE<br>
@@ -167,15 +170,15 @@
 			</td>
 			<td style="color: red;">
 				Ht (Cms)<br>
-				<input  type="number" value="<?php echo isset($select_result['ht'])?$select_result['ht']:""; ?>"     min="0" name="ht" class="form-control" >
+				<input  type="number" value="<?php echo isset($select_result_prp['ht'])?$select_result_prp['ht']:""; ?>"     min="0" name="ht" class="form-control" >
 			</td>
 			<td style="color: red;">
 				Wt (Kg)<br>
-				<input  type="number" value="<?php echo isset($select_result['wt'])?$select_result['wt']:""; ?>"     min="0" name="wt" class="form-control" >
+				<input  type="number" value="<?php echo isset($select_result_prp['wt'])?$select_result_prp['wt']:""; ?>"     min="0" name="wt" class="form-control" >
 			</td>
 			<td style="color: red;">
 				BP<br>
-				<input  type="text" value="<?php echo isset($select_result['bp2'])?$select_result['bp2']:""; ?>"     maxlength="20" name="bp2" class="form-control" >
+				<input  type="text" value="<?php echo isset($select_result_prp['bp2'])?$select_result_prp['bp2']:""; ?>"     maxlength="20" name="bp2" class="form-control" >
 			</td>
 		</tr>
 		<tr>
@@ -211,11 +214,11 @@
 			</td>
 			<td>
 				Last meal<br>
-				<input  type="time" value="<?php echo isset($select_result['last_meal'])?$select_result['last_meal']:""; ?>"     name="last_meal" class="form-control" >
+				<input  type="time" value="<?php echo isset($select_result_prp['last_meal'])?$select_result_prp['last_meal']:""; ?>"     name="last_meal" class="form-control" >
 			</td>
 			<td>
 				Indication<br>
-				<input  type="text" value="<?php echo isset($select_result['indication2'])?$select_result['indication2']:""; ?>"     name="indication2" class="form-control" >
+				<input  type="text" value="<?php echo isset($select_result_prp['indication'])?$select_result_prp['indication']:""; ?>" name="indication2" class="form-control" readonly="">
 			</td>
 		</tr>
 	</table>
