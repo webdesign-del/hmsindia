@@ -66,7 +66,7 @@
 	$select_result4 = run_select_query($sql4);
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
-	$select_result5 = run_select_query($sql5);a
+	$select_result5 = run_select_query($sql5);
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
