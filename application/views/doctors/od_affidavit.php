@@ -101,7 +101,8 @@
                             </tr>
                             <tr>
                                 <td colspan="2" style="padding: 5px 5px;">
-                                    Verified at Noida on this day 
+                                    Verified at     <span id="username16" class="underline"><input type="text" name="verified_by" id="verified_by" value="" class="fill-in short" /></span> that the contents are true and correct to the best of my knowledge and nothing materials have been concealed therefrom.
+                                 on this day 
                                     <span id="username15" class="underline"><input type="text" name="verified_date" id="verified_date" value="<?php echo date('d-m-Y'); ?>" class="fill-in short" /></span> that the contents are true and correct to the best of my knowledge and nothing materials have been concealed therefrom.
                                 </td>
                             </tr>

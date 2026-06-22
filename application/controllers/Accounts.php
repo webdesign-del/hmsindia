@@ -12594,6 +12594,14 @@ public function approve_wallet_transfer($log_id) {
             // 🎯 CONDITION: Wallet 2 se Wallet 1 me Transfer
             if ($action_type === 'TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET') {
                 
+                // 🔴 NEW CHECK: Verify Wallet 2 has enough balance before approval
+                if ($current_w2 < $amt) {
+                    $this->session->set_flashdata('error', 'Cannot approve: Insufficient balance in Package Wallet. Current Balance: ₹' . number_format($current_w2, 2));
+                    redirect($_SERVER['HTTP_REFERER']);
+                    return; // Execution yahin rok dein, approve nahi hoga
+                }
+                // 🔴 END NEW CHECK
+                
                 $new_w1 = $current_w1 + $amt; // Wallet 1 (Money) me Add hua
                 $new_w2 = $current_w2 - $amt; // Wallet 2 (Package) se Deduct hua
                 
@@ -12611,7 +12619,7 @@ public function approve_wallet_transfer($log_id) {
             // Pending log ko approved mark karein aur UPDATE REMARKS save karein
             $this->db->where('log_id', $log_id)->update('hms_wallet_logs', [
                 'status'         => 'approved',
-                'update_remarks' => $update_remarks, // <-- YAHAN ADD KIYA HAI
+                'update_remarks' => $update_remarks, 
                 'opening_w1'     => $current_w1,
                 'closing_w1'     => $new_w1,
                 'opening_w2'     => $current_w2,

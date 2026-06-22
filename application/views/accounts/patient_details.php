@@ -214,8 +214,8 @@
             </tr>
          </thead>
          <tbody>
-            <?php if(!empty($procedure_reports)){ $procedure_data = unserialize($procedure_reports['data']);?>
-            <?php foreach($procedure_data['patient_procedures'] as $ky => $val){ //var_dump($procedure_reports);die; ?>
+            <?php var_dump($procedure_reports); if(!empty($procedure_reports)){ $procedure_data = unserialize($procedure_reports['data']);?>
+            <?php foreach($procedure_data['patient_procedures'] as $ky => $val){ //var_dump($procedure_reports);//die; ?>
             <tr class="odd gradeX">
                <td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;" class="role"><?php echo get_procedure_data($val['sub_procedure']); ?></td>
                <td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;" class="role">

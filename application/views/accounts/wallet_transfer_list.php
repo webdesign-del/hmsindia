@@ -149,10 +149,12 @@
                                        <td>
     <?php if($log['status'] == 'pending'): ?>
         <!-- Approve Button -->
-        <button type="button" class="btn btn-success btn-xs" style="margin-bottom: 5px; width: 100%;"
-                onclick="openActionModal('<?php echo base_url('accounts/approve_wallet_transfer/'.$log['log_id']); ?>', 'Approve')">
-            <i class="fa fa-check"></i> Approve
-        </button>
+       <a href="<?php echo base_url('accounts/approve_wallet_transfer/'.$log['log_id']); ?>" 
+   class="btn btn-success btn-xs" 
+   style="margin-bottom: 5px; width: 100%;"
+   onclick="return confirm('Are you sure you want to approve this transaction?');">
+    <i class="fa fa-check"></i> Approve
+</a>
         <br>
         <!-- Disapprove Button -->
         <button type="button" class="btn btn-danger btn-xs" style="width: 100%;"
@@ -212,7 +214,7 @@
           <p id="actionWarningMessage" class="text-danger"></p>
           <div class="form-group">
             <label for="remarks">Remarks / Reason (Required):</label>
-            <textarea name="remarks" id="remarks" class="form-control" rows="3" placeholder="Enter remarks here..." required></textarea>
+            <textarea name="remarks" id="remarks" class="form-control" rows="3" placeholder="Enter remarks here..." required maxlength="100"></textarea>
           </div>
         </div>
         

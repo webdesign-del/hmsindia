@@ -242,7 +242,7 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                     
                     <div class="form-group">
                         <label>Remarks <span class="text-danger">*</span></label>
-                        <input type="text" name="remarks" class="form-control" required>
+                        <input type="text" name="remarks" class="form-control" maxlength="100">
                     </div>
                     
                 </div>
@@ -273,7 +273,7 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                     </div>
                     <div class="form-group">
                         <label>Purpose/Remarks</label>
-                        <textarea name="remarks" class="form-control" rows="2" placeholder="e.g. Move money for IVF Cycle" required></textarea>
+                        <textarea name="remarks" class="form-control" rows="2" placeholder="e.g. Move money for IVF Cycle" maxlength="100"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -300,7 +300,7 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                     </div>
                     <div class="form-group">
                         <label>Reason for Transfer Money Wallet</label>
-                        <textarea name="remarks" class="form-control" required></textarea>
+                        <textarea name="remarks" class="form-control" maxlength="100"></textarea>
                     </div>
                     <p class="text-danger small">*This transfer requires Accountant Approval.</p>
                 </div>
@@ -355,7 +355,7 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                     
                     <div class="form-group">
                         <label>Remarks <span class="text-danger">*</span></label>
-                        <input type="text" name="remarks" class="form-control" required>
+                        <input type="text" name="remarks" class="form-control" maxlength="100">
                     </div>
                     
                 </div>
@@ -434,12 +434,17 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                                 <th style="text-align: center; width: 110px;">Action</th> 
                             </tr>
                         </thead>
-                        <tbody>
+                       <tbody>
                             <?php 
-                                // hms_wallet_logs se is patient ka poora data nikalna (Latest First)
-                                $this->db->where('patient_id', $patient_data['patient_id']);
-                                $this->db->order_by('log_id', 'DESC');
-                                $wallet_history = $this->db->get('hms_wallet_logs')->result_array();
+                                // JOIN Query: hms_wallet_logs aur hms_employees ko jodna
+                                $this->db->select('hms_wallet_logs.*, hms_employees.name as employee_name');
+                                $this->db->from('hms_wallet_logs');
+                                // JOIN condition: created_by = employee_number
+                                $this->db->join('hms_employees', 'hms_employees.employee_number = hms_wallet_logs.created_by', 'left');
+                                
+                                $this->db->where('hms_wallet_logs.patient_id', $patient_data['patient_id']);
+                                $this->db->order_by('hms_wallet_logs.log_id', 'DESC');
+                                $wallet_history = $this->db->get()->result_array();
 
                                 if(!empty($wallet_history)): 
                                     $sno = 1;
@@ -477,95 +482,84 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                                             ?>
                                         </td>
                                         
-     <td style="text-align: right; vertical-align: middle;">
-    <?php 
-        $amt = (float)$history['amount'];
-        $action = strtoupper(trim($history['action_type']));
-        $status = strtolower(trim($history['status']));
-        
-        // Math difference check
-        $diff_w1 = round((float)$history['closing_w1'] - (float)$history['opening_w1'], 2);
-        
-        // CONDITION 1: Agar sach mein calculation hui hai (Disapprovals ke liye)
-        if (abs($diff_w1) > 0) {
-            if ($diff_w1 > 0) {
-                echo '<span style="font-weight: 600; color: #27ae60;">+ ₹ ' . number_format($diff_w1, 2) . '</span>';
-            } else {
-                echo '<span style="font-weight: 600; color: #c0392b;">- ₹ ' . number_format(abs($diff_w1), 2) . '</span>';
-            }
-        } 
-        // CONDITION 2: Agar Math 0 hai (Approval ki wajah se), toh Name se pakdenge
-        elseif ($amt > 0) {
-            // W1 mein PLUS hone wale Actions
-            if (in_array($action, ['DEPOSIT_MONEY_WALLET', 'TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET'])) {
-                $color = ($status == 'pending') ? '#f39c12' : '#27ae60';
-                echo '<span style="font-weight: 600; color: '.$color.';">+ ₹ ' . number_format($amt, 2) . '</span>';
-            } 
-            // W1 se MINUS hone wale Actions
-            elseif (in_array($action, ['TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET', 'INVESTIGATION_USAGE', 'MEDICINE_SALE'])) {
-                $color = ($status == 'pending') ? '#f39c12' : '#c0392b';
-                echo '<span style="font-weight: 600; color: '.$color.';">- ₹ ' . number_format($amt, 2) . '</span>';
-            } 
-            else {
-                echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
-            }
-        } 
-        else {
-            echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
-        }
-    ?>
-    <br>
-    <small class="text-muted" style="font-size: 11px;">
-        Bal: ₹<?php echo number_format($history['closing_w1'], 2); ?>
-    </small>
-</td>
+                                        <td style="text-align: right; vertical-align: middle;">
+                                        <?php 
+                                            $amt = (float)$history['amount'];
+                                            $action = strtoupper(trim($history['action_type']));
+                                            $status = strtolower(trim($history['status']));
+                                            
+                                            // Math difference check
+                                            $diff_w1 = round((float)$history['closing_w1'] - (float)$history['opening_w1'], 2);
+                                            
+                                            // CONDITION 1: Agar sach mein calculation hui hai
+                                            if (abs($diff_w1) > 0) {
+                                                if ($diff_w1 > 0) {
+                                                    echo '<span style="font-weight: 600; color: #27ae60;">+ ₹ ' . number_format($diff_w1, 2) . '</span>';
+                                                } else {
+                                                    echo '<span style="font-weight: 600; color: #c0392b;">- ₹ ' . number_format(abs($diff_w1), 2) . '</span>';
+                                                }
+                                            } 
+                                            // CONDITION 2: Agar Math 0 hai, toh Name se pakdenge
+                                            elseif ($amt > 0) {
+                                                if (in_array($action, ['DEPOSIT_MONEY_WALLET', 'TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET'])) {
+                                                    $color = ($status == 'pending') ? '#f39c12' : '#27ae60';
+                                                    echo '<span style="font-weight: 600; color: '.$color.';">+ ₹ ' . number_format($amt, 2) . '</span>';
+                                                } 
+                                                elseif (in_array($action, ['TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET', 'INVESTIGATION_USAGE', 'MEDICINE_SALE'])) {
+                                                    $color = ($status == 'pending') ? '#f39c12' : '#c0392b';
+                                                    echo '<span style="font-weight: 600; color: '.$color.';">- ₹ ' . number_format($amt, 2) . '</span>';
+                                                } 
+                                                else {
+                                                    echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+                                                }
+                                            } 
+                                            else {
+                                                echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+                                            }
+                                        ?>
+                                        <br>
+                                        <small class="text-muted" style="font-size: 11px;">
+                                            Bal: ₹<?php echo number_format($history['closing_w1'], 2); ?>
+                                        </small>
+                                    </td>
 
-<td style="text-align: right; vertical-align: middle;">
-    <?php if(isset($history['opening_w2'])): ?>
-        <?php 
-            $amt = (float)$history['amount'];
-            $action = strtoupper(trim($history['action_type']));
-            $status = strtolower(trim($history['status']));
-            
-            // Math difference check
-            $diff_w2 = round((float)$history['closing_w2'] - (float)$history['opening_w2'], 2);
-            
-            // CONDITION 1: Agar sach mein calculation hui hai (Disapprovals ke liye)
-            if (abs($diff_w2) > 0) {
-                if ($diff_w2 > 0) {
-                    echo '<span style="font-weight: 600; color: #27ae60;">+ ₹ ' . number_format($diff_w2, 2) . '</span>';
-                } else {
-                    echo '<span style="font-weight: 600; color: #c0392b;">- ₹ ' . number_format(abs($diff_w2), 2) . '</span>';
-                }
-            } 
-            // CONDITION 2: Agar Math 0 hai (Approval ki wajah se), toh Name se pakdenge
-            elseif ($amt > 0) {
-                // W2 mein PLUS hone wale Actions
-                if (in_array($action, ['DEPOSIT_PACKAGE_WALLET', 'TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET'])) {
-                    $color = ($status == 'pending') ? '#f39c12' : '#27ae60';
-                    echo '<span style="font-weight: 600; color: '.$color.';">+ ₹ ' . number_format($amt, 2) . '</span>';
-                } 
-                // W2 se MINUS hone wale Actions
-                elseif (in_array($action, ['TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET', 'PACKAGE_USAGE'])) {
-                    $color = ($status == 'pending') ? '#f39c12' : '#c0392b';
-                    echo '<span style="font-weight: 600; color: '.$color.';">- ₹ ' . number_format($amt, 2) . '</span>';
-                } 
-                else {
-                    echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
-                }
-            } 
-            else {
-                echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
-            }
-        ?>
-        <br>
-        <small class="text-muted" style="font-size: 11px;">
-            Bal: ₹<?php echo number_format($history['closing_w2'], 2); ?>
-        </small>
-    <?php else: ?>
-        <span class="text-muted">-</span>
-    <?php endif; ?>
-</td>
+                                    <td style="text-align: right; vertical-align: middle;">
+                                        <?php if(isset($history['opening_w2'])): ?>
+                                            <?php 
+                                                $diff_w2 = round((float)$history['closing_w2'] - (float)$history['opening_w2'], 2);
+                                                
+                                                if (abs($diff_w2) > 0) {
+                                                    if ($diff_w2 > 0) {
+                                                        echo '<span style="font-weight: 600; color: #27ae60;">+ ₹ ' . number_format($diff_w2, 2) . '</span>';
+                                                    } else {
+                                                        echo '<span style="font-weight: 600; color: #c0392b;">- ₹ ' . number_format(abs($diff_w2), 2) . '</span>';
+                                                    }
+                                                } 
+                                                elseif ($amt > 0) {
+                                                    if (in_array($action, ['DEPOSIT_PACKAGE_WALLET', 'TRANSFER_MONEY_WALLET_TO_PACKAGE_WALLET'])) {
+                                                        $color = ($status == 'pending') ? '#f39c12' : '#27ae60';
+                                                        echo '<span style="font-weight: 600; color: '.$color.';">+ ₹ ' . number_format($amt, 2) . '</span>';
+                                                    } 
+                                                    elseif (in_array($action, ['TRANSFER_PACKAGE_WALLET_TO_MONEY_WALLET', 'PACKAGE_USAGE'])) {
+                                                        $color = ($status == 'pending') ? '#f39c12' : '#c0392b';
+                                                        echo '<span style="font-weight: 600; color: '.$color.';">- ₹ ' . number_format($amt, 2) . '</span>';
+                                                    } 
+                                                    else {
+                                                        echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+                                                    }
+                                                } 
+                                                else {
+                                                    echo '<span style="font-weight: 600; color: #7f8c8d;">₹ 0.00</span>';
+                                                }
+                                            ?>
+                                            <br>
+                                            <small class="text-muted" style="font-size: 11px;">
+                                                Bal: ₹<?php echo number_format($history['closing_w2'], 2); ?>
+                                            </small>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
                                         
                                         <td style="vertical-align: middle;">
                                             <span class="badge" style="background-color: #7f8c8d; color:#fff; font-weight: normal; padding: 3px 6px;">
@@ -574,13 +568,31 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                                         </td>
                                         
                                         <td style="vertical-align: middle; color: #555; max-width: 200px; word-wrap: break-word;">
-                                            <?php echo !empty($history['remarks']) ? $history['remarks'] : '<em class="text-muted">No remarks</em>'; ?>
-                                            <br><small class="text-muted">By: <?php echo $history['created_by'] ?? 'Staff'; ?></small>
+                                            <?php echo !empty($history['remarks']) ? htmlspecialchars($history['remarks']) : '<em class="text-muted">No remarks</em>'; ?>
+                                            
+                                            <?php if(!empty($history['update_remarks'])): ?>
+                                                <br>
+                                                <span class="text-info" style="font-size: 12px;">
+                                                    <i class="fa fa-comment"></i> <?php echo htmlspecialchars($history['update_remarks']); ?>
+                                                </span>
+                                            <?php endif; ?>
+                                           
+                                            <br>
+                                            <small class="text-muted">By: 
+                                                <?php 
+                                                    // JOIN query ne 'employee_name' nikal liya hai
+                                                    if(!empty($history['employee_name'])) {
+                                                        echo htmlspecialchars($history['employee_name']);
+                                                    } else {
+                                                        echo htmlspecialchars($history['created_by'] ?? 'Staff');
+                                                    }
+                                                ?>
+                                            </small>
                                         </td>
-
+                                        
                                         <td style="text-align: center; vertical-align: middle;">
                                             <?php 
-                                                $status = $history['status'] ?? 'approved'; // Default fallback approved agar value khali ho
+                                                $status = $history['status'] ?? 'approved'; 
                                                 if($status == 'pending'): 
                                             ?>
                                                 <span class="label label-warning" style="padding: 4px 8px; font-weight: bold;"><i class="fa fa-spinner fa-spin"></i> Pending</span>

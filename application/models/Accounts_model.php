@@ -1849,7 +1849,7 @@ function approve_procedure($ID) {
 	function procedure_reports($patient_id){
 		$result = array();
 		
-		$sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where patient_id='$patient_id' order by ID desc limit 1";
+		$sql = "Select * from ".$this->config->item('db_prefix')."patient_procedure where patient_id='$patient_id' and status='approved'";
         $q = $this->db->query($sql);
         $result = $q->result_array();
 		if(!empty($result)){
