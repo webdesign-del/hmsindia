@@ -120,7 +120,7 @@ $generated_ipid = $current_center_code . '/' . $current_year_suffix . '/' . $nex
 </tr>
 <tr style="background: #b3b9b7;">
 <td colspan="2" width="34%" style="border:1px solid;padding:5px;">
-<strong>UHID : <?php echo ($select_result5['center_code'] ?? '')."/".($select_result4['uhid'] ?? ''); ?></strong>
+<strong>UHID : <?php echo ($select_result5['center_code'] ?? '')."/".($select_result1['uhid'] ?? ''); ?></strong>
 </td>
 <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
 <strong>IPID: <?php echo isset($select_result['ipid']) ? $select_result['ipid'] : 'Auto Generated'; ?></strong>
