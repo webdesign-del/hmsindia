@@ -723,11 +723,11 @@ $select_result = run_select_query($select_query);
 
 			
 				
-<!-- print -->
+<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
 
-<input type="button" id="btn" value="Print" class="btn btn-primary pull-right printbtn" onclick="printtable();">
-            
-<div  class="printtable prtable"  id="printtable"  style="display:none">  
+	
+<!--<div  class="printtable prtable"  id="printtable"  style="display:none;">-->
+<div  class="printtable prtable"  id="printtable" style="display:none;"> 
 <table style="width:100%; border:1px solid #cdcdcd;" id="printtable" border="1">			
 				
 				

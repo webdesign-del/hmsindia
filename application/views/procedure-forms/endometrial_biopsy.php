@@ -340,8 +340,11 @@
 </div>
 </form>
 <!--            Print Table                         -->
-<input type="button" id="btn" value="Print" class="btn btn-primary pull-right printbtn" onclick="printtable();">
-<div  class="printtable prtable "  id="printtable"  style="display:none">
+<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
+
+	
+<!--<div  class="printtable prtable"  id="printtable"  style="display:none;">-->
+<div  class="printtable prtable"  id="printtable" style="display:none;"> 
     	<!--  <div  class="printtable prtable "  id="printtable"  >	 -->
     	<table style="width:100%; border:1px solid #cdcdcd;" id="printtable" border="1">
     	<table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">

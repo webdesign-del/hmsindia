@@ -164,11 +164,14 @@
 
 	<div class="card-footer">
 		<input type="submit" name="submit" class="btn btn-primary mt-2 mb-2" value="submit">
-		<input type="button" id="btn" value="Print" class="btn btn-primary pull-right printbtn" onclick="printtable();">
 	</div>
 </form>
 
-<div  class="printtable prtable"  id="printtable"  style="display:none">  
+<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
+
+	
+<!--<div  class="printtable prtable"  id="printtable"  style="display:none;">-->
+<div  class="printtable prtable"  id="printtable" style="display:none;">  
     <table class="table-bordered" width="100%">
 
 				<tr>

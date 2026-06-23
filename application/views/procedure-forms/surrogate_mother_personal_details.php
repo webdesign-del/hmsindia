@@ -1438,9 +1438,11 @@
 
 
 
-<input type="button" id="btn" value="Print" class="btn btn-primary pull-right printbtn" onclick="printtable();">
-            
-<div  class="printtable prtable"  id="printtable"  style="display:none">  
+<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
+
+	
+<!--<div  class="printtable prtable"  id="printtable"  style="display:none;">-->
+<div  class="printtable prtable"  id="printtable" style="display:none;"> 
 
 
 <!-- surrogate_mother_personal_details -->

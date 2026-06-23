@@ -497,10 +497,11 @@
 
 <!-- print -->
 
-<input type="button" id="btn" value="Print" class="btn btn-primary pull-right printbtn" style="margin-right: 120px" onclick="printtable();">
+<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
 
-
-<div  class="printtable pttable"  id="printtable"  style="display: none;">  
+	
+<!--<div  class="printtable prtable"  id="printtable"  style="display:none;">-->
+<div  class="printtable prtable"  id="printtable" style="display:none;"> 
 <table style="width:100%; border:1px solid #cdcdcd;" id="printtable" border="1">
 
  <thead>

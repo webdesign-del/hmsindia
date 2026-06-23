@@ -391,10 +391,11 @@ $select_result = run_select_query($select_query);
 	  
 	  <!---         Print Button      -->
 	  
-	  
-<input type="button" id="btn" value="Print" class="btn btn-primary pull-right printbtn" onclick="printtable();">
-            
-<div  class="printtable prtable"  id="printtable"  style="display:none">  
+<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
+
+	
+<!--<div  class="printtable prtable"  id="printtable"  style="display:none;">-->
+<div  class="printtable prtable"  id="printtable" style="display:none;"> 
 
                 <table class="table table-bordered table-hover table-sm" style="width:100%; border:1px solid #cdcdcd;">
 					 <tr>

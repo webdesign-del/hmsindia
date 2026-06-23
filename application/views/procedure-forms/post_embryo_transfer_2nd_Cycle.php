@@ -511,7 +511,11 @@
    </div>
 </form>
 <!--                             Print       TABLE                         -->																																								<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable" onclick="printtable();">	
-<div  class="printtable prtable"  id="printtable"  style="display:none;">
+<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
+
+	
+<!--<div  class="printtable prtable"  id="printtable"  style="display:none;">-->
+<div  class="printtable prtable"  id="printtable" style="display:none;"> 
    <table style="width:100%; border:1px solid #cdcdcd;" id="printtable" border="1">
       <table class="table-bordered" width="100%">
 	  <tr>

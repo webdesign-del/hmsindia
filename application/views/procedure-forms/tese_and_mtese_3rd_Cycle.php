@@ -274,11 +274,11 @@ if(isset($_POST['submit'])){
 
 		<!---  Print Button Start form --> 
 
+<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
 
-
-<input type="button" id="btn" value="Print" class="btn btn-primary pull-right printbtn" onclick="printtable();">
-            
-<div  class="printtable prtable"  id="printtable"  style="display:none">  
+	
+<!--<div  class="printtable prtable"  id="printtable"  style="display:none;">-->
+<div  class="printtable prtable"  id="printtable" style="display:none;"> 
 <table style="border:1px solid;width:100%;" class="fg45yu">
    <tr>
    <td style="width:50%;border:1px solid #ccc;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
