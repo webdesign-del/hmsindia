@@ -475,22 +475,17 @@ class Patients extends CI_Controller {
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Patients-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
-				$headers = 'UHID,Patient ID, Patient Phone, Wife Name, Wife_phone, Center';
+				$headers = 'Patient ID, Patient Name, Address, Date, Center';
 				//Add the headers
 				fwrite($fp, $headers. "\r\n");
 				foreach ($data as $key => $val) {//var_dump($val);die;
 				
-					$select_query = "SELECT * FROM `hms_appointments` WHERE wife_phone='" . $val['wife_phone'] . "'";
-					$select_result = run_select_query($select_query); 
-					
-					$center_query = "SELECT * FROM `hms_centers` WHERE center_number='" . $select_result['appoitment_for'] . "'";
+					$center_query = "SELECT * FROM `hms_centers` WHERE center_number='" .  $val['origins'] . "'";
 					$center_result = run_select_query($center_query); 
 					
-					$uhid = $center_result['center_code']."/".$select_result['uhid'];
-					
-					$center = $select_result['appoitment_for'];
+					$center = $center_result['center_name'];
 				
-					$lead_arr = array($uhid, $val['patient_id'], $val['patient_phone'],$val['wife_name'],  $val['wife_phone'],$center);
+					$lead_arr = array($val['patient_id'], $val['wife_name'],$val['wife_address'],  $val['add_date'],$center);
 					fputcsv($fp, $lead_arr);
 				}
 				

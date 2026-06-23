@@ -194,9 +194,10 @@ class Patients_model extends CI_Model
 				
 				$response[] = array(
                         'patient_id' => $val['patient_id'],
-				        'patient_phone' => $val['patient_phone'],
-                        'wife_name' => $val['wife_name'],
-                        'wife_phone' => $val['wife_phone']
+				        'wife_name' => $val['wife_name'],
+                        'wife_address' => $val['wife_address'],
+                        'add_date' => $val['add_date'],
+						'origins' => $val['origins']
                 );
             }
         } 

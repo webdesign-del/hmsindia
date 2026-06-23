@@ -29,21 +29,17 @@
             <label>IIC ID </label>
             <input type="text" class="form-control" id="iic_id" name="iic_id" value="<?php echo $patient_id;?>" />
          </div>
-         <div class="col-sm-1" style="margin-top: 10px;">
+         <div class="col-sm-3" style="margin-top: 30px;">
             <button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>
-         </div>
-         <div class="col-sm-1" style="margin-top: 10px;">
             <a href="<?php echo base_url().'patients/patients'; ?>" style="text-decoration: none;">
             <button name="btnreset" id="btnreset" type="button"  class="btn btn-secondary">RESET</button>
             </a>
-         </div>
-        <?php if($_SESSION['logged_administrator']['username']){ ?>
-         <div class="col-sm-2" style="margin-top: 10px;">
+         <?php if($_SESSION['logged_administrator']['username']){ ?>
             <a href="<?php echo base_url('patients/Patients'); ?>" style="text-decoration: none;">
             <button name="export-patient" type="submit"  class="btn btn-secondary" id="export-patient">Export Patient</button>
             </a>
-         </div>
          <?php } ?>
+         </div>
       </form>
    </div>
    <div class="clearfix"></div>
