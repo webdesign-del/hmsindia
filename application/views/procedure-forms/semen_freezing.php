@@ -480,20 +480,32 @@
 }
  </style>
 						
-<script> 
- function printtable() 
-{    //alert();
-  $('.searchform').hide();
-   $('.printbtn').hide();
-  $('.printbtn').css('display', 'hide');
-  $('.prtable').css('display', 'block');
-  var divToPrint=document.getElementById('printtable');
-  var newWin=window.open('','Print-Window');
-  newWin.document.open();
-  newWin.document.write('<html><body onload="window.print()">'+divToPrint.innerHTML+'</body></html>');
-  newWin.document.close();
-  setTimeout(function(){newWin.close();},10);
-  window.location.reload();
-}
-</script>						
+<script>
+$(document).ready(function(){
+    
+    // Step 1: Agar button kahin aur se disable ho raha hai toh usko enable karein
+    $('#btn').prop('disabled', false);
+
+    $(".ptable").click(function(){
+        // Elements ko hide/show karna
+        $('.searchform').hide();
+        $('.printbtn').hide(); 
+        $('.prtable').css('display', 'block');
+      
+        // Print logic
+        var divToPrint = document.getElementById('printtable');
+        var newWin = window.open('','Print-Window');
+        newWin.document.open();
+        newWin.document.write('<html><body onload="window.print()">' + divToPrint.innerHTML + '</body></html>');
+        newWin.document.close();
+      
+        // Timeout thoda bada rakhein taaki print dialog perfectly load ho sake
+        setTimeout(function(){
+            newWin.close();
+        }, 500); 
+
+        // Note: window.location.reload(); ko hta diya gaya hai taaki page achanak refresh na ho.
+    });
+});
+</script>				
 			
