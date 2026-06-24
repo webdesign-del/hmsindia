@@ -1217,16 +1217,11 @@ else if(isset($select_result['paternal_malignancy']) && $select_result['paternal
 </form>
 
 
+<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
 
-
-
-
-
-<!------   Print Button -->
-
-<input type="button" id="btn" value="Print" class="btn btn-primary pull-right printbtn" onclick="printtable();">
-            
-<div  class="printtable prtable"  id="printtable"  style="display:none"> 
+	
+<!--<div  class="printtable prtable"  id="printtable"  style="display:none;">-->
+<div  class="printtable prtable"  id="printtable" style="display:none;"> 
 
 
 
