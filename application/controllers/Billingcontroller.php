@@ -2007,62 +2007,93 @@ function partial_billing($appointment_id){
 							$proc_result = run_select_query($procedure_sql);
 
 							// 2. Prepare API Payload
-							$data = array(
-								"lead_id" => trim($select_result5['crm_id']),
-								"visit_month" => $visit_month,
-								"first_visit_date" => $first_visit_date,
-								"doctor_consulted" => $select_result3['name'],
-								"ch_fc_name" => $select_doctor_consultation['counsellor_signature'],
-								"booking_month" => date('F d', strtotime($post_arr['on_date'])),
-								"booking_date" => $post_arr['on_date'],
-								"patient_id" => $post_arr['patient_id'],
-								"patients_name" => $select_result5['wife_name'],
-								"patients_source" => $select_result5['lead_source'],
-								"centre_booking" => $post_arr['billing_from'],
+						$data = array(
+							"lead_id" => trim($select_result5['crm_id']),
+							"visit_month" => $visit_month,
+							"first_visit_date" => $first_visit_date,
+							"doctor_consulted" => $select_result3['name'],
+							"ch_fc_name" => $select_doctor_consultation['counsellor_signature'],
+							"booking_month" => date('F d', strtotime($post_arr['on_date'])),
+							"booking_date" => $post_arr['on_date'],
+							"patient_id" => $post_arr['patient_id'],
+							"patients_name" => $select_result5['wife_name'],
+							"patients_source" => $select_result5['lead_source'],
+							"centre_booking" => $post_arr['billing_from'],
+							
+							// Use Fetched Procedure Info
+							"procedure_type" => $proc_result['category'],
+							"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($post_arr['on_date']))->format('Y-m-d'),
+							"procedure_code" => $proc_result['code'],
+							
+							// Use Local Loop Values (Important!)
+							"package_amount" => $loop_totalpackage,
+							"discount_amount" => $loop_discount_amount,
+							"package_after_discount" => $loop_fees,
+							"payment_received" => $loop_payment_done
+						);
+
+						$jsonData = json_encode($data);
+
+						// 3. Send to APIs
+						$urls = [
+							'lead_1' => 'https://flertility.in/lead/lead-journey/',
+							'lead_2' => 'https://staging.flertility.in/lead/lead-journey/'
+						];
+
+						// Variable to store agent name if received from API
+						$agent_to_update = null;
+
+						foreach ($urls as $label => $url) {
+							$curl = curl_init();
+							curl_setopt_array($curl, array(
+								CURLOPT_URL => $url,
+								CURLOPT_RETURNTRANSFER => true,
+								CURLOPT_ENCODING => '',
+								CURLOPT_MAXREDIRS => 10,
+								CURLOPT_TIMEOUT => 5, 
+								CURLOPT_FOLLOWLOCATION => true,
+								CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+								CURLOPT_CUSTOMREQUEST => 'POST',
+								CURLOPT_POSTFIELDS => $jsonData,
+								CURLOPT_HTTPHEADER => array(
+									'Content-Type: application/json',
+									'Accept: application/json'
+								),
+							));
+							
+							// API Response capture
+							$response = curl_exec($curl);
+							$http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+							curl_close($curl);
+
+							// Check if API call was successful
+							if ($http_code == 200 || $http_code == 201) {
+								$response_data = json_decode($response, true);
 								
-								// Use Fetched Procedure Info
-								"procedure_type" => $proc_result['category'],
-								"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($post_arr['on_date']))->format('Y-m-d'),
-								"procedure_code" => $proc_result['code'],
-								
-								// Use Local Loop Values (Important!)
-								"package_amount" => $loop_totalpackage,
-								"discount_amount" => $loop_discount_amount,
-								"package_after_discount" => $loop_fees,
-								"payment_received" => $loop_payment_done
-							);
-
-							$jsonData = json_encode($data);
-
-							//var_dump($data);
-							//die();
-
-							// 3. Send to APIs
-							$urls = [
-								'lead_1' => 'https://flertility.in/lead/lead-journey/',
-								'lead_2' => 'https://staging.flertility.in/lead/lead-journey/'
-							];
-
-							foreach ($urls as $label => $url) {
-								$curl = curl_init();
-								curl_setopt_array($curl, array(
-									CURLOPT_URL => $url,
-									CURLOPT_RETURNTRANSFER => true,
-									CURLOPT_ENCODING => '',
-									CURLOPT_MAXREDIRS => 10,
-									CURLOPT_TIMEOUT => 5, 
-									CURLOPT_FOLLOWLOCATION => true,
-									CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-									CURLOPT_CUSTOMREQUEST => 'POST',
-									CURLOPT_POSTFIELDS => $jsonData,
-									CURLOPT_HTTPHEADER => array(
-										'Content-Type: application/json',
-										'Accept: application/json'
-									),
-								));
-								$response = curl_exec($curl);
-								curl_close($curl);
+								// Extract agent name if it exists in the response
+								if (isset($response_data['current_agent_name']) && !empty($response_data['current_agent_name'])) {
+									$agent_to_update = $response_data['current_agent_name'];
+								}
 							}
+						}
+
+						// 4. Update the specific record in Database
+						if (!empty($agent_to_update)) {
+							
+							$this->db->set('agent', $agent_to_update);
+							
+							// 🚀 STRICT CONDITIONS: Taki sirf wahi procedure update ho jo bheja gaya hai
+							$this->db->where('patient_id', $post_arr['patient_id']);
+							$this->db->where('code', $proc_result['code']);
+							
+							// Agar aapke paas receipt_number ya current row ki Primary ID ($post_arr me) hai, 
+							// toh use bhi yahan zaroor add karein duplicate updates se bachne ke liye. Example:
+							if (isset($post_arr['receipt_number']) && !empty($post_arr['receipt_number'])) {
+								$this->db->where('receipt_number', $post_arr['receipt_number']);
+							}
+
+							$this->db->update('hms_patient_procedure');
+						}
 							// ==================================================================
 
 						} // End Foreach Loop

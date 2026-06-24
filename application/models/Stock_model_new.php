@@ -5448,7 +5448,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
             return $this->db->trans_status();
         }*/
 
-            public function process_medicine_return($return_data, $return_items, $is_old = false)
+ public function process_medicine_return($return_data, $return_items, $is_old = false)
 {
     if (empty($return_items)) {
         return false;
@@ -5460,7 +5460,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
     $prefix = $is_old ? "ORET" : "RET";
     $next_id = $this->db->count_all_results('medicine_returns') + 1;
     $return_data["return_number"] = $prefix . date("Ymd") . str_pad($next_id, 4, "0", STR_PAD_LEFT);
-    $return_data["status"] = "PENDING"; // You might want to change this to 'COMPLETED' if it auto-refunds to wallet
+    $return_data["status"] = "PENDING"; // Keep this PENDING until accountant approves
     
     $this->db->insert("medicine_returns", $return_data);
     $return_id = $this->db->insert_id();
@@ -5486,7 +5486,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
     }
 
     $items_processed = 0;
-    $total_refund_amount = 0; // 🚀 WALLET INTEGRATION: Variable to track total refund
+    $total_refund_amount = 0;
 
     foreach ($return_items as $item) {
         $batch_id = isset($item["batch_id"]) ? (int)$item["batch_id"] : 0;
@@ -5501,7 +5501,6 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         $item_discount_amount = ($item_total * $item_discount_percentage) / 100;
         $item_final_amount = $item_total - $item_discount_amount;
         
-        // 🚀 WALLET INTEGRATION: Accumulate the total refund amount
         $total_refund_amount += $item_final_amount;
 
         // 3. Insert into medicine_return_items
@@ -5533,36 +5532,18 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         return false;
     }
 
-    // 🚀 WALLET INTEGRATION: Credit the calculated amount to the patient's wallet
+    // 🚀 WALLET PENDING LOGIC, NOTIFICATION & EMAIL
     if ($total_refund_amount > 0 && !empty($patient_id)) {
         
-        // Get current wallet balance
+        // Get current wallet balance just for logging purposes
         $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row_array();
-        
         $current_w1 = !empty($wallet) ? floatval($wallet['wallet_1_balance']) : 0;
         $current_w2 = !empty($wallet) ? floatval($wallet['wallet_2_balance']) : 0;
         
-        $new_w1 = $current_w1 + $total_refund_amount; // Adding refund to main wallet (Wallet 1)
+        // NOTE: We DO NOT update hms_patient_wallets here anymore.
+        // It will be updated by the Accountant during approval.
 
-        // Update or Insert Wallet
-        if (!empty($wallet)) {
-            $this->db->where('patient_id', $patient_id)->update('hms_patient_wallets', [
-                'wallet_1_balance' => $new_w1,
-                'updated_at'       => date('Y-m-d H:i:s')
-            ]);
-        } else {
-            // If patient doesn't have a wallet yet, create one
-            $this->db->insert('hms_patient_wallets', [
-                'patient_id'       => $patient_id,
-                'wallet_1_balance' => $new_w1,
-                'wallet_2_balance' => 0,
-                'wallet_3_balance' => 0,
-                'created_at'       => date('Y-m-d H:i:s'),
-                'updated_at'       => date('Y-m-d H:i:s')
-            ]);
-        }
-
-        // Insert log into hms_wallet_logs
+        // 1. Insert log into hms_wallet_logs as 'pending'
         $user_name = isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'System';
         
         $log_data = [
@@ -5570,24 +5551,62 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
             'amount'         => $total_refund_amount,
             'action_type'    => 'PHARMACY_RETURN_REFUND',
             'opening_w1'     => $current_w1,
-            'closing_w1'     => $new_w1,
+            'closing_w1'     => $current_w1, // Kept same as opening because money is NOT added yet
             'opening_w2'     => $current_w2,
             'closing_w2'     => $current_w2,
             'reference_id'   => $return_id,
             'receipt_number' => $return_data["return_number"],
             'payment_method' => 'WALLET',
-            'remarks'        => 'Refund for Medicine Return # ' . $return_data["return_number"],
+            'remarks'        => 'Pending Approval: Refund for Medicine Return # ' . $return_data["return_number"],
             'created_by'     => $user_name,
             'created_at'     => date('Y-m-d H:i:s'),
-            'approved_by'    => 'System', // Auto-approved since it's a system generated refund
+            'approved_by'    => '', 
             'updated_at'     => date('Y-m-d H:i:s'),
-            'status'         => 'pending'
+            'status'         => 'pending' // STRICTLY PENDING
         ];
-        
         $this->db->insert('hms_wallet_logs', $log_data);
+        $log_id = $this->db->insert_id();
+
+        // 2. System Notification Insert (Modify table name and columns based on your DB schema)
+        $notification_data = [
+            'title'      => 'Pending Wallet Refund Approval',
+            'message'    => "Return #" . $return_data["return_number"] . " generated a refund of Rs." . $total_refund_amount . " for Patient ID " . $patient_id . ". Awaiting account approval.",
+            'user_role'  => 'accountant', // Or whoever handles approvals
+            'url'        => 'accountant/wallet_approvals/view/'.$log_id, // Example URL
+            'is_read'    => 0,
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+        // Uncomment/Modify according to your actual notification table
+        $this->db->insert('hms_notifications', $notification_data);
+
+        // 3. Send Email for Approval
+        // Load CodeIgniter Email Library
+        $this->load->library('email');
         
-        // Optional: Automatically mark the return status as COMPLETED since refund is processed
-        $this->db->where('id', $return_id)->update('medicine_returns', ['status' => 'PENDING']);
+        $config['mailtype'] = 'html';
+        $this->email->initialize($config);
+        
+        // Fetch admin/accountant email from settings or hardcode for now
+        $admin_email = 'webdesign@indiaivf.in'; 
+        
+        $this->email->from('no-reply@yourhospital.com', 'Pharmacy System');
+        $this->email->to($admin_email);
+        $this->email->subject('Action Required: Medicine Return Refund Approval');
+        
+        $email_message = "
+            <h3>Medicine Return Refund Pending Approval</h3>
+            <p>A new medicine return has been processed and requires your approval to credit the refund to the patient's wallet.</p>
+            <ul>
+                <li><strong>Return Number:</strong> " . $return_data["return_number"] . "</li>
+                <li><strong>Patient ID:</strong> " . $patient_id . "</li>
+                <li><strong>Refund Amount:</strong> Rs. " . $total_refund_amount . "</li>
+                <li><strong>Generated By:</strong> " . $user_name . "</li>
+            </ul>
+            <p>Please log in to the system to approve or reject this transaction.</p>
+        ";
+        
+        $this->email->message($email_message);
+        $this->email->send();
     }
 
     $this->db->trans_complete();
@@ -10486,6 +10505,23 @@ public function refund_wallet_balance($patient_id, $amount, $sale_id, $logged_in
     
     return $this->db->insert('hms_wallet_logs', $log_data);
 }
+
+public function get_unread_notifications() {
+        // Notification table se accountant ke unread messages nikalna
+        $this->db->where('user_role', 'accountant'); 
+        $this->db->where('is_read', 0);
+        $this->db->order_by('created_at', 'DESC');
+        $this->db->limit(10); // Top 10 latest notifications
+        
+        // NOTE: Agar aapke database mein table ka naam 'notifications' nahi hai, 
+        // toh yahan sahi naam daal dein (e.g., 'sys_notifications')
+        $query = $this->db->get('hms_notifications'); 
+        
+        if ($query) {
+            return $query->result();
+        }
+        return [];
+    }
 
 
 }

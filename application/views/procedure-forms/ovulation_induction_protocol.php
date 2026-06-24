@@ -140,6 +140,10 @@ if(isset($_POST['submit'])){
 		<tr style="color: red;">
 			<td>Indication </td>
 			<td><input  type="text" value="<?php echo isset($select_result['indication'])?$select_result['indication']:""; ?>" maxlength="200" name="indication" class="form-control" ></td>
+		</tr>
+		<tr style="color: red;">
+			<td>Viral Mark Status </td>
+			<td><input  type="text" value="<?php echo isset($select_result['viral_mark'])?$select_result['viral_mark']:""; ?>" maxlength="200" name="viral_mark" class="form-control" ></td>
 		</tr>	
 	</table>
 	<div class="table-responsive">
@@ -335,7 +339,7 @@ if(isset($_POST['submit'])){
 				<td><input type="text" value="<?php echo isset($select_result['agonist16'])?$select_result['agonist16']:""; ?>" maxlength="20" name="agonist16" class="form-control"></td>
 			</tr>
 			<tr>
-				<td>MEDICINE ADDED</td>
+				<td>MEDICINE ADDED FEMALE</td>
 				<td><input type="text" value="<?php echo isset($select_result['medicine_dose1'])?$select_result['medicine_dose1']:""; ?>" maxlength="20" name="medicine_dose1" class="form-control"></td>
 				<td><input type="text" value="<?php echo isset($select_result['medicine_dose2'])?$select_result['medicine_dose2']:""; ?>" maxlength="20" name="medicine_dose2" class="form-control"></td>
 				<td><input type="text" value="<?php echo isset($select_result['medicine_dose3'])?$select_result['medicine_dose3']:""; ?>" maxlength="20" name="medicine_dose3" class="form-control"></td>
@@ -352,6 +356,25 @@ if(isset($_POST['submit'])){
 				<td><input type="text" value="<?php echo isset($select_result['medicine_dose14'])?$select_result['medicine_dose14']:""; ?>" maxlength="20" name="medicine_dose14" class="form-control"></td>
 				<td><input type="text" value="<?php echo isset($select_result['medicine_dose15'])?$select_result['medicine_dose15']:""; ?>" maxlength="20" name="medicine_dose15" class="form-control"></td>
 				<td><input type="text" value="<?php echo isset($select_result['medicine_dose16'])?$select_result['medicine_dose16']:""; ?>" maxlength="20" name="medicine_dose16" class="form-control"></td>
+			</tr>
+			<tr>
+				<td>MEDICINE ADDED MALE</td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose1'])?$select_result['medicine_male_dose1']:""; ?>" maxlength="20" name="medicine_dose1" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose2'])?$select_result['medicine_male_dose2']:""; ?>" maxlength="20" name="medicine_dose2" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose3'])?$select_result['medicine_male_dose3']:""; ?>" maxlength="20" name="medicine_dose3" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose4'])?$select_result['medicine_male_dose4']:""; ?>" maxlength="20" name="medicine_dose4" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose5'])?$select_result['medicine_male_dose5']:""; ?>" maxlength="20" name="medicine_dose5" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose6'])?$select_result['medicine_male_dose6']:""; ?>" maxlength="20" name="medicine_dose6" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose7'])?$select_result['medicine_male_dose7']:""; ?>" maxlength="20" name="medicine_dose7" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose8'])?$select_result['medicine_male_dose8']:""; ?>" maxlength="20" name="medicine_dose8" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose9'])?$select_result['medicine_male_dose9']:""; ?>" maxlength="20" name="medicine_dose9" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose10'])?$select_result['medicine_male_dose10']:""; ?>" maxlength="20" name="medicine_dose10" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose11'])?$select_result['medicine_male_dose11medicine_male_dose11']:""; ?>" maxlength="20" name="medicine_dose11" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose12'])?$select_result['medicine_male_dose12']:""; ?>" maxlength="20" name="medicine_dose12" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose13'])?$select_result['medicine_male_dose13']:""; ?>" maxlength="20" name="medicine_dose13" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose14'])?$select_result['medicine_male_dose14']:""; ?>" maxlength="20" name="medicine_dose14" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose15'])?$select_result['medicine_male_dose15']:""; ?>" maxlength="20" name="medicine_dose15" class="form-control"></td>
+				<td><input type="text" value="<?php echo isset($select_result['medicine_male_dose16'])?$select_result['medicine_male_dose16']:""; ?>" maxlength="20" name="medicine_dose16" class="form-control"></td>
 			</tr>
 			<tr>
 				<td>REMARKS</td>
@@ -714,7 +737,7 @@ if(isset($_POST['submit'])){
 				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['agonist16'])?$select_result['agonist16']:""; ?></td>
 			</tr>
 			<tr>
-				<td style="border:1px solid #cdcdcd;">MEDICINE ADDED</td>
+				<td style="border:1px solid #cdcdcd;">MEDICINE ADDED FEMALE</td>
 				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_dose1'])?$select_result['medicine_dose1']:""; ?></td>
 				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_dose2'])?$select_result['medicine_dose2']:""; ?></td>
 				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_dose3'])?$select_result['medicine_dose3']:""; ?></td>
@@ -731,6 +754,25 @@ if(isset($_POST['submit'])){
 				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_dose14'])?$select_result['medicine_dose14']:""; ?></td>
 				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_dose15'])?$select_result['medicine_dose15']:""; ?></td>
 				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_dose16'])?$select_result['medicine_dose16']:""; ?></td>
+			</tr>
+			<tr>
+				<td style="border:1px solid #cdcdcd;">MEDICINE ADDED MALE</td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose1'])?$select_result['medicine_male_dose1']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose2'])?$select_result['medicine_male_dose2']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose3'])?$select_result['medicine_male_dose3']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose4'])?$select_result['medicine_male_dose4']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose5'])?$select_result['medicine_male_dose5']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose6'])?$select_result['medicine_male_dose6']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose7'])?$select_result['medicine_male_dose7']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose8'])?$select_result['medicine_male_dose8']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose9'])?$select_result['medicine_male_dose9']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose10'])?$select_result['medicine_male_dose10']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose11'])?$select_result['medicine_male_dose11']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose12'])?$select_result['medicine_male_dose12']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose13'])?$select_result['medicine_male_dose13']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose14'])?$select_result['medicine_male_dose14']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose15'])?$select_result['medicine_male_dose15']:""; ?></td>
+				<td style="border:1px solid #cdcdcd;"><?php echo isset($select_result['medicine_male_dose16'])?$select_result['medicine_male_dose16']:""; ?></td>
 			</tr>
 			<tr>
 				<td style="border:1px solid #cdcdcd;">REMARKS</td>

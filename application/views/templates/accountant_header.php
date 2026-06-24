@@ -39,7 +39,46 @@
             <div id="sideNav" href=""><i class="material-icons dp48">toc</i></div>
          </div>
          <ul class="nav navbar-top-links navbar-right">
-            <li><a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown4"><i class="fa fa-bell fa-fw" aria-hidden="true"></i> <i class="material-icons right">arrow_drop_down</i></a></li>
+            <li class="dropdown notifications-menu">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+        <i class="fa fa-bell-o"></i> <?php if(isset($notification_count) && $notification_count > 0): ?>
+            <span class="label label-danger" style="position:absolute; top:5px; right:5px; background:red; color:white; border-radius:50%; padding:2px 6px; font-size:10px;">
+                <?php echo $notification_count; ?>
+            </span>
+        <?php endif; ?>
+    </a>
+    
+    <ul class="dropdown-menu" style="width: 300px; padding: 0; box-shadow: 0px 4px 10px rgba(0,0,0,0.1);">
+        <li class="header" style="background:#f9f9f9; padding:10px; border-bottom:1px solid #ddd; font-weight:bold; text-align:center;">
+            You have <?php echo isset($notification_count) ? $notification_count : 0; ?> pending approvals
+        </li>
+        
+        <li>
+            <ul class="menu" style="list-style: none; margin: 0; padding: 0; max-height: 250px; overflow-y: auto;">
+                
+                <?php if(isset($notifications) && !empty($notifications)): ?>
+                    <?php foreach($notifications as $notif): ?>
+                        <li style="border-bottom: 1px solid #f4f4f4;">
+                            <a href="<?php echo base_url($notif->url); ?>" style="display: block; padding: 10px; text-decoration: none; color: #444;">
+                                <strong><i class="fa fa-warning text-yellow"></i> <?php echo $notif->title; ?></strong><br>
+                                <span style="font-size: 12px; color: #666;"><?php echo $notif->message; ?></span><br>
+                                <small style="color: #999; font-size: 11px;"><i class="fa fa-clock-o"></i> <?php echo date('d M Y, h:i A', strtotime($notif->created_at)); ?></small>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <li style="padding: 15px; text-align: center; color: #777;">
+                        No new notifications
+                    </li>
+                <?php endif; ?>
+                
+            </ul>
+        </li>
+        <li class="footer" style="text-align: center; border-top: 1px solid #ddd;">
+            <a href="#" style="display: block; padding: 10px; background: #f9f9f9; color: #333; text-decoration: none;">View all</a>
+        </li>
+    </ul>
+</li>
             <li><a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown1"><i class="fa fa-user fa-fw"></i> <b><?php echo $_SESSION['logged_accountant']['name']?></b> <i class="material-icons right">arrow_drop_down</i></a></li>
          </ul>
       </nav>
