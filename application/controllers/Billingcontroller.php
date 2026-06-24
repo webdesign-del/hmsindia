@@ -366,48 +366,69 @@ function partial_billing($appointment_id){
 					$paitent_insert = $this->billings_model->paitent_insert($patient_arr);
 				}
 				$_POST['patient_id'] = $paitent_id;
-				$reason_of_visit = $_POST['reason_of_visit'];
-				$_POST['doctor_id'] = $appointments['appoitmented_doctor'];             
-				$_POST['status'] = 'pending';
+                $reason_of_visit = $_POST['reason_of_visit'];
+                $_POST['doctor_id'] = $appointments['appoitmented_doctor'];             
+                $_POST['status'] = 'pending';
 
-				// --- DYNAMIC STATUS LOGIC START ---
-				// Hum check karenge ki kya JavaScript ne 'approve_by_status' bheja hai
-				if (isset($_POST['approve_by_status']) && $_POST['approve_by_status'] === '2') {
-					$_POST['approve_by_status'] = 2; // Pending for CEO Approval
-				} else {
-					$_POST['approve_by_status'] = 1; // Normal/Paid Consultation (Already Approved)
-				}
-				// --- DYNAMIC STATUS LOGIC END ---
+                // --- DYNAMIC STATUS LOGIC START ---
+                if (isset($_POST['approve_by_status']) && $_POST['approve_by_status'] === '2') {
+                    $_POST['approve_by_status'] = 2; // Pending for CEO Approval
+                } else {
+                    $_POST['approve_by_status'] = 1; // Normal/Paid Consultation (Already Approved)
+                }
+                // --- DYNAMIC STATUS LOGIC END ---
 
-				if($_POST['discount_amount'] == ''){ $_POST['discount_amount'] = 0; }
-			
-				$consult = $this->billings_model->consultation_insert($_POST);
-				$curl = curl_init();
-				curl_setopt_array($curl, array(
-					CURLOPT_URL => "https://flertility.in/lead/lead-mobile-no/?mobile_no=" . urlencode(isset($_POST['wife_phone']) ? $_POST['wife_phone'] : ''),
-					CURLOPT_RETURNTRANSFER => true,
-					CURLOPT_ENCODING => '',
-					CURLOPT_MAXREDIRS => 10,
-					CURLOPT_TIMEOUT => 30,
-					CURLOPT_FOLLOWLOCATION => true,
-					CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-					CURLOPT_CUSTOMREQUEST => 'GET',
-				));
-				$response = curl_exec($curl);
-				$err = curl_error($curl);
-				curl_close($curl);
-				if ($err) {
-					echo "cURL Error: $err";
-				} else {
-					$leadData = json_decode($response, true); // Decode JSON to associative array
-					if (!empty($leadData) && isset($leadData[0])) {
-						$lead = $leadData[0];
-						$this->db->where('wife_phone', $lead['mobile']);
-						$this->db->update('hms_appointments', ['crm_id' => $lead['id']]);
-					} else {
-						// echo "No lead data found.";
-					}
-				}
+                if($_POST['discount_amount'] == ''){ $_POST['discount_amount'] = 0; }
+            
+                $consult = $this->billings_model->consultation_insert($_POST);
+                
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => "https://flertility.in/lead/lead-mobile-no/?mobile_no=" . urlencode(isset($_POST['wife_phone']) ? $_POST['wife_phone'] : ''),
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 30,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'GET',
+                ));
+                $response = curl_exec($curl);
+                $err = curl_error($curl);
+                curl_close($curl);
+                
+                if ($err) {
+                    echo "cURL Error: $err";
+                } else {
+                    $leadData = json_decode($response, true); // Decode JSON to associative array
+                    
+                    if (!empty($leadData) && isset($leadData[0])) {
+                        $lead = $leadData[0];
+                        
+                        // 1. Basic array jisme hamesha crm_id update hoga
+                        $update_data = [
+                            'crm_id' => $lead['id']
+                        ];
+                        
+                        // 2. Condition: Agar First Visit hai, toh hi agent add karein update ke liye
+                        if ($reason_of_visit === 'First Visit') {
+                            // Pichle API me current_agent_name aata tha, wahi use kar raha hu
+                            if (isset($lead['current_agent_name']) && !empty($lead['current_agent_name'])) {
+                                $update_data['agent'] = $lead['current_agent_name'];
+                            } elseif (isset($lead['agent']) && !empty($lead['agent'])) {
+                                // Agar API 'agent' key bhejti hai toh fallback
+                                $update_data['agent'] = $lead['agent']; 
+                            }
+                        }
+
+                        // 3. Database Update
+                        $this->db->where('wife_phone', $lead['mobile']);
+                        $this->db->update('hms_appointments', $update_data);
+                        
+                    } else {
+                        // echo "No lead data found.";
+                    }
+                }
 				if($consult > 0){
 				    $checkpatient_register = get_patient_detail($paitent_id);
     			    if(isset($checkpatient_register) && !empty($checkpatient_register) && $checkpatient_register['whats_registers'] == 0){
