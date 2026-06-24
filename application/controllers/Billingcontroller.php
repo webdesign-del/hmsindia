@@ -398,25 +398,18 @@ function partial_billing($appointment_id){
                         ];
                         
                         // FIX: Ab condition case-insensitive hai (first visit)
-                        if (strtolower($reason_of_visit) === 'First Visit') {
+                        if (strtolower($reason_of_visit) === 'first visit') {
                             
                             // Check API for 'current_agent_name' or 'agent'
                             if (isset($lead['current_agent_name']) && $lead['current_agent_name'] != "") {
                                 $update_data['agent'] = $lead['current_agent_name'];
                                 
                             } elseif (isset($lead['agent']) && $lead['agent'] != "") {
-                                $update_data['agent'] = $lead['agent']; // Aapke Postman response ke hisab se ye line chalegi
+                                $update_data['agent'] = $lead['agent']; 
                             }
                         }
 
-						echo "<pre>";
-                        print_r($reason_of_visit); // Ye check karne ke liye ki form se kya aa raha hai
-                        echo "<br>";
-                        print_r($update_data);     // Ye check karne ke liye ki array me agent add hua ya nahi
-                        echo "</pre>";
-                        die();
-
-                        // Database Update
+						// Database Update
                         $this->db->where('wife_phone', $lead['mobile']);
                         $this->db->update('hms_appointments', $update_data);
                         
