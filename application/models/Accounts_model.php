@@ -4659,7 +4659,7 @@ public function generate_advance_receipt_number() {
 		else if(!empty($json_data)){
 			$conditions .= " and data like '%$json_data%'";
 		}
-		$investigation_sql = "Select DISTINCT patient_id, appointment_id, totalpackage, fees, status, payment_done, on_date, modified_on, data, receipt_number, billing_from,billing_at, origins, cn_invoice from ".$this->config->item('db_prefix')."patient_procedure where 1 $conditions";
+		$investigation_sql = "Select DISTINCT patient_id, appointment_id, totalpackage, fees, status, payment_done, on_date, modified_on, data, receipt_number,agent, billing_from,billing_at, origins, cn_invoice from ".$this->config->item('db_prefix')."patient_procedure where 1 $conditions";
         $investigation_q = $this->db->query($investigation_sql);
         $consuption_result = $investigation_q->result_array();
         if(!empty($consuption_result)){
@@ -4725,6 +4725,7 @@ public function generate_advance_receipt_number() {
 				        'on_date' => $val['on_date'],
                         'patient_id' => $val['patient_id'],
                         'receipt_number' => $val['receipt_number'],
+						'agent' => $val['agent'],
 				        'sub_procedure'=> $medicine_name_arr[$_key],
 						'sub_procedures_code' => $medicine_quantity_arr[$_key],
 						'sub_procedures_price' => $medicine_stock_arr[$_key],
@@ -7971,12 +7972,12 @@ public function get_procedures_paged($f = [], $limit, $offset) {
         p.*, 
         pt.wife_name, pt.husband_name, 
         c.center_name,
-        sa.iic_id as sa_iic, sa.date as sa_date,
-        ov.iic_id as ov_iic, ov.date_of_procedure as ov_date,
-        op.iic_id as op_iic, op.date_of_procedure as op_date,
-        et.iic_id as et_iic, et.date_of_procedure as et_date,
-        ed.iic_id as ed_iic, ed.date_of_procedure as ed_date,
-        edl.iic_id as edl_iic, edl.date_of_procedure as edl_date
+        sa.patient_id as sa_iic, sa.date as sa_date,
+        ov.patient_id as ov_iic, ov.date_of_procedure as ov_date,
+        op.patient_id as op_iic, op.date_of_procedure as op_date,
+        et.patient_id as et_iic, et.date_of_procedure as et_date,
+        ed.patient_id as ed_iic, ed.date_of_procedure as ed_date,
+        edl.patient_id as edl_iic, edl.date_of_procedure as edl_date
     ');
     $this->db->from('hms_patient_procedure p');
     $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
@@ -7984,14 +7985,14 @@ public function get_procedures_paged($f = [], $limit, $offset) {
     // Ensure this matches your column name for center ID (e.g., billing_at)
     $this->db->join('hms_centers c', 'c.center_number = p.billing_at', 'left'); 
     
-    $this->db->join('semen_analysis sa', 'sa.iic_id = p.patient_id', 'left');
-    $this->db->join('ovum_discharge_summary ov', "ov.iic_id = p.patient_id AND ov.ICSI = 'Yes'", 'left');
-    $this->db->join('ovum_pickup_discharge_summary op', "op.iic_id = p.patient_id", 'left');
-    $this->db->join('embryo_transfer_discharge_summary et', "et.iic_id = p.patient_id", 'left');
+    $this->db->join('semen_analysis sa', 'sa.patient_id = p.patient_id', 'left');
+    $this->db->join('ovum_discharge_summary ov', "ov.patient_id = p.patient_id AND ov.ICSI = 'Yes'", 'left');
+    $this->db->join('ovum_pickup_discharge_summary op', "op.patient_id = p.patient_id", 'left');
+    $this->db->join('embryo_transfer_discharge_summary et', "et.patient_id = p.patient_id", 'left');
 
     // Grouping clinical data more cleanly
-    $this->db->join('embryology_discharge_summary ed', "ed.iic_id = p.patient_id AND ed.Embryo_Glue = 'Yes'", 'left');
-    $this->db->join('embryology_discharge_summary edl', "edl.iic_id = p.patient_id AND edl.Laser_Assisted = 'Yes'", 'left');
+    $this->db->join('embryology_discharge_summary ed', "ed.patient_id = p.patient_id AND ed.Embryo_Glue = 'Yes'", 'left');
+    $this->db->join('embryology_discharge_summary edl', "edl.patient_id = p.patient_id AND edl.Laser_Assisted = 'Yes'", 'left');
     
     $this->apply_procedure_filters($f);
     
@@ -8075,8 +8076,8 @@ private function apply_journey_filters($f) {
     }
 
     // 3. IIC ID / Patient ID Search
-    if (!empty($f['iic_id'])) {
-        $this->db->where('p.patient_id', $f['iic_id']);
+    if (!empty($f['patient_id'])) {
+        $this->db->where('p.patient_id', $f['patient_id']);
     }
 
 	if (!empty($f['code'])) {

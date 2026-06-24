@@ -2419,54 +2419,81 @@ function partial_billing($appointment_id){
 							$procedure_sql = "SELECT ID, procedure_name, category, code FROM hms_procedures WHERE ID = '$current_proc_id'";
 							$proc_result = run_select_query($procedure_sql);
 
-							$data = array(
-								"lead_id" => trim($select_result5['crm_id']),
-								"visit_month" => $visit_month,
-								"first_visit_date" => $first_visit_date,
-								"doctor_consulted" => $select_result3['name'],
-								"ch_fc_name" => $select_doctor_consultation['counsellor_signature'],
-								"booking_month" => date('F d', strtotime($post_arr['on_date'])),
-								"booking_date" => $post_arr['on_date'],
-								"patient_id" => $post_arr['patient_id'],
-								"patients_name" => $select_result5['wife_name'],
-								"patients_source" => $select_result5['lead_source'],
-								"centre_booking" => $post_arr['billing_from'],
-								"procedure_type" => $proc_result['category'],
-								"procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($post_arr['on_date']))->format('Y-m-d'),
-								"procedure_code" => $proc_result['code'],
-								"package_amount" => $loop_totalpackage,
-								"discount_amount" => $loop_discount_amount,
-								"package_after_discount" => $loop_fees,
-								"payment_received" => $loop_payment_done
-							);
+							// ... aapka existing code ...
+                            $data = array(
+                                "lead_id" => trim($select_result5['crm_id']),
+                                "visit_month" => $visit_month,
+                                "first_visit_date" => $first_visit_date,
+                                "doctor_consulted" => $select_result3['name'],
+                                "ch_fc_name" => $select_doctor_consultation['counsellor_signature'],
+                                "booking_month" => date('F d', strtotime($post_arr['on_date'])),
+                                "booking_date" => $post_arr['on_date'],
+                                "patient_id" => $post_arr['patient_id'],
+                                "patients_name" => $select_result5['wife_name'],
+                                "patients_source" => $select_result5['lead_source'],
+                                "centre_booking" => $post_arr['billing_from'],
+                                "procedure_type" => $proc_result['category'],
+                                "procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($post_arr['on_date']))->format('Y-m-d'),
+                                "procedure_code" => $proc_result['code'],
+                                "package_amount" => $loop_totalpackage,
+                                "discount_amount" => $loop_discount_amount,
+                                "package_after_discount" => $loop_fees,
+                                "payment_received" => $loop_payment_done
+                            );
 
-							$jsonData = json_encode($data);
+                            $jsonData = json_encode($data);
 
-							$urls = [
-								'lead_1' => 'https://flertility.in/lead/lead-journey/',
-								'lead_2' => 'https://staging.flertility.in/lead/lead-journey/'
-							];
+                            $urls = [
+                                'lead_1' => 'https://flertility.in/lead/lead-journey/',
+                                'lead_2' => 'https://staging.flertility.in/lead/lead-journey/'
+                            ];
 
-							foreach ($urls as $label => $url) {
-								$curl = curl_init();
-								curl_setopt_array($curl, array(
-									CURLOPT_URL => $url,
-									CURLOPT_RETURNTRANSFER => true,
-									CURLOPT_ENCODING => '',
-									CURLOPT_MAXREDIRS => 10,
-									CURLOPT_TIMEOUT => 5, 
-									CURLOPT_FOLLOWLOCATION => true,
-									CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-									CURLOPT_CUSTOMREQUEST => 'POST',
-									CURLOPT_POSTFIELDS => $jsonData,
-									CURLOPT_HTTPHEADER => array(
-										'Content-Type: application/json',
-										'Accept: application/json'
-									),
-								));
-								$response = curl_exec($curl);
-								curl_close($curl);
-							}
+                            // Ek variable banayenge agent name hold karne ke liye
+                            $agent_name = null;
+
+                            foreach ($urls as $label => $url) {
+                                $curl = curl_init();
+                                curl_setopt_array($curl, array(
+                                    CURLOPT_URL => $url,
+                                    CURLOPT_RETURNTRANSFER => true,
+                                    CURLOPT_ENCODING => '',
+                                    CURLOPT_MAXREDIRS => 10,
+                                    CURLOPT_TIMEOUT => 5, 
+                                    CURLOPT_FOLLOWLOCATION => true,
+                                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                                    CURLOPT_CUSTOMREQUEST => 'POST',
+                                    CURLOPT_POSTFIELDS => $jsonData,
+                                    CURLOPT_HTTPHEADER => array(
+                                        'Content-Type: application/json',
+                                        'Accept: application/json'
+                                    ),
+                                ));
+                                $response = curl_exec($curl);
+                                
+                                // NEW: Response handle kar rahe hain yahan
+                                if ($response) {
+                                    $decoded_response = json_decode($response, true);
+                                    if (isset($decoded_response['current_agent_name']) && !empty($decoded_response['current_agent_name'])) {
+                                        $agent_name = $decoded_response['current_agent_name'];
+                                    }
+                                }
+                                
+                                curl_close($curl);
+                            }
+
+                            // NEW: Specific Data row update kar rahe hain
+                            if (!empty($agent_name)) {
+                                $this->db->set('agent', $agent_name);
+                                
+                                // Wahi procedure update hoga jiska code aur patient id upar payload me gaya hai
+                                $this->db->where('patient_id', $post_arr['patient_id']);
+                                $this->db->where('code', $proc_result['code']);
+                                
+                                // Safe-side ke liye date bhi add kar dijiye taaki purani dates ke same procedure update na ho
+                                $this->db->where('on_date', $post_arr['on_date']); 
+                                
+                                $this->db->update('hms_patient_procedure');
+                            }
 							
 							$procedure_billed = 1; // Mark as billed if at least one runs
 						} // End Foreach

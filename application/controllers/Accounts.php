@@ -1449,7 +1449,6 @@ public function procedure_reports(){
 					$name = $select_result2['procedure_name'];
 					$category = $select_result2['category'];
 					$lead_id = $select_result['crm_id'];
-					$agent = $select_result['agent'];
 					$lead_source = $select_result['lead_source'];
 					
 					// Assuming you have an array of records with the same patient_id, appointment_id, and billing date
@@ -1528,7 +1527,7 @@ public function procedure_reports(){
 			
 			$total = number_format($val['sub_procedures_price'] - $val['sub_procedures_discount'], 2);
 			
-    				$lead_arr = array($formatted_date, $val['modified_on'], $pkg_month, $pkg_booking_year, $financial_year, $val['receipt_number'], $val['patient_id'], $patient_name,$nationality, $uhid, $val['sub_procedures_code'], $name, $category, $type,$package, $Origin_Booking_Centre,$billing_from,$billing_at, $lead_id,$lead_source,$agent, $val['sub_procedures_price'], $val['sub_procedures_discount'],$total, $val['sub_procedures_paid_price'], $val['cn_invoice'], $val['status'], $select_result5['payment_2024_apr'],$select_result5['payment_2024_may'],$select_result5['payment_2024_jun'],$select_result5['payment_2024_jul'],$select_result5['payment_2024_aug'],$select_result5['payment_2024_sep'],$select_result5['payment_2024_oct'],$select_result5['payment_2024_nov'],$select_result5['payment_2024_dec'],$select_result5['payment_2025_jan'],$select_result5['payment_2025_feb'],$select_result5['payment_2025_mar'],
+    				$lead_arr = array($formatted_date, $val['modified_on'], $pkg_month, $pkg_booking_year, $financial_year, $val['receipt_number'], $val['patient_id'], $patient_name,$nationality, $uhid, $val['sub_procedures_code'], $name, $category, $type,$package, $Origin_Booking_Centre,$billing_from,$billing_at, $lead_id,$lead_source,$val['agent'], $val['sub_procedures_price'], $val['sub_procedures_discount'],$total, $val['sub_procedures_paid_price'], $val['cn_invoice'], $val['status'], $select_result5['payment_2024_apr'],$select_result5['payment_2024_may'],$select_result5['payment_2024_jun'],$select_result5['payment_2024_jul'],$select_result5['payment_2024_aug'],$select_result5['payment_2024_sep'],$select_result5['payment_2024_oct'],$select_result5['payment_2024_nov'],$select_result5['payment_2024_dec'],$select_result5['payment_2025_jan'],$select_result5['payment_2025_feb'],$select_result5['payment_2025_mar'],
 					$select_result5['payment_2025_apr'],$select_result5['payment_2025_may'],$select_result5['payment_2025_jun'],$select_result5['payment_2025_jul'],$select_result5['payment_2025_aug'],$select_result5['payment_2025_sep'],$select_result5['payment_2025_oct'],$select_result5['payment_2025_nov'],$select_result5['payment_2025_dec'],$select_result5['payment_2026_jan'],$select_result5['payment_2026_feb'],$select_result5['payment_2026_mar'],$select_result5['payment_2026_apr'],$select_result5['payment_2026_may'],$select_result5['payment_2026_jun'],$select_result5['payment_2026_jul'],$select_result5['payment_2026_aug'],$select_result5['payment_2026_sep'],$select_result5['payment_2026_oct'],$select_result5['payment_2026_nov'],$select_result5['payment_2026_dec'],$select_result5['payment_2027_jan'],$select_result5['payment_2027_feb'],$select_result5['payment_2027_mar']);
 					fputcsv($fp, $lead_arr);
 				}
