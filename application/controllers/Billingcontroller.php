@@ -350,23 +350,11 @@ function partial_billing($appointment_id){
 					move_uploaded_file($_FILES['transaction_img']['tmp_name'], $destination.$NewImageName);
 					$_POST['transaction_img'] = $transaction_img;
 				}
-				$paitent_id = "";
-				if(isset($appointments['paitent_type']) && $appointments['paitent_type'] == 'exist_patient'){
-					$paitent_id = $appointments['paitent_id'];
-				}else{
-					$paitent_id = $_POST['patient_id'];
-					$patient_arr = array();
-					$patient_arr['patient_id'] = $_POST['patient_id'];
-					$patient_arr['patient_phone'] = $appointments['wife_phone'];
-					$patient_arr['wife_name'] = $appointments['wife_name'];
-					$patient_arr['wife_phone'] = $appointments['wife_phone'];
-					$patient_arr['wife_email'] = $appointments['wife_email'];
-					$patient_arr['nationality'] = $appointments['nationality'];
-					$patient_arr['origins'] = $appointments['appoitment_for'];
-					$paitent_insert = $this->billings_model->paitent_insert($patient_arr);
-				}
-				$_POST['patient_id'] = $paitent_id;
-                $reason_of_visit = $_POST['reason_of_visit'];
+			$_POST['patient_id'] = $paitent_id;
+                
+                // Trim se extra space hatega, strtolower se sab small me convert ho jayega (checking ke liye)
+                $reason_of_visit = isset($_POST['reason_of_visit']) ? trim($_POST['reason_of_visit']) : '';
+                
                 $_POST['doctor_id'] = $appointments['appoitmented_doctor'];             
                 $_POST['status'] = 'pending';
 
@@ -400,28 +388,28 @@ function partial_billing($appointment_id){
                 if ($err) {
                     echo "cURL Error: $err";
                 } else {
-                    $leadData = json_decode($response, true); // Decode JSON to associative array
+                    $leadData = json_decode($response, true); 
                     
                     if (!empty($leadData) && isset($leadData[0])) {
                         $lead = $leadData[0];
                         
-                        // 1. Basic array jisme hamesha crm_id update hoga
                         $update_data = [
                             'crm_id' => $lead['id']
                         ];
                         
-                        // 2. Condition: Agar First Visit hai, toh hi agent add karein update ke liye
-                        if ($reason_of_visit === 'First Visit') {
-                            // Pichle API me current_agent_name aata tha, wahi use kar raha hu
-                            if (isset($lead['current_agent_name']) && !empty($lead['current_agent_name'])) {
+                        // FIX: Ab condition case-insensitive hai (first visit)
+                        if (strtolower($reason_of_visit) === 'first visit') {
+                            
+                            // Check API for 'current_agent_name' or 'agent'
+                            if (isset($lead['current_agent_name']) && $lead['current_agent_name'] != "") {
                                 $update_data['agent'] = $lead['current_agent_name'];
-                            } elseif (isset($lead['agent']) && !empty($lead['agent'])) {
-                                // Agar API 'agent' key bhejti hai toh fallback
-                                $update_data['agent'] = $lead['agent']; 
+                                
+                            } elseif (isset($lead['agent']) && $lead['agent'] != "") {
+                                $update_data['agent'] = $lead['agent']; // Aapke Postman response ke hisab se ye line chalegi
                             }
                         }
 
-                        // 3. Database Update
+                        // Database Update
                         $this->db->where('wife_phone', $lead['mobile']);
                         $this->db->update('hms_appointments', $update_data);
                         
