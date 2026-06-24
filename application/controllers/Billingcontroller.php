@@ -312,7 +312,7 @@ function partial_billing($appointment_id){
 		if($logg['status'] == true){
 			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_consultation'){
 				unset($_POST['action']);				
-				// Server-side duplicate check for consultation receipt number
+
 				$raw_receipt = isset($_POST['receipt_number']) ? $_POST['receipt_number'] : '';
 				if(!empty($raw_receipt)){
 					$exists_q = $this->db->query("SELECT COUNT(*) AS cnt FROM ".config_item('db_prefix')."consultation WHERE receipt_number = ?", array($raw_receipt));
@@ -327,11 +327,6 @@ function partial_billing($appointment_id){
 				$biller_id = $_POST['biller_id'];
 				$uhid = isset($_POST['uhid']) ? $_POST['uhid'] : '';
 				$donor_patient_id = isset($_POST['donor_patient_id']) ? $_POST['donor_patient_id'] : '';
-				//$cash_payment = isset($_POST['cash_payment']) ? $_POST['cash_payment'] : 0;
-				//$card_payment = isset($_POST['card_payment']) ? $_POST['card_payment'] : 0;
-				//$upi_payment = isset($_POST['upi_payment']) ? $_POST['upi_payment'] : 0;
-				//$neft_payment = isset($_POST['neft_payment']) ? $_POST['neft_payment'] : 0;
-				//$wallet_payment = isset($_POST['wallet_payment']) ? $_POST['wallet_payment'] : 0;
 				$appointments = $this->billingmodel_model->check_appointments($appointment);
 				if(empty($appointments)){
 				    header("location:" .base_url(). "my_appointments?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
@@ -372,7 +367,7 @@ function partial_billing($appointment_id){
                 
                 $curl = curl_init();
                 curl_setopt_array($curl, array(
-                    CURLOPT_URL => "https://flertility.in/lead/lead-mobile-no/?mobile_no=" . urlencode(isset($_POST['wife_phone']) ? $_POST['wife_phone'] : ''),
+                    CURLOPT_URL => "https://flertility.in/lead/lead-mobile-no/?mobile_no=" . urlencode(isset($appointments['wife_phone']) ? $appointments['wife_phone'] : ''),
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
@@ -384,8 +379,8 @@ function partial_billing($appointment_id){
                 $response = curl_exec($curl);
                 $err = curl_error($curl);
                 curl_close($curl);
-                
-                if ($err) {
+
+				if ($err) {
                     echo "cURL Error: $err";
                 } else {
                     $leadData = json_decode($response, true); 
