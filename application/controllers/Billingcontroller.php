@@ -312,7 +312,7 @@ function partial_billing($appointment_id){
 		if($logg['status'] == true){
 			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_consultation'){
 				unset($_POST['action']);				
-
+				// Server-side duplicate check for consultation receipt number
 				$raw_receipt = isset($_POST['receipt_number']) ? $_POST['receipt_number'] : '';
 				if(!empty($raw_receipt)){
 					$exists_q = $this->db->query("SELECT COUNT(*) AS cnt FROM ".config_item('db_prefix')."consultation WHERE receipt_number = ?", array($raw_receipt));
@@ -327,6 +327,11 @@ function partial_billing($appointment_id){
 				$biller_id = $_POST['biller_id'];
 				$uhid = isset($_POST['uhid']) ? $_POST['uhid'] : '';
 				$donor_patient_id = isset($_POST['donor_patient_id']) ? $_POST['donor_patient_id'] : '';
+				//$cash_payment = isset($_POST['cash_payment']) ? $_POST['cash_payment'] : 0;
+				//$card_payment = isset($_POST['card_payment']) ? $_POST['card_payment'] : 0;
+				//$upi_payment = isset($_POST['upi_payment']) ? $_POST['upi_payment'] : 0;
+				//$neft_payment = isset($_POST['neft_payment']) ? $_POST['neft_payment'] : 0;
+				//$wallet_payment = isset($_POST['wallet_payment']) ? $_POST['wallet_payment'] : 0;
 				$appointments = $this->billingmodel_model->check_appointments($appointment);
 				if(empty($appointments)){
 				    header("location:" .base_url(). "my_appointments?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
@@ -345,11 +350,23 @@ function partial_billing($appointment_id){
 					move_uploaded_file($_FILES['transaction_img']['tmp_name'], $destination.$NewImageName);
 					$_POST['transaction_img'] = $transaction_img;
 				}
-			$_POST['patient_id'] = $paitent_id;
-                
-                // Trim se extra space hatega, strtolower se sab small me convert ho jayega (checking ke liye)
-                $reason_of_visit = isset($_POST['reason_of_visit']) ? trim($_POST['reason_of_visit']) : '';
-                
+				$paitent_id = "";
+				if(isset($appointments['paitent_type']) && $appointments['paitent_type'] == 'exist_patient'){
+					$paitent_id = $appointments['paitent_id'];
+				}else{
+					$paitent_id = $_POST['patient_id'];
+					$patient_arr = array();
+					$patient_arr['patient_id'] = $_POST['patient_id'];
+					$patient_arr['patient_phone'] = $appointments['wife_phone'];
+					$patient_arr['wife_name'] = $appointments['wife_name'];
+					$patient_arr['wife_phone'] = $appointments['wife_phone'];
+					$patient_arr['wife_email'] = $appointments['wife_email'];
+					$patient_arr['nationality'] = $appointments['nationality'];
+					$patient_arr['origins'] = $appointments['appoitment_for'];
+					$paitent_insert = $this->billings_model->paitent_insert($patient_arr);
+				}
+				$_POST['patient_id'] = $paitent_id;
+                $reason_of_visit = $_POST['reason_of_visit'];
                 $_POST['doctor_id'] = $appointments['appoitmented_doctor'];             
                 $_POST['status'] = 'pending';
 
@@ -379,32 +396,32 @@ function partial_billing($appointment_id){
                 $response = curl_exec($curl);
                 $err = curl_error($curl);
                 curl_close($curl);
-
-				if ($err) {
+                
+                if ($err) {
                     echo "cURL Error: $err";
                 } else {
-                    $leadData = json_decode($response, true); 
+                    $leadData = json_decode($response, true); // Decode JSON to associative array
                     
                     if (!empty($leadData) && isset($leadData[0])) {
                         $lead = $leadData[0];
                         
+                        // 1. Basic array jisme hamesha crm_id update hoga
                         $update_data = [
                             'crm_id' => $lead['id']
                         ];
                         
-                        // FIX: Ab condition case-insensitive hai (first visit)
-                        if (strtolower($reason_of_visit) === 'first visit') {
-                            
-                            // Check API for 'current_agent_name' or 'agent'
-                            if (isset($lead['current_agent_name']) && $lead['current_agent_name'] != "") {
+                        // 2. Condition: Agar First Visit hai, toh hi agent add karein update ke liye
+                        if ($reason_of_visit === 'First Visit') {
+                            // Pichle API me current_agent_name aata tha, wahi use kar raha hu
+                            if (isset($lead['current_agent_name']) && !empty($lead['current_agent_name'])) {
                                 $update_data['agent'] = $lead['current_agent_name'];
-                                
-                            } elseif (isset($lead['agent']) && $lead['agent'] != "") {
+                            } elseif (isset($lead['agent']) && !empty($lead['agent'])) {
+                                // Agar API 'agent' key bhejti hai toh fallback
                                 $update_data['agent'] = $lead['agent']; 
                             }
                         }
 
-						// Database Update
+                        // 3. Database Update
                         $this->db->where('wife_phone', $lead['mobile']);
                         $this->db->update('hms_appointments', $update_data);
                         
