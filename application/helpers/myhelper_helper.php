@@ -28,9 +28,6 @@ function checklogin(){
   }else if(isset($_SESSION['logged_counselor'])){
     $return = array('status' => true, 'role'=>$_SESSION['logged_counselor']['role']);
 	return $return;
-  }else if(isset($_SESSION['logged_center_head'])){
-    $return = array('status' => true, 'role'=>$_SESSION['logged_center_head']['role']);
-	return $return;  
   }else if(isset($_SESSION['logged_liason'])){
     $return = array('status' => true, 'role'=>$_SESSION['logged_liason']['role']);
 	return $return;
@@ -544,17 +541,11 @@ function check_patient_procedure_billing($patient_id){
 
 
 function get_header_template($role){
-   $CI =& get_instance();
-
-    // 2. Model load karein aur data fetch karein $CI ka use karke
-    $CI->load->model('Stock_model_new'); 
-    $notifications = $CI->Stock_model_new->get_unread_notifications();
-    $notification_count = is_array($notifications) || is_object($notifications) ? count($notifications) : 0;
 	if($role == "administrator"){
 		$return = array('header' => "templates/administrator_header", 'footer'=>"templates/administrator_footer", 'dashboard' => 'dashboard/administrator_dashboard');
 		return $return;
 	}else if($role == "accountant"){
-		$return = array('header' => "templates/accountant_header", 'footer'=>"templates/accountant_footer", 'dashboard' => 'dashboard/accountant_dashboard', 'notifications'=> $notifications,'notification_count' => $notification_count);
+		$return = array('header' => "templates/accountant_header", 'footer'=>"templates/accountant_footer", 'dashboard' => 'dashboard/accountant_dashboard');
 		return $return;
 	}else if($role == "stock_manager"){
 		$return = array('header' => "templates/stock_manager_header", 'footer'=>"templates/stock_manager_footer", 'dashboard' => 'dashboard/stock_manager_dashboard');
