@@ -2606,6 +2606,7 @@ function export_investigation_data($start, $status, $end, $center, $type, $payme
 						'investigation' => $investigation_name1,
                         'date' => $val['date'],
                         'status' => $val['status'],
+						'series_number' => $val['series_number'],
 						'origins' => $val['origins'],
                         'billing_type' => 'Investigation',
 						

@@ -4054,11 +4054,12 @@ foreach ($urls as $key => $url) {
 				$data['updated_by'] = $_SESSION['logged_embryologist']['username'];
 				$data['updated_type'] = "embryologist";
 			}
-			
+			 $data['master_investigations'] = $this->investigation_model->get_master_investigations_list();
 			$template = get_header_template($logg['role']);
 			$this->load->view($template['header']);
 			$this->load->view('doctors/procedure_upload', $data);
-			$this->load->view($template['footer']);
+			 // FIX: Assign this to the $data array so the view can read it
+           	$this->load->view($template['footer']);
 		}else{
 			header("location:" .base_url(). "");
 			die();

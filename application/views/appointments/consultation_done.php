@@ -7079,29 +7079,6 @@ $('#male_medicine_suggestion_list_ipd').change(function(e) {
 });
 
 
-
-// $("#follow_up").change(function() {
-
-// 	$("#follow_up_date").val('');
-
-// 	$('div.appoitmented_slot').hide();
-
-// 	$("#appoitmented_slot").prop(' ',false);
-
-// 	$("#follow_up_date").prop('disabled',true);
-
-// if(this.checked) {
-
-// 	$("#appoitmented_slot").prop(' ',true);
-
-// 	$("#follow_up_date").prop('disabled',false);				
-
-// }
-
-// });
-
-
-
 //Centre Doctor
 
 $('#appoitment_for').on("change", function() {
@@ -7791,78 +7768,29 @@ if(this.checked) {
 
 });
 
-
-$("#procedure_suggestion").change(function() {
-
-$("select#sub_procedure_suggestion_list").prop('disabled',true);
-
-$("select#sub_procedure_suggestion_list").parent().find('button').prop('disabled',true);
-
-$("select#sub_procedure_suggestion_list").parent().find('button').addClass('disabled');
-
-$('option', $('#sub_procedure_suggestion_list')).each(function(element) {
-
-	$(this).removeAttr('selected').prop('selected', false);
-
-});
-
-$("#sub_procedure_suggestion_list").multiselect('refresh');
-
-
-
-$("select#procedure_suggestion_list").prop(' ',false);	
-
-$("select#sub_procedure_suggestion_list").prop(' ',false);
-
-$("select#procedure_suggestion_list").prop('disabled',true);
-
-if(this.checked) {
-
-	$("select#sub_procedure_suggestion_list").prop('disabled',false);
-
-	$("select#sub_procedure_suggestion_list").parent().find('button').prop('disabled',false);
-
-	$("select#sub_procedure_suggestion_list").parent().find('button').removeClass('disabled');
-
-}
-
-});
-
-
-$("#package_suggestion").change(function() {
-
-$("select#package_suggestion_list").prop('disabled',true);
-
-$("select#package_suggestion_list").parent().find('button').prop('disabled',true);
-
-$("select#package_suggestion_list").parent().find('button').addClass('disabled');
-
-$('option', $('#package_suggestion_list')).each(function(element) {
-
-	$(this).removeAttr('selected').prop('selected', false);
-
-});
-
-$("#package_suggestion_list").multiselect('refresh');
-
-
-
-$("select#package_suggestion_list").prop(' ',false);	
-
-$("select#package_suggestion_list").prop(' ',false);
-
-$("select#package_suggestion_list").prop('disabled',true);
-
-if(this.checked) {
-
-	$("select#package_suggestion_list").prop('disabled',false);
-
-	$("select#package_suggestion_list").parent().find('button').prop('disabled',false);
-
-	$("select#package_suggestion_list").parent().find('button').removeClass('disabled');
-
-}
-
+$(document).ready(function() {
+    // 500ms delay takki dropdowns UI puri tarah render ho jayein
+    setTimeout(function() {
+        // Agar main checkboxes pehle se checked hain, toh code automatically enable kar dega
+        if($('#procedure_suggestion').is(':checked')) { 
+            $('#procedure_suggestion').trigger('change'); 
+        }
+        if($('#package_suggestion').is(':checked')) { 
+            $('#package_suggestion').trigger('change'); 
+        }
+        if($('#investigation_suggestion').is(':checked')) { 
+            $('#investigation_suggestion').trigger('change'); 
+        }
+        if($('#medicine_suggestion').is(':checked')) { 
+            $('#medicine_suggestion').trigger('change'); 
+        }
+        if($('#medicine_suggestion_ipd').is(':checked')) { 
+            $('#medicine_suggestion_ipd').trigger('change'); 
+        }
+        if($('#provisional_diagnosis_suggestion').is(':checked')) { 
+            $('#provisional_diagnosis_suggestion').trigger('change'); 
+        }
+    }, 500);
 });
 
 
@@ -7936,7 +7864,80 @@ $(function() {
 
 });
 
+
+
+
+// 1. PROCEDURE SUGGESTION FIX
+$("#procedure_suggestion").change(function() {
+    if(this.checked) {
+        $("#sub_procedure_suggestion_list").prop('disabled', false);
+        // Refresh karne se plugin list ko click karne layak bana dega
+        $("#sub_procedure_suggestion_list").multiselect('refresh'); 
+    } else {
+        $("#sub_procedure_suggestion_list").prop('disabled', true);
+        $('#sub_procedure_suggestion_list option').prop('selected', false);
+        $("#sub_procedure_suggestion_list").multiselect('refresh');
+    }
+});
+
+// 2. PACKAGE SUGGESTION FIX
+$("#package_suggestion").change(function() {
+    if(this.checked) {
+        $("#package_suggestion_list").prop('disabled', false);
+        $("#package_suggestion_list").multiselect('refresh');
+    } else {
+        $("#package_suggestion_list").prop('disabled', true);
+        $('#package_suggestion_list option').prop('selected', false);
+        $("#package_suggestion_list").multiselect('refresh');
+    }
+});
+
+// 3. INVESTIGATION SUGGESTION FIX (Sabhi ID ek sath)
+$("#investigation_suggestion").change(function() {
+    var inv_lists = $("#male_investigation_suggestion_list, #female_investigation_suggestion_list, #male_minvestigation_suggestion_list, #female_minvestigation_suggestion_list");
+    
+    if(this.checked) {
+        inv_lists.prop('disabled', false);
+        inv_lists.multiselect('refresh');
+    } else {
+        inv_lists.prop('disabled', true);
+        inv_lists.find('option').prop('selected', false);
+        inv_lists.multiselect('refresh');
+    }
+});
+
+// 4. PROVISIONAL DIAGNOSIS FIX
+$("#provisional_diagnosis_suggestion").change(function() {
+    var diag_lists = $("#male_provisional_diagnosis_list, #female_provisional_diagnosis_list");
+    
+    if(this.checked) {
+        diag_lists.prop('disabled', false);
+        diag_lists.multiselect('refresh');
+    } else {
+        diag_lists.prop('disabled', true);
+        diag_lists.find('option').prop('selected', false);
+        diag_lists.multiselect('refresh');
+    }
+});
+
+$(function() {
+    // Dropdowns Initialize karna
+    $('.multidselect_dropdown, .multidselect_dropdown_1, .multidselect_dropdown_2').multiselect({
+        includeSelectAllOption: true,
+        enableFiltering: true,
+        enableCaseInsensitiveFiltering: true,
+        filterPlaceholder: 'Search for something...'
+    }); 
+
+    // --- (Aapka purana Set saved values wala code yahan rahega) ---
+
+    // Plugins initialize hone ke 200 milliseconds baad inko trigger karein
+    setTimeout(function() {
+        if($('#procedure_suggestion').is(':checked')) { $('#procedure_suggestion').trigger('change'); }
+        if($('#package_suggestion').is(':checked')) { $('#package_suggestion').trigger('change'); }
+        if($('#investigation_suggestion').is(':checked')) { $('#investigation_suggestion').trigger('change'); }
+        if($('#provisional_diagnosis_suggestion').is(':checked')) { $('#provisional_diagnosis_suggestion').trigger('change'); }
+    }, 200);
+});
+
 </script>
-
-
-
