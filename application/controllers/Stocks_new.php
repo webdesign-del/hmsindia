@@ -7640,6 +7640,7 @@ public function accountant_approve_sale()
             'Approval Status',
             'Approved By',
             'Approved Date',
+            'Series Number',
             'Approval Remarks',
             'Created Date'
         ];
@@ -7673,6 +7674,7 @@ public function accountant_approve_sale()
                 $sale->accountant_approval_status ?? 'PENDING',
                 $sale->accountant_approved_by_name ?? '-',
                 isset($sale->accountant_approved_at) && $sale->accountant_approved_at ? date('d-m-Y H:i', strtotime($sale->accountant_approved_at)) : '-',
+                $sale->series_number ?? 'N/A',
                 $sale->accountant_remarks ?? '-',
                 isset($sale->created_at) ? date('d-m-Y H:i', strtotime($sale->created_at)) : 'N/A'
             ];
