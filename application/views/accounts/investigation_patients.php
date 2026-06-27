@@ -92,6 +92,8 @@
 
                   <th>Balance</th>
 
+                  <th>Payment Method</th>
+
                   <th>Biller</th>
 
                   <th>Center Name</th>
@@ -165,6 +167,8 @@
                   <td><?php echo $currency.$vl['discount_amount']?></td>
 
                   <td><?php echo $currency.$vl['remaining_amount']?></td>
+
+                  <td><?php echo $vl['payment_method'] ?>
 
                   <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
 

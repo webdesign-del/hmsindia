@@ -919,6 +919,26 @@ function procedure_billings_patination($limit, $page, $center, $start_date, $end
         }
 	}
 
+		function get_husband_name($patient_id){	
+
+		$result = array();
+
+		$sql = "Select husband_name from ".$this->config->item('db_prefix')."patients where patient_id='".$patient_id."'";
+
+        $q = $this->db->query($sql);
+
+        $result = $q->result_array();
+
+        if (!empty($result))
+        {
+            return $result[0]['husband_name'];
+        }
+        else
+        {
+            return "";
+        }
+	}
+
 	
 
 	function get_patient_details($patient_id){

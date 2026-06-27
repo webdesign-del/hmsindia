@@ -81,6 +81,7 @@
                   <th>Discount amount</th>
 				  <th>Discounted Package</th>
 				  <th>Receive Amount</th>
+				  <th>Payment Method</th>
 				  <th>Invoice Id</th>
                   <!--<th>Balance</th>-->
                   <th>Biller</th>
@@ -122,6 +123,7 @@
 				  <td><?php echo $currency.$vl['discount_amount']?></td>
                   <td><?php echo $currency.$vl['fees']?></td>
 				  <td><?php echo $currency.$vl['payment_done']?></td>
+				  <td><?php echo $currency.$vl['payment_method']?></td>
 				  <td><?php echo $vl['series_number']?></td>
                  <!--<td><?php echo $currency.$current_balance; ?></td>-->
                   <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>

@@ -1425,6 +1425,22 @@ function approve_procedure($ID) {
             return $result;
         }
 	}
+
+	function get_husband_name($patient_id){
+		
+		$result = array();
+		$sql = "Select husband_name from ".$this->config->item('db_prefix')."patients where patient_id='".$patient_id."'";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result[0]['husband_name'];
+        }
+        else
+        {
+            return $result;
+        }
+	}
 	
 	function get_center_list($patient_id){
 		$result = array();
@@ -2193,7 +2209,7 @@ function approve_procedure($ID) {
         }
 		
 	     $procedure_sql = "Select DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package,payment_done,remaining_amount,
-		payment_method,billing_from,billing_at,biller_id,data,on_date,status,hospital_id from ".$this->config->item('db_prefix')."patient_procedure where 1
+		payment_method,billing_from,billing_at,biller_id,data,on_date,status,hospital_id,series_number from ".$this->config->item('db_prefix')."patient_procedure where 1
 		$conditions order by on_date desc";
         $procedure_q = $this->db->query($procedure_sql);
         $procedure_result = $procedure_q->result_array();
@@ -2219,10 +2235,15 @@ function approve_procedure($ID) {
 				$procedure_name1 = implode(',',$procedure_nameArr); 
 				
 				$patient_name = $this->get_patient_name($val['patient_id']);
-				$patient_name1 = strtoupper($patient_name);
+				$husband_name = $this->get_husband_name($val['patient_id']);
+				if (!empty($husband_name)) {
+					$formatted_name = $patient_name . ' w/o ' . $husband_name;
+				} else {
+					$formatted_name = $patient_name;
+				}
                 $response[] = array(
                         'patient_id' => $val['patient_id'],
-                        'wife_name' => $patient_name1,
+                        'wife_name' => $formatted_name,
 						'receipt_number' => $val['receipt_number'],
 				        'totalpackage' => $val['totalpackage'],
                         'discounted_package' => $val['discounted_package'],
@@ -2236,6 +2257,7 @@ function approve_procedure($ID) {
 						'on_date' => $val['on_date'],
                         'status' => $val['status'],
 						'hospital_id' => $val['hospital_id'],
+						'series_number' => $val['series_number'],
                 );
             }
         }    
@@ -2591,10 +2613,15 @@ function export_investigation_data($start, $status, $end, $center, $type, $payme
 					 
 				$investigation_name1 = implode(',',$investigation_nameArr); 
 				$patient_name = $this->get_patient_name($val['patient_id']);
-				$patient_name1 = strtoupper($patient_name);
+				$husband_name = $this->get_husband_name($val['patient_id']);
+				if (!empty($husband_name)) {
+					$formatted_name = $patient_name . ' w/o ' . $husband_name;
+				} else {
+					$formatted_name = $patient_name;
+				}
                 $response[] = array(
                         'patient_id' => $val['patient_id'],
-                        'wife_name' => $patient_name1,
+                        'wife_name' => $formatted_name,
 						'receipt_number' => $val['receipt_number'],
 						 'totalpackage' => $val['totalpackage'],
                         'discounted_package' => $val['discounted_package'],
@@ -2777,10 +2804,16 @@ function export_consultation_patients_data($start_date,$status, $end_date, $cent
         if(!empty($consultation_result)){
             foreach($consultation_result as $key => $val){
                 $patient_name = $this->get_patient_name($val['patient_id']);
+				$husband_name = $this->get_husband_name($val['patient_id']);
+				if (!empty($husband_name)) {
+					$formatted_name = $patient_name . ' w/o ' . $husband_name;
+				} else {
+					$formatted_name = $patient_name;
+				}
                 //$patient_name1 = strtoupper($patient_name);
                 $response[] = array(
                         'patient_id' => $val['patient_id'],
-                        'wife_name' => $patient_name,
+                        'wife_name' => $formatted_name,
                         'receipt_number' => $val['receipt_number'],
                         'totalpackage' => $val['totalpackage'],
                         'discounted_package' => $val['discounted_package'],
@@ -3523,15 +3556,21 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
             $conditions .= " and on_date between '".$start_date."' AND '".$end_date."' ";
         }
 		
-	    $registration_sql = "Select DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package,payment_done,remaining_amount,payment_method,billing_from,billing_at,on_date,status from ".$this->config->item('db_prefix')."registation where 1 $conditions order by on_date desc";
+	    $registration_sql = "Select DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package,payment_done,remaining_amount,payment_method,billing_from,billing_at,on_date,status,series_number from ".$this->config->item('db_prefix')."registation where 1 $conditions order by on_date desc";
         $registration_q = $this->db->query($registration_sql);
         $registration_result = $registration_q->result_array();
         if(!empty($registration_result)){
             foreach($registration_result as $key => $val){
 				$patient_name = $this->get_patient_name($val['patient_id']);
+				$husband_name = $this->get_husband_name($val['patient_id']);
+				if (!empty($husband_name)) {
+					$formatted_name = $patient_name . ' w/o ' . $husband_name;
+				} else {
+					$formatted_name = $patient_name;
+				}
 				$response[] = array(
                         'patient_id' => $val['patient_id'],
-                        'wife_name' => $patient_name,
+                        'wife_name' => $formatted_name,
 						'receipt_number' => $val['receipt_number'],
 				        'totalpackage' => $val['totalpackage'],
                         'discounted_package' => $val['discounted_package'],
@@ -3542,6 +3581,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
                         'billing_at' => $val['billing_at'],
                         'date' => $val['on_date'],
                         'status' => $val['status'],
+						'series_number' => $val['series_number'],
                         'billing_type' => 'registration',
                 );
             }

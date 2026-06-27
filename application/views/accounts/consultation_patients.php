@@ -77,7 +77,7 @@
                   <th>On Date</th>
                   <th>Total</th>
                   <th>Discount amount</th>
-                  <th>Balance</th>
+                  <th>Paid Amount</th>
                   <th>Biller</th>
                   <th>Invoices No</th>
                   <th>Status</th>
@@ -110,9 +110,9 @@
                   <td><?php $patient_name = $all_method->get_patient_name($vl['patient_id']); echo strtoupper($patient_name); ?></td>
                   <td><a href="<?php echo base_url(); ?>accounts/details/<?php echo $vl['receipt_number']?>?t=consultation"><?php echo $vl['receipt_number']?></a></td>
                   <td><?php echo $vl['on_date']?></td>
-                  <td><?php echo $currency.$vl['fees']?></td>
+                  <td><?php echo $currency.$vl['totalpackage']?></td>
                   <td><?php echo $currency.$vl['discount_amount']?></td>
-                  <td><?php echo $currency.$vl['remaining_amount']?></td>
+                  <td><?php echo $currency.$vl['payment_done']?></td>
                   <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
                   
                   <td><?php echo $vl['series_number']; ?></td>
@@ -121,9 +121,12 @@
                                 $discont_stats = $all_method->discount_applied_status($vl['receipt_number']);
                   				if($discont_stats == 1){
 				  				    echo '<p><i title="Discount Approved" class="fa fa-exclamation-circle" aria-hidden="true"></i></p>';
-				  				    if($vl['status'] == 'pending'){ ?> 
+				  				    if($vl['status'] == 'pending'){ 
+                                        if($vl['remaining_amount'] < 0){ ?>
+                                      
+                                    
 									<a href="javascript:void(0);" class="btn btn-large" onclick="approveConsultation('<?php echo $vl['ID']; ?>')">Approve</a>
-                                        <!--<a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=consultation&u=approved" class="xyx btn btn-large" >Approve</a>-->
+                                      <?php } ?>  <!--<a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=consultation&u=approved" class="xyx btn btn-large" >Approve</a>-->
 										| <a href="javascript:void(0);" type="consultation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a>
 					                <?php }else {
             						  		echo ucwords($vl['status']);
@@ -136,10 +139,12 @@
 						        	}
 				  				}else if($discont_stats == 2){
 				  				    echo '<p><i title="Discount disapproved" class="fa fa-exclamation-circle" aria-hidden="true"></i></p>';
-				  				    if($vl['status'] == 'pending'){ ?> 
+				  				    if($vl['status'] == 'pending'){ 
+                                        if($vl['remaining_amount'] < 0){ ?>
+                                        ?> 
 									<a href="javascript:void(0);" class="btn btn-large" onclick="approveConsultation('<?php echo $vl['ID']; ?>')">Approve</a>
 									<!--<a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=consultation&u=approved" class="xyx btn btn-large" >Approve</a> -->
-										| <a href="javascript:void(0);" type="consultation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a>
+										<?php } ?>| <a href="javascript:void(0);" type="consultation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a>
 					                <?php }else {
             						  		echo ucwords($vl['status']);           
             								if($vl['status'] == 'approved'){
@@ -158,11 +163,13 @@
 				  				    echo "Discount Requested!";
 				  				}
 				  			}else {
-					  		    if($vl['status'] == 'pending'){ ?> 
-								<!--<a href="javascript:void(0);" class="btn btn-large" onclick="approveConsultation('<?php echo $vl['ID']; ?>')">Approve</a>-->
+					  		    if($vl['status'] == 'pending'){ 
+                                    if($vl['payment_done'] > 0){ ?>
+                                <!--<a href="javascript:void(0);" class="btn btn-large" onclick="approveConsultation('<?php echo $vl['ID']; ?>')">Approve</a>-->
                                     <a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=consultation&u=approved" class="xyx btn btn-large" >Approve</a>
-									| <a href="javascript:void(0);" type="consultation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a> | <a href="javascript:void(0);" type="consultation" bill="<?php echo $vl['ID']; ?>" class="cancle_first btn btn-large" >Adjust</a>
-					            <?php }else {
+									<?php } ?>| <a href="javascript:void(0);" type="consultation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a> |<?php  if($vl['status'] == 'approved'){ ?> 
+                                    <a href="javascript:void(0);" type="consultation" bill="<?php echo $vl['ID']; ?>" class="cancle_first btn btn-large" >Adjust</a>
+					            <?php }}else {
 
 						  		echo ucwords($vl['status']); ?>
 								

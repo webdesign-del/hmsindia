@@ -78,6 +78,7 @@
                   <th>Total</th>
                   <th>Discount amount</th>
                   <th>Paid Amount</th>
+                  <th>Payment Method</th>
                   <th>Biller</th>
                   <th>Invoices No</th>
                   <th>Status</th>
@@ -114,13 +115,14 @@
                 <td><?php echo $currency.$vl['totalpackage']?></td>
                 <td><?php echo $currency.$vl['discount_amount']?></td>
                 <td><?php echo $currency.$vl['fees']?></td>
+                <td><?php echo $vl['payment_method']; ?>
                 <td><?php $employee_details = employee_detail_number($vl['biller_id']); echo $employee_details['name']; ?></td>
                 <td><?php echo $vl['series_number']; ?></td>
                 <td><?php echo ucwords($vl['status']); ?></td>
-                <td><?php  if($vl['status'] == 'pending'){ ?> 
+                <td><?php  if($vl['status'] == 'pending'){  if($vl['payment_done'] > 0){?> 
 								 <!--<a href="javascript:void(0);" class="btn btn-large" onclick="approveRegistation('<?php echo $vl['ID']; ?>')">Approve</a>>-->
-                                   <a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=registation&u=approved" class="xyx btn btn-large" >Approve</a> |
-									<a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a> | <a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="cancle_first btn btn-large" >Adjust</a>
+                                   <a href="javascript:void(0)" link="<?php echo base_url();?>accounts/approve/<?php echo $vl['ID']?>?t=registation&u=approved" class="xyx btn btn-large" >Approve</a> |<?php } ?>
+									<a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="disaprove_first btn btn-large" >Disapprove</a> <?php if($vl['status'] == 'approved'){ ?>| <a href="javascript:void(0);" type="registation" bill="<?php echo $vl['ID']; ?>" class="cancle_first btn btn-large" >Adjust</a><?php } ?>
 					            <?php }else {
 
 						  		echo ucwords($vl['status']); ?>

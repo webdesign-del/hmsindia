@@ -9,12 +9,70 @@
             $_POST['applicablemedicine'] = implode(',', $_POST['applicablemedicine']);
         }
 
-        $select_query = "SELECT * FROM `pre_embryo_transfer` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+        // ========================================================================
+        // 1. FORMAT AND INSERT DATA FOR `hms_doctor_consultation` TABLE
+        // ========================================================================
+        
+        // DIRECT SERIALIZE array to get format: a:8:{i:0;s:2:"22";i:1;s:2:"24"...}
+        $female_serialized = "";
+        if(isset($_POST['female_minvestigation_suggestion_list']) && is_array($_POST['female_minvestigation_suggestion_list'])){
+            $female_serialized = serialize($_POST['female_minvestigation_suggestion_list']);
+        }
 
+        $male_serialized = "";
+        if(isset($_POST['male_minvestigation_suggestion_list']) && is_array($_POST['male_minvestigation_suggestion_list'])){
+            $male_serialized = serialize($_POST['male_minvestigation_suggestion_list']);
+        }
+
+        // Check for both spellings depending on what you named it in the HTML form
+        $investigation_status = '0';
+        if(isset($_POST['investigation_suggestion'])) {
+            $investigation_status = $_POST['investigation_suggestion'];
+        } elseif(isset($_POST['investation_suggestion'])) {
+            $investigation_status = $_POST['investation_suggestion'];
+        }
+
+        // Get Current Date (Format: YYYY-MM-DD)
+        // Note: Agar aapko time bhi save karna hai, toh date('Y-m-d H:i:s') use karein
+        $current_date = date('Y-m-d');
+
+        // INSERT into the consultation table
+        $consultation_insert_query = "INSERT INTO `hms_doctor_consultation` SET 
+            `patient_id` = '$patient_id',
+            `consultation_date` = '$current_date',
+            `female_minvestigation_suggestion_list` = '".addslashes($female_serialized)."',
+            `male_minvestigation_suggestion_list` = '".addslashes($male_serialized)."',
+            `investation_suggestion` = '".addslashes($investigation_status)."'"; 
+            
+        run_form_query($consultation_insert_query);
+        // ========================================================================
+
+
+        // ========================================================================
+        // 🔥 CRITICAL FIX: Unset ALL consultation fields so they don't break the embryo loop
+        // ========================================================================
+        if(isset($_POST['investigation_suggestion'])){
+            unset($_POST['investigation_suggestion']);
+        }
+        if(isset($_POST['investation_suggestion'])){
+            unset($_POST['investation_suggestion']);
+        }
+        if(isset($_POST['female_minvestigation_suggestion_list'])){
+            unset($_POST['female_minvestigation_suggestion_list']);
+        }
+        if(isset($_POST['male_minvestigation_suggestion_list'])){
+            unset($_POST['male_minvestigation_suggestion_list']);
+        }
+        // ========================================================================
+
+
+        // ========================================================================
+        // 2. EXISTING LOGIC FOR `pre_embryo_transfer` TABLE
+        // ========================================================================
+        $select_query = "SELECT * FROM `pre_embryo_transfer` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
         $select_result = run_select_query($select_query); 
 
         if(empty($select_result)){
-
             // mysql query to insert data
             $query = "INSERT INTO `pre_embryo_transfer` SET ";
             $sqlArr = array();
@@ -25,20 +83,18 @@
             }       
             $query .= implode(',' , $sqlArr);
 
-        }else{
-
+        } else {
             // mysql query to update data
             $query = "UPDATE pre_embryo_transfer SET ";
             $sqlArr = array();
             
             foreach( $_POST as $key=> $value )
             {
-              $sqlArr[] = " $key = '".$value."'"    ;
+              $sqlArr[] = " $key = '".addslashes($value)."'"; // Added addslashes for safety
             }
 
             $query .= implode(',' , $sqlArr);
             $query .= " WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
-
         }
 
         $result = run_form_query($query);        
@@ -46,7 +102,7 @@
         if($result){
           header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Procedure form inserted!').'&t='.base64_encode('success'));
                     die();
-        }else{
+        } else {
           header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
                     die();
         }
@@ -65,30 +121,25 @@
     $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
     $select_result3 = run_select_query($sql3);  
     
-    $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
+    $sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result1 = run_select_query($sql1);
-    
-    $sql4 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
-    $select_result4 = run_select_query($sql4);
-    
-    $sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
+        
+    $sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result1['appoitment_for']."'";
     $select_result5 = run_select_query($sql5);  
 
     $procedure_sql = "SELECT ID, procedure_name, category FROM hms_procedures WHERE ID = '$procedure_id'";
     $proc_result = run_select_query($procedure_sql);
 
-	 // Handle select array data gracefully if multiselect is utilized
-    if(!empty($_POST['female_minvestigation_suggestion_list']) && is_array($_POST['female_minvestigation_suggestion_list'])){
-        $_POST['female_minvestigation_suggestion_list'] = implode(',', $_POST['female_minvestigation_suggestion_list']);
-    }
-    if(!empty($_POST['male_minvestigation_suggestion_list']) && is_array($_POST['male_minvestigation_suggestion_list'])){
-        $_POST['male_minvestigation_suggestion_list'] = implode(',', $_POST['male_minvestigation_suggestion_list']);
-    }
+    // ========================================================================
+    // UPDATE FOR HTML VIEW: Handle direct unserialize instead of explode
+    // ========================================================================
+    $saved_female_inv = !empty($select_result['female_minvestigation_suggestion_list']) ? unserialize($select_result['female_minvestigation_suggestion_list']) : array();
+    if(!is_array($saved_female_inv)) $saved_female_inv = array();
 
-	$saved_female_inv = !empty($select_result['female_minvestigation_suggestion_list']) ? explode(',', $select_result['female_minvestigation_suggestion_list']) : array();
-    $saved_male_inv = !empty($select_result['male_minvestigation_suggestion_list']) ? explode(',', $select_result['male_minvestigation_suggestion_list']) : array();
+    $saved_male_inv = !empty($select_result['male_minvestigation_suggestion_list']) ? unserialize($select_result['male_minvestigation_suggestion_list']) : array();
+    if(!is_array($saved_male_inv)) $saved_male_inv = array();
+    // ========================================================================
 
-    
     $procedure_billing_sql = "SELECT * FROM hms_patient_procedure WHERE receipt_number = '$receipt_number'";
     $proc_bill_result = run_select_query($procedure_billing_sql);
     
@@ -111,7 +162,7 @@
 
     // API data
     $data = [
-        "lead_id" => trim($select_result4['crm_id']),
+        "lead_id" => trim($select_result1['crm_id']),
         "patient_id" => $patient_id,
         "procedure_type_name" => $proc_result['procedure_name'] . ', ' . (new DateTime($proc_bill_result['on_date']))->format('Y-m-d'),
         "progesterone_date" => $final_progesterone_date
@@ -130,10 +181,8 @@
     ]);
     $response = curl_exec($curl);
     curl_close($curl);
-    //echo $response;
       
 ?>
-
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css" type="text/css">
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/js/bootstrap-multiselect.min.js"></script>
 
@@ -157,7 +206,7 @@
     <table width="100%" class="vb45rt">
         <tr style="background: #b3b9b7;">
             <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
-                <strong>UHID : <?php echo $select_result5['center_code']."/".$select_result4['uhid']; ?></strong>
+                <strong>UHID : <?php echo $select_result5['center_code']."/".$select_result1['uhid']; ?></strong>
             </td>
             <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
                 <strong>Patient Name : <?php echo $select_result3['wife_name']; ?> </strong>
@@ -519,7 +568,7 @@
                <div class="section-header">
                   <i class="fa fa-flask"></i> IIC Investigations Advised
                   <label class="checkbox-enhanced pull-right">
-                  <input type="checkbox" id="investigation_suggestion" value="1" name="investigation_suggestion" <?php echo !empty($select_result['investigation_suggestion']) ? 'checked' : ''; ?> />
+                  <input type="checkbox" id="investation_suggestion" value="1" name="investation_suggestion" <?php echo !empty($select_result['investation_suggestion']) ? 'checked' : ''; ?> />
                   Enable Investigations
                   </label>
                </div>
@@ -607,7 +656,7 @@
 
 			<td colspan="2">UHID</td>
 
-			<td style="width:20%" colspan="2"> <?php echo $select_result5['center_code']."/".$select_result4['uhid']; ?> </td>
+			<td style="width:20%" colspan="2"> <?php echo $select_result5['center_code']."/".$select_result1['uhid']; ?> </td>
 
 
 		</tr>
@@ -2070,12 +2119,12 @@ $(document).ready(function() {
    });
 
    // Read initial state on page load refresh window frame
-   var checkboxState = $("#investigation_suggestion").is(':checked');
+   var checkboxState = $("#investation_suggestion").is(':checked');
    controlInvestigationDropdowns(checkboxState);
 });
 
 // Sync real-time selection visibility changes
-$("#investigation_suggestion").change(function() {
+$("#investation_suggestion").change(function() {
    controlInvestigationDropdowns(this.checked);
 });
 </script>

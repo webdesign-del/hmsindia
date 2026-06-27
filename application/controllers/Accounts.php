@@ -716,7 +716,7 @@ class Accounts extends CI_Controller {
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Investigation-Patients-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
-				$headers = 'IIC ID, Patient Name, Receipt Number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type, Date, Status,Series Number, Origins';
+				$headers = 'IIC ID, Patient Name, Receipt Number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type, Date, Status, Origins,Series Number';
 				//Add the headers
 				fwrite($fp, $headers. "\r\n");
 				foreach ($data as $key => $val) {//var_dump($val);die;
@@ -732,7 +732,7 @@ class Accounts extends CI_Controller {
 					
 					$billing_at = get_center_name($val['billing_at']);
 					
-					$lead_arr = array($val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $val['series_number'], $origin_from);
+					$lead_arr = array($val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $origin_from, $val['series_number']);
 					fputcsv($fp, $lead_arr);
 				}
 				fclose($fp);
@@ -790,7 +790,7 @@ class Accounts extends CI_Controller {
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Procedure-Patients-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
-				$headers = 'IIC ID, Patient Name,Receipt Number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type, Date, Status';
+				$headers = 'IIC ID, Patient Name,Receipt Number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type, Date, Status,Series Number';
 				//Add the headers
 				fwrite($fp, $headers. "\r\n");
 				foreach ($data as $key => $val) {//var_dump($val);die;
@@ -799,7 +799,7 @@ class Accounts extends CI_Controller {
 						$billing_from = get_center_name($billing_from);
 					}
 					$billing_at = get_center_name($val['billing_at']);
-					$lead_arr = array($val['patient_id'], $val['wife_name'], "'" . $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'], $val['on_date'], $val['status']);
+					$lead_arr = array($val['patient_id'], $val['wife_name'], "'" . $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'], $val['on_date'], $val['status'],$val['series_number']);
 					fputcsv($fp, $lead_arr);
 				}
 				fclose($fp);
@@ -921,7 +921,7 @@ class Accounts extends CI_Controller {
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Registration-Patients-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
-				$headers = 'IIC ID, Patient Name, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type, Date, Status';
+				$headers = 'IIC ID, Patient Name, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type, Date, Status,Series Number';
 				//Add the headers
 				fwrite($fp, $headers. "\r\n");
 				foreach ($data as $key => $val) {//var_dump($val);die;
@@ -930,7 +930,7 @@ class Accounts extends CI_Controller {
 						$billing_from = get_center_name($billing_from);
 					}
 					$billing_at = get_center_name($val['billing_at']);
-					$lead_arr = array($val['patient_id'], $val['wife_name'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status']);
+					$lead_arr = array($val['patient_id'], $val['wife_name'],$val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'],$val['series_number']);
 					fputcsv($fp, $lead_arr);
 				}
 				fclose($fp);
@@ -5861,6 +5861,14 @@ public function financial_clearance_details($receipt = null) {
 	function get_patient_name($patient_id){
 
 		$name = $this->billings_model->get_patient_name($patient_id);
+
+		return $name;
+
+	}
+
+	function get_husband_name($patient_id){
+
+		$name = $this->billings_model->get_husband_name($patient_id);
 
 		return $name;
 
@@ -13036,6 +13044,257 @@ private function generate_brand_new_receipt($log) {
     </body>
     </html>
     <?php
+}
+
+
+public function submit_cancel_request() {
+    $ID = $this->input->post('ID'); 
+    $reason = $this->input->post('reason_of_cancle');
+
+    $center_id = isset($_SESSION['logged_doctor']['center']) ? $_SESSION['logged_doctor']['center'] : 'N/A';
+    $doctor_name = isset($_SESSION['logged_doctor']['name']) ? $_SESSION['logged_doctor']['name'] : 'Doctor';
+    $doctor_id = isset($_SESSION['logged_doctor']['id']) ? $_SESSION['logged_doctor']['id'] : 0;
+
+    $this->db->select('p.patient_id as iic_id, p.procedure_name, p.code, pt.wife_name as patient_name');
+    $this->db->from('hms_patient_procedure p');
+    $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
+    $this->db->where('p.ID', $ID);
+    $proc_data = $this->db->get()->row();
+
+    $iic_id = !empty($proc_data->iic_id) ? $proc_data->iic_id : 'N/A';
+    $patient_name = !empty($proc_data->patient_name) ? $proc_data->patient_name : 'N/A';
+    $procedure_name = !empty($proc_data->procedure_name) ? $proc_data->procedure_name : 'N/A';
+    $code = !empty($proc_data->code) ? $proc_data->code : 'N/A';
+
+    $insert_data = array(
+        'procedure_id'     => $ID,
+        'center_id'        => $center_id,
+        'reason_of_cancel' => $reason,
+        'status'           => 'pending', 
+        'requested_by'     => $doctor_id,
+        'created_at'       => date('Y-m-d H:i:s')
+    );
+    $this->db->insert('hms_cancel_requests', $insert_data);
+    $request_id = $this->db->insert_id(); 
+
+    // --- Dynamic Emails Fetch Logic ---
+    $to_emails = array(); // Admin
+    $cc_emails = array(); // Staff
+
+    $this->db->select('email, role');
+    $this->db->from('hms_employees');
+    $this->db->where('status', '1');
+    $this->db->where_in('role', array('administrator', 'accountant'));
+    $global_staff = $this->db->get()->result();
+    foreach($global_staff as $staff) {
+        if(!empty($staff->email)) {
+            if(strtolower($staff->role) == 'administrator') $to_emails[] = $staff->email;
+            else $cc_emails[] = $staff->email;
+        }
+    }
+
+    if(!empty($center_id)) {
+        $this->db->select('email');
+        $this->db->from('hms_employees');
+        $this->db->where('status', '1');
+        $this->db->where('center_id', $center_id);
+        $this->db->where_in('role', array('center_head', 'billing_manager', 'counselor'));
+        $center_staff = $this->db->get()->result();
+        foreach($center_staff as $staff) {
+            if(!empty($staff->email)) $cc_emails[] = $staff->email;
+        }
+
+        $this->db->select('email');
+        $this->db->from('hms_doctors');
+        $this->db->where('status', '1');
+        $this->db->where('center_id', $center_id);
+        $doctors = $this->db->get()->result();
+        foreach($doctors as $doc) {
+            if(!empty($doc->email)) $cc_emails[] = $doc->email;
+        }
+    }
+
+    $to_emails = array_unique(array_filter($to_emails));
+    $cc_emails = array_unique(array_filter($cc_emails));
+    if(empty($to_emails)) $to_emails = array('webdesign@indiaivf.in'); 
+
+    $salt = "hms_secure_salt_123"; 
+    $token = md5($request_id . $salt);
+    $approve_link = base_url('accounts/action_cancel_request/'.$request_id.'/approve/'.$token);
+    $reject_link = base_url('accounts/action_cancel_request/'.$request_id.'/reject/'.$token);
+
+    // --- COMMON MESSAGE BASE ---
+    $email_subject = 'Procedure Cancellation Request - IIC ID: ' . $iic_id;
+    
+    $base_message = "<table border='1' cellpadding='8' cellspacing='0' style='border-collapse: collapse; width: 100%; max-width: 600px; font-family: Arial, sans-serif;'>";
+    $base_message .= "<tr><td style='background:#f2f2f2; width:35%;'><strong>IIC ID</strong></td><td>{$iic_id}</td></tr>";
+    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Name</strong></td><td>{$patient_name}</td></tr>";
+    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Center</strong></td><td>{$center_id}</td></tr>";
+    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Doctor</strong></td><td>{$doctor_name}</td></tr>";
+    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Procedure Name</strong></td><td>{$procedure_name}</td></tr>";
+    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Code</strong></td><td>{$code}</td></tr>";
+    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Reason</strong></td><td style='color:red;'>{$reason}</td></tr>";
+    $base_message .= "</table><br><br>";
+
+    $this->load->library('email');
+
+    // ==========================================
+    // MAIL 1: SIRF ADMIN KO (BUTTONS KE SATH)
+    // ==========================================
+    $this->email->clear();
+    $this->email->set_mailtype("html"); 
+    $this->email->from('webdesign@indiaivf.in', 'HMS Automated System');
+    $this->email->to($to_emails);
+    $this->email->subject($email_subject);
+
+    $admin_msg = "Dear Administrator,<br><br>A new procedure cancellation request has been submitted. Details are as follows:<br><br>" . $base_message;
+    $admin_msg .= "<strong>Please take an action below:</strong><br><br>";
+    $admin_msg .= "<a href='{$approve_link}' style='background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-family: Arial; font-weight: bold; margin-right: 15px;'>Approve</a>";
+    $admin_msg .= "<a href='{$reject_link}' style='background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-family: Arial; font-weight: bold;'>Disapprove</a>";
+    
+    $this->email->message($admin_msg);
+    $this->email->send();
+
+    // ==========================================
+    // MAIL 2: BAAKI STAFF KO (BINA BUTTONS KE)
+    // ==========================================
+    if(!empty($cc_emails)) {
+        $this->email->clear();
+        $this->email->set_mailtype("html"); 
+        $this->email->from('webdesign@indiaivf.in', 'HMS Automated System');
+        $this->email->to($cc_emails); // Inhe direct bheja taaki separate jaye
+        $this->email->subject($email_subject);
+
+        $staff_msg = "Dear Team,<br><br>A new procedure cancellation request has been submitted by the doctor. Details are as follows:<br><br>" . $base_message;
+        $staff_msg .= "<em style='color:orange;'>Note: This request is currently pending Administrator approval. You will be notified once an action is taken.</em>";
+        
+        $this->email->message($staff_msg);
+        $this->email->send();
+    }
+
+    $this->session->set_flashdata('success', 'Cancellation request submitted. Administrator and team notified.');
+    redirect('accounts/procedure_list');
+}
+
+
+public function action_cancel_request($request_id, $action, $token) {
+    // 1. Verify Token
+    $salt = "hms_secure_salt_123";
+    $expected_token = md5($request_id . $salt);
+
+    if($token !== $expected_token) {
+        die("<h3>Invalid Security Token. Request Denied.</h3>");
+    }
+
+    // 2. Database se Original Request Fetch karna
+    $this->db->select('cr.*, p.patient_id as iic_id');
+    $this->db->from('hms_cancel_requests cr');
+    $this->db->join('hms_patient_procedure p', 'p.ID = cr.procedure_id', 'left');
+    $this->db->where('cr.id', $request_id);
+    $req_data = $this->db->get()->row();
+
+    if(empty($req_data)) {
+        die("<h3>Request not found.</h3>");
+    }
+
+    // Agar pehle se action liya ja chuka hai toh rok do
+    if($req_data->status != 'pending') {
+        die("<h3 style='color:blue;'>Action has already been taken on this request (Current Status: ".strtoupper($req_data->status).").</h3>");
+    }
+
+    $new_status = ($action == 'approve') ? 'approved' : 'rejected';
+
+    // 3. Update 'hms_cancel_requests' table
+    $update_data = array(
+        'status' => $new_status,
+        'action_taken_by' => isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0, 
+        'action_taken_at' => date('Y-m-d H:i:s')
+    );
+    $this->db->where('id', $request_id);
+    $this->db->update('hms_cancel_requests', $update_data);
+
+    // 4. Agar Approve hua, toh procedure cancel kar do
+    if($action == 'approve') {
+        $this->db->where('ID', $req_data->procedure_id);
+        $this->db->update('hms_patient_procedure', array('status' => 'cancel')); 
+    }
+
+    // ==========================================
+    // 5. TRAIL MAIL BHEJNA (Sabko ek sath)
+    // ==========================================
+    $to_emails = array();
+    $cc_emails = array();
+    $center_id = $req_data->center_id;
+
+    // Admin & Accountant
+    $this->db->select('email, role');
+    $this->db->from('hms_employees');
+    $this->db->where('status', '1');
+    $this->db->where_in('role', array('administrator', 'accountant'));
+    $global_staff = $this->db->get()->result();
+    foreach($global_staff as $staff) {
+        if(!empty($staff->email)) {
+            if(strtolower($staff->role) == 'administrator') $to_emails[] = $staff->email;
+            else $cc_emails[] = $staff->email;
+        }
+    }
+
+    // Center Staff
+    if(!empty($center_id)) {
+        $this->db->select('email');
+        $this->db->from('hms_employees');
+        $this->db->where('status', '1');
+        $this->db->where('center_id', $center_id);
+        $this->db->where_in('role', array('center_head', 'billing_manager', 'counselor'));
+        $center_staff = $this->db->get()->result();
+        foreach($center_staff as $staff) {
+            if(!empty($staff->email)) $cc_emails[] = $staff->email;
+        }
+
+        $this->db->select('email');
+        $this->db->from('hms_doctors');
+        $this->db->where('status', '1');
+        $this->db->where('center_id', $center_id);
+        $doctors = $this->db->get()->result();
+        foreach($doctors as $doc) {
+            if(!empty($doc->email)) $cc_emails[] = $doc->email;
+        }
+    }
+
+    $to_emails = array_unique(array_filter($to_emails));
+    $cc_emails = array_unique(array_filter($cc_emails));
+    if(empty($to_emails)) $to_emails = array('webdesign@indiaivf.in'); 
+
+    $this->load->library('email');
+    $this->email->clear();
+    $this->email->set_mailtype("html"); 
+    $this->email->from('webdesign@indiaivf.in', 'HMS Automated System');
+    $this->email->to($to_emails);
+    if(!empty($cc_emails)) $this->email->cc($cc_emails);
+
+    // EXACT SAME SUBJECT TAQI THREAD BAN JAYE
+    $this->email->subject('Procedure Cancellation Request - IIC ID: ' . $req_data->iic_id);
+
+    $color = ($action == 'approve') ? '#28a745' : '#dc3545';
+    
+    $trail_message = "Dear Team,<br><br>";
+    $trail_message .= "The administrator has taken an action on the procedure cancellation request.<br><br>";
+    $trail_message .= "<strong>Decision:</strong> <span style='color: white; background-color: {$color}; padding: 3px 8px; border-radius: 3px; font-weight:bold;'>" . strtoupper($new_status) . "</span><br><br>";
+    $trail_message .= "<strong>Procedure ID:</strong> " . $req_data->procedure_id . "<br>";
+    $trail_message .= "<strong>Center ID:</strong> " . $center_id . "<br><br>";
+    $trail_message .= "Thank you.<br><strong>HMS Automated System</strong>";
+
+    $this->email->message($trail_message);
+    $this->email->send();
+    // ==========================================
+
+    // Admin ko Screen par Success Dikhayein
+    echo "<div style='font-family: Arial, sans-serif; text-align: center; margin-top: 50px;'>";
+    echo "<h2 style='color: " . ($action == 'approve' ? 'green' : 'red') . ";'>";
+    echo "Cancellation Request has been successfully <strong>" . strtoupper($new_status) . "</strong>!";
+    echo "</h2>";
+    echo "<p>Trail email sent to all stakeholders. You can safely close this window now.</p>";
+    echo "</div>";
 }
 
 
