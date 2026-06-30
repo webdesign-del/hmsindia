@@ -13055,16 +13055,29 @@ public function submit_cancel_request() {
     $doctor_name = isset($_SESSION['logged_doctor']['name']) ? $_SESSION['logged_doctor']['name'] : 'Doctor';
     $doctor_id = isset($_SESSION['logged_doctor']['id']) ? $_SESSION['logged_doctor']['id'] : 0;
 
-    $this->db->select('p.patient_id as iic_id, p.procedure_name, p.code, pt.wife_name as patient_name');
+    $this->db->select('p.patient_id as iic_id, p.procedure_name,p.receipt_number, p.code,p.totalpackage,p.discount_amount,p.fees,p.payment_done, pt.wife_name as patient_name');
     $this->db->from('hms_patient_procedure p');
     $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
     $this->db->where('p.ID', $ID);
-    $proc_data = $this->db->get()->row();
+	$proc_data = $this->db->get()->row();
 
-    $iic_id = !empty($proc_data->iic_id) ? $proc_data->iic_id : 'N/A';
+	$iic_id = !empty($proc_data->iic_id) ? $proc_data->iic_id : 'N/A';
     $patient_name = !empty($proc_data->patient_name) ? $proc_data->patient_name : 'N/A';
     $procedure_name = !empty($proc_data->procedure_name) ? $proc_data->procedure_name : 'N/A';
     $code = !empty($proc_data->code) ? $proc_data->code : 'N/A';
+	$totalpackage = !empty($proc_data->totalpackage) ? $proc_data->totalpackage : 'N/A';
+	$discount_amount = !empty($proc_data->discount_amount) ? $proc_data->discount_amount : 'N/A';
+	$fees = !empty($proc_data->fees) ? $proc_data->fees : 'N/A';
+	$payment_done     = !empty($proc_data->payment_done) ? $proc_data->payment_done : 0;
+	$receipt_number     = !empty($proc_data->receipt_number) ? $proc_data->receipt_number : 0;
+
+	$this->db->select_sum('payment_done', 'total_paid');
+    $this->db->where('billing_id', $receipt_number);
+    
+    $payment_query = $this->db->get('hms_patient_payments')->row();
+
+    $total_paid = !empty($payment_query->total_paid) ? $payment_query->total_paid : 0;
+	$grand_total = $payment_done + $total_paid;
 
     $insert_data = array(
         'procedure_id'     => $ID,
@@ -13128,13 +13141,19 @@ public function submit_cancel_request() {
     
     $base_message = "<table border='1' cellpadding='8' cellspacing='0' style='border-collapse: collapse; width: 100%; max-width: 600px; font-family: Arial, sans-serif;'>";
     $base_message .= "<tr><td style='background:#f2f2f2; width:35%;'><strong>IIC ID</strong></td><td>{$iic_id}</td></tr>";
-    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Name</strong></td><td>{$patient_name}</td></tr>";
-    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Center</strong></td><td>{$center_id}</td></tr>";
+    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Patient Name</strong></td><td>{$patient_name}</td></tr>";
+    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Center Name</strong></td><td>{$center_id}</td></tr>";
     $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Doctor</strong></td><td>{$doctor_name}</td></tr>";
-    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Procedure Name</strong></td><td>{$procedure_name}</td></tr>";
-    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Code</strong></td><td>{$code}</td></tr>";
-    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Reason</strong></td><td style='color:red;'>{$reason}</td></tr>";
-    $base_message .= "</table><br><br>";
+	$base_message .= "<tr><td style='background:#f2f2f2;'><strong>Procedure Code</strong></td><td>{$code}</td></tr>";
+    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Procedure Name</strong></td><td>{$procedure_name}</td></tr>";   
+	$base_message .= "<tr><td style='background:#f2f2f2;'><strong>Package Amount</strong></td><td>{$totalpackage}</td></tr>";
+	$base_message .= "<tr><td style='background:#f2f2f2;'><strong>Discount Amount</strong></td><td>{$discount_amount}</td></tr>";
+	$base_message .= "<tr><td style='background:#f2f2f2;'><strong>After Discount</strong></td><td>{$fees}</td></tr>";
+	$base_message .= "<tr><td style='background:#f2f2f2;'><strong>Booking Amount</strong></td><td>{$payment_done}</td></tr>";
+    $base_message .= "<tr><td style='background:#f2f2f2;'><strong>Total Paid Amount</strong></td><td>{$grand_total}</td></tr>";
+	$base_message .= "<tr><td style='background:#f2f2f2;'><strong>Balance Amount</strong></td><td>{$grand_total}</td></tr>";
+	$base_message .= "<tr><td style='background:#f2f2f2;'><strong>Reason</strong></td><td style='color:red;'>{$reason}</td></tr>";
+	$base_message .= "</table><br><br>";
 
     $this->load->library('email');
 

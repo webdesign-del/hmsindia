@@ -12185,4 +12185,160 @@ public function save_ivf_daily_report() {
     }
 }
 
+// 1. COUNSELOR ACTION HANDLER
+    public function counselor_action($log_id, $action)
+    {
+        // Fetch Log using 'log_id'
+        $log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id])->row_array();
+        
+        if (empty($log) || $log['status'] !== 'pending_counselor') {
+            echo "<h3 style='text-align:center; margin-top:50px; color:red;'>This request has already been processed or does not exist.</h3>";
+            return;
+        }
+
+        $this->db->trans_start();
+
+        $new_status = ($action === 'approve') ? 'pending_accountant' : 'rejected';
+        
+        // Update Log Table using 'log_id'
+        $this->db->where('log_id', $log_id);
+        $this->db->update('hms_wallet_logs', ['status' => $new_status, 'updated_at' => date('Y-m-d H:i:s')]);
+
+        // Update Medicine Returns table status
+        $this->db->where('ID', $log['reference_id']);
+        $this->db->update('medicine_returns', ['status' => strtoupper($new_status)]);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            echo "<h3 style='text-align:center; margin-top:50px; color:red;'>Error processing your request. Please try again.</h3>";
+            return;
+        }
+
+        // IF APPROVED, SEND EMAIL TO ACCOUNTANT WITH ACTION BUTTONS
+        if ($action === 'approve') {
+            $accountant_emails = [];
+            $this->db->select('email');
+            $this->db->group_start();
+            $this->db->like('role', 'accountant'); 
+            $this->db->or_like('role', 'Accountant'); 
+            $this->db->group_end();
+            $this->db->where('status', 1);
+            
+            $query_acc = $this->db->get('hms_employees'); 
+            if ($query_acc->num_rows() > 0) {
+                foreach ($query_acc->result() as $row) {
+                    if (!empty($row->email) && filter_var($row->email, FILTER_VALIDATE_EMAIL)) {
+                        $accountant_emails[] = $row->email;
+                    }
+                }
+            }
+            if (empty($accountant_emails)) {
+                $accountant_emails = ['accounts@indiaivf.in']; 
+            }
+
+            $this->load->library('email');
+            $config['mailtype'] = 'html';
+            $this->email->initialize($config);
+
+            // Accountant Action Links
+            $acc_approve_url = base_url("index.php/stocks_new/accountant_action/{$log_id}/approve");
+            $acc_reject_url  = base_url("index.php/stocks_new/accountant_action/{$log_id}/reject");
+
+            $this->email->from('noreply@indiaivf.in', 'Pharmacy System');
+            $this->email->to($accountant_emails);
+            $this->email->subject('Action Required: Medicine Return Approved by Counselor');
+
+            $email_message = "
+                <h3>Medicine Return Pending Accountant Approval</h3>
+                <p>The Counselor has <b>APPROVED</b> the medicine return. It now requires your final approval to credit the wallet.</p>
+                <ul>
+                    <li><strong>Return Number:</strong> " . $log["receipt_number"] . "</li>
+                    <li><strong>Patient ID:</strong> " . $log["patient_id"] . "</li>
+                    <li><strong>Refund Amount:</strong> Rs. " . $log["amount"] . "</li>
+                </ul>
+                <p>Please click an action below to process this wallet refund:</p>
+                <div style='margin-top:20px;'>
+                    <a href='{$acc_approve_url}' style='padding:10px 20px; background-color:#28a745; color:#fff; text-decoration:none; border-radius:5px; margin-right:10px;'>Approve (Credit Wallet)</a>
+                    <a href='{$acc_reject_url}' style='padding:10px 20px; background-color:#dc3545; color:#fff; text-decoration:none; border-radius:5px;'>Reject</a>
+                </div>
+            ";
+            
+            $this->email->message($email_message);
+            $this->email->send();
+            
+            echo "<h3 style='text-align:center; margin-top:50px; color:green;'>Success! The return has been approved and forwarded to the Accountant.</h3>";
+        } else {
+            echo "<h3 style='text-align:center; margin-top:50px; color:red;'>The return request has been rejected successfully.</h3>";
+        }
+    }
+
+    // 2. ACCOUNTANT ACTION HANDLER (FINAL STEP - CREDITS WALLET)
+    public function accountant_action($log_id, $action)
+    {
+        // Fetch Log using 'log_id'
+        $log = $this->db->get_where('hms_wallet_logs', ['log_id' => $log_id])->row_array();
+        
+        if (empty($log) || $log['status'] !== 'pending_accountant') {
+            echo "<h3 style='text-align:center; margin-top:50px; color:red;'>This request has already been processed or does not exist.</h3>";
+            return;
+        }
+
+        $this->db->trans_start();
+
+        if ($action === 'approve') {
+            $final_status = 'approved';
+
+            // Fetch current patient wallet to calculate new balance
+            $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $log['patient_id']])->row_array();
+            
+            // Assuming wallet_1_balance gets credited for pharmacy returns (Change column name if needed)
+            $current_balance = !empty($wallet) ? floatval($wallet['wallet_1_balance']) : 0;
+            $new_balance = $current_balance + floatval($log['amount']);
+
+            // Update patient wallet balance
+            $this->db->where('patient_id', $log['patient_id']);
+            $this->db->update('hms_patient_wallets', [
+                'wallet_1_balance' => $new_balance,
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+
+            // Update log row with dynamic balance tracking
+            $this->db->where('log_id', $log_id);
+            $this->db->update('hms_wallet_logs', [
+                'status' => $final_status,
+                'closing_w1' => $new_balance, // Update closing balance
+                'remarks' => 'Approved by Accountant. Wallet Credited.',
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+
+        } else {
+            $final_status = 'rejected';
+            
+            $this->db->where('log_id', $log_id);
+            $this->db->update('hms_wallet_logs', [
+                'status' => $final_status,
+                'remarks' => 'Rejected by Accountant.',
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+        }
+
+        // Update main medicine returns table status
+        $this->db->where('ID', $log['reference_id']);
+        $this->db->update('medicine_returns', ['status' => strtoupper($final_status)]);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            echo "<h3 style='text-align:center; margin-top:50px; color:red;'>Error updating database records.</h3>";
+            return;
+        }
+
+        if ($action === 'approve') {
+            echo "<h3 style='text-align:center; margin-top:50px; color:green;'>Success! The wallet has been credited and the process is complete.</h3>";
+        } else {
+            echo "<h3 style='text-align:center; margin-top:50px; color:red;'>The return request has been rejected. No amount was credited.</h3>";
+        }
+    }
+
 }

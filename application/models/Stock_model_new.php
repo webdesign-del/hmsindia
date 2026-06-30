@@ -5448,7 +5448,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
             return $this->db->trans_status();
         }*/
 
- public function process_medicine_return($return_data, $return_items, $is_old = false)
+public function process_medicine_return($return_data, $return_items, $is_old = false)
 {
     if (empty($return_items)) {
         return false;
@@ -5456,11 +5456,22 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
 
     $this->db->trans_start();
 
-    // 1. Generate Return Number and Insert Header
+    // -- 1. EXTRACT VARIABLES FIRST --
+    $patient_id = isset($return_data['patient_id']) ? $return_data['patient_id'] : null;
+    $center_id = isset($return_data['center_id']) ? $return_data['center_id'] : null;
+
+    // FIX: Remove center_id from array to prevent SQL Error (Unknown column in medicine_returns)
+    if (isset($return_data['center_id'])) {
+        unset($return_data['center_id']);
+    }
+
+    // 2. Generate Return Number and Insert Header
     $prefix = $is_old ? "ORET" : "RET";
     $next_id = $this->db->count_all_results('medicine_returns') + 1;
     $return_data["return_number"] = $prefix . date("Ymd") . str_pad($next_id, 4, "0", STR_PAD_LEFT);
-    $return_data["status"] = "PENDING"; // Keep this PENDING until accountant approves
+    
+    // STATUS CHANGED: First it goes to Counselor
+    $return_data["status"] = "PENDING_COUNSELOR"; 
     
     $this->db->insert("medicine_returns", $return_data);
     $return_id = $this->db->insert_id();
@@ -5470,17 +5481,19 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         return false;
     }
 
-    // 2. Resolve Sale ID and Patient ID from Receipt Number
+    // 3. Resolve Sale ID, Patient ID, and Center ID from Receipt Number
     $sale_id = null;
-    $patient_id = isset($return_data['patient_id']) ? $return_data['patient_id'] : null;
 
     if (!$is_old && !empty($return_data['receipt_number'])) {
         $sale = $this->db->get_where('sales', ['sale_number' => $return_data['receipt_number']])->row();
         if ($sale) {
             $sale_id = $sale->id;
-            // Fallback: If patient_id wasn't in return_data, get it from the original sale
+            
             if (empty($patient_id) && isset($sale->patient_id)) {
                 $patient_id = $sale->patient_id;
+            }
+            if (empty($center_id) && isset($sale->center_id)) {
+                $center_id = $sale->center_id;
             }
         }
     }
@@ -5503,7 +5516,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         
         $total_refund_amount += $item_final_amount;
 
-        // 3. Insert into medicine_return_items
+        // Insert into medicine_return_items
         $item_entry = [
             "return_id" => $return_id,
             "batch_id" => $batch_id,
@@ -5517,7 +5530,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         ];
         $this->db->insert("medicine_return_items", $item_entry);
         
-        // 4. Update sale_items IMMEDIATELY
+        // Update sale_items IMMEDIATELY
         if (!$is_old && $sale_id) {
             $this->db->set('quantity_returned', 'COALESCE(quantity_returned, 0) + ' . $quantity, FALSE);
             $this->db->set('updated_at', date('Y-m-d H:i:s'));
@@ -5532,86 +5545,179 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         return false;
     }
 
-    // 🚀 WALLET PENDING LOGIC, NOTIFICATION & EMAIL
+    // 🚀 4. WALLET PENDING LOGIC, NOTIFICATIONS & EMAILS
     if ($total_refund_amount > 0 && !empty($patient_id)) {
         
-        // Get current wallet balance just for logging purposes
         $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $patient_id])->row_array();
         $current_w1 = !empty($wallet) ? floatval($wallet['wallet_1_balance']) : 0;
         $current_w2 = !empty($wallet) ? floatval($wallet['wallet_2_balance']) : 0;
         
-        // NOTE: We DO NOT update hms_patient_wallets here anymore.
-        // It will be updated by the Accountant during approval.
-
-        // 1. Insert log into hms_wallet_logs as 'pending'
         $user_name = isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'System';
         
+        // Insert log into hms_wallet_logs
         $log_data = [
             'patient_id'     => $patient_id,
             'amount'         => $total_refund_amount,
             'action_type'    => 'PHARMACY_RETURN_REFUND',
             'opening_w1'     => $current_w1,
-            'closing_w1'     => $current_w1, // Kept same as opening because money is NOT added yet
+            'closing_w1'     => $current_w1,
             'opening_w2'     => $current_w2,
             'closing_w2'     => $current_w2,
             'reference_id'   => $return_id,
             'receipt_number' => $return_data["return_number"],
             'payment_method' => 'WALLET',
-            'remarks'        => 'Pending Approval: Refund for Medicine Return # ' . $return_data["return_number"],
+            'remarks'        => 'Pending Counselor Approval: Refund for Medicine Return # ' . $return_data["return_number"],
             'created_by'     => $user_name,
             'created_at'     => date('Y-m-d H:i:s'),
             'approved_by'    => '', 
             'updated_at'     => date('Y-m-d H:i:s'),
-            'status'         => 'pending' // STRICTLY PENDING
+            'status'         => 'pending_counselor'
         ];
         $this->db->insert('hms_wallet_logs', $log_data);
         $log_id = $this->db->insert_id();
 
-        // 2. System Notification Insert (Modify table name and columns based on your DB schema)
+        // System Notification Insert
         $notification_data = [
-            'title'      => 'Pending Wallet Refund Approval',
-            'message'    => "Return #" . $return_data["return_number"] . " generated a refund of Rs." . $total_refund_amount . " for Patient ID " . $patient_id . ". Awaiting account approval.",
-            'user_role'  => 'accountant', // Or whoever handles approvals
-            'url'        => 'accountant/wallet_approvals/view/'.$log_id, // Example URL
+            'title'      => 'Action Required: Counselor Approval for Wallet Refund',
+            'message'    => "Return #" . $return_data["return_number"] . " generated a refund of Rs." . $total_refund_amount . " for Patient ID " . $patient_id . ". Awaiting your approval.",
+            'user_role'  => 'counselor',
+            'url'        => 'counselor/wallet_approvals/view/'.$log_id,
             'is_read'    => 0,
             'created_at' => date('Y-m-d H:i:s')
         ];
-        // Uncomment/Modify according to your actual notification table
         $this->db->insert('hms_notifications', $notification_data);
 
-        // 3. Send Email for Approval
-        // Load CodeIgniter Email Library
-        $this->load->library('email');
+        // -------------------------------------------------------------
+        // 5. FETCH COUNSELOR EMAILS (FIXED FOR center_number)
+        // -------------------------------------------------------------
+        $counselor_emails = [];
         
+        if (!empty($center_id)) {
+            
+            // A. Get the actual 'center_number' from the 'center' table
+            // Note: If your table name is 'centers' (plural) or 'hms_centers', change 'center' below to match your DB.
+            $actual_center_number = $center_id; // Default fallback
+            $center_record = $this->db->get_where('hms_centers', ['id' => $center_id])->row();
+            
+            if ($center_record && isset($center_record->center_number)) {
+                $actual_center_number = $center_record->center_number;
+            }
+
+            // B. Now search hms_employees using this actual_center_number
+            $this->db->select('email');
+            
+            $this->db->group_start();
+            $this->db->like('role', 'counselor'); 
+            $this->db->or_like('role', 'counsellor'); 
+            $this->db->or_like('role', 'councellor'); 
+            $this->db->group_end();
+
+            $this->db->where('center_id', $actual_center_number); // Using center_number here!
+            
+            $this->db->group_start();
+            $this->db->where('status', 1);
+            $this->db->or_where('status', 'Active');
+            $this->db->or_where('status', 'active');
+            $this->db->group_end();
+
+            $query = $this->db->get('hms_employees'); 
+            
+            if ($query->num_rows() > 0) {
+                foreach ($query->result() as $row) {
+                    if (!empty($row->email) && filter_var($row->email, FILTER_VALIDATE_EMAIL)) {
+                        $counselor_emails[] = $row->email;
+                    }
+                }
+            }
+        }
+
+        // 6. FETCH ACCOUNTANT EMAILS
+        $accountant_emails = [];
+        $this->db->select('email');
+        $this->db->group_start();
+        $this->db->like('role', 'accountant'); 
+        $this->db->or_like('role', 'Accountant'); 
+        $this->db->group_end();
+        
+        $this->db->group_start();
+        $this->db->where('status', 1);
+        $this->db->or_where('status', 'Active');
+        $this->db->or_where('status', 'active');
+        $this->db->group_end();
+        
+        $query_acc = $this->db->get('hms_employees'); 
+        if ($query_acc->num_rows() > 0) {
+            foreach ($query_acc->result() as $row) {
+                if (!empty($row->email) && filter_var($row->email, FILTER_VALIDATE_EMAIL)) {
+                    $accountant_emails[] = $row->email;
+                }
+            }
+        }
+
+        // 7. SEND EMAILS
+        $this->load->library('email');
         $config['mailtype'] = 'html';
         $this->email->initialize($config);
-        
-        // Fetch admin/accountant email from settings or hardcode for now
-        $admin_email = 'webdesign@indiaivf.in'; 
-        
-        $this->email->from('no-reply@yourhospital.com', 'Pharmacy System');
-        $this->email->to($admin_email);
-        $this->email->subject('Action Required: Medicine Return Refund Approval');
-        
-        $email_message = "
-            <h3>Medicine Return Refund Pending Approval</h3>
-            <p>A new medicine return has been processed and requires your approval to credit the refund to the patient's wallet.</p>
-            <ul>
-                <li><strong>Return Number:</strong> " . $return_data["return_number"] . "</li>
-                <li><strong>Patient ID:</strong> " . $patient_id . "</li>
-                <li><strong>Refund Amount:</strong> Rs. " . $total_refund_amount . "</li>
-                <li><strong>Generated By:</strong> " . $user_name . "</li>
-            </ul>
-            <p>Please log in to the system to approve or reject this transaction.</p>
-        ";
-        
-        $this->email->message($email_message);
-        $this->email->send();
+
+        // --- EMAIL TO COUNSELOR (With Approve/Reject Links) ---
+        if (!empty($counselor_emails)) {
+            // Adjust 'wallet_controller' to the actual name of your controller
+            $approve_url = base_url("stocks_new/counselor_action/{$log_id}/approve");
+            $reject_url  = base_url("stocks_new/counselor_action/{$log_id}/reject");
+
+            $this->email->from('noreply@indiaivf.in', 'Pharmacy System');
+            $this->email->to($counselor_emails);
+            $this->email->subject('Action Required: Medicine Return Needs Counselor Approval');
+            
+            $counselor_message = "
+                <h3>Medicine Return Pending Your Approval</h3>
+                <p>A new medicine return has been processed by the pharmacy for your center and requires your approval before it is sent to the Accountant.</p>
+                <ul>
+                    <li><strong>Return Number:</strong> " . $return_data["return_number"] . "</li>
+                    <li><strong>Patient ID:</strong> " . $patient_id . "</li>
+                    <li><strong>Refund Amount:</strong> Rs. " . $total_refund_amount . "</li>
+                    <li><strong>Generated By:</strong> " . $user_name . "</li>
+                </ul>
+                <p>Please click an action below to process this request:</p>
+                <div style='margin-top:20px;'>
+                    <a href='{$approve_url}' style='padding:10px 20px; background-color:#28a745; color:#fff; text-decoration:none; border-radius:5px; margin-right:10px;'>Approve</a>
+                    <a href='{$reject_url}' style='padding:10px 20px; background-color:#dc3545; color:#fff; text-decoration:none; border-radius:5px;'>Reject</a>
+                </div>
+                <p style='margin-top:30px; font-size:12px; color:gray;'>If the buttons don't work, log in to your dashboard to review this request.</p>
+            ";
+            $this->email->message($counselor_message);
+            $this->email->send();
+        }
+
+        // --- FYI EMAIL TO ACCOUNTANT ---
+        if (!empty($accountant_emails)) {
+            $this->email->clear(); 
+            $this->email->from('noreply@indiaivf.in', 'Pharmacy System');
+            $this->email->to($accountant_emails);
+            $this->email->subject('FYI: New Medicine Return Created (Pending Counselor Approval)');
+            
+            $accountant_message = "
+                <h3>New Medicine Return Initiated</h3>
+                <p>A new medicine return has been processed by the pharmacy. It is currently pending approval from the Center Counselor.</p>
+                <ul>
+                    <li><strong>Return Number:</strong> " . $return_data["return_number"] . "</li>
+                    <li><strong>Patient ID:</strong> " . $patient_id . "</li>
+                    <li><strong>Refund Amount:</strong> Rs. " . $total_refund_amount . "</li>
+                </ul>
+                <p>You will receive another email with approval links once the Counselor approves this request.</p>
+            ";
+            $this->email->message($accountant_message);
+            $this->email->send();
+        }
     }
 
     $this->db->trans_complete();
     return $this->db->trans_status();
 }
+
+// Controller Name: Wallet_controller.php (Replace with your actual controller name)
+
+
 
         public function approve_medicine_return($return_id)
         {
