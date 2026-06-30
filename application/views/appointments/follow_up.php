@@ -697,24 +697,24 @@ if (!empty($billed_data)) {
 
             <!-- Package Section -->
             <div class="section-card">
-               <div class="section-header">
-                  <i class="fa fa-gift"></i> Package Advised
-                  <label class="checkbox-enhanced pull-right">
-                  <input type="checkbox" id="package_suggestion" value="1" name="package_suggestion" />
-                  Enable Package
-                  </label>
-               </div>
-               <div class="section-content">
-                  <div class="form-group-enhanced">
-                     <label>Select Packages</label>
-                     <select class="form-control multidselect_dropdown_2" multiple="multiple" id="package_suggestion_list" name="package_suggestion_list[]" disabled>
-                        <?php if(!empty($package)) { foreach($package as $key => $val) { ?>
-                        <option value="<?php echo $val['procedure_ids']; ?>"><?php echo $val['package_name']; ?></option>
-                        <?php  } } ?>
-                     </select>
-                  </div>
-               </div>
-            </div>
+   <div class="section-header">
+      <i class="fa fa-gift"></i> Package Advised
+      <label class="checkbox-enhanced pull-right">
+         <input type="checkbox" id="package_suggestion" value="1" name="sections[packages][enabled]" />
+         Enable Package
+      </label>
+   </div>
+   <div class="section-content">
+      <div class="form-group-enhanced">
+         <label>Select Packages</label>
+         <select class="form-control multidselect_dropdown_2" multiple="multiple" id="package_suggestion_list" name="sections[packages][package_suggestion_list][]" disabled>
+            <?php if(!empty($package)) { foreach($package as $key => $val) { ?>
+               <option value="<?php echo $val['procedure_ids']; ?>"><?php echo $val['package_name']; ?></option>
+            <?php  } } ?>
+         </select>
+      </div>
+   </div>
+</div>
             <?php }else { ?>
             <?php  $female_investigation_suggestion_list = array();
                if(isset($patient_doctor_consultation['investation_suggestion']) && $patient_doctor_consultation['investation_suggestion'] == "1"){
@@ -1486,6 +1486,14 @@ $(document).ready(function() {
                 sub_procedure_suggestion_list: getMultiselectValues('sub_procedure_suggestion_list')
             };
         }
+
+        // 🚀 FIX: Pulling multi-select values for packages when checked
+         if ($('#package_suggestion').is(':checked')) {
+            data.sections.packages = {
+               enabled: true,
+               package_suggestion_list: getMultiselectValues('package_suggestion_list')
+            };
+         }
         
         data.sections.advisory_templates = getMultiselectValues('advisory_templates');
         return data;

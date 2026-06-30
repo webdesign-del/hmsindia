@@ -5262,10 +5262,24 @@ foreach ($urls as $key => $url) {
 				}
 				
 				// Process packages
-				if(isset($sections_data['packages']) && $sections_data['packages']['enabled']) {
-					$consultation_data['package_suggestion'] = 1;
-					$consultation_data['package_suggestion_list'] = serialize($sections_data['packages']['package_suggestion_list']);
-				}
+				// --- Process packages ---
+if(isset($sections_data['packages']) && isset($sections_data['packages']['enabled'])) {
+    $consultation_data['package_suggestion'] = 1;
+    
+    // Fallback cleanly to a blank array if the structural elements are present but empty
+    $raw_packages = isset($sections_data['packages']['package_suggestion_list']) ? $sections_data['packages']['package_suggestion_list'] : [];
+    
+    // Ensure data type safety before calling serialize()
+    if (!is_array($raw_packages)) {
+        $raw_packages = array_filter(explode(',', $raw_packages));
+    }
+    
+    $consultation_data['package_suggestion_list'] = serialize($raw_packages);
+} else {
+    // Default fallback state if the section checkbox was untoggled
+    $consultation_data['package_suggestion'] = 0;
+    $consultation_data['package_suggestion_list'] = serialize([]);
+}
 			}
 			
 			// Process follow-up appointment if required
