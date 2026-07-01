@@ -105,7 +105,7 @@
     // var_dump($select_result);die;
 
 	$sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
-    $select_result3 = run_select_query($sql3); 	
+    $patient_data = run_select_query($sql3); 	
 	
 	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
 	$select_result1 = run_select_query($sql1);
@@ -168,7 +168,7 @@
 <strong>UHID : <?php echo $select_result5['center_code']."/".$select_result4['uhid']; ?></strong>
 </td>
 <td colspan="2" width="100%" style="border:1px solid;padding:5px;">
-<strong>Patient Name : <?php echo $select_result3['wife_name']; ?> </strong>
+<strong>Patient Name : <?php echo $patient_data['wife_name']; ?> </strong>
 </td>
 <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
 <strong>IIC ID: <?php echo $patient_id; ?></strong>
