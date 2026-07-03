@@ -4257,7 +4257,7 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-06-30'
+	AND s.sale_date > '2026-07-01'
 ORDER BY s.updated_at ASC 
 LIMIT 700";
     
@@ -4363,7 +4363,7 @@ LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
 LEFT JOIN medicines m ON mb.medicine_id = m.id
 WHERE r.status = 'APPROVED' 
 AND r.tally_status = '1'
-AND r.return_date > '2026-06-30'
+AND r.return_date > '2026-07-01'
 ORDER BY r.id DESC
 ";
 
@@ -4545,7 +4545,7 @@ $this->db->where_in('hms_consultation.status', ['approved', 'adjust', 'Approved'
 
 // Check if your live DB uses '1' (string) or 1 (integer) for tally_status
 $this->db->where('hms_consultation.tally_status', '1');
-$this->db->where('hms_consultation.on_date >', '2026-06-01');
+$this->db->where('hms_consultation.on_date >', '2026-07-01');
 // Always order by the latest ID so you don't see old records first
 $this->db->order_by('hms_consultation.id', 'DESC'); 
 
@@ -4601,7 +4601,7 @@ $consult_rows = $this->db->get()->result_array();
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
     $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-	$this->db->where('hms_registation.on_date >', '2026-06-30');
+	$this->db->where('hms_registation.on_date >', '2026-07-01');
     $this->db->limit(400);
     $reg_rows = $this->db->get()->result_array();
 
@@ -4642,7 +4642,7 @@ $consult_rows = $this->db->get()->result_array();
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-   $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' AND `on_date` > '2026-06-30' ORDER BY id DESC LIMIT 400")->result_array();
+   $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' AND `on_date` > '2026-07-01' ORDER BY id DESC LIMIT 400")->result_array();
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
         $bill_c = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
