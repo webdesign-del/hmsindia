@@ -10627,7 +10627,54 @@ public function get_unread_notifications() {
             return $query->result();
         }
         return [];
+}
+
+    private function _apply_filters($filters) {
+        $this->db->from('stock_transfers AS st');
+        $this->db->join('stock_transfer_items AS sti', 'st.id = sti.transfer_id');
+        $this->db->join('medicine_batches AS mb', 'sti.batch_id = mb.id');
+        $this->db->join('medicines AS m', 'mb.medicine_id = m.id');
+        $this->db->join('hms_centers AS src', 'st.from_center_id = src.ID', 'left');
+        $this->db->join('hms_centers AS dst', 'st.to_center_id = dst.ID', 'left');
+
+        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
+            $this->db->where('st.transfer_date >=', $filters['start_date']);
+            $this->db->where('st.transfer_date <=', $filters['end_date']);
+        }
+        if (!empty($filters['status'])) {
+            $this->db->where('st.status', $filters['status']);
+        }
+        if (!empty($filters['from_center'])) {
+            $this->db->like('src.center_name', $filters['from_center']);
+        }
     }
 
+    // 1. Get the total count for the pagination config
+    public function count_filtered_transfers($filters = array()) {
+        $this->_apply_filters($filters);
+        return $this->db->count_all_results();
+    }
+
+    // 2. Get the paginated data
+    public function get_filtered_transfers($filters = array(), $limit = null, $offset = 0) {
+        $this->db->select('
+            st.transfer_number, st.transfer_type, st.transfer_date, st.status AS transfer_status, 
+            src.center_name AS from_center, st.from_department, 
+            dst.center_name AS to_center, st.to_department, 
+            m.medicine_name, m.generic_name, m.strength, m.pack_size, m.gst_rate, m.hsn_code, 
+            mb.batch_number, mb.mrp, mb.purchase_price, mb.expiry_date, 
+            sti.quantity_transferred, sti.quantity_received, sti.unit_price, sti.total_price
+        ');
+        
+        $this->_apply_filters($filters);
+        $this->db->order_by('st.transfer_date', 'DESC');
+        
+        if ($limit !== null) {
+            $this->db->limit($limit, $offset);
+        }
+        
+        $query = $this->db->get();
+        return $query->result_array();
+    }
 
 }

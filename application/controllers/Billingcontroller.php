@@ -50,9 +50,8 @@ class Billingcontroller extends CI_Controller {
 
 		$this->load->model('employee_model');
 		$this->load->model('appointment_model');
-		
+		$this->load->model('Stock_model_new');
 		$this->load->library("pagination");
-
 		$this->load->helper('myhelper');
 		error_reporting(0);
 	}
@@ -306,165 +305,187 @@ function partial_billing($appointment_id){
 	}
 	
 
-	public function consultation($appointment_id){
-     
-		$logg = checklogin();
-		if($logg['status'] == true){
-			if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_consultation'){
-				unset($_POST['action']);				
-				// Server-side duplicate check for consultation receipt number
-				$raw_receipt = isset($_POST['receipt_number']) ? $_POST['receipt_number'] : '';
-				if(!empty($raw_receipt)){
-					$exists_q = $this->db->query("SELECT COUNT(*) AS cnt FROM ".config_item('db_prefix')."consultation WHERE receipt_number = ?", array($raw_receipt));
-					$row = $exists_q->row();
-					if(isset($row->cnt) && (int)$row->cnt > 0){
-						header("location:" . base_url() . "billing/consultation/".$appointment_id."?m=".base64_encode('Receipt number already exists!').'&t='.base64_encode('error'));
-						die();
-					}
-				}
-				$_POST['receipt_number'] = check_billing_receipt($_POST['receipt_number']);
-				$appointment = $_POST['appointment_id'];
-				$biller_id = $_POST['biller_id'];
-				$uhid = isset($_POST['uhid']) ? $_POST['uhid'] : '';
-				$donor_patient_id = isset($_POST['donor_patient_id']) ? $_POST['donor_patient_id'] : '';
-				//$cash_payment = isset($_POST['cash_payment']) ? $_POST['cash_payment'] : 0;
-				//$card_payment = isset($_POST['card_payment']) ? $_POST['card_payment'] : 0;
-				//$upi_payment = isset($_POST['upi_payment']) ? $_POST['upi_payment'] : 0;
-				//$neft_payment = isset($_POST['neft_payment']) ? $_POST['neft_payment'] : 0;
-				//$wallet_payment = isset($_POST['wallet_payment']) ? $_POST['wallet_payment'] : 0;
-				$appointments = $this->billingmodel_model->check_appointments($appointment);
-				if(empty($appointments)){
-				    header("location:" .base_url(). "my_appointments?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-					die();
-				}
-				if(empty($appointments['paitent_type']) && !isset($appointments['paitent_type']) && empty($appointments['wife_phone']) && !isset($appointments['wife_phone'])){
-				    header("location:" .base_url(). "my_appointments?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
-					die();
-				}
-				$transaction_img = '';
-				if(!empty($_FILES['transaction_img']['tmp_name'])){
-					$dest_path = $this->config->item('upload_path');
-					$destination = $dest_path.'patient_files/';
-					$NewImageName = rand(4,10000)."-".$_FILES['transaction_img']['name'];
-					$transaction_img = base_url().'assets/patient_files/'.$NewImageName;
-					move_uploaded_file($_FILES['transaction_img']['tmp_name'], $destination.$NewImageName);
-					$_POST['transaction_img'] = $transaction_img;
-				}
-				$paitent_id = "";
-				if(isset($appointments['paitent_type']) && $appointments['paitent_type'] == 'exist_patient'){
-					$paitent_id = $appointments['paitent_id'];
-				}else{
-					$paitent_id = $_POST['patient_id'];
-					$patient_arr = array();
-					$patient_arr['patient_id'] = $_POST['patient_id'];
-					$patient_arr['patient_phone'] = $appointments['wife_phone'];
-					$patient_arr['wife_name'] = $appointments['wife_name'];
-					$patient_arr['wife_phone'] = $appointments['wife_phone'];
-					$patient_arr['wife_email'] = $appointments['wife_email'];
-					$patient_arr['nationality'] = $appointments['nationality'];
-					$patient_arr['origins'] = $appointments['appoitment_for'];
-					$paitent_insert = $this->billings_model->paitent_insert($patient_arr);
-				}
-				$_POST['patient_id'] = $paitent_id;
-                $reason_of_visit = $_POST['reason_of_visit'];
-                $_POST['doctor_id'] = $appointments['appoitmented_doctor'];             
-                $_POST['status'] = 'pending';
-
-                // --- DYNAMIC STATUS LOGIC START ---
-                if (isset($_POST['approve_by_status']) && $_POST['approve_by_status'] === '2') {
-                    $_POST['approve_by_status'] = 2; // Pending for CEO Approval
-                } else {
-                    $_POST['approve_by_status'] = 1; // Normal/Paid Consultation (Already Approved)
+public function consultation($appointment_id){
+ 
+    $logg = checklogin();
+    if($logg['status'] == true){
+        if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_consultation'){
+            unset($_POST['action']);                
+            // Server-side duplicate check for consultation receipt number
+            $raw_receipt = isset($_POST['receipt_number']) ? $_POST['receipt_number'] : '';
+            if(!empty($raw_receipt)){
+                $exists_q = $this->db->query("SELECT COUNT(*) AS cnt FROM ".config_item('db_prefix')."consultation WHERE receipt_number = ?", array($raw_receipt));
+                $row = $exists_q->row();
+                if(isset($row->cnt) && (int)$row->cnt > 0){
+                    header("location:" . base_url() . "billing/consultation/".$appointment_id."?m=".base64_encode('Receipt number already exists!').'&t='.base64_encode('error'));
+                    die();
                 }
-                // --- DYNAMIC STATUS LOGIC END ---
+            }
+            $_POST['receipt_number'] = check_billing_receipt($_POST['receipt_number']);
+            $appointment = $_POST['appointment_id'];
+            $biller_id = $_POST['biller_id'];
+            $totalpackage = $_POST['totalpackage'];
+            $uhid = isset($_POST['uhid']) ? $_POST['uhid'] : '';
+            $donor_patient_id = isset($_POST['donor_patient_id']) ? $_POST['donor_patient_id'] : '';
+            $appointments = $this->billingmodel_model->check_appointments($appointment);
+            if(empty($appointments)){
+                header("location:" .base_url(). "my_appointments?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+                die();
+            }
+            if(empty($appointments['paitent_type']) && !isset($appointments['paitent_type']) && empty($appointments['wife_phone']) && !isset($appointments['wife_phone'])){
+                header("location:" .base_url(). "my_appointments?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
+                die();
+            }
+            $transaction_img = '';
+            if(!empty($_FILES['transaction_img']['tmp_name'])){
+                $dest_path = $this->config->item('upload_path');
+                $destination = $dest_path.'patient_files/';
+                $NewImageName = rand(4,10000)."-".$_FILES['transaction_img']['name'];
+                $transaction_img = base_url().'assets/patient_files/'.$NewImageName;
+                move_uploaded_file($_FILES['transaction_img']['tmp_name'], $destination.$NewImageName);
+                $_POST['transaction_img'] = $transaction_img;
+            }
+            $paitent_id = "";
+            if(isset($appointments['paitent_type']) && $appointments['paitent_type'] == 'exist_patient'){
+                $paitent_id = $appointments['paitent_id'];
+            }else{
+                $paitent_id = $_POST['patient_id'];
+                $patient_arr = array();
+                $patient_arr['patient_id'] = $_POST['patient_id'];
+                $patient_arr['patient_phone'] = $appointments['wife_phone'];
+                $patient_arr['wife_name'] = $appointments['wife_name'];
+                $patient_arr['wife_phone'] = $appointments['wife_phone'];
+                $patient_arr['wife_email'] = $appointments['wife_email'];
+                $patient_arr['nationality'] = $appointments['nationality'];
+                $patient_arr['origins'] = $appointments['appoitment_for'];
+                $paitent_insert = $this->billings_model->paitent_insert($patient_arr);
+            }
+            $_POST['patient_id'] = $paitent_id;
+            $reason_of_visit = $_POST['reason_of_visit'];
+            $_POST['doctor_id'] = $appointments['appoitmented_doctor'];             
+            $_POST['status'] = 'pending';
 
-                if($_POST['discount_amount'] == ''){ $_POST['discount_amount'] = 0; }
+            // --- DYNAMIC STATUS LOGIC START ---
+            if (isset($_POST['approve_by_status']) && $_POST['approve_by_status'] === '2') {
+                $_POST['approve_by_status'] = 2; // Pending for CEO Approval
+            } else {
+                $_POST['approve_by_status'] = 1; // Normal/Paid Consultation (Already Approved)
+            }
+            // --- DYNAMIC STATUS LOGIC END ---
+
+            if($_POST['discount_amount'] == ''){ $_POST['discount_amount'] = 0; }
+        
+            // ==========================================
+            // 1. WALLET BALANCE CHECK (BEFORE INSERTING)
+            // ==========================================
+            $payment_method = isset($_POST['payment_method']) ? strtolower(trim($_POST['payment_method'])) : '';
             
-                $consult = $this->billings_model->consultation_insert($_POST);
+            // ध्यान दें: अगर आपके फॉर्म में अमाउंट का फील्ड 'paid_amount' या 'net_amount' है, तो उसे यहाँ बदल लें। 
+            // अभी मैंने 'paid_amount' माना है।
+            $payable_amount = isset($_POST['paid_amount']) ? (float)$_POST['paid_amount'] : 0; 
+            
+            if ($payment_method === 'wallet') {
+                // यहाँ हम Stock_model_new का उपयोग कर रहे हैं (अगर इस कंट्रोलर में लोड नहीं है तो कंस्ट्रक्टर में लोड कर लें)
+                $wallet_balance = $this->Stock_model_new->get_wallet_balance($paitent_id);
                 
-                $curl = curl_init();
-                curl_setopt_array($curl, array(
-                    CURLOPT_URL => "https://flertility.in/lead/lead-mobile-no/?mobile_no=" . urlencode(isset($appointments['wife_phone']) ? $appointments['wife_phone'] : ''),
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => '',
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 30,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => 'GET',
-                ));
-                $response = curl_exec($curl);
-                $err = curl_error($curl);
-                curl_close($curl);
-                
-                if ($err) {
-                    echo "cURL Error: $err";
-                } else {
-                    $leadData = json_decode($response, true); // Decode JSON to associative array
-                    
-                    if (!empty($leadData) && isset($leadData[0])) {
-                        $lead = $leadData[0];
-                        
-                        // 1. Basic array jisme hamesha crm_id update hoga
-                        $update_data = [
-                            'crm_id' => $lead['id']
-                        ];
-                        
-                        // 2. Condition: Agar First Visit hai, toh hi agent add karein update ke liye
-                        if ($reason_of_visit === 'First Visit') {
-                            // Pichle API me current_agent_name aata tha, wahi use kar raha hu
-                            if (isset($lead['current_agent_name']) && !empty($lead['current_agent_name'])) {
-                                $update_data['agent'] = $lead['current_agent_name'];
-                            } elseif (isset($lead['agent']) && !empty($lead['agent'])) {
-                                // Agar API 'agent' key bhejti hai toh fallback
-                                $update_data['agent'] = $lead['agent']; 
-                            }
-                        }
-
-                        // 3. Database Update
-                        $this->db->where('wife_phone', $lead['mobile']);
-                        $this->db->update('hms_appointments', $update_data);
-                        
-                    } else {
-                        // echo "No lead data found.";
-                    }
+                if ($wallet_balance < $payable_amount) {
+                    $error_msg = 'Wallet में पर्याप्त बैलेंस नहीं है! (बिल: ₹' . $payable_amount . ' | उपलब्ध: ₹' . $wallet_balance . ')';
+                    header("location:" . base_url() . "billing/consultation/".$appointment_id."?m=".base64_encode($error_msg).'&t='.base64_encode('error'));
+                    die();
                 }
-				if($consult > 0){
-				    $checkpatient_register = get_patient_detail($paitent_id);
-    			    if(isset($checkpatient_register) && !empty($checkpatient_register) && $checkpatient_register['whats_registers'] == 0){
-    			        $centre_namme = get_center_name($_POST['billing_at']);
-    			        whatsappregister($appointments['wife_phone'], json_encode(array("name" => $appointments['wife_name'], "iic_id" => $paitent_id, "center" => $centre_namme)));
-        		        $this->db->where('patient_id', $paitent_id);
-        		        $this->db->update('hms_patients', array('whats_registers' => 1));
-    			    }
-					$insert_receipt = insert_receipt_log($_POST['receipt_number']);
-					$update_appointment = $this->billingmodel_model->update_appointment($appointment, $uhid);
-					$this->send_billing_receipt($biller_id, $paitent_id, $_POST['on_date'], $_POST['billing_from'], $_POST['receipt_number'], 'consultation');
-					$receipt_number = $_POST['receipt_number'];
-					header("location:" .base_url(). "accounts/details/$receipt_number?m=".base64_encode('Billing added successfully').'&t=consultation');
-					die();
-				}else{
-					header("location:" .base_url(). "my_appointments?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
-					die();
-				}				
-			}
-			$data = array();
-			$appointments = $this->billingmodel_model->check_appointments($appointment_id);
-			if(!empty($appointments)){
-				$data['appointments'] = $appointments;							
-				$template = get_header_template($logg['role']);
-				$this->load->view($template['header']);
-				$this->load->view('billing_view/consultation', $data);
-				$this->load->view($template['footer']);
-			}else{
-				header("location:" .base_url(). "my_appointments?m=".base64_encode('Appointment not found/already billed!').'&t='.base64_encode('error'));
-				die();
-			}
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}
+            }
+            // ==========================================
+
+            $consult = $this->billings_model->consultation_insert($_POST);
+            
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => "https://flertility.in/lead/lead-mobile-no/?mobile_no=" . urlencode(isset($appointments['wife_phone']) ? $appointments['wife_phone'] : ''),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 30,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'GET',
+            ));
+            $response = curl_exec($curl);
+            $err = curl_error($curl);
+            curl_close($curl);
+            
+            if ($err) {
+                echo "cURL Error: $err";
+            } else {
+                $leadData = json_decode($response, true); 
+                
+                if (!empty($leadData) && isset($leadData[0])) {
+                    $lead = $leadData[0];
+                    
+                    $update_data = [
+                        'crm_id' => $lead['id']
+                    ];
+                    
+                    if ($reason_of_visit === 'First Visit') {
+                        if (isset($lead['current_agent_name']) && !empty($lead['current_agent_name'])) {
+                            $update_data['agent'] = $lead['current_agent_name'];
+                        } elseif (isset($lead['agent']) && !empty($lead['agent'])) {
+                            $update_data['agent'] = $lead['agent']; 
+                        }
+                    }
+
+                    $this->db->where('wife_phone', $lead['mobile']);
+                    $this->db->update('hms_appointments', $update_data);
+                    
+                }
+            }
+
+            if($consult > 0){
+                
+                // ==========================================
+                // 2. WALLET DEDUCTION (AFTER SUCCESSFUL INSERT)
+                // ==========================================
+                if ($payment_method === 'wallet') {
+                    $logged_in_user_id = isset($logg['id']) ? $logg['id'] : 1;
+                    // $consult में insert_id है, इसे हम रेफरेंस के लिए भेज रहे हैं।
+                    $this->Stock_model_new->deduct_wallet_balance($paitent_id, $payable_amount, $consult, $logged_in_user_id);
+                }
+                // ==========================================
+
+                $checkpatient_register = get_patient_detail($paitent_id);
+                if(isset($checkpatient_register) && !empty($checkpatient_register) && $checkpatient_register['whats_registers'] == 0){
+                    $centre_namme = get_center_name($_POST['billing_at']);
+                    whatsappregister($appointments['wife_phone'], json_encode(array("name" => $appointments['wife_name'], "iic_id" => $paitent_id, "center" => $centre_namme)));
+                    $this->db->where('patient_id', $paitent_id);
+                    $this->db->update('hms_patients', array('whats_registers' => 1));
+                }
+                $insert_receipt = insert_receipt_log($_POST['receipt_number']);
+                $update_appointment = $this->billingmodel_model->update_appointment($appointment, $uhid);
+                $this->send_billing_receipt($biller_id, $paitent_id, $_POST['on_date'], $_POST['billing_from'], $_POST['receipt_number'], 'consultation');
+                $receipt_number = $_POST['receipt_number'];
+                header("location:" .base_url(). "accounts/details/$receipt_number?m=".base64_encode('Billing added successfully').'&t=consultation');
+                die();
+            }else{
+                header("location:" .base_url(). "my_appointments?m=".base64_encode('Something went wrong !').'&t='.base64_encode('error'));
+                die();
+            }               
+        }
+        $data = array();
+        $appointments = $this->billingmodel_model->check_appointments($appointment_id);
+        if(!empty($appointments)){
+            $data['appointments'] = $appointments;                          
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('billing_view/consultation', $data);
+            $this->load->view($template['footer']);
+        }else{
+            header("location:" .base_url(). "my_appointments?m=".base64_encode('Appointment not found/already billed!').'&t='.base64_encode('error'));
+            die();
+        }
+    }else{
+        header("location:" .base_url(). "");
+        die();
+    }
+}
 	
 	
 	public function registation($appointment_id){

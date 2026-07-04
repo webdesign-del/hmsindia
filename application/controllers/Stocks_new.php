@@ -4836,7 +4836,7 @@ public function bulk_approve_sales()
         }
     } */
 
-        public function edit_sale($id)
+ public function edit_sale($id)
 {
     $logg = checklogin();
     if ($logg["status"] == true) {
@@ -4845,14 +4845,13 @@ public function bulk_approve_sales()
         $sale_details = $this->Stock_model_new->get_sale_by_id($id);
         $patient_id = isset($sale_details->patient_id) ? $sale_details->patient_id : 0; 
         
-        // पेमेंट मेथड को छोटे अक्षरों (lowercase) में ले रहे हैं ताकि चेक करने में आसानी हो
+        // पेमेंट मेथड को छोटे अक्षरों (lowercase) में ले रहे हैं
         $payment_method = strtolower(trim($sale_details->payment_method)); 
 
         if ($this->input->post("action") == "add_sale_item") {
             
             $this->form_validation->set_rules("batch_id", "Batch", "required");
             $this->form_validation->set_rules("quantity_sold", "Quantity", "required|numeric");
-            // यहाँ से payment_method का वैलिडेशन हटा दिया गया है
 
             if ($this->form_validation->run() == true) {
                 $quantity = (float)$this->input->post("quantity_sold");
@@ -4867,14 +4866,29 @@ public function bulk_approve_sales()
                 $tax_amount = $taxable_Value*($gst_rate/100);
 
                 // --- WALLET BALANCE CHECK ---
-                // चेक करें कि क्या पेमेंट मेथड wallet है
                 if ($payment_method == "wallet") {
+                    // 1. वॉलेट का मौजूदा बैलेंस निकालें
                     $wallet_balance = $this->Stock_model_new->get_wallet_balance($patient_id);
                     
-                    if ($wallet_balance < $total) {
+                    // 2. इस सेल (sale_id) में पहले से ऐड किए गए आइटम्स का टोटल निकालें
+                    $existing_items = $this->Stock_model_new->get_sale_items($id);
+                    $existing_total = 0;
+                    if (!empty($existing_items)) {
+                        foreach ($existing_items as $item) {
+                            $existing_total += (float)$item->total; // डेटाबेस में जो टोटल का कॉलम है
+                        }
+                    }
+
+                    // 3. नया ग्रैंड टोटल बनाएं (पुराना टोटल + अभी जो आइटम ऐड हो रहा है उसका टोटल)
+                    $new_grand_total = $existing_total + $total;
+                    
+                    // 4. अब वॉलेट बैलेंस को नए ग्रैंड टोटल से चेक करें
+                    if ($wallet_balance < $new_grand_total) {
                         $this->session->set_flashdata(
                             "error",
-                            "Wallet में पर्याप्त बैलेंस नहीं है! उपलब्ध बैलेंस: ₹" . $wallet_balance . " | इस आइटम के लिए आवश्यक: ₹" . $total
+                            "Wallet में पर्याप्त बैलेंस नहीं है! उपलब्ध बैलेंस: ₹" . $wallet_balance . 
+                            " | पहले से एडेड: ₹" . $existing_total . 
+                            " | नया बिल बन रहा है: ₹" . $new_grand_total
                         );
                         redirect("stocks_new/edit_sale/" . $id);
                     }
@@ -4898,14 +4912,6 @@ public function bulk_approve_sales()
                 $result = $this->Stock_model_new->add_sale_item($item_data);
                 
                 if ($result) {
-                    
-                    // --- WALLET DEDUCTION & LOGGING ---
-                    if ($payment_method == "wallet") {
-                        $logged_in_user_id = isset($logg['id']) ? $logg['id'] : 1; 
-                        $this->Stock_model_new->deduct_wallet_balance($patient_id, $total, $id, $logged_in_user_id);
-                    }
-                    // ----------------------------------
-
                     $this->session->set_flashdata("success", "Sale item added successfully!");
                 } else {
                     $this->session->set_flashdata("error", "Error adding sale item!");
@@ -5072,27 +5078,70 @@ public function accountant_approve_sale()
             }
         }
     }
-    public function confirm_sale($id)
-    {
-        $logg = checklogin();
-        if ($logg["status"] == true) {
-            $result = $this->Stock_model_new->confirm_sale($id);
+  public function confirm_sale($id)
+{
+    $logg = checklogin();
+    if ($logg["status"] == true) {
+        
+        // 1. सेल की डिटेल्स निकालें
+        $sale_details = $this->Stock_model_new->get_sale_by_id($id);
+        $patient_id = isset($sale_details->patient_id) ? $sale_details->patient_id : 0;
+        $payment_method = strtolower(trim($sale_details->payment_method));
 
-            if ($result) {
-                $this->session->set_flashdata(
-                    "success",
-                    "Sale confirmed successfully!",
-                );
-            } else {
+        // 2. इस बिल का टोटल अमाउंट कैलकुलेट करें
+        $existing_items = $this->Stock_model_new->get_sale_items($id);
+        $total_sale_amount = 0;
+        if (!empty($existing_items)) {
+            foreach ($existing_items as $item) {
+                $total_sale_amount += (float)$item->total;
+            }
+        }
+
+        // 3. सेफ्टी चेक: अगर वॉलेट से पेमेंट है, तो कंफर्म करने से पहले बैलेंस चेक करें
+        if ($payment_method == "wallet") {
+            $wallet_balance = $this->Stock_model_new->get_wallet_balance($patient_id);
+            if ($wallet_balance < $total_sale_amount) {
                 $this->session->set_flashdata(
                     "error",
-                    "Error confirming sale!",
+                    "Wallet में बिल पास करने के लिए पर्याप्त बैलेंस नहीं है! (बिल: ₹" . $total_sale_amount . " | उपलब्ध: ₹" . $wallet_balance . ")"
                 );
+                // वापस उसी पेज पर भेज दें ताकि वो आइटम हटा सके
+                redirect("stocks_new/edit_sale/" . $id);
+                return; // आगे का कोड रन न हो
             }
-
-            redirect("stocks_new/sales");
         }
+
+        // 4. अब सेल को डेटाबेस में कंफर्म करें
+        $result = $this->Stock_model_new->confirm_sale($id);
+
+        if ($result) {
+            
+            // 5. कंफर्म होने के बाद, डेटाबेस से अपडेटेड सेल डिटेल्स निकालें (ताकि आपकी 100% कंडीशन मैच हो)
+            $updated_sale = $this->Stock_model_new->get_sale_by_id($id);
+            
+            $current_payment_method = strtoupper(trim($updated_sale->payment_method));
+            $current_payment_status = strtoupper(trim($updated_sale->payment_status));
+            $current_status = strtoupper(trim($updated_sale->status));
+
+            // --- MAIN WALLET DEDUCTION LOGIC ---
+            // चेक करें: WALLET + PAID + CONFIRMED
+            if ($current_payment_method == "WALLET" && $current_payment_status == "PAID" && $current_status == "CONFIRMED") {
+                
+                $logged_in_user_id = isset($logg['id']) ? $logg['id'] : 1;
+                
+                // वॉलेट से टोटल अमाउंट काट लें
+                $this->Stock_model_new->deduct_wallet_balance($patient_id, $total_sale_amount, $id, $logged_in_user_id);
+            }
+            // -----------------------------------
+
+            $this->session->set_flashdata("success", "Sale confirmed successfully!");
+        } else {
+            $this->session->set_flashdata("error", "Error confirming sale!");
+        }
+
+        redirect("stocks_new/sales");
     }
+}
 
     public function view_vendor_return($id)
     {
@@ -12339,6 +12388,93 @@ public function save_ivf_daily_report() {
         } else {
             echo "<h3 style='text-align:center; margin-top:50px; color:red;'>The return request has been rejected. No amount was credited.</h3>";
         }
+    }
+
+   public function index() {
+        $logg = checklogin();
+        $template = get_header_template($logg['role']);
+        
+        // Load Pagination Library
+        $this->load->library('pagination');
+
+        $filters = array(
+            'start_date'  => $this->input->get('start_date'),
+            'end_date'    => $this->input->get('end_date'),
+            'status'      => $this->input->get('status'),
+            'from_center' => $this->input->get('from_center')
+        );
+        $data['filters'] = $filters;
+
+        $action = $this->input->get('action'); 
+        
+        if ($action === 'export') {
+            // Fetch ALL data without limits for exporting
+            $export_records = $this->Stock_model_new->get_filtered_transfers($filters);
+            $this->_export_to_csv($export_records);
+        } else {
+            // --- Pagination Configuration ---
+            $config['base_url'] = base_url('stocks_new/index');
+            $config['total_rows'] = $this->Stock_model_new->count_filtered_transfers($filters);
+            $config['per_page'] = 10; // Number of items per page
+            
+            // This ensures pagination works smoothly with your GET filters
+            $config['page_query_string'] = TRUE;
+            $config['query_string_segment'] = 'offset';
+            $config['reuse_query_string'] = TRUE; 
+
+            // Pagination Styling HTML (Matches the CSS below)
+            $config['full_tag_open'] = '<div class="pagination-wrapper">';
+            $config['full_tag_close'] = '</div>';
+            $config['cur_tag_open'] = '<span class="active">';
+            $config['cur_tag_close'] = '</span>';
+            $config['attributes'] = array('class' => 'page-link');
+
+            $this->pagination->initialize($config);
+            
+            // Get current offset from URL, default to 0
+            $offset = $this->input->get('offset') ? $this->input->get('offset') : 0;
+            
+            // Fetch only the records for the current page
+            $data['records'] = $this->Stock_model_new->get_filtered_transfers($filters, $config['per_page'], $offset);
+            $data['pagination_links'] = $this->pagination->create_links();
+
+            $this->load->view($template["header"]);
+            $this->load->view('stocks_new/stock_transfer_list', $data);
+            $this->load->view($template["footer"]);
+        }
+    }
+
+    // Keep your exact _export_to_csv method down here...
+
+    // Helper method to generate CSV
+    private function _export_to_csv($records) {
+        $filename = 'stock_transfers_export_' . date('Ymd_His') . '.csv';
+
+        // Set headers to force download
+        header("Content-Description: File Transfer");
+        header("Content-Disposition: attachment; filename=$filename");
+        header("Content-Type: application/csv; "); 
+
+        // Open memory stream
+        $file = fopen('php://output', 'w');
+
+        // Write the CSV Column Headers
+        $header = array(
+            "Transfer Number", "Transfer Type", "Date", "Status", 
+            "From Center", "From Dept", "To Center", "To Dept", 
+            "Medicine", "Generic Name", "Strength", "Pack Size", "GST Rate", "HSN Code", 
+            "Batch Number", "MRP", "Purchase Price", "Expiry Date", 
+            "Qty Transferred", "Qty Received", "Unit Price", "Total Price"
+        );
+        fputcsv($file, $header);
+
+        // Write data rows
+        foreach ($records as $row) {
+            fputcsv($file, $row);
+        }
+
+        fclose($file);
+        exit; // Stop execution after sending file
     }
 
 }

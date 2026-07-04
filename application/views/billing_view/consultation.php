@@ -30,10 +30,34 @@
       </div>
     </div>
   </div>
+<?php 
+    $this->load->helper('billing');
+    $p_id = $patient_id; 
+    $wallet = get_universal_wallet($p_id); 
+?>
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9; min-height: 100px;">
+            <div class="card-body">
+                <h6 class="text-success font-weight-bold">Money Wallet</h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet['wallet_1'], 2); ?></h2>
+            </div>
+        </div>
+    </div>
 
+    <div class="col-md-4 mb-3">
+        <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2; min-height: 100px;">
+            <div class="card-body">
+                <h6 class="text-warning font-weight-bold">Package Wallet</h6>
+                <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallet['wallet_2'], 2); ?></h2>
+            </div>
+        </div>
+    </div>
+</div>   
   <form class="form-horizontal" method="post" action="" enctype="multipart/form-data">
     <input type="hidden" name="action" value="add_consultation" />
     <input type="hidden" name="appointment_id" value="<?php echo $appointments['ID']; ?>" />
+    <input type="hidden" id="available_wallet_balance" value="<?php echo isset($wallet['wallet_1']) ? $wallet['wallet_1'] : 0; ?>" />
     <input type="hidden" name="billing_at" value="<?php echo $_SESSION['logged_billing_manager']['center']?>" />
     <input type="hidden" id="billing_type" value="consultation" />
     <input type="hidden" id="patient_id" name="patient_id" value="<?php echo $patient_id;?>" />
@@ -290,7 +314,7 @@
                       <option value="rtgs" mode="RTGS">RTGS</option>
                       <option value="card" mode="Card">Card</option>
                       <option value="upi" mode="UPI">UPI</option>
-                      <option value="insurance" mode="Insurance">Insurance</option>
+                      <option value="wallet" mode="NEFT">Wallet</option>
                     <?php }else{ ?>
                       <option value="international_card" mode="International Card">International Card</option>
                     <?php } ?>
@@ -437,18 +461,6 @@
                   </span>
                   <input value="" id="hospital_id" name="hospital_id" type="text" class="form-control" placeholder="Enter hospital ID">
                 </div>
-                <?php if($_SESSION['logged_billing_manager']['employee_number'] == "16249617235059" ){ ?>
-                  <input value="001/C/<?php $year = date("y"); echo $year, $year+1; ?>/" id="series_number" name="series_number" type="hidden" class="form-control">
-                <?php  } ?>  
-                <?php if($_SESSION['logged_billing_manager']['employee_number'] == "16266784114794" ){ ?>
-                  <input value="002/C/<?php $year = date("y"); echo $year, $year+1; ?>/" id="series_number" name="series_number" type="hidden" class="form-control">
-                <?php  } ?>  
-                <?php if($_SESSION['logged_billing_manager']['employee_number'] == "16289367598583" ){ ?>
-                  <input value="003/C/<?php $year = date("y"); echo $year, $year+1; ?>/" id="series_number" name="series_number" type="hidden" class="form-control">
-                <?php  } ?>  
-                <?php if($_SESSION['logged_billing_manager']['employee_number'] == "16299510247261" ){ ?>
-                  <input value="005/C/<?php $year = date("y"); echo $year, $year+1; ?>/" id="series_number" name="series_number" type="hidden" class="form-control">
-                <?php  } ?>  
               </div>
             </div>
             
@@ -784,8 +796,23 @@
 		var transaction_id = $('#transaction_id').val();
 		var transaction_img = $('#transaction_img').val();
 		if(doctor == '' || payment_done == '' || payment_discount == ''){
-			$('#msg_area').append('One or more fields are empty !');
-		}else{
+      $('#msg_area').empty().append('One or more fields are empty !').show(); // .show() लगाना ज़रूरी है ताकि एरर दिखे
+      $('#create_billing').removeClass('disabled').prop('disabled', false).html(originalText);
+    } else {
+        
+        // --- WALLET BALANCE CHECK (FRONTEND) ---
+        var available_wallet = parseFloat($('#available_wallet_balance').val()) || 0;
+        var entered_amount = parseFloat(payment_done) || 0;
+
+        if (payment_method === 'wallet' && entered_amount > available_wallet) {
+            // अगर वॉलेट सेलेक्टेड है और एंटर किया अमाउंट बैलेंस से ज़्यादा है
+            $('#msg_area').empty().append('<strong>Error:</strong> Insufficient wallet balance! (Available: ₹' + available_wallet + ')').show();
+            $('#create_billing').removeClass('disabled').prop('disabled', false).html(originalText);
+            
+            // पेज को ऊपर स्क्रॉल करें ताकि एरर मैसेज दिख सके
+            $('html, body').animate({ scrollTop: $("#consultation_details").offset().top }, 500);
+            return false; // आगे का कोड रन न हो
+        }
 					if(payment_discount == 'discount'){
 						var reason_of_discount =  $("input#reason_of_discount").val();
 						var discount_amount =  $("input#discount_amount").val();
