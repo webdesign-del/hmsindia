@@ -5759,8 +5759,24 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
                         "status" => "ACTIVE",
                         "last_movement_date" => date("Y-m-d H:i:s"),
                         "created_at" => date("Y-m-d H:i:s")
-                    ]);
+                    ]); 
                 }
+
+                $debug_data = [
+    "batch_id" => $batch_id,
+    "center_id" => $return->center_id,
+    "department" => $return->department,
+    "quantity" => $qty,
+    "status" => "ACTIVE",
+    "last_movement_date" => date("Y-m-d H:i:s"),
+    "created_at" => date("Y-m-d H:i:s")
+];
+
+echo "<pre>";
+print_r($debug_data);
+echo "</pre>";
+exit;
+
                 $quantity_after = $quantity_before + $qty;
                 // B. Update Global Master Stock (medicine_batches)
                 $this->db->where("id", $batch_id);

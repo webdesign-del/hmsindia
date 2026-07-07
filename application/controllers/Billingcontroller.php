@@ -304,13 +304,13 @@ function partial_billing($appointment_id){
 		return $data;
 	}
 	
-
 public function consultation($appointment_id){
  
     $logg = checklogin();
     if($logg['status'] == true){
-        if(isset($_POST['action']) && isset($_POST['action']) && $_POST['action'] == 'add_consultation'){
+        if(isset($_POST['action']) && $_POST['action'] == 'add_consultation'){
             unset($_POST['action']);                
+            
             // Server-side duplicate check for consultation receipt number
             $raw_receipt = isset($_POST['receipt_number']) ? $_POST['receipt_number'] : '';
             if(!empty($raw_receipt)){
@@ -376,28 +376,30 @@ public function consultation($appointment_id){
             if($_POST['discount_amount'] == ''){ $_POST['discount_amount'] = 0; }
         
             // ==========================================
-            // 1. WALLET BALANCE CHECK (BEFORE INSERTING)
+            // [संशोधित] सुरक्षित वॉलेट डेटा कैच और सत्यापन (BEFORE INSERT)
             // ==========================================
             $payment_method = isset($_POST['payment_method']) ? strtolower(trim($_POST['payment_method'])) : '';
-            
-            // ध्यान दें: अगर आपके फॉर्म में अमाउंट का फील्ड 'paid_amount' या 'net_amount' है, तो उसे यहाँ बदल लें। 
-            // अभी मैंने 'paid_amount' माना है।
-            $payable_amount = isset($_POST['paid_amount']) ? (float)$_POST['paid_amount'] : 0; 
-            
-            if ($payment_method === 'wallet') {
-                // यहाँ हम Stock_model_new का उपयोग कर रहे हैं (अगर इस कंट्रोलर में लोड नहीं है तो कंस्ट्रक्टर में लोड कर लें)
-                $wallet_balance = $this->Stock_model_new->get_wallet_balance($paitent_id);
-                
-                if ($wallet_balance < $payable_amount) {
-                    $error_msg = 'Wallet में पर्याप्त बैलेंस नहीं है! (बिल: ₹' . $payable_amount . ' | उपलब्ध: ₹' . $wallet_balance . ')';
-                    header("location:" . base_url() . "billing/consultation/".$appointment_id."?m=".base64_encode($error_msg).'&t='.base64_encode('error'));
-                    die();
-                }
+            $payment_done = 0;
+            if (isset($_POST['payment_done']) && $_POST['payment_done'] != '') {
+                $payment_done = (float)$_POST['payment_done'];
             }
+
+            if ($payment_method === 'wallet') {
+				// हेल्पर की जगह आपके पहले से मौजूद मॉडल मेथड का उपयोग करें जो सुरक्षित है
+				$wallet_balance = $this->Stock_model_new->get_wallet_balance($paitent_id);
+				$wallet_balance = isset($wallet_balance) ? (float)$wallet_balance : 0;
+				
+				if ($wallet_balance < $payment_done) {
+					$error_msg = 'Wallet में पर्याप्त बैलेंस नहीं है! (बिल: ₹' . $payment_done . ' | उपलब्ध: ₹' . $wallet_balance . ')';
+					header("location:" . base_url() . "billing/consultation/".$appointment_id."?m=".base64_encode($error_msg).'&t='.base64_encode('error'));
+					die();
+				}
+			}
             // ==========================================
 
             $consult = $this->billings_model->consultation_insert($_POST);
             
+            // cURL Block
             $curl = curl_init();
             curl_setopt_array($curl, array(
                 CURLOPT_URL => "https://flertility.in/lead/lead-mobile-no/?mobile_no=" . urlencode(isset($appointments['wife_phone']) ? $appointments['wife_phone'] : ''),
@@ -414,17 +416,12 @@ public function consultation($appointment_id){
             curl_close($curl);
             
             if ($err) {
-                echo "cURL Error: $err";
+                log_message('error', "cURL Error: $err");
             } else {
                 $leadData = json_decode($response, true); 
-                
                 if (!empty($leadData) && isset($leadData[0])) {
                     $lead = $leadData[0];
-                    
-                    $update_data = [
-                        'crm_id' => $lead['id']
-                    ];
-                    
+                    $update_data = ['crm_id' => $lead['id']];
                     if ($reason_of_visit === 'First Visit') {
                         if (isset($lead['current_agent_name']) && !empty($lead['current_agent_name'])) {
                             $update_data['agent'] = $lead['current_agent_name'];
@@ -432,22 +429,20 @@ public function consultation($appointment_id){
                             $update_data['agent'] = $lead['agent']; 
                         }
                     }
-
                     $this->db->where('wife_phone', $lead['mobile']);
                     $this->db->update('hms_appointments', $update_data);
-                    
                 }
             }
 
             if($consult > 0){
                 
                 // ==========================================
-                // 2. WALLET DEDUCTION (AFTER SUCCESSFUL INSERT)
+                // [संशोधित] वॉलेट डिडक्शन (सुरक्षित वेरिएबल्स का उपयोग)
                 // ==========================================
-                if ($payment_method === 'wallet') {
+                if ($payment_method === 'wallet' && $payment_done > 0) {
                     $logged_in_user_id = isset($logg['id']) ? $logg['id'] : 1;
-                    // $consult में insert_id है, इसे हम रेफरेंस के लिए भेज रहे हैं।
-                    $this->Stock_model_new->deduct_wallet_balance($paitent_id, $payable_amount, $consult, $logged_in_user_id);
+                    log_message('debug', "Wallet Deduction Execution - Patient: ".$paitent_id.", Amt: ".$payment_done);
+                    $this->Stock_model_new->deduct_wallet_balance($paitent_id, $payment_done, $consult, $logged_in_user_id);
                 }
                 // ==========================================
 
@@ -486,8 +481,7 @@ public function consultation($appointment_id){
         die();
     }
 }
-	
-	
+		
 	public function registation($appointment_id){
 
 		$logg = checklogin();

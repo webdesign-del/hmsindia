@@ -4,7 +4,7 @@
     $patient_id = getiic();
   }
   $sql1 = "SELECT * FROM hms_appointments WHERE uhid = ( SELECT MAX(uhid) FROM hms_appointments)"; 
-		$query = $this->db->query($sql1);
+    $query = $this->db->query($sql1);
         $select_result1 = $query->result(); 
 
   // Check if patient already had a consultation
@@ -75,7 +75,6 @@
           <div class="panel-body" style="padding: 30px; background-color: #fafafa;">
             <div id="msg_area" class="alert alert-danger" style="display: none;"></div>
 
-            <!-- Patient Information Section -->
             <div class="row" style="margin-bottom: 25px;">
               <div class="col-sm-12">
                 <h4 style="color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 20px;">
@@ -118,8 +117,6 @@
               </div>
             </div>
 
-
-            <!-- Doctor & Date Section -->
             <div class="row" style="margin-bottom: 25px;">
               <div class="col-sm-12">
                 <h4 style="color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 20px;">
@@ -156,7 +153,6 @@
               </div>
             </div>
          
-            <!-- Billing Information Section -->
             <div class="row" style="margin-bottom: 25px;">
               <div class="col-sm-12">
                 <h4 style="color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 20px;">
@@ -195,8 +191,6 @@
               </div>
             </div>
      
-         
-            <!-- Payment Discount Section -->
             <div class="row" style="margin-bottom: 25px;">
               <div class="col-sm-12">
                 <h4 style="color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 20px;">
@@ -226,9 +220,9 @@
               </div>
 
               <div class="form-group col-sm-6 col-xs-12" id="free_reason_box" style="display:none;">
-                <label for="free_reason" class="control-label" style="font-weight: 600; color: #34495e;">
+                <label for="reason_of_visit" class="control-label" style="font-weight: 600; color: #34495e;">
                   <i class="fa fa-info-circle" style="margin-right: 5px; color: #3498db;"></i>
-                  Free Reason <span class="text-danger">*</span>a
+                  Free Reason <span class="text-danger">*</span>
                 </label>
                 <div class="input-group">
                   <span class="input-group-addon" style="background-color: #ecf0f1; border-color: #bdc3c7;">
@@ -287,7 +281,6 @@
               </div>
             </div>
 
-            <!-- Payment Method Section -->
             <div class="row" style="margin-bottom: 25px;">
               <div class="col-sm-12">
                 <h4 style="color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 20px;">
@@ -314,7 +307,7 @@
                       <option value="rtgs" mode="RTGS">RTGS</option>
                       <option value="card" mode="Card">Card</option>
                       <option value="upi" mode="UPI">UPI</option>
-                      <option value="wallet" mode="NEFT">Wallet</option>
+                      <option value="wallet" mode="Wallet">Wallet</option>
                     <?php }else{ ?>
                       <option value="international_card" mode="International Card">International Card</option>
                     <?php } ?>
@@ -338,7 +331,6 @@
               </div>
             </div>
 
-            <!-- Payment Amount Section -->
             <div class="row" style="margin-bottom: 25px;">
               <div class="col-sm-12">
                 <h4 style="color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 20px;">
@@ -376,8 +368,6 @@
               </div>
             </div>
 
-         
-            <!-- Additional Information Section -->
             <div class="row" style="margin-bottom: 25px;">
               <div class="col-sm-12">
                 <h4 style="color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 20px;">
@@ -421,14 +411,11 @@
                   <select id="consultation_id" name="consultation_id" class="form-control">
                     <option value="">Select Consultation ID</option>
                     <?php echo $all_method->get_code('consultation');?>
-
-                    INT00
                   </select>
                 </div>
               </div>
             </div>
          
-            <!-- Billing Source Section -->
             <div class="row" style="margin-bottom: 30px;">
               <div class="form-group col-sm-6 col-xs-12">
                 <label for="billing_from" class="control-label" style="font-weight: 600; color: #34495e;">
@@ -464,7 +451,6 @@
               </div>
             </div>
             
-            <!-- Action Buttons -->
             <div class="row">
               <div class="col-sm-12 text-center">
                 <div class="btn-group" role="group">
@@ -493,7 +479,6 @@
           </div>
         </div>
         <div class="panel-body" style="padding: 30px; background-color: #f8f9fa;">
-          <div id="msg_area" class="alert alert-danger" style="display: none;"></div>
           <div class="table-responsive">
             <table class="table table-bordered table-striped" id="print_this_section" style="margin-bottom: 0;">
               <thead style="background-color: #34495e; color: white;">
@@ -558,7 +543,6 @@
             </table>
           </div>
 
-          <!-- Transaction Details (Hidden by default) -->
           <div class="row" id="transaction" style="display:none; margin-top: 20px;">
             <div class="col-sm-12">
               <h5 style="color: #2c3e50; border-bottom: 1px solid #bdc3c7; padding-bottom: 5px; margin-bottom: 15px;">
@@ -593,7 +577,6 @@
             </div>
           </div>
           
-          <!-- Final Action Buttons -->
           <div class="row" style="margin-top: 30px;">
             <div class="col-sm-12 text-center">
               <div class="btn-group" role="group">
@@ -603,7 +586,7 @@
                 </button>
                 <button type="submit" id="submitbutton" class="btn btn-success btn-lg" style="padding: 12px 25px; font-weight: 600; border-radius: 6px;">
                   <i class="fa fa-check" style="margin-right: 8px;"></i>
-                  Create Billing
+                  Confirm Billing
                 </button>
               </div>
             </div>
@@ -619,11 +602,8 @@
   $(document).on('keyup',"#subvention_charges",function(e) {
     var subvention_charges = $(this).val();
     var fees = parseFloat($('#fees').val());
-    //console.log(subvention_charges+"----------"+fees);
     var discount = parseFloat($('#discount_amount').val());
-    discount_amount = (discount_amount)?discount_amount:0;
-		if(isNaN(discount)){ discount = 0;}
-    fees = (fees)?fees:0;
+    if(isNaN(discount)){ discount = 0;}
     if(isNaN(fees)){ fees = 0;}
     fees = (parseFloat(fees) - parseFloat(discount));
     if(subvention_charges != ""){
@@ -634,7 +614,7 @@
     }
   });
 
-	$(document).on('change',"#payment_discount",function(e) {
+  $(document).on('change',"#payment_discount",function(e) {
     $('#payment_method').prop('selectedIndex',0);
     $('#subvention_charges').val("");
     $("#subvention_charges").prop('required', false);
@@ -644,61 +624,56 @@
     $("#free_reason").prop('required', false);
     $("#free_reason_box").hide();
     $("#payment_method").prop('required',true);
-		$("input#after_discount").val($("input#fees").val());
-		$("input#payment_done").val('');
-		$("input#remaining_amount").val('');
-		$("input#discount_amount").val('');
-		$("input#reason_of_discount").val('');
-		$("input#discount").prop('required',false);
-		$("input#reason_of_discount").prop('required',false);
-		$('#discount_avail').hide();
-		if($(this).val() == 'discount'){
-			$("input#discount").prop('required',true);
-			$("input#reason_of_discount").prop('required',true);
-			$('#discount_avail').show();
-		}else if($(this).val() == 'free'){
+    $("input#after_discount").val($("input#fees").val());
+    $("input#payment_done").val('');
+    $("input#remaining_amount").val('');
+    $("input#discount_amount").val('');
+    $("input#reason_of_discount").val('');
+    $("input#discount").prop('required',false);
+    $("input#reason_of_discount").prop('required',false);
+    $('#discount_avail').hide();
+    if($(this).val() == 'discount'){
+      $("input#discount").prop('required',true);
+      $("input#reason_of_discount").prop('required',true);
+      $('#discount_avail').show();
+    }else if($(this).val() == 'free'){
       $("#free_reason").prop('required', true);
       $("#free_reason_box").show();
       $("#payment_method").prop('required',false);
       $("#transaction_id").prop('required',false);
-			$("#after_discount").val(0);
-			$('#payment_done').val(0);
-			$('#remaining_amount').val(0);
-		}
-	});
+      $("#after_discount").val(0);
+      $('#payment_done').val(0);
+      $('#remaining_amount').val(0);
+    }
+  });
 
-	$(document).on('keyup',"#discount_amount",function(e) {
+  $(document).on('keyup',"#discount_amount",function(e) {
     var subvention_charges = 0;
     if($("#payment_method").val() == "insurance"){
       subvention_charges = parseFloat($("#subvention_charges").val());
       if(subvention_charges == ""){  subvention_charges = 0; }
     }
 
-		$('#payment_done').val('');
-		$('#remaining_amount').val('');
-		var fees = parseFloat($('#fees').val());
+    $('#payment_done').val('');
+    $('#remaining_amount').val('');
+    var fees = parseFloat($('#fees').val());
     var new_fees = (fees + subvention_charges);
-		var allowd = parseFloat($('#allow_discount').val());
-		var discount_amount = parseFloat($(this).val());
+    var allowd = parseFloat($('#allow_discount').val());
+    var discount_amount = parseFloat($(this).val());
     var after_cal_price = ( new_fees * allowd / 100 ).toFixed(2);
-		discount_amount = (discount_amount)?discount_amount:0;
-		if(discount_amount == ''){ $(this).val(""); discount_amount = 0;}
+    discount_amount = (discount_amount)?discount_amount:0;
+    if(discount_amount == ''){ $(this).val(""); discount_amount = 0;}
    
-    //console.log(discount_amount+' ----- '+after_cal_price);
- 		//console.log(fees+' ----- '+allowd+' ----- '+discount_amount+' -------- '+after_cal_price+' -------- '+subvention_charges);
-		if(discount_amount > after_cal_price){
-				$('#fees').val('');
-				$('#fees').val(parseFloat(fees));
-				$('#after_discount').val(parseFloat(new_fees));
-				$('#create_billing').hide();
-				$('#show_disc_app').show();				
-		}else{
-			if(parseFloat(discount_amount) <= parseFloat(after_cal_price)){
+    if(discount_amount > after_cal_price){
+        $('#fees').val('');
+        $('#fees').val(parseFloat(fees));
+        $('#after_discount').val(parseFloat(new_fees));
+        $('#create_billing').hide();
+        $('#show_disc_app').show();       
+    }else{
+      if(parseFloat(discount_amount) <= parseFloat(after_cal_price)){
           var listPrice = parseFloat(new_fees);
           var discount  = parseFloat(discount_amount);
-          
-          console.log(listPrice+' ----- '+discount);
-          //var remaining_amount =  (listPrice - ( listPrice * discount / 100 ));
           var remaining_amount = listPrice - discount;
           if(remaining_amount < 1){
             $('#payment_done').val('');
@@ -706,23 +681,22 @@
             $(this).val('');
             $('#fees').val(parseFloat(fees));
             $('#after_discount').val(parseFloat(fees));
-          }else{//console.log(remaining_amount);
+          }else{
             $('#after_discount').val(parseFloat(remaining_amount));
           }
           $('#show_disc_app').hide();
           $('#create_billing').show();
-			}
-			else{
+      }
+      else{
           $('#fees').val(parseFloat(fees));
           $('#after_discount').val(parseFloat(fees));
           $('#create_billing').hide();
-          $('#show_disc_app').show();				
-			}
-		}
-    });
-	
-    $(document).on('change',"#payment_method",function(e) {
-        
+          $('#show_disc_app').show();       
+      }
+    }
+  });
+  
+  $(document).on('change',"#payment_method",function(e) {
         if($('#payment_discount').val() != "free"){
           var fees = parseFloat($('#fees').val());
           var discount_amount = parseFloat($('#discount_amount').val());
@@ -731,290 +705,314 @@
           $('#after_discount').val(parseFloat(fees));
         }
 
-        //$('#discount_amount').val(" ");
         $('#payment_done').val(" ");
         $('#remaining_amount').val(" ");
         $('#show_disc_app').hide();
 
         $('#transaction_id').prop('required',false);
         $('#transaction_img').prop('required',false);
-        $('#transaction_id').empty();
         $('#subvention_charges').val("");
         $('#subvention_charges').prop('required',false);
         $('#subvention_box').hide();
         var method = $(this).val();
         if(method == ''){
-          $('#transaction_id').prop('required',false);
-          $('#transaction_img').prop('required',false);
-          $('#transaction').hide();		
+          $('#transaction').hide();   
         }else{
-          $('#transaction_id').prop('required',false);
-          $('#transaction_img').prop('required',false);
           $('#transaction').show();
         }
         if(method == "insurance"){
           $('#subvention_charges').prop('required',true);
           $('#subvention_box').show();
         }
-    });
-	
-    $(document).on('keyup',"#payment_done",function(e) {
-		$('#remaining_amount').empty();
-		var fees = $('#after_discount').val();
-		var payment_done = $(this).val();
-		var remaining_amount = fees-payment_done;
-		$('#remaining_amount').val(remaining_amount);
-    });
-	
-	$(document).on('click',"#create_billing",function(e) {
-		// Prevent duplicate clicks
-		if ($(this).hasClass('disabled') || $(this).prop('disabled')) {
-			e.preventDefault();
-			return false;
-		}
-		var originalText = $(this).html();
-		$(this).addClass('disabled').prop('disabled', true).html('<i class="fa fa-spinner fa-spin" style="margin-right: 8px;"></i>Processing...');
-		$('#msg_area').empty();
-		$('#doctor_id_text').empty();
-		$('#fees_text').empty();
-		$('#payment_done_text').empty();
-		$('#remaining_amount_text').empty();
-		$('#payment_method_text').empty();	
-		$('#transaction_id_text').empty();	
-		$('#billing_id_text').empty();	
-		$('#consultation_id_text').empty();
-		$('#hospital_id_text').empty();
-		$('#payment_discount_text').empty();
-		$('#discount_amount_text').empty();
-		$('#reason_of_discount_text').empty();
-						
-		var doctor = $('#doctor_id').val();
-		var payment_done = $('#payment_done').val();
-		var payment_method = $('#payment_method').val();
-		var payment_discount = $('#payment_discount').val();
-		
-		var transaction_id = $('#transaction_id').val();
-		var transaction_img = $('#transaction_img').val();
-		if(doctor == '' || payment_done == '' || payment_discount == ''){
-      $('#msg_area').empty().append('One or more fields are empty !').show(); // .show() लगाना ज़रूरी है ताकि एरर दिखे
-      $('#create_billing').removeClass('disabled').prop('disabled', false).html(originalText);
-    } else {
-        
-        // --- WALLET BALANCE CHECK (FRONTEND) ---
-        var available_wallet = parseFloat($('#available_wallet_balance').val()) || 0;
-        var entered_amount = parseFloat(payment_done) || 0;
-
-        if (payment_method === 'wallet' && entered_amount > available_wallet) {
-            // अगर वॉलेट सेलेक्टेड है और एंटर किया अमाउंट बैलेंस से ज़्यादा है
-            $('#msg_area').empty().append('<strong>Error:</strong> Insufficient wallet balance! (Available: ₹' + available_wallet + ')').show();
-            $('#create_billing').removeClass('disabled').prop('disabled', false).html(originalText);
+  });
+  
+  $(document).on('keyup',"#payment_done",function(e) {
+    var fees = $('#after_discount').val();
+    var payment_done = $(this).val();
+    var remaining_amount = fees-payment_done;
+    $('#remaining_amount').val(remaining_amount);
+  });
+  
+  // Create Billing Event with Real-Time Wallet Check
+  // Create Billing Event with Real-Time LIVE Wallet Check
+  $(document).on('click', "#create_billing", function(e) {
+    if ($(this).hasClass('disabled') || $(this).prop('disabled')) {
+      e.preventDefault();
+      return false;
+    }
+    
+    var originalText = $(this).html();
+    $('#msg_area').hide().empty();
             
-            // पेज को ऊपर स्क्रॉल करें ताकि एरर मैसेज दिख सके
-            $('html, body').animate({ scrollTop: $("#consultation_details").offset().top }, 500);
-            return false; // आगे का कोड रन न हो
+    var payment_done = parseFloat($('#payment_done').val()) || 0;
+    var payment_method = $('#payment_method').val();
+    var payment_discount = $('#payment_discount').val();
+    var patient_id = $('#patient_id').val();
+    
+    if($('#payment_done').val() == '' || payment_discount == ''){
+      $('#msg_area').empty().append('One or more fields are empty !').show();
+      $('html, body').animate({ scrollTop: $("#consultation_details").offset().top }, 500);
+      return false;
+    }
+
+    // ==========================================
+    // [संशोधित] बटन क्लिक पर ही लाइव वॉलेट बैलेंस चेक और UI रीलोड लॉजिक
+    // ==========================================
+    if (payment_method === 'wallet' && payment_done > 0) {
+        var is_balance_ok = true;
+        
+        $.ajax({
+            url: '<?php echo base_url("Billings/check_live_wallet_balance"); ?>', 
+            type: 'POST',
+            data: { patient_id: patient_id },
+            async: false, // सिंक्रोनस रखेंगे ताकि निर्णय तुरंत हो सके
+            success: function(response) {
+                try {
+                    var res = (typeof response === 'object') ? response : JSON.parse(response);
+                    var live_balance = parseFloat(res.balance) || 0;
+
+                    // 1. हिडन इनपुट वेरिएबल और टॉप कार्ड UI को तुरंत लाइव बैलेंस से अपडेट करें
+                    $('#available_wallet_balance').val(live_balance);
+                    var formatted_balance = '₹ ' + live_balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    $('.text-success.font-weight-bold').siblings('h2.display-5').html(formatted_balance);
+
+                    // 2. वैलिडेशन चेक करें
+                    if (payment_done > live_balance) {
+                        $('#msg_area').empty().append('<strong>Warning:</strong> Wallet में पर्याप्त बैलेंस नहीं है! दूसरे टैब पर दवाइयों का बिल होने के कारण आपका उपलब्ध लाइव बैलेंस अब: ₹' + live_balance.toFixed(2) + ' है।').show();
+                        $('html, body').animate({ scrollTop: $("#consultation_details").offset().top }, 500);
+                        is_balance_ok = false;
+                    }
+                } catch (err) {
+                    console.error("JSON Parsing Error: ", err);
+                    $('#msg_area').empty().append('<strong>Error:</strong> Backend से अमान्य रिस्पॉन्स आया।').show();
+                    is_balance_ok = false;
+                }
+            },
+            error: function() {
+                $('#msg_area').empty().append('<strong>Error:</strong> सर्वर से कनेक्शन टूट गया है।').show();
+                is_balance_ok = false;
+            }
+        });
+
+        if (!is_balance_ok) {
+            return false; // प्रिव्यू स्क्रीन पर जाने से रोकें
         }
-					if(payment_discount == 'discount'){
-						var reason_of_discount =  $("input#reason_of_discount").val();
-						var discount_amount =  $("input#discount_amount").val();
-							
-						if(discount_amount == '' || reason_of_discount == ''){
-							$('#msg_area').append('One or more fields are empty !');
-							// Re-enable button on error
-							$('#create_billing').removeClass('disabled').prop('disabled', false).html(originalText);
-						}else{
-							value_into_text();	
-							// Re-enable for preview step
-							$('#create_billing').removeClass('disabled').prop('disabled', false).html(originalText);
-						}
-					}else{
-						value_into_text();
-						// Re-enable for preview step
-						$('#create_billing').removeClass('disabled').prop('disabled', false).html(originalText);
-					}
-			}
-    });
+    }
+    // ==========================================
 
-	// Prevent multiple form submissions
-	$('form').on('submit', function(e){
-		var $submit = $('#submitbutton');
-		if ($submit.hasClass('disabled') || $submit.prop('disabled')) {
-			e.preventDefault();
-			return false;
-		}
-		var originalSubmitText = $submit.html();
-		$submit.data('original-text', originalSubmitText);
-		$submit.addClass('disabled').prop('disabled', true).html('<i class="fa fa-spinner fa-spin" style="margin-right: 8px;"></i>Submitting...');
-	});
+    $(this).addClass('disabled').prop('disabled', true).html('<i class="fa fa-spinner fa-spin" style="margin-right: 8px;"></i>Processing...');
+    
+    // Clear old text fields
+    $('#doctor_id_text, #fees_text, #payment_done_text, #remaining_amount_text, #payment_method_text, #transaction_id_text, #billing_id_text, #receipt_number_text, #on_date_text, #iic_id_text').empty();
 
-	// Safety: re-enable submit if validation fails client-side and submission is blocked elsewhere
-	$(document).on('billing:enableSubmit', function(){
-		var $submit = $('#submitbutton');
-		var originalSubmitText = $submit.data('original-text') || $submit.html();
-		$submit.removeClass('disabled').prop('disabled', false).html(originalSubmitText);
-	});
-	
-	function value_into_text(){
-		$('#doctor_id_text').empty().append($('#doctor_name').val());
-		$('#fees_text').empty().append($('#after_discount').val());
-		$('#payment_done_text').empty().append($('#payment_done').val());
-		$('#remaining_amount_text').empty().append($('#remaining_amount').val());
-		$('#transaction_id_text').empty().append($('#transaction_id').val());
-		$('#payment_method_text').empty().append($('#payment_method').find(':selected').attr('mode'));			
-		$('#billing_id_text').empty().append($('#billing_id').val());
-    $('#receipt_number_text').empty().append($('#receipt_number').val());
-    $('#on_date_text').empty().append($('#on_date').val());
-    $('#iic_id_text').empty().append($('#patient_id').val());
+    if(payment_discount == 'discount'){
+      var reason_of_discount =  $("input#reason_of_discount").val();
+      var discount_amount =  $("input#discount_amount").val();
+        
+      if(discount_amount == '' || reason_of_discount == ''){
+        $('#msg_area').append('One or more fields are empty !').show();
+        $('#create_billing').removeClass('disabled').prop('disabled', false).html(originalText);
+      }else{
+        value_into_text();  
+        $('#create_billing').removeClass('disabled').prop('disabled', false).html(originalText);
+      }
+    }else{
+      value_into_text();
+      $('#create_billing').removeClass('disabled').prop('disabled', false).html(originalText);
+    }
+  });
 
-		// $('#consultation_id_text').append($('#on_date_text').val());
-		// $('#hospital_id_text').append($('#hospital_id').val());
-		// $('#payment_discount_text').append($('#payment_discount').find(':selected').val());
-		// $('#discount_amount_text').append($('#discount_amount').val());
-		// $('#reason_of_discount_text').append($('#reason_of_discount').val());
-		hideshow_discount();
-		$('#consultation_details').hide();
-		$('#consultation_preview').show();
-	}
-	
-	function hideshow_discount(){
-		var discount_amount = $('#discount_amount').val()
-		if(discount_amount < 1){
-			$('.discount_div').hide();
-		}else{
-			$('.discount_div').show();	
-		}
-	}
-	
-	$(document).on('click',"#edit_billing",function(e) {
-			$('#consultation_preview').hide();
-			$('#consultation_details').show();
-	});
-	
-function printDiv() 
-{
-  $('#print_this_section').css('visibility', 'visible');
-  // var divToPrint=document.getElementById('print_this_section');
-  // var newWin=window.open('','Print-Window');
-  // newWin.document.open();
-  // newWin.document.write('<html><body onload="window.print()">'+divToPrint.innerHTML+'</body></html>');
-  // newWin.document.close();
-  // setTimeout(function(){newWin.close();},10);
+// फॉर्म सबमिट होने से पहले फाइनल लाइव सुरक्षा चेक (बिना बिल रोके)
+$('form').on('submit', function(e) {
+    var $submit = $('#submitbutton');
+    var payment_method = $('#payment_method').val();
+    var payment_done = parseFloat($('#payment_done').val()) || 0;
+    var patient_id = $('#patient_id').val();
+    var is_valid = true;
 
-  var divToPrint=document.getElementById("print_this_section");
-  newWin= window.open("");
-  newWin.document.write(divToPrint.outerHTML);
-  newWin.print();
-  newWin.close();
+    if (payment_method === 'wallet' && payment_done > 0) {
+        e.preventDefault(); // क्षणिक ठहराव
+        
+        $.ajax({
+            url: '<?php echo base_url("Billings/check_live_wallet_balance"); ?>', 
+            type: 'POST',
+            data: { patient_id: patient_id },
+            async: false,
+            success: function(response) {
+                try {
+                    var res = (typeof response === 'object') ? response : JSON.parse(response);
+                    var live_balance = parseFloat(res.balance) || 0;
 
-}
+                    // अगर बैलेंस अभी भी पर्याप्त है, तो सबमिशन पास करें
+                    if (live_balance >= payment_done) {
+                        is_valid = true;
+                    } else {
+                        // यदि इस बीच भी बैलेंस कम हो गया
+                        $('#available_wallet_balance').val(live_balance);
+                        var formatted_balance = '₹ ' + live_balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        $('.text-success.font-weight-bold').siblings('h2.display-5').html(formatted_balance);
+                        
+                        $('#msg_area').empty().append('<strong>Warning:</strong> Wallet में पर्याप्त बैलेंस नहीं है! (उपलब्ध: ₹' + live_balance.toFixed(2) + ')').show();
+                        
+                        $('#consultation_preview').hide();
+                        $('#consultation_details').show();
+                        $('html, body').animate({ scrollTop: $("#consultation_details").offset().top }, 500);
+                        
+                        $submit.removeClass('disabled').prop('disabled', false).html('Confirm Billing');
+                        is_valid = false;
+                    }
+                } catch (err) {
+                    is_valid = false;
+                }
+            },
+            error: function() {
+                is_valid = false;
+            }
+        });
+        
+        if (!is_valid) {
+            return false;
+        }
+    }
+
+    // यदि सब कुछ मान्य है, तो फॉर्म सबमिट करें
+    if (is_valid) {
+        if ($submit.hasClass('disabled') || $submit.prop('disabled')) {
+            e.preventDefault();
+            return false;
+        }
+        var originalSubmitText = $submit.data('original-text') || 'Confirm Billing'; 
+        $submit.data('original-text', originalSubmitText);
+        $submit.addClass('disabled').prop('disabled', true).html('<i class="fa fa-spinner fa-spin" style="margin-right: 8px;"></i>Submitting...');
+        
+        // फॉर्म को नेटिवली सबमिट करने की अनुमति दें
+        this.submit();
+    }
+});
+  
+  function value_into_text(){
+    $('#doctor_id_text').append($('#doctor_name').val());
+    $('#fees_text').append($('#after_discount').val());
+    $('#payment_done_text').append($('#payment_done').val());
+    $('#remaining_amount_text').append($('#remaining_amount').val());
+    $('#transaction_id_text').append($('#transaction_id').val());
+    $('#payment_method_text').append($('#payment_method').find(':selected').attr('mode'));      
+    $('#billing_id_text').append($('#billing_id').val());
+    $('#receipt_number_text').append($('#receipt_number').val());
+    $('#on_date_text').append($('#on_date').val());
+    $('#iic_id_text').append($('#patient_id').val());
+
+    hideshow_discount();
+    $('#consultation_details').hide();
+    $('#consultation_preview').show();
+  }
+  
+  function hideshow_discount(){
+    var discount_amount = $('#discount_amount').val()
+    if(discount_amount < 1){
+      $('.discount_div').hide();
+    }else{
+      $('.discount_div').show();  
+    }
+  }
+  
+  $(document).on('click',"#edit_billing",function(e) {
+      $('#consultation_preview').hide();
+      $('#consultation_details').show();
+  });
+  
+  function printDiv() {
+    $('#print_this_section').css('visibility', 'visible');
+    var divToPrint=document.getElementById("print_this_section");
+    newWin= window.open("");
+    newWin.document.write(divToPrint.outerHTML);
+    newWin.print();
+    newWin.close();
+  }
 </script>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-
 
 <script>
     $(document).ready(function() {
-
-        // 1. LOGIC FOR DROPDOWN CHANGE (PiHC0001)
+        // 1. Logic for dropdown change PiHC0001
         $('#consultation_id').change(function() {
             var selectedText = $(this).find("option:selected").text();
             var selectedValue = $(this).val();
-            var defaultPrice = $('#after_discount').data('default-price');
+            var defaultPrice = $('#after_discount').data('default-price') || parseFloat($('#fees').val());
 
-            // CHECK: Is it "PiHC0001"?
             if (selectedValue === "PiHC0001" || selectedText.includes("PiHC0001")) {
-                
                 var specialPrice = 20000;
-
-                // Set Fees to 20,000
                 $('#fees').val(specialPrice);
                 $('#after_discount').val(specialPrice);
-
-                // Set Full Payment Automatically
                 $('#payment_done').val(specialPrice); 
-
-                // Reset Discount to 0 (Since it's full payment)
                 $('#discount_amount').val(0);
-
+                $('#remaining_amount').val(0);
             } else {
-                // Revert to Default Price
                 $('#fees').val(defaultPrice);
                 $('#after_discount').val(defaultPrice);
-                
-                // Clear the payment field or set to default
                 $('#payment_done').val(''); 
+                $('#remaining_amount').val('');
             }
         });
 
-        // 2. LOGIC TO RESTRICT MAX DISCOUNT TO 5000
+        // 2. Logic to restrict max discount to 5000
         $('#discount_amount').on('input', function() {
             var maxLimit = 5000;
             var currentVal = parseFloat($(this).val());
-
             if (currentVal > maxLimit) {
                 alert("Maximum discount allowed is " + maxLimit);
-                $(this).val(maxLimit); // Reset to 5000
+                $(this).val(maxLimit);
             }
         });
 
-    });
-    
-$(document).ready(function() {
-    // PHP se flags uthayein (Ensure naming is correct in PHP block)
-    var isFirstVisit = <?php echo $is_first_visit; ?>; 
-    var procedureExists = <?php echo $procedure_exists; ?>;
+        // First Visit & CEO Approval logical triggers
+        var isFirstVisit = <?php echo $is_first_visit; ?>; 
+        var procedureExists = <?php echo $procedure_exists; ?>;
 
-    // Dropdown change validation
-    $('#reason_of_visit').on('change', function() {
-        var reason = $(this).val();
-        if (reason === "First Visit" && isFirstVisit === false) {
-            alert("This is not a first-time consultation. Please select another reason.");
-            $(this).val("");
-            return false;
+        $('#reason_of_visit').on('change', function() {
+            var reason = $(this).val();
+            if (reason === "First Visit" && isFirstVisit === false) {
+                alert("This is not a first-time consultation. Please select another reason.");
+                $(this).val("");
+                return false;
+            }
+        });
+
+        $('#create_billing').on('click', function(e) {
+            var reason = $('#reason_of_visit').val();
+            var discountType = $('#payment_discount').val();
+            var packageReasons = ["For TVS (Under Package)", "Under Package"];
+            
+            $('input[name="approve_by_status"]').remove();
+
+            if (discountType === 'free' && packageReasons.indexOf(reason) !== -1 && procedureExists === false) {
+                if (confirm("No paid procedure found. Save as PENDING for CEO approval?")) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'approve_by_status',
+                        value: '2'
+                    }).appendTo('form');
+
+                    sendApprovalMail(reason);
+                    value_into_text();
+                } else {
+                    return false;
+                }
+            }
+        });
+
+        function sendApprovalMail(reason) {
+            $.ajax({
+                url: '<?php echo base_url("Billings/request_ceo_approval"); ?>',
+                type: 'POST',
+                data: { 
+                    patient_id: $('#patient_id').val(), 
+                    reason: reason, 
+                    doctor: $('#doctor_name').val()
+                },
+                success: function(res) {
+                    console.log("Mail Status: " + res);
+                }
+            });
         }
     });
-
-    // Create Billing Button Click
-    $('#create_billing').on('click', function(e) {
-        var reason = $('#reason_of_visit').val();
-        var discountType = $('#payment_discount').val();
-        var packageReasons = ["For TVS (Under Package)", "Under Package"];
-        
-        // Remove any existing hidden status input first to prevent duplicates
-        $('input[name="approve_by_status"]').remove();
-
-        // Check if approval is needed (Free + Package Reason + No Procedure)
-        // JavaScript logic in your View file
-if (discountType === 'free' && packageReasons.indexOf(reason) !== -1 && procedureExists === false) {
-    if (confirm("No paid procedure found. Save as PENDING for CEO approval?")) {
-        // Hidden input add karein value '2' ke saath
-        $('<input>').attr({
-            type: 'hidden',
-            name: 'approve_by_status',
-            value: '2' // Controller isi '2' ko check kar raha hai
-        }).appendTo('form');
-
-        sendApprovalMail(reason); // CEO ko mail bhejhein
-        value_into_text(); // Preview dikhayein
-    } else {
-        return false;
-    }
-}
-    });
-
-    function sendApprovalMail(reason) {
-        $.ajax({
-            url: '<?php echo base_url("Billings/request_ceo_approval"); ?>',
-            type: 'POST',
-            data: { 
-                patient_id: $('#patient_id').val(), 
-                reason: reason, 
-                doctor: $('#doctor_name').val()
-            },
-            success: function(res) {
-                console.log("Mail Status: " + res);
-            }
-        });
-    }
-});
 </script>

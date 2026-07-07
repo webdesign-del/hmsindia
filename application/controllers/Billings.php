@@ -16,7 +16,7 @@ class Billings extends CI_Controller {
 		$this->load->model('investigation_model');
 		$this->load->model('procedures_model');
 		$this->load->model('accounts_model');
-		$this->load->model('stock_model');
+		$this->load->model('Stock_model_new');
 		$this->load->model('center_model');
 		$this->load->model('patients_model');
 		$this->load->model('employee_model');
@@ -894,7 +894,7 @@ public function procedure_billings(){
 		return $codes;
 	}
 	
-	function consultation(){
+function consultation(){
     $data = array();
     $logg = checklogin();
     if($logg['status'] == true){
@@ -951,6 +951,21 @@ public function procedure_billings(){
         header("location:" .base_url(). "");
         die();
     }
+}
+
+// लाइव वॉलेट बैलेंस चेक करने के लिए AJAX फंक्शन
+public function check_live_wallet_balance() {
+    $patient_id = $this->input->post('patient_id');
+    $balance = 0;
+    
+    if (!empty($patient_id)) {
+        // आपके मॉडल से लाइव मनी वॉलेट का बैलेंस उठाना
+        $wallet_balance = $this->Stock_model_new->get_wallet_balance($patient_id);
+        $balance = isset($wallet_balance) ? (float)$wallet_balance : 0;
+    }
+    
+    echo json_encode(array('balance' => $balance));
+    die();
 }
 		
 	function investigation(){
