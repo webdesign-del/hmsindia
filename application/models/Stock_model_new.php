@@ -5730,9 +5730,9 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
         return false;
     }
 
-    // 🔴 SAFETY BLOCK: Fallback to prevent immediate DB crash if missing center_id
+    // 🔴 SAFETY BLOCK: Prevent database crash if center_id is null
     if (empty($return->center_id)) {
-        file_put_contents(FCPATH . 'debug_return_error.txt', "CRITICAL: Return ID {$return_id} has an empty center_id directly in the medicine_returns table.\n", FILE_APPEND);
+        log_message('error', "Stock Return Error: Return ID {$return_id} is missing a center_id.");
         $this->db->trans_rollback();
         return false;
     }
@@ -5762,7 +5762,6 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
             $this->db->set("updated_at", date("Y-m-d H:i:s"));
             $this->db->update("center_stocks");
         } else {
-            // Recreate missing record
             $this->db->insert("center_stocks", [
                 "batch_id" => $batch_id,
                 "center_id" => $return->center_id,
@@ -5788,7 +5787,7 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
             "movement_type" => "SALE_RETURN",
             "from_location_type" => "PATIENT",
             "to_location_type" => "CENTER",
-            "to_location_id" => $return->center_id, // ⚠️ If this table schema requires 'center_id', this will crash
+            "to_location_id" => $return->center_id,
             "quantity_before" => $quantity_before,
             "quantity_change" => $qty,
             "quantity_after" => $quantity_after,
@@ -5801,13 +5800,9 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
             "patient_name" => $return->patient_name,
             "remarks" => $is_old ? "Manual restoration of old medicine stock" : "Stock restored from validated sale return",
             "created_at" => date("Y-m-d H:i:s"),
-            "created_by" => isset($return->created_by) ? $return->created_by : null
+            "created_by" => isset($return->created_by) ? $return->created_by : null // 🔴 FIXED: Prevents null property mismatch crash
         ];
         
-        // 📝 LOGGING EXECUTIONS TO A TEXT FILE BEFORE CRASH
-        $log_message = "Loop Entry #{$index} | Return ID: {$return_id} | Batch ID: {$batch_id} | Center ID value: " . var_export($return->center_id, true) . "\n";
-        file_put_contents(FCPATH . 'debug_return_error.txt', $log_message, FILE_APPEND);
-
         $this->db->insert("stock_movements", $movement_data);
     }
 
