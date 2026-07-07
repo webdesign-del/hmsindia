@@ -5721,17 +5721,23 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
 
         public function approve_medicine_return($return_id)
 {
-    // Turn off database error screens temporarily so we can catch the query manually
-    $this->db->db_debug = FALSE; 
-
     $this->db->trans_start();
     
+    // 1. Get Return Header
     $return = $this->db->where('id', $return_id)->get('medicine_returns')->row();
     if (!$return || $return->status != 'PENDING') {
         $this->db->trans_rollback();
         return false;
     }
 
+    // 🔴 SAFETY BLOCK: Fallback to prevent immediate DB crash if missing center_id
+    if (empty($return->center_id)) {
+        file_put_contents(FCPATH . 'debug_return_error.txt', "CRITICAL: Return ID {$return_id} has an empty center_id directly in the medicine_returns table.\n", FILE_APPEND);
+        $this->db->trans_rollback();
+        return false;
+    }
+
+    // 2. Get Return Items
     $items = $this->db->where('return_id', $return_id)->get('medicine_return_items')->result();
     $is_old = (strpos($return->return_number, 'ORET') === 0);
     
@@ -5739,6 +5745,7 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
         $qty = (float)$item->quantity_returned;
         $batch_id = $item->batch_id;
 
+        // A. Update Physical Stock (center_stocks)
         $this->db->where([
             "batch_id" => $batch_id,
             "center_id" => $return->center_id,
@@ -5753,11 +5760,9 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
             $this->db->set("quantity", "quantity + " . $qty, FALSE);
             $this->db->set("last_movement_date", date("Y-m-d H:i:s"));
             $this->db->set("updated_at", date("Y-m-d H:i:s"));
-            
-            if(!$this->db->update("center_stocks")) {
-                $this->print_db_error("UPDATE center_stocks (Loop Index: $index)", $this->db->last_query());
-            }
+            $this->db->update("center_stocks");
         } else {
+            // Recreate missing record
             $this->db->insert("center_stocks", [
                 "batch_id" => $batch_id,
                 "center_id" => $return->center_id,
@@ -5767,28 +5772,23 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
                 "last_movement_date" => date("Y-m-d H:i:s"),
                 "created_at" => date("Y-m-d H:i:s")
             ]);
-            
-            if($this->db->error()['code'] !== 0) {
-                $this->print_db_error("INSERT center_stocks (Loop Index: $index)", $this->db->last_query());
-            }
         }
         
         $quantity_after = $quantity_before + $qty;
 
+        // B. Update Global Master Stock
         $this->db->where("id", $batch_id);
         $this->db->set("quantity_remaining", "quantity_remaining + " . $qty, FALSE);
         $this->db->set("updated_at", date("Y-m-d H:i:s"));
-        
-        if(!$this->db->update("medicine_batches")) {
-            $this->print_db_error("UPDATE medicine_batches (Loop Index: $index)", $this->db->last_query());
-        }
+        $this->db->update("medicine_batches");
 
+        // C. Record Audit Trail (stock_movements)
         $movement_data = [
             "batch_id" => $batch_id,
             "movement_type" => "SALE_RETURN",
             "from_location_type" => "PATIENT",
             "to_location_type" => "CENTER",
-            "to_location_id" => $return->center_id,
+            "to_location_id" => $return->center_id, // ⚠️ If this table schema requires 'center_id', this will crash
             "quantity_before" => $quantity_before,
             "quantity_change" => $qty,
             "quantity_after" => $quantity_after,
@@ -5801,16 +5801,17 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
             "patient_name" => $return->patient_name,
             "remarks" => $is_old ? "Manual restoration of old medicine stock" : "Stock restored from validated sale return",
             "created_at" => date("Y-m-d H:i:s"),
-            "created_by" => $return->created_by
+            "created_by" => isset($return->created_by) ? $return->created_by : null
         ];
         
+        // 📝 LOGGING EXECUTIONS TO A TEXT FILE BEFORE CRASH
+        $log_message = "Loop Entry #{$index} | Return ID: {$return_id} | Batch ID: {$batch_id} | Center ID value: " . var_export($return->center_id, true) . "\n";
+        file_put_contents(FCPATH . 'debug_return_error.txt', $log_message, FILE_APPEND);
+
         $this->db->insert("stock_movements", $movement_data);
-        
-        if($this->db->error()['code'] !== 0) {
-            $this->print_db_error("INSERT stock_movements (Loop Index: $index)", $this->db->last_query());
-        }
     }
 
+    // 3. Mark the Return as APPROVED
     $this->db->where('id', $return_id)->update('medicine_returns', [
         'status' => 'APPROVED', 
         'updated_at' => date('Y-m-d H:i:s')
@@ -5818,17 +5819,6 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
 
     $this->db->trans_complete();
     return $this->db->trans_status();
-}
-
-// Helper debugging method to catch the output clean on your screen
-private function print_db_error($stage, $query) {
-    echo "<h2>Database Error Caught!</h2>";
-    echo "<b>Failed Stage:</b> " . $stage . "<br>";
-    echo "<b>Generated Query:</b> <pre>" . $query . "</pre><br>";
-    echo "<b>MySQL Error Message:</b> <pre>";
-    print_r($this->db->error());
-    echo "</pre>";
-    exit;
 }
 
         public function disapprove_medicine_return($return_id)
