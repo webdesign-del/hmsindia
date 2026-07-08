@@ -38,8 +38,8 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     }
     
     // Fetch Data
-    $sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
-    $patient_data = run_select_query($sql_data); 
+    //$sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+    //$patient_data = run_select_query($sql_data); 
     
     $sql = "SELECT * FROM `hms_discard_discharge` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
