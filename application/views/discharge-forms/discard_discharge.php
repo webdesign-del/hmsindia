@@ -38,6 +38,9 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     }
     
     // Fetch Data
+    $sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
+    $patient_data = run_select_query($sql_data); 
+    
     $sql = "SELECT * FROM `hms_discard_discharge` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
@@ -46,9 +49,6 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     
     $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
     $select_result3 = run_select_query($sql3);
-
-    $sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
-    $patient_data = run_select_query($sql_data); 
 
     // 🎯 Center Wise Global Logo Handler
     $center_logo = isset($sql3['upload_photo_1']) ? $sql3['upload_photo_1'] : '';
