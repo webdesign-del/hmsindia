@@ -2,15 +2,14 @@
 $all_method =& get_instance();
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
-    // 🎯 FIX: CodeIgniter URL routing segment 4 se direct patient_id uthayenge
+    // 🎯 FIX: CodeIgniter URL routing segment 3 se patient_id uthayenge (17773513625795)
     if(empty($patient_id)){
-        $patient_id = $this->uri->segment(4); 
+        $patient_id = $this->uri->segment(3); 
     }
     
-    // Fallback agar segment fail ho jaye to segment 3 check karein ya standard strings handle karein
-    if(empty($patient_id) || is_numeric($patient_id) && strlen($patient_id) < 5){
-        // Agar segment galat array index par ho to standard validation lagayein
-        $patient_id = isset($_GET['patient_id']) ? $_GET['patient_id'] : (isset($_POST['patient_id']) ? $_POST['patient_id'] : $patient_id);
+    // Fallback agar segment fail ho jaye to GET ya POST parameters check karein
+    if(empty($patient_id)){
+        $patient_id = isset($_GET['patient_id']) ? $_GET['patient_id'] : (isset($_POST['patient_id']) ? $_POST['patient_id'] : '');
     }
 
     // PHP code to Insert/Update data
@@ -55,7 +54,8 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
-    $center_for_query = isset($select_result['center']) ? $select_result['center'] : (isset($select_result2['appoitment_for']) ? $select_result2['appoitment_for'] : $this->uri->segment(3));
+    // 🎯 FIX: Center ke liye segment 2 ka use karein agar database mein nahi milti (Kyunki URL me '4' segment 2 hai)
+    $center_for_query = isset($select_result['center']) ? $select_result['center'] : (isset($select_result2['appoitment_for']) ? $select_result2['appoitment_for'] : $this->uri->segment(2));
     
     $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$center_for_query."'";
     $select_result3 = run_select_query($sql3);
