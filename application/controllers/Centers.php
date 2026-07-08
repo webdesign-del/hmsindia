@@ -118,6 +118,41 @@ class Centers extends CI_Controller {
 		$logg = checklogin();
 		if($logg['status'] == true){
 			$data = array();
+
+			// --- 1. CURRENT LOGGED IN USER KA SESSION NIKALEIN ---
+        $active_user_session = null;
+        $session_keys = [
+            'logged_administrator', 'logged_accountant', 'logged_stock_manager', 
+            'logged_billing_manager', 'logged_telecaller', 'logged_central_stock_manager', 
+            'logged_doctor', 'logged_investigation_manager', 'logged_counselor', 
+            'logged_liason', 'logged_mrd', 'logged_embryologist', 'logged_viewer'
+        ];
+
+        foreach ($session_keys as $key) {
+            if (isset($_SESSION[$key])) {
+                $active_user_session = $_SESSION[$key];
+                break;
+            }
+        }
+
+        // --- 2. USER KE CENTER KE ACCORDING LOGO FETCH KAREIN ---
+        // Agar user session me center_number hai to wahan se lo, nahi to GET/POST se lo
+        $center_id = isset($active_user_session['center_number']) ? $active_user_session['center_number'] : null;
+        
+        if(!$center_id) {
+            if(isset($_GET['center_number'])){ $center_id = $_GET['center_number']; }
+            if(isset($_POST['center_number'])) { $center_id = $_POST['center_number']; }
+        }
+
+        // Database se is center ka logo nikal kar session me global set kar do
+        if($center_id) {
+            $center_info = $this->center_model->get_item_data($center_id);
+            if(!empty($center_info['upload_photo_1'])) {
+                $_SESSION['current_center_logo'] = $center_info['upload_photo_1'];
+            }
+        }
+
+
 			if(isset($_GET['center_number'])){ $item_id = $_GET['center_number']; }
 			if(isset($_POST['center_number'])) { $item_id = $_POST['center_number']; }
 
@@ -147,14 +182,30 @@ class Centers extends CI_Controller {
 			    }
 			    
 			    // Handle file upload
-			    if(!empty($_FILES['upload_photo_1']['tmp_name'])){
-			        $dest_path = $this->config->item('upload_path');
-			        $destination = $dest_path.'center/';
-			        $NewImageName = rand(4,10000)."-".$_FILES['upload_photo_1']['name'];
-			        $transaction_img = base_url().'assets/center/'.$NewImageName;
-			        move_uploaded_file($_FILES['upload_photo_1']['tmp_name'], $destination.$NewImageName);
-			        $_POST['upload_photo_1'] = $transaction_img;
-			    }
+if(!empty($_FILES['upload_photo_1']['tmp_name'])){
+    // 1. Define the physical path where the file should actually go
+    // FCPATH points to your project root index.php directory
+    $destination = FCPATH . 'assets/center/'; 
+    
+    // Ensure the folder actually exists; if not, create it
+    if (!is_dir($destination)) {
+        mkdir($destination, 0755, true);
+    }
+
+    $NewImageName = rand(4,10000)."-".$_FILES['upload_photo_1']['name'];
+    
+    // 2. Attempt to move the file using the physical path
+    if(move_uploaded_file($_FILES['upload_photo_1']['tmp_name'], $destination.$NewImageName)) {
+        // 3. ONLY save to the database if the file actually moved successfully
+        $transaction_img = base_url().'assets/center/'.$NewImageName;
+        $_POST['upload_photo_1'] = $transaction_img;
+    } else {
+        // Optional: Handle upload failure case
+        $error_msg = 'Image could not be saved to the server folder.';
+        header("location:" . base_url() . "centers/edit?m=" . base64_encode($error_msg) . '&t=' . base64_encode('error') . '&center_number=' . $item_id);
+        die();
+    }
+}
 			    unset($_POST['action']);
 			    $data = $this->center_model->update_item_data($_POST, $item_id);
 			    if($data > 0){
