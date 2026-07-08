@@ -2,6 +2,17 @@
 $all_method =& get_instance();
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
+    // 🎯 FIX: CodeIgniter URL routing segment 4 se direct patient_id uthayenge
+    if(empty($patient_id)){
+        $patient_id = $this->uri->segment(4); 
+    }
+    
+    // Fallback agar segment fail ho jaye to segment 3 check karein ya standard strings handle karein
+    if(empty($patient_id) || is_numeric($patient_id) && strlen($patient_id) < 5){
+        // Agar segment galat array index par ho to standard validation lagayein
+        $patient_id = isset($_GET['patient_id']) ? $_GET['patient_id'] : (isset($_POST['patient_id']) ? $_POST['patient_id'] : $patient_id);
+    }
+
     // PHP code to Insert/Update data
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
@@ -37,19 +48,19 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         }
     }
     
-    // Fetch Data safely
+    // Fetch Data safely using the parsed dynamic $patient_id
     $sql = "SELECT * FROM `hms_discard_discharge` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
     $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
-    $center_for_query = isset($select_result['center']) ? $select_result['center'] : (isset($select_result2['appoitment_for']) ? $select_result2['appoitment_for'] : '');
+    $center_for_query = isset($select_result['center']) ? $select_result['center'] : (isset($select_result2['appoitment_for']) ? $select_result2['appoitment_for'] : $this->uri->segment(3));
     
     $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$center_for_query."'";
     $select_result3 = run_select_query($sql3);
 
-    // Center Wise Global Logo Handler
+    // Center Wise Global Logo Handlers
     $center_logo = isset($select_result3['upload_photo_1']) ? $select_result3['upload_photo_1'] : '';
     $center_name_global = isset($select_result3['center_name']) ? $select_result3['center_name'] : '';
     $center_code_val = isset($select_result3['center_code']) ? $select_result3['center_code'] : '';
@@ -58,21 +69,21 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Top right me jo blue PRINT button dikh raha hai use capture karenge
-    var topPrintBtn = document.querySelector("button.btn-primary, input[value='PRINT'], .btn:has-text('PRINT')");
+    // Top right browser blue PRINT button handler injection
+    var topPrintBtn = document.querySelector("button.btn-primary, input[value='PRINT'], .btn:has-text('PRINT'), a.btn:has-text('PRINT')");
     
-    // Fallback: Agar upar se match na ho, toh page ke saare anchors/buttons me text search karenge
+    // Global dynamic check fallback for text node elements inside the application layout shell
     if(!topPrintBtn) {
-        var buttons = document.getElementsByTagName("button");
-        for (var i = 0; i < buttons.length; i++) {
-            if (buttons[i].textContent.trim() === "PRINT") {
-                topPrintBtn = buttons[i];
+        var all_buttons = document.querySelectorAll("button, a, input[type='button']");
+        for (var i = 0; i < all_buttons.length; i++) {
+            var btn_txt = all_buttons[i].textContent || all_buttons[i].value || "";
+            if (btn_txt.trim() === "PRINT") {
+                topPrintBtn = all_buttons[i];
                 break;
             }
         }
     }
     
-    // Agar blue button mil jata hai, toh usme apna direct execution function bind kar denge
     if(topPrintBtn) {
         topPrintBtn.setAttribute("onclick", "print_discharge(); return false;");
         topPrintBtn.removeAttribute("href"); 
@@ -81,9 +92,9 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 <form action="" enctype='multipart/form-data' method="post">
-  <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
-  <input type="hidden" value="<?php echo $updated_type; ?>" class="form" name="updated_type">
-  <input type="hidden" value="<?php echo $updated_at; ?>" class="form" name="updated_at">
+  <input type="hidden" value="<?php echo isset($updated_by) ? $updated_by : ''; ?>" class="form" name="updated_by">
+  <input type="hidden" value="<?php echo isset($updated_type) ? $updated_type : ''; ?>" class="form" name="updated_type">
+  <input type="hidden" value="<?php echo isset($updated_at) ? $updated_at : ''; ?>" class="form" name="updated_at">
   <input type="hidden" value="<?php echo $patient_id;?>" class="form" name="patient_id">
   <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
  
@@ -120,16 +131,16 @@ document.addEventListener("DOMContentLoaded", function() {
     <td colspan="2" width="50%" style="border:1px solid;padding:8px;"><strong>Details of Male Partner</strong></td>
 </tr>
 <tr style="background: #b3b9b7;">
-    <td colspan="2" style="border:1px solid;padding:8px;"><strong>UHID : <?php echo (!empty($center_code_val) ? $center_code_val : "") . "/" . $uhid_val; ?></strong></td>
-    <td colspan="2" style="border:1px solid;padding:8px;"><strong>IIC ID: <?php echo $patient_id; ?></strong></td>
+    <td colspan="2" style="border:1px solid;padding:8px;"><strong>UHID : <span id="ui_uhid_prefix"><?php echo (!empty($center_code_val) ? $center_code_val : $this->uri->segment(3)); ?></span>/<?php echo $uhid_val; ?></strong></td>
+    <td colspan="2" style="border:1px solid;padding:8px;"><strong>IIC ID: <span style="color: blue; font-weight: bold;"><?php echo $patient_id; ?></span></strong></td>
 </tr>
 <tr>
-    <td colspan="2" style="padding:10px;"><strong>Female Partner : <?php echo $patient_data['wife_name']; ?> </strong></td>
-    <td style="padding:10px;"><strong>Male Partner :  <?php echo $patient_data['husband_name']; ?> </strong></td>
+    <td colspan="2" style="padding:10px;"><strong>Female Partner : <?php echo isset($patient_data['wife_name']) ? $patient_data['wife_name'] : ''; ?> </strong></td>
+    <td style="padding:10px;"><strong>Male Partner :  <?php echo isset($patient_data['husband_name']) ? $patient_data['husband_name'] : ''; ?> </strong></td>
 </tr>
 <tr>
-    <td colspan="2" style="padding:10px;"><strong>Age:  <?php echo $patient_data['wife_age']; ?> Year</strong></td>
-    <td style="padding:10px;"><strong>Age: <?php echo $patient_data['husband_age']; ?> Year</strong></td>
+    <td colspan="2" style="padding:10px;"><strong>Age:  <?php echo isset($patient_data['wife_age']) ? $patient_data['wife_age'] : ''; ?> Year</strong></td>
+    <td style="padding:10px;"><strong>Age: <?php echo isset($patient_data['husband_age']) ? $patient_data['husband_age'] : ''; ?> Year</strong></td>
 </tr>
 
 <tr>
@@ -175,7 +186,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <div style="margin-top: 20px; margin-bottom: 30px; display: flex; gap: 10px;">
     <input type="submit" name="submit" value="Save Report" class="btn btn-secondary">    
-    <input type="button" value="Print Summary (Backup)" class="btn btn-primary" onclick="print_discharge()">
+    <input type="button" value="Print Summary (Local Backup)" class="btn btn-primary" onclick="print_discharge()">
 </div>
 </form>
 
@@ -205,16 +216,16 @@ document.addEventListener("DOMContentLoaded", function() {
         <td colspan="2" width="50%" style="border:1px solid #000; padding:10px;"><strong>Details of Male Partner</strong></td>
     </tr>
     <tr>
-        <td colspan="2" style="border:1px solid #000; padding:10px;"><strong>UHID : <?php echo (!empty($center_code_val) ? $center_code_val : "") . "/" . $uhid_val; ?></strong></td>
+        <td colspan="2" style="border:1px solid #000; padding:10px;"><strong>UHID : <?php echo (!empty($center_code_val) ? $center_code_val : $this->uri->segment(3)) . "/" . $uhid_val; ?></strong></td>
         <td colspan="2" style="border:1px solid #000; padding:10px;"><strong>IIC ID: <?php echo $patient_id; ?></strong></td>
     </tr>
     <tr>
-        <td colspan="2" style="border:1px solid #000; padding:10px;"><strong>Female Partner : <?php echo $patient_data['wife_name']; ?> </strong></td>
-        <td style="border:1px solid #000; padding:10px;"><strong>Male Partner :  <?php echo $patient_data['husband_name']; ?> </strong></td>
+        <td colspan="2" style="border:1px solid #000; padding:10px;"><strong>Female Partner : <?php echo isset($patient_data['wife_name']) ? $patient_data['wife_name'] : ''; ?> </strong></td>
+        <td style="border:1px solid #000; padding:10px;"><strong>Male Partner :  <?php echo isset($patient_data['husband_name']) ? $patient_data['husband_name'] : ''; ?> </strong></td>
     </tr>
     <tr>
-        <td colspan="2" style="border:1px solid #000; padding:10px;"><strong>Age:  <?php echo $patient_data['wife_age']; ?> Year</strong></td>
-        <td style="border:1px solid #000; padding:10px;"><strong>Age: <?php echo $patient_data['husband_age']; ?> Year</strong></td>
+        <td colspan="2" style="border:1px solid #000; padding:10px;"><strong>Age:  <?php echo isset($patient_data['wife_age']) ? $patient_data['wife_age'] : ''; ?> Year</strong></td>
+        <td style="border:1px solid #000; padding:10px;"><strong>Age: <?php echo isset($patient_data['husband_age']) ? $patient_data['husband_age'] : ''; ?> Year</strong></td>
     </tr>
     <tr>
         <td colspan="4" style="border:1px solid #000; padding:12px; text-align:left;">
@@ -269,7 +280,6 @@ function update_center_details(dropdown) {
 }
 
 function print_discharge() {
-    // Input extraction safely
     var center_dropdown = document.getElementById("center");
     if(center_dropdown && center_dropdown.selectedIndex > 0) {
         global_selected_logo = center_dropdown.options[center_dropdown.selectedIndex].getAttribute('data-logo');
@@ -278,14 +288,12 @@ function print_discharge() {
         document.getElementById("print_center_name").innerText = global_selected_name;
     }
 
-    // Assigning form text values to print spans
     document.getElementById("print_date").innerText = document.getElementById("form_date_of_discard").value || 'N/A';
     document.getElementById("print_procedure").innerText = document.getElementById("form_name_of_procedure").value || '';
     document.getElementById("print_oocytes").innerText = document.getElementById("form_no_of_embryos_discard").value || '';
     document.getElementById("print_grading").innerText = document.getElementById("form_day_of_discard").value || '';
     document.getElementById("print_embryologist").innerText = document.getElementById("form_senior_embryologist").value || '';
 
-    // HTML execution window target compilation
     var printContent = document.getElementById("print_this_section").innerHTML;
     var win = window.open("", "", "width=1000,height=800");
     win.document.write('<html><head><title>Embryo Discard Discharge Summary</title>');
@@ -295,7 +303,6 @@ function print_discharge() {
     win.document.write('</body></html>');
     win.document.close();
     
-    // Time interval separation to guarantee DOM parsing completes prior to shell termination
     setTimeout(function(){
         win.focus();
         win.print();
@@ -305,7 +312,6 @@ function print_discharge() {
 </script>
 
 <style>
-/* CSS Styles Upgrade for Responsive Layout */
 table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
