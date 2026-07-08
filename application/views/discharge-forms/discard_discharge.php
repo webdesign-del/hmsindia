@@ -93,7 +93,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     <td colspan="2" width="50%" style="border:1px solid;padding:5px;"><strong>Details of Male Partner</strong></td>
 </tr>
 <tr style="background: #b3b9b7;">
-    <td colspan="2" style="border:1px solid;padding:5px;"><strong>UHID : <?php echo $sql3['center_code']."/".$select_result2['uhid']; ?></strong></td>
+    <td colspan="2" style="border:1px solid;padding:5px;"><strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong></td>
     <td colspan="2" style="border:1px solid;padding:5px;"><strong>IIC ID: <?php echo $patient_id; ?></strong></td>
 </tr>
 <tr>
