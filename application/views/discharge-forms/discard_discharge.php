@@ -37,22 +37,24 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         }
     }
     
-    // Fetch Data
-    //$sql_data = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
-    //$patient_data = run_select_query($sql_data); 
-    
+    // Fetch Data safely
     $sql = "SELECT * FROM `hms_discard_discharge` WHERE patient_id='$patient_id'";
     $select_result = run_select_query($sql);
     
     $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
     
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+    // Agar appointments table me na mile, to dusri table backup logic
+    $center_for_query = isset($select_result['center']) ? $select_result['center'] : (isset($select_result2['appoitment_for']) ? $select_result2['appoitment_for'] : '');
+    
+    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$center_for_query."'";
     $select_result3 = run_select_query($sql3);
 
     // 🎯 Center Wise Global Logo Handler
-    $center_logo = isset($sql3['upload_photo_1']) ? $sql3['upload_photo_1'] : '';
-    $center_name_global = isset($sql3['center_name']) ? $sql3['center_name'] : '';
+    $center_logo = isset($select_result3['upload_photo_1']) ? $select_result3['upload_photo_1'] : '';
+    $center_name_global = isset($select_result3['center_name']) ? $select_result3['center_name'] : '';
+    $center_code_val = isset($select_result3['center_code']) ? $select_result3['center_code'] : '';
+    $uhid_val = isset($select_result2['uhid']) ? $select_result2['uhid'] : '';
 ?>
 
 <form action="" enctype='multipart/form-data' method="post">
@@ -68,16 +70,16 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 
  <div style="float: left; margin-bottom: 10px;margin-right:20px;">
 <label for="Center">Center</label>
-<select class="form-control" id="center" name="center">
+<select class="form-control" id="center" name="center" onchange="update_center_details(this)">
     <option value=''>--Select From--</option>
     <?php $all_centers = $all_method->get_all_centers();
     foreach($all_centers as $key => $val){ 
-        if(isset($select_result['center']) && $select_result['center'] == $val['center_number']){
-            echo '<option value="'.$val['center_number'].'" selected>'.$val['center_name'].'</option>';
-        } else if($select_result2['appoitment_for'] == $val['center_number']){
-            echo '<option value="'.$val['center_number'].'" selected>'.$val['center_name'].'</option>';
+        // JavaScript lookup mapping dataset inject
+        $logo_url = !empty($val['upload_photo_1']) ? $val['upload_photo_1'] : base_url('assets/center/default-logo.png');
+        if((isset($select_result['center']) && $select_result['center'] == $val['center_number']) || ($center_for_query == $val['center_number'])){
+            echo '<option value="'.$val['center_number'].'" data-logo="'.$logo_url.'" data-name="'.$val['center_name'].'" selected>'.$val['center_name'].'</option>';
         } else {
-            echo '<option value="'.$val['center_number'].'">'.$val['center_name'].'</option>';
+            echo '<option value="'.$val['center_number'].'" data-logo="'.$logo_url.'" data-name="'.$val['center_name'].'">'.$val['center_name'].'</option>';
         }
     } 
     ?>
@@ -96,7 +98,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     <td colspan="2" width="50%" style="border:1px solid;padding:5px;"><strong>Details of Male Partner</strong></td>
 </tr>
 <tr style="background: #b3b9b7;">
-    <td colspan="2" style="border:1px solid;padding:5px;"><strong>UHID : <?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></strong></td>
+    <td colspan="2" style="border:1px solid;padding:5px;"><strong>UHID : <?php echo (!empty($center_code_val) ? $center_code_val : "") . "/" . $uhid_val; ?></strong></td>
     <td colspan="2" style="border:1px solid;padding:5px;"><strong>IIC ID: <?php echo $patient_id; ?></strong></td>
 </tr>
 <tr>
@@ -139,7 +141,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 <tr>
 <td colspan="4">
 <strong>Senior Embryologist
-<input type="text" class="SeniorEmbryologist" id="form_senior_embryologist" name="senior_embryologist" readonly value="<?php echo isset($select_result['senior_embryologist']) ? $select_result['senior_embryologist'] : $_SESSION['logged_embryologist']['name']; ?>">
+<input type="text" class="SeniorEmbryologist" id="form_senior_embryologist" name="senior_embryologist" readonly value="<?php echo isset($select_result['senior_embryologist']) ? $select_result['senior_embryologist'] : (isset($_SESSION['logged_embryologist']['name']) ? $_SESSION['logged_embryologist']['name'] : ''); ?>">
 </strong>
 </td>
 </tr>
@@ -163,16 +165,12 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     <table style="border:1px solid #000; width:100%; margin-bottom: 20px;">
        <tr>
            <td style="width:40%; padding:10px; text-align: center;">
-                <?php if(!empty($center_logo)): ?>
-                    <img src="<?php echo $center_logo; ?>" style="max-width:200px; height:auto; display:block; margin:0 auto;">
-                <?php else: ?>
-                    <img src="<?php echo base_url('assets/center/default-logo.png'); ?>" style="max-width:200px; height:auto; display:block; margin:0 auto;">
-                <?php endif; ?>
+                <img id="print_logo_img" src="<?php echo !empty($center_logo) ? $center_logo : base_url('assets/center/default-logo.png'); ?>" style="max-width:200px; height:auto; display:block; margin:0 auto;">
            </td>
            <td style="width:60%; padding:10px; text-align: left;">
                 <h3 style="margin:0 0 5px 0; font-size:22px;">Department of Embryology</h3>
                 <strong>Embryo Discard Discharge Summary</strong><br>
-                <small style="color:#555;">Center: <?php echo $center_name_global; ?></small>
+                <small style="color:#555;">Center: <span id="print_center_name"><?php echo !empty($center_name_global) ? $center_name_global : 'Not Selected'; ?></span></small>
            </td>
        </tr>
     </table>
@@ -189,7 +187,7 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
         <td colspan="2" width="50%" style="border:1px solid #000; padding:8px;"><strong>Details of Male Partner</strong></td>
     </tr>
     <tr>
-        <td colspan="2" style="border:1px solid #000; padding:8px;"><strong>UHID : <?php echo $sql3['center_code']."/".$select_result2['uhid']; ?></strong></td>
+        <td colspan="2" style="border:1px solid #000; padding:8px;"><strong>UHID : <?php echo (!empty($center_code_val) ? $center_code_val : "") . "/" . $uhid_val; ?></strong></td>
         <td colspan="2" style="border:1px solid #000; padding:8px;"><strong>IIC ID: <?php echo $patient_id; ?></strong></td>
     </tr>
     <tr>
@@ -238,15 +236,39 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
 </div>
 
 <script>
+var global_selected_logo = "<?php echo !empty($center_logo) ? $center_logo : ''; ?>";
+var global_selected_name = "<?php echo !empty($center_name_global) ? $center_name_global : ''; ?>";
+
+function update_center_details(dropdown) {
+    var selectedOption = dropdown.options[dropdown.selectedIndex];
+    if(selectedOption.value !== "") {
+        global_selected_logo = selectedOption.getAttribute('data-logo');
+        global_selected_name = selectedOption.getAttribute('data-name');
+        
+        // Form layout inline tracking update
+        document.getElementById("print_logo_img").src = global_selected_logo;
+        document.getElementById("print_center_name").innerText = global_selected_name;
+    }
+}
+
 function print_discharge() {
-    // Screen values copy to hidden print block
+    // Dropdown value verification fallback injection
+    var dropdown = document.getElementById("center");
+    if(dropdown.selectedIndex > 0) {
+        global_selected_logo = dropdown.options[dropdown.selectedIndex].getAttribute('data-logo');
+        global_selected_name = dropdown.options[dropdown.selectedIndex].getAttribute('data-name');
+        document.getElementById("print_logo_img").src = global_selected_logo;
+        document.getElementById("print_center_name").innerText = global_selected_name;
+    }
+
+    // Capture real-time values safely
     document.getElementById("print_date").innerText = document.getElementById("form_date_of_discard").value;
     document.getElementById("print_procedure").innerText = document.getElementById("form_name_of_procedure").value;
     document.getElementById("print_oocytes").innerText = document.getElementById("form_no_of_embryos_discard").value;
     document.getElementById("print_grading").innerText = document.getElementById("form_day_of_discard").value;
     document.getElementById("print_embryologist").innerText = document.getElementById("form_senior_embryologist").value;
 
-    // Open print window safely
+    // Isolate document context and deploy print sequence
     var printContent = document.getElementById("print_this_section").innerHTML;
     var win = window.open("", "", "width=900,height=700");
     win.document.write('<html><head><title>Discharge Summary Print</title>');
@@ -255,8 +277,12 @@ function print_discharge() {
     win.document.write(printContent);
     win.document.write('</body></html>');
     win.document.close();
-    win.print();
-    win.close();
+    
+    // Tiny delay to ensure images render before system dialog layout interrupts tracking
+    setTimeout(function(){
+        win.print();
+        win.close();
+    }, 350);
 }
 </script>
 
@@ -276,7 +302,7 @@ td {
 .ga-pro h4 { text-align: center; font-size: 20px; margin-top:0px; color:#666; }
 form { padding-left: 10px; margin-bottom: 4px; }
 .vb45rt td { text-align: left; padding-left: 10px; }
-select#center { display: block!important; }
+select#center { display: block!important; padding: 6px; width: 250px;}
 textarea { height: 70px!important; width:100%; margin-top:5px; padding:5px; box-sizing: border-box;}   
 .btn { padding: 8px 15px; font-size: 14px; cursor: pointer; border-radius: 4px; border:none;}
 .btn-primary { background-color: #007bff; color: white; }
