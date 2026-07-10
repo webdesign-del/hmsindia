@@ -2963,5 +2963,147 @@ public function save_preview_log() {
     }
     exit;
 }
+
+public function submit_return_request() {
+    $receipt_number = $this->input->post('receipt_number');
+    $patient_id = $this->input->post('patient_id');
+    $amount = $this->input->post('amount');
+    $reason = $this->input->post('reason');
+
+    $all_method =& get_instance();
+
+    // 1. Center ID seedha usi invoice row se niklega jahan se billing generate hui thi
+    $consultation_invoice = $this->db->get_where('hms_consultation', array('receipt_number' => $receipt_number))->row_array();
+    $center_id = isset($consultation_invoice['billing_at']) ? $consultation_invoice['billing_at'] : '';
+
+    // Fallback logic: Session backup
+    if(empty($center_id)) {
+        $session_keys = ['logged_administrator', 'logged_accountant', 'logged_billing_manager', 'logged_counselor'];
+        foreach ($session_keys as $key) {
+            if (isset($_SESSION[$key]['center'])) {
+                $center_id = $_SESSION[$key]['center'];
+                break;
+            }
+        }
+    }
+
+    // 🎯 Dynamic Data Fetching for Email Table Layout
+    // A. Patient Name Fetching
+    $patient_name = 'N/A';
+    if(function_exists('get_patient_detail')) {
+        $patient_data = get_patient_detail($patient_id);
+        $patient_name = isset($patient_data['wife_name']) ? strtoupper($patient_data['wife_name']) : '';
+    }
+    if(empty($patient_name) && method_exists($all_method, 'get_patient_name')) {
+        $patient_name = strtoupper($all_method->get_patient_name($patient_id));
+    }
+
+    // B. Center Name Fetching
+    $center_query = $this->db->get_where('hms_centers', array('center_number' => $center_id))->row_array();
+    $center_name = isset($center_query['center_name']) ? $center_query['center_name'] : 'Unknown Center';
+
+    // C. Doctor Name Fetching (From Appointment/Consultation context)
+    $doctor_name = 'N/A';
+    if(isset($consultation_invoice['doctor_id'])) {
+        // Agar consultation table me doctor_id save hoti hai
+        $doc_query = $this->db->get_where('hms_employees', array('ID' => $consultation_invoice['doctor_id']))->row_array();
+        $doctor_name = isset($doc_query['name']) ? $doc_query['name'] : 'N/A';
+    } else {
+        // Fallback: Latest appointment table se doctor mapped data nikalenge
+        $appointment = $this->db->order_by('id', 'DESC')->get_where('hms_appointments', array('paitent_id' => $patient_id))->row_array();
+        if(isset($appointment['doctor_id'])) {
+            $doc_query = $this->db->get_where('hms_employees', array('ID' => $appointment['doctor_id']))->row_array();
+            $doctor_name = isset($doc_query['name']) ? $doc_query['name'] : 'N/A';
+        }
+    }
+
+    // 2. Dynamic URL for Counselor approval
+    $approval_url = base_url("billings/action_return_request/approve/" . $receipt_number);
+
+    // 3. hms_notifications table me entry insert karenge
+    $notification_data = array(
+        'title'          => 'Return Request Submitted',
+        'receipt_number' => $receipt_number,
+        'message'        => "Return request of Amount: INR " . $amount . " for Patient ID: " . $patient_id . ". Reason: " . $reason,
+        'user_role'      => 'counselor', 
+        'url'            => $approval_url,
+        'is_read'        => 0,
+        'created_at'     => date('Y-m-d H:i:s')
+    );
+    $this->db->insert('hms_notifications', $notification_data);
+
+    // 5. Active center employees filter sequence
+    $this->db->where('center_id', $center_id);
+    $this->db->where('status', 1); 
+    $this->db->where_in('role', array('accountant', 'billing_manager', 'counselor', 'administrator'));
+    $center_users = $this->db->get('hms_employees')->result_array();
+
+    $emails = array();
+    foreach($center_users as $user) {
+        if(!empty($user['email'])) {
+            $emails[] = $user['email'];
+        }
+    }
+
+    // 6. Mail dispatch block with dynamic HTML layout template
+    if(!empty($emails)) {
+        $to_list = implode(',', $emails);
+        
+        $subject = "Consultation Return Request - Receipt No: " . $receipt_number;
+        
+        $message = "<div style='font-family:Arial, sans-serif; max-width:600px; margin:0 auto; padding:20px; border:1px solid #eee; border-radius:5px;'>";
+        $message .= "<h2 style='color:#333; border-bottom:2px solid #d9534f; padding-bottom:10px;'>Consultation Return Request Filed</h2>";
+        $message .= "<p>Dear Team, a new return request has been raised with the following parameters:</p>";
+        
+        // 🎯 DESIGNED TABLE BLOCK WITH ALL DEMANDED VARIABLES
+        $message .= "<table style='width:100%; border-collapse:collapse; margin:20px 0;'>";
+        $message .= "<tr><td style='padding:10px; border:1px solid #ddd; background:#f9f9f9; font-weight:bold; width:35%;'>Patient IIC ID</td><td style='padding:10px; border:1px solid #ddd; color:blue; font-weight:bold;'>".$patient_id."</td></tr>";
+        $message .= "<tr><td style='padding:10px; border:1px solid #ddd; background:#f9f9f9; font-weight:bold;'>Patient Name</td><td style='padding:10px; border:1px solid #ddd;'>".$patient_name."</td></tr>";
+        $message .= "<tr><td style='padding:10px; border:1px solid #ddd; background:#f9f9f9; font-weight:bold;'>Center Name</td><td style='padding:10px; border:1px solid #ddd;'>".$center_name."</td></tr>";
+        $message .= "<tr><td style='padding:10px; border:1px solid #ddd; background:#f9f9f9; font-weight:bold;'>Doctor Name</td><td style='padding:10px; border:1px solid #ddd;'>".strtoupper($doctor_name)."</td></tr>";
+        $message .= "<tr><td style='padding:10px; border:1px solid #ddd; background:#f9f9f9; font-weight:bold;'>Receipt Number</td><td style='padding:10px; border:1px solid #ddd;'>".$receipt_number."</td></tr>";
+        $message .= "<tr><td style='padding:10px; border:1px solid #ddd; background:#f9f9f9; font-weight:bold;'>Return Amount</td><td style='padding:10px; border:1px solid #ddd; color:green; font-weight:bold;'>INR ".$amount."</td></tr>";
+        $message .= "<tr><td style='padding:10px; border:1px solid #ddd; background:#f9f9f9; font-weight:bold;'>Reason</td><td style='padding:10px; border:1px solid #ddd; font-style:italic;'>".$reason."</td></tr>";
+        $message .= "</table>";
+        
+        $message .= "<hr style='border:0; border-top:1px solid #eee; margin:20px 0;'>";
+        $message .= "<p style='color:#b02a37; font-weight:bold; font-size:14px;'>⚠️ Note for Counselor: Only you have the authority to approve this action route template.</p>";
+        $message .= "<p style='margin-top:20px; text-align:center;'><a href='" . $approval_url . "' style='background:#d9534f; color:white; padding:12px 25px; text-decoration:none; border-radius:4px; display:inline-block; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.2);'>APPROVE RETURN</a></p>";
+        $message .= "</div>";
+
+        $this->load->library('email');
+        $this->email->from('no-reply@indiaivf.website', 'HMS Billing');
+        $this->email->to($to_list);
+        $this->email->subject($subject);
+        $this->email->message($message);
+        $this->email->send();
+    }
+
+    echo json_encode(array('status' => true));
+    exit;
+}
+
+// 7. 🎯 Counselor Approval Logic Method
+public function action_return_request($action, $receipt_number) {
+    $logg = checklogin();
+    
+    // Authorization lock: Sirf counselor hi is request ko run kar payega
+    if($logg['status'] == true && $logg['role'] == 'counselor') {
+        if($action == 'approve') {
+            
+            // Notification ko read mark kar do
+            $this->db->where('receipt_number', $receipt_number);
+            $this->db->update('hms_notifications', array('is_read' => 1));
+
+            // Main billing table me status ko change kar do
+            $this->db->where('receipt_number', $receipt_number);
+            $this->db->update('hms_consultation', array('status' => 'returned')); // status returned/approved update ho jayega
+            
+            echo "<div style='text-align:center; margin-top:50px; font-family:Arial;'><h2 style='color:green;'>Return Request Approved Successfully!</h2><p>The status has been updated in the system.</p></div>";
+        }
+    } else {
+        echo "<div style='text-align:center; margin-top:50px; font-family:Arial;'><h2 style='color:red;'>Access Denied!</h2><p>Only an authorized Center Counselor can approve this request.</p></div>";
+    }
+}
 	
 } 

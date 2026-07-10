@@ -1,7 +1,15 @@
 <div class="card">
     <div class="card-content">
         <div class="row" id="myfrm2">
-		<div class="col-lg-12"><img src="https://indiaivf.website//assets/images/India-IVF-Logo-Option-5.png" class="center" style="width:250px;margin:0px 300px;"></div>
+		<div class="col-lg-12"> <?php 
+                // Header se set kiya hua global session uthayenge
+                $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : ''; 
+                
+                if(!empty($page_logo)): ?>
+                    <img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;">
+                <?php else: ?>
+                    <img src="<?php echo base_url('assets/center/default-logo.png'); ?>" class="center" style="width:250px; display: block; margin: 0 auto;">
+                <?php endif; ?></div>
             <div class="ga-pro">
 			
                 <h2 style="text-align: center;">IN VITRO FERTILIZATION CENTER</h2>

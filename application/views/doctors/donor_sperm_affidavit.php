@@ -3,7 +3,15 @@
         <div class="row" id="myfrm2">
             <div class="col-lg-12">
                 <div class="letterhead">
-                    <img src="<?php echo base_url(); ?>assets/images/logo.png" alt="Clinic Logo">
+                     <?php 
+                // Header se set kiya hua global session uthayenge
+                $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : ''; 
+                
+                if(!empty($page_logo)): ?>
+                    <img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;">
+                <?php else: ?>
+                    <img src="<?php echo base_url('assets/center/default-logo.png'); ?>" class="center" style="width:250px; display: block; margin: 0 auto;">
+                <?php endif; ?>
                 </div>
             </div>
             <div class="ga-pro">

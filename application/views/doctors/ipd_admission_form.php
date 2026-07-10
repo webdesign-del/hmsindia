@@ -7,7 +7,15 @@
 <table>
 <tr>
 <th style="color: red;">
-<img src="https://indiaivf.website/indiaivf.jpeg" style="width:300px">
+ <?php 
+                // Header se set kiya hua global session uthayenge
+                $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : ''; 
+                
+                if(!empty($page_logo)): ?>
+                    <img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;">
+                <?php else: ?>
+                    <img src="<?php echo base_url('assets/center/default-logo.png'); ?>" class="center" style="width:250px; display: block; margin: 0 auto;">
+                <?php endif; ?>
 </th>
 <td>
 <table width="100%">

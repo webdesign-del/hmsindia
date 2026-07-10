@@ -803,5 +803,49 @@ WHERE inv.master_id = '$investigation'";
 	}
 
 	
+// वॉलेट से अमाउंट काटने और लॉग्स मेंटेन करने के लिए
+public function deduct_wallet_balance($patient_id, $amount, $sale_id, $logged_in_user) {
+    // 1. लॉग्स के लिए करंट बैलेंस निकालें
+    $this->db->where('patient_id', $patient_id);
+    $wallet = $this->db->get('hms_patient_wallets')->row();
+    
+    if (!$wallet) {
+        return false;
+    }
+
+    // Opening और Closing बैलेंस कैलकुलेट करें
+    $opening_w1 = $wallet->wallet_1_balance;
+    $closing_w1 = $opening_w1 - $amount;
+    
+    $opening_w2 = $wallet->wallet_2_balance; // इसे हम टच नहीं कर रहे, इसलिए same रहेगा
+    $closing_w2 = $opening_w2;
+
+    // 2. hms_patient_wallets से अमाउंट काटें (Wallet 1 से)
+    $this->db->set('wallet_1_balance', 'wallet_1_balance - ' . (float)$amount, FALSE);
+    $this->db->set('updated_at', date('Y-m-d H:i:s'));
+    $this->db->where('patient_id', $patient_id);
+    $this->db->update('hms_patient_wallets');
+
+    // 3. hms_wallet_logs में ट्रांजैक्शन की एंट्री करें
+    $log_data = [
+        'patient_id'     => $patient_id,
+        'amount'         => $amount,
+        'action_type'    => 'Consultation_Billing', // पैसे कट रहे हैं इसलिए debit
+        'opening_w1'     => $opening_w1,
+        'closing_w1'     => $closing_w1,
+        'opening_w2'     => $opening_w2,
+        'closing_w2'     => $closing_w2,
+        'reference_id'   => $sale_id, // Sale ID ताकि पता रहे किस बिल के लिए पैसे कटे
+        'payment_method' => 'wallet',
+        'remarks'        => 'Amount deducted for Sale ID: ' . $sale_id,
+        'created_by'     => $logged_in_user, // जिसने लॉगिन किया है उसकी ID
+        'created_at'     => date('Y-m-d H:i:s'),
+        'status'         => 'pending' // आपके DB के अनुसार इसे 1 या 'Success' रखें
+    ];     
+                    
+                   
+    
+    return $this->db->insert('hms_wallet_logs', $log_data);
+}
 	
 }

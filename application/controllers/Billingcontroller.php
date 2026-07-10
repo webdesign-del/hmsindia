@@ -440,9 +440,9 @@ public function consultation($appointment_id){
                 // [संशोधित] वॉलेट डिडक्शन (सुरक्षित वेरिएबल्स का उपयोग)
                 // ==========================================
                 if ($payment_method === 'wallet' && $payment_done > 0) {
-                    $logged_in_user_id = isset($logg['id']) ? $logg['id'] : 1;
+                    $biller_id = $_POST['biller_id'];
                     log_message('debug', "Wallet Deduction Execution - Patient: ".$paitent_id.", Amt: ".$payment_done);
-                    $this->Stock_model_new->deduct_wallet_balance($paitent_id, $payment_done, $consult, $logged_in_user_id);
+                    $this->billingmodel_model->deduct_wallet_balance($paitent_id, $payment_done, $consult, $biller_id);
                 }
                 // ==========================================
 

@@ -170,8 +170,8 @@ class Accounts extends CI_Controller {
 		}
 		$consultation_result = $investigate_result = $procedure_result = $procedure_can_result = $patient_result = $medicine_result = $sales_result = $refund_amount_result = array();		
 	   $data = $this->accounts_model->get_patient_data_by($search_this, $search_by);
-	   	$medicine_result = $data['medicine_result'];
-		$sales_result = $data['sales_result'];
+	    //$medicine_result = $data['medicine_result'];
+		//$sales_result = $data['sales_result'];
 	if(!empty($data)){
 		$patient_id = $data['patient_result']['patient_id'];
 		$patient_data = get_patient_detail($patient_id);
@@ -12693,7 +12693,7 @@ public function disapprove_wallet_transfer($log_id) {
             }
             
             // 🌟 3. ALL BILLING / USAGE REJECTIONS
-            elseif (in_array($action_type, ['PACKAGE_USAGE', 'INVESTIGATION_USAGE', 'Medicine_Sale'])) {
+            elseif (in_array($action_type, ['PACKAGE_USAGE', 'INVESTIGATION_USAGE', 'Medicine_Sale','Consultation_Billing'])) {
                 if ($action_type === 'PACKAGE_USAGE') {
                     $new_w2 = $current_w2 + $amount_action; 
                     $log_remarks = "Billing Disapproved: Amount reversed and credited back to Package Wallet.";

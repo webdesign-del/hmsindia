@@ -2,6 +2,16 @@
 $all_method =& get_instance();
 $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
 
+    // 🎯 FIX 1: Dynamic URL Router - Segment 3 se patient_id fetch karein
+    if(empty($patient_id)){
+        $patient_id = $this->uri->segment(3); 
+    }
+    
+    // Fallback agar segment blank ho to GET/POST variables se uthaayein
+    if(empty($patient_id)){
+        $patient_id = isset($_GET['patient_id']) ? $_GET['patient_id'] : (isset($_POST['patient_id']) ? $_POST['patient_id'] : '');
+    }
+
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);   
@@ -44,11 +54,17 @@ $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_dat
     $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
     $select_result2 = run_select_query($sql2);
   
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+    // 🎯 FIX 2: Agar form dynamic view ho raha hai to fallback routing check karein
+    $center_query_val = isset($select_result['center']) ? $select_result['center'] : (isset($select_result2['appoitment_for']) ? $select_result2['appoitment_for'] : $this->uri->segment(2));
+  
+    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$center_query_val."'";
     $select_result3 = run_select_query($sql3);  
 
     $sql_semen_freezing = "Select * from ".$this->config->item('db_prefix')."semen_freezing where patient_id='".$patient_id."'";
     $select_semen_freezing = run_select_query($sql_semen_freezing);   
+
+    // 🎯 FIX 3: Dropdown selection ke liye global variable update karein
+    $center = $center_query_val;
 ?>
  <form action="" enctype='multipart/form-data' method="post">
   
