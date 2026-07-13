@@ -295,9 +295,11 @@ if(isset($_POST['submit'])){
 			
 			
 			
-<input type="button" id="btn" value="Print" class="btn btn-primary pull-right printbtn" onclick="printtable();">
-            
-<div  class="printtable prtable"  id="printtable"  style="display:none">  				
+<input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
+
+	
+<!--<div  class="printtable prtable"  id="printtable"  style="display:none;">-->
+<div  class="printtable prtable"  id="printtable" style="display:none;"> 				
 			
 			
 			
@@ -527,7 +529,6 @@ if(isset($_POST['submit'])){
 			
 </div>
  			
-						
 <script>
 $(document).ready(function(){
     
@@ -555,4 +556,5 @@ $(document).ready(function(){
         // Note: window.location.reload(); ko hta diya gaya hai taaki page achanak refresh na ho.
     });
 });
-</script>
+</script>			
+						
