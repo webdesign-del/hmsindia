@@ -1,0 +1,1874 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>India IVF — Patient Journey &amp; Collections Module</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ============ INDIA IVF BRAND THEME ============ */
+:root{
+  --bg:#FBF7F4;            /* warm white */
+  --surface:#FFFFFF;
+  --surface-2:#FBF6F2;
+  --primary:#A23B6C;       /* warm rose / plum */
+  --primary-dark:#7C2B51;
+  --primary-soft:#F6E6EE;  /* soft pink */
+  --gold:#C99A4E;          /* warm gold accent */
+  --gold-soft:#F6ECD9;
+  --blue:#4A7BA6;          /* soft blue */
+  --blue-soft:#E5EFF6;
+  --text:#2E2A2C;
+  --text-mid:#6B6168;
+  --text-soft:#9A8F95;
+  --border:#EEE4DC;
+  --border-soft:#F4ECE5;
+  --green:#4C9A78;
+  --green-soft:#E6F1EB;
+  --amber:#D69B3E;
+  --amber-soft:#FaF0DC;
+  --red:#CF5B57;
+  --red-soft:#FAE6E5;
+  --shadow:0 1px 2px rgba(60,40,50,.04), 0 6px 22px rgba(120,70,95,.06);
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Inter','Poppins',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:'Poppins','Inter',sans-serif;font-weight:600;letter-spacing:-.01em;}
+
+/* ============ TOP BAR ============ */
+.topbar{
+  height:62px;display:flex;align-items:center;gap:18px;
+  padding:0 22px;background:var(--surface);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:50;
+}
+.brand{display:flex;align-items:center;gap:11px;}
+.brand-mark{
+  width:38px;height:38px;border-radius:11px;flex:none;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-family:'Poppins';font-weight:700;font-size:17px;
+  box-shadow:0 4px 12px rgba(162,59,108,.28);
+}
+.brand-name{font-family:'Poppins';font-weight:700;font-size:15px;color:var(--primary-dark);line-height:1.1;}
+.brand-name span{color:var(--gold);}
+.brand-sub{font-size:11px;color:var(--text-soft);font-weight:500;}
+.topbar-sep{width:1px;height:30px;background:var(--border);}
+
+.role-switch{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:11px;border:1px solid var(--border-soft);}
+.role-pill{
+  border:none;background:transparent;cursor:pointer;
+  font-family:'Inter';font-size:12.5px;font-weight:600;color:var(--text-mid);
+  padding:7px 13px;border-radius:8px;transition:.15s;white-space:nowrap;
+}
+.role-pill:hover{color:var(--primary);}
+.role-pill.active{background:var(--surface);color:var(--primary-dark);box-shadow:var(--shadow);}
+
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.scope-chip{
+  display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;
+  color:var(--text-mid);background:var(--surface-2);
+  border:1px solid var(--border);padding:7px 12px;border-radius:9px;
+}
+.scope-chip .loc{color:var(--primary-dark);}
+.scope-chip select{
+  border:none;background:transparent;font-family:'Inter';font-weight:600;
+  font-size:12px;color:var(--primary-dark);cursor:pointer;outline:none;
+}
+.user-chip{display:flex;align-items:center;gap:9px;}
+.avatar{
+  width:34px;height:34px;border-radius:50%;flex:none;
+  background:linear-gradient(135deg,var(--gold),#b9863c);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-weight:600;font-size:13px;
+}
+.user-meta{line-height:1.15;}
+.user-name{font-size:12.5px;font-weight:600;}
+.user-role{font-size:11px;color:var(--text-soft);}
+
+/* ============ LAYOUT ============ */
+.layout{display:flex;min-height:calc(100vh - 62px);}
+.sidebar{
+  width:236px;flex:none;background:var(--surface);
+  border-right:1px solid var(--border);padding:18px 14px;
+  display:flex;flex-direction:column;gap:6px;
+}
+.side-role{
+  font-family:'Poppins';font-size:11px;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--text-soft);padding:4px 10px 10px;
+}
+.side-link{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 11px;border-radius:10px;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--text-mid);transition:.13s;
+}
+.side-link:hover{background:var(--surface-2);color:var(--primary);}
+.side-link.active{background:var(--primary-soft);color:var(--primary-dark);font-weight:600;}
+.side-link .ic{
+  width:24px;height:24px;border-radius:7px;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+  background:var(--surface-2);
+}
+.side-link.active .ic{background:var(--surface);color:var(--primary);}
+.side-foot{
+  margin-top:auto;padding:13px 11px;border-radius:11px;
+  background:var(--blue-soft);font-size:11.5px;color:#3d6383;line-height:1.5;
+}
+.side-foot b{color:var(--blue);display:block;margin-bottom:3px;font-size:11px;
+  text-transform:uppercase;letter-spacing:.05em;}
+
+.main{flex:1;padding:26px 30px 60px;overflow-x:hidden;}
+
+/* ============ SCREENS ============ */
+.screen{display:none;animation:fade .25s ease;}
+.screen.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+.page-head{margin-bottom:20px;display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+.page-title{font-size:21px;color:var(--primary-dark);}
+.page-sub{font-size:13px;color:var(--text-soft);margin-top:3px;}
+.page-actions{margin-left:auto;display:flex;gap:9px;align-items:center;}
+
+/* ============ ROLE BANNER ============ */
+.role-banner{
+  background:linear-gradient(110deg,var(--primary-soft),#FBF1F5 60%,var(--surface));
+  border:1px solid var(--border);border-radius:var(--radius);
+  padding:15px 18px;margin-bottom:20px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+}
+.role-banner .rb-resp{flex:1;min-width:240px;}
+.role-banner .rb-resp h4{font-size:13px;color:var(--primary-dark);margin-bottom:3px;}
+.role-banner .rb-resp p{font-size:12.5px;color:var(--text-mid);}
+.rb-see{display:flex;flex-direction:column;gap:5px;}
+.rb-see .lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-soft);}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+.chip{
+  font-size:11px;font-weight:600;background:var(--surface);
+  border:1px solid var(--border);color:var(--text-mid);
+  padding:4px 9px;border-radius:7px;
+}
+
+/* ============ KPI CARDS ============ */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px;}
+.kpi{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:16px 17px;box-shadow:var(--shadow);
+}
+.kpi-top{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.kpi-ic{
+  width:30px;height:30px;border-radius:8px;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+}
+.kpi-label{font-size:11.5px;font-weight:600;color:var(--text-soft);
+  text-transform:uppercase;letter-spacing:.04em;}
+.kpi-value{font-family:'Poppins';font-size:26px;font-weight:600;color:var(--text);}
+.kpi-value .cur{font-size:15px;color:var(--text-soft);font-weight:500;}
+.kpi-sub{font-size:11.5px;color:var(--text-soft);margin-top:4px;}
+.kpi-sub b{font-weight:600;}
+.ic-rose{background:var(--primary-soft);color:var(--primary);}
+.ic-gold{background:var(--gold-soft);color:var(--gold);}
+.ic-blue{background:var(--blue-soft);color:var(--blue);}
+.ic-green{background:var(--green-soft);color:var(--green);}
+.ic-red{background:var(--red-soft);color:var(--red);}
+.ic-amber{background:var(--amber-soft);color:var(--amber);}
+
+/* ============ CARDS ============ */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;
+}
+.card-head{
+  display:flex;align-items:center;gap:10px;
+  padding:15px 18px;border-bottom:1px solid var(--border-soft);
+}
+.card-title{font-size:14px;font-weight:600;color:var(--primary-dark);}
+.card-title .muted{color:var(--text-soft);font-weight:500;font-size:12px;}
+.card-tools{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.card-body{padding:18px;}
+.card-body.flush{padding:0;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+@media(max-width:1100px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+/* ============ TABLE ============ */
+.table-wrap{overflow-x:auto;}
+table.tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+table.tbl th{
+  text-align:left;font-weight:600;color:var(--text-soft);
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;
+  padding:11px 14px;background:var(--surface-2);
+  border-bottom:1px solid var(--border);white-space:nowrap;
+}
+table.tbl td{padding:12px 14px;border-bottom:1px solid var(--border-soft);color:var(--text-mid);vertical-align:middle;}
+table.tbl tr:last-child td{border-bottom:none;}
+table.tbl tbody tr:hover{background:var(--surface-2);}
+table.tbl td.strong{color:var(--text);font-weight:600;}
+.col-num{text-align:right;font-variant-numeric:tabular-nums;}
+
+/* ============ STATUS PILLS ============ */
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;
+  padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.pill .dot{width:7px;height:7px;border-radius:50%;}
+.pill-green{background:var(--green-soft);color:#2f6b51;}
+.pill-green .dot{background:var(--green);}
+.pill-amber{background:var(--amber-soft);color:#9a6b1e;}
+.pill-amber .dot{background:var(--amber);}
+.pill-red{background:var(--red-soft);color:#a23b38;}
+.pill-red .dot{background:var(--red);}
+.pill-grey{background:var(--surface-2);color:var(--text-soft);border:1px solid var(--border);}
+.pill-grey .dot{background:var(--text-soft);}
+.pill-blue{background:var(--blue-soft);color:#3d6383;}
+.pill-blue .dot{background:var(--blue);}
+
+/* ============ GATE BADGES ============ */
+.gate{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;
+  padding:4px 9px;border-radius:7px;border:1px solid;white-space:nowrap;}
+.gate-pay{background:var(--red-soft);color:#a23b38;border-color:#f0cfce;}
+.gate-data{background:var(--blue-soft);color:#3d6383;border-color:#cfe0ec;}
+.gate-approval{background:var(--gold-soft);color:#8a6526;border-color:#e8d5ab;}
+.gate-open{background:var(--green-soft);color:#2f6b51;border-color:#cbe5d8;}
+
+/* ============ JOURNEY STEPPER ============ */
+.stepper{display:flex;gap:0;overflow-x:auto;padding:6px 2px 2px;}
+.step{flex:1;min-width:118px;text-align:center;position:relative;cursor:pointer;}
+.step:not(:last-child)::after{
+  content:"";position:absolute;top:17px;left:50%;width:100%;height:2px;
+  background:var(--border);z-index:0;}
+.step.done:not(:last-child)::after{background:var(--green);}
+.step-node{
+  width:36px;height:36px;border-radius:50%;margin:0 auto 8px;position:relative;z-index:1;
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;
+  background:var(--surface);border:2px solid var(--border);color:var(--text-soft);
+}
+.step.done .step-node{background:var(--green);border-color:var(--green);color:#fff;}
+.step.current .step-node{background:var(--primary);border-color:var(--primary);color:#fff;
+  box-shadow:0 0 0 4px var(--primary-soft);}
+.step.locked .step-node{background:var(--surface-2);}
+.step-name{font-size:11px;font-weight:600;color:var(--text);}
+.step-day{font-size:10px;color:var(--text-soft);margin-top:1px;}
+.step.current .step-name{color:var(--primary-dark);}
+
+/* ============ SKELETON / EMPTY ============ */
+.skel{height:11px;border-radius:5px;background:linear-gradient(90deg,#efe7e1,#f7f1ec,#efe7e1);
+  background-size:200% 100%;animation:sk 1.6s infinite;}
+@keyframes sk{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.skel.sk-sm{width:50%;}.skel.sk-md{width:75%;}.skel.sk-lg{width:92%;}
+.skel-pill{width:54px;height:18px;border-radius:20px;}
+.empty-note{
+  display:flex;align-items:center;gap:9px;justify-content:center;
+  padding:16px;font-size:12px;color:var(--text-soft);
+  background:var(--surface-2);border-radius:9px;border:1px dashed var(--border);
+}
+.wf-tag{font-size:10px;font-weight:600;color:var(--text-soft);
+  background:var(--surface-2);border:1px solid var(--border);
+  padding:2px 7px;border-radius:5px;}
+
+/* ============ FORM FIELDS ============ */
+.field-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:15px;}
+.field-label{font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.req{color:var(--red);font-size:13px;line-height:1;}
+.auto-tag{font-size:9.5px;font-weight:700;letter-spacing:.04em;background:var(--blue-soft);
+  color:var(--blue);padding:2px 6px;border-radius:5px;text-transform:uppercase;}
+.input,.select{
+  width:100%;font-family:'Inter';font-size:12.5px;color:var(--text);
+  padding:9px 11px;border:1px solid var(--border);border-radius:9px;
+  background:var(--surface);outline:none;transition:.13s;
+}
+.input:focus,.select:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+.input::placeholder{color:var(--text-soft);}
+.input[readonly]{background:var(--surface-2);color:var(--text-soft);}
+.field-meta{margin-top:5px;display:flex;gap:6px;flex-wrap:wrap;}
+.tag-src,.tag-use{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:5px;}
+.tag-src{background:var(--gold-soft);color:#8a6526;}
+.tag-use{background:var(--surface-2);color:var(--text-soft);border:1px solid var(--border);}
+
+/* ============ BUTTONS ============ */
+.btn{
+  font-family:'Inter';font-size:12.5px;font-weight:600;cursor:pointer;
+  padding:9px 16px;border-radius:9px;border:1px solid transparent;transition:.13s;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-ghost{background:var(--surface);color:var(--text-mid);border-color:var(--border);}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-gold:hover{background:#b9863c;}
+.btn-sm{padding:6px 11px;font-size:11.5px;}
+.btn-disabled{background:var(--surface-2);color:var(--text-soft);border-color:var(--border);cursor:not-allowed;}
+.btn-block{width:100%;justify-content:center;}
+
+/* ============ MISC ============ */
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--text-mid);}
+.legend span{display:flex;align-items:center;gap:6px;}
+.note{font-size:11.5px;color:var(--text-soft);}
+.divider{height:1px;background:var(--border-soft);margin:16px 0;}
+.bucket-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+@media(max-width:900px){.bucket-row{grid-template-columns:1fr 1fr;}}
+.bucket{
+  border:1px solid var(--border);border-radius:11px;padding:14px;text-align:center;
+  background:var(--surface);
+}
+.bucket-lbl{font-size:11px;font-weight:600;color:var(--text-soft);}
+.bucket-val{font-family:'Poppins';font-size:20px;font-weight:600;margin:6px 0 2px;}
+.bucket-cnt{font-size:11px;color:var(--text-soft);}
+.bucket.b1{border-top:3px solid var(--green);}
+.bucket.b2{border-top:3px solid #9bbf5a;}
+.bucket.b3{border-top:3px solid var(--amber);}
+.bucket.b4{border-top:3px solid #d97b4a;}
+.bucket.b5{border-top:3px solid var(--red);}
+
+.bar-track{height:9px;border-radius:6px;background:var(--surface-2);overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--primary),var(--primary-dark));}
+
+.trigger-item,.approval-item{
+  display:flex;gap:12px;align-items:flex-start;padding:13px 16px;
+  border-bottom:1px solid var(--border-soft);
+}
+.trigger-item:last-child,.approval-item:last-child{border-bottom:none;}
+.ti-ic{width:32px;height:32px;border-radius:8px;flex:none;display:flex;
+  align-items:center;justify-content:center;font-size:14px;}
+.ti-body{flex:1;}
+.ti-title{font-size:12.5px;font-weight:600;color:var(--text);}
+.ti-desc{font-size:11.5px;color:var(--text-soft);margin-top:2px;}
+.ti-time{font-size:10.5px;color:var(--text-soft);white-space:nowrap;}
+
+.info-list{display:flex;flex-direction:column;gap:10px;}
+.info-row{display:flex;gap:11px;font-size:12px;color:var(--text-mid);}
+.info-row .k{font-weight:600;color:var(--text);min-width:130px;flex:none;}
+
+.subtabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;
+  border-radius:10px;border:1px solid var(--border-soft);flex-wrap:wrap;}
+.subtab{border:none;background:transparent;cursor:pointer;font-family:'Inter';
+  font-size:12px;font-weight:600;color:var(--text-mid);padding:7px 13px;border-radius:7px;}
+.subtab.active{background:var(--surface);color:var(--primary-dark);box-shadow:var(--shadow);}
+.subtab:hover:not(.active){color:var(--primary);}
+
+.callout{
+  display:flex;gap:10px;padding:12px 14px;border-radius:10px;font-size:12px;
+  background:var(--blue-soft);color:#3d6383;border:1px solid #d3e3ef;
+}
+.callout.warn{background:var(--amber-soft);color:#8a6526;border-color:#e8d5ab;}
+.callout.danger{background:var(--red-soft);color:#a23b38;border-color:#f0cfce;}
+.callout . co-ic{font-size:15px;flex:none;}
+.tag-list{display:flex;gap:6px;flex-wrap:wrap;}
+.mini-head{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--text-soft);margin-bottom:10px;}
+</style>
+</head>
+<body data-role="doctor">
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">i</div>
+    <div>
+      <div class="brand-name">India <span>IVF</span></div>
+      <div class="brand-sub">Patient Journey &amp; Collections</div>
+    </div>
+  </div>
+  <div class="topbar-sep"></div>
+  <div class="role-switch" id="roleSwitch">
+    <button class="role-pill active" data-role="doctor">Doctor</button>
+    <button class="role-pill" data-role="ch">Centre Head</button>
+    <button class="role-pill" data-role="fc">Financial Counsellor</button>
+    <button class="role-pill" data-role="accounts">Accounts</button>
+    <button class="role-pill" data-role="mgmt">Management</button>
+  </div>
+  <div class="topbar-right">
+    <div class="scope-chip" id="scopeChip">
+      <span>📍</span><span class="loc" id="scopeText">Noida Centre</span>
+    </div>
+    <div class="user-chip">
+      <div class="avatar" id="userAv">DR</div>
+      <div class="user-meta">
+        <div class="user-name" id="userName">Dr. A. Verma</div>
+        <div class="user-role" id="userRole">Doctor · Noida</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- ================= SIDEBAR ================= -->
+  <nav class="sidebar">
+    <div class="side-role" id="sideRole">Doctor Workspace</div>
+    <div id="sideNav"></div>
+    <div class="side-foot" id="sideFoot">
+      <b>Visibility scope</b>
+      Centre-scoped — you see only your own patients at your centre.
+    </div>
+  </nav>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main" id="main">
+
+  <!-- ================================================== -->
+  <!-- ===================  DOCTOR  ====================== -->
+  <!-- ================================================== -->
+
+  <!-- ---------- Doctor: Dashboard ---------- -->
+  <section class="screen" id="doc-dashboard">
+    <div class="page-head">
+      <div>
+        <div class="page-title">My Patient Dashboard</div>
+        <div class="page-sub">Active clinical journeys at Noida Centre · Monday, 25 May 2026</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm">Filter</button>
+        <button class="btn btn-primary btn-sm" onclick="showScreen('doc-milestone')">＋ Update Milestone</button>
+      </div>
+    </div>
+
+    <div class="role-banner">
+      <div class="rb-resp">
+        <h4>Responsibility — Map &amp; update the clinical journey, end to end</h4>
+        <p>Set expected milestone dates at booking · mark each clinical step complete · log micro-steps &amp; outcomes · initiate financial reconciliation when the plan changes.</p>
+      </div>
+      <div class="rb-see">
+        <span class="lbl">I can see</span>
+        <div class="chip-row">
+          <span class="chip">My patients · my centre</span>
+          <span class="chip">Clinical journey per patient</span>
+          <span class="chip">Centre achievement table</span>
+          <span class="chip">Next-step alerts</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">◔</div><div class="kpi-label">Active Patients</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">across 7 milestones</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">●</div><div class="kpi-label">On Track</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">green — within standard window</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">●</div><div class="kpi-label">Within Window</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">amber — watch closely</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">●</div><div class="kpi-label">Overdue / Gated</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">red — blocked or late</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">⏷</div><div class="kpi-label">Next-step Alerts</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">milestones expected today</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Active Patient List <span class="muted">· current milestone &amp; gate status</span></div>
+        <div class="card-tools">
+          <span class="wf-tag">WIREFRAME</span>
+          <button class="btn btn-ghost btn-sm">Export</button>
+        </div>
+      </div>
+      <div class="card-body flush">
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>Patient · IIC ID</th><th>Package Code</th><th>Current Milestone</th>
+              <th>Next Step</th><th>Next-step Date</th><th>Payment</th><th>Gate Status</th><th></th>
+            </tr></thead>
+            <tbody id="docPtRows"></tbody>
+          </table>
+        </div>
+        <div style="padding:13px 16px;border-top:1px solid var(--border-soft)">
+          <div class="legend">
+            <span><span class="pill pill-green"><span class="dot"></span>Green</span> on track</span>
+            <span><span class="pill pill-amber"><span class="dot"></span>Amber</span> within window</span>
+            <span><span class="pill pill-red"><span class="dot"></span>Red</span> overdue or under-collected</span>
+            <span><span class="gate gate-pay">🔒 Payment</span> next action blocked</span>
+            <span><span class="gate gate-data">🔒 Data</span> fields incomplete</span>
+            <span><span class="gate gate-open">✓ Open</span> ready to proceed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Next-step Alerts</div>
+          <div class="card-tools"><span class="pill pill-blue"><span class="dot"></span>Day-before reminder</span></div></div>
+        <div class="card-body flush" id="docAlerts"></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Quick Actions</div></div>
+        <div class="card-body">
+          <div class="info-list">
+            <button class="btn btn-primary btn-block" onclick="showScreen('doc-milestone')">＋ Open Milestone Completion Form</button>
+            <button class="btn btn-ghost btn-block" onclick="showScreen('doc-achievement')">▤ View Centre Achievement Table</button>
+            <button class="btn btn-ghost btn-block">↩ Initiate Financial Reconciliation</button>
+          </div>
+          <div class="divider"></div>
+          <div class="mini-head">Doctor must log</div>
+          <div class="tag-list">
+            <span class="chip">7 expected dates at booking</span>
+            <span class="chip">Mark each step complete</span>
+            <span class="chip">Injections · scans · eggs</span>
+            <span class="chip">Outcome at every decision</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- Doctor: Milestone Completion Form ---------- -->
+  <section class="screen" id="doc-milestone">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Milestone Completion Form</div>
+        <div class="page-sub">Log clinical data milestone by milestone · every mandatory field is gated</div>
+      </div>
+      <div class="page-actions">
+        <select class="select" style="width:230px"><option>Select patient · IIC ID …</option></select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="stepper" id="msStepper"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head" style="flex-wrap:wrap;gap:8px">
+        <div class="subtabs" id="msSubtabs">
+          <button class="subtab active" onclick="milestoneTab(0)">1 · Booking</button>
+          <button class="subtab" onclick="milestoneTab(1)">2 · LMP / Withdrawal</button>
+          <button class="subtab" onclick="milestoneTab(2)">3 · Stimulation</button>
+          <button class="subtab" onclick="milestoneTab(3)">4 · Trigger</button>
+          <button class="subtab" onclick="milestoneTab(4)">5 · OPU</button>
+          <button class="subtab" onclick="milestoneTab(5)">6 · Embryology</button>
+          <button class="subtab" onclick="milestoneTab(6)">7 · Embryo Transfer</button>
+          <button class="subtab" onclick="milestoneTab(7)">8 · Beta HCG / Outcome</button>
+        </div>
+      </div>
+      <div class="card-body" id="msPanels"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Enforcement Summary <span class="muted">· every place the system says “no”</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Enforcement</th><th>What it does</th><th>Type</th></tr></thead>
+        <tbody>
+          <tr><td class="strong">No receipt without journey plan</td><td>10% booking receipt cannot generate until the doctor enters expected dates for all 7 milestones</td><td><span class="gate gate-data">Hard</span></td></tr>
+          <tr><td class="strong">No stim without 40%</td><td>Stim cannot be marked started until FC confirms 40% payment</td><td><span class="gate gate-pay">Hard</span></td></tr>
+          <tr><td class="strong">No stim beyond 12 days</td><td>OI form auto-closes at day 12; director approval required for continuation</td><td><span class="gate gate-approval">Hard + approval</span></td></tr>
+          <tr><td class="strong">No trigger without full payment</td><td>Trigger blocked unless full balance cleared</td><td><span class="gate gate-approval">Hard + CH flexibility</span></td></tr>
+          <tr><td class="strong">No OPU without 100%</td><td>OPU theatre blocked until 100% paid</td><td><span class="gate gate-approval">Hard + director override</span></td></tr>
+          <tr><td class="strong">No ET without 100%</td><td>ET slot blocked until 100% paid</td><td><span class="gate gate-approval">Hard + director override</span></td></tr>
+          <tr><td class="strong">No restim without reconciliation</td><td>After a cancelled stim, restim form cannot open until reconciliation complete</td><td><span class="gate gate-data">Hard</span></td></tr>
+          <tr><td class="strong">No package change without reconciliation</td><td>New codes blocked mid-treatment until reconciliation complete</td><td><span class="gate gate-data">Hard</span></td></tr>
+          <tr><td class="strong">No cycle close without outcome</td><td>Patient record cannot close until beta HCG outcome &amp; next-step logged</td><td><span class="gate gate-data">Hard</span></td></tr>
+          <tr><td class="strong">No next milestone without current logged</td><td>Each milestone's required fields must be saved before the next tab unlocks</td><td><span class="gate gate-data">Hard</span></td></tr>
+          <tr><td class="strong">No refund without computation</td><td>Accounts cannot mark a refund processed without the system computing the amount</td><td><span class="gate gate-pay">Hard</span></td></tr>
+          <tr><td class="strong">No silent override</td><td>Every override creates a timestamped exception in the management red-trigger view</td><td><span class="gate gate-open">Always logged</span></td></tr>
+        </tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Doctor: Achievement Table ---------- -->
+  <section class="screen" id="doc-achievement">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Centre Achievement Table</div>
+        <div class="page-sub">Expected vs actual dates with variance · Noida Centre</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span><button class="btn btn-ghost btn-sm">Export</button></div>
+    </div>
+    <div class="callout"><span class="co-ic">ⓘ</span>
+      <div>Date variance = <b>Actual − Expected</b> (days). Expected &amp; actual <b>amount</b> columns are visible to Centre Head, FC, Accounts and Management — not to the doctor view.</div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-head"><div class="card-title">Milestone Variance <span class="muted">· all milestones, all my patients</span></div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+      <div class="card-body flush">
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>Patient · IIC ID</th><th>Milestone</th><th>Expected Date</th>
+              <th>Actual Date</th><th class="col-num">Date Variance</th><th>Status Flag</th>
+            </tr></thead>
+            <tbody id="docAchRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================== -->
+  <!-- ================  CENTRE HEAD  ==================== -->
+  <!-- ================================================== -->
+
+  <!-- ---------- CH: Dashboard ---------- -->
+  <section class="screen" id="ch-dashboard">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Centre Head Dashboard</div>
+        <div class="page-sub">Collection performance · Noida Centre · Monday, 25 May 2026</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('ch-collections')">View Collections</button>
+        <button class="btn btn-primary btn-sm" onclick="showScreen('ch-aging')">Aging Buckets</button>
+      </div>
+    </div>
+
+    <div class="role-banner">
+      <div class="rb-resp">
+        <h4>Responsibility — Own collection performance at the centre</h4>
+        <p>Review the daily expected-collections list · approve 10% flexibility on trigger &amp; programme change · action Slack triggers from the day before · follow up on missed collections.</p>
+      </div>
+      <div class="rb-see">
+        <span class="lbl">I can see</span>
+        <div class="chip-row">
+          <span class="chip">All patients · my centre only</span>
+          <span class="chip">Centre achievement table</span>
+          <span class="chip">Expected vs actual collection</span>
+          <span class="chip">Aging buckets · centre level</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Today Expected</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">across all milestones today</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">✓</div><div class="kpi-label">Today Collected</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">actual receipts logged by FC</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">≈</div><div class="kpi-label">Variance</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">actual − expected</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">⚑</div><div class="kpi-label">Missed Collections</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">piling into red triggers</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-gold">⚖</div><div class="kpi-label">Approvals Pending</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">10% flexibility requests</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Pending Approvals <span class="muted">· 10% flexibility</span></div>
+          <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+        <div class="card-body flush" data-skelitems="3" data-skelitem="approval"></div>
+        <div class="card-body" style="border-top:1px solid var(--border-soft)">
+          <div class="mini-head">Log 10% flexibility invoked</div>
+          <div class="field-grid">
+            <div><div class="field-label">10% flexibility invoked <span class="req">✱</span></div>
+              <select class="select"><option value="">Select …</option><option>Yes</option><option>No</option></select>
+              <div class="field-meta"><span class="tag-src">Source · Centre Head</span><span class="tag-use">Used in · Audit, override log</span></div></div>
+            <div><div class="field-label">Reason <span class="req">✱</span></div>
+              <input class="input" type="text" placeholder="Reason for invoking flexibility">
+              <div class="field-meta"><span class="tag-use">When · at trigger / programme change</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Day-before Reminder <span class="muted">· Slack + email</span></div>
+          <div class="card-tools"><span class="pill pill-blue"><span class="dot"></span>Tomorrow</span></div></div>
+        <div class="card-body flush" data-skelitems="4" data-skelitem="trigger"></div>
+        <div class="card-body" style="border-top:1px solid var(--border-soft)">
+          <div class="callout"><span class="co-ic">ⓘ</span><div>Reminder lists each patient with a procedure step expected tomorrow — name, IIC ID, step, expected amount, sign-up date and current milestone status.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Missed-collection Follow-up Log</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span>
+          <button class="btn btn-primary btn-sm">＋ Add follow-up note</button></div></div>
+      <div class="card-body flush">
+        <div class="table-wrap"><table class="tbl">
+          <thead><tr><th>Patient · IIC ID</th><th>Missed Milestone</th><th>Expected Amount</th>
+            <th>Days Overdue</th><th>Last Follow-up</th><th>Follow-up Note</th><th>Status</th></tr></thead>
+          <tbody data-skelrows="4" data-skelcols="pt,md,num,num,sm,lg,pill"></tbody>
+        </table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- CH: Expected Collections ---------- -->
+  <section class="screen" id="ch-collections">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Expected Collections</div>
+        <div class="page-sub">Patient × milestone × amount × assigned FC · Noida Centre</div>
+      </div>
+      <div class="page-actions">
+        <div class="subtabs">
+          <button class="subtab active" data-sub="chcol" onclick="subSwitch('chcol',0)">Today</button>
+          <button class="subtab" data-sub="chcol" onclick="subSwitch('chcol',1)">Tomorrow</button>
+        </div>
+      </div>
+    </div>
+
+    <div data-panel="chcol">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Today Expected</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">total across milestones</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◔</div><div class="kpi-label">Patients Due</div></div>
+          <div class="kpi-value">—</div><div class="kpi-sub">milestone payment today</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">✓</div><div class="kpi-label">Collected So Far</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">confirmed by FC</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Today's Expected Collections</div>
+          <div class="card-tools"><span class="wf-tag">WIREFRAME</span><button class="btn btn-ghost btn-sm">Export</button></div></div>
+        <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+          <thead><tr><th>Patient · IIC ID</th><th>Procedure Step</th><th>Expected Amount</th>
+            <th>Assigned FC</th><th>Sign-up Date</th><th>Milestone Status</th><th>Gate</th><th></th></tr></thead>
+          <tbody data-skelrows="6" data-skelcols="pt,md,num,sm,sm,pill,gate,btn"></tbody>
+        </table></div></div>
+      </div>
+    </div>
+
+    <div data-panel="chcol" style="display:none">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Tomorrow Expected</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">projected from journey plan</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◔</div><div class="kpi-label">Patients Due</div></div>
+          <div class="kpi-value">—</div><div class="kpi-sub">milestone payment tomorrow</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">⏷</div><div class="kpi-label">Slack Reminder</div></div>
+          <div class="kpi-value">Sent</div><div class="kpi-sub">day-before · Slack + email</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Tomorrow's Expected Collections</div>
+          <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+        <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+          <thead><tr><th>Patient · IIC ID</th><th>Procedure Step</th><th>Expected Amount</th>
+            <th>Assigned FC</th><th>Sign-up Date</th><th>Milestone Status</th><th>Gate</th><th></th></tr></thead>
+          <tbody data-skelrows="6" data-skelcols="pt,md,num,sm,sm,pill,gate,btn"></tbody>
+        </table></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- CH: Achievement Table ---------- -->
+  <section class="screen" id="ch-achievement">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Centre Achievement Table</div>
+        <div class="page-sub">Expected vs actual — dates &amp; amounts with variance · Noida Centre</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span><button class="btn btn-ghost btn-sm">Export</button></div>
+    </div>
+    <div class="legend" style="margin-bottom:14px">
+      <span><span class="pill pill-green"><span class="dot"></span>Green</span> on track</span>
+      <span><span class="pill pill-amber"><span class="dot"></span>Amber</span> within window</span>
+      <span><span class="pill pill-red"><span class="dot"></span>Red</span> overdue or under-collected</span>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Milestone Variance <span class="muted">· dates &amp; amounts</span></div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Milestone</th><th>Expected Date</th><th>Actual Date</th>
+          <th class="col-num">Date Var.</th><th class="col-num">Expected Amt</th><th class="col-num">Actual Amt</th>
+          <th class="col-num">Amt Var.</th><th>Status Flag</th></tr></thead>
+        <tbody data-skelrows="9" data-skelcols="pt,md,sm,sm,num,num,num,num,pill"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- CH: Aging Buckets ---------- -->
+  <section class="screen" id="ch-aging">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Aging Buckets</div>
+        <div class="page-sub">Outstanding collections by age · Noida Centre</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Aging Snapshot <span class="muted">· centre level</span></div></div>
+      <div class="card-body">
+        <div class="bucket-row">
+          <div class="bucket b1"><div class="bucket-lbl">0 – 30 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b2"><div class="bucket-lbl">31 – 60 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b3"><div class="bucket-lbl">61 – 90 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b4"><div class="bucket-lbl">91 – 180 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b5"><div class="bucket-lbl">180+ days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Overdue Patients</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span>
+          <button class="btn btn-primary btn-sm">＋ Log follow-up</button></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Milestone</th><th>Amount Overdue</th><th>Days Overdue</th>
+          <th>Bucket</th><th>Assigned FC</th><th>Last Follow-up</th><th></th></tr></thead>
+        <tbody data-skelrows="6" data-skelcols="pt,md,num,num,pill,sm,sm,btn"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ================================================== -->
+  <!-- ===========  FINANCIAL COUNSELLOR  ================ -->
+  <!-- ================================================== -->
+
+  <!-- ---------- FC: My Patients ---------- -->
+  <section class="screen" id="fc-dashboard">
+    <div class="page-head">
+      <div>
+        <div class="page-title">My Patients</div>
+        <div class="page-sub">Patient-level financial mapping · assigned patients at Noida Centre</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('fc-actions')">Action Queue</button>
+        <button class="btn btn-primary btn-sm" onclick="showScreen('fc-refund')">Refund Queue</button>
+      </div>
+    </div>
+
+    <div class="role-banner">
+      <div class="rb-resp">
+        <h4>Responsibility — Patient-level financial mapping &amp; adjustments</h4>
+        <p>Confirm payment receipt against each milestone · process wallet adjustments triggered by the doctor · handle reconciliation tasks at the centre · coordinate refund initiation with accounts.</p>
+      </div>
+      <div class="rb-see">
+        <span class="lbl">I can see</span>
+        <div class="chip-row">
+          <span class="chip">My assigned patients · my centre</span>
+          <span class="chip">Wallet balance &amp; history</span>
+          <span class="chip">Pending milestone payments</span>
+          <span class="chip">Refund queue</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">◔</div><div class="kpi-label">Assigned Patients</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">active financial journeys</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">₹</div><div class="kpi-label">Payments Due Today</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">milestone payments pending</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◈</div><div class="kpi-label">Wallet Adjustments</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">triggered by doctor</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-gold">⇄</div><div class="kpi-label">Reconciliation Tasks</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">plan / package changes</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">↩</div><div class="kpi-label">Refunds Pending</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">awaiting mode verification</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Patient List <span class="muted">· wallet, next milestone &amp; payment due</span></div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span><button class="btn btn-ghost btn-sm">Filter</button></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Package Code</th><th>Wallet Balance</th><th>Next Milestone</th>
+          <th>Payment Due</th><th>Gate</th><th>Status</th><th></th></tr></thead>
+        <tbody data-skelrows="7" data-skelcols="pt,pill,num,md,num,gate,pill,btn"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- FC: Action Queue ---------- -->
+  <section class="screen" id="fc-actions">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Action Queue</div>
+        <div class="page-sub">Confirm payment · wallet adjustment · reconciliation · refund mode verification</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Open Tasks</div>
+        <div class="card-tools">
+          <span class="pill pill-grey"><span class="dot"></span>Confirm payment</span>
+          <span class="pill pill-blue"><span class="dot"></span>Wallet adjustment</span>
+          <span class="pill pill-amber"><span class="dot"></span>Reconciliation</span>
+          <span class="pill pill-red"><span class="dot"></span>Refund mode</span>
+        </div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Task Type</th><th>Patient · IIC ID</th><th>Milestone</th><th>Amount</th>
+          <th>Triggered By</th><th>Created</th><th></th></tr></thead>
+        <tbody data-skelrows="6" data-skelcols="pill,pt,md,num,sm,sm,act"></tbody>
+      </table></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Confirm Milestone Payment</div></div>
+        <div class="card-body">
+          <div class="callout"><span class="co-ic">🔓</span><div>Confirming a milestone payment unlocks the clinical gate so the doctor can proceed.</div></div>
+          <div style="height:14px"></div>
+          <div class="field-grid">
+            <div><div class="field-label">Payment received confirmation <span class="req">✱</span></div>
+              <select class="select"><option value="">Select …</option><option>Yes — received</option><option>No</option></select>
+              <div class="field-meta"><span class="tag-src">Source · FC</span><span class="tag-use">Unlocks clinical gate</span></div></div>
+            <div><div class="field-label">Amount received <span class="req">✱</span></div>
+              <input class="input" type="text" placeholder="₹ 0.00">
+              <div class="field-meta"><span class="tag-use">Each milestone payment</span></div></div>
+            <div><div class="field-label">Payment mode <span class="req">✱</span></div>
+              <select class="select"><option value="">Select …</option><option>Cash</option><option>Card</option><option>Insurance</option><option>Cheque</option><option>UPI</option></select>
+              <div class="field-meta"><span class="tag-src">Source · FC</span><span class="tag-use">Refund routing</span></div></div>
+            <div><div class="field-label">Milestone</div>
+              <select class="select"><option>Booking — 10%</option><option>Stimulation — 40%</option><option>Trigger — balance</option><option>OPU — 100%</option></select></div>
+          </div>
+          <div class="divider"></div>
+          <button class="btn btn-primary">Confirm payment &amp; unlock gate →</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Wallet Adjustment</div></div>
+        <div class="card-body">
+          <div class="callout warn"><span class="co-ic">◈</span><div>Wallet adjustments are triggered by the doctor (mid-stim outcome, package change). Log the adjustment note for audit.</div></div>
+          <div style="height:14px"></div>
+          <div class="field-grid">
+            <div><div class="field-label">Adjustment type</div>
+              <select class="select"><option>Credit</option><option>Debit</option><option>Pro-rata reversal</option></select></div>
+            <div><div class="field-label">Adjustment amount</div>
+              <input class="input" type="text" placeholder="₹ 0.00"></div>
+          </div>
+          <div style="height:14px"></div>
+          <div><div class="field-label">Wallet adjustment note <span class="req">✱</span></div>
+            <textarea class="input" rows="2" placeholder="Reason for adjustment …"></textarea>
+            <div class="field-meta"><span class="tag-src">Source · FC</span><span class="tag-use">Used in · Audit</span></div></div>
+          <div class="divider"></div>
+          <button class="btn btn-primary">Post wallet adjustment</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Reconciliation Task</div>
+        <div class="card-tools"><span class="pill pill-amber"><span class="dot"></span>FC + Accounts</span></div></div>
+      <div class="card-body">
+        <div class="mini-head">Reconciliation is triggered when</div>
+        <div class="grid-3" style="gap:12px;margin-bottom:16px">
+          <div class="callout"><span class="co-ic">⚕</span><div><b>Stimulation cancelled</b> — no eggs formed, or patient stopped mid-stim, before restimulation.</div></div>
+          <div class="callout"><span class="co-ic">⇄</span><div><b>Package changed</b> — self-cycle to donor, or any package code change.</div></div>
+          <div class="callout"><span class="co-ic">✕</span><div><b>Outcome failed</b> — patient &amp; doctor decide next cycle, withdrawal or change of management.</div></div>
+        </div>
+        <div class="field-grid">
+          <div><div class="field-label">Reconciliation completion flag <span class="req">✱</span></div>
+            <select class="select"><option value="">Select …</option><option>Yes — complete</option><option>No — in progress</option></select>
+            <div class="field-meta"><span class="tag-src">Source · FC</span><span class="tag-use">Unlocks new codes</span></div></div>
+          <div><div class="field-label">Reconciliation notes <span class="req">✱</span></div>
+            <input class="input" type="text" placeholder="Notes on reconciliation outcome">
+            <div class="field-meta"><span class="tag-use">When · plan / package change</span></div></div>
+        </div>
+        <div class="divider"></div>
+        <div class="mini-head">Code-bundling for residual amounts</div>
+        <div class="callout"><span class="co-ic">🔗</span><div>The residual of a pending procedure is clubbed with another (e.g. <b>IP1 + IP2 → new combined code</b>). The new code links to both originals, milestones re-map under it, and the two original codes are <b>frozen</b> — no further entries permitted.</div></div>
+        <div style="height:12px"></div>
+        <div class="field-grid">
+          <div><div class="field-label">Original code A</div><select class="select"><option>IP11</option><option>IP222</option></select></div>
+          <div><div class="field-label">Original code B</div><select class="select"><option>IP11</option><option>IP222</option></select></div>
+          <div><div class="field-label">New combined code</div><input class="input" type="text" placeholder="Auto-generated" readonly></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- FC: Refund Queue ---------- -->
+  <section class="screen" id="fc-refund">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Refund Queue</div>
+        <div class="page-sub">Pro-rata computation &amp; refund mode verification · pending external processing</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Pro-rata Refund Computation</div>
+        <div class="card-tools"><span class="pill pill-blue"><span class="dot"></span>System computes</span></div></div>
+      <div class="card-body">
+        <div class="callout"><span class="co-ic">∑</span><div><b>Refundable amount = milestone payment × ( 1 − completed micro-steps ÷ total prescribed micro-steps )</b></div></div>
+        <div style="height:14px"></div>
+        <div class="field-grid">
+          <div><div class="field-label">Milestone payment</div>
+            <select class="select"><option>Stimulation — 40% of package</option><option>Trigger — balance</option></select></div>
+          <div><div class="field-label">Total micro-steps prescribed</div>
+            <input class="input" type="number" placeholder="e.g. 4 injections"></div>
+          <div><div class="field-label">Completed micro-steps <span class="auto-tag" style="background:var(--gold-soft);color:#8a6526">Doctor logs</span></div>
+            <input class="input" type="number" placeholder="e.g. 2 injections"></div>
+          <div><div class="field-label">Refundable amount <span class="auto-tag">Auto</span></div>
+            <input class="input" type="text" placeholder="Auto-computed by system" readonly></div>
+          <div><div class="field-label">Refund mode confirmation <span class="req">✱</span></div>
+            <select class="select"><option value="">Select …</option><option>Cash</option><option>Insurance</option></select>
+            <div class="field-meta"><span class="tag-src">Source · FC</span><span class="tag-use">Used in · Accounts queue</span></div></div>
+        </div>
+        <div class="divider"></div>
+        <div class="callout warn"><span class="co-ic">ⓘ</span><div><b>Worked example —</b> Stim milestone = 40% of package. Prescribed = 4 injections, given = 2 → Refund = 40% × (1 − 2/4) = <b>20% of package</b>.</div></div>
+        <div style="height:14px"></div>
+        <div class="mini-head">Refund responsibility flow</div>
+        <div class="chip-row">
+          <span class="chip">1 · Doctor logs micro-steps</span>
+          <span class="chip">2 · System computes amount</span>
+          <span class="chip">3 · FC confirms mode with patient</span>
+          <span class="chip">4 · Accounts processes externally</span>
+          <span class="chip">5 · Accounts closes · wallet → ₹0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Refund Queue <span class="muted">· pending external processing</span></div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Reconciliation Trigger</th><th>Computed Refund</th>
+          <th>Refund Mode</th><th>FC Verified</th><th>Status</th><th></th></tr></thead>
+        <tbody data-skelrows="5" data-skelcols="pt,md,num,pill,sm,pill,btn"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- FC: Patient Wallet ---------- -->
+  <section class="screen" id="fc-wallet">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Patient Wallet</div>
+        <div class="page-sub">Wallet balance &amp; full payment history per patient</div>
+      </div>
+      <div class="page-actions">
+        <select class="select" style="width:230px"><option>Select patient · IIC ID …</option></select>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Total Package</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">net amount after discount</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">✓</div><div class="kpi-label">Collected</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">across milestones</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">◷</div><div class="kpi-label">Outstanding</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">pending milestone payments</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◈</div><div class="kpi-label">Wallet Balance</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">live credit / debit position</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Milestone Payment Schedule <span class="muted">· standard IVF self-cycle</span></div></div>
+      <div class="card-body">
+        <div class="callout"><span class="co-ic">ⓘ</span><div>Percentages apply to standard IVF self-cycle codes (IP11, IP222, composites). Donor &amp; custom packages have schedules defined per package code at booking.</div></div>
+        <div style="height:14px"></div>
+        <div class="bucket-row" style="grid-template-columns:repeat(4,1fr)">
+          <div class="bucket b1"><div class="bucket-lbl">Booking</div><div class="bucket-val">10%</div><div class="bucket-cnt">at T · Day 0</div></div>
+          <div class="bucket b3"><div class="bucket-lbl">Stimulation</div><div class="bucket-val">40%</div><div class="bucket-cnt">at T + 10</div></div>
+          <div class="bucket b4"><div class="bucket-lbl">Trigger</div><div class="bucket-val">Balance</div><div class="bucket-cnt">at T + 18 · 10% CH flex</div></div>
+          <div class="bucket b5"><div class="bucket-lbl">OPU</div><div class="bucket-val">100%</div><div class="bucket-cnt">must clear before OPU</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Wallet History</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span><button class="btn btn-ghost btn-sm">Export</button></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Date</th><th>Milestone</th><th>Event</th><th>Mode</th>
+          <th class="col-num">Debit</th><th class="col-num">Credit</th><th class="col-num">Balance</th></tr></thead>
+        <tbody data-skelrows="7" data-skelcols="sm,md,md,pill,num,num,num"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ================================================== -->
+  <!-- ==================  ACCOUNTS  ===================== -->
+  <!-- ================================================== -->
+
+  <!-- ---------- Accounts: Collections ---------- -->
+  <section class="screen" id="acc-dashboard">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Cross-Centre Collections</div>
+        <div class="page-sub">Daily expected vs actual collection across all centres · 25 May 2026</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('acc-refund')">Refund Queue</button>
+        <button class="btn btn-primary btn-sm" onclick="showScreen('acc-triggers')">Red Triggers</button>
+      </div>
+    </div>
+
+    <div class="role-banner">
+      <div class="rb-resp">
+        <h4>Responsibility — Cross-centre collections &amp; refund execution</h4>
+        <p>Receive the daily Slack trigger across centres · process cash &amp; insurance refunds · track aging and follow up across centres · reconcile wallet against payment events.</p>
+      </div>
+      <div class="rb-see">
+        <span class="lbl">I can see</span>
+        <div class="chip-row">
+          <span class="chip">All centres · all patients</span>
+          <span class="chip">Daily expected collection · all centres</span>
+          <span class="chip">Refund queue · all centres</span>
+          <span class="chip">Aging · company level</span>
+          <span class="chip">All red-flag triggers</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Today Expected</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">all centres consolidated</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">✓</div><div class="kpi-label">Today Actual</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">receipts logged today</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">≈</div><div class="kpi-label">Variance</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">actual − expected</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">↩</div><div class="kpi-label">Refund Queue</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">cash &amp; insurance, all centres</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">⚑</div><div class="kpi-label">Red Triggers</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">across all centres</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Today's Collection — by Centre <span class="muted">· expected, actual &amp; variance</span></div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span><button class="btn btn-ghost btn-sm">Drill down</button></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Centre</th><th class="col-num">Expected</th><th class="col-num">Actual</th>
+          <th class="col-num">Variance</th><th class="col-num">Patients Due</th><th>Adherence</th><th></th></tr></thead>
+        <tbody data-skelrows="6" data-skelcols="md,num,num,num,num,bar,btn"></tbody>
+      </table></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Daily Slack Trigger <span class="muted">· consolidated</span></div>
+          <div class="card-tools"><span class="pill pill-blue"><span class="dot"></span>Received</span></div></div>
+        <div class="card-body flush" data-skelitems="4" data-skelitem="trigger"></div>
+        <div class="card-body" style="border-top:1px solid var(--border-soft)">
+          <div class="callout"><span class="co-ic">ⓘ</span><div>Daily trigger = total expected collection, centre-wise breakdown with patient-level drill-down, and a breakdown by procedure step.</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Collection by Procedure Step</div>
+          <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+        <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+          <thead><tr><th>Procedure Step</th><th class="col-num">Expected</th><th class="col-num">Actual</th><th>Adherence</th></tr></thead>
+          <tbody data-skelrows="6" data-skelcols="md,num,num,bar"></tbody>
+        </table></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- Accounts: Refund Queue ---------- -->
+  <section class="screen" id="acc-refund">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Refund Queue — All Centres</div>
+        <div class="page-sub">Execute cash &amp; insurance refunds · reconcile wallet against payment events</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Refund Queue <span class="muted">· cash &amp; insurance, cross-centre</span></div>
+        <div class="card-tools">
+          <span class="pill pill-grey"><span class="dot"></span>Cash</span>
+          <span class="pill pill-blue"><span class="dot"></span>Insurance</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Centre</th><th>Reconciliation Trigger</th><th class="col-num">Computed Refund</th>
+          <th>Mode</th><th>FC Verified</th><th>Status</th><th></th></tr></thead>
+        <tbody data-skelrows="6" data-skelcols="pt,sm,md,num,pill,pill,pill,act"></tbody>
+      </table></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Execute Refund</div></div>
+        <div class="card-body">
+          <div class="callout danger"><span class="co-ic">🔒</span><div>Accounts cannot mark a refund processed until the system has computed the amount from the doctor's micro-step log.</div></div>
+          <div style="height:14px"></div>
+          <div class="field-grid">
+            <div><div class="field-label">Refund executed flag <span class="req">✱</span></div>
+              <select class="select"><option value="">Select …</option><option>Yes — executed</option><option>No</option></select>
+              <div class="field-meta"><span class="tag-src">Source · Accounts</span><span class="tag-use">Closes wallet record</span></div></div>
+            <div><div class="field-label">Date of execution <span class="req">✱</span></div>
+              <input class="input" type="date">
+              <div class="field-meta"><span class="tag-use">After external refund</span></div></div>
+            <div><div class="field-label">Refund external reference <span class="req">✱</span></div>
+              <input class="input" type="text" placeholder="Cheque no. / transaction ID">
+              <div class="field-meta"><span class="tag-src">Source · Accounts</span><span class="tag-use">Used in · Audit</span></div></div>
+            <div><div class="field-label">Refund mode</div>
+              <select class="select"><option>Cash</option><option>Insurance</option></select></div>
+          </div>
+          <div class="divider"></div>
+          <button class="btn btn-primary">Mark refund executed · wallet → ₹0</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Wallet Reconciliation</div></div>
+        <div class="card-body">
+          <div class="callout warn"><span class="co-ic">⇄</span><div>Reconcile the wallet against all payment events before closing a record.</div></div>
+          <div style="height:14px"></div>
+          <div><div class="field-label">Reconciliation support note <span class="req">✱</span></div>
+            <textarea class="input" rows="3" placeholder="Supporting notes for reconciliation …"></textarea>
+            <div class="field-meta"><span class="tag-src">Source · Accounts</span><span class="tag-use">Used in · Audit</span></div></div>
+          <div class="divider"></div>
+          <div class="info-list">
+            <div class="info-row"><span class="k">Wallet events</span><span>Booking · Stim · Trigger · OPU · adjustments · refunds</span></div>
+            <div class="info-row"><span class="k">Closes when</span><span>Wallet balance reconciles to expected position</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- Accounts: Company Aging ---------- -->
+  <section class="screen" id="acc-aging">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Company Aging</div>
+        <div class="page-sub">Outstanding collections by age · all centres</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span><button class="btn btn-primary btn-sm">＋ Log follow-up</button></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Aging Snapshot <span class="muted">· company level</span></div></div>
+      <div class="card-body">
+        <div class="bucket-row">
+          <div class="bucket b1"><div class="bucket-lbl">0 – 30 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b2"><div class="bucket-lbl">31 – 60 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b3"><div class="bucket-lbl">61 – 90 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b4"><div class="bucket-lbl">91 – 180 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b5"><div class="bucket-lbl">180+ days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Aging by Centre</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Centre</th><th class="col-num">0–30</th><th class="col-num">31–60</th><th class="col-num">61–90</th>
+          <th class="col-num">91–180</th><th class="col-num">180+</th><th class="col-num">Total Outstanding</th><th></th></tr></thead>
+        <tbody data-skelrows="6" data-skelcols="md,num,num,num,num,num,num,btn"></tbody>
+      </table></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Aging Follow-up Log</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Centre</th><th>Amount</th><th>Days Overdue</th>
+          <th>Follow-up Note</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody data-skelrows="5" data-skelcols="pt,sm,num,num,lg,sm,pill"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Accounts: Red Triggers ---------- -->
+  <section class="screen" id="acc-triggers">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Red Triggers — All Centres</div>
+        <div class="page-sub">Every place the HMS has flagged an exception</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Internal HMS Trigger Routing</div></div>
+      <div class="card-body">
+        <div class="info-list">
+          <div class="info-row"><span class="k">Stim 12-day cap reached</span><span>→ Director approval queue</span></div>
+          <div class="info-row"><span class="k">Discount above counsellor limit</span><span>→ Founder approval queue</span></div>
+          <div class="info-row"><span class="k">Plan / package change</span><span>→ FC &amp; Accounts reconciliation queue</span></div>
+          <div class="info-row"><span class="k">Refund computed</span><span>→ Accounts execution queue</span></div>
+          <div class="info-row"><span class="k">Gate override</span><span>→ Management red-trigger view</span></div>
+        </div>
+        <div class="divider"></div>
+        <div class="callout warn"><span class="co-ic">ⓘ</span><div>When an expected collection is missed, <b>no new Slack message</b> is sent — the entry piles up in the red-trigger view instead. This avoids notification fatigue and creates a visible escalation pile.</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Red Trigger Pile-up</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span>
+          <span class="note">Ranked by days overdue · amount · centre · stage</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Trigger Type</th><th>Patient · IIC ID</th><th>Centre</th><th>Procedure Stage</th>
+          <th class="col-num">Value</th><th class="col-num">Days Overdue</th><th></th></tr></thead>
+        <tbody data-skelrows="7" data-skelcols="pill,pt,sm,md,num,num,act"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ================================================== -->
+  <!-- =================  MANAGEMENT  ==================== -->
+  <!-- ================================================== -->
+
+  <!-- ---------- Management: Dashboard ---------- -->
+  <section class="screen" id="mgmt-dashboard">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Management Dashboard</div>
+        <div class="page-sub">Company-wide collection visibility &amp; exception oversight</div>
+      </div>
+      <div class="page-actions">
+        <div class="subtabs">
+          <button class="subtab active" data-sub="mcol" onclick="subSwitch('mcol',0)">Today</button>
+          <button class="subtab" data-sub="mcol" onclick="subSwitch('mcol',1)">This Week</button>
+          <button class="subtab" data-sub="mcol" onclick="subSwitch('mcol',2)">This Month</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="role-banner">
+      <div class="rb-resp">
+        <h4>Responsibility — Company-wide visibility &amp; exception oversight</h4>
+        <p>Review the consolidated dashboard daily · approve director-only items (12-day stim extension, large refunds, special discount escalations) · act on accumulated red triggers.</p>
+      </div>
+      <div class="rb-see">
+        <span class="lbl">I can see</span>
+        <div class="chip-row">
+          <span class="chip">All centres · all patients · all data</span>
+          <span class="chip">Consolidated achievement, aging, projection</span>
+          <span class="chip">Override &amp; exception logs</span>
+          <span class="chip">Red trigger pile-up</span>
+        </div>
+      </div>
+    </div>
+
+    <div data-panel="mcol">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Expected · Today</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">all centres</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">✓</div><div class="kpi-label">Actual · Today</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">receipts logged</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◑</div><div class="kpi-label">Adherence</div></div>
+          <div class="kpi-value">—%</div><div class="kpi-sub">actual ÷ expected</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">⚑</div><div class="kpi-label">Red Triggers</div></div>
+          <div class="kpi-value">—</div><div class="kpi-sub">pile-up awaiting action</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-gold">⚖</div><div class="kpi-label">Approvals Pending</div></div>
+          <div class="kpi-value">—</div><div class="kpi-sub">director-only items</div></div>
+      </div>
+    </div>
+    <div data-panel="mcol" style="display:none">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Expected · Week</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">all centres</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">✓</div><div class="kpi-label">Actual · Week</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">receipts logged</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◑</div><div class="kpi-label">Adherence</div></div>
+          <div class="kpi-value">—%</div><div class="kpi-sub">actual ÷ expected</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">↗</div><div class="kpi-label">Projection</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">week-end forecast</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">⚑</div><div class="kpi-label">Red Triggers</div></div>
+          <div class="kpi-value">—</div><div class="kpi-sub">pile-up awaiting action</div></div>
+      </div>
+    </div>
+    <div data-panel="mcol" style="display:none">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Expected · Month</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">all centres</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">✓</div><div class="kpi-label">Actual · Month</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">receipts logged</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◑</div><div class="kpi-label">Adherence</div></div>
+          <div class="kpi-value">—%</div><div class="kpi-sub">actual ÷ expected</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">↗</div><div class="kpi-label">Projection</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">month-end forecast</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">⚑</div><div class="kpi-label">Red Triggers</div></div>
+          <div class="kpi-value">—</div><div class="kpi-sub">pile-up awaiting action</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Expected vs Actual Collection — by Centre</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Centre</th><th class="col-num">Expected</th><th class="col-num">Actual</th>
+          <th class="col-num">Variance</th><th>Collection Adherence</th><th>Status</th></tr></thead>
+        <tbody data-skelrows="6" data-skelcols="md,num,num,num,bar,pill"></tbody>
+      </table></div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Override &amp; Exception Log</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span>
+          <span class="note">Every override creates a timestamped record</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Timestamp</th><th>Exception / Override</th><th>Patient · IIC ID</th><th>Centre</th>
+          <th>Approved By</th><th>Reason</th></tr></thead>
+        <tbody data-skelrows="6" data-skelcols="sm,md,pt,sm,sm,lg"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Management: Centre Comparison ---------- -->
+  <section class="screen" id="mgmt-centres">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Centre Comparison</div>
+        <div class="page-sub">Collection adherence ranked across all centres</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Centre-wise Performance</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span><button class="btn btn-ghost btn-sm">Export</button></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Centre</th><th class="col-num">Expected</th><th class="col-num">Actual</th>
+          <th>Collection Adherence</th><th class="col-num">Aging Outstanding</th><th class="col-num">Red Triggers</th>
+          <th>On-track %</th></tr></thead>
+        <tbody data-skelrows="6" data-skelcols="md,num,num,bar,num,num,bar"></tbody>
+      </table></div></div>
+    </div>
+    <div class="grid-3">
+      <div class="card"><div class="card-head"><div class="card-title">Best Adherence</div></div>
+        <div class="card-body"><div class="kpi-value" style="font-size:22px">—</div>
+          <div class="note" style="margin-top:6px">Top-performing centre</div></div></div>
+      <div class="card"><div class="card-head"><div class="card-title">Needs Attention</div></div>
+        <div class="card-body"><div class="kpi-value" style="font-size:22px">—</div>
+          <div class="note" style="margin-top:6px">Lowest adherence centre</div></div></div>
+      <div class="card"><div class="card-head"><div class="card-title">Highest Red Pile-up</div></div>
+        <div class="card-body"><div class="kpi-value" style="font-size:22px">—</div>
+          <div class="note" style="margin-top:6px">Most accumulated triggers</div></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Management: Aging Snapshot ---------- -->
+  <section class="screen" id="mgmt-aging">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Aging Snapshot</div>
+        <div class="page-sub">Outstanding collections across all centres</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Company Aging</div></div>
+      <div class="card-body">
+        <div class="bucket-row">
+          <div class="bucket b1"><div class="bucket-lbl">0 – 30 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b2"><div class="bucket-lbl">31 – 60 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b3"><div class="bucket-lbl">61 – 90 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b4"><div class="bucket-lbl">91 – 180 days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+          <div class="bucket b5"><div class="bucket-lbl">180+ days</div><div class="bucket-val">₹—</div><div class="bucket-cnt">— patients</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Aging by Centre</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Centre</th><th class="col-num">0–30</th><th class="col-num">31–60</th><th class="col-num">61–90</th>
+          <th class="col-num">91–180</th><th class="col-num">180+</th><th class="col-num">Total</th></tr></thead>
+        <tbody data-skelrows="6" data-skelcols="md,num,num,num,num,num,num"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Management: Red Trigger Pile-up ---------- -->
+  <section class="screen" id="mgmt-triggers">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Red Trigger Pile-up</div>
+        <div class="page-sub">Missed collections, overrides &amp; reconciliation pending — ranked by aging × value</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span></div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">⚑</div><div class="kpi-label">Missed Collections</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">no Slack — piled here</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">⟲</div><div class="kpi-label">Gate Overrides</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">timestamped exceptions</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">⇄</div><div class="kpi-label">Reconciliation Pending</div></div>
+        <div class="kpi-value">—</div><div class="kpi-sub">plan / package changes</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Total Value at Risk</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>—</div><div class="kpi-sub">across all triggers</div></div>
+    </div>
+    <div class="callout danger" style="margin-bottom:16px"><span class="co-ic">⚑</span>
+      <div>Ranking factors days overdue, amount, centre and procedure stage — <b>OPU misses are treated as most critical</b>.</div></div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Pile-up — Ranked</div>
+        <div class="card-tools"><span class="wf-tag">WIREFRAME</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Rank</th><th>Trigger Type</th><th>Patient · IIC ID</th><th>Centre</th><th>Procedure Stage</th>
+          <th class="col-num">Value</th><th class="col-num">Days Overdue</th><th class="col-num">Aging × Value</th><th></th></tr></thead>
+        <tbody data-skelrows="8" data-skelcols="rank,pill,pt,sm,md,num,num,num,act"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Management: Approval Queue ---------- -->
+  <section class="screen" id="mgmt-approvals">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Approval Queue</div>
+        <div class="page-sub">Director-only items requiring authority above the centre</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">WIREFRAME</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Pending Approvals</div>
+        <div class="card-tools"><span class="pill pill-amber"><span class="dot"></span>Awaiting director</span></div></div>
+      <div class="card-body flush" data-skelitems="4" data-skelitem="approval"></div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-head"><div class="card-title">12-day Stim Extension</div></div>
+        <div class="card-body">
+          <div class="callout warn"><span class="co-ic">⚕</span><div>At the day-12 stim cap. Approval opens the continuation form.</div></div>
+          <div style="height:12px"></div>
+          <div class="field-label">Approval <span class="req">✱</span></div>
+          <select class="select"><option value="">Select …</option><option>Approve</option><option>Reject</option></select>
+          <div style="height:10px"></div>
+          <div class="field-label">Reason <span class="req">✱</span></div>
+          <textarea class="input" rows="2" placeholder="Reason for decision …"></textarea>
+          <div class="field-meta"><span class="tag-src">Source · Director</span><span class="tag-use">Opens continuation form</span></div>
+          <div class="divider"></div>
+          <button class="btn btn-primary btn-block">Submit decision</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">OPU / ET Payment Override</div></div>
+        <div class="card-body">
+          <div class="callout danger"><span class="co-ic">🔒</span><div>Used when 100% is not cleared. Unlocks the OPU / ET gate.</div></div>
+          <div style="height:12px"></div>
+          <div class="field-label">Override <span class="req">✱</span></div>
+          <select class="select"><option value="">Select …</option><option>Approve override</option><option>Reject</option></select>
+          <div style="height:10px"></div>
+          <div class="field-label">Reason <span class="req">✱</span></div>
+          <textarea class="input" rows="2" placeholder="Reason for override …"></textarea>
+          <div class="field-meta"><span class="tag-src">Source · Director</span><span class="tag-use">Unlocks OPU / ET gate</span></div>
+          <div class="divider"></div>
+          <button class="btn btn-primary btn-block">Submit decision</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Large Refund Approval</div></div>
+        <div class="card-body">
+          <div class="callout"><span class="co-ic">↩</span><div>Refund above the threshold. Approval releases refund execution.</div></div>
+          <div style="height:12px"></div>
+          <div class="field-label">Approval <span class="req">✱</span></div>
+          <select class="select"><option value="">Select …</option><option>Approve</option><option>Reject</option></select>
+          <div style="height:10px"></div>
+          <div class="field-label">Reason <span class="req">✱</span></div>
+          <textarea class="input" rows="2" placeholder="Reason for decision …"></textarea>
+          <div class="field-meta"><span class="tag-src">Source · Director</span><span class="tag-use">Releases refund execution</span></div>
+          <div class="divider"></div>
+          <button class="btn btn-primary btn-block">Submit decision</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Special Discount Escalation <span class="muted">· founder approval</span></div></div>
+      <div class="card-body">
+        <div class="callout warn"><span class="co-ic">⚖</span><div>A discount above the counsellor limit routes to the founder approval queue.</div></div>
+        <div style="height:14px"></div>
+        <div class="field-grid">
+          <div><div class="field-label">Discount requested</div><input class="input" type="text" placeholder="₹ 0.00 / %"></div>
+          <div><div class="field-label">Counsellor limit</div><input class="input" type="text" placeholder="Auto" readonly></div>
+          <div><div class="field-label">Founder approval <span class="req">✱</span></div>
+            <select class="select"><option value="">Select …</option><option>Approve</option><option>Reject</option></select></div>
+          <div><div class="field-label">Reason <span class="req">✱</span></div><input class="input" type="text" placeholder="Reason for decision"></div>
+        </div>
+        <div class="divider"></div>
+        <button class="btn btn-gold">Submit founder decision</button>
+      </div>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<script>
+/* ============ ROLE & SCREEN FRAMEWORK ============ */
+const ROLE_META = {
+  doctor:{ name:'Doctor Workspace', user:'Dr. A. Verma', av:'DR', tag:'Doctor · Noida',
+    scope:'Noida Centre', scopeFixed:true,
+    foot:'Centre-scoped — you see only your own patients at your centre.' },
+  ch:{ name:'Centre Head Workspace', user:'S. Khanna', av:'SK', tag:'Centre Head · Noida',
+    scope:'Noida Centre', scopeFixed:true,
+    foot:'Centre-scoped — all patients at your centre only.' },
+  fc:{ name:'Financial Counsellor', user:'P. Rao', av:'PR', tag:'FC · Noida',
+    scope:'Noida Centre', scopeFixed:true,
+    foot:'Patient-scoped — only patients assigned to you at your centre.' },
+  accounts:{ name:'Accounts Team', user:'M. Iyer', av:'MI', tag:'Accounts · All Centres',
+    scope:'All Centres', scopeFixed:false,
+    foot:'Company-wide — all centres, all patients, all red-flag triggers.' },
+  mgmt:{ name:'Management', user:'Dr. Somendra', av:'DS', tag:'Director · All Centres',
+    scope:'All Centres', scopeFixed:false,
+    foot:'Company-wide visibility — every centre, every patient, every exception.' }
+};
+const NAV = {
+  doctor:[
+    {id:'doc-dashboard',label:'Dashboard',ic:'▦'},
+    {id:'doc-milestone',label:'Milestone Form',ic:'✚'},
+    {id:'doc-achievement',label:'Achievement Table',ic:'▤'}
+  ],
+  ch:[
+    {id:'ch-dashboard',label:'Dashboard',ic:'▦'},
+    {id:'ch-collections',label:"Expected Collections",ic:'₹'},
+    {id:'ch-achievement',label:'Achievement Table',ic:'▤'},
+    {id:'ch-aging',label:'Aging Buckets',ic:'⏳'}
+  ],
+  fc:[
+    {id:'fc-dashboard',label:'My Patients',ic:'▦'},
+    {id:'fc-actions',label:'Action Queue',ic:'✓'},
+    {id:'fc-refund',label:'Refund Queue',ic:'↩'},
+    {id:'fc-wallet',label:'Patient Wallet',ic:'◈'}
+  ],
+  accounts:[
+    {id:'acc-dashboard',label:'Collections',ic:'▦'},
+    {id:'acc-refund',label:'Refund Queue',ic:'↩'},
+    {id:'acc-aging',label:'Company Aging',ic:'⏳'},
+    {id:'acc-triggers',label:'Red Triggers',ic:'⚑'}
+  ],
+  mgmt:[
+    {id:'mgmt-dashboard',label:'Dashboard',ic:'▦'},
+    {id:'mgmt-centres',label:'Centre Comparison',ic:'▥'},
+    {id:'mgmt-aging',label:'Aging Snapshot',ic:'⏳'},
+    {id:'mgmt-triggers',label:'Red Trigger Pile-up',ic:'⚑'},
+    {id:'mgmt-approvals',label:'Approval Queue',ic:'⚖'}
+  ]
+};
+
+function setRole(role){
+  document.body.dataset.role=role;
+  const m=ROLE_META[role];
+  document.querySelectorAll('.role-pill').forEach(p=>p.classList.toggle('active',p.dataset.role===role));
+  document.getElementById('sideRole').textContent=m.name;
+  document.getElementById('userName').textContent=m.user;
+  document.getElementById('userAv').textContent=m.av;
+  document.getElementById('userRole').textContent=m.tag;
+  document.getElementById('sideFoot').innerHTML='<b>Visibility scope</b>'+m.foot;
+  // scope chip
+  const st=document.getElementById('scopeText');
+  if(m.scopeFixed){
+    document.getElementById('scopeChip').innerHTML='<span>📍</span><span class="loc">'+m.scope+'</span>';
+  }else{
+    document.getElementById('scopeChip').innerHTML='<span>📍</span><select id="centreSel">'+
+      '<option>All Centres</option><option>Vasant Vihar</option><option>Rohini</option>'+
+      '<option>Noida</option><option>Gurgaon</option><option>Ghaziabad</option><option>Srinagar</option></select>';
+  }
+  // sidebar nav
+  const nav=document.getElementById('sideNav');
+  nav.innerHTML=NAV[role].map((n,i)=>
+    '<div class="side-link'+(i===0?' active':'')+'" data-screen="'+n.id+'">'+
+    '<span class="ic">'+n.ic+'</span>'+n.label+'</div>').join('');
+  nav.querySelectorAll('.side-link').forEach(l=>
+    l.onclick=()=>showScreen(l.dataset.screen));
+  showScreen(NAV[role][0].id);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
+  document.querySelectorAll('.side-link').forEach(l=>l.classList.toggle('active',l.dataset.screen===id));
+  try{window.scrollTo(0,0);}catch(e){}
+}
+document.querySelectorAll('.role-pill').forEach(p=>p.onclick=()=>setRole(p.dataset.role));
+
+/* milestone form tabs */
+function milestoneTab(idx){
+  document.querySelectorAll('#msSubtabs .subtab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('.ms-panel').forEach((p,i)=>p.style.display=(i===idx?'block':'none'));
+}
+/* generic subtab */
+function subSwitch(group,idx){
+  document.querySelectorAll('[data-sub="'+group+'"]').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('[data-panel="'+group+'"]').forEach((p,i)=>p.style.display=(i===idx?'block':'none'));
+}
+
+/* ============ WIREFRAME HELPERS ============ */
+function sk(w){return '<div class="skel sk-'+(w||'md')+'"></div>';}
+function skLine(w,h){return '<div class="skel sk-'+(w||'md')+'"'+(h?' style="height:'+h+'px"':'')+'></div>';}
+function skPill(){return '<div class="skel skel-pill"></div>';}
+function skPt(){return '<div class="skel sk-md" style="margin-bottom:6px"></div>'+skLine('sm',8);}
+function skelRows(n,builder){let o='';for(let i=0;i<n;i++)o+=builder(i);return o;}
+
+/* ============ MILESTONE DEFINITIONS (doc section 2 + 3) ============ */
+const MS=[
+ {key:'Booking',day:'T · Day 0',pay:'10% of package',gType:'data',gName:'Hard Data Gate',
+  gate:'No 10% receipt can be generated until the doctor enters expected dates for all 7 milestones.',
+  log:'Expected dates for the next 6 milestones',
+  fields:[
+   {l:'Expected withdrawal / LMP date',t:'date',req:true,src:'Doctor',use:'Achievement · Slack triggers'},
+   {l:'Expected stimulation start date',t:'date',req:true,src:'Doctor',use:'Achievement · projections'},
+   {l:'Expected trigger date',t:'date',req:true,src:'Doctor',use:'Achievement · projections'},
+   {l:'Expected OPU date',t:'date',req:true,src:'Doctor',use:'Achievement · projections'},
+   {l:'Expected ET date',t:'date',req:true,src:'Doctor',use:'Achievement · projections'},
+   {l:'Expected beta HCG date',t:'date',req:true,src:'Doctor',use:'Achievement'},
+   {l:'Package code(s) selected',t:'multiselect',req:true,src:'FC / Doctor',use:'Wallet · milestone %'},
+   {l:'Total package amount',t:'currency',req:true,src:'System',use:'Wallet · projections'},
+   {l:'Discount amount',t:'currency',req:true,src:'FC',use:'Wallet'},
+   {l:'Net amount after discount',t:'auto',req:'auto',src:'System',use:'Wallet · milestones'}
+ ]},
+ {key:'LMP / Withdrawal',day:'T',pay:'Nil',gType:'data',gName:'Hard Data Gate',
+  gate:'Cannot proceed to the Stimulation tab until the LMP date is logged and the stim date recalculated.',
+  log:'LMP date · recalculate stim date if needed',
+  fields:[
+   {l:'Actual LMP date',t:'date',req:true,src:'Doctor',use:'Stim date recalc'},
+   {l:'Cycle decision',t:'select',opts:['Proceed','Skip','Cancel'],req:true,src:'Doctor',use:'Workflow routing'},
+   {l:'Revised expected stim date',t:'date',req:'If rebased',src:'Auto / Doctor',use:'Achievement'}
+ ]},
+ {key:'Stimulation',day:'T + 10',pay:'40% of package',gType:'pay',gName:'Hard Payment Gate + Approval',
+  gate:'No stim start until FC confirms 40% payment. The OI form auto-closes at day 12 — director approval is required for a continuation form.',
+  log:'OI form · injection schedule · scan plan',
+  fields:[
+   {l:'Actual stim start date',t:'date',req:true,src:'Doctor',use:'Achievement · date rebase'},
+   {l:'Total injections prescribed',t:'number',req:true,src:'Doctor',use:'Pro-rata computation'},
+   {l:'Injection log entry (per day)',t:'repeat',ph:'Date + dose',unit:'injection',req:'Per injection',src:'Doctor',use:'Pro-rata · wallet debit'},
+   {l:'TVS monitoring scan',t:'repeat',ph:'Date + findings',unit:'scan',req:'Per scan',src:'Doctor',use:'Audit'},
+   {l:'Consult during stim',t:'repeat',ph:'Date + notes',unit:'consult',req:'Per consult',src:'Doctor',use:'Audit'},
+   {l:'Mid-stim outcome',t:'select',opts:['Continuing','Cancelled — no egg','Cancelled — patient','Package change'],req:'If applicable',src:'Doctor',use:'Reconciliation trigger'},
+   {l:'Day-12 status',t:'auto',req:'System flag',src:'System',use:'Director approval trigger'}
+ ]},
+ {key:'Trigger',day:'T + 18',pay:'Full balance · 10% CH flexibility',gType:'pay',gName:'Hard Payment Gate',
+  gate:'Trigger cannot be marked done until the full balance is cleared. Centre Head may invoke 10% flexibility.',
+  log:'Trigger time · dose · medication',
+  fields:[
+   {l:'Trigger date',t:'date',req:true,src:'Doctor',use:'Achievement'},
+   {l:'Trigger time',t:'time',req:true,src:'Doctor',use:'OPU scheduling'},
+   {l:'Medication and dose',t:'text',req:true,src:'Doctor',use:'Audit'},
+   {l:'Patient confirmation of OPU readiness',t:'yesno',req:true,src:'Doctor',use:'OPU gate'}
+ ]},
+ {key:'OPU',day:'T + 20',pay:'Full balance must clear',gType:'pay',gName:'Hard Payment Gate + Override',
+  gate:'OPU theatre booking is blocked unless 100% is cleared. Director override only.',
+  log:'Eggs retrieved · fertilisation outcome · embryologist log',
+  fields:[
+   {l:'Actual OPU date and time',t:'datetime',req:true,src:'Doctor',use:'Achievement'},
+   {l:'Number of eggs retrieved',t:'number',req:true,src:'Doctor',use:'Outcome routing'},
+   {l:'Anesthesia notes',t:'textarea',req:true,src:'Doctor',use:'Clinical record'},
+   {l:'Embryologist preliminary report',t:'textarea',req:true,src:'Embryologist',use:'Clinical record'},
+   {l:'OPU outcome flag',t:'select',opts:['Eggs retrieved','No eggs','Patient withdrew','Other'],req:true,src:'Doctor',use:'Workflow routing'}
+ ]},
+ {key:'Embryology',day:'Lab · sub-step',pay:'—',gType:'data',gName:'Hard Data Gate',
+  gate:'Embryology outcome must be logged — it routes embryo-transfer planning and billing.',
+  log:'Fertilisation · grades · freeze plan',
+  fields:[
+   {l:'Number fertilised',t:'number',req:true,src:'Embryologist',use:'Outcome routing'},
+   {l:'Embryo grades',t:'text',req:true,src:'Embryologist',use:'ET planning'},
+   {l:'ICSI performed',t:'yesno',req:true,src:'Embryologist',use:'Billing line'},
+   {l:'Blastocyst day',t:'select',opts:['Day 3','Day 5'],req:true,src:'Embryologist',use:'ET timing'},
+   {l:'Freeze plan',t:'text',req:true,src:'Embryologist',use:'Wallet'},
+   {l:'Embryology outcome',t:'select',opts:['Viable','Arrest','No fertilisation'],req:true,src:'Embryologist',use:'Workflow routing'}
+ ]},
+ {key:'Embryo Transfer',day:'T + 25 to T + 28',pay:'Nil · already paid',gType:'pay',gName:'Hard Payment Gate + Override',
+  gate:'ET slot cannot be released unless 100% is cleared. Director override only.',
+  log:'Embryo grade · transfer details',
+  fields:[
+   {l:'Actual ET date',t:'date',req:true,src:'Doctor',use:'Achievement'},
+   {l:'Number of embryos transferred',t:'number',req:true,src:'Doctor',use:'Clinical record'},
+   {l:'Embryo grade transferred',t:'text',req:true,src:'Doctor',use:'Clinical record'},
+   {l:'Fresh or frozen transfer',t:'select',opts:['Fresh','FET'],req:true,src:'Doctor',use:'Billing line'}
+ ]},
+ {key:'Beta HCG / Outcome',day:'T + 42',pay:'Nil',gType:'data',gName:'Hard Data Gate',
+  gate:'The patient record cannot close until the beta HCG outcome and next-step recommendation are logged.',
+  log:'Test result · next-step recommendation · FET routing',
+  fields:[
+   {l:'Beta HCG value',t:'number',req:true,src:'Doctor',use:'Outcome'},
+   {l:'Date of test',t:'date',req:true,src:'Doctor',use:'Achievement'},
+   {l:'Number of gestational sacs',t:'number',req:'If applicable',src:'Doctor',use:'Clinical record'},
+   {l:'Next-step recommendation',t:'select',opts:['Cycle closed','FET plan','Failed-cycle rebook','Change of management'],req:true,src:'Doctor',use:'Workflow routing · cycle close'}
+ ]}
+];
+const STEP_SHORT=['Booking','LMP','Stimulation','Trigger','OPU','Embryology','Embryo Transfer','Beta HCG'];
+
+function fieldHtml(f){
+  let input='';
+  switch(f.t){
+   case 'date':input='<input class="input" type="date">';break;
+   case 'time':input='<input class="input" type="time">';break;
+   case 'datetime':input='<input class="input" type="datetime-local">';break;
+   case 'number':input='<input class="input" type="number" placeholder="Enter number">';break;
+   case 'currency':input='<input class="input" type="text" placeholder="₹ 0.00">';break;
+   case 'text':input='<input class="input" type="text" placeholder="Enter detail">';break;
+   case 'textarea':input='<textarea class="input" rows="2" placeholder="Enter notes"></textarea>';break;
+   case 'select':input='<select class="select"><option value="">Select …</option>'+f.opts.map(o=>'<option>'+o+'</option>').join('')+'</select>';break;
+   case 'yesno':input='<select class="select"><option value="">Select …</option><option>Yes</option><option>No</option></select>';break;
+   case 'multiselect':input='<select class="select"><option value="">Select package code(s) …</option><option>IP11</option><option>IP222</option><option>Composite</option><option>Donor</option><option>Custom (per package code)</option></select>';break;
+   case 'auto':input='<input class="input" type="text" placeholder="Auto-computed by system" readonly>';break;
+   case 'repeat':input='<input class="input" type="text" placeholder="'+f.ph+'"><div class="note" style="margin-top:6px;color:var(--primary);font-weight:600;cursor:pointer">＋ Add another '+f.unit+' entry</div>';break;
+  }
+  let mark='';
+  if(f.req===true)mark='<span class="req">✱</span>';
+  else if(f.req==='auto')mark='<span class="auto-tag">Auto</span>';
+  else if(typeof f.req==='string')mark='<span class="auto-tag" style="background:var(--gold-soft);color:#8a6526">'+f.req+'</span>';
+  return '<div><div class="field-label">'+f.l+' '+mark+'</div>'+input+
+   '<div class="field-meta"><span class="tag-src">Source · '+f.src+'</span>'+
+   '<span class="tag-use">Used in · '+f.use+'</span></div></div>';
+}
+function buildMilestoneForm(){
+  // stepper
+  document.getElementById('msStepper').innerHTML=MS.map((m,i)=>
+   '<div class="step '+(i===0?'current':'')+'" onclick="milestoneTab('+i+')">'+
+   '<div class="step-node">'+(i+1)+'</div>'+
+   '<div class="step-name">'+STEP_SHORT[i]+'</div>'+
+   '<div class="step-day">'+m.day+'</div></div>').join('');
+  // panels
+  document.getElementById('msPanels').innerHTML=MS.map((m,i)=>{
+   const cls=m.gType==='pay'?'danger':(m.gType==='approval'?'warn':'');
+   const gBadge='<span class="gate gate-'+m.gType+'">🔒 '+m.gName+'</span>';
+   return '<div class="ms-panel" style="display:'+(i===0?'block':'none')+'">'+
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px">'+
+      '<span class="chip">Standard day · <b>'+m.day+'</b></span>'+
+      '<span class="chip">Payment trigger · <b>'+m.pay+'</b></span>'+
+      '<span class="chip">Doctor must log · '+m.log+'</span>'+gBadge+'</div>'+
+    '<div class="callout '+cls+'"><span class="co-ic">🔒</span><div><b>System gate — </b>'+m.gate+'</div></div>'+
+    '<div style="height:16px"></div>'+
+    '<div class="field-grid">'+m.fields.map(fieldHtml).join('')+'</div>'+
+    '<div class="divider"></div>'+
+    '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+
+      '<button class="btn btn-disabled">Mark milestone complete →</button>'+
+      '<span class="note">The <b>Next-step</b> button stays locked until every mandatory (<span class="req">✱</span>) field is saved.</span>'+
+      '<button class="btn btn-ghost btn-sm" style="margin-left:auto">Save draft</button></div>'+
+    '</div>';
+  }).join('');
+}
+
+/* ============ DOCTOR WIREFRAME ROWS ============ */
+function buildDoctor(){
+  document.getElementById('docPtRows').innerHTML=skelRows(6,()=>
+   '<tr><td>'+skPt()+'</td><td>'+skPill()+'</td><td>'+sk('md')+'</td>'+
+   '<td>'+sk('md')+'</td><td>'+skLine('sm')+'</td><td>'+skPill()+'</td><td>'+skPill()+'</td>'+
+   '<td><button class="btn btn-ghost btn-sm" onclick="showScreen(\'doc-milestone\')">Open</button></td></tr>');
+  document.getElementById('docAlerts').innerHTML=skelRows(4,()=>
+   '<div class="trigger-item"><div class="ti-ic ic-blue">⏷</div>'+
+   '<div class="ti-body">'+skLine('md')+'<div style="height:6px"></div>'+skLine('lg',8)+'</div>'+
+   '<div class="ti-time">'+skLine('sm',9)+'</div></div>');
+  document.getElementById('docAchRows').innerHTML=skelRows(8,()=>
+   '<tr><td>'+skPt()+'</td><td>'+sk('md')+'</td><td>'+skLine('sm')+'</td>'+
+   '<td>'+skLine('sm')+'</td><td class="col-num">'+skLine('sm')+'</td><td>'+skPill()+'</td></tr>');
+}
+
+/* ============ GENERIC DECLARATIVE WIREFRAME HYDRATOR ============ */
+function hydrateSkeletons(){
+  document.querySelectorAll('[data-skelrows]').forEach(tb=>{
+    const n=+tb.dataset.skelrows, cols=tb.dataset.skelcols.split(',');
+    let o='';
+    for(let i=0;i<n;i++){
+      o+='<tr>'+cols.map(c=>{
+        if(c==='pt')return '<td>'+skPt()+'</td>';
+        if(c==='pill'||c==='gate')return '<td>'+skPill()+'</td>';
+        if(c==='btn')return '<td><button class="btn btn-ghost btn-sm">View</button></td>';
+        if(c==='act')return '<td><button class="btn btn-primary btn-sm">Action</button></td>';
+        if(c==='num')return '<td class="col-num">'+skLine('sm')+'</td>';
+        if(c==='bar')return '<td><div style="display:flex;align-items:center;gap:8px;min-width:120px"><div class="bar-track" style="flex:1"></div><span class="note">—%</span></div></td>';
+        if(c==='rank')return '<td><div class="skel" style="width:24px;height:24px;border-radius:50%"></div></td>';
+        return '<td>'+skLine(c)+'</td>';
+      }).join('')+'</tr>';
+    }
+    tb.innerHTML=o;
+  });
+  document.querySelectorAll('[data-skelitems]').forEach(el=>{
+    const n=+el.dataset.skelitems, type=el.dataset.skelitem;
+    let o='';
+    for(let i=0;i<n;i++){
+      if(type==='approval'){
+        o+='<div class="approval-item"><div class="ti-ic ic-amber">⚖</div>'+
+           '<div class="ti-body">'+skLine('md')+'<div style="height:6px"></div>'+skLine('lg',8)+'</div>'+
+           '<div style="display:flex;gap:6px;align-items:center"><button class="btn btn-ghost btn-sm">Reject</button>'+
+           '<button class="btn btn-primary btn-sm">Approve</button></div></div>';
+      }else{
+        const ic=type==='red'?'ic-red':'ic-blue', sym=type==='red'?'⚑':'⏷';
+        o+='<div class="trigger-item"><div class="ti-ic '+ic+'">'+sym+'</div>'+
+           '<div class="ti-body">'+skLine('md')+'<div style="height:6px"></div>'+skLine('lg',8)+'</div>'+
+           '<div class="ti-time">'+skLine('sm',9)+'</div></div>';
+      }
+    }
+    el.innerHTML=o;
+  });
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  buildMilestoneForm();
+  buildDoctor();
+  hydrateSkeletons();
+  setRole('doctor');
+});
+</script>
+</body>
+</html>

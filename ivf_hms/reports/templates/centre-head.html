@@ -1,0 +1,486 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>India IVF HMS — Centre Head Workspace</title>
+<link rel="stylesheet" href="{% static 'assets/theme.css' %}" />
+</head>
+<body data-role="ch">
+
+<header class="topbar">
+  <a class="brand" href="{% url 'index' %}">
+    <img src="{% static 'assets/india-ivf-logo.png' %}" alt="India IVF" class="brand-logo">
+    <div class="brand-sep"></div>
+    <div class="brand-sub">Patient Journey &amp; Collections</div>
+  </a>
+  <div class="topbar-sep"></div>
+  <div class="topbar-role">Centre Head Workspace</div>
+  <div class="topbar-right">
+    <div class="scope-chip"><span>📍</span><span class="loc">Noida Centre</span></div>
+    <a class="switch-role" href="{% url 'index' %}">⇄ Switch role</a>
+    <div class="user-chip">
+      <div class="avatar">SK</div>
+      <div class="user-meta"><div class="user-name">S. Khanna</div><div class="user-role">Centre Head · Noida</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="side-role">Centre Head Workspace</div>
+    <div id="sideNav"></div>
+    <div class="side-foot"><b>Visibility scope</b>Centre-scoped — all patients at your centre only.</div>
+  </nav>
+
+  <main class="main">
+
+  <!-- ---------- Dashboard ---------- -->
+  <section class="screen active" id="ch-dashboard">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Centre Head Dashboard</div>
+        <div class="page-sub">Collection performance · Noida Centre · Monday, 25 May 2026</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('ch-collections')">View Collections</button>
+        <button class="btn btn-primary btn-sm" onclick="showScreen('ch-aging')">Aging Buckets</button>
+      </div>
+    </div>
+
+    <div class="role-banner">
+      <div class="rb-resp">
+        <h4>Responsibility — Own collection performance at the centre</h4>
+        <p>Review the daily expected-collections list · approve 10% flexibility on trigger &amp; programme change · action Slack triggers from the day before · follow up on missed collections.</p>
+      </div>
+      <div class="rb-see">
+        <span class="lbl">I can see</span>
+        <div class="chip-row">
+          <span class="chip">All patients · my centre only</span>
+          <span class="chip">Centre achievement table</span>
+          <span class="chip">Expected vs actual collection</span>
+          <span class="chip">Aging buckets · centre level</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Today Expected</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>3,12,000</div><div class="kpi-sub">across all milestones today</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">✓</div><div class="kpi-label">Today Collected</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>2,34,000</div><div class="kpi-sub">actual receipts logged by FC</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">≈</div><div class="kpi-label">Variance</div></div>
+        <div class="kpi-value" style="color:var(--red)">−₹78,000</div><div class="kpi-sub">actual − expected</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">⚑</div><div class="kpi-label">Missed Collections</div></div>
+        <div class="kpi-value">2</div><div class="kpi-sub">piling into red triggers</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-gold">⚖</div><div class="kpi-label">Approvals Pending</div></div>
+        <div class="kpi-value">2</div><div class="kpi-sub">10% flexibility requests</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Prebook Funnel <span class="muted">· before 10% booking</span></div>
+        <div class="card-tools" style="gap:6px;flex-wrap:wrap">
+          <select class="select" id="prebookRange" onchange="prebookRangeChanged()" style="width:auto;padding:6px 10px;font-size:11.5px">
+            <option value="today">Today</option>
+            <option value="week">This week</option>
+            <option value="month">This month</option>
+            <option value="all">All time</option>
+            <option value="custom">Custom range</option>
+          </select>
+          <span id="prebookCustomRange" style="display:none;align-items:center;gap:6px;font-size:11.5px;color:var(--text-soft)">
+            <input type="date" id="prebookFrom" value="2026-05-25" onchange="renderPrebook()" class="input" style="width:auto;padding:6px 8px;font-size:11.5px"/>
+            <span>to</span>
+            <input type="date" id="prebookTo" value="2026-05-25" onchange="renderPrebook()" class="input" style="width:auto;padding:6px 8px;font-size:11.5px"/>
+          </span>
+        </div></div>
+      <div class="card-body">
+        <div class="grid-3">
+          <div class="kpi prebook-kpi" onclick="prebookOpen('scheduled')">
+            <div class="kpi-top"><div class="kpi-ic ic-blue">📅</div>
+              <div class="kpi-label">Appointment Scheduled</div></div>
+            <div class="kpi-value" id="prebookScheduled">—</div>
+            <div class="kpi-sub">click to view list →</div>
+          </div>
+          <div class="kpi prebook-kpi" onclick="prebookOpen('missed')">
+            <div class="kpi-top"><div class="kpi-ic ic-red">⚑</div>
+              <div class="kpi-label">Missed Appointment</div></div>
+            <div class="kpi-value" id="prebookMissed">—</div>
+            <div class="kpi-sub">click to view list →</div>
+          </div>
+          <div class="kpi prebook-kpi" onclick="prebookOpen('cnb')">
+            <div class="kpi-top"><div class="kpi-ic ic-amber">◐</div>
+              <div class="kpi-label">Consulted Not Booked</div></div>
+            <div class="kpi-value" id="prebookCnb">—</div>
+            <div class="kpi-sub">click to view list →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Booked Patients by Clinical Stage <span class="muted">· my centre — click a stage to open those patients</span></div>
+        <div class="card-tools"><span class="wf-tag">LIVE DATA</span></div></div>
+      <div class="card-body" id="stageWidget"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Pending Approvals <span class="muted">· 10% flexibility</span></div></div>
+        <div class="card-body flush" id="chApprovals"></div>
+        <div class="card-body" style="border-top:1px solid var(--border-soft)">
+          <div class="mini-head">Log 10% flexibility invoked</div>
+          <div class="field-grid">
+            <div><div class="field-label">10% flexibility invoked <span class="req">✱</span></div>
+              <select class="select"><option value="">Select …</option><option>Yes</option><option>No</option></select>
+              <div class="field-meta"><span class="tag-src">Source · Centre Head</span><span class="tag-use">Used in · Audit, override log</span></div></div>
+            <div><div class="field-label">Reason <span class="req">✱</span></div>
+              <input class="input" type="text" placeholder="Reason for invoking flexibility">
+              <div class="field-meta"><span class="tag-use">When · at trigger / programme change</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Day-before Reminder <span class="muted">· Slack + email</span></div>
+          <div class="card-tools"><span class="pill pill-blue"><span class="dot"></span>Tomorrow</span></div></div>
+        <div class="card-body flush" id="chSlack"></div>
+        <div class="card-body" style="border-top:1px solid var(--border-soft)">
+          <div class="callout"><span class="co-ic">ⓘ</span><div>Reminder lists each patient with a procedure step expected tomorrow — name, IIC ID, step, expected amount, sign-up date and current milestone status.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Missed-collection Follow-up Log</div>
+        <div class="card-tools"><span class="wf-tag">LIVE DATA</span>
+          <button class="btn btn-primary btn-sm">＋ Add follow-up note</button></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Missed Milestone</th><th>Expected Amount</th>
+          <th>Days Overdue</th><th>Last Follow-up</th><th>Follow-up Note</th><th>Status</th></tr></thead>
+        <tbody id="chMissedRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Expected Collections ---------- -->
+  <section class="screen" id="ch-collections">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Expected Collections</div>
+        <div class="page-sub">Patient × milestone × amount × assigned FC · Noida Centre</div>
+      </div>
+      <div class="page-actions">
+        <div class="subtabs">
+          <button class="subtab active" data-sub="chcol" onclick="subSwitch('chcol',0)">Today</button>
+          <button class="subtab" data-sub="chcol" onclick="subSwitch('chcol',1)">Tomorrow</button>
+        </div>
+      </div>
+    </div>
+
+    <div data-panel="chcol">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Today Expected</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>3,12,000</div><div class="kpi-sub">total across milestones</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◔</div><div class="kpi-label">Patients Due</div></div>
+          <div class="kpi-value">5</div><div class="kpi-sub">milestone payment today</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">✓</div><div class="kpi-label">Collected So Far</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>2,34,000</div><div class="kpi-sub">confirmed by FC</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Today's Expected Collections</div>
+          <div class="card-tools"><span class="wf-tag">LIVE DATA</span><button class="btn btn-ghost btn-sm">Export</button></div></div>
+        <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+          <thead><tr><th>Patient · IIC ID</th><th>Procedure Step</th><th>Expected Amount</th>
+            <th>Assigned FC</th><th>Sign-up Date</th><th>Milestone Status</th><th>Gate</th><th></th></tr></thead>
+          <tbody id="chTodayRows"></tbody>
+        </table></div></div>
+      </div>
+    </div>
+
+    <div data-panel="chcol" style="display:none">
+      <div class="kpi-row">
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Tomorrow Expected</div></div>
+          <div class="kpi-value"><span class="cur">₹</span>2,53,000</div><div class="kpi-sub">projected from journey plan</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◔</div><div class="kpi-label">Patients Due</div></div>
+          <div class="kpi-value">3</div><div class="kpi-sub">milestone payment tomorrow</div></div>
+        <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">⏷</div><div class="kpi-label">Slack Reminder</div></div>
+          <div class="kpi-value">Sent</div><div class="kpi-sub">day-before · Slack + email</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Tomorrow's Expected Collections</div>
+          <div class="card-tools"><span class="wf-tag">LIVE DATA</span></div></div>
+        <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+          <thead><tr><th>Patient · IIC ID</th><th>Procedure Step</th><th>Expected Amount</th>
+            <th>Assigned FC</th><th>Sign-up Date</th><th>Milestone Status</th><th>Gate</th><th></th></tr></thead>
+          <tbody id="chTomRows"></tbody>
+        </table></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- Achievement Table ---------- -->
+  <section class="screen" id="ch-achievement">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Centre Achievement Table</div>
+        <div class="page-sub">Expected vs actual — dates &amp; amounts with variance · Noida Centre</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">LIVE DATA</span><button class="btn btn-ghost btn-sm">Export</button></div>
+    </div>
+    <div class="legend" style="margin-bottom:14px">
+      <span><span class="pill pill-green"><span class="dot"></span>Green</span> on track</span>
+      <span><span class="pill pill-amber"><span class="dot"></span>Amber</span> within window</span>
+      <span><span class="pill pill-red"><span class="dot"></span>Red</span> overdue or under-collected</span>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Milestone Variance <span class="muted">· dates &amp; amounts</span></div>
+        <div class="card-tools"><span class="wf-tag">LIVE DATA</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Milestone</th><th>Expected Date</th><th>Actual Date</th>
+          <th class="col-num">Date Var.</th><th class="col-num">Expected Amt</th><th class="col-num">Actual Amt</th>
+          <th class="col-num">Amt Var.</th><th>Status Flag</th></tr></thead>
+        <tbody id="chAchRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Aging Buckets ---------- -->
+  <section class="screen" id="ch-aging">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Aging Buckets</div>
+        <div class="page-sub">Outstanding collections by age · Noida Centre</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">LIVE DATA</span></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Aging Snapshot <span class="muted">· centre level</span></div></div>
+      <div class="card-body"><div class="bucket-row" id="chAgingBuckets"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="flex-wrap:wrap;gap:10px">
+        <div class="card-title">Aging Patient List <span class="muted" id="agingListCount"></span></div>
+        <div class="card-tools" style="gap:8px;flex-wrap:wrap">
+          <input type="search" id="agingSearch" placeholder="Search name or IIC ID…" oninput="renderAgingList()" class="input" style="width:220px;padding:6px 10px;font-size:11.5px"/>
+          <select id="agingDateRange" onchange="agingRangeChanged()" class="select" style="width:auto;padding:6px 10px;font-size:11.5px">
+            <option value="all">All time</option>
+            <option value="date">Specific date</option>
+            <option value="day">Today</option>
+            <option value="week">This week</option>
+            <option value="month">This month</option>
+            <option value="year">This year</option>
+            <option value="custom">Custom range</option>
+          </select>
+          <input type="date" id="agingDateSingle" value="2026-05-25" onchange="renderAgingList()" class="input" style="display:none;width:auto;padding:6px 8px;font-size:11.5px"/>
+          <span id="agingCustomRange" style="display:none;align-items:center;gap:6px;font-size:11.5px;color:var(--text-soft)">
+            <input type="date" id="agingFrom" value="2026-01-01" onchange="renderAgingList()" class="input" style="width:auto;padding:6px 8px;font-size:11.5px"/>
+            <span>to</span>
+            <input type="date" id="agingTo" value="2026-05-25" onchange="renderAgingList()" class="input" style="width:auto;padding:6px 8px;font-size:11.5px"/>
+          </span>
+        </div>
+      </div>
+      <div class="card-body" style="padding-bottom:14px">
+        <div class="mini-head">Filter by aging bucket</div>
+        <div class="stage-chips" id="agingChips"></div>
+      </div>
+      <div class="aging-table-wrap">
+        <table class="tbl aging-tbl" id="agingTable">
+          <thead id="agingTableHead"></thead>
+          <tbody id="agingListRows"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- Patient Journey ---------- -->
+    <!-- ---------- Booked Patient List ---------- -->
+  <section class="screen" id="booked-patient-list">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Booked Patient List</div>
+        <div class="page-sub">All booked patients with current stage, package &amp; collection · click an IIC ID to open the journey</div>
+      </div>
+      <div class="page-actions">
+        <span class="wf-tag">LIVE DATA</span>
+        <button class="btn btn-ghost btn-sm" onclick="exportBookedList()">Export</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Filters</div>
+        <div class="card-tools">
+          <button class="btn btn-ghost btn-sm" onclick="resetBookedFilters()">Reset</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="filter-grid">
+          <div class="fg-item" style="grid-column:1/-1">
+            <label class="fg-lbl">Search · name or IIC ID</label>
+            <input type="search" id="bplSearch" class="input" placeholder="Type a patient name or IIC ID…" oninput="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Centre</label>
+            <select id="bplCentre" class="select" onchange="renderBookedList()">
+              <option value="">All centres</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Category</label>
+            <select id="bplCategory" class="select" onchange="renderBookedList()">
+              <option value="">All categories</option>
+              <option>OPD</option>
+              <option>IVF with Bed</option>
+              <option>IVF without Bed</option>
+              <option>Non IVF with Bed</option>
+              <option>Non IVF without Bed</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Payment status</label>
+            <select id="bplPay" class="select" onchange="renderBookedList()">
+              <option value="">All payment status</option>
+              <option value="10">10% (booked)</option>
+              <option value="50">50% (part paid)</option>
+              <option value="100">100% (fully paid)</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">First consult · from</label>
+            <input type="date" id="bplFcFrom" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">First consult · to</label>
+            <input type="date" id="bplFcTo" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Booking · from</label>
+            <input type="date" id="bplBkFrom" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Booking · to</label>
+            <input type="date" id="bplBkTo" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Booked packages</label>
+            <select id="bplPkg" class="select" onchange="renderBookedList()">
+              <option value="">All packages</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Current stage</label>
+            <select id="bplStage" class="select" onchange="renderBookedList()">
+              <option value="">All stages</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Patients <span class="muted" id="bplCount">· —</span></div>
+        <div class="card-tools">
+          <div class="view-seg">
+            <button class="seg-btn active" id="bplViewListBtn" onclick="setBookedView('list')">▤ List</button>
+            <button class="seg-btn" id="bplViewCardBtn" onclick="setBookedView('card')">▦ Cards</button>
+          </div>
+          <span class="wf-tag">LIVE DATA</span>
+        </div>
+      </div>
+      <div class="card-body flush">
+        <div class="table-wrap" id="bplTableWrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>IIC ID</th>
+              <th>Wife Name</th>
+              <th>Husband Name</th>
+              <th>Date of First Consult</th>
+              <th>Date of Booking</th>
+              <th>Centre</th>
+              <th>Doctor</th>
+              <th>Booked Packages</th>
+              <th>Current Stage</th>
+              <th class="col-num">Net Package Amount</th>
+              <th class="col-num">Amount Received</th>
+              <th class="col-num">Pending Amount</th>
+            </tr></thead>
+            <tbody id="bplRows"></tbody>
+          </table>
+        </div>
+        <div id="bplCardsWrap" class="bpl-cards" style="display:none"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="patient-journey">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Booked Patient Journey</div>
+        <div class="page-sub">Track the date-wise clinical journey of every booked patient · search by name or IIC ID</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div style="position:relative">
+          <input class="input" id="journeySearchInput" placeholder="Search a patient by name or IIC ID…" oninput="journeySearch(this.value)" autocomplete="off" />
+          <div id="journeyList" style="margin-top:8px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" id="journeyDetail"></div>
+    </div>
+  </section>
+
+  <!-- ---------- Stage Patient Listing ---------- -->
+  <section class="screen" id="stage-patients">
+    <div class="page-head">
+      <div>
+        <div class="page-title" id="stageTitle">Patients at Stage</div>
+        <div class="page-sub" id="stageSub">Click an IIC ID to open the patient's journey</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="backToDashboard()">← Back to dashboard</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" style="padding-bottom:14px">
+        <div class="mini-head">Filter by clinical stage</div>
+        <div class="stage-chips" id="stageChips"></div>
+      </div>
+      <div class="card-body flush" style="border-top:1px solid var(--border-soft)"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>SN</th><th>Patient Name</th><th>IIC ID</th>
+          <th>Date of Booking</th><th>Package</th><th class="col-num">Net Package Amount</th></tr></thead>
+        <tbody id="stagePatientRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Prebook Patient Listing ---------- -->
+  <section class="screen" id="prebook-list">
+    <div class="page-head">
+      <div>
+        <div class="page-title" id="prebookTitle">Prebook Patients</div>
+        <div class="page-sub" id="prebookSub">Click an IIC ID to open the patient journey</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="backToDashboard()">← Back to dashboard</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body flush"><div class="table-wrap" id="prebookListBody"><table class="tbl">
+        <thead><tr><th>SN</th><th>IIC ID</th><th>Patient Name</th>
+          <th id="prebookDateCol">Date</th><th>Centre</th></tr></thead>
+        <tbody id="prebookRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<script src="{% static 'assets/data.js' %}"></script>
+<script src="{% static 'assets/app.js' %}"></script>
+</body>
+</html>

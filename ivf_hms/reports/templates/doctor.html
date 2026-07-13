@@ -1,0 +1,425 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>India IVF HMS — Doctor Workspace</title>
+<link rel="stylesheet" href="{% static 'assets/theme.css' %}" />
+</head>
+<body data-role="doctor">
+
+<header class="topbar">
+  <a class="brand" href="{% url 'index' %}">
+    <img src="{% static 'assets/india-ivf-logo.png' %}" alt="India IVF" class="brand-logo">
+    <div class="brand-sep"></div>
+    <div class="brand-sub">Patient Journey &amp; Collections</div>
+  </a>
+  <div class="topbar-sep"></div>
+  <div class="topbar-role">Doctor Workspace</div>
+  <div class="topbar-right">
+    <div class="scope-chip"><span>📍</span><span class="loc">Noida Centre</span></div>
+    <a class="switch-role" href="{% url 'index' %}">⇄ Switch role</a>
+    <div class="user-chip">
+      <div class="avatar">DV</div>
+      <div class="user-meta"><div class="user-name">Dr. A. Verma</div><div class="user-role">Doctor · Noida</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="side-role">Doctor Workspace</div>
+    <div id="sideNav"></div>
+    <div class="side-foot"><b>Visibility scope</b>Centre-scoped — you see only your own patients at your centre.</div>
+  </nav>
+
+  <main class="main">
+
+  <!-- ---------- Dashboard ---------- -->
+  <section class="screen active" id="doc-dashboard">
+    <div class="page-head">
+      <div>
+        <div class="page-title">My Patient Dashboard</div>
+        <div class="page-sub">Active clinical journeys at Noida Centre · Monday, 25 May 2026</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm">Filter</button>
+        <button class="btn btn-primary btn-sm" onclick="showScreen('doc-milestone')">＋ Update Milestone</button>
+      </div>
+    </div>
+
+    <div class="role-banner">
+      <div class="rb-resp">
+        <h4>Responsibility — Map &amp; update the clinical journey, end to end</h4>
+        <p>Set expected milestone dates at booking · mark each clinical step complete · log micro-steps &amp; outcomes · initiate financial reconciliation when the plan changes.</p>
+      </div>
+      <div class="rb-see">
+        <span class="lbl">I can see</span>
+        <div class="chip-row">
+          <span class="chip">My patients · my centre</span>
+          <span class="chip">Clinical journey per patient</span>
+          <span class="chip">Centre achievement table</span>
+          <span class="chip">Next-step alerts</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">◔</div><div class="kpi-label">Active Patients</div></div>
+        <div class="kpi-value">7</div><div class="kpi-sub">across 7 milestones</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">●</div><div class="kpi-label">On Track</div></div>
+        <div class="kpi-value">4</div><div class="kpi-sub">green — within standard window</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">●</div><div class="kpi-label">Within Window</div></div>
+        <div class="kpi-value">2</div><div class="kpi-sub">amber — watch closely</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">●</div><div class="kpi-label">Overdue / Gated</div></div>
+        <div class="kpi-value">1</div><div class="kpi-sub">red — blocked or late</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">⏷</div><div class="kpi-label">Next-step Alerts</div></div>
+        <div class="kpi-value">3</div><div class="kpi-sub">milestones expected tomorrow</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Prebook Funnel <span class="muted">· before 10% booking</span></div>
+        <div class="card-tools" style="gap:6px;flex-wrap:wrap">
+          <select class="select" id="prebookRange" onchange="prebookRangeChanged()" style="width:auto;padding:6px 10px;font-size:11.5px">
+            <option value="today">Today</option>
+            <option value="week">This week</option>
+            <option value="month">This month</option>
+            <option value="all">All time</option>
+            <option value="custom">Custom range</option>
+          </select>
+          <span id="prebookCustomRange" style="display:none;align-items:center;gap:6px;font-size:11.5px;color:var(--text-soft)">
+            <input type="date" id="prebookFrom" value="2026-05-25" onchange="renderPrebook()" class="input" style="width:auto;padding:6px 8px;font-size:11.5px"/>
+            <span>to</span>
+            <input type="date" id="prebookTo" value="2026-05-25" onchange="renderPrebook()" class="input" style="width:auto;padding:6px 8px;font-size:11.5px"/>
+          </span>
+        </div></div>
+      <div class="card-body">
+        <div class="grid-3">
+          <div class="kpi prebook-kpi" onclick="prebookOpen('scheduled')">
+            <div class="kpi-top"><div class="kpi-ic ic-blue">📅</div>
+              <div class="kpi-label">Appointment Scheduled</div></div>
+            <div class="kpi-value" id="prebookScheduled">—</div>
+            <div class="kpi-sub">click to view list →</div>
+          </div>
+          <div class="kpi prebook-kpi" onclick="prebookOpen('missed')">
+            <div class="kpi-top"><div class="kpi-ic ic-red">⚑</div>
+              <div class="kpi-label">Missed Appointment</div></div>
+            <div class="kpi-value" id="prebookMissed">—</div>
+            <div class="kpi-sub">click to view list →</div>
+          </div>
+          <div class="kpi prebook-kpi" onclick="prebookOpen('cnb')">
+            <div class="kpi-top"><div class="kpi-ic ic-amber">◐</div>
+              <div class="kpi-label">Consulted Not Booked</div></div>
+            <div class="kpi-value" id="prebookCnb">—</div>
+            <div class="kpi-sub">click to view list →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Booked Patients by Clinical Stage <span class="muted">· my centre — click a stage to open those patients</span></div>
+        <div class="card-tools"><span class="wf-tag">LIVE DATA</span></div></div>
+      <div class="card-body" id="stageWidget"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Active Patient List <span class="muted">· current milestone &amp; gate status</span></div>
+        <div class="card-tools"><span class="wf-tag">LIVE DATA</span><button class="btn btn-ghost btn-sm">Export</button></div>
+      </div>
+      <div class="card-body flush">
+        <div class="table-wrap"><table class="tbl">
+          <thead><tr><th>Patient · IIC ID</th><th>Package</th><th>Current Milestone</th>
+            <th>Next Step</th><th>Next-step Date</th><th>Payment</th><th>Gate Status</th><th></th></tr></thead>
+          <tbody id="docPtRows"></tbody>
+        </table></div>
+        <div style="padding:13px 16px;border-top:1px solid var(--border-soft)">
+          <div class="legend">
+            <span><span class="pill pill-green"><span class="dot"></span>Green</span> on track</span>
+            <span><span class="pill pill-amber"><span class="dot"></span>Amber</span> within window</span>
+            <span><span class="pill pill-red"><span class="dot"></span>Red</span> overdue or under-collected</span>
+            <span><span class="gate gate-pay">🔒 Payment</span> next action blocked</span>
+            <span><span class="gate gate-data">🔒 Data</span> fields incomplete</span>
+            <span><span class="gate gate-open">✓ Open</span> ready to proceed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Next-step Alerts</div>
+        <div class="card-tools"><span class="pill pill-blue"><span class="dot"></span>Day-before reminder</span></div></div>
+      <div class="card-body flush" id="docAlerts"></div>
+    </div>
+  </section>
+
+  <!-- ---------- Milestone Form ---------- -->
+  <section class="screen" id="doc-milestone">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Milestone Completion Form</div>
+        <div class="page-sub">Log clinical data milestone by milestone · every mandatory field is gated</div>
+      </div>
+      <div class="page-actions">
+        <select class="select" style="width:300px" id="msPatientSel"></select>
+      </div>
+    </div>
+
+    <div class="card"><div class="card-body"><div class="stepper" id="msStepper"></div></div></div>
+
+    <div class="card">
+      <div class="card-head" style="flex-wrap:wrap;gap:8px">
+        <div class="subtabs" id="msSubtabs">
+          <button class="subtab active" onclick="milestoneTab(0)">1 · Booking</button>
+          <button class="subtab" onclick="milestoneTab(1)">2 · LMP / Withdrawal</button>
+          <button class="subtab" onclick="milestoneTab(2)">3 · Stimulation</button>
+          <button class="subtab" onclick="milestoneTab(3)">4 · Trigger</button>
+          <button class="subtab" onclick="milestoneTab(4)">5 · OPU</button>
+          <button class="subtab" onclick="milestoneTab(5)">6 · Embryology</button>
+          <button class="subtab" onclick="milestoneTab(6)">7 · Embryo Transfer</button>
+          <button class="subtab" onclick="milestoneTab(7)">8 · Beta HCG / Outcome</button>
+        </div>
+      </div>
+      <div class="card-body" id="msPanels"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Enforcement Summary <span class="muted">· every place the system says “no”</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Enforcement</th><th>What it does</th><th>Type</th></tr></thead>
+        <tbody>
+          <tr><td class="strong">No receipt without journey plan</td><td>10% booking receipt cannot generate until the doctor enters expected dates for all 7 milestones</td><td><span class="gate gate-data">Hard</span></td></tr>
+          <tr><td class="strong">No stim without 40%</td><td>Stim cannot be marked started until FC confirms 40% payment</td><td><span class="gate gate-pay">Hard</span></td></tr>
+          <tr><td class="strong">No stim beyond 12 days</td><td>OI form auto-closes at day 12; director approval required for continuation</td><td><span class="gate gate-approval">Hard + approval</span></td></tr>
+          <tr><td class="strong">No trigger without full payment</td><td>Trigger blocked unless full balance cleared</td><td><span class="gate gate-approval">Hard + CH flexibility</span></td></tr>
+          <tr><td class="strong">No OPU without 100%</td><td>OPU theatre blocked until 100% paid</td><td><span class="gate gate-approval">Hard + director override</span></td></tr>
+          <tr><td class="strong">No ET without 100%</td><td>ET slot blocked until 100% paid</td><td><span class="gate gate-approval">Hard + director override</span></td></tr>
+          <tr><td class="strong">No restim without reconciliation</td><td>After a cancelled stim, restim form cannot open until reconciliation complete</td><td><span class="gate gate-data">Hard</span></td></tr>
+          <tr><td class="strong">No package change without reconciliation</td><td>New codes blocked mid-treatment until reconciliation complete</td><td><span class="gate gate-data">Hard</span></td></tr>
+          <tr><td class="strong">No cycle close without outcome</td><td>Patient record cannot close until beta HCG outcome &amp; next-step logged</td><td><span class="gate gate-data">Hard</span></td></tr>
+          <tr><td class="strong">No next milestone without current logged</td><td>Each milestone's required fields must be saved before the next tab unlocks</td><td><span class="gate gate-data">Hard</span></td></tr>
+          <tr><td class="strong">No refund without computation</td><td>Accounts cannot mark a refund processed without the system computing the amount</td><td><span class="gate gate-pay">Hard</span></td></tr>
+          <tr><td class="strong">No silent override</td><td>Every override creates a timestamped exception in the management red-trigger view</td><td><span class="gate gate-open">Always logged</span></td></tr>
+        </tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Achievement Table ---------- -->
+  <section class="screen" id="doc-achievement">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Centre Achievement Table</div>
+        <div class="page-sub">Expected vs actual dates with variance · Noida Centre</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">LIVE DATA</span><button class="btn btn-ghost btn-sm">Export</button></div>
+    </div>
+    <div class="callout"><span class="co-ic">ⓘ</span>
+      <div>Date variance = <b>Actual − Expected</b> (days). Expected &amp; actual <b>amount</b> columns are visible to Centre Head, FC, Accounts and Management — not to the doctor view.</div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-head"><div class="card-title">Milestone Variance <span class="muted">· all milestones, all my patients</span></div>
+        <div class="card-tools"><span class="wf-tag">LIVE DATA</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Milestone</th><th>Expected Date</th>
+          <th>Actual Date</th><th class="col-num">Date Variance</th><th>Status Flag</th></tr></thead>
+        <tbody id="docAchRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Booked Patient List ---------- -->
+  <section class="screen" id="booked-patient-list">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Booked Patient List</div>
+        <div class="page-sub">All booked patients with current stage, package &amp; collection · click an IIC ID to open the journey</div>
+      </div>
+      <div class="page-actions">
+        <span class="wf-tag">LIVE DATA</span>
+        <button class="btn btn-ghost btn-sm" onclick="exportBookedList()">Export</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Filters</div>
+        <div class="card-tools">
+          <button class="btn btn-ghost btn-sm" onclick="resetBookedFilters()">Reset</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="filter-grid">
+          <div class="fg-item" style="grid-column:1/-1">
+            <label class="fg-lbl">Search · name or IIC ID</label>
+            <input type="search" id="bplSearch" class="input" placeholder="Type a patient name or IIC ID…" oninput="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Centre</label>
+            <select id="bplCentre" class="select" onchange="renderBookedList()">
+              <option value="">All centres</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Category</label>
+            <select id="bplCategory" class="select" onchange="renderBookedList()">
+              <option value="">All categories</option>
+              <option>OPD</option>
+              <option>IVF with Bed</option>
+              <option>IVF without Bed</option>
+              <option>Non IVF with Bed</option>
+              <option>Non IVF without Bed</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Payment status</label>
+            <select id="bplPay" class="select" onchange="renderBookedList()">
+              <option value="">All payment status</option>
+              <option value="10">10% (booked)</option>
+              <option value="50">50% (part paid)</option>
+              <option value="100">100% (fully paid)</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">First consult · from</label>
+            <input type="date" id="bplFcFrom" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">First consult · to</label>
+            <input type="date" id="bplFcTo" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Booking · from</label>
+            <input type="date" id="bplBkFrom" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Booking · to</label>
+            <input type="date" id="bplBkTo" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Booked packages</label>
+            <select id="bplPkg" class="select" onchange="renderBookedList()">
+              <option value="">All packages</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Current stage</label>
+            <select id="bplStage" class="select" onchange="renderBookedList()">
+              <option value="">All stages</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Patients <span class="muted" id="bplCount">· —</span></div>
+        <div class="card-tools">
+          <div class="view-seg">
+            <button class="seg-btn active" id="bplViewListBtn" onclick="setBookedView('list')">▤ List</button>
+            <button class="seg-btn" id="bplViewCardBtn" onclick="setBookedView('card')">▦ Cards</button>
+          </div>
+          <span class="wf-tag">LIVE DATA</span>
+        </div>
+      </div>
+      <div class="card-body flush">
+        <div class="table-wrap" id="bplTableWrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>ID</th>
+              <th>IIC ID</th>
+              <th>Wife Name</th>
+              <th>Husband Name</th>
+              <th>Date of First Consult</th>
+              <th>Date of Booking</th>
+              <th>Centre</th>
+              <th>Doctor</th>
+              <th>Booked Packages</th>
+              <th>Current Stage</th>
+              <th class="col-num">Net Package Amount</th>
+              <th class="col-num">Amount Received</th>
+              <th class="col-num">Pending Amount</th>
+            </tr></thead>
+            <tbody id="bplRows"></tbody>
+          </table>
+        </div>
+        <div id="bplCardsWrap" class="bpl-cards" style="display:none"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- Patient Journey ---------- -->
+  <section class="screen" id="patient-journey">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Booked Patient Journey</div>
+        <div class="page-sub">Track the date-wise clinical journey of every booked patient · search by name or IIC ID</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div style="position:relative">
+          <input class="input" id="journeySearchInput" placeholder="Search a patient by name or IIC ID…" oninput="journeySearch(this.value)" autocomplete="off" />
+          <div id="journeyList" style="margin-top:8px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" id="journeyDetail"></div>
+    </div>
+  </section>
+
+  <!-- ---------- Stage Patient Listing ---------- -->
+  <section class="screen" id="stage-patients">
+    <div class="page-head">
+      <div>
+        <div class="page-title" id="stageTitle">Patients at Stage</div>
+        <div class="page-sub" id="stageSub">Click an IIC ID to open the patient's journey</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="backToDashboard()">← Back to dashboard</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" style="padding-bottom:14px">
+        <div class="mini-head">Filter by clinical stage</div>
+        <div class="stage-chips" id="stageChips"></div>
+      </div>
+      <div class="card-body flush" style="border-top:1px solid var(--border-soft)"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>SN</th><th>Patient Name</th><th>IIC ID</th>
+          <th>Date of Booking</th><th>Package</th><th class="col-num">Net Package Amount</th></tr></thead>
+        <tbody id="stagePatientRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Prebook Patient Listing ---------- -->
+  <section class="screen" id="prebook-list">
+    <div class="page-head">
+      <div>
+        <div class="page-title" id="prebookTitle">Prebook Patients</div>
+        <div class="page-sub" id="prebookSub">Click an IIC ID to open the patient journey</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="backToDashboard()">← Back to dashboard</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body flush"><div class="table-wrap" id="prebookListBody"><table class="tbl">
+        <thead><tr><th>SN</th><th>IIC ID</th><th>Patient Name</th>
+          <th id="prebookDateCol">Date</th><th>Centre</th></tr></thead>
+        <tbody id="prebookRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<script src="{% static 'assets/data.js' %}"></script>
+<script src="{% static 'assets/app.js' %}"></script>
+</body>
+</html>

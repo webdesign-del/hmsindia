@@ -198,7 +198,7 @@ class Accounts extends CI_Controller {
 					$html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
 					if($val['billing_from'] == 'IndiaIVF'){ $html .= '<td>'.$val['billing_from'].'</td>'; }
 					else{$html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
-                    $html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';					
+                   // $html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';					
 					$html .= '<td>'.$currency.$val['totalpackage'].'</td>';
 					$html .= '<td>'.$currency.$val['fees'].'</td>';
 					$html .= '<td>'.$currency.$val['payment_done'].'</td>';
@@ -218,7 +218,7 @@ class Accounts extends CI_Controller {
 					$html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
 					if($val['billing_from'] == 'IndiaIVF'){ $html .= '<td>'.$val['billing_from'].'</td>'; }
 					else{$html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
-					$html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';
+					//$html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';
 					$html .= '<td>'.$currency.$val['totalpackage'].'</td>';
 					$html .= '<td>'.$currency.$val['fees'].'</td>';
 					$html .= '<td>'.$currency.$val['payment_done'].'</td>';
@@ -238,7 +238,7 @@ class Accounts extends CI_Controller {
 					$html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
 					if($val['billing_from'] == 'IndiaIVF'){ $html .= '<td>'.$val['billing_from'].'</td>'; }
 					else{$html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
-					$html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';
+					//$html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';
 					$html .= '<td>'.$currency.$val['totalpackage'].'</td>';
 					$html .= '<td>'.$currency.$val['fees'].'</td>';
 					$html .= '<td>'.$currency.$val['payment_done'].'</td>';
@@ -268,7 +268,7 @@ class Accounts extends CI_Controller {
 					$html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
 					if($val['billing_from'] == 'IndiaIVF'){ $html .= '<td>'.$val['billing_from'].'</td>'; }
 					else{$html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
-					$html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';
+					//$html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';
 					$html .= '<td>'.$currency.$val['totalpackage'].'</td>';
 					$html .= '<td>'.$currency.$val['fees'].'</td>';
 					$html .= '<td>'.$currency.$val['payment_done'].'</td>';
@@ -289,7 +289,7 @@ class Accounts extends CI_Controller {
 				}
 			}
 			
-			if(count($medicine_result) > 0){
+			/*if(count($medicine_result) > 0){
 				$type = $medicine_result['type'];
 				foreach($medicine_result['data'] as $key => $val){
 					$html .= '<tr>';
@@ -307,7 +307,7 @@ class Accounts extends CI_Controller {
 					$html .= '<td>'.ucwords($val['status']).'</td>';
 					$html .= '</tr>';
 				}
-			}
+			}*/
 
 			if(count($sales_result) > 0){
 				$type = $sales_result['type'];
@@ -357,7 +357,7 @@ class Accounts extends CI_Controller {
 					$payment_html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
 					if($val['billing_from'] == 'IndiaIVF'){ $payment_html .= '<td>'.$val['billing_from'].'</td>'; }
 					else{$payment_html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
-					$payment_html .= '<td>'.$this->get_employee_name($val['employee_number']).'</td>';
+					//$payment_html .= '<td>'.$this->get_employee_name($val['employee_number']).'</td>';
 					$payment_html .= '<td>'.$currency.$val['payment_done'].'</td>';
 					$payment_html .= '<td>'.$val['payment_method'].'</td>';
 					$payment_html .= '<td>'.$val['transaction_id'];

@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>India IVF HMS — Patient Journey &amp; Collections · Sign in</title>
+<link rel="stylesheet" href="{% static 'assets/theme.css' %}" />
+</head>
+<body>
+<div class="login-wrap">
+
+  <!-- ---- Brand panel ---- -->
+  <aside class="login-brand">
+    <div class="lb-top">
+      <div class="lb-logo-plate">
+        <img src="{% static 'assets/india-ivf-logo.png' %}" alt="India IVF" class="lb-logo">
+      </div>
+    </div>
+    <div class="lb-mid">
+      <div class="lb-tag">Patient Journey &amp; Collections</div>
+      <div class="lb-head">One bird's-eye view of every patient, every rupee, every centre.</div>
+      <div class="lb-sub">From the 10% booking payment to cycle close and final reconciliation — the HMS module that keeps revenue, clinical protocol and patient coordination in tight sync.</div>
+      <div class="lb-stats">
+        <div class="lb-stat"><div class="n">6+</div><div class="c">Centres</div></div>
+        <div class="lb-stat"><div class="n">7</div><div class="c">Clinical milestones</div></div>
+        <div class="lb-stat"><div class="n">5</div><div class="c">Role workspaces</div></div>
+      </div>
+    </div>
+    <div class="lb-foot">© 2026 Pashupati Lifecare Pvt. Ltd. · India IVF Fertility · Conceiving Miracles. Spreading Hope.</div>
+  </aside>
+
+  <!-- ---- Sign-in panel ---- -->
+  <main class="login-panel">
+    <div class="login-card">
+      <h1>Sign in to HMS</h1>
+      <div class="lc-sub">Patient Journey &amp; Collections module · access is scoped to your role</div>
+
+      <div class="login-field">
+        <label>Work email</label>
+        <input class="input" type="email" placeholder="name@indiaivf.in" value="" />
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input class="input" type="password" placeholder="••••••••••" value="" />
+      </div>
+
+      <div class="role-pick-lbl">Choose your workspace to continue</div>
+      <div class="role-cards">
+        <a class="role-card" href="doctor">
+          <div class="rc-ic ic-rose">✚</div>
+          <div class="rc-body"><div class="rc-name">Doctor</div>
+            <div class="rc-desc">Map &amp; update the clinical journey end to end</div></div>
+          <div class="rc-arrow">→</div>
+        </a>
+        <a class="role-card" href="centre-head">
+          <div class="rc-ic ic-gold">₹</div>
+          <div class="rc-body"><div class="rc-name">Centre Head</div>
+            <div class="rc-desc">Own collection performance at your centre</div></div>
+          <div class="rc-arrow">→</div>
+        </a>
+        <a class="role-card" href="financial-counsellor">
+          <div class="rc-ic ic-blue">◈</div>
+          <div class="rc-body"><div class="rc-name">Financial Counsellor</div>
+            <div class="rc-desc">Patient-level financial mapping &amp; adjustments</div></div>
+          <div class="rc-arrow">→</div>
+        </a>
+        <a class="role-card" href="accounts">
+          <div class="rc-ic ic-green">↩</div>
+          <div class="rc-body"><div class="rc-name">Accounts Team</div>
+            <div class="rc-desc">Cross-centre collections &amp; refund execution</div></div>
+          <div class="rc-arrow">→</div>
+        </a>
+        <a class="role-card" href="management">
+          <div class="rc-ic ic-rose">⚖</div>
+          <div class="rc-body"><div class="rc-name">Management</div>
+            <div class="rc-desc">Company-wide visibility &amp; exception oversight</div></div>
+          <div class="rc-arrow">→</div>
+        </a>
+      </div>
+    </div>
+  </main>
+
+</div>
+</body>
+</html>

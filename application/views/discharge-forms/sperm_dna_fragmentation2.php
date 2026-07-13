@@ -2,6 +2,15 @@
     $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
     $id = isset($_GET['id']) ? $_GET['id'] : '';
 
+    // फिक्स: अगर URL में patient_id डायरेक्ट न मिले, तो $id का इस्तेमाल करें
+    $patient_id = isset($_GET['patient_id']) ? $_GET['patient_id'] : $id;
+
+    // यदि आपका फ्रेमवर्क $updated_by जैसी वैल्यूज को डिफाइन नहीं कर रहा है तो उन्हें इनिशियलाइज करें
+    $updated_by = isset($updated_by) ? $updated_by : '';
+    $updated_type = isset($updated_type) ? $updated_type : '';
+    $updated_at = isset($updated_at) ? $updated_at : date('Y-m-d H:i:s');
+    $receipt_number = isset($receipt_number) ? $receipt_number : '';
+
     // php code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);

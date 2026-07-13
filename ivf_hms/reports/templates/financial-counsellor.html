@@ -1,0 +1,535 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>India IVF HMS — Financial Counsellor Workspace</title>
+<link rel="stylesheet" href="{% static 'assets/theme.css' %}" />
+</head>
+<body data-role="fc">
+
+<header class="topbar">
+  <a class="brand" href="{% url 'index' %}">
+    <img src="{% static 'assets/india-ivf-logo.png' %}" alt="India IVF" class="brand-logo">
+    <div class="brand-sep"></div>
+    <div class="brand-sub">Patient Journey &amp; Collections</div>
+  </a>
+  <div class="topbar-sep"></div>
+  <div class="topbar-role">Financial Counsellor Workspace</div>
+  <div class="topbar-right">
+    <div class="scope-chip"><span>📍</span><span class="loc">Noida Centre</span></div>
+    <a class="switch-role" href="{% url 'index' %}">⇄ Switch role</a>
+    <div class="user-chip">
+      <div class="avatar">PR</div>
+      <div class="user-meta"><div class="user-name">P. Rao</div><div class="user-role">FC · Noida</div></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="side-role">Financial Counsellor</div>
+    <div id="sideNav"></div>
+    <div class="side-foot"><b>Visibility scope</b>Patient-scoped — only patients assigned to you at your centre.</div>
+  </nav>
+
+  <main class="main">
+
+  <!-- ---------- My Patients ---------- -->
+  <section class="screen active" id="fc-dashboard">
+    <div class="page-head">
+      <div>
+        <div class="page-title">My Patients</div>
+        <div class="page-sub">Patient-level financial mapping · assigned patients at Noida Centre</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="showScreen('fc-actions')">Action Queue</button>
+        <button class="btn btn-primary btn-sm" onclick="showScreen('fc-refund')">Refund Queue</button>
+      </div>
+    </div>
+
+    <div class="role-banner">
+      <div class="rb-resp">
+        <h4>Responsibility — Patient-level financial mapping &amp; adjustments</h4>
+        <p>Confirm payment receipt against each milestone · process wallet adjustments triggered by the doctor · handle reconciliation tasks at the centre · coordinate refund initiation with accounts.</p>
+      </div>
+      <div class="rb-see">
+        <span class="lbl">I can see</span>
+        <div class="chip-row">
+          <span class="chip">My assigned patients · my centre</span>
+          <span class="chip">Wallet balance &amp; history</span>
+          <span class="chip">Pending milestone payments</span>
+          <span class="chip">Refund queue</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">◔</div><div class="kpi-label">Assigned Patients</div></div>
+        <div class="kpi-value">5</div><div class="kpi-sub">active financial journeys</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">₹</div><div class="kpi-label">Payments Due Today</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>2,60,500</div><div class="kpi-sub">milestone payments pending</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◈</div><div class="kpi-label">Wallet Adjustments</div></div>
+        <div class="kpi-value">1</div><div class="kpi-sub">triggered by doctor</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-gold">⇄</div><div class="kpi-label">Reconciliation Tasks</div></div>
+        <div class="kpi-value">1</div><div class="kpi-sub">plan / package changes</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-red">↩</div><div class="kpi-label">Refunds Pending</div></div>
+        <div class="kpi-value">2</div><div class="kpi-sub">awaiting mode verification</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Prebook Funnel <span class="muted">· before 10% booking · my centre</span></div>
+        <div class="card-tools" style="gap:6px;flex-wrap:wrap">
+          <select class="select" id="prebookRange" onchange="prebookRangeChanged()" style="width:auto;padding:6px 10px;font-size:11.5px">
+            <option value="today">Today</option>
+            <option value="week">This week</option>
+            <option value="month">This month</option>
+            <option value="all">All time</option>
+            <option value="custom">Custom range</option>
+          </select>
+          <span id="prebookCustomRange" style="display:none;align-items:center;gap:6px;font-size:11.5px;color:var(--text-soft)">
+            <input type="date" id="prebookFrom" value="2026-05-25" onchange="renderPrebook()" class="input" style="width:auto;padding:6px 8px;font-size:11.5px"/>
+            <span>to</span>
+            <input type="date" id="prebookTo" value="2026-05-25" onchange="renderPrebook()" class="input" style="width:auto;padding:6px 8px;font-size:11.5px"/>
+          </span>
+        </div></div>
+      <div class="card-body">
+        <div class="grid-3">
+          <div class="kpi prebook-kpi" onclick="prebookOpen('scheduled')">
+            <div class="kpi-top"><div class="kpi-ic ic-blue">📅</div>
+              <div class="kpi-label">Appointment Scheduled</div></div>
+            <div class="kpi-value" id="prebookScheduled">—</div>
+            <div class="kpi-sub">click to view list →</div>
+          </div>
+          <div class="kpi prebook-kpi" onclick="prebookOpen('missed')">
+            <div class="kpi-top"><div class="kpi-ic ic-red">⚑</div>
+              <div class="kpi-label">Missed Appointment</div></div>
+            <div class="kpi-value" id="prebookMissed">—</div>
+            <div class="kpi-sub">click to view list →</div>
+          </div>
+          <div class="kpi prebook-kpi" onclick="prebookOpen('cnb')">
+            <div class="kpi-top"><div class="kpi-ic ic-amber">◐</div>
+              <div class="kpi-label">Consulted Not Booked</div></div>
+            <div class="kpi-value" id="prebookCnb">—</div>
+            <div class="kpi-sub">click to view list →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Booked Patients by Clinical Stage <span class="muted">· my assigned patients — click a stage to open those patients</span></div>
+        <div class="card-tools"><span class="wf-tag">LIVE DATA</span></div></div>
+      <div class="card-body" id="stageWidget"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Patient List <span class="muted">· wallet, next milestone &amp; payment due</span></div>
+        <div class="card-tools"><span class="wf-tag">LIVE DATA</span><button class="btn btn-ghost btn-sm">Filter</button></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Package Code</th><th>Wallet Balance</th><th>Next Milestone</th>
+          <th>Payment Due</th><th>Gate</th><th>Status</th><th></th></tr></thead>
+        <tbody id="fcPtRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Action Queue ---------- -->
+  <section class="screen" id="fc-actions">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Action Queue</div>
+        <div class="page-sub">Confirm payment · wallet adjustment · reconciliation · refund mode verification</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">LIVE DATA</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Open Tasks</div>
+        <div class="card-tools">
+          <span class="pill pill-grey"><span class="dot"></span>Confirm payment</span>
+          <span class="pill pill-blue"><span class="dot"></span>Wallet adjustment</span>
+          <span class="pill pill-amber"><span class="dot"></span>Reconciliation</span>
+          <span class="pill pill-red"><span class="dot"></span>Refund mode</span>
+        </div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Task Type</th><th>Patient · IIC ID</th><th>Milestone</th><th>Amount</th>
+          <th>Triggered By</th><th>Created</th><th></th></tr></thead>
+        <tbody id="fcActionRows"></tbody>
+      </table></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><div class="card-title">Confirm Milestone Payment</div></div>
+        <div class="card-body">
+          <div class="callout"><span class="co-ic">🔓</span><div>Confirming a milestone payment unlocks the clinical gate so the doctor can proceed.</div></div>
+          <div style="height:14px"></div>
+          <div class="field-grid">
+            <div><div class="field-label">Payment received confirmation <span class="req">✱</span></div>
+              <select class="select"><option value="">Select …</option><option>Yes — received</option><option>No</option></select>
+              <div class="field-meta"><span class="tag-src">Source · FC</span><span class="tag-use">Unlocks clinical gate</span></div></div>
+            <div><div class="field-label">Amount received <span class="req">✱</span></div>
+              <input class="input" type="text" placeholder="₹ 0.00">
+              <div class="field-meta"><span class="tag-use">Each milestone payment</span></div></div>
+            <div><div class="field-label">Payment mode <span class="req">✱</span></div>
+              <select class="select"><option value="">Select …</option><option>Cash</option><option>Card</option><option>Insurance</option><option>Cheque</option><option>UPI</option></select>
+              <div class="field-meta"><span class="tag-src">Source · FC</span><span class="tag-use">Refund routing</span></div></div>
+            <div><div class="field-label">Milestone</div>
+              <select class="select"><option>Booking — 10%</option><option>Stimulation — 40%</option><option>Trigger — balance</option><option>OPU — 100%</option></select></div>
+          </div>
+          <div class="divider"></div>
+          <button class="btn btn-primary">Confirm payment &amp; unlock gate →</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Wallet Adjustment</div></div>
+        <div class="card-body">
+          <div class="callout warn"><span class="co-ic">◈</span><div>Wallet adjustments are triggered by the doctor (mid-stim outcome, package change). Log the adjustment note for audit.</div></div>
+          <div style="height:14px"></div>
+          <div class="field-grid">
+            <div><div class="field-label">Adjustment type</div>
+              <select class="select"><option>Credit</option><option>Debit</option><option>Pro-rata reversal</option></select></div>
+            <div><div class="field-label">Adjustment amount</div>
+              <input class="input" type="text" placeholder="₹ 0.00"></div>
+          </div>
+          <div style="height:14px"></div>
+          <div><div class="field-label">Wallet adjustment note <span class="req">✱</span></div>
+            <textarea class="input" rows="2" placeholder="Reason for adjustment …"></textarea>
+            <div class="field-meta"><span class="tag-src">Source · FC</span><span class="tag-use">Used in · Audit</span></div></div>
+          <div class="divider"></div>
+          <button class="btn btn-primary">Post wallet adjustment</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Reconciliation Task</div>
+        <div class="card-tools"><span class="pill pill-amber"><span class="dot"></span>FC + Accounts</span></div></div>
+      <div class="card-body">
+        <div class="mini-head">Reconciliation is triggered when</div>
+        <div class="grid-3" style="gap:12px;margin-bottom:16px">
+          <div class="callout"><span class="co-ic">⚕</span><div><b>Stimulation cancelled</b> — no eggs formed, or patient stopped mid-stim, before restimulation.</div></div>
+          <div class="callout"><span class="co-ic">⇄</span><div><b>Package changed</b> — self-cycle to donor, or any package code change.</div></div>
+          <div class="callout"><span class="co-ic">✕</span><div><b>Outcome failed</b> — patient &amp; doctor decide next cycle, withdrawal or change of management.</div></div>
+        </div>
+        <div class="field-grid">
+          <div><div class="field-label">Reconciliation completion flag <span class="req">✱</span></div>
+            <select class="select"><option value="">Select …</option><option>Yes — complete</option><option>No — in progress</option></select>
+            <div class="field-meta"><span class="tag-src">Source · FC</span><span class="tag-use">Unlocks new codes</span></div></div>
+          <div><div class="field-label">Reconciliation notes <span class="req">✱</span></div>
+            <input class="input" type="text" placeholder="Notes on reconciliation outcome">
+            <div class="field-meta"><span class="tag-use">When · plan / package change</span></div></div>
+        </div>
+        <div class="divider"></div>
+        <div class="mini-head">Code-bundling for residual amounts</div>
+        <div class="callout"><span class="co-ic">🔗</span><div>The residual of a pending procedure is clubbed with another (e.g. <b>IP1 + IP2 → new combined code</b>). The new code links to both originals, milestones re-map under it, and the two original codes are <b>frozen</b> — no further entries permitted.</div></div>
+        <div style="height:12px"></div>
+        <div class="field-grid">
+          <div><div class="field-label">Original code A</div><select class="select"><option>IP11</option><option>IP222</option></select></div>
+          <div><div class="field-label">Original code B</div><select class="select"><option>IP222</option><option>IP11</option></select></div>
+          <div><div class="field-label">New combined code</div><input class="input" type="text" placeholder="Auto-generated" readonly></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------- Refund Queue ---------- -->
+  <section class="screen" id="fc-refund">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Refund Queue</div>
+        <div class="page-sub">Pro-rata computation &amp; refund mode verification · pending external processing</div>
+      </div>
+      <div class="page-actions"><span class="wf-tag">LIVE DATA</span></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Pro-rata Refund Computation</div>
+        <div class="card-tools"><span class="pill pill-blue"><span class="dot"></span>System computes</span></div></div>
+      <div class="card-body">
+        <div class="callout"><span class="co-ic">∑</span><div><b>Refundable amount = milestone payment × ( 1 − completed micro-steps ÷ total prescribed micro-steps )</b></div></div>
+        <div style="height:14px"></div>
+        <div class="field-grid">
+          <div><div class="field-label">Milestone payment</div>
+            <select class="select"><option>Stimulation — 40% of package</option><option>Trigger — balance</option></select></div>
+          <div><div class="field-label">Total micro-steps prescribed</div>
+            <input class="input" type="number" placeholder="e.g. 4 injections"></div>
+          <div><div class="field-label">Completed micro-steps <span class="auto-tag" style="background:var(--gold-soft);color:#8a6526">Doctor logs</span></div>
+            <input class="input" type="number" placeholder="e.g. 2 injections"></div>
+          <div><div class="field-label">Refundable amount <span class="auto-tag">Auto</span></div>
+            <input class="input" type="text" placeholder="Auto-computed by system" readonly></div>
+          <div><div class="field-label">Refund mode confirmation <span class="req">✱</span></div>
+            <select class="select"><option value="">Select …</option><option>Cash</option><option>Insurance</option></select>
+            <div class="field-meta"><span class="tag-src">Source · FC</span><span class="tag-use">Used in · Accounts queue</span></div></div>
+        </div>
+        <div class="divider"></div>
+        <div class="callout warn"><span class="co-ic">ⓘ</span><div><b>Worked example —</b> Stim milestone = 40% of package. Prescribed = 4 injections, given = 2 → Refund = 40% × (1 − 2/4) = <b>20% of package</b>.</div></div>
+        <div style="height:14px"></div>
+        <div class="mini-head">Refund responsibility flow</div>
+        <div class="chip-row">
+          <span class="chip">1 · Doctor logs micro-steps</span>
+          <span class="chip">2 · System computes amount</span>
+          <span class="chip">3 · FC confirms mode with patient</span>
+          <span class="chip">4 · Accounts processes externally</span>
+          <span class="chip">5 · Accounts closes · wallet → ₹0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Refund Queue <span class="muted">· pending external processing</span></div>
+        <div class="card-tools"><span class="wf-tag">LIVE DATA</span></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Patient · IIC ID</th><th>Reconciliation Trigger</th><th>Computed Refund</th>
+          <th>Refund Mode</th><th>FC Verified</th><th>Status</th><th></th></tr></thead>
+        <tbody id="fcRefundRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Patient Wallet ---------- -->
+  <section class="screen" id="fc-wallet">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Patient Wallet</div>
+        <div class="page-sub">Wallet balance &amp; full payment history per patient</div>
+      </div>
+      <div class="page-actions">
+        <select class="select" style="width:250px">
+          <option>Anjali Mehra · IIC-2603-118</option>
+          <option>Priya Sharma · IIC-2603-126</option>
+          <option>Kavita Reddy · IIC-2604-203</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-rose">₹</div><div class="kpi-label">Net Package</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>2,60,000</div><div class="kpi-sub">after ₹25,000 discount</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-green">✓</div><div class="kpi-label">Collected</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>2,60,000</div><div class="kpi-sub">across milestones</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-amber">◷</div><div class="kpi-label">Outstanding</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>0</div><div class="kpi-sub">100% cleared</div></div>
+      <div class="kpi"><div class="kpi-top"><div class="kpi-ic ic-blue">◈</div><div class="kpi-label">Wallet Balance</div></div>
+        <div class="kpi-value"><span class="cur">₹</span>2,60,000</div><div class="kpi-sub">live credit / debit position</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Milestone Payment Schedule <span class="muted">· standard IVF self-cycle</span></div></div>
+      <div class="card-body">
+        <div class="callout"><span class="co-ic">ⓘ</span><div>Percentages apply to standard IVF self-cycle codes (IP11, IP222, composites). Donor &amp; custom packages have schedules defined per package code at booking.</div></div>
+        <div style="height:14px"></div>
+        <div class="bucket-row" style="grid-template-columns:repeat(4,1fr)">
+          <div class="bucket b1"><div class="bucket-lbl">Booking</div><div class="bucket-val">10%</div><div class="bucket-cnt">at T · Day 0</div></div>
+          <div class="bucket b3"><div class="bucket-lbl">Stimulation</div><div class="bucket-val">40%</div><div class="bucket-cnt">at T + 10</div></div>
+          <div class="bucket b4"><div class="bucket-lbl">Trigger</div><div class="bucket-val">Balance</div><div class="bucket-cnt">at T + 18 · 10% CH flex</div></div>
+          <div class="bucket b5"><div class="bucket-lbl">OPU</div><div class="bucket-val">100%</div><div class="bucket-cnt">must clear before OPU</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><div class="card-title">Wallet History <span class="muted">· Anjali Mehra · IIC-2603-118</span></div>
+        <div class="card-tools"><span class="wf-tag">LIVE DATA</span><button class="btn btn-ghost btn-sm">Export</button></div></div>
+      <div class="card-body flush"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>Date</th><th>Milestone</th><th>Event</th><th>Mode</th>
+          <th class="col-num">Debit</th><th class="col-num">Credit</th><th class="col-num">Balance</th></tr></thead>
+        <tbody id="fcWalletRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Patient Journey ---------- -->
+    <!-- ---------- Booked Patient List ---------- -->
+  <section class="screen" id="booked-patient-list">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Booked Patient List</div>
+        <div class="page-sub">All booked patients with current stage, package &amp; collection · click an IIC ID to open the journey</div>
+      </div>
+      <div class="page-actions">
+        <span class="wf-tag">LIVE DATA</span>
+        <button class="btn btn-ghost btn-sm" onclick="exportBookedList()">Export</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Filters</div>
+        <div class="card-tools">
+          <button class="btn btn-ghost btn-sm" onclick="resetBookedFilters()">Reset</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="filter-grid">
+          <div class="fg-item" style="grid-column:1/-1">
+            <label class="fg-lbl">Search · name or IIC ID</label>
+            <input type="search" id="bplSearch" class="input" placeholder="Type a patient name or IIC ID…" oninput="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Centre</label>
+            <select id="bplCentre" class="select" onchange="renderBookedList()">
+              <option value="">All centres</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Category</label>
+            <select id="bplCategory" class="select" onchange="renderBookedList()">
+              <option value="">All categories</option>
+              <option>OPD</option>
+              <option>IVF with Bed</option>
+              <option>IVF without Bed</option>
+              <option>Non IVF with Bed</option>
+              <option>Non IVF without Bed</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Payment status</label>
+            <select id="bplPay" class="select" onchange="renderBookedList()">
+              <option value="">All payment status</option>
+              <option value="10">10% (booked)</option>
+              <option value="50">50% (part paid)</option>
+              <option value="100">100% (fully paid)</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">First consult · from</label>
+            <input type="date" id="bplFcFrom" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">First consult · to</label>
+            <input type="date" id="bplFcTo" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Booking · from</label>
+            <input type="date" id="bplBkFrom" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Booking · to</label>
+            <input type="date" id="bplBkTo" class="input" onchange="renderBookedList()"/>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Booked packages</label>
+            <select id="bplPkg" class="select" onchange="renderBookedList()">
+              <option value="">All packages</option>
+            </select>
+          </div>
+          <div class="fg-item">
+            <label class="fg-lbl">Current stage</label>
+            <select id="bplStage" class="select" onchange="renderBookedList()">
+              <option value="">All stages</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Patients <span class="muted" id="bplCount">· —</span></div>
+        <div class="card-tools">
+          <div class="view-seg">
+            <button class="seg-btn active" id="bplViewListBtn" onclick="setBookedView('list')">▤ List</button>
+            <button class="seg-btn" id="bplViewCardBtn" onclick="setBookedView('card')">▦ Cards</button>
+          </div>
+          <span class="wf-tag">LIVE DATA</span>
+        </div>
+      </div>
+      <div class="card-body flush">
+        <div class="table-wrap" id="bplTableWrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>IIC ID</th>
+              <th>Wife Name</th>
+              <th>Husband Name</th>
+              <th>Date of First Consult</th>
+              <th>Date of Booking</th>
+              <th>Centre</th>
+              <th>Doctor</th>
+              <th>Booked Packages</th>
+              <th>Current Stage</th>
+              <th class="col-num">Net Package Amount</th>
+              <th class="col-num">Amount Received</th>
+              <th class="col-num">Pending Amount</th>
+            </tr></thead>
+            <tbody id="bplRows"></tbody>
+          </table>
+        </div>
+        <div id="bplCardsWrap" class="bpl-cards" style="display:none"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="patient-journey">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Booked Patient Journey</div>
+        <div class="page-sub">Track the date-wise clinical journey of every booked patient · search by name or IIC ID</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div style="position:relative">
+          <input class="input" id="journeySearchInput" placeholder="Search a patient by name or IIC ID…" oninput="journeySearch(this.value)" autocomplete="off" />
+          <div id="journeyList" style="margin-top:8px;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" id="journeyDetail"></div>
+    </div>
+  </section>
+
+  <!-- ---------- Stage Patient Listing ---------- -->
+  <section class="screen" id="stage-patients">
+    <div class="page-head">
+      <div>
+        <div class="page-title" id="stageTitle">Patients at Stage</div>
+        <div class="page-sub" id="stageSub">Click an IIC ID to open the patient's journey</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="backToDashboard()">← Back to dashboard</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" style="padding-bottom:14px">
+        <div class="mini-head">Filter by clinical stage</div>
+        <div class="stage-chips" id="stageChips"></div>
+      </div>
+      <div class="card-body flush" style="border-top:1px solid var(--border-soft)"><div class="table-wrap"><table class="tbl">
+        <thead><tr><th>SN</th><th>Patient Name</th><th>IIC ID</th>
+          <th>Date of Booking</th><th>Package</th><th class="col-num">Net Package Amount</th></tr></thead>
+        <tbody id="stagePatientRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  <!-- ---------- Prebook Patient Listing ---------- -->
+  <section class="screen" id="prebook-list">
+    <div class="page-head">
+      <div>
+        <div class="page-title" id="prebookTitle">Prebook Patients</div>
+        <div class="page-sub" id="prebookSub">Click an IIC ID to open the patient journey</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost btn-sm" onclick="backToDashboard()">← Back to dashboard</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body flush"><div class="table-wrap" id="prebookListBody"><table class="tbl">
+        <thead><tr><th>SN</th><th>IIC ID</th><th>Patient Name</th>
+          <th id="prebookDateCol">Date</th><th>Centre</th></tr></thead>
+        <tbody id="prebookRows"></tbody>
+      </table></div></div>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<script src="{% static 'assets/data.js' %}"></script>
+<script src="{% static 'assets/app.js' %}"></script>
+</body>
+</html>
