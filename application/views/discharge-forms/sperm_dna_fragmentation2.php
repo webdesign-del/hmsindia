@@ -1,17 +1,35 @@
 <?php
+    // 1. URL या GET पैरामीटर्स से डेटा सुरक्षित रूप से निकालना
     $appoitmented_date = isset($_GET['appoitmented_date']) ? $_GET['appoitmented_date'] : '';
     $id = isset($_GET['id']) ? $_GET['id'] : '';
-
-    // फिक्स: अगर URL में patient_id डायरेक्ट न मिले, तो $id का इस्तेमाल करें
+    
+    // अगर सीधे GET में patient_id नहीं है, तो चेक करें
     $patient_id = isset($_GET['patient_id']) ? $_GET['patient_id'] : $id;
 
-    // यदि आपका फ्रेमवर्क $updated_by जैसी वैल्यूज को डिफाइन नहीं कर रहा है तो उन्हें इनिशियलाइज करें
+    // फिक्स: अगर ऊपर से भी patient_id नहीं मिला, तो URL पाथ से निकालेंगे (/patient-discharge/106/17727797457248/25)
+    if (empty($patient_id)) {
+        $current_url = $_SERVER['REQUEST_URI'];
+        $url_parts = explode('/', trim($current_url, '/'));
+        
+        // CodeIgniter / MVC फ्रेमवर्क के यूआरएल से 14-digit या लॉन्ग संख्या (Patient ID) खोजना
+        foreach ($url_parts as $part) {
+            // क्लीन करने के लिए अगर पार्ट में ? है तो उसे हटाएं
+            $clean_part = strtok($part, '?');
+            if (is_numeric($clean_part) && strlen($clean_part) >= 10) {
+                $patient_id = $clean_part;
+                break;
+            }
+        }
+    }
+
+    // वेरिएबल के अनडिफाइंड एरर (Notice) को रोकने के लिए डिफॉल्ट्स
     $updated_by = isset($updated_by) ? $updated_by : '';
     $updated_type = isset($updated_type) ? $updated_type : '';
     $updated_at = isset($updated_at) ? $updated_at : date('Y-m-d H:i:s');
     $receipt_number = isset($receipt_number) ? $receipt_number : '';
+    $patient_data = isset($patient_data) ? $patient_data : array('husband_name'=>'', 'husband_age'=>'', 'wife_name'=>'');
 
-    // php code to Insert data into mysql database from input text
+    // PHP code to Insert data into mysql database from input text
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
         
@@ -25,7 +43,7 @@
             $_POST['upload_photo_1'] = $transaction_img;
         }
        
-        // चेक करें कि क्या इस iic_id का डेटा पहले से मौजूद है
+        // चेक करें कि क्या इस patient_id का डेटा पहले से मौजूद है
         $sql = "SELECT * FROM `sperm_dna_fragmentation2` WHERE patient_id='$patient_id'";
         $select_result = run_select_query($sql);
         
@@ -57,30 +75,44 @@
         }
     }
    
-    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ iic_id से फेच करें
-    $sql = "SELECT * FROM `sperm_dna_fragmentation2` WHERE patient_id='$patient_id'";
-    $select_result = run_select_query($sql);
+    // फॉर्म में पुराना डेटा दिखाने के लिए सिर्फ patient_id से फेच करें
+    $select_result = array();
+    if(!empty($patient_id)) {
+        $sql = "SELECT * FROM `sperm_dna_fragmentation2` WHERE patient_id='$patient_id'";
+        $select_result = run_select_query($sql);
+    }
     
-    $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
-    $select_result2 = run_select_query($sql2);
+    $select_result2 = array('uhid'=>'', 'appoitment_for'=>'');
+    if(!empty($patient_id)) {
+        $sql2 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient'";
+        $res2 = run_select_query($sql2);
+        if(!empty($res2)) $select_result2 = $res2;
+    }
     
-    $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
-    $select_result3 = run_select_query($sql3);
+    $select_result3 = array('center_code'=>'');
+    if(!empty($select_result2['appoitment_for'])) {
+        $sql3 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result2['appoitment_for']."'";
+        $res3 = run_select_query($sql3);
+        if(!empty($res3)) $select_result3 = $res3;
+    }
 
-    $select_query = "SELECT * FROM `dna_fragmentation` WHERE patient_id='$patient_id' ";
-    $dna_result = run_select_query($select_query); 
+    $dna_result = array();
+    if(!empty($patient_id)) {
+        $select_query = "SELECT * FROM `dna_fragmentation` WHERE patient_id='$patient_id' ";
+        $dna_result = run_select_query($select_query); 
+    }
 
     // 2. Define the 'is_complete' flag based on the result
     $is_complete = !empty($dna_result);
 
     // 3. Set the receipt number for the hidden input
-    $final_receipt = ($is_complete) ? $dna_result['receipt_number'] : "";
+    $final_receipt = ($is_complete && isset($dna_result['receipt_number'])) ? $dna_result['receipt_number'] : "";
 ?>
 
 <div class="ga-pro">
 <br>
 <h3 style="text-align: center;  padding-bottom: 20px;">SPERM DNA FRAGMENTATION TEST REPORT</h3>
-    <script>
+<script>
 function isNumber(evt) {
     evt = (evt) ? evt : window.event;
     var charCode = (evt.which) ? evt.which : evt.keyCode;
@@ -123,32 +155,28 @@ function isNumber(evt) {
             display: none !important; 
         } 
     </style>
-<?php endif; ?>	
+<?php endif; ?> 
 <input type="hidden" value="<?php echo $appoitmented_date; ?>" class="form" name="appoitmented_date">
 <div class="fg45rt">
 <h5>PATIENT INFORMATION</h5>
 </div>
 
-
-
 <table width="100%">
- 
   <tr>
     <td>HUSBAND NAME</td>
-    <td> <?php echo $patient_data['husband_name']; ?>  </td>
+    <td> <?php echo isset($patient_data['husband_name']) ? $patient_data['husband_name'] : ''; ?>  </td>
     <td>AGE</td>
-    <td> <?php echo $patient_data['husband_age']; ?> Years</td>
+    <td> <?php echo isset($patient_data['husband_age']) ? $patient_data['husband_age'] : ''; ?> Years</td>
   </tr>
   <tr>
-  <td>UHID</td>
-<td><?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></td>
-</tr>
+    <td>UHID</td>
+    <td><?php echo (isset($select_result3['center_code']) ? $select_result3['center_code'] : '') . "/" . (isset($select_result2['uhid']) ? $select_result2['uhid'] : ''); ?></td>
+  </tr>
   <tr>
     <td>WIFE NAME</td>
-    <td><input type="text" class="WIFENAME" name="WIFE_NAME" value="<?php echo $patient_data['wife_name']; ?>"></td>
+    <td><input type="text" class="WIFENAME" name="WIFE_NAME" value="<?php echo isset($patient_data['wife_name']) ? $patient_data['wife_name'] : ''; ?>"></td>
     <td>ID NO</td>
      <td> <input type="text" name="patient_id" value="<?php echo $patient_id;?>" readonly  > </td>
-  
   </tr>
   <tr>
     <td> REF. BY DR: </td>
@@ -156,19 +184,17 @@ function isNumber(evt) {
     <td>DATE</td>
     <td><input type="date" class="DATE" name="DATE"  value="<?php echo isset($select_result['DATE'])?$select_result['DATE']:""; ?>"> </td>
   </tr>
- 
 </table>
 
 <div class="fg45rt">
 <h5>CHARACTERSTICS</h5>
 </div>
 <table width="100%">
- 
   <tr>
     <td>COLLECTION TIME</td>
-    <td><input type="time" id=">COLLECTIONTIME" name="COLLECTION_TIME"  value="<?php echo isset($select_result['COLLECTION_TIME'])?$select_result['COLLECTION_TIME']:""; ?>"></td>
+    <td><input type="time" id="COLLECTIONTIME" name="COLLECTION_TIME"  value="<?php echo isset($select_result['COLLECTION_TIME'])?$select_result['COLLECTION_TIME']:""; ?>"></td>
     <td>EXAMINATION TIME</td>
-    <td><input type="time" id=">EXAMINATIONTIME" name="EXAMINATION_TIME"  value="<?php echo isset($select_result['EXAMINATION_TIME'])?$select_result['EXAMINATION_TIME']:""; ?>"></td>
+    <td><input type="time" id="EXAMINATIONTIME" name="EXAMINATION_TIME"  value="<?php echo isset($select_result['EXAMINATION_TIME'])?$select_result['EXAMINATION_TIME']:""; ?>"></td>
   </tr>
   <tr>
     <td>COLLECTION TYPE</td>
@@ -206,7 +232,6 @@ function isNumber(evt) {
     <td>VISCOCITY</td>
     <td><input type="text" class="VISCOCITY" name="VISCOCITY" value="<?php echo isset($select_result['VISCOCITY'])?$select_result['VISCOCITY']:""; ?>"></td>
   </tr>
- 
 </table>
 
 <div class="fg45rt">
@@ -214,185 +239,41 @@ function isNumber(evt) {
 </div>
 
 <?php 
+$Fragmented = 0;
+$Not_Fragmented = 0;
+$db_patient_id = isset($select_result['patient_id']) ? $select_result['patient_id'] : ''; 
 
-$Fragmented= $Not_Fragmented= 0;
-@ $id=$select_result['patient_id'];
-//echo $id; ?>
-<?php if(!$id==null)  { ?>
+if(!empty($db_patient_id))  { 
+    $BIG_HALO = isset($select_result['BIG_HALO']) ? $select_result['BIG_HALO'] : 0;
+    $MEDIUM_HALO = isset($select_result['MEDIUM_HALO']) ? $select_result['MEDIUM_HALO'] : 0;
+    $SMALL_HALO = isset($select_result['SMALL_HALO']) ? $select_result['SMALL_HALO'] : 0;
+    $WITHOUT_HALO = isset($select_result['WITHOUT_HALO']) ? $select_result['WITHOUT_HALO'] : 0;
 
-
-<table class="bv45rt">
+    $Not_Fragmented = ((!empty($BIG_HALO)?$BIG_HALO:0)+(!empty($MEDIUM_HALO)?$MEDIUM_HALO:0));
+    $Fragmented = ((!empty($SMALL_HALO)?$SMALL_HALO:0)+(!empty($WITHOUT_HALO)?$WITHOUT_HALO:0));
+?>
+<table class="bv45rt" width="100%">
   <tr>
     <td style="width:70%;">
-    
-	
-<?php
-
-$BIG_HALO= $select_result['BIG_HALO'];
-$MEDIUM_HALO= $select_result['MEDIUM_HALO'];
-$SMALL_HALO= $select_result['SMALL_HALO'];
-$WITHOUT_HALO= $select_result['WITHOUT_HALO'];
-$Not_Fragmented = $Fragmented = 0;
-
-$Not_Fragmented= ((!empty($BIG_HALO)?$BIG_HALO:0)+(!empty($MEDIUM_HALO)?$MEDIUM_HALO:0));
-$Fragmented= ((!empty($SMALL_HALO)?$SMALL_HALO:0)+(!empty($WITHOUT_HALO)?$WITHOUT_HALO:0));
-// $Fragmented= ($SMALL_HALO+$WITHOUT_HALO);
-
- 
-
-
- $rating_data = array(
- array('Employee', 'Rating'),
- array('NOT FRAGMENTED ',$Not_Fragmented),
- array('FRAGMENTED ',$Fragmented),
-
-);
-
- $encoded_data = json_encode($rating_data);
-?>
-<!--
-
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-<script type="text/javascript">
-google.load("visualization", "1", {packages:["corechart"]});
-google.setOnLoadCallback(drawChart);
-function drawChart() 
-{
- var data = google.visualization.arrayToDataTable(
- <?php  echo $encoded_data; ?>
- );
- var options = {
-  title: "DNA FRAGMENTATION INDEX (DFI):"
- };
- var chart = new google.visualization.PieChart(document.getElementById("employee_piechart"));
- chart.draw(data, options);
-}
-</script>
-<style>
-
-
-#wrapper h1 p
-{
- font-size:18px;
-}
-#employee_piechart
-{
- padding:0px;
- width:500px;
- height:400px;
- 
-}
-</style>
-
- <div id="employee_piechart" style=""></div>
-
-	</td>
-  
-  <td>  
-  
-  <input type="file" value="<?php echo isset($select_result['upload_photo_1'])?$select_result['upload_photo_1']:""; ?>"  name="upload_photo_1">
-  
-  <img src="<?php echo $select_result['upload_photo_1'];?>"  style="max-width:400px; height:auto;">
-  
-  
-					        		
-  
-  
-  </td>
- 
- 
+      <!-- यहाँ पहले पाईचार्ट का कोड था जो आपने बंद कर रखा है -->
+    </td>
+    <td>  
+      <input type="file" name="upload_photo_1">
+      <?php if(!empty($select_result['upload_photo_1'])): ?>
+         <img src="<?php echo $select_result['upload_photo_1'];?>" style="max-width:400px; height:auto;">
+      <?php endif; ?>
+    </td>
   </tr>
 </table>
-
 <?php } ?>
 
-
-
 <p style="font-weight: 600;">NO. of Sperm Evaluated: <input type="text" class="Evaluated" name="Evaluated" value="<?php echo isset($select_result['Evaluated'])?$select_result['Evaluated']:""; ?>"> </p>
-
-<div class="fg45rt4r">
-<table>
-<tbody>
-<tr>
-<td width="131">
-<p><strong>BASIC CLASSIFICATION</strong></p>
-</td>
-<td width="129">
-<p><strong>PERCENTAGE</strong></p>
-</td>
-</tr>
-<tr>
-<td width="131">
-<p>BIG HALO</p>
-</td>
-<td width="131">
-<input type="text" class="BIGHALO"  onkeypress="javascript:return isNumber(event)" minlength="1" maxlength="3" name="BIG_HALO" value="<?php echo isset($select_result['BIG_HALO'])?$select_result['BIG_HALO']:""; ?>">
-</td>
-</tr>
-<tr>
-<td width="131">
-<p>MEDIUM HALO</p>
-</td>
-<td width="131">
-<input type="text" class="MEDIUMHALO"  onkeypress="javascript:return isNumber(event)" minlength="1" maxlength="3" name="MEDIUM_HALO" value="<?php echo isset($select_result['MEDIUM_HALO'])?$select_result['MEDIUM_HALO']:""; ?>">
-</td>
-</tr>
-<tr>
-<td width="131">
-<p>SMALL HALO</p>
-</td>
-<td width="131">
-<input type="text" class="SMALLHALO" name="SMALL_HALO"   onkeypress="javascript:return isNumber(event)" minlength="1" maxlength="3" value="<?php echo isset($select_result['SMALL_HALO'])?$select_result['SMALL_HALO']:""; ?>">
-</td>
-</tr>
-<tr>
-<td width="131">
-<p>WITHOUT HALO</p>
-</td>
-<td width="131">
-<input type="text" class="WITHOUTHALO" name="WITHOUT_HALO"  onkeypress="javascript:return isNumber(event)" minlength="1" maxlength="3" value="<?php echo isset($select_result['WITHOUT_HALO'])?$select_result['WITHOUT_HALO']:""; ?>">
-</td>
-</tr>
-</tbody>
-</table>
-
-<table>
-<tbody>
-<tr>
-<td width="134">
-</td>
-<td width="130">
-<p><strong>PERCENTAGE</strong></p>
-</td>
-</tr>
-<tr>
-<td width="134">
-<p><strong>NOT FRAGMENTED</strong></p>
-</td>
-<td width="130">
-
-<?php  echo $Not_Fragmented; ?> %
-</td>
-</tr>
-<tr>
-<td width="134">
-<p><strong>FRAGMENTED</strong></p>
-</td>
-<td width="130">
-    <?php echo $Fragmented; ?> %
-</td>
-</tr>
-</tbody>
-</table>
-
-</div>-->
 
 <p style="font-weight:600; font-size: 20px; text-decoration: underline;">Interpretation of Result:</p>
 <div class="bvfg45tr">
 <p>0-15% Fragmentation : Higher fertility potential</p>
-<p>> 15-25% Fragmentation :Good to fair fertility potential</p>
-<p>> 25% Fragmentation : Poor fertility potential</p>
+<p>word_greater_than 15-25% Fragmentation :Good to fair fertility potential</p>
+<p>word_greater_than 25% Fragmentation : Poor fertility potential</p>
  </div>
 
 <div class="fg45rt" style="margin-top: 20px;">
@@ -410,17 +291,14 @@ function drawChart()
   </tr>
 </table>
 <div class="sec2">
-  
 <label for="other">Please take prescribed medicines / injections only. Dont skip/ stop any medicine on your own unless advised by the doctor.</label>
-    
 </div> 
 <input type="submit" name="submit" value="submit">
 </form>
-
-
 </div>
 
-<div class="row" id="print_this_section" style="display:none;">
+<!-- ==================== PRINT PREVIEW SECTION ==================== -->
+<div class="row" id="print_this_section" style="display:block; margin-top: 40px; border-top: 2px dashed #000; padding-top: 20px;">
 <div class="ga-pro">
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
 <tr>
@@ -429,34 +307,31 @@ function drawChart()
 </tr>
 </table>
 
-
 <table width="100%">
  <tr>
     <td colspan="4" width="100%"><h5>PATIENT INFORMATION</h5></td>    
   </tr>
   <tr>
     <td colspan="1" width="25%" style="border:1px solid;padding:5px;">HUSBAND NAME</td>
-    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo $patient_data['husband_name']; ?></td>
+    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo isset($patient_data['husband_name']) ? $patient_data['husband_name'] : ''; ?></td>
     <td colspan="1" width="25%" style="border:1px solid;padding:5px;">AGE</td>
-    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo $patient_data['husband_age']; ?> Years</td>
+    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo isset($patient_data['husband_age']) ? $patient_data['husband_age'] : ''; ?> Years</td>
   </tr>
-    <tr>
-<td colspan="1" width="25%" style="border:1px solid;padding:5px;">WIFE NAME</td>
-    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo $patient_data['wife_name']; ?></td>
-</tr>
   <tr>
-    
-	  <td colspan="1" width="25%" style="border:1px solid;padding:5px;">UHID</td>
-<td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo $select_result3['center_code']."/".$select_result2['uhid']; ?></td>
+    <td colspan="1" width="25%" style="border:1px solid;padding:5px;">WIFE NAME</td>
+    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo isset($patient_data['wife_name']) ? $patient_data['wife_name'] : ''; ?></td>
+    <td colspan="1" width="25%" style="border:1px solid;padding:5px;">UHID</td>
+    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo (isset($select_result3['center_code']) ? $select_result3['center_code'] : '') . "/" . (isset($select_result2['uhid']) ? $select_result2['uhid'] : ''); ?></td>
+  </tr>
+  <tr>
     <td colspan="1" width="25%" style="border:1px solid;padding:5px;">ID NO</td>
     <td colspan="1" width="25%" style="border:1px solid;padding:5px;"> <?php echo $patient_id;?></td>
-  
+    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"> REF. BY DR: </td>
+    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo isset($select_result['REF'])?$select_result['REF']:""; ?></td>
   </tr>
   <tr>
-    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"> REF. BY DR: </td>
-   <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo isset($select_result['REF'])?$select_result['REF']:""; ?></td>
     <td colspan="1" width="25%" style="border:1px solid;padding:5px;">DATE</td>
-    <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo isset($select_result['DATE'])?$select_result['DATE']:""; ?></td>
+    <td colspan="3" width="75%" style="border:1px solid;padding:5px; text-align: left;"><?php echo isset($select_result['DATE'])?$select_result['DATE']:""; ?></td>
   </tr>
 </table>
 
@@ -464,7 +339,6 @@ function drawChart()
 <h5>CHARACTERSTICS</h5>
 </div>
 <table width="100%">
- 
   <tr>
     <td colspan="1" width="25%" style="border:1px solid;padding:5px;">COLLECTION TIME</td>
     <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo isset($select_result['COLLECTION_TIME'])?$select_result['COLLECTION_TIME']:""; ?></td>
@@ -507,185 +381,37 @@ function drawChart()
     <td colspan="1" width="25%" style="border:1px solid;padding:5px;">VISCOCITY</td>
     <td colspan="1" width="25%" style="border:1px solid;padding:5px;"><?php echo isset($select_result['VISCOCITY'])?$select_result['VISCOCITY']:""; ?></td>
   </tr>
- 
 </table>
 
 <div class="fg45rt">
-<h5 colspan="4" width="100%" style="border:1px solid;padding:5px;text-align:left;">DNA FRAGMENTATION INDEX (DFI): <?php echo isset($select_result['dna_frag_val'])?$select_result['dna_frag_val']:""; ?></h5>
+<h5 width="100%" style="border:1px solid;padding:5px;text-align:left;">DNA FRAGMENTATION INDEX (DFI): <?php echo isset($select_result['dna_frag_val'])?$select_result['dna_frag_val']:""; ?></h5>
 </div>
 
-<?php 
-
-$Fragmented= $Not_Fragmented= 0;
-@ $id=$select_result['patient_id'];
-//echo $id; ?>
-<?php if(!$id==null)  { ?>
-
-
+<?php if(!empty($db_patient_id)) { ?>
 <table class="bv45rt" width="100%" style="border:1px solid;padding:5px;">
   <tr>
-    <td style="width:70%;">
-    
-	
-<?php
-
-$BIG_HALO= $select_result['BIG_HALO'];
-$MEDIUM_HALO= $select_result['MEDIUM_HALO'];
-$SMALL_HALO= $select_result['SMALL_HALO'];
-$WITHOUT_HALO= $select_result['WITHOUT_HALO'];
-$Not_Fragmented = $Fragmented = 0;
-
-$Not_Fragmented= ((!empty($BIG_HALO)?$BIG_HALO:0)+(!empty($MEDIUM_HALO)?$MEDIUM_HALO:0));
-$Fragmented= ((!empty($SMALL_HALO)?$SMALL_HALO:0)+(!empty($WITHOUT_HALO)?$WITHOUT_HALO:0));
-// $Fragmented= ($SMALL_HALO+$WITHOUT_HALO);
-
- 
-
-
- $rating_data = array(
- array('Employee', 'Rating'),
- array('NOT FRAGMENTED ',$Not_Fragmented),
- array('FRAGMENTED ',$Fragmented),
-
-);
-
- $encoded_data = json_encode($rating_data);
-?>
-<!--
-
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-<script type="text/javascript">
-google.load("visualization", "1", {packages:["corechart"]});
-google.setOnLoadCallback(drawChart);
-function drawChart() 
-{
- var data = google.visualization.arrayToDataTable(
- <?php  echo $encoded_data; ?>
- );
- var options = {
-  title: "DNA FRAGMENTATION INDEX (DFI):"
- };
- var chart = new google.visualization.PieChart(document.getElementById("employee_piechart"));
- chart.draw(data, options);
-}
-</script>
-<style>
-#wrapper h1 p
-{
- font-size:18px;
-}
-#employee_piechart
-{
- padding:0px;
- width:500px;
- height:400px;
-}
-</style>
- <div id="employee_piechart" style=""></div>
-	</td>
-  <td>  
-  <?php echo isset($select_result['upload_photo_1'])?$select_result['upload_photo_1']:""; ?>  
-  <img src="<?php echo $select_result['upload_photo_1'];?>"  style="max-width:400px; height:auto;">
-  </td>
+    <td style="width:70%;"></td>
+    <td>  
+      <?php if(!empty($select_result['upload_photo_1'])): ?>
+         <img src="<?php echo $select_result['upload_photo_1'];?>" style="max-width:400px; height:auto;">
+      <?php endif; ?>
+    </td>
   </tr>
 </table>
 <?php } ?>
 
-
-
 <p style="font-weight: 600;">NO. of Sperm Evaluated: <?php echo isset($select_result['Evaluated'])?$select_result['Evaluated']:""; ?></p>
-
-<div class="fg45rt4r">
-<table class="bv45rt" width="100%">
-<tbody>
-<tr>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<p><strong>BASIC CLASSIFICATION</strong></p>
-</td>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<p><strong>PERCENTAGE</strong></p>
-</td>
-</tr>
-<tr>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<p>BIG HALO</p>
-</td>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<?php echo isset($select_result['BIG_HALO'])?$select_result['BIG_HALO']:""; ?>
-</td>
-</tr>
-<tr>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<p>MEDIUM HALO</p>
-</td>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<?php echo isset($select_result['MEDIUM_HALO'])?$select_result['MEDIUM_HALO']:""; ?>
-</td>
-</tr>
-<tr>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<p>SMALL HALO</p>
-</td>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<?php echo isset($select_result['SMALL_HALO'])?$select_result['SMALL_HALO']:""; ?>
-</td>
-</tr>
-<tr>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<p>WITHOUT HALO</p>
-</td>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<?php echo isset($select_result['WITHOUT_HALO'])?$select_result['WITHOUT_HALO']:""; ?>
-</td>
-</tr>
-</tbody>
-</table>
-
-<table class="bv45rt" width="100%">
-<tbody>
-<tr>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-</td>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<p><strong>PERCENTAGE</strong></p>
-</td>
-</tr>
-<tr>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<p><strong>NOT FRAGMENTED</strong></p>
-</td>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-
-<?php  echo $Not_Fragmented; ?> %
-</td>
-</tr>
-<tr>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-<p><strong>FRAGMENTED</strong></p>
-</td>
-<td colspan="1" width="50%" style="border:1px solid;padding:5px;">
-    <?php echo $Fragmented; ?> %
-</td>
-</tr>
-</tbody>
-</table>
-
-</div>
--->
 
 <table class="bv45rt" width="100%">
 <tr>
     <td colspan="4" width="100%" style="text-align:left;border:1px solid;padding:5px;">
    <p style="font-weight:600; font-size: 20px; text-decoration: underline;">Interpretation of Result:</p>
 <p>0-15% Fragmentation : Higher fertility potential</p>
-<p>> 15-25% Fragmentation :Good to fair fertility potential</p>
-<p>> 25% Fragmentation : Poor fertility potential</p>
-
+<p>word_greater_than 15-25% Fragmentation :Good to fair fertility potential</p>
+<p>word_greater_than 25% Fragmentation : Poor fertility potential</p>
 <h5 style="text-align: left;">Comment:</h5>
 </td>
   </tr>
-
   <tr>
     <td colspan="2" width="50%" style="border:1px solid;padding:5px;">
       Prepared By: <?php echo isset($select_result['prepared_by'])?$select_result['prepared_by']:""; ?>
@@ -694,7 +420,6 @@ function drawChart()
      Checked By:  <?php echo isset($select_result['checked_by'])?$select_result['checked_by']:""; ?>
     </td>
   </tr>
-  
 <tr>
  <td colspan="4" width="100%" style="text-align:left;border:1px solid;padding:5px;">
  <label for="other">Please take prescribed medicines / injections only. Dont skip/ stop any medicine on your own unless advised by the doctor.</label>
@@ -702,21 +427,21 @@ function drawChart()
 </tr>
 </table>
 </div>
+</div>
 
- <style>
+<style>
   table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
     width: 100%;
     margin-bottom:20px ;
-}
-td {border: 1px  solid #000; text-align: center; font-weight: 600;}
-.fg45rt { border: 1px solid #000; background: #e1d6d6; }
-.fg45rt h5 { padding: 0px; margin: 0px; text-align: center; font-weight: 600; font-size: 18px; }
-.fg45rt4r { display: flex; } 
-.fg45rt4r table { margin-right: 50px; }
-.bvfg45tr p {margin: 0px; padding: 0px;}
-.bv45rt {margin-top: 20px;}
-.bv45rt td {border: none;} 
-
- </style>
+  }
+  td {border: 1px solid #000; text-align: center; font-weight: 600;}
+  .fg45rt { border: 1px solid #000; background: #e1d6d6; }
+  .fg45rt h5 { padding: 0px; margin: 0px; text-align: center; font-weight: 600; font-size: 18px; }
+  .fg45rt4r { display: flex; } 
+  .fg45rt4r table { margin-right: 50px; }
+  .bvfg45tr p {margin: 0px; padding: 0px;}
+  .bv45rt {margin-top: 20px;}
+  .bv45rt td {border: none;} 
+</style>
