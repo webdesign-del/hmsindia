@@ -17,12 +17,30 @@
   </a>
   <div class="topbar-sep"></div>
   <div class="topbar-role">Doctor Workspace</div>
+  
   <div class="topbar-right">
-    <div class="scope-chip"><span>📍</span><span class="loc">Noida Centre</span></div>
+    <!-- FIX 1: Logged-in user ka assigned operational center dynamic rendering -->
+    <div class="scope-chip">
+      <span>📍</span>
+      <span class="loc" id="userActiveLocationLabel">{{ active_center|default:"India IVF Centre" }}</span>
+    </div>
+    
     <a class="switch-role" href="{% url 'index' %}">⇄ Switch role</a>
+    
+    <!-- FIX 2: Dynamic User Validation Chip Layer -->
     <div class="user-chip">
-      <div class="avatar">DV</div>
-      <div class="user-meta"><div class="user-name">Dr. A. Verma</div><div class="user-role">Doctor · Noida</div></div>
+      <!-- User name ke initial characters dynamic extract honge -->
+      <div class="avatar" id="userAvatarPill">
+        {% if user.get_full_name %}
+          {{ user.first_name|slice:":1" }}{% if user.last_name %}{{ user.last_name|slice:":1" }}{% endif %}
+        {% else %}
+          {{ user.username|slice:":2"|upper }}
+        {% endif %}
+      </div>
+      <div class="user-meta">
+        <div class="user-name" id="userLoggedFullName">{{ user.get_full_name|default:user.username }}</div>
+        <div class="user-role">{{ user.groups.first.name|default:"Medical Care" }} · {{ active_center|default:"IIC" }}</div>
+      </div>
     </div>
   </div>
 </header>

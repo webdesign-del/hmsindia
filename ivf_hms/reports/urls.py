@@ -21,4 +21,7 @@ urlpatterns = [
     path('api/get_dynamic_booked_patients/', views.get_dynamic_booked_patients, name='get_dynamic_booked_patients'),
 
     path('api/get_patient_profile_detail/', views.get_patient_profile_detail, name='get_patient_profile_detail'),
+
+    path('doctor-login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
 ]

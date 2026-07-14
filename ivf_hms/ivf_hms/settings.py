@@ -77,9 +77,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hmsindiaivf',   # आपका डेटाबेस
-        'USER': 'root',          
-        'PASSWORD': '',          
-        'HOST': '127.0.0.1',     
+        'USER': 'hmsindiaivf',          
+        'PASSWORD': 'Hmsindia@$#2026',          
+        'HOST': 'localhost',     
         'PORT': '3306',
     }
 }

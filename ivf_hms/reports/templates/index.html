@@ -14,7 +14,7 @@
   <aside class="login-brand">
     <div class="lb-top">
       <div class="lb-logo-plate">
-        <img src="{% static 'assets/india-ivf-logo.png' %}" alt="India IVF" class="lb-logo">
+        <img src="{% static 'assets/india-ivf-logo.png' %}" alt="India IVF" class="brand-logo">
       </div>
     </div>
     <div class="lb-mid">
@@ -36,47 +36,40 @@
       <h1>Sign in to HMS</h1>
       <div class="lc-sub">Patient Journey &amp; Collections module · access is scoped to your role</div>
 
-      <div class="login-field">
-        <label>Work email</label>
-        <input class="input" type="email" placeholder="name@indiaivf.in" value="" />
-      </div>
-      <div class="login-field">
-        <label>Password</label>
-        <input class="input" type="password" placeholder="••••••••••" value="" />
-      </div>
+      <!-- ERROR MESSAGE DISPLAYER -->
+      {% if messages %}
+        {% for message in messages %}
+          <div class="callout {% if message.tags == 'error' %}danger{% endif %}" style="margin-bottom:15px; padding: 10px; border-radius: 4px;">
+            <b>{{ message }}</b>
+          </div>
+        {% endfor %}
+      {% endif %}
 
-      <div class="role-pick-lbl">Choose your workspace to continue</div>
-      <div class="role-cards">
-        <a class="role-card" href="doctor">
+      <!-- DYNAMIC FORM INJECTION -->
+      <!-- index.html ke andar form tag ko check kijiye -->
+<form method="POST" action="{% url 'login' %}">
+  {% csrf_token %}
+  
+  <!-- Email/Username input ka 'name' attribute username hona chahiye -->
+  <input class="input" type="text" name="username" placeholder="name@indiaivf.in" required />
+  
+  <!-- Password input ka 'name' attribute password hona chahiye -->
+  <input class="input" type="password" name="password" placeholder="••••••••••" required />
+  
+  <button type="submit" class="btn btn-primary">Sign in</button>
+</form>
+
+      <!-- ROLE WORKSPACES (Ab yeh roles tabs secure rules trigger hone par dynamic redirect karenge) -->
+      <div class="role-pick-lbl">Available Role Workspaces (Auto-routed after login)</div>
+      <div class="role-cards" style="opacity: 0.85;">
+        <div class="role-card" style="cursor: not-allowed;">
           <div class="rc-ic ic-rose">✚</div>
-          <div class="rc-body"><div class="rc-name">Doctor</div>
-            <div class="rc-desc">Map &amp; update the clinical journey end to end</div></div>
-          <div class="rc-arrow">→</div>
-        </a>
-        <a class="role-card" href="centre-head">
+          <div class="rc-body"><div class="rc-name">Doctor Workspace</div><div class="rc-desc">Map &amp; update the clinical journey end to end</div></div>
+        </div>
+        <div class="role-card" style="cursor: not-allowed;">
           <div class="rc-ic ic-gold">₹</div>
-          <div class="rc-body"><div class="rc-name">Centre Head</div>
-            <div class="rc-desc">Own collection performance at your centre</div></div>
-          <div class="rc-arrow">→</div>
-        </a>
-        <a class="role-card" href="financial-counsellor">
-          <div class="rc-ic ic-blue">◈</div>
-          <div class="rc-body"><div class="rc-name">Financial Counsellor</div>
-            <div class="rc-desc">Patient-level financial mapping &amp; adjustments</div></div>
-          <div class="rc-arrow">→</div>
-        </a>
-        <a class="role-card" href="accounts">
-          <div class="rc-ic ic-green">↩</div>
-          <div class="rc-body"><div class="rc-name">Accounts Team</div>
-            <div class="rc-desc">Cross-centre collections &amp; refund execution</div></div>
-          <div class="rc-arrow">→</div>
-        </a>
-        <a class="role-card" href="management">
-          <div class="rc-ic ic-rose">⚖</div>
-          <div class="rc-body"><div class="rc-name">Management</div>
-            <div class="rc-desc">Company-wide visibility &amp; exception oversight</div></div>
-          <div class="rc-arrow">→</div>
-        </a>
+          <div class="rc-body"><div class="rc-name">Centre Head</div><div class="rc-desc">Own collection performance at your centre</div></div>
+        </div>
       </div>
     </div>
   </main>
