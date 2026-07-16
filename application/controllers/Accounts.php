@@ -2000,7 +2000,7 @@ public function procedure_reports(){
 					$discounted_package = $discounted_package +  (int)$val['discounted_package'];
 					$billing_at = get_center_name($val['billing_at']);
 					
-					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "' and paitent_type='new_patient'";
+					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "' and paitent_type='new_patient' and status='consultation_done'";
                     $select_result = run_select_query($sql);
                     					
                     $sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $select_result['appoitment_for'] . "'";

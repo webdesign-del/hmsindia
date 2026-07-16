@@ -12458,17 +12458,18 @@ public function save_ivf_daily_report() {
         // Open memory stream
         $file = fopen('php://output', 'w');
 
-        // Write the CSV Column Headers
+        // Write the CSV Column Headers (Added "Calculated Price" at the end)
         $header = array(
             "Transfer Number", "Transfer Type", "Date", "Status", 
             "From Center", "From Dept", "To Center", "To Dept", 
             "Medicine", "Generic Name", "Strength", "Pack Size", "GST Rate", "HSN Code", 
             "Batch Number", "MRP", "Purchase Price", "Expiry Date", 
-            "Qty Transferred", "Qty Received", "Unit Price", "Total Price"
+            "Qty Transferred", "Qty Received", "Unit Price", "Total Price",
+            "Calculated Price"
         );
         fputcsv($file, $header);
 
-        // Write data rows
+        // Write data rows (The query naturally puts the calculated field at the end)
         foreach ($records as $row) {
             fputcsv($file, $row);
         }
