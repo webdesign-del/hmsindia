@@ -125,6 +125,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'reports/static'),
 ]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # settings.py ke bilkul niche check karein aur add karein:
 FORCE_SCRIPT_NAME = '/ivf_hms'
