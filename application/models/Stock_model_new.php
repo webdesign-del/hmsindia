@@ -10664,9 +10664,9 @@ public function get_unread_notifications() {
             m.medicine_name, m.generic_name, m.strength, m.pack_size, m.gst_rate, m.hsn_code, 
             mb.batch_number, mb.mrp, mb.purchase_price, mb.expiry_date, 
             sti.quantity_transferred, sti.quantity_received,
-            ROUND(mb.mrp / IF(m.pack_size > 0, m.pack_size, 1), 2) AS unit_mrp_price,
-            ROUND(sti.quantity_transferred / IF(m.pack_size > 0, m.pack_size, 1) * mb.mrp, 2) AS total_mrp_price,
-            ROUND(sti.quantity_transferred / IF(m.pack_size > 0, m.pack_size, 1) * mb.purchase_price, 2) AS calculated_price
+            CAST(ROUND(mb.mrp / IF(m.pack_size > 0, m.pack_size, 1), 2) AS DECIMAL(10,2)) AS unit_mrp_price,
+            CAST(ROUND(sti.quantity_transferred / IF(m.pack_size > 0, m.pack_size, 1) * mb.mrp, 2) AS DECIMAL(10,2)) AS total_mrp_price,
+            CAST(ROUND(sti.quantity_transferred / IF(m.pack_size > 0, m.pack_size, 1) * mb.purchase_price, 2) AS DECIMAL(10,2)) AS calculated_price
         ');
         
         $this->_apply_filters($filters);
