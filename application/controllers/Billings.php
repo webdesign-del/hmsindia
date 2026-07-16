@@ -2783,23 +2783,23 @@ public function generate_pdf($id) {
 	}
 	
 	public function withdrawl_prescription($patient_id){
-    $logg = checklogin();
-    if($logg['status'] == true){        
-        $data = array();
-        $template = get_header_template($logg['role']);
-        $data['data'] = $this->accounts_model->patient_details($patient_id);
-        
-        // FIX: Assign this to the $data array so the view can read it
-        $data['master_investigations'] = $this->investigation_model->get_master_investigations_list();
-        
-        $this->load->view($template['header']);
-        $this->load->view('billings/withdrawl_prescription', $data);
-       // $this->load->view($template['footer']);
-    }else{
-        header("location:" .base_url(). "");
-        die();
-    }
-}
+		$logg = checklogin();
+		if($logg['status'] == true){        
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$data['data'] = $this->accounts_model->patient_details($patient_id);
+			
+			// FIX: Assign this to the $data array so the view can read it
+			$data['master_investigations'] = $this->investigation_model->get_master_investigations_list();
+			
+			$this->load->view($template['header']);
+			$this->load->view('billings/withdrawl_prescription', $data);
+		// $this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
 	
 	function doctor_name($doctor_id){
 		$doctor_name = $this->doctors_model->get_doctor_data($doctor_id);
@@ -3105,5 +3105,19 @@ public function action_return_request($action, $receipt_number) {
         echo "<div style='text-align:center; margin-top:50px; font-family:Arial;'><h2 style='color:red;'>Access Denied!</h2><p>Only an authorized Center Counselor can approve this request.</p></div>";
     }
 }
+
+	public function refund_form(){
+		$logg = checklogin();
+		if($logg['status'] == true){        
+			$data = array();
+			$template = get_header_template($logg['role']);
+			$this->load->view($template['header']);
+			$this->load->view('billing_view/refund_form', $data);
+			$this->load->view($template['footer']);
+		}else{
+			header("location:" .base_url(). "");
+			die();
+		}
+	}
 	
 } 

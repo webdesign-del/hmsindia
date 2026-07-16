@@ -8159,4 +8159,30 @@ public function validate_coupon($code, $service_type, $amount) {
     return ['status' => false, 'message' => "Invalid or expired code"];
 }
 
+// Form data insert karne ke liye
+    public function insert_refund_request($data) {
+        $this->db->insert('hms_refund_requests', $data);
+        return $this->db->insert_id();
+    }
+
+    // Refund details fetch karne ke liye
+    public function get_refund_by_id($id) {
+        return $this->db->get_where('hms_refund_requests', array('id' => $id))->row_array();
+    }
+
+    // Status update (Approve/Process)
+    public function update_refund_status($id, $status) {
+        $this->db->where('id', $id);
+        return $this->db->update('hms_refund_requests', array('status' => $status));
+    }
+
+    // AJAX - Patient ki details W1/W2 auto-fill ke liye
+    public function get_patient_basic_info($patient_id) {
+        $this->db->select('patient_name, phone, email');
+        $this->db->from('hms_patients'); // Update table name if different
+        $this->db->where('patient_id', $patient_id);
+        $query = $this->db->get();
+        return $query->row_array();
+    }
+
 }

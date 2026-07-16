@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-@$s@qj9l@4hly2%h5oho@08)(86rn3*9dyv=e==mgpqft^78lc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['indiaivf.website', 'www.indiaivf.website', '139.84.175.88', '127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -125,3 +125,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'reports/static'),
 ]
+
+# settings.py ke bilkul niche check karein aur add karein:
+FORCE_SCRIPT_NAME = '/ivf_hms'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

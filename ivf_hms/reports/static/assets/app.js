@@ -387,7 +387,6 @@ function coreJourneyMatrixFallback(p) {
                 <div class="kyc-couple" style="flex:2; min-width:240px;">
                     <div class="kyc-row" style="font-size:13.5px;"><span class="kyc-tag wife" style="background:#fce7f3; color:#db2777; padding:1px 5px; border-radius:4px; font-size:10px; font-weight:bold; margin-right:8px; text-transform:uppercase;">Wife</span><b>${p.wifeName}</b> <span class="kyc-age" style="color:var(--text-soft); font-size:12px; margin-left:6px;">${p.wifeAge} yrs</span></div>
                     <div class="kyc-row" style="font-size:13.5px; margin-top:4px;"><span class="kyc-tag husband" style="background:#dbeafe; color:#2563eb; padding:1px 5px; border-radius:4px; font-size:10px; font-weight:bold; margin-right:8px; text-transform:uppercase;">Husband</span><b>${p.husbandName}</b> <span class="kyc-age" style="color:var(--text-soft); font-size:12px; margin-left:6px;">${p.husbandAge} yrs</span></div>
-                    <div class="kyc-phone-row" style="font-size:12.5px; color:var(--text-soft); margin-top:4px;">Phone: <a href="tel:+91${p.phone}" style="color:var(--text-main); font-weight:600; text-decoration:none;">+91 ${p.phone}</a></div>
                 </div>
 
                 <div class="kyc-meta" style="flex:1.5; font-size:12px; border-left:1px solid var(--border-soft); padding-left:20px;">

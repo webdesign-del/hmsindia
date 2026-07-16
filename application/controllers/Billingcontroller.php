@@ -3577,5 +3577,4 @@ public function get_camps_by_center()
     }
 
 
-
 }

@@ -13317,6 +13317,150 @@ public function action_cancel_request($request_id, $action, $token) {
 }
 
 
+// 1. AJAX: Get Wallet & Patient Info based on IIC ID
+    public function get_patient_wallet_info() {
+        $patient_id = $this->input->post('patient_id');
+        
+        if(!empty($patient_id)) {
+            $wallet = get_universal_wallet($patient_id);
+            $w1 = isset($wallet['wallet_1']) ? $wallet['wallet_1'] : 0;
+            $w2 = isset($wallet['wallet_2']) ? $wallet['wallet_2'] : 0;
+
+            $patient_info = $this->Accounts_model->get_patient_basic_info($patient_id);
+            
+            $response = array(
+                'status' => 'success',
+                'wallet_1' => $w1,
+                'wallet_2' => $w2,
+                'patient_name' => isset($patient_info['patient_name']) ? $patient_info['patient_name'] : '',
+                'phone' => isset($patient_info['phone']) ? $patient_info['phone'] : '',
+                'email' => isset($patient_info['email']) ? $patient_info['email'] : ''
+            );
+        } else {
+            $response = array('status' => 'error', 'message' => 'IIC ID is empty');
+        }
+        echo json_encode($response);
+        exit;
+    }
+
+    // 2. Save Form Data
+    public function save_refund() {
+        // Bank Details JSON
+        $bank_details = array(
+            'bank_name'           => $this->input->post('bank_name'),
+            'account_holder_name' => $this->input->post('account_holder_name'),
+            'account_number'      => $this->input->post('account_number'),
+            'ifsc_code'           => $this->input->post('ifsc_code')
+        );
+
+        // Return Details JSON[cite: 3]
+        $return_details = array(
+            'return_product_name' => $this->input->post('return_product_name'),
+            'return_quantity'     => $this->input->post('return_quantity'),
+            'product_condition'   => $this->input->post('product_condition'),
+            'expiration_date'     => $this->input->post('expiration_date')
+        );
+
+        // Deductions JSON[cite: 3]
+        $deduction_details = array(
+            'opd'  => array('qty' => $this->input->post('deduct_opd_qty'), 'total' => $this->input->post('deduct_opd_total')),
+            'usg'  => array('qty' => $this->input->post('deduct_usg_qty'), 'total' => $this->input->post('deduct_usg_total')),
+            'file' => array('qty' => $this->input->post('deduct_file_qty'), 'total' => $this->input->post('deduct_file_total')),
+            'reg'  => array('qty' => $this->input->post('deduct_reg_qty'), 'total' => $this->input->post('deduct_reg_total')),
+            'inj'  => array('qty' => $this->input->post('deduct_inj_qty'), 'total' => $this->input->post('deduct_inj_total')),
+            'con'  => array('qty' => $this->input->post('deduct_con_qty'), 'total' => $this->input->post('deduct_con_total')),
+            'sub'  => array('qty' => $this->input->post('deduct_sub_qty'), 'total' => $this->input->post('deduct_sub_total')),
+            'misc' => array('qty' => $this->input->post('deduct_misc_qty'), 'total' => $this->input->post('deduct_misc_total'))
+        );
+
+        // Calculate Net Refund
+        $total_paid = (float) $this->input->post('total_amount_paid');
+        $total_deductions = (float) $this->input->post('total_deductions');
+        $net_refund = $total_paid - $total_deductions;
+        if($net_refund < 0) { $net_refund = 0; }
+
+        $data = array(
+            'patient_id'          => $this->input->post('patient_id'),
+            'patient_name'        => $this->input->post('patient_name'),
+            'contact_number'      => $this->input->post('contact_number'),
+            'email_address'       => $this->input->post('email_address'),
+            'purchase_date'       => $this->input->post('purchase_date'),
+            'receipt_number'      => $this->input->post('receipt_number'),
+            'service_purchased'   => $this->input->post('service_purchased'),
+            'total_amount_paid'   => $total_paid,
+            'total_deductions'    => $total_deductions,
+            'net_refund_amount'   => $net_refund,
+            'refund_reason'       => $this->input->post('refund_reason'),
+            'other_reason'        => $this->input->post('other_reason'),
+            'return_details'      => json_encode($return_details),
+            'bank_details'        => json_encode($bank_details),
+            'deduction_details'   => json_encode($deduction_details),
+            'satisfaction_rating' => $this->input->post('satisfaction'),
+            'feedback_comments'   => $this->input->post('feedback_comments'),
+            'status'              => 'Pending CEO Approval',
+            'created_by'          => isset($_SESSION['logged_billing_manager']['employee_number']) ? $_SESSION['logged_billing_manager']['employee_number'] : 'Counselor'
+        );
+
+        $this->Accounts_model->insert_refund_request($data);
+
+        $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : base_url();
+        header("location:" . $redirect_url . "?m=" . base64_encode('Refund Request Sent to CEO for Approval') . "&t=success");
+        die();
+    }
+
+    // 3. CEO Approve & Email to Accounts
+    public function ceo_approve_refund($refund_id) {
+        $this->Accounts_model->update_refund_status($refund_id, 'Approved by CEO');
+        $refund_data = $this->Accounts_model->get_refund_by_id($refund_id);
+        $bank = json_decode($refund_data['bank_details'], true);
+
+        $this->email->from('info@yourhospital.com', 'HMS System');
+        $this->email->to('accounts@yourhospital.com'); 
+        $this->email->subject('Action Required: CEO Approved Refund Request');
+        
+        $msg = "<h3>Refund Approval Notice</h3>";
+        $msg .= "<p>CEO has approved the refund. Please process the payment and clear wallet.</p>";
+        $msg .= "<b>Patient:</b> " . $refund_data['patient_name'] . " (ID: " . $refund_data['patient_id'] . ")<br>";
+        $msg .= "<b>Net Refund Amount:</b> ₹" . $refund_data['net_refund_amount'] . "<br><br>";
+        $msg .= "<b>Bank Details:</b><br>";
+        $msg .= "Bank Name: " . $bank['bank_name'] . "<br>";
+        $msg .= "A/C Holder: " . $bank['account_holder_name'] . "<br>";
+        $msg .= "A/C No: " . $bank['account_number'] . "<br>";
+        $msg .= "IFSC: " . $bank['ifsc_code'] . "<br>";
+        
+        $this->email->message($msg);
+        $this->email->set_mailtype("html");
+        $this->email->send();
+
+        $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : base_url();
+        header("location:" . $redirect_url . "?m=" . base64_encode('Approved successfully. Email sent.') . "&t=success");
+        die();
+    }
+
+    // 4. Accounts Process & Wallet Deduction
+    public function accounts_process_refund($refund_id) {
+        $refund_data = $this->Accounts_model->get_refund_by_id($refund_id);
+
+        if ($refund_data['status'] == 'Approved by CEO') {
+            $patient_id = $refund_data['patient_id'];
+            $refund_amount = $refund_data['net_refund_amount'];
+            $logged_user = isset($_SESSION['logged_billing_manager']['id']) ? $_SESSION['logged_billing_manager']['id'] : 1;
+
+            // Deduct Wallet
+            $this->Stock_model_new->deduct_wallet_balance($patient_id, $refund_amount, 'RefundID-'.$refund_id, $logged_user);
+            $this->Accounts_model->update_refund_status($refund_id, 'Processed');
+
+            $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : base_url();
+            header("location:" . $redirect_url . "?m=" . base64_encode('Refund processed and wallet deducted.') . "&t=success");
+            die();
+        } else {
+            $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : base_url();
+            header("location:" . $redirect_url . "?m=" . base64_encode('Not approved by CEO yet.') . "&t=error");
+            die();
+        }
+    }
+
+
 } // End of class - MAKE SURE THIS IS THE LAST LINE
 
 	
