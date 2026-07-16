@@ -2858,7 +2858,7 @@ function export_consultation_patients_data($start_date,$status, $end_date, $cent
             $conditions .= " AND on_date='$end_date'";
         }
         
-       $consultation_sql = "Select DISTINCT patient_id, receipt_number, totalpackage,doctor_id, fees as discounted_package,payment_done,remaining_amount,payment_method,billing_from,billing_at,reason_of_visit,on_date as date,status from ".$this->config->item('db_prefix')."consultation where 1 $conditions order by on_date desc";
+       $consultation_sql = "Select DISTINCT patient_id,appointment_id, receipt_number, totalpackage,doctor_id, fees as discounted_package,payment_done,remaining_amount,payment_method,billing_from,billing_at,reason_of_visit,on_date as date,status from ".$this->config->item('db_prefix')."consultation where 1 $conditions order by on_date desc";
         $consultation_q = $this->db->query($consultation_sql);
         $consultation_result = $consultation_q->result_array();
         if(!empty($consultation_result)){
@@ -2867,6 +2867,7 @@ function export_consultation_patients_data($start_date,$status, $end_date, $cent
                 //$patient_name1 = strtoupper($patient_name);
                 $response[] = array(
                         'patient_id' => $val['patient_id'],
+						'appointment_id' => $val['appointment_id'],
                         'wife_name' => $patient_name,
                         'receipt_number' => $val['receipt_number'],
                         'totalpackage' => $val['totalpackage'],

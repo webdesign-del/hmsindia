@@ -2005,6 +2005,9 @@ public function procedure_reports(){
                     					
                     $sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $select_result['appoitment_for'] . "'";
                     $select_result3 = run_select_query($sql4);
+
+					$sql_consultation = "SELECT * FROM hms_doctor_consultation WHERE appointment_id='" . $val['appointment_id'] . "' order by id ASC limit 1";
+                    $select_consultation_result = run_select_query($sql_consultation);
                     					
                     $uhid = $select_result3['center_code']."/".$select_result['uhid'];
 					$lead_id = $select_result['crm_id']; 
@@ -2053,7 +2056,7 @@ public function procedure_reports(){
 							$category = 'data missing';
 						}
 					} 				
-					$sql1 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$val['doctor_id']."'";
+					$sql1 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$select_consultation_result['doctor_id']."'";
 	                $select_appoint = run_select_query($sql1);
 
 					$doctor = $select_appoint['name'];
