@@ -12464,8 +12464,8 @@ public function save_ivf_daily_report() {
             "From Center", "From Dept", "To Center", "To Dept", 
             "Medicine", "Generic Name", "Strength", "Pack Size", "GST Rate", "HSN Code", 
             "Batch Number", "MRP", "Purchase Price", "Expiry Date", 
-            "Qty Transferred", "Qty Received", "Unit Price", "Total Price",
-            "Calculated Price"
+            "Qty Transferred", "Qty Received", "Unit MRP Price", "Total MRP Price",
+            "Total Purchase Price"
         );
         fputcsv($file, $header);
 
