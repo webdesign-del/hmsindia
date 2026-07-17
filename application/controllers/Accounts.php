@@ -2000,7 +2000,7 @@ public function procedure_reports(){
 					$discounted_package = $discounted_package +  (int)$val['discounted_package'];
 					$billing_at = get_center_name($val['billing_at']);
 					
-					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "' and paitent_type='new_patient' and status='consultation_done'";
+					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "' and paitent_type='new_patient'";
                     $select_result = run_select_query($sql);
                     					
                     $sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $select_result['appoitment_for'] . "'";
@@ -2015,7 +2015,8 @@ public function procedure_reports(){
 					$camp_selection = $select_result['camp_selection'] ?? "";
 					$visit_type = (!empty($camp_selection)) ? "Camp Visit" : "Center Visit";
 					$agent = $select_result['agent']; 
-					$councellor = $select_result['councellor']; 
+					$councellor = $select_result['councellor'];
+					$status = $select_result['status'];  
 
 					// 1. INITIALIZE $category BEFORE the main if block to guarantee scope
 					$category = 'not booked'; // Default value (safer than 'not found')
@@ -2061,7 +2062,7 @@ public function procedure_reports(){
 
 					$doctor = $select_appoint['name'];
 					
-					$lead_arr = array($uhid, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $lead_id, $lead_source, $agent, $councellor, $doctor,$category, $visit_type);
+					$lead_arr = array($uhid, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $lead_id, $lead_source, $agent, $councellor, $doctor,$category, $visit_type, $status);
 					fputcsv($fp, $lead_arr);
 				}
 				$final_arr = array("", "", "", "", $total_package, $discounted_package, $paid_amount, "", "", "", "", "", "", "");
