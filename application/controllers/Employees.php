@@ -233,66 +233,89 @@ public function edit()
 		}
 	}
 
-		public function edit_doctor_center()
-	{
-		$logg = checklogin();
-		if($logg['status'] == true){
-			// 1. लॉग-इन यूजर का रोल या ID निकालें (जैसे $logg['user_id'] या $logg['role'])
-			$logged_in_user_id = $logg['user_id']; 
-			$user_role = $logg['role'];
+	public function edit_doctor_center()
+{
+    $logg = checklogin();
+    if($logg['status'] == true){
+        // 1. लॉगिन यूजर की जानकारी निकालें
+        $user_role = $logg['role'];
+        
+        $data = array();
+        if(isset($_GET['ID'])){ $item_id = $_GET['ID']; }
+        if(isset($_POST['ID'])) { $item_id = $_POST['ID']; }
 
-			// 2. परमिशन चेक: क्या इस यूजर को सेंटर बदलने की परमिशन है?
-			// (आप अपने मॉडल में 'check_user_permission' नाम का फंक्शन बना सकते हैं)
-			$has_permission = $this->employee_model->check_user_permission($logged_in_user_id, 'can_switch_center');
-			
-			if(!$has_permission && $user_role != 'admin'){ // अगर एडमिन नहीं है और परमिशन भी नहीं है
-				header("location:" . base_url() . "dashboard?m=" . base64_encode('You do not have permission to change centers.').'&t='.base64_encode('error'));
-				die();
-			}
+        // जिस डॉक्टर का सेंटर अपडेट होना है, उसका पुराना डेटा लाएं ताकि allowed_centers निकाल सकें
+        $doctor_info = $this->employee_model->get_doctor_center_data($item_id);
+        $allowed_centers_string = isset($doctor_info['allowed_centers']) ? $doctor_info['allowed_centers'] : '';
 
-			$data = array();
-			if(isset($_GET['ID'])){ $item_id = $_GET['ID']; }
-			if(isset($_POST['ID'])) { $item_id = $_POST['ID']; }
+        // 2. परमिशन चेक: अगर एडमिन नहीं है और उसे किसी सेंटर की परमिशन भी नहीं दी गई है, तो ब्लॉक करें
+        if($user_role != 'admin' && empty($allowed_centers_string)){ 
+            header("location:" . base_url() . "dashboard?m=" . base64_encode('You do not have permission to change centers.').'&t='.base64_encode('error'));
+            die();
+        }
 
-			if(isset($_POST['action']) && $_POST['action'] == 'update_doctor_center'){
-				unset($_POST['action']);
-				
-				// 3. बैकएंड सुरक्षा: सबमिट किए गए center_id को चेक करें कि क्या यूजर को इसका हक है?
-				$allowed_centers = $this->employee_model->get_allowed_centers_by_user($logged_in_user_id);
-				$allowed_center_ids = array_column($allowed_centers, 'center_number');
-				
-				if(!in_array($_POST['center_id'], $allowed_center_ids) && $user_role != 'admin'){
-					header("location:" . base_url() . "employees/edit_doctor_center?m=" . base64_encode('Invalid center selection!').'&t='.base64_encode('error').'&ID='.$item_id);
-					die();
-				}
+        if(isset($_POST['action']) && $_POST['action'] == 'update_doctor_center'){
+            unset($_POST['action']);
+            
+            // 3. बैकएंड सुरक्षा (Backend Security Validation):
+            // अगर एडमिन नहीं है, तो चेक करें कि सबमिट किया गया center_id डॉक्टर की अलाउड लिस्ट में है या नहीं
+            if($user_role != 'admin'){
+                $allowed_array = array_filter(explode(',', $allowed_centers_string));
+                if(!in_array($_POST['center_id'], $allowed_array)){
+                    header("location:" . base_url() . "employees/edit_doctor_center?m=" . base64_encode('Invalid center selection!').'&t='.base64_encode('error').'&ID='.$item_id);
+                    die();
+                }
+            }
 
-				$res = $this->employee_model->update_doctor_center($_POST, $item_id);
-				if($res > 0){
-					$this->session->sess_destroy();
-					header("location:" . base_url() . "doctor-login?m=" . base64_encode('Doctor Center updated successfully! You have been logged out.').'&t='.base64_encode('success'));
-					die();
-				}else{
-					header("location:" .base_url(). "employees/edit_doctor_center?m=".base64_encode('Update failed or no changes were made.').'&t='.base64_encode('error').'&ID='.$item_id);
-					die();
-				}  
-			}
+            // डेटाबेस में नया सेंटर अपडेट करें
+            $res = $this->employee_model->update_doctor_center($_POST, $item_id);
+            if($res > 0){
+                // सेशन डिस्ट्रॉय और लॉगआउट सिर्फ तभी करें जब डॉक्टर खुद अपना सेंटर बदल रहा हो
+                // अगर एडमिन बदल रहा है तो लॉगआउट करने की आवश्यकता नहीं है
+                $logged_in_id = isset($logg['id']) ? $logg['id'] : (isset($logg['employee_number']) ? $logg['employee_number'] : 0);
+                
+                if($user_role != 'admin' || $logged_in_id == $item_id) {
+                    $this->session->sess_destroy();
+                    header("location:" . base_url() . "doctor-login?m=" . base64_encode('Doctor Center updated successfully! You have been logged out.').'&t='.base64_encode('success'));
+                    die();
+                } else {
+                    // अगर एडमिन ने किसी और डॉक्टर का बदला है, तो डॉक्टर लिस्ट में भेजें
+                    header("location:" . base_url() . "doctors?m=" . base64_encode('Doctor Center updated successfully!').'&t='.base64_encode('success'));
+                    die();
+                }
+            }else{
+                header("location:" .base_url(). "employees/edit_doctor_center?m=".base64_encode('Update failed or no changes were made.').'&t='.base64_encode('error').'&ID='.$item_id);
+                die();
+            }  
+        }
 
-			// 4. डायनामिक सेंटर्स: सिर्फ वही सेंटर्स लाएं जो इस यूजर को अलाउड हैं
-			if($user_role == 'admin') {
-				$data['centers'] = $this->employee_model->get_employee_center(); // एडमिन को सब दिखेगा
-			} else {
-				$data['centers'] = $this->employee_model->get_allowed_centers_by_user($logged_in_user_id); // नॉर्मल यूजर को सिर्फ अलाउड सेंटर्स
-			}
+        // 4. डायनामिक सेंटर्स फ़िल्टरिंग: ड्रॉपडाउन में केवल वही सेंटर्स भेजें जो अलाउड हैं
+        $all_centers = $this->employee_model->get_employee_center(); // डेटाबेस से सभी सेंटर्स लाता है
+        
+        if($user_role == 'admin') {
+            $data['centers'] = $all_centers; // एडमिन को सारे सेंटर्स का ऑप्शन दिखेगा
+        } else {
+            // सामान्य डॉक्टर को सिर्फ वही सेंटर्स दिखेंगे जो कॉमा-सेपरेटेड लिस्ट में मौजूद हैं
+            $allowed_array = array_filter(explode(',', $allowed_centers_string));
+            $filtered_centers = array();
+            
+            foreach($all_centers as $center) {
+                if(in_array($center['center_number'], $allowed_array)) {
+                    $filtered_centers[] = $center;
+                }
+            }
+            $data['centers'] = $filtered_centers;
+        }
 
-			$data['data'] = $this->employee_model->get_doctor_center_data($item_id);
-			$template = get_header_template($logg['role']);
-			$this->load->view($template['header']);
-			$this->load->view('employees/edit_doctor_center', $data);
-			$this->load->view($template['footer']);
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}
+        $data['data'] = $doctor_info;
+        $template = get_header_template($logg['role']);
+        $this->load->view($template['header']);
+        $this->load->view('employees/edit_doctor_center', $data);
+        $this->load->view($template['footer']);
+    }else{
+        header("location:" .base_url(). "");
+        die();
+    }
+}
 
 } 

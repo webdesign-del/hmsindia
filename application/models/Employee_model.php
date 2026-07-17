@@ -266,18 +266,20 @@ class Employee_model extends CI_Model
         }
 	}
 
-    	public function update_doctor_center($data, $item)
-    {	
-		$sql = "UPDATE " . config_item('db_prefix') . "doctors SET ";
-		foreach( $data as $key=> $value )
-		{
-			$sqlArr[] = " $key = '".$value."'"	;
-		}
-		$sql .= implode(',' , $sqlArr);
-		$sql .= " WHERE ID = '".$item."'";
-        $this->db->query($sql);
-        return 1;
+    public function update_doctor_center($data, $item)
+{   
+    $sql = "UPDATE " . config_item('db_prefix') . "doctors SET ";
+    $sqlArr = array(); // सुरक्षित कोडिंग के लिए एरे पहले इनिशियलाइज़ करें
+    
+    foreach( $data as $key=> $value )
+    {
+        $sqlArr[] = " $key = '".$this->db->escape_str($value)."'" ; // escape_str सुरक्षा बढ़ाता है
     }
+    $sql .= implode(',' , $sqlArr);
+    $sql .= " WHERE ID = '".$this->db->escape_str($item)."'";
+    $this->db->query($sql);
+    return 1;
+}
 
 }
 // END Stock_model class

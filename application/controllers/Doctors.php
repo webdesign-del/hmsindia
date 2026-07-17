@@ -915,6 +915,18 @@ class Doctors extends CI_Controller {
 				var_dump($saturday_slots); echo '<br/><br/>';
 				var_dump($sunday_slots); echo '<br/><br/>';
 				die;*/
+
+				// =======================================================
+				// --- यहाँ से हमारा नया डायनामिक परमिशन लॉजिक शुरू होता है ---
+				// =======================================================
+				if(isset($_POST['allowed_centers']) && is_array($_POST['allowed_centers'])){
+					// चुने हुए सभी सेंटर्स को स्ट्रिंग में बदल देगा (जैसे: "1,2,5")
+					$_POST['allowed_centers'] = implode(',', $_POST['allowed_centers']);
+				} else {
+					// अगर कोई सेंटर सिलेक्ट नहीं किया तो खाली रखेंगे
+					$_POST['allowed_centers'] = '';
+				}
+				// =======================================================
 				
 				$data = $this->doctors_model->add_doctor($_POST);
 				if($data > 0){
@@ -1229,6 +1241,12 @@ class Doctors extends CI_Controller {
 					var_dump($saturday_slots); echo '<br/><br/>';
 					var_dump($sunday_slots); echo '<br/><br/>';
 					die;*/
+
+					if(isset($_POST['allowed_centers']) && is_array($_POST['allowed_centers'])){
+						$_POST['allowed_centers'] = implode(',', $_POST['allowed_centers']);
+					} else {
+						$_POST['allowed_centers'] = ''; // सारे चेकबॉक्स हटाने पर खाली स्ट्रिंग
+					}
 					
 					$data = $this->doctors_model->update_doctor_data($_POST, $item_id);
 					if($data > 0){

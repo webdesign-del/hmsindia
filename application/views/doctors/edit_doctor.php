@@ -137,6 +137,40 @@
         
         </div>
 
+		<!-- यहाँ से डॉक्टर परमिशन का डायनामिक एडिट कोड शुरू होता है -->
+<div class="row">
+  <div class="form-group col-sm-12 col-xs-12">
+    <label style="font-weight: bold; color: #333; display: block; margin-bottom: 10px;">
+      Allowed Centers for Doctor Switching (Permission Panel)
+    </label>
+    
+    <div class="panel panel-default" style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; background: #fbfbfb;">
+      <div class="row">
+        <?php 
+        // डेटाबेस से सेव की गई कॉमा-सेपरेटेड स्ट्रिंग को एरे में बदलें
+        $saved_centers = !empty($data['allowed_centers']) ? explode(',', $data['allowed_centers']) : array();
+        
+        if(!empty($centers)) { 
+          foreach($centers as $ky => $vl) { 
+            // चेक करें कि क्या यह सेंटर डॉक्टर की अलाउड लिस्ट में पहले से मौजूद है
+            $isChecked = in_array($vl['center_number'], $saved_centers) ? 'checked="checked"' : '';
+            ?>
+            <div class="col-md-3 col-sm-4 col-xs-6" style="margin-bottom: 10px;">
+              <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" name="allowed_centers[]" value="<?php echo $vl['center_number']; ?>" <?php echo $isChecked; ?> style="margin: 0; width: 18px; height: 18px;"> 
+                <span><?php echo $vl['center_name']; ?></span>
+              </label>
+            </div>
+          <?php } 
+        } else { ?>
+          <div class="col-xs-12 text-danger">No centers available.</div>
+        <?php } ?>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- डॉक्टर परमिशन का डायनामिक एडिट कोड समाप्त -->
+
                 
 
         <div class="row">
@@ -1740,3 +1774,11 @@ $('input#on_holiday_daterange').on('cancel.daterangepicker', function(ev, picker
 });
 
 </script>
+
+<style>
+[type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+    position: static!important;
+    left: -9999px;
+    opacity: 1!important;
+}
+</style> 
