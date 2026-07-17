@@ -76,18 +76,20 @@ class Employee_model extends CI_Model
         }
 	}
 	
-	public function update_item_data($data, $item)
-    {	
-		if(empty($data['password'])){ unset($data['password']);}
-		else{$password = md5($data['password']); unset($data['password']); $data['password'] = $password;}
+        public function update_item_data($data, $item)
+    {   
+        if(empty($data['password'])){ unset($data['password']);}
+        else{$password = md5($data['password']); unset($data['password']); $data['password'] = $password;}
 
+        // नोट: $data['allowed_centers'] अब "1,3,5" के रूप में यहाँ आएगा और SQL का हिस्सा बन जाएगा
         $sql = "UPDATE " . config_item('db_prefix') . "employees SET ";
-		foreach( $data as $key=> $value )
-		{
-			$sqlArr[] = " $key = '".$value."'"	;
-		}
-		$sql .= implode(',' , $sqlArr);
-		$sql .= " WHERE employee_number = '".$item."'";
+        $sqlArr = array(); // एरे इनिशियलाइज़ करना एक अच्छी प्रैक्टिस है
+        foreach( $data as $key=> $value )
+        {
+            $sqlArr[] = " $key = '".$value."'"  ;
+        }
+        $sql .= implode(',' , $sqlArr);
+        $sql .= " WHERE employee_number = '".$item."'";
         $this->db->query($sql);
         return 1;
     }
@@ -106,7 +108,7 @@ class Employee_model extends CI_Model
 	public function get_centers(){
 		$result = array();
 		$sql_condition = '';
-		$sql = "Select * from ".$this->config->item('db_prefix')."centers ORDER by ID ASC";
+		$sql = "Select * from ".$this->config->item('db_prefix')."centers where status='1' ORDER by ID ASC ";
         $q = $this->db->query($sql);
         $result = $q->result_array();
         if (!empty($result))

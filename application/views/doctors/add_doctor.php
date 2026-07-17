@@ -123,6 +123,34 @@
 		  
 		</div> 
 
+		<!-- यहाँ से परमिशन का डायनामिक कोड शुरू होता है -->
+<div class="row">
+  <div class="form-group col-sm-12 col-xs-12">
+    <label style="font-weight: bold; color: #333; display: block; margin-bottom: 10px;">
+      Allowed Centers for Switching (Select Multiples for Permission)
+    </label>
+    
+    <div class="panel panel-default" style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; background: #fbfbfb;">
+      <div class="row">
+        <?php if(!empty($centers)) { 
+          foreach($centers as $ky => $vl) { ?>
+            <div class="col-md-3 col-sm-4 col-xs-6" style="margin-bottom: 10px;">
+              <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <!-- 'allowed_centers[]' एक एरे बनाएगा जिससे मल्टीपल वैल्यूज बैकएंड में जाएंगी -->
+                <input type="checkbox" name="allowed_centers[]" value="<?php echo $vl['center_number']; ?>" style="margin: 0; width: 18px; height: 18px;"> 
+                <span><?php echo $vl['center_name']; ?></span>
+              </label>
+            </div>
+          <?php } 
+        } else { ?>
+          <div class="col-xs-12 text-danger">No centers available.</div>
+        <?php } ?>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- परमिशन का डायनामिक कोड समाप्त -->
+
         
 
          <div class="row">
@@ -1342,3 +1370,11 @@ $('input#on_holiday_daterange').on('cancel.daterangepicker', function(ev, picker
 });
 
 </script>
+
+<style>
+[type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+    position: static!important;
+    left: -9999px;
+    opacity: 1!important;
+}
+</style> 

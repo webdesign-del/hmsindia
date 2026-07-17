@@ -40,6 +40,9 @@
               <option value="investigator_manager" <?php if($data['role'] == 'investigator_manager'){echo "selected='selected'";}?>>Investigator manager</option>
               <option value="embryologist" <?php if($data['role'] == 'embryologist'){echo "selected='selected'";}?>>Embryologist</option>
               <option value="telecaller" <?php if($data['role'] == 'telecaller'){echo "selected='selected'";}?>>Telecaller</option>
+              <option value="counselor" <?php if($data['role'] == 'counselor'){echo "selected='selected'";}?>>Counselor</option>
+              <option value="mrd" <?php if($data['role'] == 'mrd'){echo "selected='selected'";}?>>Mrd</option>
+              <option value="center_head" <?php if($data['role'] == 'center_head'){echo "selected='selected'";}?>>Center Head</option>
             </select>
         </div>
         </div>
@@ -88,6 +91,40 @@
                 <input value="<?php echo $data['allow_discount_rs']?>" placeholder="Allowed discount amount (Rupees)" id="allow_discount_rs" name="allow_discount_rs" type="text" class="form-control validate" required>
             </div>
         </div>
+
+        <!-- यहाँ से परमिशन का डायनामिक एडिट कोड शुरू होता है -->
+<div class="row">
+  <div class="form-group col-sm-12 col-xs-12">
+    <label style="font-weight: bold; color: #333; display: block; margin-bottom: 10px;">
+      Allowed Centers for Switching (Permission Panel)
+    </label>
+    
+    <div class="panel panel-default" style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; background: #fbfbfb;">
+      <div class="row">
+        <?php 
+        // कर्मचारी के पास जो पहले से सेंटर्स हैं, उन्हें एरे में बदलें
+        $saved_centers = !empty($data['allowed_centers']) ? explode(',', $data['allowed_centers']) : array();
+        
+        if(!empty($centers)) { 
+          foreach($centers as $ky => $vl) { 
+            // चेक करें कि क्या यह सेंटर कर्मचारी की अलाउड लिस्ट में पहले से है
+            $isChecked = in_array($vl['center_number'], $saved_centers) ? 'checked="checked"' : '';
+            ?>
+            <div class="col-md-3 col-sm-4 col-xs-6" style="margin-bottom: 10px;">
+              <label style="font-weight: normal; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" name="allowed_centers[]" value="<?php echo $vl['center_number']; ?>" <?php echo $isChecked; ?> style="margin: 0; width: 18px; height: 18px;"> 
+                <span><?php echo $vl['center_name']; ?></span>
+              </label>
+            </div>
+          <?php } 
+        } else { ?>
+          <div class="col-xs-12 text-danger">No centers available.</div>
+        <?php } ?>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- परमिशन का डायनामिक एडिट कोड समाप्त -->
         
         <div class="row">          
       	  <div class="form-group col-sm-6 col-xs-12">
@@ -118,3 +155,10 @@
 		}
 	});
 </script>
+<style>
+[type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+    position: static!important;
+    left: -9999px;
+    opacity: 1!important;
+}
+</style>  

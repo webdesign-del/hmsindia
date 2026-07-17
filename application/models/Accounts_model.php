@@ -790,7 +790,7 @@ public function get_all_sales_for_tally()
     
     $this->db->where('tally_status', '1'); 
 
-	$this->db->where('on_date >', '2026-07-01');
+	$this->db->where('on_date >', '2026-07-08');
     
     $this->db->order_by('modified_on', 'DESC');
     $this->db->limit(600); // Increased limit to match your other functions

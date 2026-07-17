@@ -13,17 +13,23 @@
         <div class="clearfix"></div>      
          
            <div class="form-group col-sm-6 col-xs-12 role">
-            <label for="statuss">Center (Required)</label>
-            <select name="center_id" required>
-            	<option value="">Select Center</option>
-				<?php foreach($centers as $ky => $vl){
-					  $selected="";
-					  if($data['center_id'] == $vl['center_number']){$selected="selected='selected'";}
-					  ?>
-              	  <option value="<?php echo $vl['center_number']?>" <?php echo $selected; ?>><?php echo $vl['center_name']?></option>
-                <?php } ?>
-            </select>
-        </div>
+    <label for="statuss">Center (Required)</label>
+    <select name="center_id" required class="form-control">
+      <option value="">Select Center</option>
+      <?php 
+      if(!empty($centers)){
+          foreach($centers as $ky => $vl){
+              $selected="";
+              if($data['center_id'] == $vl['center_number']){ $selected="selected='selected'"; }
+              ?>
+              <option value="<?php echo $vl['center_number']?>" <?php echo $selected; ?>><?php echo $vl['center_name']?></option>
+              <?php 
+          } 
+      } else { ?>
+          <option value="" disabled>No centers assigned to you</option>
+      <?php } ?>
+    </select>
+</div>
         </div>
         
 
