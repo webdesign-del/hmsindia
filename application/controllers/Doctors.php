@@ -1773,12 +1773,12 @@ class Doctors extends CI_Controller {
 				}
 				$consultation_post = array();
 				if($_POST['submit_type'] == "save_exit"){
-					$consultation_post['edit_mode'] = 1;
-					$consultation_post['final_mode'] = 0;
+					$consultation_post['edit_mode'] = 0;
+					$consultation_post['final_mode'] = 1;
 					$consultation_post['disapproval_reason'] = isset($_POST['disapproval_reason'])?$_POST['disapproval_reason']:''; unset($_POST['disapproval_reason']);
 				}
 				if($_POST['submit_type'] == "exit"){
-					$consultation_post['edit_mode'] = 1;
+					$consultation_post['edit_mode'] = 0;
 					$consultation_post['final_mode'] = 1;
 					$consultation_post['disapproval_reason'] = ''; unset($_POST['disapproval_reason']);
 				}
