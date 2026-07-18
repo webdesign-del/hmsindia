@@ -783,17 +783,21 @@ function approve_billing($request, $type, $status, $reason, $reason_of_cancle, $
 
 public function get_all_sales_for_tally()
 {
+    // **DYNAMIC DATE CORRECTION**
+    // करंट डेट (आज की तारीख) गेट करें ताकि रात 12 बजे के बाद डेटा अपने आप हट जाए
+    $current_date = date('Y-m-d'); 
+
     $this->db->select('*');
     $this->db->from('hms_patient_procedure');
     
     $this->db->where_in('status', ['approved', 'cancel']);
-    
     $this->db->where('tally_status', '1'); 
 
-	$this->db->where('on_date >', '2026-07-08');
+    // हार्डकोडेड तारीख हटाकर आज की तारीख का फ़िल्टर लगाया
+    $this->db->where('modified_on >=', $current_date);
     
     $this->db->order_by('modified_on', 'DESC');
-    $this->db->limit(600); // Increased limit to match your other functions
+    $this->db->limit(600); 
 
     $query = $this->db->get();
     return $query->result_array();
