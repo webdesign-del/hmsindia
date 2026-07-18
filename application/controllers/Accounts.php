@@ -3335,7 +3335,6 @@ LIMIT 700";
 }
 
 // New update push test
-
 public function procedure_tally()
 {
     // Force JSON header
@@ -3355,6 +3354,9 @@ public function procedure_tally()
     $error_count = 0;
     $already_sent_count = 0;
 
+    // करंट डेट और टाइम निकालें (Tally में भेजने की तारीख)
+    $current_date_time = date('Y-m-d H:i:s');
+
     foreach ($ids as $id) {
 
         $this->db->select('tally_status');
@@ -3368,8 +3370,10 @@ public function procedure_tally()
         }
 
         $this->db->where('id', $id);
+        // यहाँ tally_status के साथ-साथ tally_send_date को भी अपडेट एरे में जोड़ दिया है
         $update = $this->db->update('hms_patient_procedure', [
-            'tally_status' => 1
+            'tally_status'    => 1,
+            'tally_send_date' => $current_date_time
         ]);
 
         if ($update) {
