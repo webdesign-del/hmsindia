@@ -3119,5 +3119,242 @@ public function action_return_request($action, $receipt_number) {
 			die();
 		}
 	}
+
+	/**
+     * बिलिंग रिटर्न/रिफंड अनुरोध को प्रोसेस और ईमेल करने का मुख्य फंक्शन
+     */
+    public function ajax_send_return_request() {
+        // 1. AJAX से आ रहे डेटा को रिसीव करें
+        $receipt_number = $this->input->post('receipt_number');
+        $patient_id     = $this->input->post('patient_id');
+        $return_type    = $this->input->post('return_type'); // 'full' या 'partial'
+        $tests          = $this->input->post('tests');        // चुनिंदा टेस्ट्स का ऐरे
+
+        $table_name = 'hms_patient_investigations'; 
+
+        // 2. डेटाबेस से इस बिल का पूरा लाइव रिकॉर्ड निकालें
+        $bill_details = $this->db->get_where($table_name, ['receipt_number' => $receipt_number])->row_array();
+        
+        $all_investigations = [];
+        if (!empty($bill_details['investigations'])) {
+            $all_investigations = unserialize($bill_details['investigations']);
+        }
+
+        $all_method =& get_instance();
+
+        // जो बिलिंग मैनेजर अभी लॉग-इन है, उसका ईमेल गेट करें
+        $manager_email = isset($_SESSION['logged_billing_manager']['username']) ? $_SESSION['logged_billing_manager']['username'] : '';
+
+        // 3. बिल का स्टेटस बदलकर पेंडिंग करें
+        $this->db->where('receipt_number', $receipt_number);
+        $this->db->update($table_name, ['status' => 'pending_return']);
+
+        // 4. ईमेल का सब्जेक्ट और HTML ढांचा तैयार करें
+        $subject = "⚠️ Return Approval Required - Receipt No: " . $receipt_number;
+        
+        $message = "<div style='font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 700px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 5px;'>";
+        $message .= "<h2 style='text-align: center; color: #dc3545; border-bottom: 2px solid #dc3545; padding-bottom: 10px;'>Refund / Return Request</h2>";
+        
+        $message .= "<table style='width: 100%; margin-bottom: 20px; border-collapse: collapse;'>";
+        $message .= "<tr><td style='padding: 5px; width: 30%; font-weight: bold;'>Patient ID:</td><td style='padding: 5px;'>" . $patient_id . "</td></tr>";
+        $message .= "<tr><td style='padding: 5px; font-weight: bold;'>Receipt No:</td><td style='padding: 5px;'>" . $receipt_number . "</td></tr>";
+        $message .= "<tr><td style='padding: 5px; font-weight: bold;'>Billing Date:</td><td style='padding: 5px;'>" . (!empty($bill_details['on_date']) ? $bill_details['on_date'] : '-') . "</td></tr>";
+        $message .= "<tr><td style='padding: 5px; font-weight: bold;'>Requested By:</td><td style='padding: 5px;'>" . $manager_email . "</td></tr>";
+        
+        if ($return_type == 'full') {
+            $message .= "<tr><td style='padding: 5px; font-weight: bold;'>Request Type:</td><td style='padding: 5px;'><span style='background-color: #dc3545; color: white; padding: 3px 8px; border-radius: 3px; font-weight: bold;'>FULL BILL RETURN</span></td></tr>";
+            $message .= "<tr><td colspan='2' style='padding: 10px 5px; color: #a94442; font-weight: bold; background-color: #f2dede; border-radius: 4px;'>⚠️ बिलिंग मैनेजर ने इस पूरे बिल को कैंसिल करके संपूर्ण रिफंड करने की अनुमति मांगी है।</td></tr>";
+        } else {
+            $message .= "<tr><td style='padding: 5px; font-weight: bold;'>Request Type:</td><td style='padding: 5px;'><span style='background-color: #ffc107; color: black; padding: 3px 8px; border-radius: 3px; font-weight: bold;'>PARTIAL RETURN</span></td></tr>";
+            $message .= "<tr><td colspan='2' style='padding: 10px 5px; color: #8a6d3b; font-weight: bold; background-color: #fcf8e3; border-radius: 4px;'>ℹ️ बिलिंग मैनेजर ने नीचे तालिका में चुने गए विशिष्ट टेस्ट्स का रिफंड मांगा है क्योंकि वे टेस्ट नहीं हुए हैं।</td></tr>";
+        }
+        $message .= "</table>";
+
+        // 5. मुख्य डेटा टेबल (Original Investigation List)
+        $message .= "<h3>Original Investigation List (बिल में शामिल टेस्ट्स)</h3>";
+        $message .= "<table border='1' cellpadding='8' cellspacing='0' style='border-collapse: collapse; width: 100%; border-color: #ddd; margin-bottom: 20px;'>";
+        $message .= "<tr style='background-color: #f8f9fa; font-weight: bold;'>";
+        $message .= "<th>Type</th><th>Test Name</th><th>Code</th><th>Price</th><th>Discount</th>";
+        if ($return_type == 'partial') {
+            $message .= "<th style='background-color: #f2dede; color: #a94442; text-align:center;'>Return Status</th>";
+        }
+        $message .= "</tr>";
+
+        // A. पुरुष जांच की सूची
+        if (!empty($all_investigations['male_investigation'])) {
+            foreach ($all_investigations['male_investigation'] as $m_val) {
+                $t_name = $all_method->get_investigation_name($m_val['male_investigation_name']);
+                $t_code = $m_val['male_investigation_code'];
+                $t_price = $m_val['male_investigation_price'];
+                $t_disc = $m_val['male_investigation_discount'];
+
+                $is_targeted = false;
+                if ($return_type == 'partial' && !empty($tests)) {
+                    foreach ($tests as $t_str) {
+                        if (strpos($t_str, $t_code) !== false) { $is_targeted = true; break; }
+                    }
+                }
+
+                $message .= "<tr>";
+                $message .= "<td>Male</td><td>" . $t_name . "</td><td>" . $t_code . "</td><td>₹" . $t_price . "</td><td>₹" . $t_disc . "</td>";
+                if ($return_type == 'partial') {
+                    $message .= $is_targeted ? "<td style='background-color:#f2dede; color:#a94442; text-align:center; font-weight:bold;'>✓ Request Return</td>" : "<td style='text-align:center; color:#999;'>Keep Active</td>";
+                }
+                $message .= "</tr>";
+            }
+        }
+
+        // B. महिला जांच की सूची
+        if (!empty($all_investigations['female_investigation'])) {
+            foreach ($all_investigations['female_investigation'] as $f_val) {
+                $t_name = $all_method->get_investigation_name($f_val['female_investigation_name']);
+                $t_code = $f_val['female_investigation_code'];
+                $t_price = $f_val['female_investigation_price'];
+                $t_disc = $f_val['female_investigation_discount'];
+
+                $is_targeted = false;
+                if ($return_type == 'partial' && !empty($tests)) {
+                    foreach ($tests as $t_str) {
+                        if (strpos($t_str, $t_code) !== false) { $is_targeted = true; break; }
+                    }
+                }
+
+                $message .= "<tr>";
+                $message .= "<td>Female</td><td>" . $t_name . "</td><td>" . $t_code . "</td><td>₹" . $t_price . "</td><td>₹" . $t_disc . "</td>";
+                if ($return_type == 'partial') {
+                    $message .= $is_targeted ? "<td style='background-color:#f2dede; color:#a94442; text-align:center; font-weight:bold;'>✓ Request Return</td>" : "<td style='text-align:center; color:#999;'>Keep Active</td>";
+                }
+                $message .= "</tr>";
+            }
+        }
+        $message .= "</table>";
+
+        // 6. वित्तीय विवरण समरी टेबल
+        $message .= "<h3>Payment Summary (वित्तीय विवरण)</h3>";
+        $message .= "<table border='1' cellpadding='8' cellspacing='0' style='border-collapse: collapse; width: 100%; border-color: #ddd; margin-bottom: 25px;'>";
+        $message .= "<tr><td style='background-color:#f8f9fa; font-weight:bold; width:50%;'>Total Bill Amount (Gross):</td><td>₹" . (!empty($bill_details['totalpackage']) ? $bill_details['totalpackage'] : '0') . "</td></tr>";
+        $message .= "<tr><td style='background-color:#f8f9fa; font-weight:bold;'>Total Discount Applied:</td><td>₹" . (!empty($bill_details['discount_amount']) ? $bill_details['discount_amount'] : '0') . "</td></tr>";
+        $message .= "<tr><td style='background-color:#f8f9fa; font-weight:bold;'>Net Payable Fees:</td><td style='font-weight:bold; color:#0056b3;'>₹" . (!empty($bill_details['fees']) ? $bill_details['fees'] : '0') . "</td></tr>";
+        $message .= "<tr><td style='background-color:#f8f9fa; font-weight:bold; color: green;'>Payment Done (प्राप्त राशि):</td><td style='font-weight:bold; color: green;'>₹" . (!empty($bill_details['payment_done']) ? $bill_details['payment_done'] : '0') . " (" . strtoupper(!empty($bill_details['payment_method']) ? $bill_details['payment_method'] : 'N/A') . ")</td></tr>";
+        $message .= "<tr><td style='background-color:#f8f9fa; font-weight:bold; color: red;'>Remaining Due Amount:</td><td style='color: red;'>₹" . (!empty($bill_details['remaining_amount']) ? $bill_details['remaining_amount'] : '0') . "</td></tr>";
+        $message .= "</table>";
+
+        // 7. ईमेल एक्शन लिंक्स (सिर्फ वेबडिजाइन एडमिन के लिए काम करेंगे)
+        $approve_url = base_url("billings/verify_return_request/{$receipt_number}/approve");
+        $disapprove_url = base_url("billings/verify_return_request/{$receipt_number}/disapprove");
+
+        $action_buttons = "<div style='text-align: center; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;'>";
+        $action_buttons .= "<p style='font-weight: bold; font-size: 15px;'>कृपया निर्णय लेने के लिए नीचे दिए गए बटन का उपयोग करें:</p><br>";
+        $action_buttons .= "<a href='{$approve_url}' style='padding: 12px 25px; background-color: #28a745; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; margin-right: 15px; display:inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>APPROVE RETURN</a>";
+        $action_buttons .= "<a href='{$disapprove_url}' style='padding: 12px 25px; background-color: #dc3545; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; display:inline-block; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>DISAPPROVE</a>";
+        $action_buttons .= "</div>";
+        
+        $email_end = "</div>";
+
+        // 8. CodeIgniter Email लाइब्रेरी को कॉन्फ़िगर करना
+        $this->load->library('email');
+        $config['protocol']    = 'smtp';
+        $config['smtp_host']   = 'ssl://smtp.googlemail.com'; 
+        $config['smtp_port']   = '465';
+        $config['smtp_user']   = 'drnoida@indiaivf.in';       
+        $config['smtp_pass']   = 'your_email_password';       
+        $config['mailtype']    = 'html';
+        $config['charset']     = 'utf-8';
+        $config['newline']     = "\r\n";
+        $this->email->initialize($config);
+
+        // --- ईमेल एक्सीक्यूशन 1: वेबडिजाइन एडमिन को लिंक्स के साथ भेजना ---
+        $this->email->from('billing-system@indiaivf.in', 'IVF Billing System');
+        $this->email->to('webdesign@indiaivf.in'); 
+        $this->email->subject($subject . " [ACTION REQUIRED]");
+        $this->email->message($message . $action_buttons . $email_end);
+        @$this->email->send();
+
+        // --- ईमेल एक्सीक्यूशन 2: रिक्वेस्ट करने वाले बिलिंग मैनेजर को सिर्फ सूचना (Intimation) भेजना ---
+        if(!empty($manager_email)) {
+            $this->email->clear(); // पुरानी सेटिंग्स साफ़ करें
+            $this->email->initialize($config);
+            $this->email->from('billing-system@indiaivf.in', 'IVF Billing System');
+            $this->email->to($manager_email);
+            $this->email->subject("Confirmation: Return Request Filed for Receipt No: " . $receipt_number);
+            // इसमें एक्शन बटन्स नहीं होंगे, केवल विवरण होगा
+            $this->email->message($message . "<p style='color:#777; text-align:center; border-top:1px solid #eee; padding-top:15px;'>यह आपके रिकॉर्ड के लिए एक पावती (Acknowledgment) ईमेल है। एडमिन द्वारा निर्णय लेते ही आपको अपडेट मिल जाएगा।</p>" . $email_end);
+            @$this->email->send();
+        }
+
+        // 9. जावास्क्रिप्ट (AJAX) को रिस्पांस रिटर्न करना
+        echo json_encode(['status' => 'success', 'message' => 'Requests dispatched successfully']);
+        exit; 
+    }
+
+    /**
+     * ईमेल लिंक्स पर क्लिक होने के बाद एडमिन अप्रूवल/रिएक्शन रिकॉर्ड करने और अकाउंट्स को मेल करने का फंक्शन
+     */
+    public function verify_return_request($receipt_number, $action) {
+        $table_name = 'hms_patient_investigations';
+
+        // पुराना रिकॉर्ड और रिक्वेस्ट करने वाले का डेटा ढूँढें
+        $bill_details = $this->db->get_where($table_name, ['receipt_number' => $receipt_number])->row_array();
+
+        if($action == 'approve') {
+            $new_status = 'approved_for_return';
+            $display_msg = "Return Request has been APPROVED. Accountant can now process the refund from the main table.";
+            $status_tag = "<b style='color:green;'>APPROVED</b>";
+        } else {
+            $new_status = 'disapproved_return';
+            $display_msg = "Return Request has been DISAPPROVED by Administration.";
+            $status_tag = "<b style='color:red;'>DISAPPROVED / REJECTED</b>";
+        }
+
+        // डेटाबेस में अंतिम स्टेटस अपडेट करें
+        $this->db->where('receipt_number', $receipt_number);
+        $this->db->update($table_name, ['status' => $new_status]);
+
+        // --- नया लॉजिक: अकाउंट विभाग और बिलिंग मैनेजर को अपडेट मेल ट्रिगर करना ---
+        $this->load->library('email');
+        // (नोट: ऊपर दी गई समान $config सेटिंग्स यहाँ भी काम करेंगी)
+        $config['protocol']    = 'smtp';
+        $config['smtp_host']   = 'ssl://smtp.googlemail.com'; 
+        $config['smtp_port']   = '465';
+        $config['smtp_user']   = 'drnoida@indiaivf.in';       
+        $config['smtp_pass']   = 'your_email_password';       
+        $config['mailtype']    = 'html';
+        $config['charset']     = 'utf-8';
+        $config['newline']     = "\r\n";
+        $this->email->initialize($config);
+
+        $this->email->from('billing-system@indiaivf.in', 'IVF Billing Status Desk');
+        
+        // प्राप्तकर्ता: मुख्य अकाउंट विभाग और एक्शन शुरू करने वाला यूजर
+        $recipients = ['accounts@indiaivf.in'];
+        // यदि बिल बनाने वाले यूजर की ईमेल उपलब्ध है, तो उसे भी जोड़ें
+        if(!empty($bill_details['paramedic_name']) && strpos($bill_details['paramedic_name'], '@') !== false) {
+            $recipients[] = $bill_details['paramedic_name'];
+        }
+        
+        $this->email->to(implode(',', $recipients));
+        $this->email->subject("Status Alert: Return Request " . strtoupper($action) . "D - Receipt: " . $receipt_number);
+        
+        $alert_message = "<div style='font-family:Arial, sans-serif; padding:20px; border:1px solid #eee; max-width:600px;'>";
+        $alert_message .= "<h2>Return Request Update Notice</h2>";
+        $alert_message .= "<p>रसीद संख्या <b>" . $receipt_number . "</b> के लिए भेजे गए रिटर्न अनुरोध पर एडमिनिस्ट्रेशन द्वारा निर्णय ले लिया गया है।</p>";
+        $alert_message .= "<hr><p style='font-size:16px;'>Final Status: " . $status_tag . "</p>";
+        $alert_message .= "<p><b>System Message:</b> " . $display_msg . "</p>";
+        $alert_message .= "<p style='margin-top:20px; font-size:12px; color:#999;'>यह एक ऑटो-जेनरेटेड नोटिफिकेशन है। कृपया इस पर डायरेक्ट रिप्लाई न करें।</p>";
+        $alert_message .= "</div>";
+        
+        $this->email->message($alert_message);
+        @$this->email->send();
+
+        // ब्राउज़र रिस्पांस स्क्रीन रेंडर करना (एडमिन को दिखने वाला पेज)
+        echo "<div style='text-align:center; margin-top:100px; font-family:Arial, sans-serif;'>";
+        echo "<div style='display:inline-block; border: 1px solid #ccc; padding: 40px; border-radius: 8px; background: #fdfdfd; box-shadow: 0 4px 8px rgba(0,0,0,0.05);'>";
+        echo "<h1 style='color: " . ($action == 'approve' ? '#28a745' : '#dc3545') . "; margin-bottom: 15px;'>Action Recorded Successfully</h1>";
+        echo "<p style='font-size:18px; color:#444; margin-bottom: 15px;'>".$display_msg."</p>";
+        echo "<p style='color:#31708f; font-size:14px; background:#d9edf7; padding:8px; border-radius:4px;'>Notification email has been dispatched to accounts@indiaivf.in</p>";
+        echo "<p style='color:#777; font-size:13px; margin-top:20px;'>You can close this tab now.</p>";
+        echo "</div>";
+        echo "</div>";
+    }
 	
 } 
