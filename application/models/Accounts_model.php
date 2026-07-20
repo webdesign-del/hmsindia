@@ -794,9 +794,9 @@ public function get_all_sales_for_tally()
     $this->db->where('tally_status', '1'); 
 
     // हार्डकोडेड तारीख हटाकर आज की तारीख का फ़िल्टर लगाया
-    $this->db->where('modified_on >=', $current_date);
+    $this->db->where('tally_send_date >=', $current_date);
     
-    $this->db->order_by('modified_on', 'DESC');
+    $this->db->order_by('tally_send_date', 'DESC');
     $this->db->limit(600); 
 
     $query = $this->db->get();
