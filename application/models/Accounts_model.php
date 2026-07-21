@@ -84,14 +84,19 @@ class Accounts_model extends CI_Model
 				$refund_amount['type'] = 'refund_amount';
 			}	
 			
-			$payment_sql = "Select * from ".$this->config->item('db_prefix')."patient_payments where patient_id='".$patient_id."'";
+			$payment_sql = "SELECT p.*, pr.series_number 
+							FROM ".$this->config->item('db_prefix')."patient_payments p 
+							LEFT JOIN ".$this->config->item('db_prefix')."patient_procedure pr 
+								ON p.billing_id = pr.receipt_number 
+							WHERE p.patient_id='" . $patient_id . "'";
+							
 			$payment_q = $this->db->query($payment_sql);
 			$payment_result = $payment_q->result_array();
-			if (!empty($payment_result))
-			{
+
+			if (!empty($payment_result)) {
 				$payments['data'] =  $payment_result;
 				$payments['type'] = 'payments';
-			}	
+			}
 			
 			if (!empty($patient_result))
 			{

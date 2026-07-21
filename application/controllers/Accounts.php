@@ -313,7 +313,7 @@ class Accounts extends CI_Controller {
 				$type = $sales_result['type'];
 				foreach($sales_result['data'] as $key => $val){
 					$html .= '<tr>';
-					$html .= '<td><a class="btn btn-large" href="'.base_url().'stock/sales/view/'.$val->id.'?t=sales">SALE-'.$val->id.'</a></td>';
+					$html .= '<td><a class="btn btn-large" href="'.base_url().'stocks_new/print_sale/'.$val->id.'" target="_blank">SALE-'.$val->id.'</a></td>';
 					$html .= '<td>'.dateformat($val->sale_date).'</td>';
 					$html .= '<td>'.$val->center_name.'</td>';
 					$html .= '<td>'.$val->center_name.'</td>';
@@ -350,7 +350,7 @@ class Accounts extends CI_Controller {
 				$type = $payments['type'];
 				foreach($payments['data'] as $key => $val){ //var_dump($val);die;
 					$payment_html .= '<tr>';
-					$payment_html .= '<td><a target="_blank" class="btn btn-large" href="'.base_url().'accounts/details/'.$val['billing_id'].'?t='.$val['type'].'">'.$val['billing_id'].'</a></td>';
+					$payment_html .= '<td><a target="_blank" class="btn btn-large" href="'.base_url().'accounts/details/'.$val['billing_id'].'?t='.$val['type'].'">'.$val['billing_id'].'</a> ' . $val['series_number'] . '</td>';
 					$payment_html .= '<td><a target="_blank" href="'.base_url().'partial-payment-receipt/'.$val['refrence_number'].'">'.$val['refrence_number'].'</a></td>';
 					$payment_html .= '<td><a target="_blank" href="'.base_url().'accounts/patient_details/'.$patient_id.'">'.$patient_id.'</a></td>';
 					$payment_html .= '<td>'.$patient_data['wife_name'].'</td>';
