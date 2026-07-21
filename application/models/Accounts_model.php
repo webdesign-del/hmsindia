@@ -8183,7 +8183,7 @@ public function validate_coupon($code, $service_type, $amount) {
 
     // AJAX - Patient ki details W1/W2 auto-fill ke liye
     public function get_patient_basic_info($patient_id) {
-        $this->db->select('patient_name, phone, email');
+        $this->db->select('wife_name, wife_phone, wife_email');
         $this->db->from('hms_patients'); // Update table name if different
         $this->db->where('patient_id', $patient_id);
         $query = $this->db->get();

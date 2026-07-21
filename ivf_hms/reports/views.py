@@ -1,4 +1,5 @@
 import json
+import hashlib
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.db import connection
@@ -10,24 +11,17 @@ from django.contrib import messages
 # 1. LEGACY HMS_DOCTORS DIRECT AUTHENTICATION & SESSIONS
 # ============================================================
 
-# reports/views.py ke andar login_view ko isse replace karein:
-# reports/views.py ke andar login_view ko badal kar yeh kar lijiye:
-
-import hashlib  # MD5 hashing logic ke liye is library ka hona zaroori hai
-
 def login_view(request):
-    # Agar doctor session pehle se active hai, toh direct dashboard par send karein
     if 'doctor_id' in request.session:
         return redirect('doctor_view')
         
     if request.method == "POST":
-        username_input = request.POST.get('username')  # index.html se aaya username
-        password_input = request.POST.get('password')  # index.html se aaya plain password
+        username_input = request.POST.get('username')
+        password_input = request.POST.get('password')
         
-        # --- FIX: Plain password ko MD5 hash string mein convert karein ---
+        # MD5 hashing logic sequence matching standard
         password_md5 = hashlib.md5(password_input.encode('utf-8')).hexdigest()
         
-        # --- FIXED CHECKPOINT: Matching strictly on `username` and hashed `password` ---
         query = """
             SELECT ID, name, email, username 
             FROM hms_doctors 
@@ -36,18 +30,15 @@ def login_view(request):
         """
         
         with connection.cursor() as cursor:
-            # [username_input, password_md5] pass karne se ab query hash se hash match karegi
             cursor.execute(query, [username_input, password_md5])
             doctor_row = cursor.fetchone()
             
         if doctor_row:
-            # Dynamic sessions validation memory payload mapping
             request.session['doctor_id'] = doctor_row[0]
             request.session['doctor_name'] = doctor_row[1]
             request.session['doctor_email'] = doctor_row[2]
             request.session['doctor_username'] = doctor_row[3]
             request.session['user_role'] = 'doctor'
-            
             return redirect('doctor_view')
         else:
             messages.error(request, "Invalid username or password string context.")
@@ -56,19 +47,17 @@ def login_view(request):
 
 
 def logout_view(request):
-    # Session data flush karke sign-out parameter clear karein
     request.session.flush()
     return redirect('login')
 
 
 def doctor_workspace_view(request):
-    # HARD GATE LOCK: Agar user session invalid hai, toh entry block karke login redirect trigger karein
     if 'doctor_id' not in request.session:
         messages.error(request, "Please sign in to access the Doctor Workspace.")
         return redirect('login')
         
     logged_doctor_name = request.session.get('doctor_name', 'Dr. Consultation Workspace')
-    active_center_name = "Noida Centre" # Fallback tracking rule component placeholder
+    active_center_name = "Noida Centre"
 
     context = {
         'active_center': active_center_name,
@@ -189,25 +178,27 @@ def save_cnb_edits(request):
 
 
 # ============================================================
-# 4. PROCEDURE BILLING & BOOKED LEDGERS PIPELINE DATA ENDPOINTS
+# 4. PATIENT-WISE REGISTRY LAYER FOR BILLING TABLES & BOOKED LISTS
 # ============================================================
 
 def get_procedure_billing_data(request):
+    # FIX: Grouped strictly by patient ID details to represent a unique row entry per patient
     query = """
         SELECT 
-            a.id AS appointment_internal_id,
+            MIN(a.id) AS appointment_internal_id,
             COALESCE(NULLIF(TRIM(a.paitent_id), ''), CAST(a.id AS CHAR)) AS patient_id, 
-            a.wife_name AS name, 
-            a.husband_name,
-            a.appoitmented_date AS date,
-            p.on_date,
-            p.councellor, 
-            c.center_name, 
-            d.name AS doctor_name,
-            p.code,
-            p.fees,
+            MIN(a.wife_name) AS name, 
+            MIN(a.husband_name) AS husband_name,
+            MIN(p.receipt_number) AS receipt_number,
+            MIN(a.appoitmented_date) AS date,
+            MIN(p.on_date) AS on_date,
+            MIN(p.councellor) AS councellor, 
+            MIN(c.center_name) AS center_name, 
+            MIN(d.name) AS doctor_name,
+            GROUP_CONCAT(DISTINCT p.code SEPARATOR ', ') AS code,
+            SUM(p.fees) AS fees,
             IFNULL(SUM(pay.payment_done), 0) AS total_payment_done,
-            (p.fees - IFNULL(SUM(pay.payment_done), 0)) AS pending_amount
+            (SUM(p.fees) - IFNULL(SUM(pay.payment_done), 0)) AS pending_amount
         FROM hms_appointments a
         INNER JOIN hms_patient_procedure p ON a.id = p.appointment_id
         LEFT JOIN hms_doctor_consultation dc ON a.id = dc.appointment_id
@@ -217,10 +208,8 @@ def get_procedure_billing_data(request):
         WHERE a.paitent_type = 'new_patient' 
           AND a.status = 'consultation_done'
           AND p.status IN ('pending', 'approved')
-        GROUP BY 
-            a.id, a.paitent_id, a.wife_name, a.husband_name, a.appoitmented_date, 
-            p.councellor, c.center_name, d.name, p.code, p.on_date, p.fees       
-        ORDER BY a.appoitmented_date DESC;
+        GROUP BY COALESCE(NULLIF(TRIM(a.paitent_id), ''), CAST(a.id AS CHAR))
+        ORDER BY MIN(a.appoitmented_date) DESC;
     """
     with connection.cursor() as cursor:
         cursor.execute(query)
@@ -236,22 +225,23 @@ def get_procedure_billing_data(request):
 
 
 def get_dynamic_booked_patients(request):
+    # FIX: Combined multi-procedures row inputs under a unified patient context aggregate summary
     query = """
         SELECT 
-            a.id AS appointment_internal_id,
+            MIN(a.id) AS appointment_internal_id,
             COALESCE(NULLIF(TRIM(a.paitent_id), ''), CAST(a.id AS CHAR)) AS patient_id, 
-            a.wife_name AS name, 
-            a.husband_name,
-            p.receipt_number, 
-            a.appoitmented_date AS date,
-            p.on_date,
-            p.councellor, 
-            c.center_name, 
-            d.name AS doctor_name,
-            p.code,
-            p.fees,
+            MIN(a.wife_name) AS name, 
+            MIN(a.husband_name) AS husband_name,
+            MIN(p.receipt_number) AS receipt_number, 
+            MIN(a.appoitmented_date) AS date,
+            MIN(p.on_date) AS on_date,
+            MIN(p.councellor) AS councellor, 
+            MIN(c.center_name) AS center_name, 
+            MIN(d.name) AS doctor_name,
+            GROUP_CONCAT(DISTINCT p.code SEPARATOR ', ') AS code,
+            SUM(p.fees) AS fees,
             IFNULL(SUM(pay.payment_done), 0) AS total_payment_done,
-            (p.fees - IFNULL(SUM(pay.payment_done), 0)) AS pending_amount
+            (SUM(p.fees) - IFNULL(SUM(pay.payment_done), 0)) AS pending_amount
         FROM hms_appointments a
         INNER JOIN hms_patient_procedure p ON a.id = p.appointment_id
         LEFT JOIN hms_doctor_consultation dc ON a.id = dc.appointment_id
@@ -261,10 +251,8 @@ def get_dynamic_booked_patients(request):
         WHERE a.paitent_type = 'new_patient' 
           AND a.status = 'consultation_done'
           AND p.status IN ('pending', 'approved')
-        GROUP BY 
-            a.id, a.paitent_id, a.wife_name, a.husband_name, p.receipt_number, a.appoitmented_date, 
-            p.councellor, c.center_name, d.name, p.code, p.on_date, p.fees       
-        ORDER BY a.appoitmented_date DESC;
+        GROUP BY COALESCE(NULLIF(TRIM(a.paitent_id), ''), CAST(a.id AS CHAR))
+        ORDER BY MIN(a.appoitmented_date) DESC;
     """
     with connection.cursor() as cursor:
         cursor.execute(query)
@@ -280,7 +268,7 @@ def get_dynamic_booked_patients(request):
 
 
 # ============================================================
-# 5. SINGLE JOINT PATIENT PROFILE LOOKUP (DETAILED PATIENT MATRIX)
+# 5. ALL PROCEDURES LIST LOOKUP UNDER UNIQUE PATIENT PROFILE DETAILS
 # ============================================================
 
 def get_patient_profile_detail(request):
@@ -288,41 +276,79 @@ def get_patient_profile_detail(request):
     if not receipt_number:
         return JsonResponse({'status': 'error', 'message': 'Unique Receipt Number token parameter missing.'}, status=400)
         
-    joint_query = """
+    # Step A: Pehle primary demographic matrix fetch karein patient profile context data se
+    demographics_query = """
         SELECT 
             p.ID, p.patient_id, p.patient_phone, p.wife_name, p.wife_phone, p.wife_photo, 
-            p.wife_age, p.husband_name, p.husband_phone, p.husband_age, p.husband_address, p.husband_photo,
+            p.wife_age, p.husband_name, p.husband_phone, p.husband_age, p.husband_address, p.husband_photo
+        FROM hms_patients p
+        INNER JOIN hms_patient_procedure proc ON p.patient_id = proc.patient_id
+        WHERE proc.receipt_number = %s
+        LIMIT 1;
+    """
+    
+    # Step B: Uss unique patient_id ke saare procedures ki sequential items list pull karein
+    procedures_query = """
+        SELECT 
             proc.on_date, proc.category, proc.code, proc.fees, proc.procedure_name, proc.receipt_number,
             IFNULL(SUM(pay.payment_done), 0) AS dynamic_payment_done,
             (proc.fees - IFNULL(SUM(pay.payment_done), 0)) AS dynamic_pending_amount
-        FROM hms_patients p
-        LEFT JOIN hms_patient_procedure proc ON p.patient_id = proc.patient_id
+        FROM hms_patient_procedure proc
         LEFT JOIN hms_patient_payments pay ON proc.receipt_number = pay.billing_id AND pay.status IN ('0', '1')
-        WHERE proc.receipt_number = %s AND proc.status IN ('pending', 'approved')
+        WHERE proc.patient_id = %s AND proc.status IN ('pending', 'approved')
         GROUP BY 
-            p.ID, p.patient_id, p.patient_phone, p.wife_name, p.wife_phone, p.wife_photo, 
-            p.wife_age, p.husband_name, p.husband_phone, p.husband_age, p.husband_address, p.husband_photo,
             proc.on_date, proc.category, proc.code, proc.fees, proc.procedure_name, proc.receipt_number
-        LIMIT 1;
+        ORDER BY proc.on_date ASC;
     """
+    
     try:
         with connection.cursor() as cursor:
-            cursor.execute(joint_query, [receipt_number])
-            row = cursor.fetchone()
+            cursor.execute(demographics_query, [receipt_number])
+            demo_row = cursor.fetchone()
             
-            if row:
-                columns = [col[0] for col in cursor.description]
-                result_data = dict(zip(columns, row))
-                
-                result_data['fees'] = float(result_data['fees']) if result_data['fees'] else 0.0
-                result_data['payment_done'] = float(result_data['dynamic_payment_done'])
-                result_data['pending'] = float(result_data['dynamic_pending_amount'])
-                
-                return JsonResponse({
-                    'status': 'success',
-                    'data': result_data
-                })
-            else:
+            if not demo_row:
                 return JsonResponse({'status': 'error', 'message': 'No profile match found.'}, status=404)
+                
+            demo_cols = [col[0] for col in cursor.description]
+            result_data = dict(zip(demo_cols, demo_row))
+            
+            # Ab saare linked procedures details nikalte hain
+            cursor.execute(procedures_query, [result_data['patient_id']])
+            proc_rows = cursor.fetchall()
+            proc_cols = [col[0] for col in cursor.description]
+            
+            procedures_list = []
+            total_fees = 0.0
+            total_paid = 0.0
+            total_pending = 0.0
+            
+            for row in proc_rows:
+                p_dict = dict(zip(proc_cols, row))
+                p_dict['fees'] = float(p_dict['fees']) if p_dict['fees'] else 0.0
+                p_dict['payment_done'] = float(p_dict['dynamic_payment_done'])
+                p_dict['pending'] = float(p_dict['dynamic_pending_amount'])
+                
+                # Global aggregates update
+                total_fees += p_dict['fees']
+                total_paid += p_dict['payment_done']
+                total_pending += p_dict['pending']
+                
+                procedures_list.append(p_dict)
+            
+            # Legacy engine variables keys to make sure frontend template doesn't crash
+            result_data['fees'] = total_fees
+            result_data['payment_done'] = total_paid
+            result_data['pending'] = total_pending
+            result_data['code'] = procedures_list[0]['code'] if procedures_list else 'OPD'
+            result_data['category'] = procedures_list[0]['category'] if procedures_list else 'General'
+            result_data['procedure_name'] = procedures_list[0]['procedure_name'] if procedures_list else 'Consultation'
+            result_data['on_date'] = procedures_list[0]['on_date'] if procedures_list else None
+            
+            return JsonResponse({
+                'status': 'success',
+                'data': result_data,
+                'procedures': procedures_list  # Pure distinct procedures package list
+            })
+            
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Query failed: {str(e)}'}, status=500)

@@ -473,9 +473,14 @@ window.journeySelect = function(uniqueToken) {
 
 function appendCustomLedgerToJourney(procs, fees, paid, pending) {
     const detailContainer = document.getElementById('journeyDetail'); if (!detailContainer) return;
+    
+    // Purana appended ledger box block delete kijiye
+    const legacyBox = document.getElementById('jointProcedureLedgerCard');
+    if(legacyBox) legacyBox.remove();
+
     const ledgerHtml = `
-        <div class="card" style="margin-top:20px; border:1px solid var(--border-soft); border-radius:8px; overflow:hidden;">
-            <div class="card-head" style="background:#fafafa; padding:12px 20px; border-bottom:1px solid var(--border-soft); font-weight:600;"><div class="card-title">Live Patient Procedure Ledger (Joint Query Data)</div></div>
+        <div class="card" id="jointProcedureLedgerCard" style="margin-top:20px; border:1px solid var(--border-soft); border-radius:8px; overflow:hidden;">
+            <div class="card-head" style="background:#fafafa; padding:12px 20px; border-bottom:1px solid var(--border-soft); font-weight:600;"><div class="card-title">Live Patient Procedure Ledger (Joint Query Data — Total Packages Listed)</div></div>
             <div class="card-body flush">
                 <div class="table-wrap">
                     <table class="tbl" style="width:100%; border-collapse:collapse; font-size:13px;">
@@ -487,14 +492,61 @@ function appendCustomLedgerToJourney(procs, fees, paid, pending) {
                         <tbody>
                             ${procs.map(p => `
                                 <tr style="border-bottom:1px solid var(--border-soft);">
-                                    <td style="padding:10px 15px;">${p.on_date || '—'}</td>
-                                    <td style="padding:10px 15px;"><span class="wf-tag" style="background:#e5e7eb; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">${p.category}</span></td>
+                                    <td style="padding:10px 15px;">${p.on_date ? p.on_date.replace('T', ' ') : '—'}</td>
+                                    <td style="padding:10px 15px;"><span class="wf-tag" style="background:#e5e7eb; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">${p.category || 'OPD'}</span></td>
                                     <td style="padding:10px 15px;"><b>${p.procedure_name || '—'}</b></td>
                                     <td style="padding:10px 15px;"><code>${p.code || '—'}</code></td>
                                     <td class="col-num" style="padding:10px 15px; text-align:right;">₹${p.fees.toFixed(2)}</td>
                                     <td class="col-num" style="padding:10px 15px; text-align:right; color:var(--green)">₹${p.payment_done.toFixed(2)}</td>
                                     <td class="col-num" style="padding:10px 15px; text-align:right; color:${p.pending > 0 ? 'var(--red)' : 'var(--green)'}; font-weight:600;">₹${p.pending.toFixed(2)}</td>
                                 </tr>`).join('')}
+                            <tr style="background:#f9fafb; font-weight:bold; border-top:2px solid var(--border-soft);">
+                                <td colspan="4" style="padding:12px 15px;">Total Summary Ledger Output</td>
+                                <td style="padding:12px 15px; text-align:right;">₹${fees.toFixed(2)}</td>
+                                <td style="padding:12px 15px; text-align:right; color:var(--green)">₹${paid.toFixed(2)}</td>
+                                <td style="padding:12px 15px; text-align:right; color:${pending > 0 ? 'var(--red)' : 'var(--green)'}">₹${pending.toFixed(2)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>`;
+    detailContainer.insertAdjacentHTML('beforeend', ledgerHtml);
+}function appendCustomLedgerToJourney(procs, fees, paid, pending) {
+    const detailContainer = document.getElementById('journeyDetail'); if (!detailContainer) return;
+    
+    // Purana appended ledger box block delete kijiye
+    const legacyBox = document.getElementById('jointProcedureLedgerCard');
+    if(legacyBox) legacyBox.remove();
+
+    const ledgerHtml = `
+        <div class="card" id="jointProcedureLedgerCard" style="margin-top:20px; border:1px solid var(--border-soft); border-radius:8px; overflow:hidden;">
+            <div class="card-head" style="background:#fafafa; padding:12px 20px; border-bottom:1px solid var(--border-soft); font-weight:600;"><div class="card-title">Live Patient Procedure Ledger (Joint Query Data — Total Packages Listed)</div></div>
+            <div class="card-body flush">
+                <div class="table-wrap">
+                    <table class="tbl" style="width:100%; border-collapse:collapse; font-size:13px;">
+                        <thead>
+                            <tr style="background:#f9fafb; border-bottom:1px solid var(--border-soft); text-align:left;">
+                                <th style="padding:10px 15px;">Date</th><th style="padding:10px 15px;">Category</th><th style="padding:10px 15px;">Procedure Name</th><th style="padding:10px 15px;">Code</th><th class="col-num" style="padding:10px 15px; text-align:right;">Fees</th><th class="col-num" style="padding:10px 15px; text-align:right;">Payment Done</th><th class="col-num" style="padding:10px 15px; text-align:right;">Pending Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${procs.map(p => `
+                                <tr style="border-bottom:1px solid var(--border-soft);">
+                                    <td style="padding:10px 15px;">${p.on_date ? p.on_date.replace('T', ' ') : '—'}</td>
+                                    <td style="padding:10px 15px;"><span class="wf-tag" style="background:#e5e7eb; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:bold;">${p.category || 'OPD'}</span></td>
+                                    <td style="padding:10px 15px;"><b>${p.procedure_name || '—'}</b></td>
+                                    <td style="padding:10px 15px;"><code>${p.code || '—'}</code></td>
+                                    <td class="col-num" style="padding:10px 15px; text-align:right;">₹${p.fees.toFixed(2)}</td>
+                                    <td class="col-num" style="padding:10px 15px; text-align:right; color:var(--green)">₹${p.payment_done.toFixed(2)}</td>
+                                    <td class="col-num" style="padding:10px 15px; text-align:right; color:${p.pending > 0 ? 'var(--red)' : 'var(--green)'}; font-weight:600;">₹${p.pending.toFixed(2)}</td>
+                                </tr>`).join('')}
+                            <tr style="background:#f9fafb; font-weight:bold; border-top:2px solid var(--border-soft);">
+                                <td colspan="4" style="padding:12px 15px;">Total Summary Ledger Output</td>
+                                <td style="padding:12px 15px; text-align:right;">₹${fees.toFixed(2)}</td>
+                                <td style="padding:12px 15px; text-align:right; color:var(--green)">₹${paid.toFixed(2)}</td>
+                                <td style="padding:12px 15px; text-align:right; color:${pending > 0 ? 'var(--red)' : 'var(--green)'}">₹${pending.toFixed(2)}</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

@@ -234,15 +234,7 @@
                     </div>
                   <div class="form-group col-sm-6 col-xs-12 hospital_id_section role">
                   <label for="item_name">Center Source</label>
-                  <select name="biller" class="required_value" id="biller" required>
-                        <option value="">Select</option>
-                        <option value="Noida">Noida</option> 
-                        <option value="Gurgaon">Gurgaon</option> 
-                        <option value="Green Park">Green Park</option> 
-                        <option value="Srinagar">SRINAGAR</option> 
-                        <option value="Ghaziabad">Ghaziabad</option> 
-                    </select>
-                  
+                    <input type="text" name="biller" id="biller" value="<?php echo $center; ?>" readonly="" />
                 </div>
           </div>
           

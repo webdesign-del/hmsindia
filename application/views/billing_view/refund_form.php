@@ -204,10 +204,12 @@
 </div>
 
 <!-- Scripts for AJAX & Calculations -->
+<!-- Scripts for AJAX & Calculations -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
   $(document).ready(function() {
-    // 1. Auto-Calculate Total Deductions[cite: 3]
+    
+    // 1. Auto-Calculate Total Deductions
     $('.deduct-amount').on('input', function() {
       var total = 0;
       $('.deduct-amount').each(function() {
@@ -217,26 +219,56 @@
       $('#total_deductions').val(total.toFixed(2));
     });
 
-    // 2. AJAX Fetch Patient & Wallet Info
-    $('#patient_id').on('blur', function() {
-        var p_id = $(this).val();
+    // 2. Function to Fetch Patient Data via AJAX
+    function fetchPatientWalletInfo(p_id) {
         if(p_id != '') {
+            var csrfName = '<?php echo $this->security->get_csrf_token_name(); ?>';
+            var csrfHash = '<?php echo $this->security->get_csrf_hash(); ?>';
+            
+            var requestData = { patient_id: p_id };
+            if(csrfName && csrfHash) {
+                requestData[csrfName] = csrfHash;
+            }
+
+            // [FIXED]: Controller ka naam check kijiye. URL ke hisab se ye 'billings' hona chahiye. 
+            // Agar aapka function Accounts.php me hai, toh isko Accounts/get_patient_wallet_info hi rehne dein.
             $.ajax({
-                url: '<?php echo base_url("Accounts/get_patient_wallet_info"); ?>', 
+                url: '<?php echo site_url("accounts/get_patient_wallet_info"); ?>', 
                 type: 'POST',
-                data: { patient_id: p_id },
+                data: requestData,
                 dataType: 'json',
                 success: function(response) {
                     if(response.status == 'success') {
+                        // Display balance
                         $('#w1_display').html('₹ ' + parseFloat(response.wallet_1).toFixed(2));
                         $('#w2_display').html('₹ ' + parseFloat(response.wallet_2).toFixed(2));
+                        
+                        // Fill input fields
                         if(response.patient_name) $('#patient_name').val(response.patient_name);
                         if(response.phone) $('input[name="contact_number"]').val(response.phone);
                         if(response.email) $('input[name="email_address"]').val(response.email);
+                    } else {
+                        console.log("Response error: ", response.message);
                     }
+                },
+                error: function(xhr, status, error) {
+                    console.error("AJAX Error details: ", error);
+                    console.log("Server Response: ", xhr.responseText);
                 }
             });
         }
+    }
+
+    // A. Manually blur par chalega
+    $('#patient_id').on('blur', function() {
+        fetchPatientWalletInfo($(this).val());
     });
+
+    // B. Page load par chalega (Kyuki ID URL se apne aap aa raha hai)
+    var initial_patient_id = $('#patient_id').val();
+    if (initial_patient_id !== '') {
+        fetchPatientWalletInfo(initial_patient_id);
+    }
+
   });
 </script>
