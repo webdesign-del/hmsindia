@@ -3763,6 +3763,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
                         p.billing_at,
                         p.on_date as date,
                         p.status,
+						pr.procedure_name,
                         pr.series_number
                     FROM ".$this->config->item('db_prefix')."patient_payments p 
                     LEFT JOIN ".$this->config->item('db_prefix')."patient_procedure pr 

@@ -233,7 +233,7 @@ class Accounts extends CI_Controller {
 				$type = $procedure_result['type'];
 				foreach($procedure_result['data'] as $key => $val){					 		
 					$html .= '<tr>';
-					$html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=procedure">'.$val['receipt_number'].'</a><a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['receipt_number'].'?t=procedure">'.'Add Payments'.'</a></td>';
+					$html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=procedure">'.$val['receipt_number'].'</a><a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['receipt_number'].'?t=procedure">'.'Add Payments'.'</a><br/>' . $val['series_number'] . '</td>';
 					$html .= '<td>'.dateformat($val['on_date']).'</td>';
 					$html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
 					if($val['billing_from'] == 'IndiaIVF'){ $html .= '<td>'.$val['billing_from'].'</td>'; }
@@ -350,7 +350,7 @@ class Accounts extends CI_Controller {
 				$type = $payments['type'];
 				foreach($payments['data'] as $key => $val){ //var_dump($val);die;
 					$payment_html .= '<tr>';
-					$payment_html .= '<td><a target="_blank" class="btn btn-large" href="'.base_url().'accounts/details/'.$val['billing_id'].'?t='.$val['type'].'">'.$val['billing_id'].'</a> ' . $val['series_number'] . '</td>';
+					$payment_html .= '<td><a target="_blank" class="btn btn-large" href="'.base_url().'accounts/details/'.$val['billing_id'].'?t='.$val['type'].'">'.$val['billing_id'].'</a><br/> ' . $val['series_number'] . '</td>';
 					$payment_html .= '<td><a target="_blank" href="'.base_url().'partial-payment-receipt/'.$val['refrence_number'].'">'.$val['refrence_number'].'</a></td>';
 					$payment_html .= '<td><a target="_blank" href="'.base_url().'accounts/patient_details/'.$patient_id.'">'.$patient_id.'</a></td>';
 					$payment_html .= '<td>'.$patient_data['wife_name'].'</td>';
@@ -1010,7 +1010,7 @@ if (isset($export_billing)){
             $val['payment_method'], 
             $billing_from, 
             $billing_at,
-            '', // <--- Procedure name is blank for partial payments 
+            $val['procedure_name'],
             $val['billing_type'], 
             date('Y-m-d H:i:s', strtotime($val['date'])), 
             $val['series_number'], 
