@@ -995,7 +995,7 @@ class Accounts extends CI_Controller {
 						$billing_from = get_center_name($billing_from);
 					}
 					$billing_at = get_center_name($val['billing_at']);
-					$lead_arr = array($val['patient_id'], $val['wife_name'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at,$val['procedure_name'] ,$val['billing_type'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status']);
+					$lead_arr = array($val['patient_id'], $val['wife_name'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at,$val['procedure_name'] ,$val['billing_type'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['series_number'], $val['status']);
 					
 					//$lead_arr = array($val['patient_id'], $val['wife_name'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status']);
 					fputcsv($fp, $lead_arr);

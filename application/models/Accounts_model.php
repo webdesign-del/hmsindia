@@ -3741,10 +3741,25 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 			$conditions .= ' and billing_at="'.$center.'"';
         }
 		if(!empty($start) && !empty($end)){
-            $conditions .= " and on_date between '".$start."' AND '".$end."' ";
-        }
-	    $partialpayments_sql = "Select DISTINCT billing_id,patient_id,payment_done,payment_method,billing_from,billing_at,on_date as date,status from ".$this->config->item('db_prefix')."patient_payments $conditions order by on_date desc";
-        $partialpayments_q = $this->db->query($partialpayments_sql);
+			$conditions .= " AND p.on_date BETWEEN '".$start."' AND '".$end."' ";
+		}
+	   // $partialpayments_sql = "Select DISTINCT billing_id,patient_id,payment_done,payment_method,billing_from,billing_at,on_date as date,status from ".$this->config->item('db_prefix')."patient_payments $conditions order by on_date desc";
+        $partialpayments_sql = "SELECT DISTINCT 
+                            p.billing_id,
+                            p.patient_id,
+                            p.payment_done,
+                            p.payment_method,
+                            p.billing_from,
+                            p.billing_at,
+                            p.on_date as date,
+                            p.status,
+                            pr.series_number
+                        FROM ".$this->config->item('db_prefix')."patient_payments p 
+                        LEFT JOIN ".$this->config->item('db_prefix')."patient_procedure pr 
+                            ON p.billing_id = pr.receipt_number 
+                        $conditions 
+                        ORDER BY p.on_date DESC";
+		$partialpayments_q = $this->db->query($partialpayments_sql);
         $partialpayments_result = $partialpayments_q->result_array();
         if(!empty($partialpayments_result)){
             foreach($partialpayments_result as $key => $val){
@@ -3762,6 +3777,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
                         'billing_from' => $val['billing_from'],
                         'billing_at' => $val['billing_at'],
                         'date' => $val['date'],
+						'series_number' => $val['series_number'],
                         'status' => $val['status'],
                         'billing_type' => 'Partial Payment',
                 );
