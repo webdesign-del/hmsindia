@@ -1021,47 +1021,6 @@ if (isset($export_billing)){
     }
     fclose($fp);
     exit();
-}$export_billing = $this->input->get('export-billing', true);
-if (isset($export_billing)){
-    $data = $this->accounts_model->export_partialpayments_data($start_date, $end_date, $center, $patient_id, $status);
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename=Partialpayments-'.$start_date.'-'.$end_date.'.csv');
-    $fp = fopen('php://output','w');
-    
-    // FIX 3: Updated Headers to match exactly 14 columns
-    $headers = 'IIC ID, Patient Name, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Procedure Name, Billing Type, Date, Series Number, Status';
-    
-    //Add the headers
-    fwrite($fp, $headers. "\r\n");
-    foreach ($data as $key => $val) {
-        $billing_from = $val['billing_from'];
-        if($billing_from != "IndiaIVF"){
-            $billing_from = get_center_name($billing_from);
-        }
-        $billing_at = get_center_name($val['billing_at']);
-        
-        // FIX 4: Passed '' (empty string) instead of $val['procedure_name'] which doesn't exist
-        $lead_arr = array(
-            $val['patient_id'], 
-            $val['wife_name'], 
-            $val['totalpackage'], 
-            $val['discounted_package'], 
-            $val['payment_done'], 
-            $val['remaining_amount'], 
-            $val['payment_method'], 
-            $billing_from, 
-            $billing_at,
-            '', // <--- Procedure name is blank for partial payments 
-            $val['billing_type'], 
-            date('Y-m-d H:i:s', strtotime($val['date'])), 
-            $val['series_number'], 
-            $val['status']
-        );
-        
-        fputcsv($fp, $lead_arr);
-    }
-    fclose($fp);
-    exit();
 }
 
 			$config = array();

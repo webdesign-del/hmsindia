@@ -3799,6 +3799,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
                     'payment_method' => $val['payment_method'],
                     'billing_from' => $val['billing_from'],
                     'billing_at' => $val['billing_at'],
+					'procedure_name' => $val['procedure_name'],
                     'date' => $val['date'],
                     'series_number' => $val['series_number'],
                     'status' => $val['status'],
