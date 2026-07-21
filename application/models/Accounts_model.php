@@ -3732,59 +3732,76 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 	}
 	
 	function export_partialpayments_data($start, $end, $center, $type, $status){
-		$partialpayments_result = $response = array();
-        $conditions = '';
-		if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
-			$center = $_SESSION['logged_accountant']['center'];
-		}
-        if(!empty($center)){
-			$conditions .= ' and billing_at="'.$center.'"';
-        }
-		if(!empty($start) && !empty($end)){
-			$conditions .= " AND p.on_date BETWEEN '".$start."' AND '".$end."' ";
-		}
-	   // $partialpayments_sql = "Select DISTINCT billing_id,patient_id,payment_done,payment_method,billing_from,billing_at,on_date as date,status from ".$this->config->item('db_prefix')."patient_payments $conditions order by on_date desc";
-        $partialpayments_sql = "SELECT DISTINCT 
-                            p.billing_id,
-                            p.patient_id,
-                            p.payment_done,
-                            p.payment_method,
-                            p.billing_from,
-                            p.billing_at,
-                            p.on_date as date,
-                            p.status,
-                            pr.series_number
-                        FROM ".$this->config->item('db_prefix')."patient_payments p 
-                        LEFT JOIN ".$this->config->item('db_prefix')."patient_procedure pr 
-                            ON p.billing_id = pr.receipt_number 
-                        $conditions 
-                        ORDER BY p.on_date DESC";
-		$partialpayments_q = $this->db->query($partialpayments_sql);
-        $partialpayments_result = $partialpayments_q->result_array();
-        if(!empty($partialpayments_result)){
-            foreach($partialpayments_result as $key => $val){
-				$patient_name = $this->get_patient_name($val['patient_id']);
-        		$patient_name1 = strtoupper($patient_name);
-                $response[] = array(
-                        'patient_id' => $val['patient_id'],
-                        'wife_name' => $patient_name1,
-						'billing_id' => $val['billing_id'],
-				         'totalpackage' => '',
-                        'discounted_package' => '',
-                        'payment_done' => $val['payment_done'],
-                        'remaining_amount' => '',
-                        'payment_method' => $val['payment_method'],
-                        'billing_from' => $val['billing_from'],
-                        'billing_at' => $val['billing_at'],
-                        'date' => $val['date'],
-						'series_number' => $val['series_number'],
-                        'status' => $val['status'],
-                        'billing_type' => 'Partial Payment',
-                );
-            }
-        }    
-		return $response;
+    $partialpayments_result = $response = array();
+    
+    // FIX 1: Initialize conditions with 'WHERE 1=1' so 'AND' works correctly
+    $conditions = ' WHERE 1=1 ';
+    
+    if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
+        $center = $_SESSION['logged_accountant']['center'];
     }
+    if(!empty($center)){
+        // ADD p. alias to prevent ambiguous column errors
+        $conditions .= ' AND p.billing_at="'.$center.'"';
+    }
+    if(!empty($start) && !empty($end)){
+        // ADD p. alias
+        $conditions .= " AND p.on_date BETWEEN '".$start."' AND '".$end."' ";
+    }
+   
+    $partialpayments_sql = "SELECT DISTINCT 
+                        p.billing_id,
+                        p.patient_id,
+                        p.payment_done,
+                        p.payment_method,
+                        p.billing_from,
+                        p.billing_at,
+                        p.on_date as date,
+                        p.status,
+                        pr.series_number
+                    FROM ".$this->config->item('db_prefix')."patient_payments p 
+                    LEFT JOIN ".$this->config->item('db_prefix')."patient_procedure pr 
+                        ON p.billing_id = pr.receipt_number 
+                    $conditions 
+                    ORDER BY p.on_date DESC";
+                    
+    $partialpayments_q = $this->db->query($partialpayments_sql);
+    $partialpayments_result = $partialpayments_q->result_array();
+    
+    if(!empty($partialpayments_result)){
+        foreach($partialpayments_result as $key => $val){
+            $patient_name = $this->get_patient_name($val['patient_id']);
+            
+            // FIX 2: Safely extract the string if patient_name is an array
+            $name_str = '';
+            if (is_array($patient_name)) {
+                $name_str = isset($patient_name['wife_name']) ? $patient_name['wife_name'] : (isset($patient_name['name']) ? $patient_name['name'] : implode(' ', $patient_name));
+            } else {
+                $name_str = (string) $patient_name;
+            }
+            
+            $patient_name1 = strtoupper($name_str);
+            
+            $response[] = array(
+                    'patient_id' => $val['patient_id'],
+                    'wife_name' => $patient_name1,
+                    'billing_id' => $val['billing_id'],
+                    'totalpackage' => '',
+                    'discounted_package' => '',
+                    'payment_done' => $val['payment_done'],
+                    'remaining_amount' => '',
+                    'payment_method' => $val['payment_method'],
+                    'billing_from' => $val['billing_from'],
+                    'billing_at' => $val['billing_at'],
+                    'date' => $val['date'],
+                    'series_number' => $val['series_number'],
+                    'status' => $val['status'],
+                    'billing_type' => 'Partial Payment',
+            );
+        }
+    }    
+    return $response;
+}
 	
 	function export_partialpayments_report_data($start, $end, $center, $type, $status){
 		$partialpayments_result = $response = array();
