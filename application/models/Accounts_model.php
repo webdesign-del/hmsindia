@@ -3764,7 +3764,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
         if(!empty($partialpayments_result)){
             foreach($partialpayments_result as $key => $val){
 				$patient_name = $this->get_patient_name($val['patient_id']);
-				$patient_name1 = strtoupper($patient_name);
+        		$patient_name1 = strtoupper($patient_name);
                 $response[] = array(
                         'patient_id' => $val['patient_id'],
                         'wife_name' => $patient_name1,
