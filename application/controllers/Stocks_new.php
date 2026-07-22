@@ -4666,103 +4666,114 @@ public function bulk_approve_sales()
             ->row();
     }
 
-    public function add_sale()
-    {
-        $logg = checklogin();
-        if ($logg["status"] == true) {
-            if ($this->input->post("action") == "add_sale") {
-                $this->form_validation->set_rules(
-                    "center_id",
-                    "Center",
-                    "required",
-                );
-                $this->form_validation->set_rules(
-                    "patient_name",
-                    "Patient Name",
-                    "required",
-                );
-                $this->form_validation->set_rules(
-                    "sale_date",
-                    "Sale Date",
-                    "required",
-                );
+   public function add_sale()
+{
+    $logg = checklogin();
+    if ($logg["status"] == true) {
+        if ($this->input->post("action") == "add_sale") {
+            $this->form_validation->set_rules(
+                "center_id",
+                "Center",
+                "required",
+            );
+            $this->form_validation->set_rules(
+                "patient_name",
+                "Patient Name",
+                "required",
+            );
+            $this->form_validation->set_rules(
+                "sale_date",
+                "Sale Date",
+                "required",
+            );
 
-                if ($this->form_validation->run() == true) {
-                    $created_by_id= null;
-                    // Get employee ID from employee_number (required for foreign key constraint)
-                    if(!empty($_SESSION["logged_central_stock_manager"]["employee_number"])) {
-                        $employee_number = $_SESSION["logged_central_stock_manager"]["employee_number"];
-                    } elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
-                        $employee_number = $_SESSION["logged_stock_manager"]["employee_number"];
-                    } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
-                        $employee_number = $_SESSION["billing_manager"]["employee_number"];
-                    }elseif (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
-                        $employee_number = $_SESSION["logged_billing_manager"]["employee_number"];
-                    }elseif (isset($_SESSION['logged_accountant']['employee_number']) && !empty($_SESSION['logged_accountant']['employee_number'])) {
-                        $employee_number = $_SESSION["logged_accountant"]["employee_number"];
-                    }
-                    $created_by_id = $this->get_employee_id_from_number(
-                        $employee_number,
+            if ($this->form_validation->run() == true) {
+                $created_by_id = null;
+                $employee_number = null;
+                $department = null; // 🎯 1. वैरिएबल यहाँ इनिशियलाइज़ करें
+
+                // 🎯 2. Employee Number और Department दोनों एक साथ Session से निकालें
+                if (!empty($_SESSION["logged_central_stock_manager"]["employee_number"])) {
+                    $employee_number = $_SESSION["logged_central_stock_manager"]["employee_number"];
+                    $department      = $_SESSION["logged_central_stock_manager"]["department"] ?? null;
+                } elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
+                    $employee_number = $_SESSION["logged_stock_manager"]["employee_number"];
+                    $department      = $_SESSION["logged_stock_manager"]["department"] ?? null;
+                } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
+                    $employee_number = $_SESSION["billing_manager"]["employee_number"];
+                    $department      = $_SESSION["billing_manager"]["department"] ?? null;
+                } elseif (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
+                    $employee_number = $_SESSION["logged_billing_manager"]["employee_number"];
+                    $department      = $_SESSION["logged_billing_manager"]["department"] ?? null;
+                } elseif (isset($_SESSION['logged_accountant']['employee_number']) && !empty($_SESSION['logged_accountant']['employee_number'])) {
+                    $employee_number = $_SESSION["logged_accountant"]["employee_number"];
+                    $department      = $_SESSION["logged_accountant"]["department"] ?? null;
+                }
+
+                // 🎯 3. Fallback Check: अगर Session में department न मिले, तो डिफ़ॉल्ट सेट करें
+                if (empty($department)) {
+                    $department = 'CASH MEDICINE'; // DB में NOT NULL Error रोकने के लिए
+                }
+
+                $created_by_id = $this->get_employee_id_from_number(
+                    $employee_number,
+                );
+                if (!$created_by_id) {
+                    $created_by_id = 1;
+                }
+
+                $sale_data = [
+                    "center_id"      => $this->input->post("center_id"),
+                    "department"     => $department, // 🎯 अब यह कभी Undefined या NULL नहीं होगा
+                    "patient_id"     => $this->input->post("patient_id"),
+                    "patient_name"   => $this->input->post("patient_name"),
+                    "doctor_id"      => $this->input->post("doctor_id"),
+                    "doctor_name"    => $this->input->post("doctor_name"),
+                    "sale_date"      => $this->input->post("sale_date"),
+                    "sale_time"      => date("H:i:s"),
+                    "payment_method" => $this->input->post("payment_method"),
+                    "payment_status" => $this->input->post("payment_status"),
+                    "remarks"        => $this->input->post("remarks"),
+                    "created_by"     => $created_by_id,
+                    "status"         => "DRAFT",
+                ];
+
+                $sale_id = $this->Stock_model_new->add_sale($sale_data);
+                if ($sale_id) {
+                    $this->session->set_flashdata(
+                        "success",
+                        "Sale created successfully!",
                     );
-                    if (!$created_by_id) {
-                        $created_by_id = 1;
-                    }
-                    $sale_data = [
-                        "center_id" => $this->input->post("center_id"),
-                        "department"     => $department,
-                        "patient_id" => $this->input->post("patient_id"),
-                        "patient_name" => $this->input->post("patient_name"),
-                        "doctor_id" => $this->input->post("doctor_id"),
-                        "doctor_name" => $this->input->post("doctor_name"),
-                        "sale_date" => $this->input->post("sale_date"),
-                        "sale_time" => date("H:i:s"),
-                        "payment_method" => $this->input->post(
-                            "payment_method",
-                        ),
-                        "payment_status" => $this->input->post(
-                            "payment_status",
-                        ),
-                        "remarks" => $this->input->post("remarks"),
-                        "created_by" => $created_by_id,
-                        "status" => "DRAFT",
-                    ];
-                    $sale_id = $this->Stock_model_new->add_sale($sale_data);
-                    if ($sale_id) {
-                        $this->session->set_flashdata(
-                            "success",
-                            "Sale created successfully!",
-                        );
-                        redirect("stocks_new/edit_sale/" . $sale_id);
-                    } else {
-                        $this->session->set_flashdata(
-                            "error",
-                            "Error creating sale!",
-                        );
-                    }
+                    redirect("stocks_new/edit_sale/" . $sale_id);
+                } else {
+                    $this->session->set_flashdata(
+                        "error",
+                        "Error creating sale!",
+                    );
                 }
             }
-
-            $data["centers"] = $this->Stock_model_new->get_all_centers();
-            $appointment_id = $this->input->get("appointment_id");
-            if ($appointment_id) {
-                $appointment = $this->get_appointment_details($appointment_id);
-                // var_dump($appointment);
-                if ($appointment) {
-                    $data["patient_id"] = $appointment->patient_id;
-                    $data["patient_name"] = $appointment->patient_name;
-                    $data["doctor_id"] = $appointment->doctor_id;
-                    $data["doctor_name"] = $appointment->doctor_name;
-                }
-            }
-            $template = get_header_template($logg["role"]);
-            $this->load->view($template["header"]);
-            $this->load->view("stocks_new/add_sale", $data);
-            $this->load->view($template["footer"]);
-        } else {
-            header("location:" . base_url() . "");
-            die();
         }
+
+        $data["centers"] = $this->Stock_model_new->get_all_centers();
+        $appointment_id = $this->input->get("appointment_id");
+        if ($appointment_id) {
+            $appointment = $this->get_appointment_details($appointment_id);
+            if ($appointment) {
+                $data["patient_id"]   = $appointment->patient_id;
+                $data["patient_name"] = $appointment->patient_name;
+                $data["doctor_id"]    = $appointment->doctor_id;
+                $data["doctor_name"]  = $appointment->doctor_name;
+            }
+        }
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/add_sale", $data);
+        $this->load->view($template["footer"]);
+    } else {
+        header("location:" . base_url() . "");
+        die();
     }
+}
 
   /*  public function edit_sale($id)
     {
