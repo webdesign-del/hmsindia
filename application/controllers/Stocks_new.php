@@ -4709,6 +4709,7 @@ public function bulk_approve_sales()
                     }
                     $sale_data = [
                         "center_id" => $this->input->post("center_id"),
+                        "department"     => $department,
                         "patient_id" => $this->input->post("patient_id"),
                         "patient_name" => $this->input->post("patient_name"),
                         "doctor_id" => $this->input->post("doctor_id"),
@@ -4836,17 +4837,30 @@ public function bulk_approve_sales()
         }
     } */
 
- public function edit_sale($id)
+public function edit_sale($id)
 {
     $logg = checklogin();
     if ($logg["status"] == true) {
         
         // 1. Sale details fetch करें
         $sale_details = $this->Stock_model_new->get_sale_by_id($id);
+
         $patient_id = isset($sale_details->patient_id) ? $sale_details->patient_id : 0; 
         
-        // पेमेंट मेथड को छोटे अक्षरों (lowercase) में ले रहे हैं
         $payment_method = strtolower(trim($sale_details->payment_method)); 
+
+        // 🎯 Smart Department Fetch (DB में है तो वो लें, नहीं तो Session से लें)
+        $department = !empty($sale_details->department) ? $sale_details->department : null;
+
+        if (empty($department)) {
+            if (!empty($_SESSION['logged_stock_manager']['department'])) {
+                $department = $_SESSION['logged_stock_manager']['department'];
+            } elseif (!empty($_SESSION['billing_manager']['department'])) {
+                $department = $_SESSION['billing_manager']['department'];
+            } elseif (!empty($_SESSION['logged_billing_manager']['department'])) {
+                $department = $_SESSION['logged_billing_manager']['department'];
+            }
+        }
 
         if ($this->input->post("action") == "add_sale_item") {
             
@@ -4862,27 +4876,23 @@ public function bulk_approve_sales()
                 $subtotal = $quantity * $unit_price_one;
                 $discount_amount = $subtotal * ($discount_percent / 100);
                 $total = $subtotal - $discount_amount;
-                $taxable_Value = $total/(1+ ($gst_rate/100));
-                $tax_amount = $taxable_Value*($gst_rate/100);
+                $taxable_Value = $total / (1 + ($gst_rate / 100));
+                $tax_amount = $taxable_Value * ($gst_rate / 100);
 
                 // --- WALLET BALANCE CHECK ---
                 if ($payment_method == "wallet") {
-                    // 1. वॉलेट का मौजूदा बैलेंस निकालें
                     $wallet_balance = $this->Stock_model_new->get_wallet_balance($patient_id);
                     
-                    // 2. इस सेल (sale_id) में पहले से ऐड किए गए आइटम्स का टोटल निकालें
                     $existing_items = $this->Stock_model_new->get_sale_items($id);
                     $existing_total = 0;
                     if (!empty($existing_items)) {
                         foreach ($existing_items as $item) {
-                            $existing_total += (float)$item->total; // डेटाबेस में जो टोटल का कॉलम है
+                            $existing_total += (float)$item->total;
                         }
                     }
 
-                    // 3. नया ग्रैंड टोटल बनाएं (पुराना टोटल + अभी जो आइटम ऐड हो रहा है उसका टोटल)
                     $new_grand_total = $existing_total + $total;
                     
-                    // 4. अब वॉलेट बैलेंस को नए ग्रैंड टोटल से चेक करें
                     if ($wallet_balance < $new_grand_total) {
                         $this->session->set_flashdata(
                             "error",
@@ -4893,8 +4903,8 @@ public function bulk_approve_sales()
                         redirect("stocks_new/edit_sale/" . $id);
                     }
                 }
-                // -----------------------------
-
+               
+                // 🎯 sale_items टेबल के इंसर्ट ऐरे (इसमें एक्स्ट्रा कॉलम नहीं होंगे)
                 $item_data = [
                     'sale_id'             => $id,
                     'batch_id'            => $this->input->post('batch_id'),
@@ -4909,9 +4919,17 @@ public function bulk_approve_sales()
                     'remarks'             => $this->input->post('remarks')
                 ];
                 
-                $result = $this->Stock_model_new->add_sale_item($item_data);
+                $center_id = isset($sale_details->center_id) ? $sale_details->center_id : null;
+
+                // 🎯 Model में Item Data और साथ में $center_id व $department भेजें
+                $result = $this->Stock_model_new->add_sale_item($item_data, $center_id, $department);
                 
                 if ($result) {
+                    // अगर sales टेबल में department खाली था, तो उसे भी अपडेट कर दें
+                    if (empty($sale_details->department) && !empty($department)) {
+                        $this->db->where('id', $id)->update('sales', ['department' => $department]);
+                    }
+
                     $this->session->set_flashdata("success", "Sale item added successfully!");
                 } else {
                     $this->session->set_flashdata("error", "Error adding sale item!");
@@ -4921,8 +4939,11 @@ public function bulk_approve_sales()
         }
 
         $data["sale"] = $sale_details;
+        $data["department"] = $department; // View के लिए
         $data["sale_items"] = $this->Stock_model_new->get_sale_items($id);
-        $data["batches"] = $this->Stock_model_new->get_available_batches_for_sale($data["sale"]->center_id);
+
+        // 🎯 30 सेंटर्स के लिए स्मार्ट बैचेस फेच
+        $data["batches"] = $this->Stock_model_new->get_available_batches_for_sale($data["sale"]->center_id, $department);
         $data["centers"] = $this->Stock_model_new->get_all_centers();
 
         $template = get_header_template($logg["role"]);

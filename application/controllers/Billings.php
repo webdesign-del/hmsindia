@@ -3106,19 +3106,19 @@ public function action_return_request($action, $receipt_number) {
     }
 }
 
-	public function refund_form(){
-		$logg = checklogin();
-		if($logg['status'] == true){        
-			$data = array();
-			$template = get_header_template($logg['role']);
-			$this->load->view($template['header']);
-			$this->load->view('billing_view/refund_form', $data);
-			$this->load->view($template['footer']);
-		}else{
-			header("location:" .base_url(). "");
-			die();
-		}
-	}
+	public function refund_form() {
+        $logg = checklogin();
+        if ($logg['status'] == true) {        
+            $data = array();
+            $template = get_header_template($logg['role']);
+            $this->load->view($template['header']);
+            $this->load->view('billing_view/refund_form', $data);
+            $this->load->view($template['footer']);
+        } else {
+            header("location:" . base_url() . "");
+            die();
+        }
+    }
 
 	/**
      * बिलिंग रिटर्न/रिफंड अनुरोध को प्रोसेस और ईमेल करने का मुख्य फंक्शन

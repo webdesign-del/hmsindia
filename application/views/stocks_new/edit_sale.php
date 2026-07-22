@@ -405,7 +405,7 @@
                                     <input type="hidden" name="action" value="add_sale_item">
                                     <input type="hidden" name="item_type" value="package">
                                     <input type="hidden" name="center_id" value="<?php echo $sale->center_id; ?>">
-                                    <input type="hidden" name="department" value="">
+                                    <input type="hidden" name="department" value="<?php echo isset($department) ? htmlspecialchars($department) : ''; ?>">
                                     <input type="hidden" name="patient_id" value="<?php echo $sale->patient_id; ?>">
                                     <input type="hidden" name="patient_name" value="<?php echo $sale->patient_name; ?>">
 

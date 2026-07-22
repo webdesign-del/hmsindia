@@ -3546,28 +3546,55 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
     }
 
     public function get_sale_items($sale_id)
-    {
-        $this->db->select(
-            // si.* already includes discount_amount and tax_amount
-            "si.*, m.medicine_name, m.medicine_code, b.brand_name, mb.batch_number, mb.expiry_date"
-        );
-        $this->db->from("sale_items si");
-        $this->db->join("medicine_batches mb", "si.batch_id = mb.id", "left"); // Alias 'mb'
-        $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
-        // --- CORRECTED JOIN ---
-        // Join 'medicine_brands' with alias 'b'
-        $this->db->join("medicine_brands b", "m.brand_id = b.id", "left"); 
-        // --- END CORRECTION ---
-        $this->db->where("si.sale_id", $sale_id);
-        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");   
-        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
-        return $this->db->get()->result();
+{
+    $this->db->select("si.*, m.medicine_name, m.medicine_code, b.brand_name, mb.batch_number, mb.expiry_date");
+    $this->db->from("sale_items si");
+    $this->db->join("medicine_batches mb", "si.batch_id = mb.id", "left");
+    $this->db->join("medicines m", "mb.medicine_id = m.id", "left");
+    $this->db->join("medicine_brands b", "m.brand_id = b.id", "left"); 
+    $this->db->where("si.sale_id", $sale_id);
+    $this->db->where("m.medicine_code NOT LIKE 'HK_%'");   
+    $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
+    return $this->db->get()->result();
+}
+
+    public function add_sale_item($data, $center_id = null, $department = null)
+{
+    // A. sale_items टेबल में रिकॉर्ड इंसर्ट करें
+    $inserted = $this->db->insert("sale_items", $data);
+
+    // B. यदि इंसर्ट सफल रहा तो सही Center और Department का Stock Deduct करें
+    if ($inserted) {
+        $batch_id      = $data['batch_id'];
+        $quantity_sold = (float)$data['quantity_sold'];
+
+        // Center ID और Batch ID Filter
+        $this->db->where("batch_id", $batch_id);
+        if (!empty($center_id)) {
+            $this->db->where("center_id", $center_id);
+        }
+
+        // Dynamic Department Mapping (30+ Centers के लिए Scalable)
+        if (!empty($department)) {
+            $department_mapping = [
+                'billing'                 => 'CASH MEDICINE',
+                'Embryologist Basant Lok' => 'Embryology Basant Lok',
+            ];
+
+            $target_department = isset($department_mapping[$department]) 
+                                 ? $department_mapping[$department] 
+                                 : $department;
+
+            $this->db->like('department', $target_department);
+        }
+
+        // center_stocks टेबल में से quantity घटाएं
+        $this->db->set("quantity", "quantity - " . $quantity_sold, FALSE);
+        $this->db->update("center_stocks");
     }
 
-    public function add_sale_item($data)
-    {
-        return $this->db->insert("sale_items", $data);
-    }
+    return $inserted;
+}
 
     public function remove_sale_item($id)
     {
@@ -3600,6 +3627,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
                               ->from('center_stocks')
                               ->where('batch_id', $item->batch_id)
                               ->where('center_id', $sale->center_id)
+                              ->where('department', $sale->department)
                               ->get()->row();
             if (!$stock || $stock->available_quantity < $item->quantity_sold) {
                 $this->db->trans_rollback();
@@ -3622,7 +3650,7 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         $this->db->update("sales", $update_data);
         foreach ($items as $item) {
              // Get current stock quantity for the log
-            $stock_before = $this->db->select('quantity')->from('center_stocks')->where('batch_id', $item->batch_id)->where('center_id', $sale->center_id)->get()->row();
+            $stock_before = $this->db->select('quantity')->from('center_stocks')->where('batch_id', $item->batch_id)->where('center_id', $sale->center_id)->where('department', $sale->department)->get()->row();
             $quantity_before = $stock_before ? (int)$stock_before->quantity : 0;
             $quantity_after = $quantity_before - (float)$item->quantity_sold;
             // Reduce center stock
@@ -3666,63 +3694,39 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
 
         return ['status' => 'success']; // Success
     }
-    public function get_available_batches_for_sale($center_id)
-    {
-        $this->db->select(
-            "mb.*, m.medicine_name,m.pack_size, m.medicine_code, mb2.brand_name as brand_name,m.gst_rate as gst_rate, ccs.quantity as available_quantity",
-        );
-        $this->db->from("medicine_batches mb");
-        $this->db->join("medicines m", "mb.medicine_id = m.id");
-        // $this->db->join(
-        //     $this->config->item("db_prefix") . "brands mb2",
-        //     "m.brand_id = mb2.ID",
-        // );
-        $this->db->join("medicine_brands mb2", "m.brand_id = mb2.id");
-        $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
-        $this->db->where("ccs.center_id", $center_id);
-        // Filter by department if available
-        $department =null;
-        if(!empty($_SESSION['logged_stock_manager']['employee_number'])) {
-            $department = $_SESSION['logged_stock_manager']['department'] ?? null;
-        } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
-            $department = $_SESSION['billing_manager']['department'] ?? null;
-        }elseif (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
-            $department = $_SESSION['logged_billing_manager']['department'] ?? null;
+    // 3. Fetch Available Batches
+public function get_available_batches_for_sale($center_id, $department = null)
+{
+    $this->db->select("mb.*, m.medicine_name, m.pack_size, m.medicine_code, mb2.brand_name as brand_name, m.gst_rate as gst_rate, ccs.quantity as available_quantity");
+    $this->db->from("medicine_batches mb");
+    $this->db->join("medicines m", "mb.medicine_id = m.id");
+    $this->db->join("medicine_brands mb2", "m.brand_id = mb2.id");
+    $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
+    $this->db->where("ccs.center_id", $center_id);
+    
+    // 🎯 center_stocks टेबल की department कॉलम के साथ फ़िल्टर करें
+    if (!empty($department)) {
+        if ($department == 'billing') {
+            $this->db->like('ccs.department', 'CASH MEDICINE');
+        } elseif ($department == 'Embryologist Basant Lok') {
+            $this->db->like('ccs.department', 'Embryology Basant Lok');
+        } else {
+            $this->db->like('ccs.department', $department);
         }
-        if ($department !== null && $department !== '') {
-            if ($department == 'billing') {
-                $this->db->like('ccs.department', 'CASH MEDICINE');
-            }elseif($department == 'Embryologist Basant Lok')
-            {
-                $this->db->like('ccs.department', 'Embryology Basant Lok');
-            }else {
-                $this->db->like('ccs.department', $department);
-            }
-        }
-
-        $this->db->where("ccs.quantity >", 0);
-        $this->db->where("mb.batch_status", "ACTIVE");
-        $this->db->where("m.status", "active");
-        $this->db->where("ccs.status", "ACTIVE");
-        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
-        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
-        $center = null;
-        // if (!empty($_SESSION['logged_billing_manager']) &&
-        //     ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
-        //     $center = $_SESSION['logged_billing_manager']['center'];
-        // }
-        // if (!empty($_SESSION['logged_stock_manager']) &&
-        //     ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
-        //     $center = $_SESSION['logged_stock_manager']['center'];
-        // }
-        // if ($center !== null) {
-        //     $this->db->where('s.center_id', $this->get_center_id($center));
-        // }
-        $this->db->where("mb.expiry_date >", date("Y-m-d"));
-        $this->db->order_by("mb.expiry_date", "ASC");
-        $this->db->order_by("m.medicine_name", "ASC");
-        return $this->db->get()->result();
     }
+
+    $this->db->where("ccs.quantity >", 0);
+    $this->db->where("mb.batch_status", "ACTIVE");
+    $this->db->where("m.status", "active");
+    $this->db->where("ccs.status", "ACTIVE");
+    $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+    $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
+    $this->db->where("mb.expiry_date >", date("Y-m-d"));
+    $this->db->order_by("mb.expiry_date", "ASC");
+    $this->db->order_by("m.medicine_name", "ASC");
+    
+    return $this->db->get()->result();
+}
 
     // ===============================================
     // REPORTS FUNCTIONS
