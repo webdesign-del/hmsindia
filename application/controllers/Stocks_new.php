@@ -4667,101 +4667,92 @@ public function bulk_approve_sales()
     }
 
     public function add_sale()
-    {
-        $logg = checklogin();
-        if ($logg["status"] == true) {
-            if ($this->input->post("action") == "add_sale") {
-                $this->form_validation->set_rules(
-                    "center_id",
-                    "Center",
-                    "required",
-                );
-                $this->form_validation->set_rules(
-                    "patient_name",
-                    "Patient Name",
-                    "required",
-                );
-                $this->form_validation->set_rules(
-                    "sale_date",
-                    "Sale Date",
-                    "required",
-                );
+{
+    $logg = checklogin();
+    if ($logg["status"] == true) {
+        if ($this->input->post("action") == "add_sale") {
+            $this->form_validation->set_rules("center_id", "Center", "required");
+            $this->form_validation->set_rules("patient_name", "Patient Name", "required");
+            $this->form_validation->set_rules("sale_date", "Sale Date", "required");
 
-                if ($this->form_validation->run() == true) {
-                    $created_by_id= null;
-                    // Get employee ID from employee_number (required for foreign key constraint)
-                    if(!empty($_SESSION["logged_central_stock_manager"]["employee_number"])) {
-                        $employee_number = $_SESSION["logged_central_stock_manager"]["employee_number"];
-                    } elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
-                        $employee_number = $_SESSION["logged_stock_manager"]["employee_number"];
-                    } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
-                        $employee_number = $_SESSION["billing_manager"]["employee_number"];
-                    }elseif (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
-                        $employee_number = $_SESSION["logged_billing_manager"]["employee_number"];
-                    }elseif (isset($_SESSION['logged_accountant']['employee_number']) && !empty($_SESSION['logged_accountant']['employee_number'])) {
-                        $employee_number = $_SESSION["logged_accountant"]["employee_number"];
-                    }
-                    $created_by_id = $this->get_employee_id_from_number(
-                        $employee_number,
-                    );
-                    if (!$created_by_id) {
-                        $created_by_id = 1;
-                    }
-                    $sale_data = [
-                        "center_id" => $this->input->post("center_id"),
-                        "patient_id" => $this->input->post("patient_id"),
-                        "patient_name" => $this->input->post("patient_name"),
-                        "doctor_id" => $this->input->post("doctor_id"),
-                        "doctor_name" => $this->input->post("doctor_name"),
-                        "sale_date" => $this->input->post("sale_date"),
-                        "sale_time" => date("H:i:s"),
-                        "payment_method" => $this->input->post(
-                            "payment_method",
-                        ),
-                        "payment_status" => $this->input->post(
-                            "payment_status",
-                        ),
-                        "remarks" => $this->input->post("remarks"),
-                        "created_by" => $created_by_id,
-                        "status" => "DRAFT",
-                    ];
-                    $sale_id = $this->Stock_model_new->add_sale($sale_data);
-                    if ($sale_id) {
-                        $this->session->set_flashdata(
-                            "success",
-                            "Sale created successfully!",
-                        );
-                        redirect("stocks_new/edit_sale/" . $sale_id);
-                    } else {
-                        $this->session->set_flashdata(
-                            "error",
-                            "Error creating sale!",
-                        );
-                    }
+            if ($this->form_validation->run() == true) {
+                $created_by_id = null;
+                $employee_number = null;
+                $department = null; // 🎯 1. डिपार्टमेंट वैरिएबल
+
+                // Session से Employee Number और Department निकालें
+                if (!empty($_SESSION["logged_central_stock_manager"]["employee_number"])) {
+                    $employee_number = $_SESSION["logged_central_stock_manager"]["employee_number"];
+                    $department      = $_SESSION["logged_central_stock_manager"]["department"] ?? null;
+                } elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
+                    $employee_number = $_SESSION["logged_stock_manager"]["employee_number"];
+                    $department      = $_SESSION["logged_stock_manager"]["department"] ?? null;
+                } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
+                    $employee_number = $_SESSION["billing_manager"]["employee_number"];
+                    $department      = $_SESSION["billing_manager"]["department"] ?? null;
+                } elseif (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
+                    $employee_number = $_SESSION["logged_billing_manager"]["employee_number"];
+                    $department      = $_SESSION["logged_billing_manager"]["department"] ?? null;
+                } elseif (isset($_SESSION['logged_accountant']['employee_number']) && !empty($_SESSION['logged_accountant']['employee_number'])) {
+                    $employee_number = $_SESSION["logged_accountant"]["employee_number"];
+                    $department      = $_SESSION["logged_accountant"]["department"] ?? null;
+                }
+
+                if (empty($department)) {
+                    $department = 'billing'; // Default Safe Fallback
+                }
+
+                $created_by_id = $this->get_employee_id_from_number($employee_number);
+                if (!$created_by_id) {
+                    $created_by_id = 1;
+                }
+
+                $sale_data = [
+                    "center_id"      => $this->input->post("center_id"),
+                    "department"     => $department, // 🎯 Sales टेबल में Department डालें
+                    "patient_id"     => $this->input->post("patient_id"),
+                    "patient_name"   => $this->input->post("patient_name"),
+                    "doctor_id"      => $this->input->post("doctor_id"),
+                    "doctor_name"    => $this->input->post("doctor_name"),
+                    "sale_date"      => $this->input->post("sale_date"),
+                    "sale_time"      => date("H:i:s"),
+                    "payment_method" => $this->input->post("payment_method"),
+                    "payment_status" => $this->input->post("payment_status"),
+                    "remarks"        => $this->input->post("remarks"),
+                    "created_by"     => $created_by_id,
+                    "status"         => "DRAFT",
+                ];
+
+                $sale_id = $this->Stock_model_new->add_sale($sale_data);
+                if ($sale_id) {
+                    $this->session->set_flashdata("success", "Sale created successfully!");
+                    redirect("stocks_new/edit_sale/" . $sale_id);
+                } else {
+                    $this->session->set_flashdata("error", "Error creating sale!");
                 }
             }
-
-            $data["centers"] = $this->Stock_model_new->get_all_centers();
-            $appointment_id = $this->input->get("appointment_id");
-            if ($appointment_id) {
-                $appointment = $this->get_appointment_details($appointment_id);
-                // var_dump($appointment);
-                if ($appointment) {
-                    $data["patient_id"] = $appointment->patient_id;
-                    $data["patient_name"] = $appointment->patient_name;
-                    $data["doctor_id"] = $appointment->doctor_id;
-                    $data["doctor_name"] = $appointment->doctor_name;
-                }
-            }
-            $template = get_header_template($logg["role"]);
-            $this->load->view($template["header"]);
-            $this->load->view("stocks_new/add_sale", $data);
-            $this->load->view($template["footer"]);
-        } else {
-            header("location:" . base_url() . "");
-            die();
         }
+
+        $data["centers"] = $this->Stock_model_new->get_all_centers();
+        $appointment_id = $this->input->get("appointment_id");
+        if ($appointment_id) {
+            $appointment = $this->get_appointment_details($appointment_id);
+            if ($appointment) {
+                $data["patient_id"]   = $appointment->patient_id;
+                $data["patient_name"] = $appointment->patient_name;
+                $data["doctor_id"]    = $appointment->doctor_id;
+                $data["doctor_name"]  = $appointment->doctor_name;
+            }
+        }
+        $template = get_header_template($logg["role"]);
+        $this->load->view($template["header"]);
+        $this->load->view("stocks_new/add_sale", $data);
+        $this->load->view($template["footer"]);
+    } else {
+        header("location:" . base_url() . "");
+        die();
     }
+}
 
   /*  public function edit_sale($id)
     {
@@ -4836,101 +4827,106 @@ public function bulk_approve_sales()
         }
     } */
 
- public function edit_sale($id)
-{
-    $logg = checklogin();
-    if ($logg["status"] == true) {
-        
-        // 1. Sale details fetch करें
-        $sale_details = $this->Stock_model_new->get_sale_by_id($id);
-        $patient_id = isset($sale_details->patient_id) ? $sale_details->patient_id : 0; 
-        
-        // पेमेंट मेथड को छोटे अक्षरों (lowercase) में ले रहे हैं
-        $payment_method = strtolower(trim($sale_details->payment_method)); 
-
-        if ($this->input->post("action") == "add_sale_item") {
+public function edit_sale($id)
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
             
-            $this->form_validation->set_rules("batch_id", "Batch", "required");
-            $this->form_validation->set_rules("quantity_sold", "Quantity", "required|numeric");
+            $sale_details   = $this->Stock_model_new->get_sale_by_id($id);
+            $patient_id     = isset($sale_details->patient_id) ? $sale_details->patient_id : 0; 
+            $payment_method = strtolower(trim($sale_details->payment_method ?? '')); 
 
-            if ($this->form_validation->run() == true) {
-                $quantity = (float)$this->input->post("quantity_sold");
-                $unit_price_one = (float)$this->input->post("unit_price_one");
-                $discount_percent = (float)$this->input->post("discount_percent");
-                $gst_rate = (float)$this->input->post("gst_rate");
+            // Department Identification Logic
+            $department = !empty($sale_details->department) ? $sale_details->department : null;
+            if (empty($department)) {
+                if (!empty($_SESSION['logged_stock_manager']['department'])) {
+                    $department = $_SESSION['logged_stock_manager']['department'];
+                } elseif (!empty($_SESSION['billing_manager']['department'])) {
+                    $department = $_SESSION['billing_manager']['department'];
+                } elseif (!empty($_SESSION['logged_billing_manager']['department'])) {
+                    $department = $_SESSION['logged_billing_manager']['department'];
+                }
+            }
+
+            if ($this->input->post("action") == "add_sale_item") {
                 
-                $subtotal = $quantity * $unit_price_one;
-                $discount_amount = $subtotal * ($discount_percent / 100);
-                $total = $subtotal - $discount_amount;
-                $taxable_Value = $total/(1+ ($gst_rate/100));
-                $tax_amount = $taxable_Value*($gst_rate/100);
+                $this->form_validation->set_rules("batch_id", "Batch", "required");
+                $this->form_validation->set_rules("quantity_sold", "Quantity", "required|numeric");
 
-                // --- WALLET BALANCE CHECK ---
-                if ($payment_method == "wallet") {
-                    // 1. वॉलेट का मौजूदा बैलेंस निकालें
-                    $wallet_balance = $this->Stock_model_new->get_wallet_balance($patient_id);
+                if ($this->form_validation->run() == true) {
+                    $quantity         = (float)$this->input->post("quantity_sold");
+                    $unit_price_one   = (float)$this->input->post("unit_price_one");
+                    $discount_percent = (float)$this->input->post("discount_percent");
+                    $gst_rate         = (float)$this->input->post("gst_rate");
                     
-                    // 2. इस सेल (sale_id) में पहले से ऐड किए गए आइटम्स का टोटल निकालें
-                    $existing_items = $this->Stock_model_new->get_sale_items($id);
-                    $existing_total = 0;
-                    if (!empty($existing_items)) {
-                        foreach ($existing_items as $item) {
-                            $existing_total += (float)$item->total; // डेटाबेस में जो टोटल का कॉलम है
+                    $subtotal        = $quantity * $unit_price_one;
+                    $discount_amount = $subtotal * ($discount_percent / 100);
+                    $total           = $subtotal - $discount_amount;
+                    $taxable_Value   = $total / (1 + ($gst_rate / 100));
+                    $tax_amount      = $taxable_Value * ($gst_rate / 100);
+
+                    if ($payment_method == "wallet") {
+                        $wallet_balance = $this->Stock_model_new->get_wallet_balance($patient_id);
+                        $existing_items = $this->Stock_model_new->get_sale_items($id);
+                        $existing_total = 0;
+                        if (!empty($existing_items)) {
+                            foreach ($existing_items as $item) {
+                                $existing_total += (float)$item->total;
+                            }
+                        }
+                        $new_grand_total = $existing_total + $total;
+                        
+                        if ($wallet_balance < $new_grand_total) {
+                            $this->session->set_flashdata("error", "Wallet में पर्याप्त बैलेंस नहीं है!");
+                            redirect("stocks_new/edit_sale/" . $id);
+                            exit();
                         }
                     }
 
-                    // 3. नया ग्रैंड टोटल बनाएं (पुराना टोटल + अभी जो आइटम ऐड हो रहा है उसका टोटल)
-                    $new_grand_total = $existing_total + $total;
+                    $item_data = [
+                        'sale_id'             => $id,
+                        'batch_id'            => $this->input->post('batch_id'),
+                        'quantity_sold'       => $quantity,
+                        'unit_price'          => $unit_price_one, 
+                        'subtotal'            => $subtotal,        
+                        'discount_amount'     => $discount_amount, 
+                        'discount_percentage' => $discount_percent,  
+                        'taxable_Value'       => $taxable_Value,
+                        'tax_amount'          => $tax_amount,      
+                        'total'               => $total,
+                        'remarks'             => $this->input->post('remarks')
+                    ];
                     
-                    // 4. अब वॉलेट बैलेंस को नए ग्रैंड टोटल से चेक करें
-                    if ($wallet_balance < $new_grand_total) {
-                        $this->session->set_flashdata(
-                            "error",
-                            "Wallet में पर्याप्त बैलेंस नहीं है! उपलब्ध बैलेंस: ₹" . $wallet_balance . 
-                            " | पहले से एडेड: ₹" . $existing_total . 
-                            " | नया बिल बन रहा है: ₹" . $new_grand_total
-                        );
-                        redirect("stocks_new/edit_sale/" . $id);
+                    // अब Item जोड़ते समय स्टॉक नहीं कटेगा
+                    $result = $this->Stock_model_new->add_sale_item($item_data);
+                    
+                    if ($result) {
+                        $this->session->set_flashdata("success", "Sale item added successfully!");
+                    } else {
+                        $this->session->set_flashdata("error", "Error adding sale item!");
                     }
+                    
+                    redirect("stocks_new/edit_sale/" . $id);
+                    exit();
                 }
-                // -----------------------------
-
-                $item_data = [
-                    'sale_id'             => $id,
-                    'batch_id'            => $this->input->post('batch_id'),
-                    'quantity_sold'       => $quantity,
-                    'unit_price'          => $unit_price_one, 
-                    'subtotal'            => $subtotal,        
-                    'discount_amount'     => $discount_amount, 
-                    'discount_percentage' => $discount_percent,  
-                    'taxable_Value'       => $taxable_Value,
-                    'tax_amount'          => $tax_amount,      
-                    'total'               => $total,
-                    'remarks'             => $this->input->post('remarks')
-                ];
-                
-                $result = $this->Stock_model_new->add_sale_item($item_data);
-                
-                if ($result) {
-                    $this->session->set_flashdata("success", "Sale item added successfully!");
-                } else {
-                    $this->session->set_flashdata("error", "Error adding sale item!");
-                }
-                redirect("stocks_new/edit_sale/" . $id);
             }
+
+            $data["sale"]       = $sale_details;
+            $data["department"] = $department;
+            $data["sale_items"] = $this->Stock_model_new->get_sale_items($id);
+            $data["batches"]    = $this->Stock_model_new->get_available_batches_for_sale($data["sale"]->center_id, $department);
+            $data["centers"]    = $this->Stock_model_new->get_all_centers();
+
+            $template = get_header_template($logg["role"]);
+            $this->load->view($template["header"]);
+            $this->load->view("stocks_new/edit_sale", $data);
+            $this->load->view($template["footer"]);
+        } else {
+            redirect(base_url());
+            exit();
         }
-
-        $data["sale"] = $sale_details;
-        $data["sale_items"] = $this->Stock_model_new->get_sale_items($id);
-        $data["batches"] = $this->Stock_model_new->get_available_batches_for_sale($data["sale"]->center_id);
-        $data["centers"] = $this->Stock_model_new->get_all_centers();
-
-        $template = get_header_template($logg["role"]);
-        $this->load->view($template["header"]);
-        $this->load->view("stocks_new/edit_sale", $data);
-        $this->load->view($template["footer"]);
     }
-}
+    
 
 public function accountant_approve_sale()
 {
@@ -5078,70 +5074,39 @@ public function accountant_approve_sale()
             }
         }
     }
-  public function confirm_sale($id)
-{
-    $logg = checklogin();
-    if ($logg["status"] == true) {
-        
-        // 1. सेल की डिटेल्स निकालें
-        $sale_details = $this->Stock_model_new->get_sale_by_id($id);
-        $patient_id = isset($sale_details->patient_id) ? $sale_details->patient_id : 0;
-        $payment_method = strtolower(trim($sale_details->payment_method));
-
-        // 2. इस बिल का टोटल अमाउंट कैलकुलेट करें
-        $existing_items = $this->Stock_model_new->get_sale_items($id);
-        $total_sale_amount = 0;
-        if (!empty($existing_items)) {
-            foreach ($existing_items as $item) {
-                $total_sale_amount += (float)$item->total;
-            }
-        }
-
-        // 3. सेफ्टी चेक: अगर वॉलेट से पेमेंट है, तो कंफर्म करने से पहले बैलेंस चेक करें
-        if ($payment_method == "wallet") {
-            $wallet_balance = $this->Stock_model_new->get_wallet_balance($patient_id);
-            if ($wallet_balance < $total_sale_amount) {
-                $this->session->set_flashdata(
-                    "error",
-                    "Wallet में बिल पास करने के लिए पर्याप्त बैलेंस नहीं है! (बिल: ₹" . $total_sale_amount . " | उपलब्ध: ₹" . $wallet_balance . ")"
-                );
-                // वापस उसी पेज पर भेज दें ताकि वो आइटम हटा सके
-                redirect("stocks_new/edit_sale/" . $id);
-                return; // आगे का कोड रन न हो
-            }
-        }
-
-        // 4. अब सेल को डेटाबेस में कंफर्म करें
-        $result = $this->Stock_model_new->confirm_sale($id);
-
-        if ($result) {
+public function confirm_sale($id)
+    {
+        $logg = checklogin();
+        if ($logg["status"] == true) {
             
-            // 5. कंफर्म होने के बाद, डेटाबेस से अपडेटेड सेल डिटेल्स निकालें (ताकि आपकी 100% कंडीशन मैच हो)
-            $updated_sale = $this->Stock_model_new->get_sale_by_id($id);
-            
-            $current_payment_method = strtoupper(trim($updated_sale->payment_method));
-            $current_payment_status = strtoupper(trim($updated_sale->payment_status));
-            $current_status = strtoupper(trim($updated_sale->status));
+            $logged_user = $this->get_current_user_id();
 
-            // --- MAIN WALLET DEDUCTION LOGIC ---
-            // चेक करें: WALLET + PAID + CONFIRMED
-            if ($current_payment_method == "WALLET" && $current_payment_status == "PAID" && $current_status == "CONFIRMED") {
+            // कन्फर्म होते समय ही स्टॉक कटेगा
+            $result = $this->Stock_model_new->confirm_sale($id, $logged_user);
+
+            if ($result && isset($result['status']) && $result['status'] == 'success') {
                 
-                $logged_in_user_id = isset($logg['id']) ? $logg['id'] : 1;
-                
-                // वॉलेट से टोटल अमाउंट काट लें
-                $this->Stock_model_new->deduct_wallet_balance($patient_id, $total_sale_amount, $id, $logged_in_user_id);
+                // Wallet Deduction Logic if payment mode is WALLET
+                $sale_details = $this->Stock_model_new->get_sale_by_id($id);
+                if ($sale_details && strtoupper(trim($sale_details->payment_method ?? '')) == 'WALLET') {
+                    $patient_id   = $sale_details->patient_id ?? 0;
+                    $total_amount = $sale_details->total_amount ?? 0;
+                    $this->Stock_model_new->deduct_wallet_balance($patient_id, $total_amount, $id, $logged_user);
+                }
+
+                $this->session->set_flashdata("success", "Sale confirmed successfully!");
+            } else {
+                $error_msg = isset($result['message']) ? $result['message'] : "Error confirming sale!";
+                $this->session->set_flashdata("error", $error_msg);
             }
-            // -----------------------------------
 
-            $this->session->set_flashdata("success", "Sale confirmed successfully!");
+            redirect("stocks_new/sales");
+            exit();
         } else {
-            $this->session->set_flashdata("error", "Error confirming sale!");
+            redirect(base_url());
+            exit();
         }
-
-        redirect("stocks_new/sales");
     }
-}
 
     public function view_vendor_return($id)
     {

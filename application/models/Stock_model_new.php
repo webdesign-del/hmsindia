@@ -3564,88 +3564,129 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
         return $this->db->get()->result();
     }
 
-    public function add_sale_item($data)
+public function add_sale_item($data)
     {
         return $this->db->insert("sale_items", $data);
     }
 
-    public function remove_sale_item($id)
+   public function remove_sale_item($id)
     {
         $this->db->where("id", $id);
         return $this->db->delete("sale_items");
     }
 
-    public function confirm_sale($id, $user_id = null) // Added user_id
+ public function confirm_sale($id, $user_id = null)
     {
         $this->db->trans_start();
+
+        // 1. सेल रिकॉर्ड प्राप्त करें
         $sale = $this->get_sale_by_id($id);
         if (!$sale) {
             $this->db->trans_rollback();
-            $this->session->set_flashdata('error', 'Sale not found.');
-            return ['status' => 'error', 'message' => 'Sale not found.'];
+            return ['status' => 'error', 'message' => 'Sale record not found.'];
         }
+
         if ($sale->status != 'DRAFT') {
             $this->db->trans_rollback();
-            $this->session->set_flashdata('error', 'Sale is already processed.');
-            return ['status' => 'error', 'message' => 'Sale is already processed.'];
+            return ['status' => 'error', 'message' => 'Sale is already processed or confirmed.'];
         }
+
+        // 2. बिल के आइटम्स प्राप्त करें
         $items = $this->get_sale_items($id);
         if (empty($items)) {
-             $this->db->trans_rollback();
-             $this->session->set_flashdata('error', 'Cannot confirm a sale with no items.');
-             return ['status' => 'error', 'message' => 'Cannot confirm a sale with no items.'];
+            $this->db->trans_rollback();
+            return ['status' => 'error', 'message' => 'Cannot confirm a sale with no items.'];
         }
+
+        $department = !empty($sale->department) ? trim(strtolower($sale->department)) : '';
+
+        // 3. स्टॉक उपलब्धता (Stock Availability) की पूर्व-जाँच
         foreach ($items as $item) {
-            $stock = $this->db->select('available_quantity')
-                              ->from('center_stocks')
-                              ->where('batch_id', $item->batch_id)
-                              ->where('center_id', $sale->center_id)
-                              ->get()->row();
-            if (!$stock || $stock->available_quantity < $item->quantity_sold) {
+            $this->db->select('COALESCE(SUM(quantity), 0) as available_qty');
+            $this->db->from('center_stocks');
+            $this->db->where('batch_id', $item->batch_id);
+            $this->db->where('center_id', $sale->center_id);
+            $this->db->where('status', 'ACTIVE');
+
+            // 🎯 स्मार्ट डिपार्टमेंट फ़िल्टर (ताकि Billing और CASH MEDICINE का अंतर दूर हो सके)
+            if (!empty($department)) {
+                if ($department == 'billing') {
+                    $this->db->group_start();
+                    $this->db->like('LOWER(department)', 'billing');
+                    $this->db->or_like('LOWER(department)', 'cash medicine');
+                    $this->db->group_end();
+                } elseif ($department == 'embryologist basant lok') {
+                    $this->db->like('LOWER(department)', 'embryology basant lok');
+                } else {
+                    $this->db->like('LOWER(department)', $department);
+                }
+            }
+
+            $stock_row = $this->db->get()->row();
+            $available_qty = $stock_row ? (float)$stock_row->available_qty : 0;
+
+            if ($available_qty < (float)$item->quantity_sold) {
                 $this->db->trans_rollback();
-                $this->session->set_flashdata('error', 'Not enough stock for ' . $item->medicine_name . ' (Batch: ' . $item->batch_number . ').');
-                return ['status' => 'error', 'message' => 'Not enough stock for ' . $item->medicine_name];
+                return [
+                    'status' => 'error', 
+                    'message' => "Insufficient stock for Batch ID {$item->batch_id}! Available: {$available_qty}, Required: {$item->quantity_sold}"
+                ];
             }
         }
+
+        // 4. सेल स्टेटस कन्फर्म करें
         $update_data = [
-            "status"            => "CONFIRMED",
-            "total_items"       => $sale->total_items,         // From recalculated value
-            "total_quantity"    => $sale->total_quantity,    // From recalculated value
-            "subtotal"          => $sale->subtotal,          // From recalculated value
-            "discount_amount"   => $sale->discount_amount,   // From recalculated value
-            "tax_amount"        => $sale->tax_amount,        // From recalculated value
-            "total_amount"      => $sale->total_amount,      // From recalculated value
-            "payment_status"    => "PAID", // Or 'PENDING' - set payment status on confirm
-            "updated_at"        => date('Y-m-d H:i:s')
+            "status"          => "CONFIRMED",
+            "total_items"     => $sale->total_items,
+            "total_quantity"  => $sale->total_quantity,
+            "subtotal"        => $sale->subtotal,
+            "discount_amount" => $sale->discount_amount,
+            "tax_amount"      => $sale->tax_amount,
+            "total_amount"    => $sale->total_amount,
+            "payment_status"  => "PAID",
+            "updated_at"      => date('Y-m-d H:i:s')
         ];
         $this->db->where("id", $id);
         $this->db->update("sales", $update_data);
+
+        // 5. स्टॉक घटाएं और Movement Log जोड़ें
         foreach ($items as $item) {
-             // Get current stock quantity for the log
-            $stock_before = $this->db->select('quantity')->from('center_stocks')->where('batch_id', $item->batch_id)->where('center_id', $sale->center_id)->get()->row();
-            $quantity_before = $stock_before ? (int)$stock_before->quantity : 0;
-            $quantity_after = $quantity_before - (float)$item->quantity_sold;
-            // Reduce center stock
-            $this->db->where("batch_id", $item->batch_id);
-            $this->db->where("center_id", $sale->center_id);
-            $this->db->set("quantity", "GREATEST(0, quantity - " . (float)$item->quantity_sold . ")", false);
-            $this->db->set("last_movement_date", "NOW()", false);
+            $batch_id      = (int)$item->batch_id;
+            $quantity_sold = (float)$item->quantity_sold;
+
+            // 5a. Center Stock से कटौती करें
+            $this->db->where('batch_id', $batch_id);
+            $this->db->where('center_id', $sale->center_id);
+            $this->db->where('status', 'ACTIVE');
+
+            if (!empty($department)) {
+                if ($department == 'billing') {
+                    $this->db->group_start();
+                    $this->db->like('LOWER(department)', 'billing');
+                    $this->db->or_like('LOWER(department)', 'cash medicine');
+                    $this->db->group_end();
+                } elseif ($department == 'embryologist basant lok') {
+                    $this->db->like('LOWER(department)', 'embryology basant lok');
+                } else {
+                    $this->db->like('LOWER(department)', $department);
+                }
+            }
+
+            $this->db->limit(1);
+            $this->db->set("quantity", "GREATEST(0, quantity - " . $quantity_sold . ")", FALSE);
             $this->db->update("center_stocks");
-            // Reduce master batch stock
-            $this->db->where("id", $item->batch_id);
-            $this->db->set("quantity_remaining", "GREATEST(0, quantity_remaining - " . (float)$item->quantity_sold . ")", false);
-            $this->db->update("medicine_batches");
-            // Log stock movement
+
+            // 5b. Movement Log प्रविष्टि
             $movement_data = [
-                "batch_id"          => $item->batch_id,
+                "batch_id"          => $batch_id,
                 "movement_type"     => "SALE",
                 "from_location_type"=> "CENTER",
                 "from_location_id"  => $sale->center_id,
                 "to_location_type"  => "SALE",
                 "to_location_id"    => $id,
-                "quantity_before"   => $quantity_before,
-                "quantity_change"   => -(int)$item->quantity_sold,
-                "quantity_after"    => $quantity_after,
+                "quantity_before"   => $available_qty,
+                "quantity_change"   => -$quantity_sold,
+                "quantity_after"    => max(0, $available_qty - $quantity_sold),
                 "unit_price"        => $item->unit_price,
                 "total_value"       => $item->total,
                 "reference_type"    => "SALES_BILL",
@@ -3653,76 +3694,70 @@ public function get_medicine_by_id($medicine_id, $center_id = null, $po_departme
                 "reference_number"  => $sale->sale_number,
                 "patient_id"        => $sale->patient_id,
                 "patient_name"      => $sale->patient_name,
-                "created_by"        => $user_id ?? $sale->created_by, // Use ID of user confirming sale
+                "created_by"        => $user_id ?? $sale->created_by,
                 "created_at"        => date('Y-m-d H:i:s')
             ];
             $this->db->insert("stock_movements", $movement_data);
         }
-        $this->db->trans_complete(); // Commit transaction
+
+        $this->db->trans_complete();
+
         if ($this->db->trans_status() === FALSE) {
-            $this->session->set_flashdata('error', 'Database transaction failed during confirmation.');
-            return ['status' => 'error', 'message' => 'Database transaction failed.'];
+            return ['status' => 'error', 'message' => 'Database transaction failed during confirmation.'];
         }
 
-        return ['status' => 'success']; // Success
+        return ['status' => 'success', 'message' => 'Sale confirmed successfully!'];
     }
-    public function get_available_batches_for_sale($center_id)
-    {
-        $this->db->select(
-            "mb.*, m.medicine_name,m.pack_size, m.medicine_code, mb2.brand_name as brand_name,m.gst_rate as gst_rate, ccs.quantity as available_quantity",
-        );
-        $this->db->from("medicine_batches mb");
-        $this->db->join("medicines m", "mb.medicine_id = m.id");
-        // $this->db->join(
-        //     $this->config->item("db_prefix") . "brands mb2",
-        //     "m.brand_id = mb2.ID",
-        // );
-        $this->db->join("medicine_brands mb2", "m.brand_id = mb2.id");
-        $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
-        $this->db->where("ccs.center_id", $center_id);
-        // Filter by department if available
-        $department =null;
-        if(!empty($_SESSION['logged_stock_manager']['employee_number'])) {
+
+    public function get_available_batches_for_sale($center_id, $department = null)
+{
+    $this->db->select(
+        "mb.*, m.medicine_name, m.pack_size, m.medicine_code, mb2.brand_name as brand_name, m.gst_rate as gst_rate, ccs.quantity as available_quantity, ccs.department as stock_department"
+    );
+    $this->db->from("medicine_batches mb");
+    $this->db->join("medicines m", "mb.medicine_id = m.id");
+    $this->db->join("medicine_brands mb2", "m.brand_id = mb2.id");
+    $this->db->join("center_stocks ccs", "mb.id = ccs.batch_id");
+    $this->db->where("ccs.center_id", $center_id);
+
+    // 🎯 अगर पैरामीटर में $department नहीं मिला तो Session से लें
+    if (empty($department)) {
+        if (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
             $department = $_SESSION['logged_stock_manager']['department'] ?? null;
         } elseif (isset($_SESSION['billing_manager']['employee_number']) && !empty($_SESSION['billing_manager']['employee_number'])) {
             $department = $_SESSION['billing_manager']['department'] ?? null;
-        }elseif (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
+        } elseif (isset($_SESSION['logged_billing_manager']['employee_number']) && !empty($_SESSION['logged_billing_manager']['employee_number'])) {
             $department = $_SESSION['logged_billing_manager']['department'] ?? null;
         }
-        if ($department !== null && $department !== '') {
-            if ($department == 'billing') {
-                $this->db->like('ccs.department', 'CASH MEDICINE');
-            }elseif($department == 'Embryologist Basant Lok')
-            {
-                $this->db->like('ccs.department', 'Embryology Basant Lok');
-            }else {
-                $this->db->like('ccs.department', $department);
-            }
-        }
-
-        $this->db->where("ccs.quantity >", 0);
-        $this->db->where("mb.batch_status", "ACTIVE");
-        $this->db->where("m.status", "active");
-        $this->db->where("ccs.status", "ACTIVE");
-        $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
-        $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
-        $center = null;
-        // if (!empty($_SESSION['logged_billing_manager']) &&
-        //     ($_SESSION['logged_billing_manager']['role'] ?? '') === 'billing_manager') {
-        //     $center = $_SESSION['logged_billing_manager']['center'];
-        // }
-        // if (!empty($_SESSION['logged_stock_manager']) &&
-        //     ($_SESSION['logged_stock_manager']['role'] ?? '') === 'stock_manager') {
-        //     $center = $_SESSION['logged_stock_manager']['center'];
-        // }
-        // if ($center !== null) {
-        //     $this->db->where('s.center_id', $this->get_center_id($center));
-        // }
-        $this->db->where("mb.expiry_date >", date("Y-m-d"));
-        $this->db->order_by("mb.expiry_date", "ASC");
-        $this->db->order_by("m.medicine_name", "ASC");
-        return $this->db->get()->result();
     }
+
+    // 🎯 Department Filter (billing के लिए CASH MEDICINE या billing दोनों मैच करें)
+    if (!empty($department)) {
+        $dept_clean = trim(strtolower($department));
+        if ($dept_clean == 'billing') {
+            $this->db->group_start();
+            $this->db->like('ccs.department', 'billing');
+            $this->db->or_like('ccs.department', 'CASH MEDICINE');
+            $this->db->group_end();
+        } elseif ($dept_clean == 'embryologist basant lok') {
+            $this->db->like('ccs.department', 'Embryology Basant Lok');
+        } else {
+            $this->db->like('ccs.department', $department);
+        }
+    }
+
+    $this->db->where("ccs.quantity >", 0);
+    $this->db->where("mb.batch_status", "ACTIVE");
+    $this->db->where("m.status", "active");
+    $this->db->where("ccs.status", "ACTIVE");
+    $this->db->where("m.medicine_code NOT LIKE 'HK_%'");
+    $this->db->where("m.medicine_code NOT LIKE 'ST_%'");
+    $this->db->where("mb.expiry_date >", date("Y-m-d"));
+    $this->db->order_by("mb.expiry_date", "ASC");
+    $this->db->order_by("m.medicine_name", "ASC");
+
+    return $this->db->get()->result();
+}
 
     // ===============================================
     // REPORTS FUNCTIONS
