@@ -3736,7 +3736,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
 		return $partialpayments_result;
 	}
 	
-	function export_partialpayments_data($start, $end, $center, $type, $status){
+function export_partialpayments_data($start, $end, $center, $type, $status){
     $partialpayments_result = $response = array();
     
     // FIX 1: Initialize conditions with 'WHERE 1=1' so 'AND' works correctly
@@ -3764,6 +3764,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
                         p.on_date as date,
                         p.status,
 						pr.procedure_name,
+						pr.on_date as booking_date,
                         pr.series_number
                     FROM ".$this->config->item('db_prefix')."patient_payments p 
                     LEFT JOIN ".$this->config->item('db_prefix')."patient_procedure pr 
@@ -3803,6 +3804,7 @@ function consultation_report_patination($limit, $page, $center, $start_date, $en
                     'date' => $val['date'],
                     'series_number' => $val['series_number'],
                     'status' => $val['status'],
+					'status' => $val['booking_date'],
                     'billing_type' => 'Partial Payment',
             );
         }

@@ -988,7 +988,7 @@ if (isset($export_billing)){
     $fp = fopen('php://output','w');
     
     // FIX 3: Updated Headers to match exactly 14 columns
-    $headers = 'IIC ID, Patient Name, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Procedure Name, Billing Type, Date, Series Number, Status';
+    $headers = 'IIC ID, Patient Name, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Procedure Name, Billing Type, Date, Series Number, Status,Booking Date';
     
     //Add the headers
     fwrite($fp, $headers. "\r\n");
@@ -1014,7 +1014,8 @@ if (isset($export_billing)){
             $val['billing_type'], 
             date('Y-m-d H:i:s', strtotime($val['date'])), 
             $val['series_number'], 
-            $val['status']
+            $val['status'],
+			$val['booking_date']
         );
         
         fputcsv($fp, $lead_arr);

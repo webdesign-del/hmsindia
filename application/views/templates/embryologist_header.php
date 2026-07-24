@@ -35,6 +35,24 @@
 <!-- Google Fonts-->
 <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
 <link rel="stylesheet" href="<?php echo base_url();?>assets/css/Lightweight-Chart/cssCharts.css">
+<style typ="text/css">
+ul.nav.nav-second-level.collapse.in li {
+    font-size: 13px;
+    margin-left: -5px;
+}
+.blink-text {
+    animation: textBlink 10.8s linear infinite;
+    font-weight: bold;
+    font-size: 18px;
+    color: #ce5679; /* 💡 आप अपनी पसंद का कलर (जैसे रेड या ऑरेंज) यहाँ सेट कर सकते हैं */
+}
+
+@keyframes textBlink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+</style>
 </head>
 <body>
 <div id="wrapper">
@@ -47,6 +65,31 @@
   </div>
   <?php //$notice = get_center_notification(); ?>
   <ul class="nav navbar-top-links navbar-right">
+    <li>
+    <a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown4">
+        <i class="fa fa-map-marker fa-fw" aria-hidden="true"></i>
+        <?php 
+// 1. Session se active center id nikali
+$center_id_session = '';
+if(isset($_SESSION['logged_embryologist']['center'])) {
+    $center_id_session = $_SESSION['logged_embryologist']['center'];
+} elseif(isset($_SESSION['logged_administrator']['center'])) {
+    $center_id_session = $_SESSION['logged_administrator']['center'];
+}
+
+// 2. Database se center row nikali
+$center_query = $this->db->get_where('hms_centers', array('center_number' => $center_id_session))->row_array();
+
+$center_name = isset($center_query['center_name']) ? $center_query['center_name'] : 'Unknown Center';
+
+// 3. 🎯 LOGO KO GLOBAL SESSION ME SET KARIYE
+$_SESSION['global_center_logo'] = isset($center_query['upload_photo_1']) ? $center_query['upload_photo_1'] : '';
+?>
+
+<span class="blink-text"><?php echo $center_name; ?></span>
+
+    </a>
+</li>
     <li><a class="dropdown-button waves-effect waves-dark" href="#!" data-activates="dropdown4">
     	<?php /*if($notice['count'] > 0){
 			echo '<span class="notice_count">'.$notice['count'].'</span>';
