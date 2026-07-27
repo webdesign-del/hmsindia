@@ -84,7 +84,7 @@
     <td colspan="2" width="50%" style="border:1px solid;padding:8px;"><strong>Details of Male Partner</strong></td>
 </tr>
 <tr style="background: #b3b9b7;">
-    <td colspan="2" style="border:1px solid;padding:8px;"><strong>UHID : <span id="ui_uhid_prefix"><?php echo ($select_result5['center_code'] ?? '')."/".($select_result4['uhid'] ?? ''); ?></strong></td>
+    <td colspan="2" style="border:1px solid;padding:8px;"><strong>UHID : <span id="ui_uhid_prefix"><?php echo (!empty($center_code_val) ? $center_code_val : $this->uri->segment(3)); ?></span>/<?php echo $uhid_val; ?></strong></td>
     <td colspan="2" style="border:1px solid;padding:8px;"><strong>IIC ID: <span style="color: blue; font-weight: bold;"><?php echo $patient_id; ?></span></strong></td>
 </tr>
 <tr>

@@ -426,14 +426,13 @@
                   <span class="input-group-addon" style="background-color: #ecf0f1; border-color: #bdc3c7;">
                     <i class="fa fa-hospital-o"></i>
                   </span>
-                  <select name="billing_from" id="billing_from" class="form-control" required>
-                    <option value="">Select Billing Source</option>
-                    <?php if(isset($_SESSION['logged_billing_manager'])){ 
-                            $center = $all_method->get_center(); 
-                            if($_SESSION['logged_billing_manager']['center_type'] == "associated"){ ?>
-                      <option value="<?php echo $center['center_number']; ?>"><?php echo $center['center_name']; ?></option>
-                    <?php } } ?>
-                  </select>
+                 <select name="billing_from" id="billing_from" class="form-control" required>
+                  <option value="">Select Billing Source</option>
+                  <?php if(isset($_SESSION['logged_billing_manager'])){ 
+                          $center = $all_method->get_center(); ?>
+                    <option value="<?php echo $center['center_number']; ?>"><?php echo $center['center_name']; ?></option>
+                  <?php } ?>
+                </select>
                 </div>
               </div>
               
