@@ -2593,7 +2593,7 @@ function export_investigation_data($start, $status, $end, $center, $type, $payme
             $conditions .= " and on_date between '".$start."' AND '".$end."' ";
         }
 		
-	    $investigation_sql = "Select DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package,payment_done,remaining_amount,investigations,payment_method,billing_from,billing_at,on_date as date,origins,status from ".$this->config->item('db_prefix')."patient_investigations where 1 $conditions order by on_date desc";
+	    $investigation_sql = "Select DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package,payment_done,remaining_amount,investigations,payment_method,billing_from,billing_at,on_date as date,origins,series_number,status from ".$this->config->item('db_prefix')."patient_investigations where 1 $conditions order by on_date desc";
         $investigation_q = $this->db->query($investigation_sql);
         $investigation_result = $investigation_q->result_array();
         if(!empty($investigation_result)){

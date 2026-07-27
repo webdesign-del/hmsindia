@@ -1168,7 +1168,7 @@ public function investigation_sales(){
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Investigation-Sales-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
-				$headers = 'IIC ID, Patient Name,Receipt Number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type,Investigation, Date, Status';
+				$headers = 'IIC ID, Patient Name,Receipt Number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type,Investigation, Date, Status, Series Number';
 				//Add the headers
 				fwrite($fp, $headers. "\r\n");
 				foreach ($data as $key => $val) {//var_dump($val);die;
@@ -1180,7 +1180,7 @@ public function investigation_sales(){
 					$total_package = $total_package +  (int)$val['totalpackage'];
 					$discounted_package = $discounted_package +  (int)$val['discounted_package'];
 					$billing_at = get_center_name($val['billing_at']);
-					$lead_arr = array($val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['investigation'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status']);
+					$lead_arr = array($val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['investigation'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $val['series_number']);
 					fputcsv($fp, $lead_arr);
 				}
 				$final_arr = array("", "", "", $total_package, $discounted_package, $paid_amount, "", "", "", "", "", "", "");
