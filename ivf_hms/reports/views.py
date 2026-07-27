@@ -228,31 +228,48 @@ def get_dynamic_booked_patients(request):
     # FIX: Combined multi-procedures row inputs under a unified patient context aggregate summary
     query = """
         SELECT 
-            MIN(a.id) AS appointment_internal_id,
-            COALESCE(NULLIF(TRIM(a.paitent_id), ''), CAST(a.id AS CHAR)) AS patient_id, 
-            MIN(a.wife_name) AS name, 
-            MIN(a.husband_name) AS husband_name,
-            MIN(p.receipt_number) AS receipt_number, 
-            MIN(a.appoitmented_date) AS date,
-            MIN(p.on_date) AS on_date,
-            MIN(p.councellor) AS councellor, 
-            MIN(c.center_name) AS center_name, 
-            MIN(d.name) AS doctor_name,
-            GROUP_CONCAT(DISTINCT p.code SEPARATOR ', ') AS code,
-            SUM(p.fees) AS fees,
-            IFNULL(SUM(pay.payment_done), 0) AS total_payment_done,
-            (SUM(p.fees) - IFNULL(SUM(pay.payment_done), 0)) AS pending_amount
-        FROM hms_appointments a
-        INNER JOIN hms_patient_procedure p ON a.id = p.appointment_id
-        LEFT JOIN hms_doctor_consultation dc ON a.id = dc.appointment_id
-        LEFT JOIN hms_doctors d ON dc.doctor_id = d.ID 
-        LEFT JOIN hms_centers c ON p.billing_at = c.center_number
-        LEFT JOIN hms_patient_payments pay ON p.receipt_number = pay.billing_id AND pay.status IN ('0', '1')
-        WHERE a.paitent_type = 'new_patient' 
-          AND a.status = 'consultation_done'
-          AND p.status IN ('pending', 'approved')
-        GROUP BY COALESCE(NULLIF(TRIM(a.paitent_id), ''), CAST(a.id AS CHAR))
-        ORDER BY MIN(a.appoitmented_date) DESC;
+    MIN(a.id) AS appointment_internal_id,
+    COALESCE(NULLIF(TRIM(a.paitent_id), ''), CAST(a.id AS CHAR)) AS patient_id, -- Har patient ki identity bani rahegi
+    MIN(a.wife_name) AS name, 
+    MIN(a.husband_name) AS husband_name,
+    MIN(p.receipt_number) AS receipt_number, 
+    MIN(a.appoitmented_date) AS date,
+    MIN(p.on_date) AS on_date,
+    MIN(p.councellor) AS councellor, 
+    MIN(c.center_name) AS center_name, 
+    MIN(d.name) AS doctor_name,
+    GROUP_CONCAT(DISTINCT p.code SEPARATOR ', ') AS code, -- Ek patient ke saare procedures comma-separated ho jayenge
+    
+    -- 🔥 EXACT GLOBAL MATHEMATICS PER PATIENT (No Cartesian Product)
+    -- 1. Patient ke saare actual unique procedures ki fees ka exact sum (Saare dates ka milakar)
+    SUM(p.fees) AS fees,
+    
+    -- 2. Bina kisi duplications ke direct actual payments ka exact sum (Saare dates ka milakar)
+    IFNULL(SUM(pay_clean.total_paid), 0) AS total_payment_done,
+    
+    -- 3. Sahi actual fees mein se sahi actual payment minus karke pending balance
+    (SUM(p.fees) - IFNULL(SUM(pay_clean.total_paid), 0)) AS pending_amount
+FROM hms_appointments a
+INNER JOIN hms_patient_procedure p ON a.id = p.appointment_id
+LEFT JOIN hms_doctor_consultation dc ON a.id = dc.appointment_id
+LEFT JOIN hms_doctors d ON dc.doctor_id = d.ID 
+LEFT JOIN hms_centers c ON p.billing_at = c.center_number
+
+-- 🔥 SAFE JOIN: Receipt ke according isolated clean tables mapping
+LEFT JOIN (
+    SELECT billing_id, SUM(payment_done) AS total_paid 
+    FROM hms_patient_payments 
+    WHERE status IN ('0', '1')
+    GROUP BY billing_id
+) pay_clean ON p.receipt_number = pay_clean.billing_id
+
+WHERE a.paitent_type = 'new_patient' 
+  AND a.status = 'consultation_done'
+  AND p.status IN ('pending', 'approved') -- Specific patient ka filter hat chuka hai
+
+-- Ab pure database ke patients ka automatic master group banega
+GROUP BY COALESCE(NULLIF(TRIM(a.paitent_id), ''), CAST(a.id AS CHAR))
+ORDER BY MIN(a.appoitmented_date) DESC; -- Sabse naye records upar aayenge;
     """
     with connection.cursor() as cursor:
         cursor.execute(query)
@@ -272,47 +289,59 @@ def get_dynamic_booked_patients(request):
 # ============================================================
 
 def get_patient_profile_detail(request):
-    receipt_number = request.GET.get('receipt_number')
-    if not receipt_number:
-        return JsonResponse({'status': 'error', 'message': 'Unique Receipt Number token parameter missing.'}, status=400)
+    incoming_token = request.GET.get('receipt_number') # Frontend token parameter
+    if not incoming_token:
+        return JsonResponse({'status': 'error', 'message': 'Unique Identification token parameter missing.'}, status=400)
         
-    # Step A: Pehle primary demographic matrix fetch karein patient profile context data se
+    # Query A: Sabse pehle input token (jo ki ya toh receipt_number hoga ya patient_id) 
+    # ka use karke actual patient ki core demography aur sahi real 'patient_id' fetch karein.
     demographics_query = """
         SELECT 
             p.ID, p.patient_id, p.patient_phone, p.wife_name, p.wife_phone, p.wife_photo, 
             p.wife_age, p.husband_name, p.husband_phone, p.husband_age, p.husband_address, p.husband_photo
         FROM hms_patients p
-        INNER JOIN hms_patient_procedure proc ON p.patient_id = proc.patient_id
-        WHERE proc.receipt_number = %s
+        LEFT JOIN hms_patient_procedure proc ON p.patient_id = proc.patient_id
+        WHERE proc.receipt_number = %s OR p.patient_id = %s
         LIMIT 1;
     """
     
-    # Step B: Uss unique patient_id ke saare procedures ki sequential items list pull karein
+    # Query B: 🔥 UNIQUE CORRECTION CHECKPOINT 🔥
+    # Ab jo exact true patient_id upar mili hai, uss patient ke saare unique procedures karwaye hue 
+    # records ko row-by-row independently pull karein (BINA group_concat ya integration ke).
     procedures_query = """
         SELECT 
-            proc.on_date, proc.category, proc.code, proc.fees, proc.procedure_name, proc.receipt_number,
-            IFNULL(SUM(pay.payment_done), 0) AS dynamic_payment_done,
-            (proc.fees - IFNULL(SUM(pay.payment_done), 0)) AS dynamic_pending_amount
+            proc.on_date, 
+            proc.category, 
+            proc.code, 
+            proc.fees, 
+            proc.procedure_name, 
+            proc.receipt_number,
+            IFNULL(pay_clean.total_paid, 0) AS payment_done,
+            (proc.fees - IFNULL(pay_clean.total_paid, 0)) AS pending
         FROM hms_patient_procedure proc
-        LEFT JOIN hms_patient_payments pay ON proc.receipt_number = pay.billing_id AND pay.status IN ('0', '1')
+        LEFT JOIN (
+            SELECT billing_id, SUM(payment_done) AS total_paid 
+            FROM hms_patient_payments 
+            WHERE status IN ('0', '1')
+            GROUP BY billing_id
+        ) pay_clean ON proc.receipt_number = pay_clean.billing_id
         WHERE proc.patient_id = %s AND proc.status IN ('pending', 'approved')
-        GROUP BY 
-            proc.on_date, proc.category, proc.code, proc.fees, proc.procedure_name, proc.receipt_number
-        ORDER BY proc.on_date ASC;
+        ORDER BY proc.on_date DESC, proc.ID DESC; -- Har procedure apni alag row me aayega
     """
     
     try:
         with connection.cursor() as cursor:
-            cursor.execute(demographics_query, [receipt_number])
+            # 1. Profile information extract kijiye
+            cursor.execute(demographics_query, [incoming_token, incoming_token])
             demo_row = cursor.fetchone()
             
             if not demo_row:
-                return JsonResponse({'status': 'error', 'message': 'No profile match found.'}, status=404)
+                return JsonResponse({'status': 'error', 'message': 'No patient profile match found in live tables.'}, status=404)
                 
             demo_cols = [col[0] for col in cursor.description]
             result_data = dict(zip(demo_cols, demo_row))
             
-            # Ab saare linked procedures details nikalte hain
+            # 2. Extract strictly all distinct procedures list using the discovered real patient_id
             cursor.execute(procedures_query, [result_data['patient_id']])
             proc_rows = cursor.fetchall()
             proc_cols = [col[0] for col in cursor.description]
@@ -325,30 +354,34 @@ def get_patient_profile_detail(request):
             for row in proc_rows:
                 p_dict = dict(zip(proc_cols, row))
                 p_dict['fees'] = float(p_dict['fees']) if p_dict['fees'] else 0.0
-                p_dict['payment_done'] = float(p_dict['dynamic_payment_done'])
-                p_dict['pending'] = float(p_dict['dynamic_pending_amount'])
+                p_dict['payment_done'] = float(p_dict['payment_done']) if p_dict['payment_done'] else 0.0
+                p_dict['pending'] = float(p_dict['pending']) if p_dict['pending'] else 0.0
                 
-                # Global aggregates update
+                # Dynamic counters calculation
                 total_fees += p_dict['fees']
                 total_paid += p_dict['payment_done']
                 total_pending += p_dict['pending']
                 
                 procedures_list.append(p_dict)
             
-            # Legacy engine variables keys to make sure frontend template doesn't crash
+            # Legacy engine attributes mappings safety layer
             result_data['fees'] = total_fees
             result_data['payment_done'] = total_paid
             result_data['pending'] = total_pending
-            result_data['code'] = procedures_list[0]['code'] if procedures_list else 'OPD'
-            result_data['category'] = procedures_list[0]['category'] if procedures_list else 'General'
-            result_data['procedure_name'] = procedures_list[0]['procedure_name'] if procedures_list else 'Consultation'
-            result_data['on_date'] = procedures_list[0]['on_date'] if procedures_list else None
             
+            if procedures_list:
+                result_data['code'] = procedures_list[0]['code']
+                result_data['category'] = procedures_list[0]['category']
+                result_data['procedure_name'] = procedures_list[0]['procedure_name']
+                result_data['on_date'] = procedures_list[0]['on_date']
+                result_data['receipt_number'] = procedures_list[0]['receipt_number']
+            
+            # 🔥 RESPONSE PAYLOAD: Demographics object + Saare procedures ka sequential raw list array array
             return JsonResponse({
                 'status': 'success',
                 'data': result_data,
-                'procedures': procedures_list  # Pure distinct procedures package list
+                'procedures': procedures_list # This is where the magic arrays feed your frontend map!
             })
             
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': f'Query failed: {str(e)}'}, status=500)
+        return JsonResponse({'status': 'error', 'message': f'Query runtime pipeline synchronization breakdown: {str(e)}'}, status=500)
