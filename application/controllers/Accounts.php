@@ -711,77 +711,33 @@ class Accounts extends CI_Controller {
 			$end_date = $this->input->get('end_date', true);
 			$patient_id = $this->input->get('iic_id', true);
 			$export_billing = $this->input->get('export-billing', true);
-			if (isset($export_billing)) {
-    // Pass parameters aligned with model method signature
-    $data = $this->accounts_model->export_investigation_data($start_date, $status, $end_date, $center, $patient_id, $payment_method);
-
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename=Investigation-Patients-' . $start_date . '-' . $end_date . '.csv');
-
-    $fp = fopen('php://output', 'w');
-
-    // Use an array with fputcsv for headers to guarantee exact column mapping
-    $headers = array(
-        'IIC ID', 
-        'Patient Name', 
-        'Receipt Number', 
-        'Total package', 
-        'Discounted Package', 
-        'Paid Amount', 
-        'Remaining Amount', 
-        'Payment Method', 
-        'Billing From', 
-        'Billing At', 
-        'Billing Type', 
-        'Date', 
-        'Status', 
-        'Origins', 
-        'Series Number'
-    );
-    fputcsv($fp, $headers);
-
-    foreach ($data as $key => $val) {
-        $billing_from = $val['billing_from'];
-        if ($billing_from != "IndiaIVF") {
-            $billing_from = get_center_name($billing_from);
-        }
-
-        $origin_from = '';
-        if (!empty($val['origins'])) {
-            $sql4 = "SELECT center_name FROM hms_centers WHERE center_number='" . $this->db->escape_str($val['origins']) . "'";
-            $select_result4 = run_select_query($sql4);
-            $origin_from = isset($select_result4['center_name']) ? $select_result4['center_name'] : '';
-        }
-
-        $billing_at = get_center_name($val['billing_at']);
-        
-        // Ensure series_number is retrieved cleanly
-        $series_number = isset($val['series_number']) ? $val['series_number'] : '';
-
-        $lead_arr = array(
-            $val['patient_id'],
-            $val['wife_name'],
-            $val['receipt_number'],
-            $val['totalpackage'],
-            $val['discounted_package'],
-            $val['payment_done'],
-            $val['remaining_amount'],
-            $val['payment_method'],
-            $billing_from,
-            $billing_at,
-            $val['billing_type'],
-            date('Y-m-d H:i:s', strtotime($val['date'])),
-            $val['status'],
-            $origin_from,
-            $series_number
-        );
-
-        fputcsv($fp, $lead_arr);
-    }
-
-    fclose($fp);
-    exit();
-}
+			if (isset($export_billing)){
+				$data = $this->accounts_model->export_investigation_data($start_date, $status, $end_date, $center, $patient_id, $payment_method);
+				header('Content-Type: text/csv; charset=utf-8');
+				header('Content-Disposition: attachment; filename=Investigation-Patients-'.$start_date.'-'.$end_date.'.csv');
+				$fp = fopen('php://output','w');
+				$headers = 'IIC ID, Patient Name, Receipt Number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type, Date, Status, Origins,Series Number';
+				//Add the headers
+				fwrite($fp, $headers. "\r\n");
+				foreach ($data as $key => $val) {//var_dump($val);die;
+					$billing_from = $val['billing_from'];
+					if($billing_from != "IndiaIVF"){
+						$billing_from = get_center_name($billing_from);
+					}
+					
+					$sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $val['origins'] . "'";
+					$select_result4 = run_select_query($sql4);
+					
+					$origin_from = $select_result4['center_name'];
+					
+					$billing_at = get_center_name($val['billing_at']);
+					
+					$lead_arr = array($val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $origin_from, $val['series_number']);
+					fputcsv($fp, $lead_arr);
+				}
+				fclose($fp);
+				exit();
+			}
 
 			$config = array();
         	$config["base_url"] = base_url() . "accounts/investigation_patients";
