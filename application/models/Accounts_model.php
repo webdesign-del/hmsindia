@@ -2573,84 +2573,173 @@ function approve_procedure($ID) {
 		return $investigation_result;
 	}
 	
-function export_investigation_data($start, $status, $end, $center, $type, $payment_method){
+function export_investigation_data($start, $status, $end, $center, $patient_id = '', $payment_method = '') {
+    $investigation_result = $response = array();
+    $conditions = '';
 
-		$investigation_result = $response = array();
-        $conditions = '';
-		//if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
-		//	$center = $_SESSION['logged_accountant']['center'];
-		//}
-        if(!empty($center)){
-			$conditions .= ' and billing_at="'.$center.'"';
-        }
-		if(!empty($status)){
-			$conditions .= ' and status="'.$status.'"';
-        }
-		if(!empty($payment_method)){
-			$conditions .= ' and payment_method="'.$payment_method.'"';
-        }
-		if(!empty($start) && !empty($end)){
-            $conditions .= " and on_date between '".$start."' AND '".$end."' ";
-        }
-		
-	    $investigation_sql = "Select DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package,payment_done,remaining_amount,investigations,payment_method,billing_from,billing_at,on_date as date,origins,status,series_number from ".$this->config->item('db_prefix')."patient_investigations where 1 $conditions order by on_date desc";
-        $investigation_q = $this->db->query($investigation_sql);
-        $investigation_result = $investigation_q->result_array();
-        if(!empty($investigation_result)){
-            foreach($investigation_result as $key => $val){
-				
-				$hms_procedures_result = unserialize( $val['investigations']);
-				$investigation_nameArr = [];
-				foreach ($hms_procedures_result as $v2_data123){
-						foreach ($v2_data123 as $v2_data5){
-
-						    $sql12 = "select investigation from hms_investigation where code='".$v2_data5['female_investigation_code']."'"; 
-                            $query12 = $this->db->query($sql12);
-                            $select_result1 = $query12->result(); 
-							
-							//print_r($select_result1);
-							//echo select_result1['investigation'];
-							
-							foreach ($select_result1 as $res_val){
-								// echo $res_val->investigation;
-								 array_push($investigation_nameArr,$res_val->investigation);
-							}
-						}
-						
-				}
-				//die;
-					 
-				$investigation_name1 = implode(',',$investigation_nameArr); 
-				$patient_name = $this->get_patient_name($val['patient_id']);
-				$husband_name = $this->get_husband_name($val['patient_id']);
-				if (!empty($husband_name)) {
-					$formatted_name = $patient_name . ' w/o ' . $husband_name;
-				} else {
-					$formatted_name = $patient_name;
-				}
-                $response[] = array(
-                        'patient_id' => $val['patient_id'],
-                        'wife_name' => $formatted_name,
-						'receipt_number' => $val['receipt_number'],
-						 'totalpackage' => $val['totalpackage'],
-                        'discounted_package' => $val['discounted_package'],
-                        'payment_done' => $val['payment_done'],
-                        'remaining_amount' => $val['remaining_amount'],
-                        'payment_method' => $val['payment_method'],
-                        'billing_from' => $val['billing_from'],
-                        'billing_at' => $val['billing_at'],
-						'investigation' => $investigation_name1,
-                        'date' => $val['date'],
-                        'status' => $val['status'],
-						'series_number' => $val['series_number'],
-						'origins' => $val['origins'],
-                        'billing_type' => 'Investigation',
-						
-                );
-            }
-        }    
-		return $response;
+    if (!empty($center)) {
+        $conditions .= ' AND billing_at="' . $this->db->escape_str($center) . '"';
     }
+    if (!empty($status)) {
+        $conditions .= ' AND status="' . $this->db->escape_str($status) . '"';
+    }
+    if (!empty($payment_method)) {
+        $conditions .= ' AND payment_method="' . $this->db->escape_str($payment_method) . '"';
+    }
+    if (!empty($patient_id)) {
+        $conditions .= ' AND patient_id="' . $this->db->escape_str($patient_id) . '"';
+    }
+    if (!empty($start) && !empty($end)) {
+        $conditions .= " AND on_date BETWEEN '" . $this->db->escape_str($start) . "' AND '" . $this->db->escape_str($end) . "' ";
+    }
+
+    $investigation_sql = "SELECT DISTINCT patient_id, receipt_number, totalpackage, fees AS discounted_package, payment_done, remaining_amount, investigations, payment_method, billing_from, billing_at, on_date AS date, origins, status, series_number 
+                          FROM " . $this->config->item('db_prefix') . "patient_investigations 
+                          WHERE 1 $conditions 
+                          ORDER BY series_number ASC, on_date DESC";
+
+    $investigation_q = $this->db->query($investigation_sql);
+    $investigation_result = $investigation_q->result_array();
+
+    if (!empty($investigation_result)) {
+        foreach ($investigation_result as $key => $val) {
+
+            $hms_procedures_result = @unserialize($val['investigations']);
+            $investigation_nameArr = array();
+
+            if (is_array($hms_procedures_result)) {
+                foreach ($hms_procedures_result as $v2_data123) {
+                    if (is_array($v2_data123)) {
+                        foreach ($v2_data123 as $v2_data5) {
+                            if (!empty($v2_data5['female_investigation_code'])) {
+                                $sql12 = "SELECT investigation FROM hms_investigation WHERE code='" . $this->db->escape_str($v2_data5['female_investigation_code']) . "'";
+                                $query12 = $this->db->query($sql12);
+                                $select_result1 = $query12->result();
+
+                                foreach ($select_result1 as $res_val) {
+                                    array_push($investigation_nameArr, $res_val->investigation);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $investigation_name1 = implode(',', $investigation_nameArr);
+            $patient_name = $this->get_patient_name($val['patient_id']);
+            $husband_name = $this->get_husband_name($val['patient_id']);
+
+            if (!empty($husband_name)) {
+                $formatted_name = $patient_name . ' w/o ' . $husband_name;
+            } else {
+                $formatted_name = $patient_name;
+            }
+
+            $response[] = array(
+                'patient_id'         => $val['patient_id'],
+                'wife_name'          => $formatted_name,
+                'receipt_number'     => $val['receipt_number'],
+                'totalpackage'       => $val['totalpackage'],
+                'discounted_package' => $val['discounted_package'],
+                'payment_done'       => $val['payment_done'],
+                'remaining_amount'   => $val['remaining_amount'],
+                'payment_method'     => $val['payment_method'],
+                'billing_from'       => $val['billing_from'],
+                'billing_at'         => $val['billing_at'],
+                'investigation'      => $investigation_name1,
+                'date'               => $val['date'],
+                'status'             => $val['status'],
+                'series_number'      => !empty($val['series_number']) ? $val['series_number'] : '',
+                'origins'            => $val['origins'],
+                'billing_type'       => 'Investigation',
+            );
+        }
+    }
+    return $response;
+}function export_investigation_data($start, $status, $end, $center, $patient_id = '', $payment_method = '') {
+    $investigation_result = $response = array();
+    $conditions = '';
+
+    if (!empty($center)) {
+        $conditions .= ' AND billing_at="' . $this->db->escape_str($center) . '"';
+    }
+    if (!empty($status)) {
+        $conditions .= ' AND status="' . $this->db->escape_str($status) . '"';
+    }
+    if (!empty($payment_method)) {
+        $conditions .= ' AND payment_method="' . $this->db->escape_str($payment_method) . '"';
+    }
+    if (!empty($patient_id)) {
+        $conditions .= ' AND patient_id="' . $this->db->escape_str($patient_id) . '"';
+    }
+    if (!empty($start) && !empty($end)) {
+        $conditions .= " AND on_date BETWEEN '" . $this->db->escape_str($start) . "' AND '" . $this->db->escape_str($end) . "' ";
+    }
+
+    $investigation_sql = "SELECT DISTINCT patient_id, receipt_number, totalpackage, fees AS discounted_package, payment_done, remaining_amount, investigations, payment_method, billing_from, billing_at, on_date AS date, origins, status, series_number 
+                          FROM " . $this->config->item('db_prefix') . "patient_investigations 
+                          WHERE 1 $conditions 
+                          ORDER BY series_number ASC, on_date DESC";
+
+    $investigation_q = $this->db->query($investigation_sql);
+    $investigation_result = $investigation_q->result_array();
+
+    if (!empty($investigation_result)) {
+        foreach ($investigation_result as $key => $val) {
+
+            $hms_procedures_result = @unserialize($val['investigations']);
+            $investigation_nameArr = array();
+
+            if (is_array($hms_procedures_result)) {
+                foreach ($hms_procedures_result as $v2_data123) {
+                    if (is_array($v2_data123)) {
+                        foreach ($v2_data123 as $v2_data5) {
+                            if (!empty($v2_data5['female_investigation_code'])) {
+                                $sql12 = "SELECT investigation FROM hms_investigation WHERE code='" . $this->db->escape_str($v2_data5['female_investigation_code']) . "'";
+                                $query12 = $this->db->query($sql12);
+                                $select_result1 = $query12->result();
+
+                                foreach ($select_result1 as $res_val) {
+                                    array_push($investigation_nameArr, $res_val->investigation);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $investigation_name1 = implode(',', $investigation_nameArr);
+            $patient_name = $this->get_patient_name($val['patient_id']);
+            $husband_name = $this->get_husband_name($val['patient_id']);
+
+            if (!empty($husband_name)) {
+                $formatted_name = $patient_name . ' w/o ' . $husband_name;
+            } else {
+                $formatted_name = $patient_name;
+            }
+
+            $response[] = array(
+                'patient_id'         => $val['patient_id'],
+                'wife_name'          => $formatted_name,
+                'receipt_number'     => $val['receipt_number'],
+                'totalpackage'       => $val['totalpackage'],
+                'discounted_package' => $val['discounted_package'],
+                'payment_done'       => $val['payment_done'],
+                'remaining_amount'   => $val['remaining_amount'],
+                'payment_method'     => $val['payment_method'],
+                'billing_from'       => $val['billing_from'],
+                'billing_at'         => $val['billing_at'],
+                'investigation'      => $investigation_name1,
+                'date'               => $val['date'],
+                'status'             => $val['status'],
+                'series_number'      => !empty($val['series_number']) ? $val['series_number'] : '',
+                'origins'            => $val['origins'],
+                'billing_type'       => 'Investigation',
+            );
+        }
+    }
+    return $response;
+}
 	
 	function export_investigation_medicine($start_date, $end_date, $center, $patient_id, $origins){
 		$female_investigation_result = $response = array();
