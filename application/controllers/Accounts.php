@@ -2385,18 +2385,16 @@ public function partial_approve($request = NULL) {
     if($logg['status'] == true) {
         $data = array();
 
-        // Parameters catch karein 
-        $type = isset($_GET['t']) ? $_GET['t'] : '';
-        $status = isset($_GET['u']) ? $_GET['u'] : '';
+        // Parameters catch karein
+        $type = isset($_GET['t']) ? trim($_GET['t']) : '';
+        $status = isset($_GET['u']) ? trim($_GET['u']) : '';
         $cn_invoice = isset($_GET['cn']) ? $_GET['cn'] : '';
-        $used_amount = isset($_GET['ua']) ? $_GET['ua'] : 0;
+        $used_amount = isset($_GET['ua']) ? (float)$_GET['ua'] : 0;
         $reason_of_cancle = isset($_GET['c']) ? $_GET['c'] : '';
-        $request = $request; // Bill ID
+        $request = (int)$request; // Bill / Payment ID
 
-        // =========================================================================
-        // --- FRESH LOGIC: ONLY FOR PARTIAL PAYMENTS CANCELLATION (status '3') ---
-        // =========================================================================
-        if ($type == 'partialpayments' && $status == '3') { 
+        // Fallback: Check if type is empty or partialpayments
+        if (($type == 'partialpayments' || empty($type)) && $status == '3' && !empty($request)) { 
             
             // 1. Partial Payment ki details fetch karein
             $this->db->where('ID', $request);
@@ -2404,61 +2402,81 @@ public function partial_approve($request = NULL) {
 
             if (!empty($payment_info)) {
                 $p_id = $payment_info['patient_id'];
-                $refund_amt = isset($payment_info['payment_done']) ? (float)$payment_info['payment_done'] : 0;
                 
-                // Payment method ko lowercase mein format karein
-                $payment_method = isset($payment_info['payment_method']) ? strtolower(trim($payment_info['payment_method'])) : '';
-                
-                // 2. MAIN CONDITION: Sirf tabhi refund hoga agar payment 'wallet' se hui thi
-                if (strpos($payment_method, 'wallet') !== false && $refund_amt > 0) {
+                // Refund Amount catch karein (Check multiple column names)
+                $refund_amt = 0;
+                if (isset($payment_info['payment_done']) && (float)$payment_info['payment_done'] > 0) {
+                    $refund_amt = (float)$payment_info['payment_done'];
+                } elseif (isset($payment_info['paid_amount']) && (float)$payment_info['paid_amount'] > 0) {
+                    $refund_amt = (float)$payment_info['paid_amount'];
+                } elseif (isset($payment_info['amount']) && (float)$payment_info['amount'] > 0) {
+                    $refund_amt = (float)$payment_info['amount'];
+                }
+
+                // Payment mode fetch karein logging ke liye
+                $payment_method = isset($payment_info['payment_method']) ? strtolower(trim($payment_info['payment_method'])) : 'partial_payment';
+
+                // =========================================================================
+                // 2. WALLET REFUND LOGIC (ALWAYS CREDIT TO WALLET 2 ON CANCELLATION)
+                // =========================================================================
+                if ($refund_amt > 0 && !empty($p_id)) {
                     
-                    // Patient ka current wallet balance fetch karein
-                    $wallet = $this->db->get_where('hms_patient_wallets', ['patient_id' => $p_id])->row_array();
+                    // Patient ka current wallet record Check / Fetch karein
+                    $this->db->where('patient_id', $p_id);
+                    $wallet = $this->db->get('hms_patient_wallets')->row_array();
                     
-                    if(empty($wallet)) {
+                    if (empty($wallet)) {
+                        // Agar wallet record nahi hai to create karein
                         $this->db->insert('hms_patient_wallets', [
                             'patient_id' => $p_id,
                             'wallet_1_balance' => 0,
                             'wallet_2_balance' => 0,
                             'created_at' => date('Y-m-d H:i:s')
                         ]);
-                        $wallet = ['wallet_1_balance' => 0, 'wallet_2_balance' => 0];
+                        $w1_balance = 0.00;
+                        $w2_balance = 0.00;
+                    } else {
+                        $w1_balance = (float)$wallet['wallet_1_balance'];
+                        $w2_balance = (float)$wallet['wallet_2_balance'];
                     }
 
-                    $w1_balance = (float)$wallet['wallet_1_balance'];
-                    $w2_balance = (float)$wallet['wallet_2_balance'];
-
-                    // 3. REFUND TO WALLET 2 (Sirf Wallet 2 me amount add hoga)
+                    // Calculate New Balance for Wallet 2
                     $new_w2_balance = $w2_balance + $refund_amt;
                     
-                    // Database me Wallet 2 update karein
-                    $this->db->query("UPDATE hms_patient_wallets SET wallet_2_balance = ?, updated_at = NOW() WHERE patient_id = ?", [$new_w2_balance, $p_id]);
+                    // A. Update Wallet 2 Balance
+                    $this->db->where('patient_id', $p_id);
+                    $this->db->update('hms_patient_wallets', [
+                        'wallet_2_balance' => $new_w2_balance,
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ]);
 
-                    // 4. LOG THE REFUND IN LOGS TABLE
-                    $log_remarks = 'Refund for Cancelled Partial Payment (Bill ID: '.$request.')';
+                    // B. Entry in Wallet Logs
+                    $log_remarks = 'Refund for Cancelled Partial Payment (Bill ID: ' . $request . ')';
                     if (!empty($reason_of_cancle)) {
                         $log_remarks .= ' - Reason: ' . $reason_of_cancle;
                     }
 
                     $wallet_log = [
-                        'patient_id'  => $p_id,
-                        'amount'      => $refund_amt,
-                        'action_type' => 'credit',
-                        'opening_w1'  => $w1_balance,
-                        'closing_w1'  => $w1_balance,     // Wallet 1 Untouched
-                        'opening_w2'  => $w2_balance,
-                        'closing_w2'  => $new_w2_balance, // Wallet 2 Credited
-                        'reference_id'=> $request,
-                        'payment_method' => 'wallet',
-                        'remarks'     => $log_remarks,
-                        'created_by'  => isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'system',
-                        'created_at'  => date('Y-m-d H:i:s'),
-                        'status'      => 'success'
+                        'patient_id'    => $p_id,
+                        'amount'        => $refund_amt,
+                        'action_type'   => 'credit',
+                        'opening_w1'    => $w1_balance,
+                        'closing_w1'    => $w1_balance,     // Wallet 1 Untouched
+                        'opening_w2'    => $w2_balance,
+                        'closing_w2'    => $new_w2_balance, // Wallet 2 Refunded
+                        'reference_id'  => $request,
+                        'payment_method'=> $payment_method,
+                        'remarks'       => $log_remarks,
+                        'created_by'    => isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : (isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'system'),
+                        'created_at'    => date('Y-m-d H:i:s'),
+                        'status'        => 'success'
                     ];
                     $this->db->insert('hms_wallet_logs', $wallet_log);
                 }
 
-                // 5. UPDATE STATUS TO CANCELLED (3)
+                // =========================================================================
+                // 3. UPDATE PAYMENT STATUS TO CANCELLED (3)
+                // =========================================================================
                 $update_data = [
                     'status' => 3, 
                     'reason_of_cancle' => $reason_of_cancle,
@@ -2466,25 +2484,29 @@ public function partial_approve($request = NULL) {
                     'modified_on' => date('Y-m-d H:i:s')
                 ];
                 
-                if (!empty($used_amount)) {
+                if ($used_amount > 0) {
                     $update_data['used_amount'] = $used_amount;
                 }
 
-                $this->db->where('ID', $request)->update('hms_patient_payments', $update_data);
+                $this->db->where('ID', $request);
+                $this->db->update('hms_patient_payments', $update_data);
             }
 
-            // Process hone ke baad wapas usi page par bhej dein
-            header("location:" .$_SERVER['HTTP_REFERER']. "?m=".base64_encode('Partial Payment Cancelled Successfully').'&t='.base64_encode('success'));
+            // Redirect Back with Success Message
+            $referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : base_url('accounts/partialpayments_request');
+            
+            // Remove previous URL query params if any
+            $clean_referer = strtok($referer, '?');
+            
+            header("location:" . $clean_referer . "?m=" . base64_encode('Partial Payment Cancelled and Amount Refunded to Wallet 2 Successfully') . '&t=' . base64_encode('success'));
             die();
         }
-        // ========================================================================= 
 
     } else {
-        // Agar user login nahi hai to usko wapas redirect karein
-        header("location:" .base_url(). "");
+        header("location:" . base_url());
         die();
     }
-} // <-- Yahan function properly close ho raha hai
+}
 	
 	function approve_registation($ID){
 		$approved = $this->accounts_model->approve_registation($ID);

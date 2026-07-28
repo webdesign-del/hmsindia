@@ -5684,167 +5684,138 @@ public function confirm_sale($id)
     // ALTER TABLE `medicine_returns` ADD `is_old_system` VARCHAR(111) NULL DEFAULT NULL AFTER `total_return_amount`;
 
     public function process_return() {
-        $logg = checklogin();
-        if($logg['status'] == true) {
-            if($this->input->post('action') == 'return_medicine') {
-                $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
-                $this->form_validation->set_rules('patient_name', 'Patient Name', 'required');
-                // $this->form_validation->set_rules('receipt_number', 'Receipt Number', 'required');
-                $this->form_validation->set_rules('center_id', 'Center', 'required');
-                $this->form_validation->set_rules('department', 'Department', 'required');
-                $this->form_validation->set_rules('return_reason', 'Return Reason', 'required');
-                $return_type = $this->input->post('return_type');
-                $is_old = ($return_type === 'OLD');
-                // Correct receipt source based on type
-                $receipt_number = $is_old ? $this->input->post('receipt_number_manual') : $this->input->post('receipt_number_ajax');
-                if ($this->form_validation->run() == true) {
-                    // Get employee ID safely
-                    $employee_number = null;
-                    if (!empty($_SESSION['logged_central_stock_manager']['employee_number'])) {
-                        $employee_number = $_SESSION['logged_central_stock_manager']['employee_number'];
-                    }
-                    elseif (!empty($_SESSION['logged_stock_manager']['employee_number'])) {
-                        $employee_number = $_SESSION['logged_stock_manager']['employee_number'];
-                    }elseif (!empty($_SESSION['logged_billing_manager']['employee_number'])) {
-                        $employee_number = $_SESSION['logged_billing_manager']['employee_number'];
-                    }
-                    elseif ($this->session->userdata('employee_number')) {
-                        $employee_number = $this->session->userdata('employee_number');
-                    }
-                    $created_by_id = null;
-                    if ($employee_number) {
-                        $employee = $this->db
-                            ->where("employee_number", $employee_number)
-                            ->get("hms_employees")
-                            ->row();
-                        if ($employee) {
-                            $created_by_id = $employee->ID;
-                        }
-                    }
-                    $total_return_amount = $this->input->post("total_return_amount");
-                    $total_discount_amount = $this->input->post("total_discount_amount");
-                    $final_return_amount = $this->input->post("final_return_amount_hidden") ? (float)$this->input->post("final_return_amount_hidden") : 0;
-                    $total_amount = 0;
-                    if ($total_return_amount) {
-                        $total_amount = (float)str_replace('₹', '', $total_return_amount);
-                    }
-                    $total_discount = 0;
-                    if ($total_discount_amount) {
-                        $total_discount = (float)str_replace('₹', '', $total_discount_amount);
-                    }
-                    // If final_return_amount_hidden is not set, calculate it from total and discount
-                    if ($final_return_amount == 0 && $total_amount > 0) {
-                        $final_return_amount = $total_amount - $total_discount;
-                    }
+    $logg = checklogin();
+    if ($logg['status'] == true) {
+        if ($this->input->post('action') == 'return_medicine') {
+            
+            // 1. Form Validation
+            $this->form_validation->set_rules('patient_id', 'Patient ID', 'required');
+            $this->form_validation->set_rules('patient_name', 'Patient Name', 'required');
+            $this->form_validation->set_rules('department', 'Department', 'required');
+            $this->form_validation->set_rules('return_reason', 'Return Reason', 'required');
+            $this->form_validation->set_rules('center_id', 'Center ID', 'trim');
+            
+            $return_type = $this->input->post('return_type');
+            $is_old = ($return_type === 'OLD');
+            
+            $receipt_number = $is_old ? trim($this->input->post('receipt_number_manual')) : trim($this->input->post('receipt_number_ajax'));
+            $patient_id = trim($this->input->post("patient_id"));
 
-                    // COMMENTED OUT: Old total discount calculation (now using per-item discount)
-                    /*
-                    $discount_percentage = $this->input->post("discount_percentage") ? (float)$this->input->post("discount_percentage") : 0;
-                    
-                    // If final_return_amount_hidden is not set, calculate it
-                    if ($final_return_amount == 0 && $total_amount > 0) {
-                        $discount_amount = ($total_amount * $discount_percentage) / 100;
-                        $final_return_amount = $total_amount - $discount_amount;
-                    } else {
-                        // Calculate discount amount from total and final
-                        $discount_amount = $total_amount - $final_return_amount;
-                    }
-                    */
+            // -------------------------------------------------------------
+            // GUARANTEED CENTER ID FETCH LOGIC
+            // -------------------------------------------------------------
+            $center_id = trim($this->input->post("center_id"));
 
-                    $return_data = [
-                        "patient_id" => $this->input->post("patient_id"),
-                        "patient_name" => $this->input->post("patient_name"),
-                        "receipt_number" => $receipt_number,
-                        "center_id" => $this->input->post("center_id"),
-                        "department" => $this->input->post("department"),
-                        "return_date" => $this->input->post("return_date"),
-                        "is_old_data"    => $is_old ? 1 : 0,
-                        "return_reason" => $this->input->post("return_reason"),
-                        "total_return_amount" => $total_amount,
-                        "discount_amount" => $total_discount,
-                        "final_return_amount" => $final_return_amount,
-                        // COMMENTED OUT: Old total discount percentage (now using per-item discount)
-                        // "discount_percentage" => $discount_percentage,
-                        "status" => "PENDING",
-                        "remarks" => $this->input->post("remarks"),
-                        "created_by" => $created_by_id,
-                        "created_at" => date("Y-m-d H:i:s"),
-                    ];
-                    $return_items = $this->input->post("return_items");
-                   if (!empty($return_items)) {
-                        if ($return_type === 'NEW') { 
-                            $batch_ids = array_column($return_items, 'batch_id');
-                            foreach ($batch_ids as $batch_id) {
-                                if (!empty($batch_id)) {
-                                    $this->db->select('si.id');
-                                    $this->db->from('sale_items si');
-                                    $this->db->join('sales s', 'si.sale_id = s.id');
-                                    $this->db->where('si.batch_id', $batch_id);
-                                    $this->db->where('s.sale_number', $receipt_number);
-                                    $this->db->where('s.status', 'CONFIRMED');
-                                    $this->db->where('(si.quantity_sold - COALESCE(si.quantity_returned, 0)) >', 0);
-                                    $exists = $this->db->get()->row();
-
-                                    if (!$exists) {
-                                        $this->session->set_flashdata("error", "Invalid medicine selected. This medicine does not belong to receipt: " . $receipt_number);
-                                        redirect("stocks_new/medicine_returns");
-                                        return;
-                                    }
-                                }
-                            }
-                        } else {
-                            foreach ($return_items as $item) {
-                                if (empty($item['batch_id']) || $item['return_quantity'] <= 0) {
-                                    $this->session->set_flashdata("error", "Please select valid medicines and quantities.");
-                                    redirect("stocks_new/medicine_returns");
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                    // Process per-item discounts
-                    if (!empty($return_items)) {
-                        foreach ($return_items as $key => $item) {
-                            // Get discount percentage for each item
-                            $item_discount_percentage = isset($item['discount_percentage']) ? (float)$item['discount_percentage'] : 0;
-                            if (isset($item['discount_percentage_hidden'])) {
-                                $item_discount_percentage = (float)$item['discount_percentage_hidden'];
-                            }
-                            // Calculate item amounts
-                            $item_quantity = isset($item['return_quantity']) ? (int)$item['return_quantity'] : 0;
-                            $item_price = isset($item['price']) ? (float)$item['price'] : 0;
-                            $item_return_amount = $item_quantity * $item_price;
-                            $item_discount_amount = ($item_return_amount * $item_discount_percentage) / 100;
-                            $item_final_amount = $item_return_amount - $item_discount_amount;
-                            // Add discount fields to return item
-                            $return_items[$key]['discount_percentage'] = $item_discount_percentage;
-                            $return_items[$key]['discount_amount'] = $item_discount_amount;
-                            $return_items[$key]['final_amount'] = $item_final_amount;
-                        }
-                    }
-                    if (
-                        $this->Stock_model_new->process_medicine_return(
-                            $return_data,
-                            $return_items,
-                            $is_old,
-                        )
-                    ) {
-                        $this->session->set_flashdata(
-                            "success",
-                            "Medicine return processed successfully",
-                        );
-                        redirect("stocks_new/returns");
-                    } else {
-                        $this->session->set_flashdata(
-                            "error",
-                            "Failed to process medicine return",
-                        );
+            // Check 1: Direct POST or Hidden Input
+            if (empty($center_id)) {
+                // Check 2: Invoice / Receipt Sale Record
+                if (!empty($receipt_number)) {
+                    $sale_record = $this->db->select('center_id')
+                                             ->where('sale_number', $receipt_number)
+                                             ->get('sales')
+                                             ->row();
+                    if (!empty($sale_record) && !empty($sale_record->center_id)) {
+                        $center_id = $sale_record->center_id;
                     }
                 }
             }
-            redirect("stocks_new/medicine_returns");
+
+            // Check 3: Patient's original billing center
+            if (empty($center_id) && !empty($patient_id)) {
+                $patient_rec = $this->db->select('center_id, billing_at')
+                                        ->where('patient_id', $patient_id)
+                                        ->get('hms_patient_payments')
+                                        ->row();
+                if (!empty($patient_rec)) {
+                    $center_id = !empty($patient_rec->center_id) ? $patient_rec->center_id : $patient_rec->billing_at;
+                }
+            }
+
+            // Check 4: Session Fallback (All session keys)
+            if (empty($center_id)) {
+                $sess_keys = ['logged_central_stock_manager', 'logged_stock_manager', 'logged_billing_manager'];
+                foreach ($sess_keys as $key) {
+                    if (!empty($_SESSION[$key]['center_id'])) {
+                        $center_id = $_SESSION[$key]['center_id'];
+                        break;
+                    }
+                }
+            }
+
+            if ($this->form_validation->run() == true) {
+                
+                // Get Employee Record
+                $employee_number = $this->session->userdata('employee_number');
+                $created_by_id = null;
+                
+                if ($employee_number) {
+                    $employee = $this->db->where("employee_number", $employee_number)->get("hms_employees")->row();
+                    if ($employee) {
+                        $created_by_id = $employee->ID;
+                    }
+                }
+
+                $total_return_amount = $this->input->post("total_return_amount");
+                $total_discount_amount = $this->input->post("total_discount_amount");
+                $final_return_amount = $this->input->post("final_return_amount_hidden") ? (float)$this->input->post("final_return_amount_hidden") : 0;
+                
+                $total_amount = $total_return_amount ? (float)str_replace('₹', '', $total_return_amount) : 0;
+                $total_discount = $total_discount_amount ? (float)str_replace('₹', '', $total_discount_amount) : 0;
+
+                if ($final_return_amount == 0 && $total_amount > 0) {
+                    $final_return_amount = $total_amount - $total_discount;
+                }
+
+                // Prepare Data for `medicine_returns` table
+                $return_data = [
+                    "patient_id"          => $patient_id,
+                    "patient_name"        => $this->input->post("patient_name"),
+                    "receipt_number"      => $receipt_number,
+                    "center_id"           => !empty($center_id) ? $center_id : NULL, // Valid non-empty value
+                    "department"          => $this->input->post("department"),
+                    "return_date"         => $this->input->post("return_date"),
+                    "is_old_data"         => $is_old ? 1 : 0,
+                    "return_reason"       => $this->input->post("return_reason"),
+                    "total_return_amount" => $total_amount,
+                    "discount_amount"     => $total_discount,
+                    "final_return_amount" => $final_return_amount,
+                    "status"              => "PENDING",
+                    "remarks"             => $this->input->post("remarks"),
+                    "created_by"          => $created_by_id,
+                    "created_at"          => date("Y-m-d H:i:s")
+                ];
+
+                $return_items = $this->input->post("return_items");
+                
+                // Process Items Discount
+                if (!empty($return_items)) {
+                    foreach ($return_items as $key => $item) {
+                        $item_discount_percentage = isset($item['discount_percentage_hidden']) ? (float)$item['discount_percentage_hidden'] : (isset($item['discount_percentage']) ? (float)$item['discount_percentage'] : 0);
+                        $item_quantity = isset($item['return_quantity']) ? (int)$item['return_quantity'] : 0;
+                        $item_price = isset($item['price']) ? (float)$item['price'] : 0;
+                        
+                        $item_return_amount = $item_quantity * $item_price;
+                        $item_discount_amount = ($item_return_amount * $item_discount_percentage) / 100;
+                        $item_final_amount = $item_return_amount - $item_discount_amount;
+
+                        $return_items[$key]['discount_percentage'] = $item_discount_percentage;
+                        $return_items[$key]['discount_amount'] = $item_discount_amount;
+                        $return_items[$key]['final_amount'] = $item_final_amount;
+                    }
+                }
+
+                // Process in Model
+                if ($this->Stock_model_new->process_medicine_return($return_data, $return_items, $is_old)) {
+                    $this->session->set_flashdata("success", "Medicine return processed successfully");
+                    redirect("stocks_new/returns");
+                } else {
+                    $this->session->set_flashdata("error", "Failed to process medicine return");
+                }
+            }
         }
+        redirect("stocks_new/medicine_returns");
     }
+}
 
     public function approve_return($return_id)
     {

@@ -5482,7 +5482,6 @@ public function add_sale_item($data)
             $this->db->trans_complete();
             return $this->db->trans_status();
         }*/
-
 public function process_medicine_return($return_data, $return_items, $is_old = false)
 {
     if (empty($return_items)) {
@@ -5491,13 +5490,30 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
 
     $this->db->trans_start();
 
-    // -- 1. EXTRACT VARIABLES FIRST --
+    // -- 1. EXTRACT AND RESOLVE VARIABLES --
     $patient_id = isset($return_data['patient_id']) ? $return_data['patient_id'] : null;
-    $center_id = isset($return_data['center_id']) ? $return_data['center_id'] : null;
+    $center_id  = isset($return_data['center_id'])  ? $return_data['center_id']  : null;
+    
+    // Resolve Sale ID, Patient ID, and Center ID from Sales Table if missing
+    $sale_id = null;
+    if (!$is_old && !empty($return_data['receipt_number'])) {
+        $sale = $this->db->get_where('sales', ['sale_number' => $return_data['receipt_number']])->row();
+        if ($sale) {
+            $sale_id = $sale->id;
+            
+            if (empty($patient_id) && !empty($sale->patient_id)) {
+                $patient_id = $sale->patient_id;
+                $return_data['patient_id'] = $patient_id;
+            }
+            if (empty($center_id) && !empty($sale->center_id)) {
+                $center_id = $sale->center_id;
+            }
+        }
+    }
 
-    // FIX: Remove center_id from array to prevent SQL Error (Unknown column in medicine_returns)
-    if (isset($return_data['center_id'])) {
-        unset($return_data['center_id']);
+    // Ensure center_id is populated in $return_data for DB insertion
+    if (!empty($center_id)) {
+        $return_data['center_id'] = $center_id;
     }
 
     // 2. Generate Return Number and Insert Header
@@ -5505,9 +5521,10 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
     $next_id = $this->db->count_all_results('medicine_returns') + 1;
     $return_data["return_number"] = $prefix . date("Ymd") . str_pad($next_id, 4, "0", STR_PAD_LEFT);
     
-    // STATUS CHANGED: First it goes to Counselor
-    $return_data["status"] = "PENDING_COUNSELOR"; 
+    // Set Status strictly to 'PENDING'
+    $return_data["status"] = "PENDING"; 
     
+    // Insert into 'medicine_returns' table
     $this->db->insert("medicine_returns", $return_data);
     $return_id = $this->db->insert_id();
     
@@ -5516,34 +5533,16 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
         return false;
     }
 
-    // 3. Resolve Sale ID, Patient ID, and Center ID from Receipt Number
-    $sale_id = null;
-
-    if (!$is_old && !empty($return_data['receipt_number'])) {
-        $sale = $this->db->get_where('sales', ['sale_number' => $return_data['receipt_number']])->row();
-        if ($sale) {
-            $sale_id = $sale->id;
-            
-            if (empty($patient_id) && isset($sale->patient_id)) {
-                $patient_id = $sale->patient_id;
-            }
-            if (empty($center_id) && isset($sale->center_id)) {
-                $center_id = $sale->center_id;
-            }
-        }
-    }
-
     $items_processed = 0;
     $total_refund_amount = 0;
 
     foreach ($return_items as $item) {
         $batch_id = isset($item["batch_id"]) ? (int)$item["batch_id"] : 0;
         $quantity = isset($item["return_quantity"]) ? (float)$item["return_quantity"] : 0;
-        $price = isset($item["price"]) ? (float)$item["price"] : 0;
+        $price    = isset($item["price"]) ? (float)$item["price"] : 0;
         
         if ($batch_id <= 0 || $quantity <= 0) continue;
         
-        // Calculate item totals and discounts
         $item_discount_percentage = isset($item["discount_percentage"]) ? (float)$item["discount_percentage"] : 0;
         $item_total = $quantity * $price;
         $item_discount_amount = ($item_total * $item_discount_percentage) / 100;
@@ -5551,21 +5550,19 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
         
         $total_refund_amount += $item_final_amount;
 
-        // Insert into medicine_return_items
         $item_entry = [
-            "return_id" => $return_id,
-            "batch_id" => $batch_id,
-            "quantity_returned" => $quantity,
-            "return_price" => $price,
-            "total_amount" => $item_total,
+            "return_id"           => $return_id,
+            "batch_id"            => $batch_id,
+            "quantity_returned"   => $quantity,
+            "return_price"        => $price,
+            "total_amount"        => $item_total,
             "discount_percentage" => $item_discount_percentage,
-            "discount_amount" => $item_discount_amount,
-            "final_amount" => $item_final_amount,
-            "created_at" => date("Y-m-d H:i:s")
+            "discount_amount"     => $item_discount_amount,
+            "final_amount"        => $item_final_amount,
+            "created_at"          => date("Y-m-d H:i:s")
         ];
         $this->db->insert("medicine_return_items", $item_entry);
         
-        // Update sale_items IMMEDIATELY
         if (!$is_old && $sale_id) {
             $this->db->set('quantity_returned', 'COALESCE(quantity_returned, 0) + ' . $quantity, FALSE);
             $this->db->set('updated_at', date('Y-m-d H:i:s'));
@@ -5601,12 +5598,12 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
             'reference_id'   => $return_id,
             'receipt_number' => $return_data["return_number"],
             'payment_method' => 'WALLET',
-            'remarks'        => 'Pending Counselor Approval: Refund for Medicine Return # ' . $return_data["return_number"],
+            'remarks'        => 'Pending Approval: Refund for Medicine Return # ' . $return_data["return_number"],
             'created_by'     => $user_name,
             'created_at'     => date('Y-m-d H:i:s'),
             'approved_by'    => '', 
             'updated_at'     => date('Y-m-d H:i:s'),
-            'status'         => 'pending_counselor'
+            'status'         => 'PENDING'
         ];
         $this->db->insert('hms_wallet_logs', $log_data);
         $log_id = $this->db->insert_id();
@@ -5623,22 +5620,18 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
         $this->db->insert('hms_notifications', $notification_data);
 
         // -------------------------------------------------------------
-        // 5. FETCH COUNSELOR EMAILS (FIXED FOR center_number)
+        // 5. FETCH COUNSELOR EMAILS
         // -------------------------------------------------------------
         $counselor_emails = [];
         
         if (!empty($center_id)) {
+            $actual_center_number = $center_id;
             
-            // A. Get the actual 'center_number' from the 'center' table
-            // Note: If your table name is 'centers' (plural) or 'hms_centers', change 'center' below to match your DB.
-            $actual_center_number = $center_id; // Default fallback
             $center_record = $this->db->get_where('hms_centers', ['id' => $center_id])->row();
-            
             if ($center_record && isset($center_record->center_number)) {
                 $actual_center_number = $center_record->center_number;
             }
 
-            // B. Now search hms_employees using this actual_center_number
             $this->db->select('email');
             
             $this->db->group_start();
@@ -5647,7 +5640,10 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
             $this->db->or_like('role', 'councellor'); 
             $this->db->group_end();
 
-            $this->db->where('center_id', $actual_center_number); // Using center_number here!
+            $this->db->group_start();
+            $this->db->where('center_id', $actual_center_number);
+            $this->db->or_where('center_id', $center_id);
+            $this->db->group_end();
             
             $this->db->group_start();
             $this->db->where('status', 1);
@@ -5694,9 +5690,8 @@ public function process_medicine_return($return_data, $return_items, $is_old = f
         $config['mailtype'] = 'html';
         $this->email->initialize($config);
 
-        // --- EMAIL TO COUNSELOR (With Approve/Reject Links) ---
+        // --- EMAIL TO COUNSELOR ---
         if (!empty($counselor_emails)) {
-            // Adjust 'wallet_controller' to the actual name of your controller
             $approve_url = base_url("stocks_new/counselor_action/{$log_id}/approve");
             $reject_url  = base_url("stocks_new/counselor_action/{$log_id}/reject");
 
