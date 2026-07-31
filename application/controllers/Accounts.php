@@ -1285,36 +1285,66 @@ public function procedure_reports(){
 			$payment_method = $this->input->get('payment_method', true);
 			$export_billing = $this->input->get('export-billing', true);
 			$paid_amount = 0;
-			$discounted_package = 0;
-			$total_package = 0;
-			if (isset($export_billing)){
-				$data = $this->accounts_model->export_procedure_data($start_date, $end_date, $center, $patient_id, $payment_method, $biller_id);
-				header('Content-Type: text/csv; charset=utf-8');
-				header('Content-Disposition: attachment; filename=Procedure-Reports-'.$start_date.'-'.$end_date.'.csv');
-				$fp = fopen('php://output','w');
-				$headers = 'IIC ID, Patient Name,Receipt Number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At,Procedure Name, Type, Billing Type, Date, Status, Billing Source';
-				//Add the headers
-				fwrite($fp, $headers. "\r\n");
-				foreach ($data as $key => $val) {//var_dump($val);die;
-					$billing_from = $val['billing_from'];
-					if($billing_from != "IndiaIVF"){
-						$billing_from = get_center_name($billing_from);
-					}
-					$paid_amount = $paid_amount +  (int)$val['payment_done'];
-					$total_package = $total_package +  (int)$val['totalpackage'];
-					$discounted_package = $discounted_package +  (int)$val['discounted_package'];
-					$billing_at = get_center_name($val['billing_at']);
-					$sql2 = "SELECT * FROM hms_procedures WHERE procedure_name='" . $val['procedure_name'] . "'";
-					$select_result = run_select_query($sql2);
-					$category = $select_result['category'];
-					$lead_arr = array($val['patient_id'], $val['wife_name'],$val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at,$val['procedure_name'], $category ,$val['billing_type'], $val['on_date'], $val['status'], $val['hospital_id']);
-					fputcsv($fp, $lead_arr);
-				}
-				$final_arr = array("", "", "", $total_package, $discounted_package, $paid_amount, "", "", "", "", "", "", "");
-				fputcsv($fp, $final_arr);
-				fclose($fp);
-				exit();
-			}
+$discounted_package = 0;
+$total_package = 0;
+$total_remaining = 0;
+
+if (isset($export_billing)) {
+    $data = $this->accounts_model->export_procedure_data($start_date, $end_date, $center, $patient_id, $payment_method, $biller_id);
+
+    // Dynamic clean filename using standard output buffer
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=Procedure-Reports-' . $start_date . '-to-' . $end_date . '.csv');
+
+    $fp = fopen('php://output', 'w');
+
+    // Headers
+    $headers = array('IIC ID', 'Patient Name', 'Receipt Number', 'Total package', 'Discounted Package', 'Paid Amount', 'Remaining Amount', 'Payment Method', 'Billing From', 'Billing At', 'Procedure Name', 'Type', 'Billing Type', 'Date', 'Status', 'Billing Source');
+    fputcsv($fp, $headers);
+
+    foreach ($data as $val) {
+        $billing_from = $val['billing_from'];
+        if ($billing_from != "IndiaIVF") {
+            $billing_from = get_center_name($billing_from);
+        }
+
+        $billing_at = get_center_name($val['billing_at']);
+
+        // Sum Totals for Footer Row
+        $paid_amount += (float)$val['payment_done'];
+        $total_package += (float)$val['totalpackage'];
+        $discounted_package += (float)$val['discounted_package'];
+        $total_remaining += (float)$val['remaining_amount'];
+
+        $lead_arr = array(
+            $val['patient_id'],
+            $val['wife_name'],
+            $val['receipt_number'],
+            $val['totalpackage'],
+            $val['discounted_package'],
+            $val['payment_done'],       // Updated Total (Initial + Partial)
+            $val['remaining_amount'],   // Updated Remaining Amount
+            $val['payment_method'],
+            $billing_from,
+            $billing_at,
+            $val['procedure_name'],
+            $val['category'],
+            $val['billing_type'],
+            $val['on_date'],
+            $val['status'],
+            $val['hospital_id']
+        );
+
+        fputcsv($fp, $lead_arr);
+    }
+
+    // CSV Final Summary Row
+    $final_arr = array("", "", "Total", $total_package, $discounted_package, $paid_amount, $total_remaining, "", "", "", "", "", "", "", "", "");
+    fputcsv($fp, $final_arr);
+
+    fclose($fp);
+    exit();
+}
 			
 			$config = array();
         	$config["base_url"] = base_url() . "accounts/procedure_reports";

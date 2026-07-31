@@ -2200,78 +2200,137 @@ function approve_procedure($ID) {
 		return $procedure_result;
 	}
 
-	function export_procedure_data($start, $end, $center, $type, $payment_method, $biller_id){
+	public function export_procedure_data($start, $end, $center, $patient_id, $payment_method, $biller_id) {
+    $response = array();
 
-		$procedure_result = $response = array();
-        $conditions = '';
-		if(!empty($biller_id)){
-			$conditions .= ' and biller_id="'.$biller_id.'"';
-        }
-		if(!empty($center)){
-			$conditions .= ' and billing_at="'.$center.'"';
-        }
-		if(!empty($payment_method)){
-			$conditions .= ' and payment_method="'.$payment_method.'"';
-        }
-		if(!empty($start) && !empty($end)){
-            $conditions .= " and on_date between '".$start."' AND '".$end."' ";
-        }
-		
-	     $procedure_sql = "Select DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package,payment_done,remaining_amount,
-		payment_method,billing_from,billing_at,biller_id,data,on_date,status,hospital_id,series_number from ".$this->config->item('db_prefix')."patient_procedure where 1
-		$conditions order by on_date desc";
-        $procedure_q = $this->db->query($procedure_sql);
-        $procedure_result = $procedure_q->result_array();
-        if(!empty($procedure_result)){
-            foreach($procedure_result as $key => $val){
-				$hms_procedures_result = unserialize( $val['data']);
-				$procedure_nameArr = [];
-				foreach ($hms_procedures_result as $v2_data123){
-						foreach ($v2_data123 as $v2_data5){
+    // 1. Secure Query Builder for procedures
+    $this->db->select('DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package, payment_done, remaining_amount, payment_method, billing_from, billing_at, biller_id, data, on_date, status, hospital_id, series_number', false);
+    $this->db->from($this->config->item('db_prefix') . 'patient_procedure');
 
-						    $sql12 = "select procedure_name from hms_procedures where code='".$v2_data5['sub_procedures_code']."'"; 
-                            $query12 = $this->db->query($sql12);
-                            $select_result1 = $query12->result(); 
-							
-							foreach ($select_result1 as $res_val){
-								// echo $res_val->procedure_name;
-								 array_push($procedure_nameArr,$res_val->procedure_name);
-							}
-						}
-						
-				}
-					 
-				$procedure_name1 = implode(',',$procedure_nameArr); 
-				
-				$patient_name = $this->get_patient_name($val['patient_id']);
-				$husband_name = $this->get_husband_name($val['patient_id']);
-				if (!empty($husband_name)) {
-					$formatted_name = $patient_name . ' w/o ' . $husband_name;
-				} else {
-					$formatted_name = $patient_name;
-				}
-                $response[] = array(
-                        'patient_id' => $val['patient_id'],
-                        'wife_name' => $formatted_name,
-						'receipt_number' => $val['receipt_number'],
-				        'totalpackage' => $val['totalpackage'],
-                        'discounted_package' => $val['discounted_package'],
-                        'payment_done' => $val['payment_done'],
-                        'remaining_amount' => $val['remaining_amount'],
-                        'payment_method' => $val['payment_method'],
-                        'billing_from' => $val['billing_from'],
-                        'billing_at' => $val['billing_at'],
-						'procedure_name' => $procedure_name1,
-						'billing_type' => 'Procedure',
-						'on_date' => $val['on_date'],
-                        'status' => $val['status'],
-						'hospital_id' => $val['hospital_id'],
-						'series_number' => $val['series_number'],
-                );
-            }
-        }    
-		return $response;
+    if (!empty($patient_id)) {
+        $this->db->where('patient_id', $patient_id);
     }
+    if (!empty($biller_id)) {
+        $this->db->where('biller_id', $biller_id);
+    }
+    if (!empty($center)) {
+        $this->db->where('billing_at', $center);
+    }
+    if (!empty($payment_method)) {
+        $this->db->where('payment_method', $payment_method);
+    }
+    if (!empty($start) && !empty($end)) {
+        $this->db->where("on_date BETWEEN " . $this->db->escape($start) . " AND " . $this->db->escape($end), null, false);
+    }
+
+    $this->db->order_by('on_date', 'DESC');
+    $procedure_result = $this->db->get()->result_array();
+
+    if (empty($procedure_result)) {
+        return $response;
+    }
+
+    // 2. Efficient procedure sub-codes map (Batch process to avoid N+1 queries)
+    $all_codes = array();
+    foreach ($procedure_result as $val) {
+        $hms_procedures_result = @unserialize($val['data']);
+        if (is_array($hms_procedures_result)) {
+            foreach ($hms_procedures_result as $v2_data123) {
+                if (is_array($v2_data123)) {
+                    foreach ($v2_data123 as $v2_data5) {
+                        if (!empty($v2_data5['sub_procedures_code'])) {
+                            $all_codes[] = $v2_data5['sub_procedures_code'];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    $code_map = array();
+    if (!empty($all_codes)) {
+        $this->db->select('code, procedure_name, category');
+        $this->db->from('hms_procedures');
+        $this->db->where_in('code', array_unique($all_codes));
+        $proc_query = $this->db->get()->result_array();
+        foreach ($proc_query as $p_row) {
+            $code_map[$p_row['code']] = $p_row;
+        }
+    }
+
+    // 3. Process each procedure record
+    foreach ($procedure_result as $val) {
+        $hms_procedures_result = @unserialize($val['data']);
+        $procedure_nameArr = array();
+        $category = '';
+
+        if (is_array($hms_procedures_result)) {
+            foreach ($hms_procedures_result as $v2_data123) {
+                if (is_array($v2_data123)) {
+                    foreach ($v2_data123 as $v2_data5) {
+                        $code = $v2_data5['sub_procedures_code'] ?? '';
+                        if (isset($code_map[$code])) {
+                            $procedure_nameArr[] = $code_map[$code]['procedure_name'];
+                            $category = $code_map[$code]['category']; // Category mapped directly
+                        }
+                    }
+                }
+            }
+        }
+
+        $procedure_name1 = implode(',', array_unique($procedure_nameArr));
+
+        // Get Patient & Husband Name
+        $patient_name = $this->get_patient_name($val['patient_id']);
+        $husband_name = $this->get_husband_name($val['patient_id']);
+        $formatted_name = !empty($husband_name) ? $patient_name . ' w/o ' . $husband_name : $patient_name;
+
+        // --- PARTIAL PAYMENT & REMAINING AMOUNT CALCULATION ---
+        // receipt_number = billing_id and status = 1 (active/approved payment)
+        $this->db->select_sum('payment_done', 'total_partial_payment');
+        $this->db->from('hms_patient_payments');
+        $this->db->where('billing_id', $val['receipt_number']);
+        $this->db->where('status', 1);
+        $payment_query = $this->db->get()->row_array();
+
+        $partial_paid = (float)($payment_query['total_partial_payment'] ?? 0);
+        $initial_paid = (float)$val['payment_done'];
+
+        // Total Paid = Initial Payment + Partial Payments
+        $total_paid_done = $initial_paid + $partial_paid;
+
+        // Total Package / Discounted Amount
+        $discounted_pkg = (float)$val['discounted_package'];
+        
+        // Final Remaining Calculation = Discounted Package - Total Paid Done
+        $final_remaining = $discounted_pkg - $total_paid_done;
+        if ($final_remaining < 0) {
+            $final_remaining = 0; // Negative values avoid karne ke liye
+        }
+
+        $response[] = array(
+            'patient_id'         => $val['patient_id'],
+            'wife_name'          => $formatted_name,
+            'receipt_number'     => $val['receipt_number'],
+            'totalpackage'       => $val['totalpackage'],
+            'discounted_package' => $discounted_pkg,
+            'payment_done'       => $total_paid_done,     // Initial + Partial Payment
+            'remaining_amount'   => $final_remaining,    // Remaining calculation
+            'payment_method'     => $val['payment_method'],
+            'billing_from'       => $val['billing_from'],
+            'billing_at'         => $val['billing_at'],
+            'procedure_name'     => $procedure_name1,
+            'category'           => $category,
+            'billing_type'       => 'Procedure',
+            'on_date'            => $val['on_date'],
+            'status'             => $val['status'],
+            'hospital_id'        => $val['hospital_id'],
+            'series_number'      => $val['series_number'],
+        );
+    }
+
+    return $response;
+}
 	
 	
 	function export_procedure_center_data($start_date, $end_date, $center, $patient_id){

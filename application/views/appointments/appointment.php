@@ -207,7 +207,7 @@
                            ?>
                      </td>
                      <td>
-                        <?php if($vl['status'] == 'booked' || $vl['status'] == 'rescheduled' || $vl['status'] == 'in_clinic'){ ?> ?>
+                        <?php if($vl['status'] == 'booked' || $vl['status'] == 'rescheduled' || $vl['status'] == 'in_clinic'){ ?>
                         <a target="_blank" href="<?php echo base_url(); ?>accounts/patient_update?ID=<?php echo $vl['ID']?>">Edit</a>
                         <?php } ?>	
                         <?php if($vl['paitent_type'] == 'new_patient'){ ?>
