@@ -157,7 +157,7 @@ if(!empty($select_result['applicablemedicine'])){
   <input type="hidden" value="<?php echo $receipt_number;?>" class="form" name="receipt_number">
   <input type="hidden" value="<?php echo $patient_data['wife_address']; ?>" class="form" name="wife_address">
   <input type="hidden" value="<?php echo $patient_data['wife_age']; ?>" class="form" name="wife_age">
-  <input type="hidden" value="First Cycle" name="type"> 
+  <input type="hidden" value="Second Cycle" name="type"> 
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_p']; ?>" class="form" name="female_pregnancy_other_p">
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_l']; ?>" class="form" name="female_pregnancy_other_l">
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_a']; ?>" class="form" name="female_pregnancy_other_a">
