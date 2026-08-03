@@ -3594,7 +3594,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
  $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
         bill_center.center_name as billing_center_name,
-		bill_center.center_code as center_code
+		bill_center.center_code as center_code,
         bill_center.state_name as center_state_name, 
         bill_center.center_gst as center_gst_number, 
         origin_center.center_name as origin_center_name,
