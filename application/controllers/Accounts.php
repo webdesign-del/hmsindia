@@ -3609,7 +3609,7 @@ foreach($ret_grouped as $return) {
     
     $this->db->where_in('hms_consultation.status', ['adjust', 'approved']);
     $this->db->where('hms_consultation.tally_status', '1');
-	$this->db->where('hms_consultation.on_date >', '2026-07-15');
+	$this->db->where('hms_consultation.on_date >', '2026-07-28');
     $this->db->limit(300);
     
     $consult_rows = $this->db->get()->result_array();
@@ -3665,7 +3665,7 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
     $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-	$this->db->where('hms_registation.on_date >', '2026-07-15');
+	$this->db->where('hms_registation.on_date >', '2026-07-28');
     $this->db->limit(300);
     $reg_rows = $this->db->get()->result_array();
 
@@ -3707,7 +3707,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' AND `on_date` > '2026-07-15' ORDER BY id DESC LIMIT 500")->result_array();
+    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' AND `on_date` > '2026-07-28' ORDER BY id DESC LIMIT 500")->result_array();
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
         $bill_c = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
@@ -3721,6 +3721,7 @@ foreach($ret_grouped as $return) {
             'billing_center'   => $bill_c['center_name'] ?? 'N/A',
             'origin_center'    => $org_c['center_name'] ?? 'N/A',
 			'cost_center'      => $bill_c['center_name'] ?? 'N/A',
+			'center_code'      => $bill_c['center_code'],
             'receipt_number'   => $sale["receipt_number"] ?? '',
             'on_date'          => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
             'biller_name'      => $biller['name'] ?? 'N/A',
@@ -3789,7 +3790,8 @@ foreach($ret_grouped as $return) {
             'patient_name'     => ($row['name'] ?? '') . ' S/O ' . ($row['fname'] ?? ''),
             'billing_center'   => $row['place_of_supply'] ?? 'N/A',
             'origin_center'    => 'N/A', 
-			'cost_center'   => $row['place_of_supply'] ?? 'N/A',
+			'cost_center'      => 'N/A',
+			'center_code'      => $bill_c['center_code'],
             'receipt_number'   => $row['receipt'] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
             'biller_name'      => 'N/A', 
@@ -4034,7 +4036,7 @@ public function order_invoice()
     // =========================================================================
      $sql_med = "
        SELECT 
-    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,c.state_name,c.center_gst,
+    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,c.state_name,c.center_gst, c.center_code,
     s.sale_number, s.sale_date, s.payment_method, s.payment_status,
     s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
     mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -4048,7 +4050,7 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-07-15'
+	AND s.sale_date > '2026-07-28'
 ORDER BY s.updated_at DESC 
 LIMIT 800
     ";
@@ -4072,7 +4074,7 @@ if (!empty($med_results)) {
         // 3. Fetch Center info based on the appointment
         $app_center_name = "N/A"; // Default if not found
         if (!empty($app_result['appoitment_for'])) {
-            $sql_center = "SELECT center_name,state_name,center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+            $sql_center = "SELECT center_name,state_name,center_code, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
             $center_data = run_select_query($sql_center);
             $app_center_name = $center_data['center_name'] ?? "N/A";
         }
@@ -4098,6 +4100,7 @@ if (!empty($med_results)) {
                 'billing_center'   => $row['center_name'],
                 'origin_center'    => $app_center_name, // Now correctly populated
 				'cost_center'      => $row['center_name'], // Now correctly populated
+				'center_code'      => $row['center_code'],
                 'receipt_number'   => $row['sale_number'],
                 'on_date'          => date("d-m-Y", strtotime($row['sale_date'])),
                 'biller_name'      => $row['payment_approved_by_name'],
@@ -4143,7 +4146,7 @@ if (!empty($med_grouped)) {
 // =========================================================================
 $sql_ret = "
     SELECT 
-    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,c.state_name,c.state_name,
+    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,c.state_name,c.state_name,c.center_code,
     r.return_number, r.return_date, r.status, r.return_reason,
     m.medicine_name, mb.batch_number, mb.expiry_date, 
     m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -4157,7 +4160,7 @@ LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
 LEFT JOIN medicines m ON mb.medicine_id = m.id
 WHERE r.status = 'APPROVED' 
 AND r.tally_status = '1'
-AND r.return_date > '2026-07-15'
+AND r.return_date > '2026-07-28'
 ORDER BY r.id DESC
 ";
 
@@ -4190,6 +4193,7 @@ foreach ($ret_results as $row) {
             'patient_name'     => $row['patient_name'],
             'billing_center'   => $row['center_name'],
             'origin_center'    => $row['center_name'],
+			'center_code'      => $row['center_code'],
             'receipt_number'   => $row['return_number'],
             'on_date'          => date("d-m-Y", strtotime($row['return_date'])),
 			'updated_date'          => "",
@@ -4244,6 +4248,7 @@ foreach($ret_grouped as $return) {
                 'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
                 'billing_center'   => $billing['center_name'] ?? 'N/A',
                 'origin_center'    => $origin['center_name'] ?? 'N/A',
+				'center_code'      => $billing['center_code'],
                 'receipt_number'   => $sale["receipt_number"],
                 'on_date'          => date("d-m-Y", strtotime($sale["on_date"])),
 				'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
@@ -4283,7 +4288,8 @@ foreach($ret_grouped as $return) {
     // PART 3: CONSULTATION SALES
     // =========================================================================
     $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name, 
+        bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name,
+		bill_center.center_code as center_code, 
         bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_consultation');
@@ -4293,7 +4299,7 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
     $this->db->where('hms_consultation.status', 'approved');
     $this->db->where('hms_consultation.tally_status', '1');
-	$this->db->where('hms_consultation.on_date >', '2026-07-15');
+	$this->db->where('hms_consultation.on_date >', '2026-07-28');
     $this->db->limit(300);
     $consult_rows = $this->db->get()->result_array();
 
@@ -4304,6 +4310,7 @@ foreach($ret_grouped as $return) {
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
+			'center_code'      => $row['center_code'],
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
@@ -4332,7 +4339,8 @@ foreach($ret_grouped as $return) {
     // PART 4: REGISTRATION SALES
     // =========================================================================
       $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name, 
+        bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name,
+		bill_center.center_code as center_code, 
         bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_registation');
@@ -4342,7 +4350,7 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
     $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-	$this->db->where('hms_registation.on_date >', '2026-07-15');
+	$this->db->where('hms_registation.on_date >', '2026-07-28');
     $this->db->limit(200);
     $reg_rows = $this->db->get()->result_array();
 
@@ -4354,6 +4362,7 @@ foreach($ret_grouped as $return) {
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
+			'center_code'      => $row['center_code'],
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
@@ -4381,7 +4390,7 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' AND `on_date` > '2026-07-15' ORDER BY id DESC LIMIT 500")->result_array();
+    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' AND `on_date` > '2026-07-28' ORDER BY id DESC LIMIT 500")->result_array();
 
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
@@ -4395,6 +4404,7 @@ foreach($ret_grouped as $return) {
             'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
             'billing_center'   => $bill_c['center_name'] ?? 'N/A',
             'origin_center'    => $org_c['center_name'] ?? 'N/A',
+			'center_code'      => $bill_c['center_code'],
             'receipt_number'   => $sale["receipt_number"] ?? '',
             'on_date'          => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
@@ -4454,7 +4464,8 @@ foreach($ret_grouped as $return) {
             'patient_id'       => $row['studentid'],
             'patient_name'     => ($row['name'] ?? '') . ' S/O ' . ($row['fname'] ?? ''),
             'billing_center'   => $row['place_of_supply'] ?? 'N/A',
-            'origin_center'    => 'N/A', 
+            'origin_center'    => 'N/A',
+			'center_code'      => 'N/A', 
             'receipt_number'   => $row['receipt'] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
@@ -4479,7 +4490,7 @@ foreach($ret_grouped as $return) {
  // =========================================================================
     // PART 7: PARTIAL PAYMENTS
     // =========================================================================
-    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' AND on_date > '2026-07-15' ORDER BY modified_on DESC LIMIT 500");
+    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' AND on_date > '2026-07-28' ORDER BY modified_on DESC LIMIT 500");
     $payment_rows = $partial_q->result_array();
 
     // यहाँ से पुरानी गलत $bill_c वाली लाइन हटा दी गई है
@@ -4541,6 +4552,7 @@ foreach ($payment_rows as $payment_row) {
         'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
         'billing_center'   => 'N/A',
         'origin_center'    => 'N/A',
+		'center_code'      => 'N/A',
         'order_number'     => $payment_row['billing_id'],
         'receipt_number'   => $payment_row['refrence_number'],
         'on_date'          => date('d-m-Y', strtotime($payment_row['on_date'])),
@@ -4743,7 +4755,7 @@ public function sales_completion_order()
     // =========================================================================
     $sql_med = "
        SELECT 
-    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name, c.state_name, c.center_gst,
+    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name, c.state_name, c.center_gst,c.center_code,
     s.sale_number, s.sale_date, s.payment_method, s.payment_status,
     s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
     mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -4757,7 +4769,7 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-07-15'
+	AND s.sale_date > '2026-07-28'
 ORDER BY s.updated_at ASC 
 LIMIT 700";
     
@@ -4806,6 +4818,7 @@ if (!empty($med_results)) {
                 'billing_center'   => $row['center_name'],
                 'origin_center'    => $app_center_name, // Now correctly populated
 				'cost_center'      => $row['center_name'], // Now correctly populated
+				'center_code'      => $row['center_code'],
                 'receipt_number'   => $row['sale_number'],
                 'on_date'          => date("d-m-Y", strtotime($row['sale_date'])),
                 'biller_name'      => $row['payment_approved_by_name'],
@@ -4849,7 +4862,7 @@ if (!empty($med_grouped)) {
 // =========================================================================
 $sql_ret = "
     SELECT 
-    r.id AS return_id, r.patient_id, r.patient_name, c.center_name, c.state_name, c.center_gst,
+    r.id AS return_id, r.patient_id, r.patient_name, c.center_name, c.state_name, c.center_gst,c.center_code,
     r.return_number, r.return_date, r.status, r.return_reason,
     m.medicine_name, mb.batch_number, mb.expiry_date, 
     m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -4896,6 +4909,7 @@ foreach ($ret_results as $row) {
             'patient_name'     => $row['patient_name'],
             'billing_center'   => $row['center_name'],
             'origin_center'    => $row['center_name'],
+			'center_code'      => $row['center_code'],
             'receipt_number'   => $row['return_number'],
             'on_date'          => date("d-m-Y", strtotime($row['return_date'])),
             'biller_name'      => 'System Approved', // Or join with employee table
@@ -4952,6 +4966,7 @@ if (!empty($procedure_raw)) {
             'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
             'billing_center'   => $billing['center_name'] ?? 'N/A',
             'origin_center'    => $origin['center_name'] ?? 'N/A',
+			'center_code'      =>  $billing['center_code'],
             'receipt_number'   => $sale["receipt_number"],
             'on_date'          => date("d-m-Y", strtotime($sale["on_date"])),
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
@@ -5029,6 +5044,7 @@ if (!empty($embryo['date_of_procedure']) &&
     // =========================================================================
  $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
     bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name, 
+	bill_center.center_code as center_code
         bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
     hms_employees.name as biller_name');
 $this->db->from('hms_consultation');
@@ -5045,7 +5061,7 @@ $this->db->where_in('hms_consultation.status', ['approved', 'adjust', 'Approved'
 
 // Check if your live DB uses '1' (string) or 1 (integer) for tally_status
 $this->db->where('hms_consultation.tally_status', '1');
-$this->db->where('hms_consultation.on_date >', '2026-07-15');
+$this->db->where('hms_consultation.on_date >', '2026-07-28');
 // Always order by the latest ID so you don't see old records first
 $this->db->order_by('hms_consultation.id', 'DESC'); 
 
@@ -5060,6 +5076,7 @@ $consult_rows = $this->db->get()->result_array();
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
+			'center_code'      => $row['center_code'],
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
@@ -5091,7 +5108,8 @@ $consult_rows = $this->db->get()->result_array();
     // PART 4: REGISTRATION SALES
     // =========================================================================
     $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name, bill_center.state_name as center_state_name, 
+        bill_center.center_name as billing_center_name, bill_center.state_name as center_state_name,
+		bill_center.center_code as center_code, 
         bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_registation');
@@ -5101,7 +5119,7 @@ $consult_rows = $this->db->get()->result_array();
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
     $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-	$this->db->where('hms_registation.on_date >', '2026-07-15');
+	$this->db->where('hms_registation.on_date >', '2026-07-28');
     $this->db->limit(400);
     $reg_rows = $this->db->get()->result_array();
 
@@ -5112,6 +5130,7 @@ $consult_rows = $this->db->get()->result_array();
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
+			'center_code'      => $row['center_code'],
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
@@ -5142,7 +5161,7 @@ $consult_rows = $this->db->get()->result_array();
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-   $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' AND `on_date` > '2026-07-15' ORDER BY id DESC LIMIT 400")->result_array();
+   $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' AND `on_date` > '2026-07-28' ORDER BY id DESC LIMIT 400")->result_array();
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
         $bill_c = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
@@ -5155,6 +5174,7 @@ $consult_rows = $this->db->get()->result_array();
             'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
             'billing_center'   => $bill_c['center_name'] ?? 'N/A',
             'origin_center'    => $org_c['center_name'] ?? 'N/A',
+			'center_code'      => $bill_c['center_code'],
             'receipt_number'   => $sale["receipt_number"] ?? '',
             'on_date'          => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
@@ -5223,7 +5243,8 @@ $consult_rows = $this->db->get()->result_array();
             'patient_id'       => $row['studentid'],
             'patient_name'     => ($row['name'] ?? '') . ' S/O ' . ($row['fname'] ?? ''),
             'billing_center'   => $row['place_of_supply'] ?? 'N/A',
-            'origin_center'    => 'N/A', 
+            'origin_center'    => 'N/A',
+			'center_code'      => 'N/A',  
             'receipt_number'   => $row['receipt'] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
 			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
