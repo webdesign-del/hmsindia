@@ -293,7 +293,29 @@ class Accounts extends CI_Controller {
     }
 }
 
-		if (count($procedure_result) > 0) {
+// Step 1: Partial Payments se Billing-wise total calculation karein
+$partial_payments_map = [];
+
+if (!empty($payments) && is_array($payments) && isset($payments['data']) && is_array($payments['data'])) {
+    foreach ($payments['data'] as $p_val) {
+        // Sirf Approved Payments (status == 1) ko calculate karein
+        $p_status = isset($p_val['status']) ? $p_val['status'] : 0;
+        if ($p_status == 1) { 
+            $bill_id = isset($p_val['billing_id']) ? $p_val['billing_id'] : '';
+            $paid_amt = isset($p_val['payment_done']) ? (float)$p_val['payment_done'] : 0;
+            
+            if ($bill_id) {
+                if (!isset($partial_payments_map[$bill_id])) {
+                    $partial_payments_map[$bill_id] = 0;
+                }
+                $partial_payments_map[$bill_id] += $paid_amt;
+            }
+        }
+    }
+}
+
+// Step 2: Main Procedure Loop me Add & Subtract apply karein
+if (count($procedure_result) > 0) {
     $type = $procedure_result['type'];
     
     foreach ($procedure_result['data'] as $key => $val) {
@@ -313,13 +335,27 @@ class Accounts extends CI_Controller {
         // 3. Safely extract billing_from as a string
         $billing_from = is_array($val['billing_from']) ? ($val['billing_from']['name'] ?? '') : $val['billing_from'];
 
-        // 4. Safely extract biller_id and Employee Name (FIX FOR EMPLOYEE NAME)
+        // 4. Safely extract biller_id and Employee Name
         $biller_id = is_array($val['biller_id']) ? ($val['biller_id']['id'] ?? '') : $val['biller_id'];
         $employee_name = $this->get_employee_name($biller_id);
         if (is_array($employee_name)) {
             $employee_name_str = isset($employee_name['name']) ? $employee_name['name'] : (isset($employee_name[0]) ? $employee_name[0] : '');
         } else {
             $employee_name_str = (string) $employee_name;
+        }
+
+        // ==========================================
+        // PARTIAL PAYMENT ADJUSTMENT HERE
+        // ==========================================
+        $receipt_num = $val['receipt_number'];
+        $extra_paid  = isset($partial_payments_map[$receipt_num]) ? (float)$partial_payments_map[$receipt_num] : 0;
+
+        $final_payment_done   = (float)$val['payment_done'] + $extra_paid;
+        $final_remaining_amt = (float)$val['remaining_amount'] - $extra_paid;
+
+        // Prevent negative remaining balance (Edge-case safe)
+        if ($final_remaining_amt < 0) {
+            $final_remaining_amt = 0;
         }
 
         $html .= '<tr>';
@@ -338,13 +374,15 @@ class Accounts extends CI_Controller {
             $html .= '<td>'.$this->get_center_name($billing_from).'</td>';
         } 
         
-        // Employee Name Column Added Here
         $html .= '<td>'.$employee_name_str.'</td>';
         
         $html .= '<td>'.$currency.$val['totalpackage'].'</td>';
         $html .= '<td>'.$currency.$val['fees'].'</td>';
-        $html .= '<td>'.$currency.$val['payment_done'].'</td>';
-        $html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
+        
+        // UPDATED: Dynamic Calculated Values
+        $html .= '<td>'.$currency.number_format($final_payment_done, 2).'</td>';
+        $html .= '<td>'.$currency.number_format($final_remaining_amt, 2).'</td>';
+        
         $html .= '<td>Procedure</td>';
         $html .= '<td>'.ucwords($status_str).'</td>';
         
@@ -482,7 +520,7 @@ class Accounts extends CI_Controller {
 				}
 			}
 
-	if (!empty($payments) && is_array($payments) && count($payments) > 0) {
+if (!empty($payments) && is_array($payments) && count($payments) > 0) {
     $type = isset($payments['type']) ? $payments['type'] : '';
     
     if (isset($payments['data']) && is_array($payments['data'])) {
@@ -3291,7 +3329,7 @@ public function tally()
     // =========================================================================
     $sql_med = "
        SELECT 
-    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,c.state_name,c.center_gst,
+    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,c.center_code,c.state_name,c.center_gst,
     s.sale_number, s.sale_date, s.payment_method, s.payment_status,
     s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
     mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -3305,7 +3343,7 @@ WHERE sm.movement_type = 'SALE'
     AND sm.to_location_type = 'SALE'
     AND s.payment_status = 'PAID' 
     AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-07-15'
+	AND s.sale_date > '2026-07-28'
 ORDER BY s.updated_at DESC 
 LIMIT 700";
     
@@ -3328,7 +3366,7 @@ if (!empty($med_results)) {
         // 3. Fetch Center info based on the appointment
         $app_center_name = "N/A"; // Default if not found
         if (!empty($app_result['appoitment_for'])) {
-            $sql_center = "SELECT center_name, state_name, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+            $sql_center = "SELECT center_name, state_name,center_code, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
             $center_data = run_select_query($sql_center);
             $app_center_name = $center_data['center_name'] ?? "N/A";
         }
@@ -3354,6 +3392,7 @@ if (!empty($med_results)) {
                 'billing_center'   => $row['center_name'],
                 'origin_center'    => $app_center_name, // Now correctly populated
 				'cost_center'      => $row['center_name'], // Now correctly populated
+				'center_code'      => $row['center_code'],
                 'receipt_number'   => $row['sale_number'],
                 'on_date'          => date("d-m-Y", strtotime($row['sale_date'])),
                 'biller_name'      => $row['payment_approved_by_name'],
@@ -3397,7 +3436,7 @@ if (!empty($med_grouped)) {
 // =========================================================================
 $sql_ret = "
     SELECT 
-    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,
+    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,c.center_code,
     r.return_number, r.return_date, r.status, r.return_reason,
     m.medicine_name, mb.batch_number, mb.expiry_date, 
     m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
@@ -3411,7 +3450,7 @@ LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
 LEFT JOIN medicines m ON mb.medicine_id = m.id
 WHERE r.status = 'APPROVED' 
 AND r.tally_status = '1'
-AND r.return_date > '2026-07-15'
+AND r.return_date > '2026-07-28'
 ORDER BY r.id DESC
 ";
 
@@ -3433,7 +3472,7 @@ if (!empty($ret_results)) {
 
             $app_center_name = "N/A";
             if (!empty($app_result['appoitment_for'])) {
-                $sql_center = "SELECT center_name, state_name, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+                $sql_center = "SELECT center_name, state_name,center_code, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
                 $center_data = run_select_query($sql_center);
                 $app_center_name = $center_data['center_name'] ?? "N/A";
             }
@@ -3445,8 +3484,9 @@ if (!empty($ret_results)) {
                 'billing_center'   => $row['center_name'],
                 'origin_center'    => $app_center_name, 
 				'cost_center'      => $row['center_name'], // Now correctly populated
+				'center_code'      => $row['center_code'],
                 'receipt_number'   => $row['return_number'],
-                'on_date'          => date("d-m-Y", strtotime($row['return_date'])),
+			    'on_date'          => date("d-m-Y", strtotime($row['return_date'])),
                 'biller_name'      => 'System Approved',
                 'payment_method'   => 'Refund',
                 'status'           => $row['status'],
@@ -3511,6 +3551,7 @@ foreach($ret_grouped as $return) {
                 'billing_center'   => $billing['center_name'] ?? 'N/A',
                 'origin_center'    => $origin['center_name'] ?? 'N/A',
 				'cost_center'    => $cost['center_name'] ?? 'N/A',
+				'center_code'      => $cost['center_code'],
                 'receipt_number'   => $sale["receipt_number"],
                 'on_date'          => date("d-m-Y", strtotime($sale["on_date"])),
                 'biller_name'      => $biller['name'] ?? 'N/A',
@@ -3552,7 +3593,8 @@ foreach($ret_grouped as $return) {
     // PART 3: CONSULTATION SALES
     // =========================================================================
  $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name, 
+        bill_center.center_name as billing_center_name,
+		bill_center.center_code as center_code
         bill_center.state_name as center_state_name, 
         bill_center.center_gst as center_gst_number, 
         origin_center.center_name as origin_center_name,
@@ -3582,6 +3624,7 @@ foreach($ret_grouped as $return) {
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
             'cost_center'      => $row['billing_center_name'] ?? 'N/A',
+			'center_code'      => $row['center_code'],
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',
@@ -3612,7 +3655,7 @@ foreach($ret_grouped as $return) {
     // PART 4: REGISTRATION SALES
     // =========================================================================
     $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name, bill_center.state_name, 
+        bill_center.center_name as billing_center_name, bill_center.state_name, bill_center.center_code 
         bill_center.center_gst, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_registation');
@@ -3633,7 +3676,8 @@ foreach($ret_grouped as $return) {
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
-			'cost_center'   => $row['billing_center_name'] ?? 'N/A',
+			'cost_center'      => $row['billing_center_name'] ?? 'N/A',
+			'center_code'      => $row['center_code'],
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',

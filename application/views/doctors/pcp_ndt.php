@@ -77,6 +77,9 @@ if (isset($ID) && !empty($ID)) {
 			<div class="col-sm-2" style="margin-top: 10px;">
             	<input type='button' id='btn' value='Print Delivery' class="btn btn-primary pull-right" onclick='printDiv();'>
             </div>
+      <div class="col-sm-2" style="margin-top: 10px;">
+            	<input type='button' id='btn' value='Print Tesa' class="btn btn-primary pull-right" onclick='printDiv3();'>
+            </div>      
 			<div class="col-sm-1" style="margin-top: 10px;margin-right: 15px;">
             	<a href="<?php echo base_url('doctors/add_pcp_ndt'); ?>" target="_blank" class="btn btn-secondary">Add New</a>
             </div>
@@ -261,6 +264,55 @@ if (isset($ID) && !empty($ID)) {
 			</tbody>
             </table>
 	</div>
+
+
+<div class="row" id="print_this_section3" style="display:none;">
+	  <table class="table table-striped table-bordered table-hover" id="investigation_billing_list">
+
+              <thead>
+                <tr>
+				     <th style="border:1px solid;">S.No.</th>
+					 <th style="border:1px solid;">NAME OF MALE UNDERGOING <?php $all_emplyee = $all_method->get_test_type();
+						            foreach($all_emplyee as $key => $val){ 
+                                    if($test_type == $val['type']){ echo $val['type'];}
+                    	             }  ?></th>
+                     <th style="border:1px solid;">Age</th>
+					 <th style="border:1px solid;">NAME OF WIFE WITH AGE</th>
+                     <th style="border:1px solid;">COMPLETE ADDRESS</th>
+					 <th style="border:1px solid;">TEL. No.</th>
+                     <th style="border:1px solid;">PARITY OF WOMAN WITH SEX OF PREVIOUS CHLD </th>
+                     <th style="border:1px solid;">REASON FOR IVF/ART</th>
+                     <th style="border:1px solid;">DETAILS OF REFERRING DOCTOR</th>
+                     <th style="border:1px solid;">DETAILS OF HOSPITAL AND DOCTOR</th>
+                     <th style="border:1px solid;">OUTCOME OF THE TREATMET</th>
+                     <th style="border:1px solid;">ANY MALFORMATION IN NEWBORN DETAILS</th>
+				</tr>
+              </thead>
+
+            <tbody id="investigate_result">
+			
+              <?php $a = 1;  foreach($investigate_result as $ky => $vl){ 
+                   
+			  ?>
+                <tr class="odd gradeX" style="border:1px solid;">
+                     <td style="border:1px solid;"><?php echo $a++; ?></td>
+					 <td style="border:1px solid;"><?php echo $vl['wife_name'] ?></td>
+					 <td style="border:1px solid;"><?php echo $vl['wife_age'] ?></td>
+                     <td style="border:1px solid;"><?php echo $vl['husband_name']; ?></td>
+                     <td style="border:1px solid;"><?php echo $vl['wife_address']; ?></td>
+					 <td style="border:1px solid;"><?php echo $vl['wife_phone']; ?></td>
+                     <td style="border:1px solid;"><?php echo $vl['female_pregnancy_other_p']; ?>, <?php echo $vl['female_pregnancy_other_l']; ?>, <?php echo $vl['female_pregnancy_other_a']; ?></td>
+					 <td style="border:1px solid;"><?php echo $vl['details_management_advised']; ?></td>
+					 <td style="border:1px solid;"><?php echo $vl['IVF_Consultant']; ?></td>
+					 <td style="border:1px solid;"><?php echo $vl['further_referredfor_dellvery']; ?></td>
+					 <td style="border:1px solid;"><?php echo $vl['outcome_of_pregnancy']; ?></td>
+					 <td style="border:1px solid;"><?php echo $vl['malformation_in_newborn']; ?></td>
+				</tr>
+              <?php $count++;} ?>
+			</tbody>
+            </table>
+	</div>
+
 <script>
       $( function() {
         $( ".particular_date_filter" ).datepicker({
@@ -282,6 +334,21 @@ function printDiv2()
   $('input[type="submit"]').css('visibility', 'hidden');
   $('p#last_updated').css('visibility', 'hidden');
   var divToPrint=document.getElementById('print_this_section2');
+  var newWin=window.open('','Print-Window');
+  newWin.document.open();
+  newWin.document.write('<html><body onload="window.print()">'+divToPrint.innerHTML+'</body></html>');
+  newWin.document.close();
+  setTimeout(function(){newWin.close();},10);
+  window.location.reload();
+}
+</script>
+<script>
+function printDiv3() 
+{
+  $('.hide_print').hide();
+  $('input[type="submit"]').css('visibility', 'hidden');
+  $('p#last_updated').css('visibility', 'hidden');
+  var divToPrint=document.getElementById('print_this_section3');
   var newWin=window.open('','Print-Window');
   newWin.document.open();
   newWin.document.write('<html><body onload="window.print()">'+divToPrint.innerHTML+'</body></html>');
