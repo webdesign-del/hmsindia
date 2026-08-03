@@ -3791,7 +3791,7 @@ foreach($ret_grouped as $return) {
             'billing_center'   => $row['place_of_supply'] ?? 'N/A',
             'origin_center'    => 'N/A', 
 			'cost_center'      => 'N/A',
-			'center_code'      => $bill_c['center_code'],
+			'center_code'      => 'N/A',
             'receipt_number'   => $row['receipt'] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
             'biller_name'      => 'N/A', 
