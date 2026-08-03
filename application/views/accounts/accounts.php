@@ -70,7 +70,12 @@
         
         <div class="row patient_data_table">
         	 <h3 style="margin-bottom:20px; float:left;">Patient Billings</h3> 
-             <span style="float:right; font-weight:600; font-size:20px;color:#FF0000;" class="current_balance"></span>
+             <div style="float:right; font-weight:600; font-size:16px;">
+               <span style="color:#28a745; margin-right: 15px;" class="wallet_1_balance">Money Wallet : 0</span>
+       <span style="color:#17a2b8;" class="wallet_2_balance">Package Wallet : 0</span>
+       <span style="color:#FF0000; margin-right: 15px;" class="current_balance">Current balance is :- 0</span>
+      
+   </div>
              <table>
                 <thead>
                     <tr>
@@ -163,26 +168,36 @@ $(document).on('click',"#search_patient",function(e) {
 
 function search_patient(data){
     $.ajax({
-			url: '<?php echo base_url('accounts/get_patient_data')?>',
-			data: {'data' : data},
-			dataType: 'json',
-			method:'post',
-			success: function(data)
-			{
-				$('#patient_data_table_body').empty();
-				$('#paitent_name').val(data.patient_name);
-				$('#wife_phone_number').val(data.patient_phone);
-				$('#husband_name').val(data.husband_name);
-				if(data.current_balance >= 1){
-					$('.current_balance').empty().append("Current balance is :- "+data.current_balance);
-				}else{
-					$('.current_balance').empty().append("Current balance is :- 0");
-				}
-				$('#patient_data_table_body').empty().append(data.data);
-				$('#patient_payment_table_body').empty().append(data.payment_html);
-				$('#loader_div').hide();
-			} 
-	   });
+      url: '<?php echo base_url('accounts/get_patient_data')?>',
+      data: {'data' : data},
+      dataType: 'json',
+      method:'post',
+      success: function(data)
+      {
+        $('#patient_data_table_body').empty();
+        $('#paitent_name').val(data.patient_name);
+        $('#wife_phone_number').val(data.patient_phone);
+        $('#husband_name').val(data.husband_name);
+
+        // Current Balance Check
+        if(data.current_balance >= 1){
+          $('.current_balance').empty().append("Current balance is :- "+data.current_balance);
+        }else{
+          $('.current_balance').empty().append("Current balance is :- 0");
+        }
+
+        // 🚀 Wallet Balances Display Logic
+        var w1 = (data.wallet_1_balance) ? data.wallet_1_balance : 0;
+        var w2 = (data.wallet_2_balance) ? data.wallet_2_balance : 0;
+
+        $('.wallet_1_balance').empty().append("Money Wallet : ₹" + w1);
+        $('.wallet_2_balance').empty().append("Package Wallet : ₹" + w2);
+
+        $('#patient_data_table_body').empty().append(data.data);
+        $('#patient_payment_table_body').empty().append(data.payment_html);
+        $('#loader_div').hide();
+      } 
+     });
 }
 // $(document).on('click',"#search_patient",function(e) {
 // 	$('#loader_div').show();

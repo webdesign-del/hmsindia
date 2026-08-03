@@ -4230,7 +4230,7 @@ foreach ($urls as $key => $url) {
         	$config["base_url"] = base_url() . "doctors/pcp_ndt";
         	$config["total_rows"] = $this->doctors_model->patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $ID);
         	//var_dump($patient_pcpndt_count);die;
-			$config["per_page"] = 50;
+			$config["per_page"] = 100;
         	$config["uri_segment"] = 2;
 			$config['use_page_numbers'] = true;
 			$config['num_links'] = 5;

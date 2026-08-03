@@ -112,8 +112,18 @@
 							else if($vl['status'] == 3){ echo '<td>Cancel</td>'; }
         					else{echo '<td>Pending</td>';}
     				  ?>
-					 		<td><a href="javascript:void(0);" type="partialpayments" bill="<?php echo $vl['ID']; ?>" class="cancle_first btn btn-large" >Cancel</a></td>
-					</tr>
+              
+					<td>
+<?php if($vl['status'] == 0 || $vl['status'] == 1){ ?>
+    <a href="javascript:void(0);" 
+       type="partialpayments" 
+       bill="<?php echo $vl['ID']; ?>" 
+       class="cancle_first btn btn-large">
+       Cancel
+    </a>
+<?php } ?>
+</td>
+</tr>
                   <?php $count++;} ?>
 				   <tr>
                 <td colspan="7">
@@ -141,19 +151,8 @@
                 <input type="text" class="hidden_field" readonly="readonly" value="" id="bill_type" />
                 <input type="text" class="hidden_field" readonly="readonly" value="3" id="bill_actions" />
                 <input type="text" class="hidden_field" readonly="readonly" value="" id="bill_id" />
-				<?php	
-						if ($vl['billing_at'] == "16249589462327"){ ?>
 						<input type="text" class="form-control"  value="" id="cn_invoice" />
-					<?php } ?>
-						<?php if ($vl['billing_at'] == "16266778858144"){ ?>
-						<input type="text" class="form-control"  value="" id="cn_invoice" />
-					<?php }  ?>
-					<?php if ($vl['billing_at'] == "16267558222750"){ ?>
-						<input type="text" class="form-control" value="" id="cn_invoice" />
-					<?php } 
-					//} 
-				?>
-                <p class="error hidden_field"></p>
+				        <p class="error hidden_field"></p>
                 <label class="pop_lable">Cancel because:</label>
                 <select class="cancle_suggestion mt-20">
                 	<option value="">-- Select reason --</option>

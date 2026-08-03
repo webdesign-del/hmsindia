@@ -45,12 +45,21 @@ th, td {
 				<tr>
 					<td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;" class="role"><?php echo get_procedure_data($val['sub_procedure']); ?></td>
 					<td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;"><?php echo $val['sub_procedures_code']?></td>
-					<td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;">
-					<?php if(have_form($val['sub_procedure'], 'doctor')){ ?>	
-						<a procedure_id="<?php echo $val['sub_procedure']; ?>" patient_procedure_id="<?php echo $patient_prodedures['ID']; ?>" href="javascript:void(0);" appointment_id="<?php echo $appointment_id; ?>" class="upload_record btn btn-large">Upload record</a>
-						<div class="procedure_form_div" id="procedure_form_<?php echo $val['sub_procedure']; ?>"></div>
-						<?php } ?>
-					</td>
+					<td style="border: 1px solid black; border-collapse: collapse; padding: 5px; text-align: left;">
+    <?php if (have_form($val['sub_procedure'], 'doctor')) { ?>    
+        <!-- 🟢 Upload Record Button with Dynamic Parameters -->
+        <a procedure_id="<?php echo $val['sub_procedure']; ?>" 
+           patient_procedure_id="<?php echo $patient_prodedures['ID']; ?>" 
+           href="javascript:void(0);" 
+           appointment_id="<?php echo $appointment_id; ?>" 
+           class="upload_record btn btn-large a">
+           Upload record
+        </a>
+
+        <!-- 📄 AJAX Response Container for Form Links -->
+        <div class="procedure_form_div" id="procedure_form_<?php echo $val['sub_procedure']; ?>"></div>
+    <?php } ?>
+</td>
 					<td style="border: 1px solid black; border-collapse: collapse;padding:5px; text-align:left;">
 						<?php if(have_form($val['sub_procedure'], 'doctor')){ ?>
 						<a href="javascript:void(0);" procedure_id="<?php echo $val['sub_procedure']; ?>" class="check_record btn btn-large">Check record</a>

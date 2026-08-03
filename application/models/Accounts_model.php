@@ -1205,26 +1205,40 @@ function approve_procedure($ID) {
     return 1;
 }
 
-	function approve_procedure_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice, $used_amount){ 
+function approve_procedure_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice, $used_amount){ 
     if ($type == 'procedure') {
+        // Escape inputs to prevent SQL syntax breakage
+        $request_esc          = $this->db->escape_str($request);
+        $status_esc           = $this->db->escape_str($status);
+        $reason_esc           = $this->db->escape_str($reason);
+        $reason_of_cancle_esc = $this->db->escape_str($reason_of_cancle);
+        $cn_invoice_esc       = $this->db->escape_str($cn_invoice);
+        $used_amount_esc      = $this->db->escape_str($used_amount);
+
         // Step 1: Update patient procedure status
-        $sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` SET `status`='$status',`reason_of_disapprove`='$reason',`reason_of_cancle`='$reason_of_cancle',`cn_invoice`='$cn_invoice',`used_amount`='$used_amount',`modified_on`='".date('Y-m-d H:i:s')."' WHERE ID='".$request."'";
+        $sql = "UPDATE `".$this->config->item('db_prefix')."patient_procedure` 
+                SET `status`='$status_esc',
+                    `reason_of_disapprove`='$reason_esc',
+                    `reason_of_cancle`='$reason_of_cancle_esc',
+                    `cn_invoice`='$cn_invoice_esc',
+                    `used_amount`='$used_amount_esc',
+                    `modified_on`='".date('Y-m-d H:i:s')."' 
+                WHERE `ID`='$request_esc'";
         $this->db->query($sql);
 
         // Step 2: Get procedure details (Sirf tabhi aage badhein jab status 'cancel' ho)
-        $proce_sql = "SELECT * FROM hms_patient_procedure WHERE ID = '".$request."' AND status='cancel'";
+        $proce_sql = "SELECT * FROM hms_patient_procedure WHERE ID = '$request_esc' AND status='cancel'";
         $procedure_result = run_select_query($proce_sql);
 
         if (!empty($procedure_result)) {
             $receipt_number = $procedure_result['receipt_number'];
 
             // Step 3: Get package collection data
-            $packag_sql = "SELECT * FROM hms_package_collections WHERE pkg_no = '".$receipt_number."'";
+            $packag_sql = "SELECT * FROM hms_package_collections WHERE pkg_no = '".$this->db->escape_str($receipt_number)."'";
             $packag_result = run_select_query($packag_sql);
             
-            // IMPORTANT FIX: Check karein ki package record mila ya nahi
+            // Check karein ki package record mila ya nahi
             if (empty($packag_result)) {
-                // Agar record nahi mila toh execution yahan rok dein
                 return 1; 
             }
 
@@ -1236,33 +1250,32 @@ function approve_procedure($ID) {
             $month = date("n", $timestamp);
             $financial_year = ($month >= 4) ? $year . '-' . ($year + 1) : ($year - 1) . '-' . $year;
             
-            // Ab keys safely assign hongi kyunki humne empty check upar kar liya hai
             $booked_pkg_amt_ex_gst = isset($packag_result['booked_pkg_amt_ex_gst']) ? $packag_result['booked_pkg_amt_ex_gst'] : 0;
-            $total_collection = isset($packag_result['total_collection']) ? $packag_result['total_collection'] : 0;
-            $patient_id = isset($packag_result['iic_id']) ? $packag_result['iic_id'] : '';
-            $procedure_code = $packag_result['pkg_code'];
-            $procedure_name = $packag_result['pkg_description'];
-            $category = $packag_result['category'];
-            $wife_name = $packag_result['patient_name'];
-            $origin = $packag_result['origin_booking_centre'];
-            $billing_center = $packag_result['sales_reporting_centre'];
-            $totalpackage = $packag_result['gross_revenue_pkg'];
-            $discount = $packag_result['discount'];
-            $fees = $packag_result['booked_pkg_amt_inc_gst'];
+            $total_collection     = isset($packag_result['total_collection']) ? $packag_result['total_collection'] : 0;
+            $patient_id           = isset($packag_result['iic_id']) ? $packag_result['iic_id'] : '';
+            $procedure_code       = isset($packag_result['pkg_code']) ? $packag_result['pkg_code'] : '';
+            $procedure_name       = isset($packag_result['pkg_description']) ? $packag_result['pkg_description'] : '';
+            $category             = isset($packag_result['category']) ? $packag_result['category'] : '';
+            $wife_name            = isset($packag_result['patient_name']) ? $packag_result['patient_name'] : '';
+            $origin               = isset($packag_result['origin_booking_centre']) ? $packag_result['origin_booking_centre'] : '';
+            $billing_center       = isset($packag_result['sales_reporting_centre']) ? $packag_result['sales_reporting_centre'] : '';
+            $totalpackage         = isset($packag_result['gross_revenue_pkg']) ? $packag_result['gross_revenue_pkg'] : 0;
+            $discount             = isset($packag_result['discount']) ? $packag_result['discount'] : 0;
+            $fees                 = isset($packag_result['booked_pkg_amt_inc_gst']) ? $packag_result['booked_pkg_amt_inc_gst'] : 0;
             
-            // Step 4: Update package collection cancellation details
+            // Step 4: Update package collection cancellation details (FIXED QUOTES HERE)
             $update_sql = "UPDATE hms_package_collections SET 
             `return_credit_note_date` = '$cancelled_date',
             `return_credit_note_amount` = '$booked_pkg_amt_ex_gst',
-            `return_credit_note_comment' = 'Cancelled', 
-            `return_credit_note_no` = '$cn_invoice',
+            `return_credit_note_comment` = 'Cancelled', 
+            `return_credit_note_no` = '$cn_invoice_esc',
             `balance_2024_25` = '-$total_collection',
             `balance_2025_26` = '-$total_collection'                
-            WHERE `pkg_no` = '$receipt_number'";
+            WHERE `pkg_no` = '".$this->db->escape_str($receipt_number)."'";
             $this->db->query($update_sql);
             
             $insert_sql = "INSERT INTO hms_package_collections (`pkg_booking_date`,`pkg_month`,`pkg_booking_year`,`financial_year`,`pkg_no`,`iic_id`,`pkg_code`,`pkg_description`,`category`,`patient_name`,`origin_booking_centre`,`sales_reporting_centre`,`billing_centre`,`gross_revenue_pkg`,`discount`,`booked_pkg_amt_inc_gst`,`gst_in_booked_pkg_amt`,`booked_pkg_amt_ex_gst`,`total_collection`,`total_collection_fy_2025_26`) 
-            VALUES ('$cancelled_date','$pkg_month','$pkg_booking_year','$financial_year','$receipt_number','$patient_id','$procedure_code','$procedure_name','$category','$wife_name','$origin','$billing_center','$billing_center','-$totalpackage','-$discount','-$fees','0','-$fees','0','-$totalpackage')";
+            VALUES ('$cancelled_date','$pkg_month','$pkg_booking_year','$financial_year','".$this->db->escape_str($receipt_number)."','".$this->db->escape_str($patient_id)."','".$this->db->escape_str($procedure_code)."','".$this->db->escape_str($procedure_name)."','".$this->db->escape_str($category)."','".$this->db->escape_str($wife_name)."','".$this->db->escape_str($origin)."','".$this->db->escape_str($billing_center)."','".$this->db->escape_str($billing_center)."','-$totalpackage','-$discount','-$fees','0','-$fees','0','-$totalpackage')";
             
             $this->db->query($insert_sql);
         }

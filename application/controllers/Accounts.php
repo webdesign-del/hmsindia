@@ -189,105 +189,241 @@ class Accounts extends CI_Controller {
 		if (!empty($patient_result))
         {
 			$html = $payment_html = '';		
-			if(count($consultation_result) > 0){
-				$type = $consultation_result['type'];
-				foreach($consultation_result['data'] as $key => $val){
-					$html .= '<tr>';
-					$html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=consultation">'.$val['receipt_number'].'</a></td>';
-					$html .= '<td>'.dateformat($val['on_date']).'</td>';
-					$html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
-					if($val['billing_from'] == 'IndiaIVF'){ $html .= '<td>'.$val['billing_from'].'</td>'; }
-					else{$html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
-                   // $html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';					
-					$html .= '<td>'.$currency.$val['totalpackage'].'</td>';
-					$html .= '<td>'.$currency.$val['fees'].'</td>';
-					$html .= '<td>'.$currency.$val['payment_done'].'</td>';
-					$html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
-					$html .= '<td>Consultation</td>';
-					$html .= '<td>'.ucwords($val['status']).'</td>';
-					$html .= '</tr>';
-				}
-			}	
+			if (count($consultation_result) > 0) {
+    $type = $consultation_result['type'];
+    foreach ($consultation_result['data'] as $key => $val) {
+        
+        // 1. Convert status safely if it is an array
+        $status_val = $val['status'];
+        if (is_array($status_val)) {
+            $status_str = isset($status_val['name']) ? $status_val['name'] : (isset($status_val[0]) ? $status_val[0] : '');
+        } else {
+            $status_str = (string)$status_val;
+        }
+
+        // 2. Convert billing_from safely if it is an array
+        $billing_from = is_array($val['billing_from']) ? ($val['billing_from']['name'] ?? '') : $val['billing_from'];
+
+        // 3. Convert billing_at safely if it is an array
+        $billing_at = is_array($val['billing_at']) ? ($val['billing_at']['id'] ?? '') : $val['billing_at'];
+
+        // 4. Convert biller_id safely if it is an array
+        $biller_id = is_array($val['biller_id']) ? ($val['biller_id']['id'] ?? '') : $val['biller_id'];
+
+        // 5. Safely handle employee name (Fixes line 224 error)
+        $employee_name = $this->get_employee_name($biller_id);
+        if (is_array($employee_name)) {
+            $employee_name_str = isset($employee_name['name']) ? $employee_name['name'] : (isset($employee_name[0]) ? $employee_name[0] : '');
+        } else {
+            $employee_name_str = (string) $employee_name;
+        }
+
+        $html .= '<tr>';
+        $html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=consultation">'.$val['receipt_number'].'</a></td>';
+        $html .= '<td>'.dateformat($val['on_date']).'</td>';
+        $html .= '<td>'.$this->get_center_name($billing_at).'</td>';
+        
+        if ($billing_from == 'IndiaIVF') { 
+            $html .= '<td>'.$billing_from.'</td>'; 
+        } else {
+            $html .= '<td>'.$this->get_center_name($billing_from).'</td>';
+        } 
+        
+        $html .= '<td>'.$employee_name_str.'</td>';                    
+        $html .= '<td>'.$currency.$val['totalpackage'].'</td>';
+        $html .= '<td>'.$currency.$val['fees'].'</td>';
+        $html .= '<td>'.$currency.$val['payment_done'].'</td>';
+        $html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
+        $html .= '<td>Consultation</td>';
+        $html .= '<td>'.ucwords($status_str).'</td>';
+        $html .= '</tr>';
+    }
+}	
 
 			if(count($investigate_result) > 0){
-				$type = $investigate_result['type'];
-				foreach($investigate_result['data'] as $key => $val){
-					$html .= '<tr>';
-					$html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=investigation">'.$val['receipt_number'].'</a></td>';
-					$html .= '<td>'.dateformat($val['on_date']).'</td>';
-					$html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
-					if($val['billing_from'] == 'IndiaIVF'){ $html .= '<td>'.$val['billing_from'].'</td>'; }
-					else{$html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
-					//$html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';
-					$html .= '<td>'.$currency.$val['totalpackage'].'</td>';
-					$html .= '<td>'.$currency.$val['fees'].'</td>';
-					$html .= '<td>'.$currency.$val['payment_done'].'</td>';
-					$html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
-					$html .= '<td>Investigation</td>';
-					$html .= '<td>'.ucwords($val['status']).'</td>';
-					$html .= '</tr>';
-				}
-			}
+    $type = $investigate_result['type'];
+    foreach($investigate_result['data'] as $key => $val){
+        
+        // 1. Status ko string aur lowercase me convert karein
+        $status_val = $val['status'];
+        if (is_array($status_val)) {
+            $status_str = isset($status_val['name']) ? $status_val['name'] : (isset($status_val[0]) ? $status_val[0] : '');
+        } else {
+            $status_str = (string)$status_val;
+        }
+        $status = strtolower($status_str);
 
-			if(count($procedure_result) > 0){
-				$type = $procedure_result['type'];
-				foreach($procedure_result['data'] as $key => $val){					 		
-					$html .= '<tr>';
-					$html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=procedure">'.$val['receipt_number'].'</a><a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['receipt_number'].'?t=procedure">'.'Add Payments'.'</a><br/>' . $val['series_number'] . '</td>';
-					$html .= '<td>'.dateformat($val['on_date']).'</td>';
-					$html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
-					if($val['billing_from'] == 'IndiaIVF'){ $html .= '<td>'.$val['billing_from'].'</td>'; }
-					else{$html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
-					//$html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';
-					$html .= '<td>'.$currency.$val['totalpackage'].'</td>';
-					$html .= '<td>'.$currency.$val['fees'].'</td>';
-					$html .= '<td>'.$currency.$val['payment_done'].'</td>';
-					$html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
-					$html .= '<td>Procedure</td>';
-					$html .= '<td>'.ucwords($val['status']).'</td>';
-					if(!empty($val['data'])){
-					  $procedure_data = unserialize($val['data']);
-					  foreach ($procedure_data['patient_procedures'] as $v2_data){
-						    $sql1 = "select * from hms_procedures where code='".$v2_data['sub_procedures_code']."'";
-                            $query = $this->db->query($sql1);
-                            $select_result1 = $query->result(); 
-					foreach ($select_result1 as $res_val){
-					$html .='<td>'.$res_val->procedure_name.','.$v2_data['sub_procedures_paid_price'].'</td>';
-					}}
-					 }
-					$html .= '</tr>';
-				}
-			}
+        // 2. Safely extract billing_from, billing_at, aur biller_id
+        $billing_from = is_array($val['billing_from']) ? ($val['billing_from']['name'] ?? '') : $val['billing_from'];
+        $billing_at   = is_array($val['billing_at']) ? ($val['billing_at']['id'] ?? '') : $val['billing_at'];
+        $biller_id    = is_array($val['biller_id']) ? ($val['biller_id']['id'] ?? '') : $val['biller_id'];
+
+        // 3. Employee name warning fix
+        $employee_name = $this->get_employee_name($biller_id);
+        if (is_array($employee_name)) {
+            $employee_name_str = isset($employee_name['name']) ? $employee_name['name'] : (isset($employee_name[0]) ? $employee_name[0] : '');
+        } else {
+            $employee_name_str = (string)$employee_name;
+        }
+
+        $html .= '<tr>';
+        
+        // Receipt Number aur Conditional "Add Payments" Button
+        $html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=investigation">'.$val['receipt_number'].'</a>' .
+                 (in_array($status, ['pending', 'approved']) ? ' <a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['receipt_number'].'?t=investigation">Add Payments</a>' : '') .
+                 '</td>';
+
+        $html .= '<td>'.dateformat($val['on_date']).'</td>';
+        $html .= '<td>'.$this->get_center_name($billing_at).'</td>';
+        
+        if($billing_from == 'IndiaIVF'){ 
+            $html .= '<td>'.$billing_from.'</td>'; 
+        } else {
+            $html .= '<td>'.$this->get_center_name($billing_from).'</td>';
+        } 
+        
+        $html .= '<td>'.$employee_name_str.'</td>';
+        $html .= '<td>'.$currency.$val['totalpackage'].'</td>';
+        $html .= '<td>'.$currency.$val['fees'].'</td>';
+        $html .= '<td>'.$currency.$val['payment_done'].'</td>';
+        $html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
+        $html .= '<td>Investigation</td>';
+        $html .= '<td>'.ucwords($status_str).'</td>';
+        $html .= '</tr>';
+    }
+}
+
+		if (count($procedure_result) > 0) {
+    $type = $procedure_result['type'];
+    
+    foreach ($procedure_result['data'] as $key => $val) {
+        
+        // 1. Safely extract status as a string
+        $status_val = $val['status'];
+        if (is_array($status_val)) {
+            $status_str = isset($status_val['status']) ? $status_val['status'] : (isset($status_val[0]) ? $status_val[0] : '');
+        } else {
+            $status_str = (string) $status_val;
+        }
+        $status = strtolower($status_str);
+
+        // 2. Safely extract series_number as a string
+        $series_num = is_array($val['series_number']) ? implode(', ', $val['series_number']) : $val['series_number'];
+
+        // 3. Safely extract billing_from as a string
+        $billing_from = is_array($val['billing_from']) ? ($val['billing_from']['name'] ?? '') : $val['billing_from'];
+
+        // 4. Safely extract biller_id and Employee Name (FIX FOR EMPLOYEE NAME)
+        $biller_id = is_array($val['biller_id']) ? ($val['biller_id']['id'] ?? '') : $val['biller_id'];
+        $employee_name = $this->get_employee_name($biller_id);
+        if (is_array($employee_name)) {
+            $employee_name_str = isset($employee_name['name']) ? $employee_name['name'] : (isset($employee_name[0]) ? $employee_name[0] : '');
+        } else {
+            $employee_name_str = (string) $employee_name;
+        }
+
+        $html .= '<tr>';
+        
+        // Column 1: Receipt Number & Add Payments Button
+        $html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=procedure">'.$val['receipt_number'].'</a>' . 
+                 (in_array($status, ['pending', 'approved']) ? ' <a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['receipt_number'].'?t=procedure">Add Payments</a>' : '') . 
+                 '<br/>' . $series_num . '</td>';
+                 
+        $html .= '<td>'.dateformat($val['on_date']).'</td>';
+        $html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
+        
+        if ($billing_from == 'IndiaIVF') { 
+            $html .= '<td>'.$billing_from.'</td>'; 
+        } else {
+            $html .= '<td>'.$this->get_center_name($billing_from).'</td>';
+        } 
+        
+        // Employee Name Column Added Here
+        $html .= '<td>'.$employee_name_str.'</td>';
+        
+        $html .= '<td>'.$currency.$val['totalpackage'].'</td>';
+        $html .= '<td>'.$currency.$val['fees'].'</td>';
+        $html .= '<td>'.$currency.$val['payment_done'].'</td>';
+        $html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
+        $html .= '<td>Procedure</td>';
+        $html .= '<td>'.ucwords($status_str).'</td>';
+        
+        if (!empty($val['data'])) {
+            $procedure_data = is_array($val['data']) ? $val['data'] : @unserialize($val['data']);
+            if (isset($procedure_data['patient_procedures']) && is_array($procedure_data['patient_procedures'])) {
+                foreach ($procedure_data['patient_procedures'] as $v2_data) {
+                    $sql1 = "select * from hms_procedures where code='".$v2_data['sub_procedures_code']."'";
+                    $query = $this->db->query($sql1);
+                    $select_result1 = $query->result(); 
+                    foreach ($select_result1 as $res_val) {
+                        $html .= '<td>'.$res_val->procedure_name.','.$v2_data['sub_procedures_paid_price'].'</td>';
+                    }
+                }
+            }
+        }
+        $html .= '</tr>';
+    }
+}
 
 			if (!empty($procedure_can_result) && is_array($procedure_can_result) && count($procedure_can_result) > 0) {
-				$type = $procedure_can_result['type'];
-				foreach($procedure_can_result['data'] as $key => $val){					 		
-					$html .= '<tr>';
-					$html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=procedure">'.$val['receipt_number'].'</a><a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['receipt_number'].'?t=procedure">'.$val['cn_invoice'].'</a></td>';
-					$html .= '<td>'.dateformat($val['modified_on']).'</td>';
-					$html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
-					if($val['billing_from'] == 'IndiaIVF'){ $html .= '<td>'.$val['billing_from'].'</td>'; }
-					else{$html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
-					//$html .= '<td>'.$this->get_employee_name($val['biller_id']).'</td>';
-					$html .= '<td>'.$currency.$val['totalpackage'].'</td>';
-					$html .= '<td>'.$currency.$val['fees'].'</td>';
-					$html .= '<td>'.$currency.$val['payment_done'].'</td>';
-					$html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
-					$html .= '<td>Procedure</td>';
-					$html .= '<td>Credit Notes</td>';
-					if(!empty($val['data'])){
-					  $procedure_data = unserialize($val['data']);
-					  foreach ($procedure_data['patient_procedures'] as $v2_data){
-						    $sql1 = "select * from hms_procedures where code='".$v2_data['sub_procedures_code']."'";
-                            $query = $this->db->query($sql1);
-                            $select_result1 = $query->result(); 
-					foreach ($select_result1 as $res_val){
-					$html .='<td>'.$res_val->procedure_name.','.$v2_data['sub_procedures_paid_price'].'</td>';
-					}}
-					 }
-					$html .= '</tr>';
-				}
-			}
+    $type = isset($procedure_can_result['type']) ? $procedure_can_result['type'] : '';
+    
+    if (isset($procedure_can_result['data']) && is_array($procedure_can_result['data'])) {
+        foreach ($procedure_can_result['data'] as $key => $val) {
+            
+            // 1. Safely extract billing_from, billing_at, biller_id, aur cn_invoice
+            $billing_from = is_array($val['billing_from']) ? ($val['billing_from']['name'] ?? '') : $val['billing_from'];
+            $billing_at   = is_array($val['billing_at']) ? ($val['billing_at']['id'] ?? '') : $val['billing_at'];
+            $biller_id    = is_array($val['biller_id']) ? ($val['biller_id']['id'] ?? '') : $val['biller_id'];
+            $cn_invoice   = is_array($val['cn_invoice']) ? implode(', ', $val['cn_invoice']) : $val['cn_invoice'];
+
+            // 2. Employee Name ko safely fetch aur format karein (FIX FOR EMPLOYEE NAME)
+            $employee_name = $this->get_employee_name($biller_id);
+            if (is_array($employee_name)) {
+                $employee_name_str = isset($employee_name['name']) ? $employee_name['name'] : (isset($employee_name[0]) ? $employee_name[0] : '');
+            } else {
+                $employee_name_str = (string) $employee_name;
+            }
+
+            $html .= '<tr>';
+            $html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=procedure">'.$val['receipt_number'].'</a> </td>';
+            $html .= '<td>'.dateformat($val['modified_on']).'</td>';
+            $html .= '<td>'.$this->get_center_name($billing_at).'</td>';
+            
+            if ($billing_from == 'IndiaIVF') { 
+                $html .= '<td>'.$billing_from.'</td>'; 
+            } else {
+                $html .= '<td>'.$this->get_center_name($billing_from).'</td>';
+            } 
+            
+            // Employee Name Column Added Here
+            $html .= '<td>'.$employee_name_str.'</td>';
+
+            $html .= '<td>'.$currency.$val['totalpackage'].'</td>';
+            $html .= '<td>'.$currency.$val['fees'].'</td>';
+            $html .= '<td>'.$currency.$val['payment_done'].'</td>';
+            $html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
+            $html .= '<td>Procedure</td>';
+            $html .= '<td>Credit Notes</td>';
+            
+            // 3. Safely handle procedure serialized data
+            if (!empty($val['data'])) {
+                $procedure_data = is_array($val['data']) ? $val['data'] : @unserialize($val['data']);
+                if (isset($procedure_data['patient_procedures']) && is_array($procedure_data['patient_procedures'])) {
+                    foreach ($procedure_data['patient_procedures'] as $v2_data) {
+                        $sql1 = "select * from hms_procedures where code='".$this->db->escape_str($v2_data['sub_procedures_code'])."'";
+                        $query = $this->db->query($sql1);
+                        $select_result1 = $query->result(); 
+                        foreach ($select_result1 as $res_val) {
+                            $html .= '<td>'.$res_val->procedure_name.','.$v2_data['sub_procedures_paid_price'].'</td>';
+                        }
+                    }
+                }
+            }
+            $html .= '</tr>';
+        }
+    }
+}
 			
 			/*if(count($medicine_result) > 0){
 				$type = $medicine_result['type'];
@@ -346,47 +482,102 @@ class Accounts extends CI_Controller {
 				}
 			}
 
-			if(count($payments) > 0){
-				$type = $payments['type'];
-				foreach($payments['data'] as $key => $val){ //var_dump($val);die;
-					$payment_html .= '<tr>';
-					$payment_html .= '<td><a target="_blank" class="btn btn-large" href="'.base_url().'accounts/details/'.$val['billing_id'].'?t='.$val['type'].'">'.$val['billing_id'].'</a><br/> ' . $val['series_number'] . '</td>';
-					$payment_html .= '<td><a target="_blank" href="'.base_url().'partial-payment-receipt/'.$val['refrence_number'].'">'.$val['refrence_number'].'</a></td>';
-					$payment_html .= '<td><a target="_blank" href="'.base_url().'accounts/patient_details/'.$patient_id.'">'.$patient_id.'</a></td>';
-					$payment_html .= '<td>'.$patient_data['wife_name'].'</td>';
-					$payment_html .= '<td>'.$this->get_center_name($val['billing_at']).'</td>';
-					if($val['billing_from'] == 'IndiaIVF'){ $payment_html .= '<td>'.$val['billing_from'].'</td>'; }
-					else{$payment_html .= '<td>'.$this->get_center_name($val['billing_from']).'</td>';}	
-					//$payment_html .= '<td>'.$this->get_employee_name($val['employee_number']).'</td>';
-					$payment_html .= '<td>'.$currency.$val['payment_done'].'</td>';
-					$payment_html .= '<td>'.$val['payment_method'].'</td>';
-					$payment_html .= '<td>'.$val['transaction_id'];
-					if(!empty($val['transaction_img'])){
-					  $payment_html .= '(<a href="'.$val['transaction_img'].'" class="hide_print"  target="_blank">Transaction Image</a>) </td>';
-					}else{
-					    $payment_html .= '</td>';
-					}
-					
-					$payment_html .= '<td>'.$val['on_date'].'</td>';
-					if($val['status'] == 1){ $payment_html .= '<td>Approved</td>'; }
-					else if($val['status'] == 2){ $payment_html .= '<td>Disapproved</td>'; }
-					else if($val['status'] == 3){ $payment_html .= '<td>Cancel</td>'; }
-					else{$payment_html .= '<td>Pending</td>';}	
-                    if (!empty($val['data'])) {
-						$procedure_data = unserialize($val['data']);
-						if (isset($procedure_data['patient_procedures'])) {
-						foreach ($procedure_data['patient_procedures'] as $v2_data) {
-						// Assuming you want to access the "sub_procedure" key
-						$code = $v2_data['sub_procedure']; // Corrected key name
-						$payment_html .= '<td>' . $code . '</td>';
-						}
-					}
-					}					
-					$payment_html .= '</tr>';
-				}
-			}
-			
-			$response = array('data' => $html,'current_balance' => patient_balance($patient_id), 'patient_name'=> $patient_result['wife_name'], 'husband_name'=> $patient_result['husband_name'], 'patient_phone'=> sting_masking($patient_result['wife_phone']), 'payment_html' => $payment_html);
+	if (!empty($payments) && is_array($payments) && count($payments) > 0) {
+    $type = isset($payments['type']) ? $payments['type'] : '';
+    
+    if (isset($payments['data']) && is_array($payments['data'])) {
+        
+        // SORTING: Oldest date at top, Newest date at bottom
+        usort($payments['data'], function($a, $b) {
+            $dateA = strtotime(isset($a['on_date']) ? $a['on_date'] : 0);
+            $dateB = strtotime(isset($b['on_date']) ? $b['on_date'] : 0);
+            return $dateA <=> $dateB; // Ascending Order (Old -> New)
+        });
+
+        foreach ($payments['data'] as $key => $val) {
+            
+            // 1. Safely extract billing_from, billing_at, and employee_number
+            $billing_from    = is_array($val['billing_from']) ? ($val['billing_from']['name'] ?? '') : $val['billing_from'];
+            $billing_at      = is_array($val['billing_at']) ? ($val['billing_at']['id'] ?? '') : $val['billing_at'];
+            $employee_number = is_array($val['employee_number']) ? ($val['employee_number']['id'] ?? '') : $val['employee_number'];
+            $series_num      = is_array($val['series_number']) ? implode(', ', $val['series_number']) : $val['series_number'];
+
+            // 2. Safely get Employee Name without triggering Array to String conversion warning
+            $employee_name = $this->get_employee_name($employee_number);
+            if (is_array($employee_name)) {
+                $employee_name_str = isset($employee_name['name']) ? $employee_name['name'] : (isset($employee_name[0]) ? $employee_name[0] : '');
+            } else {
+                $employee_name_str = (string) $employee_name;
+            }
+
+            $payment_html .= '<tr>';
+            $payment_html .= '<td><a target="_blank" class="btn btn-large" href="'.base_url().'accounts/details/'.$val['billing_id'].'?t='.$val['type'].'">'.$val['billing_id'].'</a><br/> ' . $series_num . '</td>';
+            $payment_html .= '<td><a target="_blank" href="'.base_url().'partial-payment-receipt/'.$val['refrence_number'].'">'.$val['refrence_number'].'</a></td>';
+            $payment_html .= '<td><a target="_blank" href="'.base_url().'accounts/patient_details/'.$patient_id.'">'.$patient_id.'</a></td>';
+            $payment_html .= '<td>'.(isset($patient_data['wife_name']) ? $patient_data['wife_name'] : '').'</td>';
+            $payment_html .= '<td>'.$this->get_center_name($billing_at).'</td>';
+            
+            if ($billing_from == 'IndiaIVF') { 
+                $payment_html .= '<td>'.$billing_from.'</td>'; 
+            } else {
+                $payment_html .= '<td>'.$this->get_center_name($billing_from).'</td>';
+            } 
+            
+            $payment_html .= '<td>'.$employee_name_str.'</td>';
+            $payment_html .= '<td>'.$currency.$val['payment_done'].'</td>';
+            $payment_html .= '<td>'.$val['payment_method'].'</td>';
+            $payment_html .= '<td>'.$val['transaction_id'];
+            
+            if (!empty($val['transaction_img'])) {
+                $payment_html .= ' (<a href="'.$val['transaction_img'].'" class="hide_print" target="_blank">Transaction Image</a>)</td>';
+            } else {
+                $payment_html .= '</td>';
+            }
+            
+            $payment_html .= '<td>'.$val['on_date'].'</td>';
+            
+            // Status Badges
+            if ($val['status'] == 1) { 
+                $payment_html .= '<td>Approved</td>'; 
+            } else if ($val['status'] == 2) { 
+                $payment_html .= '<td>Disapproved</td>'; 
+            } else if ($val['status'] == 3) { 
+                $payment_html .= '<td>Cancel</td>'; 
+            } else {
+                $payment_html .= '<td>Pending</td>';
+            }  
+            
+            // 3. Safely unserialize procedures data
+            if (!empty($val['data'])) {
+                $procedure_data = is_array($val['data']) ? $val['data'] : @unserialize($val['data']);
+                if (isset($procedure_data['patient_procedures']) && is_array($procedure_data['patient_procedures'])) {
+                    foreach ($procedure_data['patient_procedures'] as $v2_data) {
+                        $code = isset($v2_data['sub_procedure']) ? $v2_data['sub_procedure'] : '';
+                        $payment_html .= '<td>' . $code . '</td>';
+                    }
+                }
+            }                   
+            
+            $payment_html .= '</tr>';
+        }
+    }
+}
+			// 🚀 FETCH WALLET BALANCES FROM DATABASE
+        $wallet_info = $this->db->get_where('hms_patient_wallets', array('patient_id' => $patient_id))->row_array();
+        $wallet_1 = isset($wallet_info['wallet_1_balance']) ? $wallet_info['wallet_1_balance'] : 0;
+        $wallet_2 = isset($wallet_info['wallet_2_balance']) ? $wallet_info['wallet_2_balance'] : 0;
+
+        $response = array(
+            'data' => $html,
+            'current_balance' => patient_balance($patient_id),
+            'wallet_1_balance' => $wallet_1,
+            'wallet_2_balance' => $wallet_2,
+            'patient_name' => $patient_result['wife_name'],
+            'husband_name' => $patient_result['husband_name'],
+            'patient_phone' => sting_masking($patient_result['wife_phone']),
+            'payment_html' => $payment_html
+        );
+			//$response = array('data' => $html,'current_balance' => patient_balance($patient_id), 'patient_name'=> $patient_result['wife_name'], 'husband_name'=> $patient_result['husband_name'], 'patient_phone'=> sting_masking($patient_result['wife_phone']), 'payment_html' => $payment_html);
 			echo json_encode($response);
 			die;
         }else{
@@ -2244,7 +2435,7 @@ public function export_consultation_csv() {
     fclose($file);
     exit;
 }
-
+/*
 public function approve($request = NULL) {
     $logg = checklogin();
     if($logg['status'] == true) {
@@ -2408,7 +2599,191 @@ public function approve($request = NULL) {
         header("location:" .base_url(). "");
         die();
     }
-}
+} */
+
+public function approve($request = NULL) {
+    $logg = checklogin();
+    if($logg['status'] == true) {
+        $data = array();
+        
+        // Parameters catch karein safety checks ke saath
+        $type = isset($_GET['t']) ? $_GET['t'] : '';
+        $status = isset($_GET['u']) ? $_GET['u'] : '';
+        $cn_invoice = isset($_GET['cn']) ? $_GET['cn'] : '';
+        $used_amount = isset($_GET['ua']) ? $_GET['ua'] : 0;
+        $reason = isset($_GET['r']) ? $_GET['r'] : '';
+        $reason_of_cancle = isset($_GET['c']) ? $_GET['c'] : '';
+
+        $patient_id = 0;
+        $receipt_number = 0;
+
+        // --- WALLET REFUND & ADJUST LOGIC ---
+        if(in_array($status, ['cancel', 'disapproved', 'adjust'])) {
+            $table_map = [
+                'consultation' => 'consultation',
+                'registation' => 'registation',
+                'investigation' => 'patient_investigations',
+                'medicine' => 'patient_medicine',
+                'procedure' => 'patient_procedure',
+            ];
+
+            if(isset($table_map[$type])) {
+                $billing_info = india_ivf_billing($request, $table_map[$type]);
+                
+                $refund_amt = 0;
+                if(isset($billing_info['payment_done']) && $billing_info['payment_done'] > 0) {
+                    $refund_amt = $billing_info['payment_done'];
+                } elseif(isset($billing_info['amount']) && $billing_info['amount'] > 0) {
+                    $refund_amt = $billing_info['amount'];
+                }
+                
+                if(!empty($billing_info) && is_array($billing_info) && $refund_amt > 0) {
+                    
+                    $payment_method = '';
+                    if(isset($billing_info['payment_method'])) {
+                        $payment_method = strtolower(trim($billing_info['payment_method']));
+                    } elseif(isset($billing_info['payment_mode'])) {
+                        $payment_method = strtolower(trim($billing_info['payment_mode']));
+                    }
+
+                    // Agar payment wallet se hui thi, YAA status 'adjust' ho, YAA 'cancel' ho, toh amount seedha wallet me jayega.
+                    if (strpos($payment_method, 'wallet') !== false || in_array($status, ['adjust', 'cancel'])) {
+                        
+                        $p_id = $billing_info['patient_id'];
+                        
+                        if ($type == 'procedure' || $type == 'payments') {
+                            $wallet_column = 'wallet_2_balance';
+                            $is_wallet_2 = true;
+                        } else {
+                            $wallet_column = 'wallet_1_balance';
+                            $is_wallet_2 = false;
+                        }
+
+                        $check_wallet = $this->db->get_where('hms_patient_wallets', array('patient_id' => $p_id))->row_array();
+                        if(empty($check_wallet)) {
+                            $this->db->insert('hms_patient_wallets', array(
+                                'patient_id' => $p_id,
+                                'wallet_1_balance' => 0,
+                                'wallet_2_balance' => 0,
+                                'created_at' => date('Y-m-d H:i:s')
+                            ));
+                        }
+
+                        // Update Wallet Balance in Database
+                        $this->db->query("UPDATE hms_patient_wallets SET $wallet_column = $wallet_column + ?, updated_at = NOW() WHERE patient_id = ?", array($refund_amt, $p_id));
+                        
+                        $new_wallet = $this->db->get_where('hms_patient_wallets', array('patient_id' => $p_id))->row_array();
+                        
+                        $w1_balance = isset($new_wallet['wallet_1_balance']) ? $new_wallet['wallet_1_balance'] : 0;
+                        $w2_balance = isset($new_wallet['wallet_2_balance']) ? $new_wallet['wallet_2_balance'] : 0;
+
+                        if ($status === 'adjust') {
+                            $log_remarks = 'Amount Adjusted to Wallet ('.ucfirst($type).')';
+                        } elseif ($status === 'cancel') {
+                            $log_remarks = 'Refund for Cancelled '.ucfirst($type).' credited to Wallet';
+                        } else {
+                            $log_remarks = 'Refund for '.ucfirst($status).' ('.ucfirst($type).')';
+                        }
+
+                        if(!empty($reason)) {
+                            $log_remarks .= ' - Reason: ' . $reason;
+                        } elseif (!empty($reason_of_cancle)) {
+                            $log_remarks .= ' - Reason: ' . $reason_of_cancle;
+                        }
+                        
+                        $wallet_log = array(
+                            'patient_id'  => $p_id,
+                            'amount'      => $refund_amt,
+                            'action_type' => 'credit',
+                            'opening_w1'  => (!$is_wallet_2) ? ($w1_balance - $refund_amt) : $w1_balance,
+                            'closing_w1'  => $w1_balance,
+                            'opening_w2'  => ($is_wallet_2) ? ($w2_balance - $refund_amt) : $w2_balance,
+                            'closing_w2'  => $w2_balance,
+                            'reference_id'=> isset($billing_info['receipt_number']) ? $billing_info['receipt_number'] : $request,
+                            'payment_method' => 'wallet',
+                            'remarks'     => $log_remarks,
+                            'created_by'  => isset($_SESSION['logged_accountant']['name']) ? $_SESSION['logged_accountant']['name'] : 'system',
+                            'created_at'  => date('Y-m-d H:i:s'),
+                            'status'      => 'success'
+                        );
+                        $this->db->insert('hms_wallet_logs', $wallet_log);
+                    }
+                }
+            }
+        }
+
+        // --- BILLING PROCESS LOGIC ---
+        if($type == 'consultation') {            
+            $billing_records = india_ivf_billing($request, "consultation"); 
+            if(!empty($billing_records) && is_array($billing_records)) {
+                $patient_id = $billing_records['patient_id'];
+                $receipt_number = $billing_records['receipt_number'];
+            }
+            $data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
+        } else if($type == 'registation') {
+            $billing_records = india_ivf_billing($request, "registation"); 
+            if(!empty($billing_records) && is_array($billing_records)) {
+                $patient_id = $billing_records['patient_id'];
+                $receipt_number = $billing_records['receipt_number'];
+            }
+            $data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
+        } else if($type == 'investigation') {
+            $billing_records = india_ivf_billing($request, "patient_investigations"); 
+            if(!empty($billing_records) && is_array($billing_records)) {
+                $patient_id = $billing_records['patient_id'];
+                $receipt_number = $billing_records['receipt_number'];
+            }
+            $data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
+        } else if($type == 'medicine') {
+            $billing_records = india_ivf_billing($request, "patient_medicine"); 
+            if(!empty($billing_records) && is_array($billing_records)) {
+                $patient_id = $billing_records['patient_id'];
+                $receipt_number = $billing_records['receipt_number'];
+            }
+            $data = $this->accounts_model->approve_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice);
+        } else if($type == 'procedure') {
+            
+            // 1. Fetch exact receipt_number directly from hms_patient_procedure
+            $proc_query = $this->db->get_where('hms_patient_procedure', array('ID' => $request))->row_array();
+            if(!empty($proc_query)) {
+                $receipt_number = isset($proc_query['receipt_number']) ? $proc_query['receipt_number'] : 0;
+            } else {
+                $billing_records = india_ivf_billing($request, "patient_procedure"); 
+                if(!empty($billing_records) && is_array($billing_records)) {
+                    $receipt_number = isset($billing_records['receipt_number']) ? $billing_records['receipt_number'] : 0;
+                }
+            }
+            
+            // 2. Main procedure billing update via model
+            $data = $this->accounts_model->approve_procedure_billing($request, $type, $status, $reason, $reason_of_cancle, $cn_invoice, $used_amount);
+
+            // 🚀 3. AUTOMATIC PARTIAL PAYMENTS CANCEL / DISAPPROVE LOGIC
+            if (in_array($status, ['cancel', 'disapproved'])) {
+                $partial_status = ($status == 'cancel') ? 3 : 2; // 3 = Cancel, 2 = Disapproved
+                
+                $partial_update = array(
+                    'status' => $partial_status
+                );
+
+                // Update hms_patient_payments using receipt_number against billing_id
+                if(!empty($receipt_number)) {
+                    $this->db->where('billing_id', $receipt_number);
+                    $this->db->update('hms_patient_payments', $partial_update);
+                }
+
+                // Backup Safety Check: Update using request ID against billing_id
+                $this->db->where('billing_id', $request);
+                $this->db->update('hms_patient_payments', $partial_update);
+            }
+        }
+
+        header("location:" .$_SERVER['HTTP_REFERER']. "?m=".base64_encode('Billing processed successfully').'&t='.base64_encode('success'));
+        die();
+    } else {
+        header("location:" .base_url(). "");
+        die();
+    }
+}	
 
 public function partial_approve($request = NULL) {
     $logg = checklogin();
