@@ -270,23 +270,17 @@ if (isset($ID) && !empty($ID)) {
 	  <table class="table table-striped table-bordered table-hover" id="investigation_billing_list">
 
               <thead>
-                <tr>
-				     <th style="border:1px solid;">S.No.</th>
-					 <th style="border:1px solid;">NAME OF MALE UNDERGOING <?php $all_emplyee = $all_method->get_test_type();
-						            foreach($all_emplyee as $key => $val){ 
-                                    if($test_type == $val['type']){ echo $val['type'];}
-                    	             }  ?></th>
-                     <th style="border:1px solid;">Age</th>
-					 <th style="border:1px solid;">NAME OF WIFE WITH AGE</th>
-                     <th style="border:1px solid;">COMPLETE ADDRESS</th>
-					 <th style="border:1px solid;">TEL. No.</th>
-                     <th style="border:1px solid;">PARITY OF WOMAN WITH SEX OF PREVIOUS CHLD </th>
-                     <th style="border:1px solid;">REASON FOR IVF/ART</th>
-                     <th style="border:1px solid;">DETAILS OF REFERRING DOCTOR</th>
-                     <th style="border:1px solid;">DETAILS OF HOSPITAL AND DOCTOR</th>
-                     <th style="border:1px solid;">OUTCOME OF THE TREATMET</th>
-                     <th style="border:1px solid;">ANY MALFORMATION IN NEWBORN DETAILS</th>
-				</tr>
+                    <th style="border:1px solid;">S.No.</th>
+					          <th style="border:1px solid;">NAME OF PATIENT </th>
+                    <th style="border:1px solid;">AGE</th>
+					          <th style="border:1px solid;">WIFE NAME</th>
+                    <th style="border:1px solid;">PHONE No</th>
+                    <th style="border:1px solid;">INDICATION</th>
+					          <th style="border:1px solid;">DOCTOR NAME</th>
+                    <th style="border:1px solid;">PROCEDURE</th>
+                    <th style="border:1px solid;">FINDING</th>
+                    <th style="border:1px solid;">EMBRYOLOGIST NAME</th>
+				      </tr>
               </thead>
 
             <tbody id="investigate_result">
@@ -295,18 +289,16 @@ if (isset($ID) && !empty($ID)) {
                    
 			  ?>
                 <tr class="odd gradeX" style="border:1px solid;">
-                     <td style="border:1px solid;"><?php echo $a++; ?></td>
-					 <td style="border:1px solid;"><?php echo $vl['wife_name'] ?></td>
-					 <td style="border:1px solid;"><?php echo $vl['wife_age'] ?></td>
-                     <td style="border:1px solid;"><?php echo $vl['husband_name']; ?></td>
-                     <td style="border:1px solid;"><?php echo $vl['wife_address']; ?></td>
-					 <td style="border:1px solid;"><?php echo $vl['wife_phone']; ?></td>
-                     <td style="border:1px solid;"><?php echo $vl['female_pregnancy_other_p']; ?>, <?php echo $vl['female_pregnancy_other_l']; ?>, <?php echo $vl['female_pregnancy_other_a']; ?></td>
-					 <td style="border:1px solid;"><?php echo $vl['details_management_advised']; ?></td>
-					 <td style="border:1px solid;"><?php echo $vl['IVF_Consultant']; ?></td>
-					 <td style="border:1px solid;"><?php echo $vl['further_referredfor_dellvery']; ?></td>
-					 <td style="border:1px solid;"><?php echo $vl['outcome_of_pregnancy']; ?></td>
-					 <td style="border:1px solid;"><?php echo $vl['malformation_in_newborn']; ?></td>
+                    <td style="border:1px solid;"><?php echo $a++; ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['wife_name'] ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['wife_age'] ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['husband_name']; ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['wife_phone']; ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['female_issues']; ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['IVF_Consultant']; ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['procedure_done']; ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['outcome_of_tretment']; ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['embryologist']; ?></td>
 				</tr>
               <?php $count++;} ?>
 			</tbody>
