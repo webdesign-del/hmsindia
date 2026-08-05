@@ -240,9 +240,9 @@ class Accounts extends CI_Controller {
     }
 }	
 
-			if(count($investigate_result) > 0){
+if (count($investigate_result) > 0) {
     $type = $investigate_result['type'];
-    foreach($investigate_result['data'] as $key => $val){
+    foreach ($investigate_result['data'] as $key => $val) {
         
         // 1. Status ko string aur lowercase me convert karein
         $status_val = $val['status'];
@@ -268,15 +268,19 @@ class Accounts extends CI_Controller {
 
         $html .= '<tr>';
         
-        // Receipt Number aur Conditional "Add Payments" Button
+        // [FIXED] Status Disapprove / Cancel hone par YA Remaining Amount <= 0 hone par "Add Payments" hide hoga
+        $show_add_payment = in_array($status, ['pending', 'approved']) 
+                            && !in_array($status, ['disapprove', 'disapproved', 'cancel', 'cancelled']) 
+                            && (float)$val['remaining_amount'] > 0;
+
         $html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=investigation">'.$val['receipt_number'].'</a>' .
-                 (in_array($status, ['pending', 'approved']) ? ' <a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['receipt_number'].'?t=investigation">Add Payments</a>' : '') .
+                 ($show_add_payment ? ' <a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['receipt_number'].'?t=investigation">Add Payments</a>' : '') .
                  '</td>';
 
         $html .= '<td>'.dateformat($val['on_date']).'</td>';
         $html .= '<td>'.$this->get_center_name($billing_at).'</td>';
         
-        if($billing_from == 'IndiaIVF'){ 
+        if ($billing_from == 'IndiaIVF') { 
             $html .= '<td>'.$billing_from.'</td>'; 
         } else {
             $html .= '<td>'.$this->get_center_name($billing_from).'</td>';
