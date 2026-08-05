@@ -2213,38 +2213,47 @@ function approve_procedure_billing($request, $type, $status, $reason, $reason_of
 		return $procedure_result;
 	}
 
-	public function export_procedure_data($start, $end, $center, $patient_id, $payment_method, $biller_id) {
-    $response = array();
+public function export_procedure_data($start, $end, $center, $patient_id, $payment_method, $biller_id) {
+    $prefix = $this->config->item('db_prefix');
 
-    // 1. Secure Query Builder for procedures
-    $this->db->select('DISTINCT patient_id, receipt_number, totalpackage, fees as discounted_package, payment_done, remaining_amount, payment_method, billing_from, billing_at, biller_id, data, on_date, status, hospital_id, series_number', false);
-    $this->db->from($this->config->item('db_prefix') . 'patient_procedure');
+    // 1. Single Optimized Query using JOINs & Aggregation
+    $this->db->select("
+        p.patient_id, p.receipt_number, p.totalpackage, p.fees as discounted_package, 
+        p.payment_done as initial_paid, p.payment_method, p.billing_from, p.billing_at, 
+        p.biller_id, p.data, p.on_date, p.status, p.hospital_id, p.series_number,
+        pt.wife_name, pt.husband_name,
+        COALESCE(SUM(pm.payment_done), 0) as total_partial_payment
+    ", false);
 
-    if (!empty($patient_id)) {
-        $this->db->where('patient_id', $patient_id);
-    }
-    if (!empty($biller_id)) {
-        $this->db->where('biller_id', $biller_id);
-    }
-    if (!empty($center)) {
-        $this->db->where('billing_at', $center);
-    }
-    if (!empty($payment_method)) {
-        $this->db->where('payment_method', $payment_method);
-    }
+    $this->db->from($prefix . 'patient_procedure p');
+    
+    // Join Patient Info
+    $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
+    
+    // Join Payments Info (for partial payment sum)
+    $this->db->join('hms_patient_payments pm', 'pm.billing_id = p.receipt_number AND pm.status = 1', 'left');
+
+    // Dynamic Filters
+    if (!empty($patient_id))     $this->db->where('p.patient_id', $patient_id);
+    if (!empty($biller_id))      $this->db->where('p.biller_id', $biller_id);
+    if (!empty($center))         $this->db->where('p.billing_at', $center);
+    if (!empty($payment_method)) $this->db->where('p.payment_method', $payment_method);
     if (!empty($start) && !empty($end)) {
-        $this->db->where("on_date BETWEEN " . $this->db->escape($start) . " AND " . $this->db->escape($end), null, false);
+        $this->db->where("p.on_date BETWEEN " . $this->db->escape($start) . " AND " . $this->db->escape($end), null, false);
     }
 
-    $this->db->order_by('on_date', 'DESC');
+    // Grouping by unique receipt
+    $this->db->group_by('p.receipt_number');
+    $this->db->order_by('p.on_date', 'DESC');
+
     $procedure_result = $this->db->get()->result_array();
 
     if (empty($procedure_result)) {
-        return $response;
+        return [];
     }
 
-    // 2. Efficient procedure sub-codes map (Batch process to avoid N+1 queries)
-    $all_codes = array();
+    // 2. Batch process sub-procedures code lookup
+    $all_codes = [];
     foreach ($procedure_result as $val) {
         $hms_procedures_result = @unserialize($val['data']);
         if (is_array($hms_procedures_result)) {
@@ -2260,7 +2269,7 @@ function approve_procedure_billing($request, $type, $status, $reason, $reason_of
         }
     }
 
-    $code_map = array();
+    $code_map = [];
     if (!empty($all_codes)) {
         $this->db->select('code, procedure_name, category');
         $this->db->from('hms_procedures');
@@ -2271,10 +2280,11 @@ function approve_procedure_billing($request, $type, $status, $reason, $reason_of
         }
     }
 
-    // 3. Process each procedure record
+    // 3. Build array response without inside queries
+    $response = [];
     foreach ($procedure_result as $val) {
         $hms_procedures_result = @unserialize($val['data']);
-        $procedure_nameArr = array();
+        $procedure_nameArr = [];
         $category = '';
 
         if (is_array($hms_procedures_result)) {
@@ -2284,7 +2294,7 @@ function approve_procedure_billing($request, $type, $status, $reason, $reason_of
                         $code = $v2_data5['sub_procedures_code'] ?? '';
                         if (isset($code_map[$code])) {
                             $procedure_nameArr[] = $code_map[$code]['procedure_name'];
-                            $category = $code_map[$code]['category']; // Category mapped directly
+                            $category = $code_map[$code]['category'];
                         }
                     }
                 }
@@ -2293,42 +2303,27 @@ function approve_procedure_billing($request, $type, $status, $reason, $reason_of
 
         $procedure_name1 = implode(',', array_unique($procedure_nameArr));
 
-        // Get Patient & Husband Name
-        $patient_name = $this->get_patient_name($val['patient_id']);
-        $husband_name = $this->get_husband_name($val['patient_id']);
-        $formatted_name = !empty($husband_name) ? $patient_name . ' w/o ' . $husband_name : $patient_name;
+        // Format Patient Name directly from SQL Result
+        $wife_name = $val['wife_name'] ?? '';
+        $husband_name = $val['husband_name'] ?? '';
+        $formatted_name = !empty($husband_name) ? $wife_name . ' w/o ' . $husband_name : $wife_name;
 
-        // --- PARTIAL PAYMENT & REMAINING AMOUNT CALCULATION ---
-        // receipt_number = billing_id and status = 1 (active/approved payment)
-        $this->db->select_sum('payment_done', 'total_partial_payment');
-        $this->db->from('hms_patient_payments');
-        $this->db->where('billing_id', $val['receipt_number']);
-        $this->db->where('status', 1);
-        $payment_query = $this->db->get()->row_array();
-
-        $partial_paid = (float)($payment_query['total_partial_payment'] ?? 0);
-        $initial_paid = (float)$val['payment_done'];
-
-        // Total Paid = Initial Payment + Partial Payments
+        // Paid & Remaining Calculation
+        $initial_paid = (float)$val['initial_paid'];
+        $partial_paid = (float)$val['total_partial_payment'];
         $total_paid_done = $initial_paid + $partial_paid;
 
-        // Total Package / Discounted Amount
         $discounted_pkg = (float)$val['discounted_package'];
-        
-        // Final Remaining Calculation = Discounted Package - Total Paid Done
-        $final_remaining = $discounted_pkg - $total_paid_done;
-        if ($final_remaining < 0) {
-            $final_remaining = 0; // Negative values avoid karne ke liye
-        }
+        $final_remaining = max(0, $discounted_pkg - $total_paid_done);
 
-        $response[] = array(
+        $response[] = [
             'patient_id'         => $val['patient_id'],
             'wife_name'          => $formatted_name,
             'receipt_number'     => $val['receipt_number'],
             'totalpackage'       => $val['totalpackage'],
             'discounted_package' => $discounted_pkg,
-            'payment_done'       => $total_paid_done,     // Initial + Partial Payment
-            'remaining_amount'   => $final_remaining,    // Remaining calculation
+            'payment_done'       => $total_paid_done,
+            'remaining_amount'   => $final_remaining,
             'payment_method'     => $val['payment_method'],
             'billing_from'       => $val['billing_from'],
             'billing_at'         => $val['billing_at'],
@@ -2339,7 +2334,7 @@ function approve_procedure_billing($request, $type, $status, $reason, $reason_of
             'status'             => $val['status'],
             'hospital_id'        => $val['hospital_id'],
             'series_number'      => $val['series_number'],
-        );
+        ];
     }
 
     return $response;
