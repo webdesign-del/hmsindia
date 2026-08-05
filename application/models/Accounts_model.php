@@ -3877,7 +3877,7 @@ function export_partialpayments_data($start, $end, $center, $type, $status){
                     'date' => $val['date'],
                     'series_number' => $val['series_number'],
                     'status' => $val['status'],
-					'status' => $val['booking_date'],
+					'booking_date' => $val['booking_date'],
                     'billing_type' => 'Partial Payment',
             );
         }
