@@ -70,6 +70,7 @@
                       <th>Patient ID</th>
                       <th>On Date</th>
                       <th>Amount Paid</th>
+                      <th>Payment Method</th>
                       <th>Billing At</th>
                       <th>Billing Source</th>
                       <th>Status</th>
@@ -102,6 +103,7 @@
                       <td><a href="<?php echo base_url()?>accounts/patient_details/<?php echo $vl['patient_id'];?>"><?php echo $vl['patient_id']; ?></a></td>
                       <td><?php echo $vl['on_date']?></td>
                       <td><?php echo $currency.$vl['payment_done']?></td>
+                      <td><?php echo $vl['payment_method']?></td>
                       <td><?php echo $all_method->get_center_name($vl['billing_at']); ?></td>
                       <?php
                         if($vl['billing_from'] == 'IndiaIVF'){ echo '<td>'.$vl['billing_from'].'</td>'; }

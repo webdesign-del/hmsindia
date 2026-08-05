@@ -2857,19 +2857,27 @@ public function consultation($appointment_id){
 
 	
 
-	public function search_doctor(){
-		$centre_id = $_POST['centre_id'];
-		$doctors = $this->doctors_model->center_doctors($centre_id);
-		$option = "";
-		$option = "<option value=''>Select</option>";
-		if(!empty($doctors)){
-			foreach($doctors as $key => $val){
-				$option .= "<option value='".$val['ID']."'>".$val['name']."</option>";
-			}
-		}
-		echo json_encode($option);
-		die;		
-	}
+	public function search_doctor() {
+    $centre_id = $this->input->post('centre_id', true);
+    
+    // Safety check
+    if (empty($centre_id)) {
+        echo "<option value=''>--Select Doctor--</option>";
+        return;
+    }
+
+    $doctors = $this->doctors_model->center_doctors($centre_id);
+    
+    $option = "<option value=''>--Select Doctor--</option>";
+    if (!empty($doctors)) {
+        foreach ($doctors as $val) {
+            $option .= "<option value='" . $val['ID'] . "'>" . $val['name'] . "</option>";
+        }
+    }
+    
+    // Direct output string, do NOT json_encode
+    echo $option;
+}
 
 	public function search_doctor_in_Camp()
     {

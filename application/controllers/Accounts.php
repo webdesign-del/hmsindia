@@ -1217,7 +1217,7 @@ if (isset($export_billing)){
     $fp = fopen('php://output','w');
     
     // FIX 3: Updated Headers to match exactly 14 columns
-    $headers = 'IIC ID, Patient Name, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Procedure Name, Billing Type, Date, Series Number, Status,Booking Date';
+    $headers = 'IIC ID, Patient Name,Payment ID, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Procedure Name, Billing Type, Date, Series Number, Status,Booking Date';
     
     //Add the headers
     fwrite($fp, $headers. "\r\n");
@@ -1231,7 +1231,8 @@ if (isset($export_billing)){
         // FIX 4: Passed '' (empty string) instead of $val['procedure_name'] which doesn't exist
         $lead_arr = array(
             $val['patient_id'], 
-            $val['wife_name'], 
+            $val['wife_name'],
+			$val['billing_id'], 
             $val['totalpackage'], 
             $val['discounted_package'], 
             $val['payment_done'], 
