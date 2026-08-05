@@ -3917,7 +3917,7 @@ public function partial_tally() {
 
     $success_count = 0;
     $error_count = 0;
-    $already_sent_count = 0; // New counter for duplicates
+    $already_sent_count = 0; // Counter for duplicates
 
     foreach ($payment_ids as $id) {
 
@@ -3939,8 +3939,14 @@ public function partial_tally() {
 
         if ($result) {
             $success_count++;
-            // Update status to 1
-            $this->db->where('ID', $id)->update('hms_patient_payments', ['tally_status' => 1]);
+            
+            // Update status to 1 and record the send timestamp
+            $update_data = [
+                'tally_status'    => 1,
+                'tally_send_date' => date('Y-m-d H:i:s')
+            ];
+
+            $this->db->where('ID', $id)->update('hms_patient_payments', $update_data);
         } else {
             $error_count++;
         }
@@ -4490,7 +4496,8 @@ foreach($ret_grouped as $return) {
  // =========================================================================
     // PART 7: PARTIAL PAYMENTS
     // =========================================================================
-    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' AND on_date > '2026-07-28' ORDER BY modified_on DESC LIMIT 500");
+    // [FIXED] DATE(tally_send_date) = CURDATE() lene se raat 12 baje ke baad pichhle din ke records automatic hat jayenge.
+    $partial_q = $this->db->query("SELECT * FROM hms_patient_payments WHERE status IN ('1', '3') AND tally_status='1' AND DATE(tally_send_date) = CURDATE() ORDER BY modified_on DESC LIMIT 500");
     $payment_rows = $partial_q->result_array();
 
     // यहाँ से पुरानी गलत $bill_c वाली लाइन हटा दी गई है
@@ -4552,7 +4559,7 @@ foreach ($payment_rows as $payment_row) {
         'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
         'billing_center'   => 'N/A',
         'origin_center'    => 'N/A',
-		'center_code'      => 'N/A',
+        'center_code'      => 'N/A',
         'order_number'     => $payment_row['billing_id'],
         'receipt_number'   => $payment_row['refrence_number'],
         'on_date'          => date('d-m-Y', strtotime($payment_row['on_date'])),
@@ -4562,7 +4569,7 @@ foreach ($payment_rows as $payment_row) {
         'status'           => ($payment_row['status'] == 1) ? 'Approved' : 'Cancel',
         'series_number'    => $series_number, 
         'company_state'    => $bill_c['state_name'] ?? '', 
-        'company_gstin'    => $bill_c['center_gst'] ?? '', // [FIX] यहाँ gst_number की जगह center_gst कर दिया है
+        'company_gstin'    => $bill_c['center_gst'] ?? '', 
         'party_state'      => $bill_c['state_name'] ?? '',
         'place_of_supply'  => $bill_c['state_name'] ?? '',
         'items'            => $partial_items
