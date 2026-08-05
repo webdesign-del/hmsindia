@@ -360,9 +360,9 @@ if (count($procedure_result) > 0) {
 
         $html .= '<tr>';
         
-        // Column 1: Receipt Number & Add Payments Button
+        // [FIXED] Condition update ki gayi: Tabhi Add Payments dikhe jab $final_remaining_amt > 0 ho
         $html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=procedure">'.$val['receipt_number'].'</a>' . 
-                 (in_array($status, ['pending', 'approved']) ? ' <a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['receipt_number'].'?t=procedure">Add Payments</a>' : '') . 
+                 (in_array($status, ['pending', 'approved']) && $final_remaining_amt > 0 ? ' <a class="btn btn-large" target="_blank" href="'.base_url().'accounts/partial_procedure_billing/'.$val['receipt_number'].'?t=procedure">Add Payments</a>' : '') . 
                  '<br/>' . $series_num . '</td>';
                  
         $html .= '<td>'.dateformat($val['on_date']).'</td>';
@@ -379,7 +379,7 @@ if (count($procedure_result) > 0) {
         $html .= '<td>'.$currency.$val['totalpackage'].'</td>';
         $html .= '<td>'.$currency.$val['fees'].'</td>';
         
-        // UPDATED: Dynamic Calculated Values
+        // Dynamic Calculated Values
         $html .= '<td>'.$currency.number_format($final_payment_done, 2).'</td>';
         $html .= '<td>'.$currency.number_format($final_remaining_amt, 2).'</td>';
         
@@ -404,64 +404,73 @@ if (count($procedure_result) > 0) {
 }
 
 			if (!empty($procedure_can_result) && is_array($procedure_can_result) && count($procedure_can_result) > 0) {
-    $type = isset($procedure_can_result['type']) ? $procedure_can_result['type'] : '';
-    
-    if (isset($procedure_can_result['data']) && is_array($procedure_can_result['data'])) {
-        foreach ($procedure_can_result['data'] as $key => $val) {
-            
-            // 1. Safely extract billing_from, billing_at, biller_id, aur cn_invoice
-            $billing_from = is_array($val['billing_from']) ? ($val['billing_from']['name'] ?? '') : $val['billing_from'];
-            $billing_at   = is_array($val['billing_at']) ? ($val['billing_at']['id'] ?? '') : $val['billing_at'];
-            $biller_id    = is_array($val['biller_id']) ? ($val['biller_id']['id'] ?? '') : $val['biller_id'];
-            $cn_invoice   = is_array($val['cn_invoice']) ? implode(', ', $val['cn_invoice']) : $val['cn_invoice'];
+		$type = isset($procedure_can_result['type']) ? $procedure_can_result['type'] : '';
+                
+                if (isset($procedure_can_result['data']) && is_array($procedure_can_result['data'])) {
+                    foreach ($procedure_can_result['data'] as $key => $val) {
+                        
+                        // 1. Safely extract billing_from, billing_at, biller_id, aur cn_invoice
+                        $billing_from = is_array($val['billing_from']) ? ($val['billing_from']['name'] ?? '') : $val['billing_from'];
+                        $billing_at   = is_array($val['billing_at']) ? ($val['billing_at']['id'] ?? '') : $val['billing_at'];
+                        $biller_id    = is_array($val['biller_id']) ? ($val['biller_id']['id'] ?? '') : $val['biller_id'];
+                        $cn_invoice   = is_array($val['cn_invoice']) ? implode(', ', $val['cn_invoice']) : $val['cn_invoice'];
 
-            // 2. Employee Name ko safely fetch aur format karein (FIX FOR EMPLOYEE NAME)
-            $employee_name = $this->get_employee_name($biller_id);
-            if (is_array($employee_name)) {
-                $employee_name_str = isset($employee_name['name']) ? $employee_name['name'] : (isset($employee_name[0]) ? $employee_name[0] : '');
-            } else {
-                $employee_name_str = (string) $employee_name;
-            }
-
-            $html .= '<tr>';
-            $html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=procedure">'.$val['receipt_number'].'</a> </td>';
-            $html .= '<td>'.dateformat($val['modified_on']).'</td>';
-            $html .= '<td>'.$this->get_center_name($billing_at).'</td>';
-            
-            if ($billing_from == 'IndiaIVF') { 
-                $html .= '<td>'.$billing_from.'</td>'; 
-            } else {
-                $html .= '<td>'.$this->get_center_name($billing_from).'</td>';
-            } 
-            
-            // Employee Name Column Added Here
-            $html .= '<td>'.$employee_name_str.'</td>';
-
-            $html .= '<td>'.$currency.$val['totalpackage'].'</td>';
-            $html .= '<td>'.$currency.$val['fees'].'</td>';
-            $html .= '<td>'.$currency.$val['payment_done'].'</td>';
-            $html .= '<td>'.$currency.$val['remaining_amount'].'</td>';
-            $html .= '<td>Procedure</td>';
-            $html .= '<td>Credit Notes</td>';
-            
-            // 3. Safely handle procedure serialized data
-            if (!empty($val['data'])) {
-                $procedure_data = is_array($val['data']) ? $val['data'] : @unserialize($val['data']);
-                if (isset($procedure_data['patient_procedures']) && is_array($procedure_data['patient_procedures'])) {
-                    foreach ($procedure_data['patient_procedures'] as $v2_data) {
-                        $sql1 = "select * from hms_procedures where code='".$this->db->escape_str($v2_data['sub_procedures_code'])."'";
-                        $query = $this->db->query($sql1);
-                        $select_result1 = $query->result(); 
-                        foreach ($select_result1 as $res_val) {
-                            $html .= '<td>'.$res_val->procedure_name.','.$v2_data['sub_procedures_paid_price'].'</td>';
+                        // 2. Employee Name ko safely fetch aur format karein (FIX FOR EMPLOYEE NAME)
+                        $employee_name = $this->get_employee_name($biller_id);
+                        if (is_array($employee_name)) {
+                            $employee_name_str = isset($employee_name['name']) ? $employee_name['name'] : (isset($employee_name[0]) ? $employee_name[0] : '');
+                        } else {
+                            $employee_name_str = (string) $employee_name;
                         }
+
+                        // --- [FIX: NEGATIVE BALANCE FOR CREDIT NOTES / CANCELLATION] ---
+                        $totalpackage     = -abs((float)$val['totalpackage']);
+                        $fees             = -abs((float)$val['fees']);
+                        $payment_done     = -abs((float)$val['payment_done']);
+                        $remaining_amount = -abs((float)$val['remaining_amount']);
+
+                        $html .= '<tr>';
+                        $html .= '<td><a class="btn btn-large" href="'.base_url().'accounts/details/'.$val['receipt_number'].'?t=procedure">'.$val['receipt_number'].'</a> </td>';
+                        $html .= '<td>'.dateformat($val['modified_on']).'</td>';
+                        $html .= '<td>'.$this->get_center_name($billing_at).'</td>';
+                        
+                        if ($billing_from == 'IndiaIVF') { 
+                            $html .= '<td>'.$billing_from.'</td>'; 
+                        } else {
+                            $html .= '<td>'.$this->get_center_name($billing_from).'</td>';
+                        } 
+                        
+                        // Employee Name Column
+                        $html .= '<td>'.$employee_name_str.'</td>';
+
+                        // Amounts with Negative Balance Formatting
+                        $html .= '<td>'. $currency . number_format($totalpackage, 2) . '</td>';
+                        $html .= '<td>'. $currency . number_format($fees, 2) . '</td>';
+                        $html .= '<td>'. $currency . number_format($payment_done, 2) . '</td>';
+                        $html .= '<td>'. $currency . number_format($remaining_amount, 2) . '</td>';
+                        $html .= '<td>Procedure</td>';
+                        $html .= '<td>Credit Notes</td>';
+                        
+                        // 3. Safely handle procedure serialized data
+                        if (!empty($val['data'])) {
+                            $procedure_data = is_array($val['data']) ? $val['data'] : @unserialize($val['data']);
+                            if (isset($procedure_data['patient_procedures']) && is_array($procedure_data['patient_procedures'])) {
+                                foreach ($procedure_data['patient_procedures'] as $v2_data) {
+                                    $sql1 = "select * from hms_procedures where code='".$this->db->escape_str($v2_data['sub_procedures_code'])."'";
+                                    $query = $this->db->query($sql1);
+                                    $select_result1 = $query->result(); 
+                                    foreach ($select_result1 as $res_val) {
+                                        // Item paid price ko bhi negative me format kar diya gaya hai
+                                        $sub_price = -abs((float)$v2_data['sub_procedures_paid_price']);
+                                        $html .= '<td>'.$res_val->procedure_name.','.$currency.number_format($sub_price, 2).'</td>';
+                                    }
+                                }
+                            }
+                        }
+                        $html .= '</tr>';
                     }
                 }
             }
-            $html .= '</tr>';
-        }
-    }
-}
 			
 			/*if(count($medicine_result) > 0){
 				$type = $medicine_result['type'];
