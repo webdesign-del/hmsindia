@@ -2,7 +2,7 @@
 if (isset($_POST['submit'])) {
     extract($_POST);
 	$ID = $_GET['ID'];
-   $sql1 = "update pcp_ndt set wife_name='$wife_name', wife_age='$wife_age', husband_name='$husband_name', wife_address='$wife_address', wife_phone='$wife_phone',female_pregnancy_other_p='$female_pregnancy_other_p',female_pregnancy_other_l='$female_pregnancy_other_l',female_pregnancy_other_a='$female_pregnancy_other_a', details_management_advised='$details_management_advised', IVF_Consultant='$IVF_Consultant', procedure_done='$procedure_done', outcome_of_tretment='$outcome_of_tretment', further_referredfor_dellvery='$further_referredfor_dellvery', outcome_of_pregnancy='$outcome_of_pregnancy', male='$male', female='$female', malformation_in_newborn='$malformation_in_newborn', female_issues='$female_issues', date_of_discharge='$date_of_discharge', center='$center' where ID = '$ID'  ";
+   $sql1 = "update pcp_ndt set wife_name='$wife_name', wife_age='$wife_age', husband_name='$husband_name', wife_address='$wife_address', wife_phone='$wife_phone',female_pregnancy_other_p='$female_pregnancy_other_p',female_pregnancy_other_l='$female_pregnancy_other_l',female_pregnancy_other_a='$female_pregnancy_other_a', details_management_advised='$details_management_advised', IVF_Consultant='$IVF_Consultant', procedure_done='$procedure_done', outcome_of_tretment='$outcome_of_tretment', further_referredfor_dellvery='$further_referredfor_dellvery', outcome_of_pregnancy='$outcome_of_pregnancy', male='$male', female='$female', malformation_in_newborn='$malformation_in_newborn', female_issues='$female_issues', date_of_discharge='$date_of_discharge', embryologist='$embryologist', center='$center' where ID = '$ID'  ";
     $query2 = $this->db->query($sql1);
 	$num = (int) $query2;
     if ($num > 0) {
@@ -147,6 +147,10 @@ if (isset($_POST['submit'])) {
                     	  } 
 					    ?>
                 </select>
+</td>
+<td colspan="2" width="50%">
+<strong>Embryologist
+<input type="text" class="Discharge" name="embryologist" value="<?php echo $res_val->embryologist; ?>"></strong>
 </td>
 </tr>
 </tbody>
