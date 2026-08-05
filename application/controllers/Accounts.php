@@ -1216,11 +1216,18 @@ if (isset($export_billing)){
     header('Content-Disposition: attachment; filename=Partialpayments-'.$start_date.'-'.$end_date.'.csv');
     $fp = fopen('php://output','w');
     
-    // FIX 3: Updated Headers to match exactly 14 columns
-    $headers = 'IIC ID, Patient Name,Payment ID, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Procedure Name, Billing Type, Date, Series Number, Status,Booking Date';
+    // Headers
+    $headers = array(
+        'IIC ID', 'Patient Name', 'Payment ID', 'Total package', 
+        'Discounted Package', 'Paid Amount', 'Remaining Amount', 
+        'Payment Method', 'Billing From', 'Billing At', 
+        'Procedure Name', 'Billing Type', 'Date', 'Series Number', 
+        'Status', 'Booking Date'
+    );
     
-    //Add the headers
-    fwrite($fp, $headers. "\r\n");
+    // Add headers using fputcsv for proper formatting
+    fputcsv($fp, $headers);
+
     foreach ($data as $key => $val) {
         $billing_from = $val['billing_from'];
         if($billing_from != "IndiaIVF"){
@@ -1228,11 +1235,13 @@ if (isset($export_billing)){
         }
         $billing_at = get_center_name($val['billing_at']);
         
-        // FIX 4: Passed '' (empty string) instead of $val['procedure_name'] which doesn't exist
+        // [FIX] "\t" prepend karne se Excel billing_id ko Text ki tarah padhega aur digits 0000 nahi honge
+        $billing_id = "\t" . $val['billing_id'];
+
         $lead_arr = array(
             $val['patient_id'], 
             $val['wife_name'],
-			$val['billing_id'], 
+            $billing_id, // Updated as string text
             $val['totalpackage'], 
             $val['discounted_package'], 
             $val['payment_done'], 
@@ -1245,7 +1254,7 @@ if (isset($export_billing)){
             date('Y-m-d H:i:s', strtotime($val['date'])), 
             $val['series_number'], 
             $val['status'],
-			$val['booking_date']
+            $val['booking_date']
         );
         
         fputcsv($fp, $lead_arr);
