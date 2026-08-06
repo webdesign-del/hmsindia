@@ -3681,6 +3681,10 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 4: REGISTRATION SALES
     // =========================================================================
+    
+    // आज की तारीख (रात 12:00 AM के बाद का टाइमस्टैम्प)
+    $today_start = date('Y-m-d 00:00:00');
+
     $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
         bill_center.center_name as billing_center_name, bill_center.state_name, bill_center.center_code, 
         bill_center.center_gst, origin_center.center_name as origin_center_name,
@@ -3690,43 +3694,50 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_registation.billing_at', 'left');
     $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_registation.origins', 'left');
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
-    $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
+    
+    $this->db->where_in('hms_registation.status', ['approved', 'adjust', 'Approved', 'Adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-	$this->db->where('hms_registation.on_date >', '2026-07-28');
+    
+    // रात 12 बजे के बाद ऑटोमेटिक डेटा रिमूव/फिल्टर करने के लिए (Dynamic Midnight Reset)
+    $this->db->where('hms_registation.tally_send_date >=', $today_start);
+    
+    $this->db->order_by('hms_registation.id', 'DESC');
     $this->db->limit(300);
+    
     $reg_rows = $this->db->get()->result_array();
 
     foreach ($reg_rows as $row) {
         $all_transactions[] = [
             'type'             => 'Registration',
-            'patient_id'       => $row['patient_id'],
+            'patient_id'       => $row['patient_id'] ?? '',
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
-			'cost_center'      => $row['billing_center_name'] ?? 'N/A',
-			'center_code'      => $row['center_code'],
+            'cost_center'      => $row['billing_center_name'] ?? 'N/A',
+            'center_code'      => $row['center_code'] ?? '',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
+            'updated_date'     => !empty($row["modified_on"]) ? date("d-m-Y", strtotime($row["modified_on"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',
-            'payment_method'   => $row['payment_method'],
-			'series_number'    => $row['series_number'],
-            'status'           => $row['status'],
-			'company_state'    => $row['state_name'],
-			'company_gstin'    => $row['center_gst'],
-			'party_state'      => $row['state_name'],
-			'place_of_supply'  => $row['state_name'],
+            'payment_method'   => $row['payment_method'] ?? '',
+            'series_number'    => $row['series_number'] ?? '',
+            'status'           => $row['status'] ?? '',
+            'company_state'    => $row['state_name'] ?? '',
+            'company_gstin'    => $row['center_gst'] ?? '',
+            'party_state'      => $row['state_name'] ?? '',
+            'place_of_supply'  => $row['state_name'] ?? '',
             'items'            => [[
                 'item_name'       => 'Registration Fees',
                 'code'            => 'REG',
                 'batch_no'        => '',
                 'expiry'          => '',
                 'quantity'        => 1,
-                'unit_price'      => number_format((float)($row['totalpackage']??0), 2, '.', ''),
-                'discount_amt'    => number_format((float)($row['discount_amount']??0), 2, '.', ''),
+                'unit_price'      => number_format((float)($row['totalpackage'] ?? 0), 2, '.', ''),
+                'discount_amt'    => number_format((float)($row['discount_amount'] ?? 0), 2, '.', ''),
                 'taxable_value'   => '',
                 'gst_rate'        => 0,
                 'gst_amount'      => 0,
-                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'  => number_format((float)($row['payment_done'] ?? 0), 2, '.', '')
             ]]
         ];
     }
@@ -4401,9 +4412,13 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 4: REGISTRATION SALES
     // =========================================================================
-      $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name,
-		bill_center.center_code as center_code, 
+    
+    // आज की तारीख (रात 12:00 AM के बाद का टाइमस्टैम्प)
+    $today_start = date('Y-m-d 00:00:00');
+
+    $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
+        bill_center.center_name as billing_center_name, bill_center.state_name as center_state_name,
+        bill_center.center_code as center_code, 
         bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_registation');
@@ -4411,44 +4426,54 @@ foreach($ret_grouped as $return) {
     $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_registation.billing_at', 'left');
     $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_registation.origins', 'left');
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
-    $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
+    
+    $this->db->where_in('hms_registation.status', ['approved', 'adjust', 'Approved', 'Adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-	$this->db->where('hms_registation.on_date >', '2026-07-28');
+    
+    // रात 12 बजे के बाद पिछला डेटा हटाने के लिए (Dynamic Midnight Reset)
+    $this->db->where('hms_registation.tally_send_date >=', $today_start);
+    
+    $this->db->order_by('hms_registation.id', 'DESC');
     $this->db->limit(200);
+    
     $reg_rows = $this->db->get()->result_array();
-
 
     foreach ($reg_rows as $row) {
         $all_transactions[] = [
             'type'             => 'Registration',
-            'patient_id'       => $row['patient_id'],
+            'patient_id'       => $row['patient_id'] ?? '',
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
-			'center_code'      => $row['center_code'],
+            'center_code'      => $row['center_code'] ?? '',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
-			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
+            // फिक्स: $sale की जगह $row और Safe Check
+            'updated_date'     => !empty($row["modified_on"]) ? date("d-m-Y", strtotime($row["modified_on"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',
-            'payment_method'   => $row['payment_method'],
-			'total_amount'     => $row['payment_done'],
-			'series_number'    => $row['series_number'],
-            'status'           => $row['status'],
-			'company_state'    => $row['center_state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
-            'company_gstin'    => $row['center_gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'payment_method'   => $row['payment_method'] ?? '',
+            'total_amount'     => $row['payment_done'] ?? 0,
+            'series_number'    => $row['series_number'] ?? '',
+            'status'           => $row['status'] ?? '',
+            'company_state'    => $row['center_state_name'] ?? '',
+            'company_gstin'    => $row['center_gst_number'] ?? '',
             'party_state'      => $row['center_state_name'] ?? '',
             'place_of_supply'  => $row['center_state_name'] ?? '',
             'items'            => [[
                 'item_name'       => 'Registration Fees',
                 'code'            => 'REG',
-                'batch_no'        => '', 'expiry' => '', 'quantity' => 1,
-                'unit_price'      => number_format((float)($row['totalpackage']??0), 2, '.', ''),
-                'discount_amt'    => number_format((float)($row['discount_amount']??0), 2, '.', ''),
-                'taxable_value'   => '', 'gst_rate' => 0, 'gst_amount' => 0,
-                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'batch_no'        => '', 
+                'expiry'          => '', 
+                'quantity'        => 1,
+                'unit_price'      => number_format((float)($row['totalpackage'] ?? 0), 2, '.', ''),
+                'discount_amt'    => number_format((float)($row['discount_amount'] ?? 0), 2, '.', ''),
+                'taxable_value'   => '', 
+                'gst_rate'        => 0, 
+                'gst_amount'      => 0,
+                'receive_amount'  => number_format((float)($row['payment_done'] ?? 0), 2, '.', '')
             ]]
         ];
-    } 
+    }
 
    // =========================================================================
     // PART 5: INVESTIGATION SALES
@@ -4767,6 +4792,8 @@ public function consultation_send_tally() {
 }
 
 public function registration_send_tally() {
+    // Force clean JSON output
+    header('Content-Type: application/json');
 
     $payment_ids = $this->input->post('payment_ids');
 
@@ -4778,11 +4805,11 @@ public function registration_send_tally() {
     $success_count = 0;
     $error_count = 0;
     $already_sent_count = 0; // Track how many were skipped
+    $current_datetime = date('Y-m-d H:i:s'); // Current timestamp for tally_send_date
 
     foreach ($payment_ids as $id) {
 
         // 1. Get the current status of THIS specific ID
-        // We select only tally_status to be efficient
         $this->db->select('tally_status');
         $this->db->where('ID', $id);
         $q = $this->db->get('hms_registation');
@@ -4792,18 +4819,19 @@ public function registration_send_tally() {
         // 2. CHECK: If row exists AND tally_status is already 1, skip it
         if (!empty($row) && $row['tally_status'] == '1') {
             $already_sent_count++;
-            continue; // specific keyword to skip to the next ID in the loop
+            continue; 
         }
 
         // --- Tally Logic Here ---
-        // Put your actual code to send data to Tally API here.
-        // For now, we assume it is successful.
         $result = true; 
 
         if ($result) {
             $success_count++;
-            // Update the status to 1 so it isn't sent again next time
-            $this->db->where('ID', $id)->update('hms_registation', ['tally_status' => 1]);
+            // Update tally_status and tally_send_date
+            $this->db->where('ID', $id)->update('hms_registation', [
+                'tally_status'    => '1',
+                'tally_send_date' => $current_datetime
+            ]);
         } else {
             $error_count++;
         }
@@ -5200,9 +5228,13 @@ if (!empty($embryo['date_of_procedure']) &&
     // =========================================================================
     // PART 4: REGISTRATION SALES
     // =========================================================================
+    
+    // आज की तारीख (रात 12:00 AM के बाद का टाइमस्टैम्प)
+    $today_start = date('Y-m-d 00:00:00');
+
     $this->db->select('hms_registation.*, hms_patients.wife_name, hms_patients.husband_name, 
         bill_center.center_name as billing_center_name, bill_center.state_name as center_state_name,
-		bill_center.center_code as center_code, 
+        bill_center.center_code as center_code, 
         bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_registation');
@@ -5210,29 +5242,36 @@ if (!empty($embryo['date_of_procedure']) &&
     $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_registation.billing_at', 'left');
     $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_registation.origins', 'left');
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_registation.biller_id', 'left');
-    $this->db->where_in('hms_registation.status', ['approved', 'adjust']);
+    
+    $this->db->where_in('hms_registation.status', ['approved', 'adjust', 'Approved', 'Adjust']);
     $this->db->where('hms_registation.tally_status', '1');
-	$this->db->where('hms_registation.on_date >', '2026-07-28');
+    
+    // रात 12 बजे के बाद पिछला डेटा हटाने के लिए (Dynamic Midnight Reset)
+    $this->db->where('hms_registation.tally_send_date >=', $today_start);
+    
+    $this->db->order_by('hms_registation.id', 'DESC');
     $this->db->limit(400);
+    
     $reg_rows = $this->db->get()->result_array();
 
     foreach ($reg_rows as $row) {
         $all_transactions[] = [
             'type'             => 'Registration',
-            'patient_id'       => $row['patient_id'],
+            'patient_id'       => $row['patient_id'] ?? '',
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
-			'center_code'      => $row['center_code'],
+            'center_code'      => $row['center_code'] ?? '',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
-			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
+            // बग फिक्स: $sale की जगह सही $row वेरिएबल का इस्तेमाल
+            'updated_date'     => !empty($row["modified_on"]) ? date("d-m-Y", strtotime($row["modified_on"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',
-            'payment_method'   => $row['payment_method'],
-            'status'           => $row['status'],
-			'series_number'    => $row['series_number'],
-			'company_state'    => $row['center_state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
-            'company_gstin'    => $row['center_gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'payment_method'   => $row['payment_method'] ?? '',
+            'status'           => $row['status'] ?? '',
+            'series_number'    => $row['series_number'] ?? '',
+            'company_state'    => $row['center_state_name'] ?? '',
+            'company_gstin'    => $row['center_gst_number'] ?? '',
             'party_state'      => $row['center_state_name'] ?? '',
             'place_of_supply'  => $row['center_state_name'] ?? '',
             'items'            => [[
@@ -5241,12 +5280,12 @@ if (!empty($embryo['date_of_procedure']) &&
                 'batch_no'        => '',
                 'expiry'          => '',
                 'quantity'        => 1,
-                'unit_price'      => number_format((float)($row['totalpackage']??0), 2, '.', ''),
-                'discount_amt'    => number_format((float)($row['discount_amount']??0), 2, '.', ''),
+                'unit_price'      => number_format((float)($row['totalpackage'] ?? 0), 2, '.', ''),
+                'discount_amt'    => number_format((float)($row['discount_amount'] ?? 0), 2, '.', ''),
                 'taxable_value'   => '',
                 'gst_rate'        => 0,
                 'gst_amount'      => 0,
-                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'  => number_format((float)($row['payment_done'] ?? 0), 2, '.', '')
             ]]
         ];
     }
