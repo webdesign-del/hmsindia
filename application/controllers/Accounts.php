@@ -3615,9 +3615,13 @@ foreach($ret_grouped as $return) {
     // =========================================================================
     // PART 3: CONSULTATION SALES
     // =========================================================================
- $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
+    
+    // आज की तारीख (रात 12 बजे के बाद से अब तक का टाइमस्टैम्प)
+    $today_start = date('Y-m-d 00:00:00');
+
+    $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
         bill_center.center_name as billing_center_name,
-		bill_center.center_code as center_code,
+        bill_center.center_code as center_code,
         bill_center.state_name as center_state_name, 
         bill_center.center_gst as center_gst_number, 
         origin_center.center_name as origin_center_name,
@@ -3625,19 +3629,19 @@ foreach($ret_grouped as $return) {
     $this->db->from('hms_consultation');
     $this->db->join('hms_patients', 'hms_patients.patient_id = hms_consultation.patient_id', 'left');
     
-    // यहाँ hms_centers टेबल बिलिंग सेंटर के रूप में जॉइन है
+    // hms_centers टेबल बिलिंग सेंटर के रूप में जॉइन है
     $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
     $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
     
     $this->db->where_in('hms_consultation.status', ['adjust', 'approved']);
     $this->db->where('hms_consultation.tally_status', '1');
-	$this->db->where('hms_consultation.on_date >', '2026-07-28');
-    $this->db->limit(300);
+    
+    // रात 12 बजे के बाद से अब तक का डेटा (Auto Filter)
+    $this->db->where('hms_consultation.tally_send_date >=', $today_start);
+    $this0->db->limit(300);
     
     $consult_rows = $this->db->get()->result_array();
-
-    //$all_transactions = []; // ऐरे को पहले डिक्लेयर करना अच्छी प्रैक्टिस है
 
     foreach ($consult_rows as $row) {
         $all_transactions[] = [
@@ -3647,15 +3651,15 @@ foreach($ret_grouped as $return) {
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
             'cost_center'      => $row['billing_center_name'] ?? 'N/A',
-			'center_code'      => $row['center_code'],
+            'center_code'      => $row['center_code'] ?? '',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',
             'payment_method'   => $row['payment_method'] ?? '',
             'series_number'    => $row["series_number"] ?? '',
             'status'           => $row['status'] ?? '',
-            'company_state'    => $row['center_state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
-            'company_gstin'    => $row['center_gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'company_state'    => $row['center_state_name'] ?? '',
+            'company_gstin'    => $row['center_gst_number'] ?? '',
             'party_state'      => $row['center_state_name'] ?? '',
             'place_of_supply'  => $row['center_state_name'] ?? '',
             'items'            => [[
@@ -3664,12 +3668,12 @@ foreach($ret_grouped as $return) {
                 'batch_no'        => '',
                 'expiry'          => '',
                 'quantity'        => 1,
-                'unit_price'      => number_format((float)($row['totalpackage']??0), 2, '.', ''),
-                'discount_amt'    => number_format((float)($row['discount_amount']??0), 2, '.', ''),
+                'unit_price'      => number_format((float)($row['totalpackage'] ?? 0), 2, '.', ''),
+                'discount_amt'    => number_format((float)($row['discount_amount'] ?? 0), 2, '.', ''),
                 'taxable_value'   => '', 
                 'gst_rate'        => 0,
                 'gst_amount'      => 0,
-                'receive_amount'  => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'  => number_format((float)($row['payment_done'] ?? 0), 2, '.', '')
             ]]
         ];
     }
@@ -3727,10 +3731,21 @@ foreach($ret_grouped as $return) {
         ];
     }
 
-    // =========================================================================
+   // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status`='approved' AND `tally_status`='1' AND `on_date` > '2026-07-28' ORDER BY id DESC LIMIT 500")->result_array();
+    
+    // आज की तारीख (रात 12 बजे के बाद से अब तक का डेटा)
+    $today_start = date('Y-m-d 00:00:00');
+
+    $invest_rows = $this->db->query("
+        SELECT * FROM hms_patient_investigations 
+        WHERE `status`='approved' 
+          AND `tally_status`='1' 
+          AND `tally_send_date` >= ? 
+        ORDER BY id DESC 
+        LIMIT 500", [$today_start])->result_array();
+
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
         $bill_c = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
@@ -3743,18 +3758,18 @@ foreach($ret_grouped as $return) {
             'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
             'billing_center'   => $bill_c['center_name'] ?? 'N/A',
             'origin_center'    => $org_c['center_name'] ?? 'N/A',
-			'cost_center'      => $bill_c['center_name'] ?? 'N/A',
-			'center_code'      => $bill_c['center_code'],
+            'cost_center'      => $bill_c['center_name'] ?? 'N/A',
+            'center_code'      => $bill_c['center_code'] ?? '',
             'receipt_number'   => $sale["receipt_number"] ?? '',
             'on_date'          => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
-			'series_number'    => $sale['series_number'],
-			'company_state'    => $bill_c['state_name'],
-			'company_gstin'    => $bill_c['center_gst'],
-			'party_state'      => $bill_c['state_name'],
-			'place_of_supply'  => $bill_c['state_name'],
+            'series_number'    => $sale['series_number'] ?? '',
+            'company_state'    => $bill_c['state_name'] ?? '',
+            'company_gstin'    => $bill_c['center_gst'] ?? '',
+            'party_state'      => $bill_c['state_name'] ?? '',
+            'place_of_supply'  => $bill_c['state_name'] ?? '',
             'items'            => []
         ];
 
@@ -3763,31 +3778,35 @@ foreach($ret_grouped as $return) {
             if ($unserialized && is_array($unserialized)) {
                 $groups = [
                     'female_investigation' => ['name' => 'female_investigation_name', 'code' => 'female_investigation_code', 'price'=> 'female_investigation_price', 'disc' => 'female_investigation_discount'],
-                    'male_investigation' => ['name' => 'male_investigation_name', 'code' => 'male_investigation_code', 'price'=> 'male_investigation_price', 'disc' => 'male_investigation_discount']
+                    'male_investigation'   => ['name' => 'male_investigation_name', 'code' => 'male_investigation_code', 'price'=> 'male_investigation_price', 'disc' => 'male_investigation_discount']
                 ];
                 foreach ($groups as $group_key => $keys) {
                     if (!empty($unserialized[$group_key]) && is_array($unserialized[$group_key])) {
                         foreach ($unserialized[$group_key] as $item) {
                             if (!is_array($item)) continue;
                             
-                            $price   = isset($item[$keys['price']]) ? (float)$item[$keys['price']] : 0;
-                            $percent = isset($item[$keys['disc']])  ? (float)$item[$keys['disc']]  : 0;
+                            $price        = isset($item[$keys['price']]) ? (float)$item[$keys['price']] : 0;
+                            $percent      = isset($item[$keys['disc']])  ? (float)$item[$keys['disc']]  : 0;
                             $discount_amt = ($price * $percent) / 100;
 
-                            $inv_q = $this->db->query("SELECT hms_master_investigations.investigation_name, hms_master_investigations.code FROM hms_investigation JOIN hms_master_investigations ON hms_investigation.master_id = hms_master_investigations.ID WHERE hms_investigation.ID = ?", [(int)$item[$keys['name']]])->row_array();
+                            $inv_q = $this->db->query("
+                                SELECT hms_master_investigations.investigation_name, hms_master_investigations.code 
+                                FROM hms_investigation 
+                                JOIN hms_master_investigations ON hms_investigation.master_id = hms_master_investigations.ID 
+                                WHERE hms_investigation.ID = ?", [(int)$item[$keys['name']]])->row_array();
 
                             $formatted_inv['items'][] = [
-                                'item_name'       => $inv_q['investigation_name'] ?? 'Unknown',
-                                'code'            => $inv_q['code'] ?? '',
-                                'batch_no'        => '',
-                                'expiry'          => '',
-                                'quantity'        => 1,
-                                'unit_price'      => number_format($price, 2, '.', ''),
-                                'discount_amt'    => number_format($discount_amt, 2, '.', ''),
-                                'taxable_value'   => '',
-                                'gst_rate'        => 0,
-                                'gst_amount'      => 0,
-                                'receive_amount'    => number_format(($price - $discount_amt), 2, '.', '')
+                                'item_name'     => $inv_q['investigation_name'] ?? 'Unknown',
+                                'code'          => $inv_q['code'] ?? '',
+                                'batch_no'      => '',
+                                'expiry'        => '',
+                                'quantity'      => 1,
+                                'unit_price'    => number_format($price, 2, '.', ''),
+                                'discount_amt'  => number_format($discount_amt, 2, '.', ''),
+                                'taxable_value' => '',
+                                'gst_rate'      => 0,
+                                'gst_amount'    => 0,
+                                'receive_amount'=> number_format(($price - $discount_amt), 2, '.', '')
                             ];
                         }
                     }
@@ -4313,56 +4332,71 @@ foreach($ret_grouped as $return) {
         }
     }
 
-    // =========================================================================
+   // =========================================================================
     // PART 3: CONSULTATION SALES
     // =========================================================================
+    
+    // आज की तारीख (रात 12 बजे के बाद से अब तक का टाइमस्टैम्प)
+    $today_start = date('Y-m-d 00:00:00');
+
     $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
-        bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name,
-		bill_center.center_code as center_code, 
-        bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
+        bill_center.center_name as billing_center_name,
+        bill_center.state_name as center_state_name,
+        bill_center.center_code as center_code, 
+        bill_center.center_gst as center_gst_number, 
+        origin_center.center_name as origin_center_name,
         hms_employees.name as biller_name');
     $this->db->from('hms_consultation');
     $this->db->join('hms_patients', 'hms_patients.patient_id = hms_consultation.patient_id', 'left');
     $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
     $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
     $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
-    $this->db->where('hms_consultation.status', 'approved');
+    
+    $this->db->where_in('hms_consultation.status', ['adjust', 'approved']);
     $this->db->where('hms_consultation.tally_status', '1');
-	$this->db->where('hms_consultation.on_date >', '2026-07-28');
+    
+    // रात 12 बजे के बाद ऑटोमेटिक डेटा रिमूव/फिल्टर करने के लिए
+    $this->db->where('hms_consultation.tally_send_date >=', $today_start);
     $this->db->limit(300);
+    
     $consult_rows = $this->db->get()->result_array();
 
     foreach ($consult_rows as $row) {
         $all_transactions[] = [
             'type'             => 'Consultation',
-            'patient_id'       => $row['patient_id'],
+            'patient_id'       => $row['patient_id'] ?? '',
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
-			'center_code'      => $row['center_code'],
+            'center_code'      => $row['center_code'] ?? '',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
-			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
+            // बग फिक्स: $sale['modified_on'] की जगह $row का सही वेरिएबल इस्तेमाल किया गया है
+            'updated_date'     => !empty($row["modified_on"]) ? date("d-m-Y", strtotime($row["modified_on"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',
-            'payment_method'   => $row['payment_method'],
-			'total_amount'     => $row['payment_done'],
-			'series_number'    => $row['series_number'],
-            'status'           => $row['status'],
-			'company_state'    => $row['center_state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
-            'company_gstin'    => $row['center_gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'payment_method'   => $row['payment_method'] ?? '',
+            'total_amount'     => $row['payment_done'] ?? 0,
+            'series_number'    => $row['series_number'] ?? '',
+            'status'           => $row['status'] ?? '',
+            'company_state'    => $row['center_state_name'] ?? '',
+            'company_gstin'    => $row['center_gst_number'] ?? '',
             'party_state'      => $row['center_state_name'] ?? '',
             'place_of_supply'  => $row['center_state_name'] ?? '',
             'items'            => [[
                 'item_name'       => 'Consultation Charges',
                 'code'            => 'CONS',
-                'batch_no'        => '', 'expiry' => '', 'quantity' => 1,
-                'unit_price'      => number_format((float)($row['totalpackage']??0), 2, '.', ''),
-                'discount_amt'    => number_format((float)($row['discount_amount']??0), 2, '.', ''),
-                'taxable_value'   => '', 'gst_rate' => 0, 'gst_amount' => 0,
-                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'batch_no'        => '', 
+                'expiry'          => '', 
+                'quantity'        => 1,
+                'unit_price'      => number_format((float)($row['totalpackage'] ?? 0), 2, '.', ''),
+                'discount_amt'    => number_format((float)($row['discount_amount'] ?? 0), 2, '.', ''),
+                'taxable_value'   => '', 
+                'gst_rate'        => 0, 
+                'gst_amount'      => 0,
+                'receive_amount'  => number_format((float)($row['payment_done'] ?? 0), 2, '.', '')
             ]]
         ];
-    } 
+    }
 
     // =========================================================================
     // PART 4: REGISTRATION SALES
@@ -4416,10 +4450,20 @@ foreach($ret_grouped as $return) {
         ];
     } 
 
-    // =========================================================================
+   // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-    $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' AND `on_date` > '2026-07-28' ORDER BY id DESC LIMIT 500")->result_array();
+    
+    // आज की तारीख (रात 12 बजे के बाद से अब तक का डेटा)
+    $today_start = date('Y-m-d 00:00:00');
+
+    $invest_rows = $this->db->query("
+        SELECT * FROM hms_patient_investigations 
+        WHERE `status`='approved' 
+          AND `tally_status`='1' 
+          AND `tally_send_date` >= ? 
+        ORDER BY id DESC 
+        LIMIT 500", [$today_start])->result_array();
 
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
@@ -4433,17 +4477,16 @@ foreach($ret_grouped as $return) {
             'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
             'billing_center'   => $bill_c['center_name'] ?? 'N/A',
             'origin_center'    => $org_c['center_name'] ?? 'N/A',
-			'center_code'      => $bill_c['center_code'],
+            'cost_center'      => $bill_c['center_name'] ?? 'N/A',
+            'center_code'      => $bill_c['center_code'] ?? '',
             'receipt_number'   => $sale["receipt_number"] ?? '',
             'on_date'          => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
-			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
-			'total_amount'     => $sale['payment_done'],
-			'series_number'    => $sale['series_number'],
-			'company_state'    => $bill_c['state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
-            'company_gstin'    => $bill_c['gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'series_number'    => $sale['series_number'] ?? '',
+            'company_state'    => $bill_c['state_name'] ?? '',
+            'company_gstin'    => $bill_c['center_gst'] ?? '',
             'party_state'      => $bill_c['state_name'] ?? '',
             'place_of_supply'  => $bill_c['state_name'] ?? '',
             'items'            => []
@@ -4453,25 +4496,36 @@ foreach($ret_grouped as $return) {
             $unserialized = @unserialize($sale['investigations']);
             if ($unserialized && is_array($unserialized)) {
                 $groups = [
-                    'female_investigation' => ['name' => 'female_investigation_name', 'price'=> 'female_investigation_price', 'disc' => 'female_investigation_discount'],
-                    'male_investigation' => ['name' => 'male_investigation_name', 'price'=> 'male_investigation_price', 'disc' => 'male_investigation_discount']
+                    'female_investigation' => ['name' => 'female_investigation_name', 'code' => 'female_investigation_code', 'price'=> 'female_investigation_price', 'disc' => 'female_investigation_discount'],
+                    'male_investigation'   => ['name' => 'male_investigation_name', 'code' => 'male_investigation_code', 'price'=> 'male_investigation_price', 'disc' => 'male_investigation_discount']
                 ];
                 foreach ($groups as $group_key => $keys) {
                     if (!empty($unserialized[$group_key]) && is_array($unserialized[$group_key])) {
                         foreach ($unserialized[$group_key] as $item) {
-                            $price = (float)($item[$keys['price']] ?? 0);
-                            $percent = (float)($item[$keys['disc']] ?? 0);
-                            $discount_amt = ($price * $percent) / 100;
-                            $inv_q = $this->db->query("SELECT m.investigation_name, m.code FROM hms_investigation i JOIN hms_master_investigations m ON i.master_id = m.ID WHERE i.ID = ?", [(int)($item[$keys['name']]??0)])->row_array();
+                            if (!is_array($item)) continue;
                             
+                            $price        = isset($item[$keys['price']]) ? (float)$item[$keys['price']] : 0;
+                            $percent      = isset($item[$keys['disc']])  ? (float)$item[$keys['disc']]  : 0;
+                            $discount_amt = ($price * $percent) / 100;
+
+                            $inv_q = $this->db->query("
+                                SELECT hms_master_investigations.investigation_name, hms_master_investigations.code 
+                                FROM hms_investigation 
+                                JOIN hms_master_investigations ON hms_investigation.master_id = hms_master_investigations.ID 
+                                WHERE hms_investigation.ID = ?", [(int)$item[$keys['name']]])->row_array();
+
                             $formatted_inv['items'][] = [
-                                'item_name'       => $inv_q['investigation_name'] ?? 'Unknown',
-                                'code'            => $inv_q['code'] ?? '',
-                                'batch_no'        => '', 'expiry' => '', 'quantity' => 1,
-                                'unit_price'      => number_format($price, 2, '.', ''),
-                                'discount_amt'    => number_format($discount_amt, 2, '.', ''),
-                                'taxable_value'   => '', 'gst_rate' => 0, 'gst_amount' => 0,
-                                'receive_amount'    => number_format(($price - $discount_amt), 2, '.', '')
+                                'item_name'     => $inv_q['investigation_name'] ?? 'Unknown',
+                                'code'          => $inv_q['code'] ?? '',
+                                'batch_no'      => '',
+                                'expiry'        => '',
+                                'quantity'      => 1,
+                                'unit_price'    => number_format($price, 2, '.', ''),
+                                'discount_amt'  => number_format($discount_amt, 2, '.', ''),
+                                'taxable_value' => '',
+                                'gst_rate'      => 0,
+                                'gst_amount'    => 0,
+                                'receive_amount'=> number_format(($price - $discount_amt), 2, '.', '')
                             ];
                         }
                     }
@@ -4627,9 +4681,9 @@ public function investigations_send_tally() {
 
         $success_count = 0;
         $already_sent_count = 0;
+        $current_datetime = date('Y-m-d H:i:s'); // Current timestamp for tally_send_date
 
         foreach ($payment_ids as $id) {
-            // Use $this->db->dbprefix if your live DB uses prefixes
             $q = $this->db->select('tally_status')->where('ID', $id)->get('hms_patient_investigations');
             $row = $q->row_array();
 
@@ -4639,12 +4693,14 @@ public function investigations_send_tally() {
             }
 
             // --- IMPORTANT: LIVE TALLY CONNECTION ---
-            // If you have CURL code here, ensure the IP is a PUBLIC STATIC IP.
-            // localhost:9000 will NOT work on a live server.
             $result = true; 
 
             if ($result) {
-                $this->db->where('ID', $id)->update('hms_patient_investigations', ['tally_status' => '1']);
+                // Update both tally_status and tally_send_date
+                $this->db->where('ID', $id)->update('hms_patient_investigations', [
+                    'tally_status'    => '1',
+                    'tally_send_date' => $current_datetime
+                ]);
                 $success_count++;
             }
         }
@@ -4655,7 +4711,6 @@ public function investigations_send_tally() {
         ]);
 
     } catch (Exception $e) {
-        // This will tell you EXACTLY what is wrong on the live server
         echo json_encode(['success' => false, 'message' => 'DB Error: ' . $e->getMessage()]);
     }
 }
@@ -4678,6 +4733,7 @@ public function consultation_send_tally() {
 
         $success_count = 0;
         $already_sent_count = 0;
+        $current_datetime = date('Y-m-d H:i:s'); // Current timestamp for tally_send_date
 
         foreach ($payment_ids as $id) {
             // Double check table name case sensitivity on Live
@@ -4689,8 +4745,11 @@ public function consultation_send_tally() {
                 continue;
             }
 
-            // Update status
-            $update = $this->db->where('ID', $id)->update('hms_consultation', ['tally_status' => '1']);
+            // Update status and send date
+            $update = $this->db->where('ID', $id)->update('hms_consultation', [
+                'tally_status'    => '1',
+                'tally_send_date' => $current_datetime
+            ]);
             
             if($update) {
                 $success_count++;
@@ -4699,7 +4758,7 @@ public function consultation_send_tally() {
 
         echo json_encode([
             'success' => true, 
-            'message' => "Successfully processed $success_count records."
+            'message' => "Successfully processed $success_count records. ($already_sent_count already existed)."
         ]);
 
     } catch (Exception $e) {
@@ -5072,50 +5131,54 @@ if (!empty($embryo['date_of_procedure']) &&
     // =========================================================================
     // PART 3: CONSULTATION SALES
     // =========================================================================
- $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
-    bill_center.center_name as billing_center_name,bill_center.state_name as center_state_name, 
-	bill_center.center_code as center_code
-        bill_center.center_gst as center_gst_number, origin_center.center_name as origin_center_name,
-    hms_employees.name as biller_name');
-$this->db->from('hms_consultation');
+    
+    // आज की तारीख (रात 12:00 AM के बाद का टाइमस्टैम्प)
+    $today_start = date('Y-m-d 00:00:00');
 
-// Joins
-$this->db->join('hms_patients', 'hms_patients.patient_id = hms_consultation.patient_id', 'left');
-$this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
-$this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
-$this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
+    $this->db->select('hms_consultation.*, hms_patients.wife_name, hms_patients.husband_name, 
+        bill_center.center_name as billing_center_name, bill_center.state_name as center_state_name, 
+        bill_center.center_code as center_code, bill_center.center_gst as center_gst_number, 
+        origin_center.center_name as origin_center_name,
+        hms_employees.name as biller_name');
+    $this->db->from('hms_consultation');
 
-// Filters
-// Use lowercase if your DB is strictly lowercase, otherwise include both variants
-$this->db->where_in('hms_consultation.status', ['approved', 'adjust', 'Approved', 'Adjust']); 
+    // Joins
+    $this->db->join('hms_patients', 'hms_patients.patient_id = hms_consultation.patient_id', 'left');
+    $this->db->join('hms_centers as bill_center', 'bill_center.center_number = hms_consultation.billing_at', 'left');
+    $this->db->join('hms_centers as origin_center', 'origin_center.center_number = hms_consultation.origins', 'left');
+    $this->db->join('hms_employees', 'hms_employees.employee_number = hms_consultation.biller_id', 'left');
 
-// Check if your live DB uses '1' (string) or 1 (integer) for tally_status
-$this->db->where('hms_consultation.tally_status', '1');
-$this->db->where('hms_consultation.on_date >', '2026-07-28');
-// Always order by the latest ID so you don't see old records first
-$this->db->order_by('hms_consultation.id', 'DESC'); 
+    // Filters
+    $this->db->where_in('hms_consultation.status', ['approved', 'adjust', 'Approved', 'Adjust']); 
+    $this->db->where('hms_consultation.tally_status', '1');
+    
+    // रात 12 बजे के बाद पिछला डेटा हटाने के लिए (Dynamic Midnight Reset)
+    $this->db->where('hms_consultation.tally_send_date >=', $today_start);
 
-$this->db->limit(700);
+    // Ordering & Limit
+    $this->db->order_by('hms_consultation.id', 'DESC'); 
+    $this->db->limit(700);
 
-$consult_rows = $this->db->get()->result_array();
+    $consult_rows = $this->db->get()->result_array();
 
     foreach ($consult_rows as $row) {
         $all_transactions[] = [
             'type'             => 'Consultation',
-            'patient_id'       => $row['patient_id'],
+            'patient_id'       => $row['patient_id'] ?? '',
             'patient_name'     => ($row['wife_name'] ?? '') . ' W/O ' . ($row['husband_name'] ?? ''),
             'billing_center'   => $row['billing_center_name'] ?? 'N/A',
             'origin_center'    => $row['origin_center_name'] ?? 'N/A',
-			'center_code'      => $row['center_code'],
+            'center_code'      => $row['center_code'] ?? '',
             'receipt_number'   => $row["receipt_number"] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
-			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
+            // फिक्स: $sale की जगह $row का इस्तेमाल और Safe Check
+            'updated_date'     => !empty($row["modified_on"]) ? date("d-m-Y", strtotime($row["modified_on"])) : '',
             'biller_name'      => $row['biller_name'] ?? 'N/A',
-            'payment_method'   => $row['payment_method'],
-            'status'           => $row['status'],
-			'series_number'    => $row['series_number'],
-			'company_state'    => $row['center_state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
-            'company_gstin'    => $row['center_gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'payment_method'   => $row['payment_method'] ?? '',
+            'status'           => $row['status'] ?? '',
+            'series_number'    => $row['series_number'] ?? '',
+            'company_state'    => $row['center_state_name'] ?? '',
+            'company_gstin'    => $row['center_gst_number'] ?? '',
             'party_state'      => $row['center_state_name'] ?? '',
             'place_of_supply'  => $row['center_state_name'] ?? '',
             'items'            => [[
@@ -5124,12 +5187,12 @@ $consult_rows = $this->db->get()->result_array();
                 'batch_no'        => '',
                 'expiry'          => '',
                 'quantity'        => 1,
-                'unit_price'      => number_format((float)($row['totalpackage']??0), 2, '.', ''),
-                'discount_amt'    => number_format((float)($row['discount_amount']??0), 2, '.', ''),
+                'unit_price'      => number_format((float)($row['totalpackage'] ?? 0), 2, '.', ''),
+                'discount_amt'    => number_format((float)($row['discount_amount'] ?? 0), 2, '.', ''),
                 'taxable_value'   => '', 
                 'gst_rate'        => 0,
                 'gst_amount'      => 0,
-                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'receive_amount'  => number_format((float)($row['payment_done'] ?? 0), 2, '.', '')
             ]]
         ];
     }
@@ -5191,7 +5254,18 @@ $consult_rows = $this->db->get()->result_array();
     // =========================================================================
     // PART 5: INVESTIGATION SALES
     // =========================================================================
-   $invest_rows = $this->db->query("SELECT * FROM hms_patient_investigations WHERE `status` IN ('approved', 'cancel') AND `tally_status` = '1' AND `on_date` > '2026-07-28' ORDER BY id DESC LIMIT 400")->result_array();
+    
+    // आज की तारीख (रात 12 बजे के बाद से अब तक का डेटा)
+    $today_start = date('Y-m-d 00:00:00');
+
+    $invest_rows = $this->db->query("
+        SELECT * FROM hms_patient_investigations 
+        WHERE `status`='approved' 
+          AND `tally_status`='1' 
+          AND `tally_send_date` >= ? 
+        ORDER BY id DESC 
+        LIMIT 500", [$today_start])->result_array();
+
     foreach ($invest_rows as $sale) {
         $pt = $this->db->query("SELECT * FROM hms_patients WHERE patient_id = ?", [$sale["patient_id"]])->row_array();
         $bill_c = $this->db->query("SELECT * FROM hms_centers WHERE center_number = ?", [$sale["billing_at"]])->row_array();
@@ -5204,16 +5278,16 @@ $consult_rows = $this->db->get()->result_array();
             'patient_name'     => ($pt['wife_name'] ?? '') . ' W/O ' . ($pt['husband_name'] ?? ''),
             'billing_center'   => $bill_c['center_name'] ?? 'N/A',
             'origin_center'    => $org_c['center_name'] ?? 'N/A',
-			'center_code'      => $bill_c['center_code'],
+            'cost_center'      => $bill_c['center_name'] ?? 'N/A',
+            'center_code'      => $bill_c['center_code'] ?? '',
             'receipt_number'   => $sale["receipt_number"] ?? '',
             'on_date'          => !empty($sale["on_date"]) ? date("d-m-Y", strtotime($sale["on_date"])) : '',
-			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
             'biller_name'      => $biller['name'] ?? 'N/A',
             'payment_method'   => $sale["payment_method"] ?? "",
             'status'           => $sale["status"] ?? "",
-			'series_number'    => $sale['series_number'],
-			'company_state'    => $bill_c['state_name'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
-            'company_gstin'    => $bill_c['gst_number'] ?? '', // यहाँ नया Alias नाम इस्तेमाल किया है
+            'series_number'    => $sale['series_number'] ?? '',
+            'company_state'    => $bill_c['state_name'] ?? '',
+            'company_gstin'    => $bill_c['center_gst'] ?? '',
             'party_state'      => $bill_c['state_name'] ?? '',
             'place_of_supply'  => $bill_c['state_name'] ?? '',
             'items'            => []
@@ -5224,31 +5298,35 @@ $consult_rows = $this->db->get()->result_array();
             if ($unserialized && is_array($unserialized)) {
                 $groups = [
                     'female_investigation' => ['name' => 'female_investigation_name', 'code' => 'female_investigation_code', 'price'=> 'female_investigation_price', 'disc' => 'female_investigation_discount'],
-                    'male_investigation' => ['name' => 'male_investigation_name', 'code' => 'male_investigation_code', 'price'=> 'male_investigation_price', 'disc' => 'male_investigation_discount']
+                    'male_investigation'   => ['name' => 'male_investigation_name', 'code' => 'male_investigation_code', 'price'=> 'male_investigation_price', 'disc' => 'male_investigation_discount']
                 ];
                 foreach ($groups as $group_key => $keys) {
                     if (!empty($unserialized[$group_key]) && is_array($unserialized[$group_key])) {
                         foreach ($unserialized[$group_key] as $item) {
                             if (!is_array($item)) continue;
                             
-                            $price   = isset($item[$keys['price']]) ? (float)$item[$keys['price']] : 0;
-                            $percent = isset($item[$keys['disc']])  ? (float)$item[$keys['disc']]  : 0;
+                            $price        = isset($item[$keys['price']]) ? (float)$item[$keys['price']] : 0;
+                            $percent      = isset($item[$keys['disc']])  ? (float)$item[$keys['disc']]  : 0;
                             $discount_amt = ($price * $percent) / 100;
 
-                            $inv_q = $this->db->query("SELECT hms_master_investigations.investigation_name, hms_master_investigations.code FROM hms_investigation JOIN hms_master_investigations ON hms_investigation.master_id = hms_master_investigations.ID WHERE hms_investigation.ID = ?", [(int)$item[$keys['name']]])->row_array();
+                            $inv_q = $this->db->query("
+                                SELECT hms_master_investigations.investigation_name, hms_master_investigations.code 
+                                FROM hms_investigation 
+                                JOIN hms_master_investigations ON hms_investigation.master_id = hms_master_investigations.ID 
+                                WHERE hms_investigation.ID = ?", [(int)$item[$keys['name']]])->row_array();
 
                             $formatted_inv['items'][] = [
-                                'item_name'       => $inv_q['investigation_name'] ?? 'Unknown',
-                                'code'            => $inv_q['code'] ?? '',
-                                'batch_no'        => '',
-                                'expiry'          => '',
-                                'quantity'        => 1,
-                                'unit_price'      => number_format($price, 2, '.', ''),
-                                'discount_amt'    => number_format($discount_amt, 2, '.', ''),
-                                'taxable_value'   => '',
-                                'gst_rate'        => 0,
-                                'gst_amount'      => 0,
-                                'receive_amount'    => number_format(($price - $discount_amt), 2, '.', '')
+                                'item_name'     => $inv_q['investigation_name'] ?? 'Unknown',
+                                'code'          => $inv_q['code'] ?? '',
+                                'batch_no'      => '',
+                                'expiry'        => '',
+                                'quantity'      => 1,
+                                'unit_price'    => number_format($price, 2, '.', ''),
+                                'discount_amt'  => number_format($discount_amt, 2, '.', ''),
+                                'taxable_value' => '',
+                                'gst_rate'      => 0,
+                                'gst_amount'    => 0,
+                                'receive_amount'=> number_format(($price - $discount_amt), 2, '.', '')
                             ];
                         }
                     }
