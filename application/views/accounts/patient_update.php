@@ -106,7 +106,7 @@ $select_result1 = $query->result();
 
 foreach ($select_result1 as $res_val) {      
 
-    // Fetch initial doctors directly for page load using center matching
+    // Fetch active doctors matching strictly the assigned center_id (ignoring allowed_centers)
     $current_center_id = $res_val->appoitment_for;
     $current_doctor_id = $res_val->appoitmented_doctor;
 
@@ -117,16 +117,11 @@ foreach ($select_result1 as $res_val) {
         
         $sql_doc = "SELECT DISTINCT d.ID, d.name 
                     FROM {$prefix}doctors d
-                    LEFT JOIN {$prefix}centers c 
+                    INNER JOIN {$prefix}centers c 
                         ON (d.center_id = c.ID OR d.center_id = c.center_number)
                     WHERE d.status = '1' 
-                      AND (
-                          d.center_id = '$escaped_center' 
-                          OR c.center_number = '$escaped_center' 
-                          OR c.ID = '$escaped_center'
-                          OR FIND_IN_SET('$escaped_center', d.allowed_centers) > 0
-                          OR (c.ID IS NOT NULL AND FIND_IN_SET(c.ID, d.allowed_centers) > 0)
-                      )
+                      AND c.status = '1'
+                      AND (c.center_number = '$escaped_center' OR c.ID = '$escaped_center' OR d.center_id = '$escaped_center')
                     ORDER BY d.name ASC";
         $initial_doctors = $this->db->query($sql_doc)->result();
     }
@@ -234,7 +229,72 @@ foreach ($select_result1 as $res_val) {
 <script type="text/javascript">
 $(document).ready(function() {
 
-    // Center Change Event (AJAX trigger for doctor list)
+    var saved_doctor = $('#appoitmented_doctor').val();
+    var saved_date   = $('#appoitmented_date').val();
+    var saved_slot   = "<?php echo $res_val->appoitmented_slot ?? ''; ?>";
+
+    // 1. Function to Fetch Doctor Slots
+    function fetch_doctor_slots(bookingDate, doctorId, slotToSelect) {
+        if (doctorId != '' && doctorId != null && bookingDate != '' && bookingDate != null) {
+            $.ajax({
+                url: '<?php echo base_url("Accounts/doctor_slots"); ?>',
+                type: 'POST',
+                data: { selected: bookingDate, appoitmented_doctor: doctorId },
+                success: function(response) {
+                    var cleanHtml = response;
+                    try { cleanHtml = JSON.parse(response); } catch(e) {}
+                    
+                    $('#appoitmented_slot').html(cleanHtml);
+                    
+                    if (slotToSelect != '' && slotToSelect != null) {
+                        $('#appoitmented_slot').val(slotToSelect);
+                    }
+                    $('#appoitmented_slot').trigger('change.select2');
+                },
+                error: function(xhr, status, error) {
+                    console.log("Slots AJAX Error: ", xhr.responseText);
+                    $('#appoitmented_slot').html('<option value="">--No slot available--</option>');
+                }
+            });
+        } else {
+            $('#appoitmented_slot').html('<option value="">--Select Slot--</option>');
+        }
+    }
+
+    // 2. Auto Fetch Slots on Page Load
+    if (saved_doctor != '' && saved_date != '') {
+        fetch_doctor_slots(saved_date, saved_doctor, saved_slot);
+    }
+
+    // 3. Datepicker Select Event
+    $("#appoitmented_date").datepicker({
+        dateFormat: 'yy-mm-dd',
+        changeMonth: true,
+        changeYear: true,
+        minDate: 0,
+        onSelect: function(dateStr) {
+            var selectedDoctor = $('#appoitmented_doctor').val();
+            if (selectedDoctor != '' && selectedDoctor != null) {
+                fetch_doctor_slots(dateStr, selectedDoctor, null);
+            } else {
+                alert("Please select a doctor first.");
+                $(this).val('');
+            }
+        }
+    });
+
+    // 4. Doctor Dropdown Change Event
+    $('#appoitmented_doctor').on("change", function() {
+        var docId = $(this).val();
+        var dateStr = $('#appoitmented_date').val();
+        if (docId != '' && dateStr != '') {
+            fetch_doctor_slots(dateStr, docId, null);
+        } else {
+            $('#appoitmented_slot').html('<option value="">--Select Slot--</option>');
+        }
+    });
+
+    // 5. Center Dropdown Change Event
     $('#appoitment_for').on("change", function() {
         var centre_id = $(this).val();
         $('#appoitmented_date').val('');
@@ -253,38 +313,6 @@ $(document).ready(function() {
             });
         } else {
             $('#appoitmented_doctor').html('<option value="">--Select Doctor--</option>');
-        }
-    });
-
-    // Doctor Change Event
-    $('#appoitmented_doctor').on("change", function() {
-        $('#appoitmented_date').val('');
-        $('#appoitmented_slot').html('<option value="">--Select Slot--</option>');
-    });
-
-    // Datepicker & Slot Load
-    $("#appoitmented_date").datepicker({
-        dateFormat: 'yy-mm-dd',
-        changeMonth: true,
-        changeYear: true,
-        minDate: 0,
-        onSelect: function(dateStr) {
-            var selectedDoctor = $('#appoitmented_doctor').val();
-            if (selectedDoctor != '' && selectedDoctor != null) {
-                $.ajax({
-                    url: '<?php echo base_url("Accounts/doctor_slots"); ?>',
-                    type: 'POST',
-                    data: { selected: dateStr, appoitmented_doctor: selectedDoctor },
-                    success: function(response) {
-                        var cleanHtml = response;
-                        try { cleanHtml = JSON.parse(response); } catch(e) {}
-                        $('#appoitmented_slot').html(cleanHtml).trigger('change.select2');
-                    }
-                });
-            } else {
-                alert("Please select a doctor first.");
-                $(this).val('');
-            }
         }
     });
 

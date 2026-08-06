@@ -14259,18 +14259,113 @@ public function search_doctor() {
         exit;
     }
 
+    // Ensure model is loaded
+    if (!isset($this->Accounts_model)) {
+        $this->load->model('Accounts_model');
+    }
+
     $doctors = $this->Accounts_model->center_doctors($centre_id);
     
     $option = "<option value=''>--Select Doctor--</option>";
     if (!empty($doctors)) {
         foreach ($doctors as $val) {
-            $option .= "<option value='" . $val['ID'] . "'>" . $val['name'] . "</option>";
+            $doc_id = isset($val['ID']) ? $val['ID'] : '';
+            $doc_name = isset($val['name']) ? $val['name'] : '';
+            if ($doc_id) {
+                $option .= "<option value='" . html_escape($doc_id) . "'>" . html_escape($doc_name) . "</option>";
+            }
         }
     } else {
-        $option .= "<option value=''>No Doctors Available</option>";
+        $option = "<option value=''>No Doctors Available</option>";
     }
     
     echo $option;
+    exit;
+}
+
+public function doctor_slots() {
+    $booking_date = $this->input->post('selected', true);
+    $doctor_id    = $this->input->post('appoitmented_doctor', true);
+
+    if (empty($booking_date) || empty($doctor_id)) {
+        echo "<option value=''>--Select slot--</option>";
+        exit;
+    }
+
+    // Ensure doctors_model is loaded
+    if (!isset($this->doctors_model)) {
+        $this->load->model('doctors_model');
+    }
+
+    // Convert date formats cleanly
+    $selected_timestamp = strtotime($booking_date);
+    $formatted_db_date  = date('Y-m-d', $selected_timestamp);
+    $booking_day        = strtolower(date('l', $selected_timestamp));
+
+    // 1. Check Holiday Status
+    $doctor_available = 0;
+    $doctor_on_holiday = $this->doctors_model->doctor_on_holiday($doctor_id);
+
+    if (!empty($doctor_on_holiday) && $doctor_on_holiday != '0') {
+        $explode = explode(" - ", $doctor_on_holiday);
+        if (count($explode) == 2) {
+            $contractDateBegin = date('Y-m-d', strtotime(trim($explode[0])));
+            $contractDateEnd   = date('Y-m-d', strtotime(trim($explode[1])));
+
+            if (($formatted_db_date >= $contractDateBegin) && ($formatted_db_date <= $contractDateEnd)) {
+                $doctor_available = 1;
+            }
+        }
+    }
+
+    if ($doctor_available == 1) {
+        echo "<option value=''>No slot - doctor on holiday</option>";
+        exit;
+    }
+
+    // 2. Fetch Weekly Master Slots for the Doctor
+    $doctor_slots = $this->doctors_model->doctor_slots($doctor_id, $booking_day);
+
+    // If slots are serialized or JSON string, convert to array
+    if (is_string($doctor_slots)) {
+        $doctor_slots = @unserialize($doctor_slots) ?: json_decode($doctor_slots, true) ?: array();
+    }
+
+    // 3. Fetch Booked Appointments
+    $doctor_appointments = $this->doctors_model->doctor_appointments($doctor_id, $formatted_db_date);
+    $appointmented_slots = array();
+
+    if (!empty($doctor_appointments)) {
+        foreach ($doctor_appointments as $vla) {
+            if (!empty($vla['appoitmented_slot'])) {
+                $appointmented_slots[] = trim($vla['appoitmented_slot']);
+            }
+        }
+    }
+
+    // 4. Build Available Slot Options
+    if (!empty($doctor_slots) && is_array($doctor_slots)) {
+        $option = "<option value=''>--Select slot--</option>";
+        $available_count = 0;
+
+        foreach ($doctor_slots as $slot) {
+            $slot_str = is_array($slot) ? ($slot['slot'] ?? '') : $slot;
+            $slot_clean = trim($slot_str);
+
+            if (!empty($slot_clean) && !in_array($slot_clean, $appointmented_slots, true)) {
+                $option .= "<option value='" . html_escape($slot_clean) . "'>" . html_escape($slot_clean) . "</option>";
+                $available_count++;
+            }
+        }
+
+        if ($available_count > 0) {
+            echo $option;
+        } else {
+            echo "<option value=''>All slots booked for this date</option>";
+        }
+    } else {
+        echo "<option value=''>No available slot for " . ucfirst($booking_day) . "</option>";
+    }
     exit;
 }
 
