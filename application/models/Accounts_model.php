@@ -8306,12 +8306,30 @@ public function validate_coupon($code, $service_type, $amount) {
     }
 
 
-	public function center_doctors($center) {
-		// Prepared query using Query Binding (Secures against SQL Injection)
-		$sql = "SELECT ID, name FROM " . $this->config->item('db_prefix') . "doctors WHERE center_id = ? AND status = '1' ORDER BY name ASC";
-		
-		$q = $this->db->query($sql, array($center));
-		return $q->result_array();
-	}
+public function center_doctors($center) {
+    if (empty($center)) {
+        return array();
+    }
+
+    $prefix = $this->config->item('db_prefix');
+
+    $sql = "SELECT DISTINCT d.ID, d.name 
+            FROM {$prefix}doctors d
+            LEFT JOIN {$prefix}centers c 
+                ON (d.center_id = c.ID OR d.center_id = c.center_number)
+            WHERE d.status = '1' 
+              AND (c.status = '1' OR c.status IS NULL)
+              AND (
+                  d.center_id = ? 
+                  OR c.center_number = ? 
+                  OR c.ID = ?
+                  OR FIND_IN_SET(?, d.allowed_centers) > 0
+                  OR (c.ID IS NOT NULL AND FIND_IN_SET(c.ID, d.allowed_centers) > 0)
+              )
+            ORDER BY d.name ASC";
+
+    $query = $this->db->query($sql, array($center, $center, $center, $center));
+    return $query->result_array();
+}
 
 }

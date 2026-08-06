@@ -62,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['submit'])) {
         // Check if patient exists
         $check_patient = get_patient_by_number($update_data['wife_phone']);
         if (!empty($check_patient)) {
-            file_put_contents('app_data.txt', "\n" . date('d-m-Y H:i:s') . "======Patient Exists======\n", FILE_APPEND);
             $check_patient_register = get_patient_detail($check_patient);
 
             if (!empty($check_patient_register) && $check_patient_register['whats_registers'] == 0) {
@@ -75,7 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['submit'])) {
                 $this->db->update('hms_patients', ['whats_registers' => 1]);
             }
         } else {
-            file_put_contents('app_data.txt', "\n" . date('d-m-Y H:i:s') . "======New Patient======\n", FILE_APPEND);
             whatsappregister($update_data['wife_phone'], json_encode([
                 "name" => $update_data['wife_name']
             ]));
@@ -107,6 +105,31 @@ $query = $this->db->query($sql1);
 $select_result1 = $query->result(); 
 
 foreach ($select_result1 as $res_val) {      
+
+    // Fetch initial doctors directly for page load using center matching
+    $current_center_id = $res_val->appoitment_for;
+    $current_doctor_id = $res_val->appoitmented_doctor;
+
+    $initial_doctors = [];
+    if (!empty($current_center_id)) {
+        $prefix = $this->config->item('db_prefix');
+        $escaped_center = $this->db->escape_str($current_center_id);
+        
+        $sql_doc = "SELECT DISTINCT d.ID, d.name 
+                    FROM {$prefix}doctors d
+                    LEFT JOIN {$prefix}centers c 
+                        ON (d.center_id = c.ID OR d.center_id = c.center_number)
+                    WHERE d.status = '1' 
+                      AND (
+                          d.center_id = '$escaped_center' 
+                          OR c.center_number = '$escaped_center' 
+                          OR c.ID = '$escaped_center'
+                          OR FIND_IN_SET('$escaped_center', d.allowed_centers) > 0
+                          OR (c.ID IS NOT NULL AND FIND_IN_SET(c.ID, d.allowed_centers) > 0)
+                      )
+                    ORDER BY d.name ASC";
+        $initial_doctors = $this->db->query($sql_doc)->result();
+    }
 ?>
 <div class="page-wrapper">
   <form class="col-sm-12 col-xs-12" action="" enctype='multipart/form-data' method="post">
@@ -123,23 +146,23 @@ foreach ($select_result1 as $res_val) {
 
           <div class="panel-body profile-edit">
           
-            <!-- ROW 1: Names -->
+            <!-- ROW 1: Patient Details -->
             <div class="row">
               <div class="form-group col-sm-6 col-xs-12">
                 <label>Wife Name</label>
-                <input placeholder="Wife Name" id="wife_name" value="<?php echo $res_val->wife_name; ?>" name="wife_name" type="text" class="form-control">
+                <input placeholder="Wife Name" id="wife_name" value="<?php echo html_escape($res_val->wife_name); ?>" name="wife_name" type="text" class="form-control">
               </div>
               <div class="form-group col-sm-6 col-xs-12">
                 <label>Husband Name</label>
-                <input placeholder="Husband Name" name="husband_name" id="husband_name" value="<?php echo $res_val->husband_name; ?>" type="text" class="form-control">
+                <input placeholder="Husband Name" name="husband_name" id="husband_name" value="<?php echo html_escape($res_val->husband_name); ?>" type="text" class="form-control">
               </div>
             </div>
 
-            <!-- ROW 2: Center & Doctor -->
+            <!-- ROW 2: Center & Doctor Selection -->
             <div class="row">
               <div class="form-group col-sm-6 col-xs-12">
                 <label>Appointment For (Center)</label>
-                <select name="appoitment_for" id="appoitment_for" class="form-control" style="display: block;">
+                <select name="appoitment_for" id="appoitment_for" class="form-control" style="display: block !important;">
                     <option value="">--Select Center--</option>
                     <?php 
                     $sql2 = "SELECT * FROM hms_centers WHERE status='1'";
@@ -147,7 +170,7 @@ foreach ($select_result1 as $res_val) {
                     $select_result2 = $query->result(); 
 
                     foreach ($select_result2 as $res_val2) { 
-                        $selected = ($res_val2->center_number == $res_val->appoitment_for) ? 'selected' : '';
+                        $selected = ($res_val2->center_number == $res_val->appoitment_for) ? 'selected="selected"' : '';
                     ?>  
                         <option value="<?php echo $res_val2->center_number; ?>" <?php echo $selected; ?>><?php echo $res_val2->center_name; ?></option>
                     <?php } ?>  
@@ -156,38 +179,45 @@ foreach ($select_result1 as $res_val) {
 
               <div class="form-group col-sm-6 col-xs-12 appoitmented_doctor">
                 <label>Doctor Name</label>
-                <!-- Populated via AJAX based on selected center -->
-                <select name="appoitmented_doctor" id="appoitmented_doctor" class="form-control" style="display:block!important;">
+                <select name="appoitmented_doctor" id="appoitmented_doctor" class="form-control" style="display: block !important;">
                     <option value="">--Select Doctor--</option>
+                    <?php 
+                    if (!empty($initial_doctors)) {
+                        foreach ($initial_doctors as $doc) {
+                            $doc_selected = ($doc->ID == $current_doctor_id) ? 'selected="selected"' : '';
+                            echo '<option value="' . $doc->ID . '" ' . $doc_selected . '>' . html_escape($doc->name) . '</option>';
+                        }
+                    }
+                    ?>
                 </select>
               </div>
             </div>
 
-            <!-- ROW 3: Date, Slot, Status -->
+            <!-- ROW 3: Date, Slot & Status -->
             <div class="row">
                <div class="form-group col-sm-6 col-xs-12 appoitmented_date">
                 <label>Appointment Date</label>
-                <input placeholder="Appointment Date" id="appoitmented_date" value="<?php echo $res_val->appoitmented_date; ?>" name="appoitmented_date" type="text" class="particular_date_filter form-control">
+                <input placeholder="Appointment Date" id="appoitmented_date" value="<?php echo html_escape($res_val->appoitmented_date); ?>" name="appoitmented_date" type="text" class="particular_date_filter form-control">
                </div>
                
                <div class="form-group col-sm-6 col-xs-12 appoitmented_slot">
                 <label>Appointment Slot</label>
-                <select name="appoitmented_slot" class="empty-field form-control" id="appoitmented_slot" required style="display:block!important;">
-                    <option value="<?php echo $res_val->appoitmented_slot; ?>"><?php echo $res_val->appoitmented_slot ?: '--Select Slot--'; ?></option>
+                <select name="appoitmented_slot" class="empty-field form-control" id="appoitmented_slot" required style="display: block !important;">
+                    <option value="<?php echo html_escape($res_val->appoitmented_slot); ?>"><?php echo html_escape($res_val->appoitmented_slot) ?: '--Select Slot--'; ?></option>
                 </select>
                </div>
 
                <div class="form-group col-sm-6 col-xs-12">
-                <input type="hidden" name="wife_phone" value="<?php echo $res_val->wife_phone; ?>" class="empty-field" id="wife_phone" required>
+                <input type="hidden" name="wife_phone" value="<?php echo html_escape($res_val->wife_phone); ?>" class="empty-field" id="wife_phone" required>
                </div>
 
                <div class="form-group col-sm-6 col-xs-12">
                 <label>Status</label>
-                <select name="status" id="status" class="form-control" style="display:block!important;">
+                <select name="status" id="status" class="form-control" style="display: block !important;">
                     <option value="">----Select Status---</option>
-                    <option value="in_clinic" <?php echo ($res_val->status == 'in_clinic') ? 'selected' : ''; ?>>In Clinic</option>
-                    <option value="cancelled" <?php echo ($res_val->status == 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
-                    <option value="rescheduled" <?php echo ($res_val->status == 'rescheduled') ? 'selected' : ''; ?>>Rescheduled</option>
+                    <option value="in_clinic" <?php echo ($res_val->status == 'in_clinic') ? 'selected="selected"' : ''; ?>>In Clinic</option>
+                    <option value="cancelled" <?php echo ($res_val->status == 'cancelled') ? 'selected="selected"' : ''; ?>>Cancelled</option>
+                    <option value="rescheduled" <?php echo ($res_val->status == 'rescheduled') ? 'selected="selected"' : ''; ?>>Rescheduled</option>
                 </select>
                </div>
             </div>
@@ -204,69 +234,51 @@ foreach ($select_result1 as $res_val) {
 <script type="text/javascript">
 $(document).ready(function() {
 
-    // Helper function to fetch doctors for selected center
-    function fetch_center_doctors(centre_id, selected_doc_id) {
+    // Center Change Event (AJAX trigger for doctor list)
+    $('#appoitment_for').on("change", function() {
+        var centre_id = $(this).val();
+        $('#appoitmented_date').val('');
+        $('#appoitmented_slot').html('<option value="">--Select Slot--</option>');
+
         if (centre_id != '' && centre_id != null) {
             $.ajax({
                 url: '<?php echo base_url("Accounts/search_doctor"); ?>',
+                type: 'POST',
                 data: { centre_id: centre_id },
-                method: 'POST',
                 success: function(response) {
-                    $('#appoitmented_doctor').html(response);
-                    
-                    // Re-select doctor if previously assigned
-                    if (selected_doc_id) {
-                        $('#appoitmented_doctor').val(selected_doc_id);
-                    }
-                } 
+                    var cleanHtml = response;
+                    try { cleanHtml = JSON.parse(response); } catch(e) {}
+                    $('#appoitmented_doctor').html(cleanHtml).trigger('change.select2');
+                }
             });
         } else {
             $('#appoitmented_doctor').html('<option value="">--Select Doctor--</option>');
         }
-    }
-
-    // 1. Initial execution on Page Load (Auto Load Srinagar or current center's doctors)
-    var current_center = $('#appoitment_for').val();
-    var assigned_doctor = "<?php echo $res_val->appoitmented_doctor ?? ''; ?>";
-
-    if (current_center != '') {
-        fetch_center_doctors(current_center, assigned_doctor);
-    }
-
-    // 2. Event on Center Change
-    $('#appoitment_for').on("change", function() {
-        var centre_id = $(this).val();
-        
-        // Reset date & slot when center changes
-        $('#appoitmented_date').val('');
-        $('#appoitmented_slot').html('<option value="">--Select Slot--</option>');
-        
-        fetch_center_doctors(centre_id, null);
     });
 
-    // 3. Event on Doctor Change
+    // Doctor Change Event
     $('#appoitmented_doctor').on("change", function() {
         $('#appoitmented_date').val('');
         $('#appoitmented_slot').html('<option value="">--Select Slot--</option>');
     });
 
-    // 4. Datepicker Initialization
+    // Datepicker & Slot Load
     $("#appoitmented_date").datepicker({
         dateFormat: 'yy-mm-dd',
         changeMonth: true,
         changeYear: true,
         minDate: 0,
         onSelect: function(dateStr) {
-            var startDate = $.datepicker.formatDate("yy-mm-dd", $(this).datepicker('getDate'));
-            var appoitmented_doctor = $('#appoitmented_doctor').val();
-
-            if (appoitmented_doctor != '' && appoitmented_doctor != null) {
+            var selectedDoctor = $('#appoitmented_doctor').val();
+            if (selectedDoctor != '' && selectedDoctor != null) {
                 $.ajax({
-                    url: '<?php echo base_url("billingcontroller/doctor_slots"); ?>',
+                    url: '<?php echo base_url("Accounts/doctor_slots"); ?>',
                     type: 'POST',
-                    data: { selected: startDate, appoitmented_doctor: appoitmented_doctor },
-                    success: function(data) {
-                        $('#appoitmented_slot').empty().append(data);
+                    data: { selected: dateStr, appoitmented_doctor: selectedDoctor },
+                    success: function(response) {
+                        var cleanHtml = response;
+                        try { cleanHtml = JSON.parse(response); } catch(e) {}
+                        $('#appoitmented_slot').html(cleanHtml).trigger('change.select2');
                     }
                 });
             } else {

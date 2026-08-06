@@ -14251,27 +14251,28 @@ public function get_patient_wallet_info() {
         $this->load->view('billing_view/review_refund_form', $data); 
     }
 
-	public function search_doctor() {
-		$centre_id = $this->input->post('centre_id', true);
-		
-		// Safety check
-		if (empty($centre_id)) {
-			echo "<option value=''>--Select Doctor--</option>";
-			return;
-		}
+public function search_doctor() {
+    $centre_id = $this->input->post('centre_id', true);
+    
+    if (empty($centre_id)) {
+        echo "<option value=''>--Select Doctor--</option>";
+        exit;
+    }
 
-		$doctors = $this->Accounts_model->center_doctors($centre_id);
-		
-		$option = "<option value=''>--Select Doctor--</option>";
-		if (!empty($doctors)) {
-			foreach ($doctors as $val) {
-				$option .= "<option value='" . $val['ID'] . "'>" . $val['name'] . "</option>";
-			}
-		}
-		
-		// Direct output string, do NOT json_encode
-		echo $option;
-	}
+    $doctors = $this->Accounts_model->center_doctors($centre_id);
+    
+    $option = "<option value=''>--Select Doctor--</option>";
+    if (!empty($doctors)) {
+        foreach ($doctors as $val) {
+            $option .= "<option value='" . $val['ID'] . "'>" . $val['name'] . "</option>";
+        }
+    } else {
+        $option .= "<option value=''>No Doctors Available</option>";
+    }
+    
+    echo $option;
+    exit;
+}
 
 
 } // End of class - MAKE SURE THIS IS THE LAST LINE
