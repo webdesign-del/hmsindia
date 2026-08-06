@@ -1,208 +1,359 @@
- <?php $all_method =&get_instance(); ?><?php
+<?php $all_method =& get_instance(); ?>
+<?php
 if (isset($_POST['submit'])) {
-    extract($_POST);
-	$ID = $_GET['ID'];
-   $sql1 = "update pcp_ndt set wife_name='$wife_name', wife_age='$wife_age', husband_name='$husband_name', wife_address='$wife_address', wife_phone='$wife_phone',female_pregnancy_other_p='$female_pregnancy_other_p',female_pregnancy_other_l='$female_pregnancy_other_l',female_pregnancy_other_a='$female_pregnancy_other_a', details_management_advised='$details_management_advised', IVF_Consultant='$IVF_Consultant', procedure_done='$procedure_done', outcome_of_tretment='$outcome_of_tretment', further_referredfor_dellvery='$further_referredfor_dellvery', outcome_of_pregnancy='$outcome_of_pregnancy', male='$male', female='$female', malformation_in_newborn='$malformation_in_newborn', female_issues='$female_issues', date_of_discharge='$date_of_discharge', embryologist='$embryologist', center='$center' where ID = '$ID'  ";
-    $query2 = $this->db->query($sql1);
-	$num = (int) $query2;
-    if ($num > 0) {
-        $_SESSION['MSG'] = "Your profile has been successfully updated.!!";
+    $ID = $this->input->get('ID', true);
+
+    // Securely collect and sanitize form inputs
+    $update_data = [
+        'wife_name'                    => $this->input->post('wife_name', true),
+        'wife_age'                     => $this->input->post('wife_age', true),
+        'husband_name'                 => $this->input->post('husband_name', true),
+        'wife_address'                 => $this->input->post('wife_address', true),
+        'wife_phone'                   => $this->input->post('wife_phone', true),
+        'female_pregnancy_other_p'     => $this->input->post('female_pregnancy_other_p', true),
+        'female_pregnancy_other_l'     => $this->input->post('female_pregnancy_other_l', true),
+        'female_pregnancy_other_a'     => $this->input->post('female_pregnancy_other_a', true),
+        'details_management_advised'   => $this->input->post('details_management_advised', true),
+        'IVF_Consultant'               => $this->input->post('IVF_Consultant', true),
+        'procedure_done'               => $this->input->post('procedure_done', true),
+        'outcome_of_tretment'          => $this->input->post('outcome_of_tretment', true),
+        'further_referredfor_dellvery' => $this->input->post('further_referredfor_dellvery', true),
+        'outcome_of_pregnancy'         => $this->input->post('outcome_of_pregnancy', true),
+        'male'                         => $this->input->post('male', true),
+        'female'                       => $this->input->post('female', true),
+        'malformation_in_newborn'      => $this->input->post('malformation_in_newborn', true),
+        'female_issues'                => $this->input->post('female_issues', true),
+        'date_of_discharge'            => $this->input->post('date_of_discharge', true),
+        'embryologist'                 => $this->input->post('embryologist', true),
+        'center'                       => $this->input->post('center', true),
+        
+        // NEW FIELDS ADDED HERE
+        'adhar_no'                     => $this->input->post('adhar_no', true),
+        'genetic_lab_serial_no'        => $this->input->post('genetic_lab_serial_no', true),
+        'date_of_sample'               => $this->input->post('date_of_sample', true),
+        'test_result_id_no'            => $this->input->post('test_result_id_no', true),
+        'remark'                       => $this->input->post('remark', true)
+    ];
+
+    // Secure Query Builder Update
+    $this->db->where('ID', $ID);
+    $query2 = $this->db->update('pcp_ndt', $update_data);
+
+    if ($query2) {
+        $_SESSION['MSG'] = "Record has been successfully updated!";
     } else {
-        $_SESSION['MSG'] = "Your profile has not been updated.!!";
+        $_SESSION['MSG'] = "Failed to update record.";
     }
 }
-    $ID = $_GET['ID'];
-    $sql1 = "SELECT * FROM pcp_ndt WHERE ID='$ID'";
-	$query = $this->db->query($sql1);
-    $select_result1 = $query->result(); 
-         foreach ($select_result1 as $res_val){       					
+
+$ID = $this->input->get('ID', true);
+$query = $this->db->get_where('pcp_ndt', ['ID' => $ID]);
+$select_result1 = $query->result(); 
+
+foreach ($select_result1 as $res_val) {                         
 ?>
 <div class="ga-pro">
-<h3>PCP NDT</h3>
-<form action="" enctype='multipart/form-data' method="post">
-<input type="hidden" value="<?php echo $res_val->ID; ?>" class="form" name="husband_name">
-<input type="hidden" value="<?php echo $res_val->wife_name; ?>" class="form" name="wife_name">
+  <div class="card">
+    <div class="card-header">
+      <h3>PCPNDT Record Details</h3>
+      <?php if (isset($_SESSION['MSG'])): ?>
+        <div class="alert alert-info">
+          <?php echo $_SESSION['MSG']; unset($_SESSION['MSG']); ?>
+        </div>
+      <?php endif; ?>
+    </div>
 
-<table width="100%" class="vb45rt">
-<tbody>
-<tr>
-<td colspan="2" width="50%">
-<strong>IIC ID: <input type="text" name="patient_id" value="<?php echo $res_val->patient_id; ?>" readonly></strong>
-</td>
-<td colspan="2" width="50%">
-<strong>Wife Name: <input type="text" name="wife_name" value="<?php echo $res_val->wife_name; ?>"> </strong>
-</td>
-</tr>
+    <div class="card-body">
+      <form action="" method="post">
+        
+        <!-- SECTION 1: BASIC INFORMATION -->
+        <div class="form-section-title">Patient Identification</div>
+        <div class="row">
+          <div class="col-md-3 col-sm-6">
+            <div class="form-group">
+              <label>IIC ID</label>
+              <input type="text" class="form-control" name="patient_id" value="<?php echo html_escape($res_val->patient_id); ?>" readonly>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="form-group">
+              <label>Aadhar No.</label>
+              <input type="text" class="form-control" name="adhar_no" value="<?php echo html_escape($res_val->adhar_no ?? ''); ?>" placeholder="Enter Aadhar No.">
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="form-group">
+              <label>Wife Name</label>
+              <input type="text" class="form-control" name="wife_name" value="<?php echo html_escape($res_val->wife_name); ?>">
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="form-group">
+              <label>Age</label>
+              <input type="text" class="form-control" name="wife_age" value="<?php echo html_escape($res_val->wife_age); ?>">
+            </div>
+          </div>
+        </div>
 
-<tr>
-<td colspan="2" width="50%">
-<strong>Age: <input type="text" name="wife_age" value="<?php echo $res_val->wife_age; ?>"></strong>
-</td>
-<td colspan="2" width="50%">
-<strong>Husband Name : <input type="text" name="husband_name" value="<?php echo $res_val->husband_name; ?>"> </strong>
-</td>
-</tr>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Husband Name</label>
+              <input type="text" class="form-control" name="husband_name" value="<?php echo html_escape($res_val->husband_name); ?>">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Wife Phone</label>
+              <input type="text" class="form-control" name="wife_phone" value="<?php echo html_escape($res_val->wife_phone); ?>">
+            </div>
+          </div>
+        </div>
 
-<tr>
-<td colspan="2" width="50%">
-<strong>Address
-<textarea name="wife_address" style="width:100%; height:100px!important;" > <?php echo $res_val->wife_address; ?> </textarea>
-</strong>
-</td>
-<td width="50%">
-<strong>Wife Phone:
-<textarea name="wife_phone" style="width:100%; height:100px!important;" ><?php echo $res_val->wife_phone; ?></textarea>
-</strong>
-</td>
-</tr>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="form-group">
+              <label>Address</label>
+              <textarea class="form-control" name="wife_address" rows="2"><?php echo html_escape($res_val->wife_address); ?></textarea>
+            </div>
+          </div>
+        </div>
 
-<tr>
-<td colspan="2" width="50%">
-<strong>PARITY OF WOMAN WITH SEX OF PREVIOUS CHILD<br/> 
-<input type="text" name="female_pregnancy_other_p" value="<?php echo $res_val->female_pregnancy_other_p; ?>" style="width:30%; margin-right:10px!important;">
-<input type="text" name="female_pregnancy_other_l" value="<?php echo $res_val->female_pregnancy_other_l; ?>" style="width:30%; margin-right:10px!important;">
-<input type="text" name="female_pregnancy_other_a" value="<?php echo $res_val->female_pregnancy_other_a; ?>" style="width:30%;">
-</strong>
-</td>
-<td colspan="2" width="50%">
-<strong>Reason For IVF / ART: <input type="text" name="details_management_advised" value="<?php echo $res_val->details_management_advised; ?>"> </strong>
-</td>
-</tr>
+        <!-- SECTION 2: CLINICAL & PARITY DETAILS -->
+        <div class="form-section-title">Clinical & Parity Information</div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Parity of Woman (P / L / A)</label>
+              <div class="parity-group">
+                <input type="text" class="form-control" name="female_pregnancy_other_p" value="<?php echo html_escape($res_val->female_pregnancy_other_p); ?>" placeholder="P">
+                <input type="text" class="form-control" name="female_pregnancy_other_l" value="<?php echo html_escape($res_val->female_pregnancy_other_l); ?>" placeholder="L">
+                <input type="text" class="form-control" name="female_pregnancy_other_a" value="<?php echo html_escape($res_val->female_pregnancy_other_a); ?>" placeholder="A">
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Reason For IVF / ART</label>
+              <input type="text" class="form-control" name="details_management_advised" value="<?php echo html_escape($res_val->details_management_advised); ?>">
+            </div>
+          </div>
+        </div>
 
-<tr>
-<td colspan="2" width="50%">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Detail of Referring Dr.</label>
+              <input type="text" class="form-control" name="IVF_Consultant" value="<?php echo html_escape($res_val->IVF_Consultant); ?>">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Procedure Done</label>
+              <textarea class="form-control" name="procedure_done" rows="2"><?php echo html_escape($res_val->procedure_done); ?></textarea>
+            </div>
+          </div>
+        </div>
 
-<strong>Detail of Referring Dr: <input type="text" name="IVF_Consultant" value="<?php echo $res_val->IVF_Consultant; ?>"> </strong>
+        <!-- SECTION 3: GENETIC & LAB DETAILS -->
+        <div class="form-section-title">Genetic & Lab Details</div>
+        <div class="row">
+          <div class="col-md-4 col-sm-6">
+            <div class="form-group">
+              <label>Genetic Lab Serial No.</label>
+              <input type="text" class="form-control" name="genetic_lab_serial_no" value="<?php echo html_escape($res_val->genetic_lab_serial_no ?? ''); ?>" placeholder="Lab Serial No.">
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-6">
+            <div class="form-group">
+              <label>Date of Sample</label>
+              <input type="date" class="form-control" name="date_of_sample" value="<?php echo html_escape($res_val->date_of_sample ?? ''); ?>">
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-12">
+            <div class="form-group">
+              <label>Test Result ID No.</label>
+              <input type="text" class="form-control" name="test_result_id_no" value="<?php echo html_escape($res_val->test_result_id_no ?? ''); ?>" placeholder="Result ID No.">
+            </div>
+          </div>
+        </div>
 
-</td>
-<td width="50%">
-<strong>Procedure Done
-<textarea name="procedure_done" style="width:100%; height:100px!important;" > <?php echo $res_val->procedure_done; ?> </textarea>
-</strong>
-</td>
-</tr>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="form-group">
+              <label>Remark</label>
+              <textarea class="form-control" name="remark" rows="2" placeholder="Remarks..."><?php echo html_escape($res_val->remark ?? ''); ?></textarea>
+            </div>
+          </div>
+        </div>
 
-<tr>
-<td colspan="2" width="50%">
-<strong>Outcome of The Tretment
-<textarea name="outcome_of_tretment" style="width:100%; height:100px!important;" > <?php echo $res_val->outcome_of_tretment; ?> </textarea>
-</strong>
-</td>
-<td width="50%">
-<strong>Detail of the Dr. further referred for delivery/Management of oregnancy
-<textarea name="further_referredfor_dellvery" style="width:100%; height:100px!important;" > <?php echo $res_val->further_referredfor_dellvery; ?> </textarea>
-</strong>
-</td>
-</tr>
+        <!-- SECTION 4: OUTCOMES & DISCHARGE -->
+        <div class="form-section-title">Outcomes & Management</div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Outcome of The Treatment</label>
+              <textarea class="form-control" name="outcome_of_tretment" rows="2"><?php echo html_escape($res_val->outcome_of_tretment); ?></textarea>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Dr. Referred for Delivery / Pregnancy Management</label>
+              <textarea class="form-control" name="further_referredfor_dellvery" rows="2"><?php echo html_escape($res_val->further_referredfor_dellvery); ?></textarea>
+            </div>
+          </div>
+        </div>
 
-<tr>
-<td colspan="2" width="50%">
-<strong>Outcome Of the Pregnancy
-<textarea name="outcome_of_pregnancy" style="width:100%; height:100px!important;"  > <?php echo $res_val->outcome_of_pregnancy; ?> </textarea>
-</strong>
-</td>
-<td width="50%">
-<strong>Any Malformation in Newborn Details 
-<textarea name="malformation_in_newborn" style="width:100%; height:100px!important;"  > <?php echo $res_val->malformation_in_newborn; ?> </textarea>
-</strong>
-</td>
-</tr>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Outcome Of the Pregnancy</label>
+              <textarea class="form-control" name="outcome_of_pregnancy" rows="2"><?php echo html_escape($res_val->outcome_of_pregnancy); ?></textarea>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Malformation in Newborn Details</label>
+              <textarea class="form-control" name="malformation_in_newborn" rows="2"><?php echo html_escape($res_val->malformation_in_newborn); ?></textarea>
+            </div>
+          </div>
+        </div>
 
-<tr>
-<td colspan="2" width="50%">
-<strong>Male
-<textarea name="male" style="width:100%; height:100px!important;"  > <?php echo $res_val->male; ?> </textarea>
-</strong>
-</td>
-<td width="50%">
-<strong>Female 
-<textarea name="female" style="width:100%; height:100px!important;"  > <?php echo $res_val->female; ?> </textarea>
-</strong>
-</td>
-</tr>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Male Child Details</label>
+              <textarea class="form-control" name="male" rows="2"><?php echo html_escape($res_val->male); ?></textarea>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Female Child Details</label>
+              <textarea class="form-control" name="female" rows="2"><?php echo html_escape($res_val->female); ?></textarea>
+            </div>
+          </div>
+        </div>
 
-<tr>
-<td width="50%" colspan="2">
-<strong>Female Issues 
-<textarea name="female_issues" style="width:100%; height:100px!important;"  > <?php echo $res_val->female_issues; ?> </textarea>
-</strong>
-</td>
-<td colspan="2" width="50%">
-<strong>Date Of Discharge
-<input type="date" class="Discharge" name="date_of_discharge" value="<?php echo $res_val->date_of_discharge; ?>"></strong>
-</td>
-</tr> 
-<tr>
-<td width="50%" colspan="2">
-            	<label>Center</label>
-                <select class="form-control" id="center" name="center">
-                	<option value=''>--Select From--</option>
-                    <?php $all_centers = $all_method->get_all_centers();
-						            foreach($all_centers as $key => $val){ //var_dump($val);die;
-                          if($center == $val['center_number']){
-                            echo '<option value="'.$val['center_number'].'" selected>'.$val['center_name'].'</option>';
-                          }else{
-		                        echo '<option value="'.$val['center_number'].'">'.$val['center_name'].'</option>';
-                          }
-                    	  } 
-					    ?>
-                </select>
-</td>
-<td colspan="2" width="50%">
-<strong>Embryologist
-<input type="text" class="Discharge" name="embryologist" value="<?php echo $res_val->embryologist; ?>"></strong>
-</td>
-</tr>
-</tbody>
-</table> 
-</div>  
-<input type="submit" name="submit" value="submit">
-</form>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Female Issues</label>
+              <textarea class="form-control" name="female_issues" rows="2"><?php echo html_escape($res_val->female_issues); ?></textarea>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Date Of Discharge</label>
+              <input type="date" class="form-control" name="date_of_discharge" value="<?php echo html_escape($res_val->date_of_discharge); ?>">
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Center</label>
+              <select class="form-control" id="center" name="center">
+                <option value=''>--Select Center--</option>
+                <?php 
+                $all_centers = $all_method->get_all_centers();
+                foreach ($all_centers as $key => $val) {
+                    $selected = ($res_val->center == $val['center_number']) ? 'selected' : '';
+                    echo '<option value="' . html_escape($val['center_number']) . '" ' . $selected . '>' . html_escape($val['center_name']) . '</option>';
+                } 
+                ?>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-group">
+              <label>Embryologist</label>
+              <input type="text" class="form-control" name="embryologist" value="<?php echo html_escape($res_val->embryologist); ?>">
+            </div>
+          </div>
+        </div>
+
+        <div class="row style-actions" style="margin-top: 20px;">
+          <div class="col-md-12 text-right">
+            <button type="submit" name="submit" class="btn btn-primary btn-lg">Update PCPNDT Record</button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
 </div>
- <?php } ?>
+<?php } ?>
+
+<!-- MODERN RESPONSIVE STYLES -->
 <style>
-select#center {
-    display: block!important;
+.ga-pro {
+    margin: 20px auto;
+    font-family: Arial, sans-serif;
 }
-input[type=checkbox], input[type=radio] {
-    opacity: 1 !important;
-    left: 0 !important;
-    position: unset !important;
-    margin: 9px !important;
+.ga-pro .card {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
-.sec3 td {
-    text-align: left;
+.ga-pro .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 15px 20px;
 }
-.sec2 {
-    border: 1px solid #000;
+.ga-pro .card-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
 }
-.sec2 p {
-    margin: 0px;
-    padding: 2px 10px;
+.ga-pro .card-body {
+    padding: 20px;
 }
-table {
-  font-family: arial, sans-serif;
-  border-collapse: collapse;
-  width: 100%;
+.form-section-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #2c3e50;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 5px;
+    margin: 20px 0 15px 0;
 }
-td {
-  border: 1px solid #000;
-  text-align: center;
-  padding: 5px; 
+.form-group {
+    margin-bottom: 15px;
 }
-.ga-pro h3 {
-      text-align: center;
-    font-size: 25px;
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 5px;
+    display: block;
 }
-form {
-    padding-left: 10px;
-    margin-bottom: 4px;
-}
-.nb56ty input {
+.form-control {
     width: 100%;
+    height: 38px;
+    padding: 6px 12px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
 }
-.vb45rt td {
-	text-align: left; 
-	padding-left: 10px;
+textarea.form-control {
+    height: auto !important;
 }
-</style>    
+.parity-group {
+    display: flex;
+    gap: 10px;
+}
+.parity-group input {
+    text-align: center;
+}
+.alert-info {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #d9edf7;
+    border-color: #bce8f1;
+    color: #31708f;
+    border-radius: 4px;
+}
+</style>

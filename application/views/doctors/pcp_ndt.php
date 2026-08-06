@@ -63,31 +63,24 @@ if (isset($ID) && !empty($ID)) {
             	<label>IIC ID </label>
                 <input type="text" class="form-control" id="patient_id" name="patient_id" value="<?php echo $patient_id;?>" />
             </div>
-            <div class="col-sm-1" style="margin-top: 10px;">
+            <div class="col-sm-3" style="margin-top: 10px;">
             	<button name="btnsearch" id="btnsearch" type="submit"  class="btn btn-primary">Search</button>
-            </div>
-            <div class="col-sm-1" style="margin-top: 10px;margin-right: 10px;">
             	<a href="<?php echo base_url().'doctors/pcp_ndt'; ?>" style="text-decoration: none;">
                 <button name="btnreset" id="btnreset" type="button"  class="btn btn-secondary">RESET</button>
-			 </a>
+			        </a>
+              <a href="<?php echo base_url('doctors/add_pcp_ndt'); ?>" target="_blank" class="btn btn-secondary">Add New</a>
             </div>
-			<div class="col-sm-1" style="margin-top: 10px;">
+			      <div class="col-sm-4" style="margin-top: 10px;">
             	<input type='button' id='btn' value='Print' class="btn btn-primary pull-right" onclick='printDiv2();'>
+              <input type='button' id='btn' value='Print IVF' class="btn btn-primary pull-right" onclick='printivf();'>
+              <input type='button' id='btn' value='Print PGT' class="btn btn-primary pull-right" onclick='printpgt();'>
+              <input type='button' id='btn' value='Print Tesa' class="btn btn-primary pull-right" onclick='printtesa();'>
             </div>
-			<div class="col-sm-2" style="margin-top: 10px;">
+			      <div class="col-sm-2" style="margin-top: 10px;">
             	<input type='button' id='btn' value='Print Delivery' class="btn btn-primary pull-right" onclick='printDiv();'>
-            </div>
-      <div class="col-sm-2" style="margin-top: 10px;">
-            	<input type='button' id='btn' value='Print Tesa' class="btn btn-primary pull-right" onclick='printDiv3();'>
-            </div>      
-			<div class="col-sm-1" style="margin-top: 10px;margin-right: 15px;">
-            	<a href="<?php echo base_url('doctors/add_pcp_ndt'); ?>" target="_blank" class="btn btn-secondary">Add New</a>
-            </div>
-            <div class="col-sm-3" style="margin-top: 10px;">
             	<a href="<?php echo base_url('doctors/Pcp-Ndt'); ?>" style="text-decoration: none;">
-                <button name="export-billing" type="submit"  class="btn btn-primary" id="export-billing">Export Billings</button>
-				
-               </a>
+                <button name="export-billing" type="submit"  class="btn btn-primary" id="export-billing">Export</button>
+				    </a>
             </div>	    
             </form>
     
@@ -217,8 +210,8 @@ if (isset($ID) && !empty($ID)) {
 			</tbody>
             </table>
 	</div>
-	
-	<div class="row" id="print_this_section" style="display:none;">
+
+  <div class="row" id="print_this_section" style="display:none;">
 	  <table class="table table-striped table-bordered table-hover" id="investigation_billing_list">
 
               <thead>
@@ -265,11 +258,95 @@ if (isset($ID) && !empty($ID)) {
             </table>
 	</div>
 
-
-<div class="row" id="print_this_section3" style="display:none;">
+  <div class="row" id="print_ivf" style="display:none;">
 	  <table class="table table-striped table-bordered table-hover" id="investigation_billing_list">
-
+ 				 	 	 	 		
               <thead>
+                <tr>
+				          <th style="border:1px solid;">S.No.</th>
+					        <th style="border:1px solid;">Patient Name</th>
+                  <th style="border:1px solid;">Age</th>
+                  <th style="border:1px solid;">Husband Name</th>
+                  <th style="border:1px solid;">Husband Age</th>
+					        <th style="border:1px solid;">Address</th>
+                  <th style="border:1px solid;">Phone No.</th>
+					        <th style="border:1px solid;">Parity with Sex of Child</th>
+                  <th style="border:1px solid;">Reason of IVF </th>
+                  <th style="border:1px solid;">Doctor’s Full Name</th>
+                  <th style="border:1px solid;">Procedure Done</th>
+                  <th style="border:1px solid;">Outcome of Pregnancy</th>
+                  <th style="border:1px solid;">Male</th>
+                  <th style="border:1px solid;">Female</th>
+                  <th style="border:1px solid;">Any Malformation in Newborn Baby</th>
+				        </tr>
+              </thead>
+
+            <tbody id="investigate_result">
+			        <?php $a = 1;  foreach($investigate_result as $ky => $vl){  ?>
+                <tr class="odd gradeX" style="border:1px solid;">
+                    <td style="border:1px solid;"><?php echo $a++; ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['wife_name'] ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['wife_age'] ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['husband_name']; ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['husband_age']; ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['wife_address']; ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['wife_phone']; ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['female_pregnancy_other_p']; ?>, <?php echo $vl['female_pregnancy_other_l']; ?>, <?php echo $vl['female_pregnancy_other_a']; ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['details_management_advised']; ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['IVF_Consultant']; ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['procedure_done']; ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['outcome_of_pregnancy']; ?></td>
+                    <td style="border:1px solid;"><?php echo $vl['male']; ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['female']; ?></td>
+					          <td style="border:1px solid;"><?php echo $vl['malformation_in_newborn']; ?></td>
+				        </tr>
+              <?php $count++;} ?>
+			      </tbody>
+    </table>
+	</div>
+	
+<div class="row" id="print_pgt" style="display:none;">
+	  <table class="table table-striped table-bordered table-hover" id="investigation_billing_list">
+              <thead>
+                <tr>
+				          <th style="border:1px solid;">S.No.</th>
+					        <th style="border:1px solid;">Name of Pregnant Women ,surrogate undergoing NIPT/PGT-A, M,S, R Test and Age Husband/ Father Name Age</th>
+                  <th style="border:1px solid;">Adhar no of women/ Surrogate and Husband</th>
+					        <th style="border:1px solid;">Complete Address </th>
+                  <th style="border:1px solid;">Phone No.</th>
+					        <th style="border:1px solid;">Reason for doing NIPT/ PGT A,M,S,R</th>
+                  <th style="border:1px solid;">Details of Referring Dr</th>
+                  <th style="border:1px solid;">Genetic Lab along with serial no </th>
+                  <th style="border:1px solid;">Date of sample</th>
+                  <th style="border:1px solid;">Test result along with ID no </th>
+                  <th style="border:1px solid;">Remark </th>
+                </tr>
+              </thead>
+
+            <tbody id="investigate_result">
+			        <?php $a = 1;  foreach($investigate_result as $ky => $vl){ ?>
+                <tr class="odd gradeX" style="border:1px solid;">
+                  <td style="border:1px solid;"><?php echo $a++; ?></td>
+					        <td style="border:1px solid;"><?php echo $vl['wife_name'] ?></td>
+                  <td style="border:1px solid;"><?php echo $vl['adhar_no']; ?></td>
+                  <td style="border:1px solid;"><?php echo $vl['wife_address']; ?></td>
+                  <td style="border:1px solid;"><?php echo $vl['wife_phone']; ?></td>
+                  <td style="border:1px solid;"><?php echo $vl['details_management_advised']; ?></td>
+                  <td style="border:1px solid;"><?php echo $vl['IVF_Consultant']; ?></td>
+                  <td style="border:1px solid;"><?php echo $vl['genetic_lab_serial_no'] ?></td>
+                  <td style="border:1px solid;"><?php echo $vl['date_of_sample']; ?></td>
+					        <td style="border:1px solid;"><?php echo $vl['test_result_id_no']; ?></td>
+                  <td style="border:1px solid;"><?php echo $vl['remark']; ?></td>
+					      </tr>
+              <?php $count++;} ?>
+			      </tbody>
+    </table>
+</div>
+
+<div class="row" id="print_tesa" style="display:none;">
+	  <table class="table table-striped table-bordered table-hover" id="investigation_billing_list">
+              <thead>
+                <tr>
                     <th style="border:1px solid;">S.No.</th>
 					          <th style="border:1px solid;">NAME OF PATIENT </th>
                     <th style="border:1px solid;">AGE</th>
@@ -280,14 +357,12 @@ if (isset($ID) && !empty($ID)) {
                     <th style="border:1px solid;">PROCEDURE</th>
                     <th style="border:1px solid;">FINDING</th>
                     <th style="border:1px solid;">EMBRYOLOGIST NAME</th>
-				      </tr>
+				        </tr>
               </thead>
 
             <tbody id="investigate_result">
 			
-              <?php $a = 1;  foreach($investigate_result as $ky => $vl){ 
-                   
-			  ?>
+              <?php $a = 1;  foreach($investigate_result as $ky => $vl){ ?>
                 <tr class="odd gradeX" style="border:1px solid;">
                     <td style="border:1px solid;"><?php echo $a++; ?></td>
 					          <td style="border:1px solid;"><?php echo $vl['wife_name'] ?></td>
@@ -299,11 +374,11 @@ if (isset($ID) && !empty($ID)) {
 					          <td style="border:1px solid;"><?php echo $vl['procedure_done']; ?></td>
 					          <td style="border:1px solid;"><?php echo $vl['outcome_of_tretment']; ?></td>
 					          <td style="border:1px solid;"><?php echo $vl['embryologist']; ?></td>
-				</tr>
+				        </tr>
               <?php $count++;} ?>
-			</tbody>
-            </table>
-	</div>
+			      </tbody>
+    </table>
+</div>
 
 <script>
       $( function() {
@@ -335,12 +410,12 @@ function printDiv2()
 }
 </script>
 <script>
-function printDiv3() 
+function printtesa() 
 {
   $('.hide_print').hide();
   $('input[type="submit"]').css('visibility', 'hidden');
   $('p#last_updated').css('visibility', 'hidden');
-  var divToPrint=document.getElementById('print_this_section3');
+  var divToPrint=document.getElementById('print_tesa');
   var newWin=window.open('','Print-Window');
   newWin.document.open();
   newWin.document.write('<html><body onload="window.print()">'+divToPrint.innerHTML+'</body></html>');
@@ -349,7 +424,36 @@ function printDiv3()
   window.location.reload();
 }
 </script>
-
+<script>
+function printivf() 
+{
+  $('.hide_print').hide();
+  $('input[type="submit"]').css('visibility', 'hidden');
+  $('p#last_updated').css('visibility', 'hidden');
+  var divToPrint=document.getElementById('print_ivf');
+  var newWin=window.open('','Print-Window');
+  newWin.document.open();
+  newWin.document.write('<html><body onload="window.print()">'+divToPrint.innerHTML+'</body></html>');
+  newWin.document.close();
+  setTimeout(function(){newWin.close();},10);
+  window.location.reload();
+}
+</script>
+<script>
+function printpgt() 
+{
+  $('.hide_print').hide();
+  $('input[type="submit"]').css('visibility', 'hidden');
+  $('p#last_updated').css('visibility', 'hidden');
+  var divToPrint=document.getElementById('print_pgt');
+  var newWin=window.open('','Print-Window');
+  newWin.document.open();
+  newWin.document.write('<html><body onload="window.print()">'+divToPrint.innerHTML+'</body></html>');
+  newWin.document.close();
+  setTimeout(function(){newWin.close();},10);
+  window.location.reload();
+}
+</script>
 <script>
 function printDiv() 
 {
