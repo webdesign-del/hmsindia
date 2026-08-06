@@ -8305,4 +8305,13 @@ public function validate_coupon($code, $service_type, $amount) {
         return $query->row_array();
     }
 
+
+	public function center_doctors($center) {
+		// Prepared query using Query Binding (Secures against SQL Injection)
+		$sql = "SELECT ID, name FROM " . $this->config->item('db_prefix') . "doctors WHERE center_id = ? AND status = '1' ORDER BY name ASC";
+		
+		$q = $this->db->query($sql, array($center));
+		return $q->result_array();
+	}
+
 }

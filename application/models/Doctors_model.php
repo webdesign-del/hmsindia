@@ -753,13 +753,18 @@ function patient_medical_info($data, $doctor_id = null) {
 
 	
 
-	public function center_doctors($center) {
-    // Prepared query using Query Binding (Secures against SQL Injection)
-    $sql = "SELECT ID, name FROM " . $this->config->item('db_prefix') . "doctors WHERE center_id = ? AND status = '1' ORDER BY name ASC";
-    
-    $q = $this->db->query($sql, array($center));
-    return $q->result_array();
-}
+	function center_doctors($center){
+
+		$result = array();
+		$sql = "Select ID, name from ".$this->config->item('db_prefix')."doctors where center_id='$center' and status='1' ORDER by ID DESC";
+        $q = $this->db->query($sql);
+        $result = $q->result_array();
+        if (!empty($result))
+        {
+            return $result;
+        }
+        return $result;
+	}
 
 	
 

@@ -208,7 +208,7 @@ $(document).ready(function() {
     function fetch_center_doctors(centre_id, selected_doc_id) {
         if (centre_id != '' && centre_id != null) {
             $.ajax({
-                url: '<?php echo base_url("billingcontroller/search_doctor"); ?>',
+                url: '<?php echo base_url("Accounts/search_doctor"); ?>',
                 data: { centre_id: centre_id },
                 method: 'POST',
                 success: function(response) {
