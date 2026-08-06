@@ -8323,12 +8323,10 @@ public function center_doctors($center) {
                   d.center_id = ? 
                   OR c.center_number = ? 
                   OR c.ID = ?
-                  OR FIND_IN_SET(?, d.allowed_centers) > 0
-                  OR (c.ID IS NOT NULL AND FIND_IN_SET(c.ID, d.allowed_centers) > 0)
               )
             ORDER BY d.name ASC";
 
-    $query = $this->db->query($sql, array($center, $center, $center, $center));
+    $query = $this->db->query($sql, array($center, $center, $center));
     return $query->result_array();
 }
 
