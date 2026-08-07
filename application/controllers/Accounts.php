@@ -3347,105 +3347,108 @@ public function tally()
     // Initialize the master array
     $all_transactions = [];
 
-    // =========================================================================
+ // =========================================================================
     // PART 1: MEDICINE SALES
     // =========================================================================
-    $sql_med = "
-       SELECT 
-    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,c.center_code,c.state_name,c.center_gst,
-    s.sale_number, s.sale_date, s.payment_method, s.payment_status,
-    s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
-    mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
-    sm.quantity_change, sm.total_value, s.tally_status
-FROM sales s
-INNER JOIN hms_centers c ON s.center_id = c.id
-INNER JOIN stock_movements sm ON s.id = sm.reference_id
-INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
-INNER JOIN medicines m ON mb.medicine_id = m.id
-WHERE sm.movement_type = 'SALE' 
-    AND sm.to_location_type = 'SALE'
-    AND s.payment_status = 'PAID' 
-    AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-07-28'
-ORDER BY s.updated_at DESC 
-LIMIT 700";
     
-	// Change result_array() to row_array()
-	// 1. Change back to result_array() to handle all 50 potential records
-$med_results = $this->db->query($sql_med)->result_array();
+    // Today's timestamp starting at 12:00 AM (Midnight Reset)
+    $today_start = date('Y-m-d 00:00:00');
 
-$med_grouped = [];
-$prefix = $this->config->item('db_prefix');
+    $sql_med = "
+        SELECT 
+            s.id AS sale_id, s.patient_id, s.patient_name, c.center_name, c.center_code, c.state_name, c.center_gst,
+            s.sale_number, s.sale_date, s.updated_at, s.payment_method, s.payment_status,
+            s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
+            mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
+            sm.quantity_change, sm.total_value, s.tally_status
+        FROM sales s
+        INNER JOIN hms_centers c ON s.center_id = c.id
+        INNER JOIN stock_movements sm ON s.id = sm.reference_id
+        INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
+        INNER JOIN medicines m ON mb.medicine_id = m.id
+        WHERE sm.movement_type = 'SALE' 
+            AND sm.to_location_type = 'SALE'
+            AND s.payment_status = 'PAID' 
+            AND s.tally_status = 'APPROVED_TALLY'
+            AND s.tally_send_date >= '{$today_start}'
+        ORDER BY s.updated_at DESC 
+        LIMIT 700";
+    
+    $med_results = $this->db->query($sql_med)->result_array();
 
-if (!empty($med_results)) {
-    foreach ($med_results as $row) {
-        $saleId = $row['sale_id'];
-        $patient_id = $row['patient_id'];
+    $med_grouped = [];
+    $prefix = $this->config->item('db_prefix');
 
-        // 2. Fetch Appointment for THIS specific row
-        $sql_app = "SELECT * FROM {$prefix}appointments WHERE paitent_id = '$patient_id' AND paitent_type = 'new_patient' LIMIT 1";
-        $app_result = run_select_query($sql_app);
+    if (!empty($med_results)) {
+        foreach ($med_results as $row) {
+            $saleId = $row['sale_id'];
+            $patient_id = $row['patient_id'];
 
-        // 3. Fetch Center info based on the appointment
-        $app_center_name = "N/A"; // Default if not found
-        if (!empty($app_result['appoitment_for'])) {
-            $sql_center = "SELECT center_name, state_name,center_code, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
-            $center_data = run_select_query($sql_center);
-            $app_center_name = $center_data['center_name'] ?? "N/A";
-        }
+            // Fetch Appointment for THIS specific row
+            $sql_app = "SELECT * FROM {$prefix}appointments WHERE paitent_id = '{$patient_id}' AND paitent_type = 'new_patient' LIMIT 1";
+            $app_result = run_select_query($sql_app);
 
-        // 4. Calculations
-        $qty            = abs((int) $row['quantity_change']);
-        $packSize       = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
-        $mrpUnit        = $row['mrp'] / $packSize; 
-        $gstRate        = (float) $row['gst_rate'];
-        $total          = (float) $row['total_value'];
+            // Fetch Center info based on the appointment
+            $app_center_name = "N/A";
+            if (!empty($app_result['appoitment_for'])) {
+                $sql_center = "SELECT center_name, state_name, center_code, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+                $center_data = run_select_query($sql_center);
+                $app_center_name = $center_data['center_name'] ?? "N/A";
+            }
 
-        $mrpValue       = $mrpUnit * $qty;
-        $taxableValue   = ($total * 100) / (100 + $gstRate);
-        $gstAmount      = $total - $taxableValue;
-        $discountAmount = $mrpValue - $total;
-        
-        // 5. Grouping Logic
-        if (!isset($med_grouped[$saleId])) {
-            $med_grouped[$saleId] = [
-                'type'             => 'Medicine',
-                'patient_id'       => $row['patient_id'],
-                'patient_name'     => $row['patient_name'],
-                'billing_center'   => $row['center_name'],
-                'origin_center'    => $app_center_name, // Now correctly populated
-				'cost_center'      => $row['center_name'], // Now correctly populated
-				'center_code'      => $row['center_code'],
-                'receipt_number'   => $row['sale_number'],
-                'on_date'          => date("d-m-Y", strtotime($row['sale_date'])),
-                'biller_name'      => $row['payment_approved_by_name'],
-                'payment_method'   => $row['payment_method'],
-                'status'           => $row['payment_status'],
-                'series_number'    => $row['series_number'],
-				'company_state'    => $row['state_name'],
-				'company_gstin'    => $row['center_gst'],
-				'party_state'      => $row['state_name'],
-				'place_of_supply'  => $row['state_name'],
-                'items'            => []
+            // Calculations & Safeguards
+            $qty            = abs((int) ($row['quantity_change'] ?? 0));
+            $packSize       = (!empty($row['pack_size']) && $row['pack_size'] > 0) ? $row['pack_size'] : 1;
+            $mrpUnit        = ($row['mrp'] ?? 0) / $packSize; 
+            $gstRate        = (float) ($row['gst_rate'] ?? 0);
+            $total          = (float) ($row['total_value'] ?? 0);
+
+            $mrpValue       = $mrpUnit * $qty;
+            $taxableValue   = ($gstRate > 0) ? (($total * 100) / (100 + $gstRate)) : $total;
+            $gstAmount      = $total - $taxableValue;
+            $discountAmount = $mrpValue - $total;
+            
+            // Grouping Logic
+            if (!isset($med_grouped[$saleId])) {
+                $med_grouped[$saleId] = [
+                    'type'             => 'Medicine',
+                    'patient_id'       => $row['patient_id'] ?? '',
+                    'patient_name'     => $row['patient_name'] ?? '',
+                    'billing_center'   => $row['center_name'] ?? 'N/A',
+                    'origin_center'    => $app_center_name,
+                    'cost_center'      => $row['center_name'] ?? 'N/A',
+                    'center_code'      => $row['center_code'] ?? '',
+                    'receipt_number'   => $row['sale_number'] ?? '',
+                    'on_date'          => !empty($row['sale_date']) ? date("d-m-Y", strtotime($row['sale_date'])) : '',
+                    'updated_date'     => !empty($row['updated_at']) ? date("d-m-Y", strtotime($row['updated_at'])) : '',
+                    'biller_name'      => $row['payment_approved_by_name'] ?? 'N/A',
+                    'payment_method'   => $row['payment_method'] ?? '',
+                    'status'           => $row['payment_status'] ?? '',
+                    'series_number'    => $row['series_number'] ?? '',
+                    'company_state'    => $row['state_name'] ?? '',
+                    'company_gstin'    => $row['center_gst'] ?? '',
+                    'party_state'      => $row['state_name'] ?? '',
+                    'place_of_supply'  => $row['state_name'] ?? '',
+                    'items'            => []
+                ];
+            }
+
+            // Add medicine as an item to this Sale ID
+            $med_grouped[$saleId]['items'][] = [
+                'item_name'       => $row['medicine_name'] ?? 'Unknown',
+                'code'            => $row['hsn_code'] ?? '',
+                'batch_no'        => $row['batch_number'] ?? '',
+                'expiry'          => $row['expiry_date'] ?? '',
+                'quantity'        => $qty,
+                'unit_price'      => number_format($mrpUnit, 2, '.', ''),
+                'discount_amt'    => number_format($discountAmount, 2, '.', ''),
+                'taxable_value'   => number_format($taxableValue, 2, '.', ''),
+                'gst_rate'        => number_format($gstRate, 2, '.', ''),
+                'gst_amount'      => number_format($gstAmount, 2, '.', ''),
+                'receive_amount'  => number_format($total, 2, '.', '')
             ];
         }
-
-        // 6. Add medicine as an item to this Sale ID
-        $med_grouped[$saleId]['items'][] = [
-            'item_name'       => $row['medicine_name'],
-            'code'            => $row['hsn_code'],
-            'batch_no'        => $row['batch_number'],
-            'expiry'          => $row['expiry_date'],
-            'quantity'        => $qty,
-            'unit_price'      => number_format($mrpUnit, 2, '.', ''),
-            'discount_amt'    => number_format($discountAmount, 2, '.', ''),
-            'taxable_value'   => number_format($taxableValue, 2, '.', ''),
-            'gst_rate'        => number_format($gstRate, 2, '.', ''),
-            'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-            'receive_amount'  => number_format($total, 2, '.', '')
-        ];
     }
-}
 
 // 7. Final Merge into Master Array
 if (!empty($med_grouped)) {
@@ -3455,100 +3458,107 @@ if (!empty($med_grouped)) {
 }
 
 	// =========================================================================
-// PART 2: MEDICINE RETURNS
-// =========================================================================
-$sql_ret = "
-    SELECT 
-    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,c.center_code,
-    r.return_number, r.return_date, r.status, r.return_reason,
-    m.medicine_name, mb.batch_number, mb.expiry_date, 
-    m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
-    ri.quantity_returned, ri.total_amount AS item_total,
-    ri.final_amount AS item_final, ri.discount_amount AS item_discount,
-    r.tally_status
-FROM medicine_returns r
-LEFT JOIN hms_centers c ON r.center_id = c.id
-LEFT JOIN medicine_return_items ri ON r.id = ri.return_id
-LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
-LEFT JOIN medicines m ON mb.medicine_id = m.id
-WHERE r.status = 'APPROVED' 
-AND r.tally_status = '1'
-AND r.return_date > '2026-07-28'
-ORDER BY r.id DESC
-";
+    // PART 2: MEDICINE RETURNS
+    // =========================================================================
+    
+    // Today's timestamp starting at 12:00 AM (Midnight Reset)
+    $today_start = date('Y-m-d 00:00:00');
 
-$ret_results = $this->db->query($sql_ret)->result_array();
-$ret_grouped = [];
-$prefix = $this->config->item('db_prefix');
+    $sql_ret = "
+        SELECT 
+            r.id AS return_id, r.patient_id, r.patient_name, c.center_name, c.center_code, 
+            c.state_name, c.center_gst,
+            r.return_number, r.return_date, r.status, r.return_reason, r.updated_at,
+            m.medicine_name, mb.batch_number, mb.expiry_date, 
+            m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
+            ri.quantity_returned, ri.total_amount AS item_total,
+            ri.final_amount AS item_final, ri.discount_amount AS item_discount,
+            r.tally_status
+        FROM medicine_returns r
+        LEFT JOIN hms_centers c ON r.center_id = c.id
+        LEFT JOIN medicine_return_items ri ON r.id = ri.return_id
+        LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
+        LEFT JOIN medicines m ON mb.medicine_id = m.id
+        WHERE r.status = 'APPROVED' 
+            AND r.tally_status = '1'
+            AND r.tally_send_date >= '{$today_start}'
+        ORDER BY r.id DESC
+        LIMIT 700
+    ";
 
-if (!empty($ret_results)) {
-    foreach ($ret_results as $row) {
-        $retId = $row['return_id'];
-        $patient_id = $row['patient_id'];
+    $ret_results = $this->db->query($sql_ret)->result_array();
+    $ret_grouped = [];
+    $prefix = $this->config->item('db_prefix');
 
-        // 1. Grouping Initialization & Extra Data Fetching
-        if (!isset($ret_grouped[$retId])) {
-            
-            // Appointment fetch sirf naye Return ID ke liye ek baar hoga
-            $sql_app = "SELECT * FROM {$prefix}appointments WHERE paitent_id = '$patient_id' AND paitent_type = 'new_patient' LIMIT 1";
-            $app_result = run_select_query($sql_app);
+    if (!empty($ret_results)) {
+        foreach ($ret_results as $row) {
+            $retId = $row['return_id'];
+            $patient_id = $row['patient_id'];
 
-            $app_center_name = "N/A";
-            if (!empty($app_result['appoitment_for'])) {
-                $sql_center = "SELECT center_name, state_name,center_code, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
-                $center_data = run_select_query($sql_center);
-                $app_center_name = $center_data['center_name'] ?? "N/A";
+            // 1. Grouping Initialization & Extra Data Fetching
+            if (!isset($ret_grouped[$retId])) {
+                
+                // Fetch appointment for THIS specific row
+                $sql_app = "SELECT * FROM {$prefix}appointments WHERE paitent_id = '{$patient_id}' AND paitent_type = 'new_patient' LIMIT 1";
+                $app_result = run_select_query($sql_app);
+
+                $app_center_name = "N/A";
+                if (!empty($app_result['appoitment_for'])) {
+                    $sql_center = "SELECT center_name, state_name, center_code, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+                    $center_data = run_select_query($sql_center);
+                    $app_center_name = $center_data['center_name'] ?? "N/A";
+                }
+
+                $ret_grouped[$retId] = [
+                    'type'             => 'Medicine Return',
+                    'patient_id'       => $row['patient_id'] ?? '',
+                    'patient_name'     => $row['patient_name'] ?? '',
+                    'billing_center'   => $row['center_name'] ?? 'N/A',
+                    'origin_center'    => $app_center_name, 
+                    'cost_center'      => $row['center_name'] ?? 'N/A',
+                    'center_code'      => $row['center_code'] ?? '',
+                    'receipt_number'   => $row['return_number'] ?? '',
+                    'on_date'          => !empty($row['return_date']) ? date("d-m-Y", strtotime($row['return_date'])) : '',
+                    'updated_date'     => !empty($row['updated_at']) ? date("d-m-Y", strtotime($row['updated_at'])) : '',
+                    'biller_name'      => 'System Approved',
+                    'payment_method'   => 'Refund',
+                    'status'           => $row['status'] ?? '',
+                    'reason'           => $row['return_reason'] ?? '',
+                    'company_state'    => $row['state_name'] ?? '',
+                    'company_gstin'    => $row['center_gst'] ?? '',
+                    'party_state'      => $row['state_name'] ?? '',
+                    'place_of_supply'  => $row['state_name'] ?? '',
+                    'items'            => []
+                ];
             }
 
-            $ret_grouped[$retId] = [
-                'type'             => 'Medicine Return',
-                'patient_id'       => $row['patient_id'],
-                'patient_name'     => $row['patient_name'],
-                'billing_center'   => $row['center_name'],
-                'origin_center'    => $app_center_name, 
-				'cost_center'      => $row['center_name'], // Now correctly populated
-				'center_code'      => $row['center_code'],
-                'receipt_number'   => $row['return_number'],
-			    'on_date'          => date("d-m-Y", strtotime($row['return_date'])),
-                'biller_name'      => 'System Approved',
-                'payment_method'   => 'Refund',
-                'status'           => $row['status'],
-                'reason'           => $row['return_reason'],
-				'company_state'    => $center_data['state_name'],
-				'company_gstin'    => $center_data['center_gst'],
-				'party_state'      => $center_data['state_name'],
-				'place_of_supply'  => $center_data['state_name'],
-                'items'            => []
+            // 2. Calculations for Items
+            $qty             = abs((int) ($row['quantity_returned'] ?? 0));
+            $packSize        = (!empty($row['pack_size']) && $row['pack_size'] > 0) ? $row['pack_size'] : 1;
+            $mrpUnit         = ($row['mrp'] ?? 0) / $packSize; 
+            $gstRate         = (float) ($row['gst_rate'] ?? 0);
+            $totalRefundItem = (float) ($row['item_final'] ?? 0); 
+
+            $taxableValue    = ($gstRate > 0) ? (($totalRefundItem * 100) / (100 + $gstRate)) : $totalRefundItem;
+            $gstAmount       = $totalRefundItem - $taxableValue;
+            $discountAmount  = (float) ($row['item_discount'] ?? 0);
+
+            // 3. Add Item to Group
+            $ret_grouped[$retId]['items'][] = [
+                'item_name'       => $row['medicine_name'] ?? 'Unknown',
+                'code'            => $row['hsn_code'] ?? '',
+                'batch_no'        => $row['batch_number'] ?? '',
+                'expiry'          => $row['expiry_date'] ?? '',
+                'quantity'        => $qty,
+                'unit_price'      => number_format($mrpUnit, 2, '.', ''),
+                'discount_amt'    => number_format($discountAmount, 2, '.', ''),
+                'taxable_value'   => number_format($taxableValue, 2, '.', ''),
+                'gst_rate'        => number_format($gstRate, 2, '.', ''),
+                'gst_amount'      => number_format($gstAmount, 2, '.', ''),
+                'receive_amount'  => number_format($totalRefundItem, 2, '.', '')
             ];
         }
-
-        // 2. Calculations for Items
-        $qty             = (int) $row['quantity_returned'];
-        $packSize        = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
-        $mrpUnit         = $row['mrp'] / $packSize; 
-        $gstRate         = (float) $row['gst_rate'];
-        $totalRefundItem = (float) $row['item_final']; 
-
-        $taxableValue    = ($totalRefundItem * 100) / (100 + $gstRate);
-        $gstAmount       = $totalRefundItem - $taxableValue;
-        $discountAmount  = $row['item_discount'];
-
-        // 3. Add Item to Group
-        $ret_grouped[$retId]['items'][] = [
-            'item_name'       => $row['medicine_name'],
-            'code'            => $row['hsn_code'],
-            'batch_no'        => $row['batch_number'],
-            'expiry'          => $row['expiry_date'],
-            'quantity'        => $qty,
-            'unit_price'      => number_format($mrpUnit, 2, '.', ''),
-            'discount_amt'    => number_format($discountAmount, 2, '.', ''),
-            'taxable_value'   => number_format($taxableValue, 2, '.', ''),
-            'gst_rate'        => number_format($gstRate, 2, '.', ''),
-            'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-            'receive_amount'  => number_format($totalRefundItem, 2, '.', '')
-        ];
     }
-}
 
 // 4. Master Array Merge
 foreach($ret_grouped as $return) {
@@ -4093,104 +4103,107 @@ public function order_invoice()
     // =========================================================================
     // PART 1: MEDICINE SALES
     // =========================================================================
-     $sql_med = "
+    
+    // Dynamic midnight timestamp for daily reset
+    $today_start = date('Y-m-d 00:00:00');
+
+    $sql_med = "
        SELECT 
-    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name,c.state_name,c.center_gst, c.center_code,
-    s.sale_number, s.sale_date, s.payment_method, s.payment_status,
-    s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
-    mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
-    sm.quantity_change, sm.total_value, s.tally_status, s.total_amount
-FROM sales s
-INNER JOIN hms_centers c ON s.center_id = c.id
-INNER JOIN stock_movements sm ON s.id = sm.reference_id
-INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
-INNER JOIN medicines m ON mb.medicine_id = m.id
-WHERE sm.movement_type = 'SALE' 
-    AND sm.to_location_type = 'SALE'
-    AND s.payment_status = 'PAID' 
-    AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-07-28'
-ORDER BY s.updated_at DESC 
-LIMIT 800
+            s.id AS sale_id, s.patient_id, s.patient_name, c.center_name, c.state_name, c.center_gst, c.center_code,
+            s.sale_number, s.sale_date, s.tally_send_date, s.payment_method, s.payment_status,
+            s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
+            mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
+            sm.quantity_change, sm.total_value, s.tally_status, s.total_amount
+        FROM sales s
+        INNER JOIN hms_centers c ON s.center_id = c.id
+        INNER JOIN stock_movements sm ON s.id = sm.reference_id
+        INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
+        INNER JOIN medicines m ON mb.medicine_id = m.id
+        WHERE sm.movement_type = 'SALE' 
+            AND sm.to_location_type = 'SALE'
+            AND s.payment_status = 'PAID' 
+            AND s.tally_status = 'APPROVED_TALLY'
+            AND s.tally_send_date >= '{$today_start}'
+        ORDER BY s.updated_at DESC 
+        LIMIT 800
     ";
     
-	// Change result_array() to row_array()
-	// 1. Change back to result_array() to handle all 50 potential records
-$med_results = $this->db->query($sql_med)->result_array();
+    $med_results = $this->db->query($sql_med)->result_array();
 
-$med_grouped = [];
-$prefix = $this->config->item('db_prefix');
+    $med_grouped = [];
+    $prefix = $this->config->item('db_prefix');
 
-if (!empty($med_results)) {
-    foreach ($med_results as $row) {
-        $saleId = $row['sale_id'];
-        $patient_id = $row['patient_id'];
+    if (!empty($med_results)) {
+        foreach ($med_results as $row) {
+            $saleId = $row['sale_id'];
+            $patient_id = $row['patient_id'];
 
-        // 2. Fetch Appointment for THIS specific row
-        $sql_app = "SELECT * FROM {$prefix}appointments WHERE paitent_id = '$patient_id' AND paitent_type = 'new_patient' LIMIT 1";
-        $app_result = run_select_query($sql_app);
+            // Fetch Appointment for THIS specific row
+            $sql_app = "SELECT * FROM {$prefix}appointments WHERE paitent_id = '$patient_id' AND paitent_type = 'new_patient' LIMIT 1";
+            $app_result = run_select_query($sql_app);
 
-        // 3. Fetch Center info based on the appointment
-        $app_center_name = "N/A"; // Default if not found
-        if (!empty($app_result['appoitment_for'])) {
-            $sql_center = "SELECT center_name,state_name,center_code, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
-            $center_data = run_select_query($sql_center);
-            $app_center_name = $center_data['center_name'] ?? "N/A";
-        }
+            // Fetch Center info based on the appointment
+            $app_center_name = "N/A";
+            if (!empty($app_result['appoitment_for'])) {
+                $sql_center = "SELECT center_name, state_name, center_code, center_gst FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+                $center_data = run_select_query($sql_center);
+                $app_center_name = $center_data['center_name'] ?? "N/A";
+            }
 
-        // 4. Calculations
-        $qty            = abs((int) $row['quantity_change']);
-        $packSize       = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
-        $mrpUnit        = $row['mrp'] / $packSize; 
-        $gstRate        = (float) $row['gst_rate'];
-        $total          = (float) $row['total_value'];
+            // Calculations
+            $qty            = abs((int) ($row['quantity_change'] ?? 0));
+            $packSize       = (!empty($row['pack_size']) && $row['pack_size'] > 0) ? $row['pack_size'] : 1;
+            $mrpUnit        = ($row['mrp'] ?? 0) / $packSize; 
+            $gstRate        = (float) ($row['gst_rate'] ?? 0);
+            $total          = (float) ($row['total_value'] ?? 0);
 
-        $mrpValue       = $mrpUnit * $qty;
-        $taxableValue   = ($total * 100) / (100 + $gstRate);
-        $gstAmount      = $total - $taxableValue;
-        $discountAmount = $mrpValue - $total;
-        
-        // 5. Grouping Logic
-        if (!isset($med_grouped[$saleId])) {
-            $med_grouped[$saleId] = [
-                'type'             => 'Medicine',
-                'patient_id'       => $row['patient_id'],
-                'patient_name'     => $row['patient_name'],
-                'billing_center'   => $row['center_name'],
-                'origin_center'    => $app_center_name, // Now correctly populated
-				'cost_center'      => $row['center_name'], // Now correctly populated
-				'center_code'      => $row['center_code'],
-                'receipt_number'   => $row['sale_number'],
-                'on_date'          => date("d-m-Y", strtotime($row['sale_date'])),
-                'biller_name'      => $row['payment_approved_by_name'],
-                'payment_method'   => $row['payment_method'],
-                'status'           => $row['payment_status'],
-				'total_amount'           => $row['total_amount'],
-                'series_number'    => $row['series_number'],
-				'company_state'    => $row['state_name'],
-				'company_gstin'    => $row['center_gst'],
-				'party_state'      => $row['state_name'],
-				'place_of_supply'  => $row['state_name'],
-                'items'            => []
+            $mrpValue       = $mrpUnit * $qty;
+            $taxableValue   = ($gstRate > 0) ? (($total * 100) / (100 + $gstRate)) : $total;
+            $gstAmount      = $total - $taxableValue;
+            $discountAmount = $mrpValue - $total;
+            
+            // Grouping Logic
+            if (!isset($med_grouped[$saleId])) {
+                $med_grouped[$saleId] = [
+                    'type'             => 'Medicine',
+                    'patient_id'       => $row['patient_id'] ?? '',
+                    'patient_name'     => $row['patient_name'] ?? '',
+                    'billing_center'   => $row['center_name'] ?? 'N/A',
+                    'origin_center'    => $app_center_name,
+                    'cost_center'      => $row['center_name'] ?? 'N/A',
+                    'center_code'      => $row['center_code'] ?? '',
+                    'receipt_number'   => $row['sale_number'] ?? '',
+                    'on_date'          => !empty($row['sale_date']) ? date("d-m-Y", strtotime($row['sale_date'])) : '',
+                    'tally_send_date'  => !empty($row['tally_send_date']) ? date("d-m-Y H:i:s", strtotime($row['tally_send_date'])) : '',
+                    'biller_name'      => $row['payment_approved_by_name'] ?? 'N/A',
+                    'payment_method'   => $row['payment_method'] ?? '',
+                    'status'           => $row['payment_status'] ?? '',
+                    'total_amount'     => $row['total_amount'] ?? 0,
+                    'series_number'    => $row['series_number'] ?? '',
+                    'company_state'    => $row['state_name'] ?? '',
+                    'company_gstin'    => $row['center_gst'] ?? '',
+                    'party_state'      => $row['state_name'] ?? '',
+                    'place_of_supply'  => $row['state_name'] ?? '',
+                    'items'            => []
+                ];
+            }
+
+            // Add medicine as an item to this Sale ID
+            $med_grouped[$saleId]['items'][] = [
+                'item_name'       => $row['medicine_name'] ?? 'Unknown',
+                'code'            => $row['hsn_code'] ?? '',
+                'batch_no'        => $row['batch_number'] ?? '',
+                'expiry'          => $row['expiry_date'] ?? '',
+                'quantity'        => $qty,
+                'unit_price'      => number_format($mrpUnit, 2, '.', ''),
+                'discount_amt'    => number_format($discountAmount, 2, '.', ''),
+                'taxable_value'   => number_format($taxableValue, 2, '.', ''),
+                'gst_rate'        => number_format($gstRate, 2, '.', ''),
+                'gst_amount'      => number_format($gstAmount, 2, '.', ''),
+                'receive_amount'  => number_format($total, 2, '.', '')
             ];
         }
-
-        // 6. Add medicine as an item to this Sale ID
-        $med_grouped[$saleId]['items'][] = [
-            'item_name'       => $row['medicine_name'],
-            'code'            => $row['hsn_code'],
-            'batch_no'        => $row['batch_number'],
-            'expiry'          => $row['expiry_date'],
-            'quantity'        => $qty,
-            'unit_price'      => number_format($mrpUnit, 2, '.', ''),
-            'discount_amt'    => number_format($discountAmount, 2, '.', ''),
-            'taxable_value'   => number_format($taxableValue, 2, '.', ''),
-            'gst_rate'        => number_format($gstRate, 2, '.', ''),
-            'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-            'receive_amount'  => number_format($total, 2, '.', '')
-        ];
     }
-}
 
 // 7. Final Merge into Master Array
 if (!empty($med_grouped)) {
@@ -4200,89 +4213,121 @@ if (!empty($med_grouped)) {
 }
 
 
-		// =========================================================================
-// PART 2: MEDICINE RETURNS
 // =========================================================================
-$sql_ret = "
-    SELECT 
-    r.id AS return_id, r.patient_id, r.patient_name, c.center_name,c.state_name,c.state_name,c.center_code,
-    r.return_number, r.return_date, r.status, r.return_reason,
-    m.medicine_name, mb.batch_number, mb.expiry_date, 
-    m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
-    ri.quantity_returned,ri.final_amount, ri.total_amount AS item_total,
-    ri.final_amount AS item_final, ri.discount_amount AS item_discount,
-    r.tally_status
-FROM medicine_returns r
-LEFT JOIN hms_centers c ON r.center_id = c.id
-LEFT JOIN medicine_return_items ri ON r.id = ri.return_id
-LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
-LEFT JOIN medicines m ON mb.medicine_id = m.id
-WHERE r.status = 'APPROVED' 
-AND r.tally_status = '1'
-AND r.return_date > '2026-07-28'
-ORDER BY r.id DESC
-";
-
-$ret_results = $this->db->query($sql_ret)->result_array();
-
-// Group items by Return ID
-$ret_grouped = [];
-
-foreach ($ret_results as $row) {
-    $retId = $row['return_id'];
+    // PART 2: MEDICINE RETURNS
+    // =========================================================================
     
-    $qty      = (int) $row['quantity_returned'];
-    $packSize = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
-    $mrpUnit  = $row['mrp'] / $packSize; 
-    $gstRate  = (float) $row['gst_rate'];
-    
-    // final_amount is usually the amount being refunded to the patient
-    $totalRefundItem = (float) $row['item_final']; 
+    // Dynamic midnight timestamp for daily reset
+    $today_start = date('Y-m-d 00:00:00');
 
-    // Calculations (Reverse Tax calculation)
-    $taxableValue   = ($totalRefundItem * 100) / (100 + $gstRate);
-    $gstAmount      = $totalRefundItem - $taxableValue;
-    $mrpTotalValue  = $mrpUnit * $qty;
-    $discountAmount = $row['item_discount']; // or $mrpTotalValue - $totalRefundItem;
-    
-    if (!isset($ret_grouped[$retId])) {
-        $ret_grouped[$retId] = [
-            'type'             => 'Medicine Return',
-            'patient_id'       => $row['patient_id'],
-            'patient_name'     => $row['patient_name'],
-            'billing_center'   => $row['center_name'],
-            'origin_center'    => $row['center_name'],
-			'center_code'      => $row['center_code'],
-            'receipt_number'   => $row['return_number'],
-            'on_date'          => date("d-m-Y", strtotime($row['return_date'])),
-			'updated_date'          => "",
-            'biller_name'      => 'System Approved', // Or join with employee table
-            'payment_method'   => 'Refund',
-            'status'           => $row['status'],
-			'total_amount'     => $row['final_amount'],
-            'reason'           => $row['return_reason'],
-			'company_state'    => $row['state_name'],
-			'company_gstin'    => $row['center_gst'],
-			'party_state'      => $row['state_name'],
-			'place_of_supply'  => $row['state_name'],
-            'items'            => []
-        ];
+    $sql_ret = "
+        SELECT 
+            r.id AS return_id, 
+            r.patient_id, 
+            r.patient_name, 
+            r.return_number, 
+            r.return_date, 
+            r.tally_send_date,
+            r.updated_at,
+            r.status, 
+            r.return_reason,
+            r.tally_status,
+            c.center_name,
+            c.state_name,
+            c.center_code,
+            c.center_gst,
+            m.medicine_name, 
+            m.hsn_code, 
+            m.gst_rate, 
+            m.pack_size, 
+            mb.batch_number, 
+            mb.expiry_date, 
+            mb.mrp,
+            ri.quantity_returned,
+            ri.total_amount AS item_total,
+            ri.final_amount AS item_final, 
+            ri.discount_amount AS item_discount
+        FROM medicine_returns r
+        LEFT JOIN hms_centers c ON r.center_id = c.id
+        LEFT JOIN medicine_return_items ri ON r.id = ri.return_id
+        LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
+        LEFT JOIN medicines m ON mb.medicine_id = m.id
+        WHERE r.status = 'APPROVED' 
+          AND r.tally_status = '1'
+          AND r.tally_send_date >= '{$today_start}'
+        ORDER BY r.id DESC
+    ";
+
+    $ret_results = $this->db->query($sql_ret)->result_array();
+
+    // Group items by Return ID
+    $ret_grouped = [];
+
+    if (!empty($ret_results)) {
+        foreach ($ret_results as $row) {
+            $retId = $row['return_id'];
+            
+            $qty             = (int) $row['quantity_returned'];
+            $packSize        = (!empty($row['pack_size']) && $row['pack_size'] > 0) ? (float) $row['pack_size'] : 1;
+            $mrpUnit         = (float) $row['mrp'] / $packSize; 
+            $gstRate         = (float) $row['gst_rate'];
+            $totalRefundItem = (float) $row['item_final']; 
+
+            // Reverse Tax calculation
+            $taxableValue   = ($gstRate > 0) ? (($totalRefundItem * 100) / (100 + $gstRate)) : $totalRefundItem;
+            $gstAmount      = $totalRefundItem - $taxableValue;
+            $discountAmount = (float) ($row['item_discount'] ?? 0);
+            
+            if (!isset($ret_grouped[$retId])) {
+                $ret_grouped[$retId] = [
+                    'type'             => 'Medicine Return',
+                    'patient_id'       => $row['patient_id'] ?? '',
+                    'patient_name'     => $row['patient_name'] ?? '',
+                    'billing_center'   => $row['center_name'] ?? 'N/A',
+                    'origin_center'    => $row['center_name'] ?? 'N/A',
+                    'center_code'      => $row['center_code'] ?? '',
+                    'receipt_number'   => $row['return_number'] ?? '',
+                    'on_date'          => !empty($row['return_date']) ? date("d-m-Y", strtotime($row['return_date'])) : '',
+                    'tally_send_date'  => !empty($row['tally_send_date']) ? date("d-m-Y H:i:s", strtotime($row['tally_send_date'])) : '',
+                    'updated_date'     => !empty($row['updated_at']) ? date("d-m-Y", strtotime($row['updated_at'])) : '',
+                    'biller_name'      => 'System Approved',
+                    'payment_method'   => 'Refund',
+                    'status'           => $row['status'] ?? '',
+                    'total_amount'     => 0.00, // Dynamically accumulated
+                    'reason'           => $row['return_reason'] ?? '',
+                    'company_state'    => $row['state_name'] ?? '',
+                    'company_gstin'    => $row['center_gst'] ?? '',
+                    'party_state'      => $row['state_name'] ?? '',
+                    'place_of_supply'  => $row['state_name'] ?? '',
+                    'items'            => []
+                ];
+            }
+
+            // Dynamically add to total amount
+            $ret_grouped[$retId]['total_amount'] += $totalRefundItem;
+
+            // Add item details
+            $ret_grouped[$retId]['items'][] = [
+                'item_name'       => $row['medicine_name'] ?? 'Unknown',
+                'code'            => $row['hsn_code'] ?? '',
+                'batch_no'        => $row['batch_number'] ?? '',
+                'expiry'          => $row['expiry_date'] ?? '',
+                'quantity'        => $qty,
+                'unit_price'      => number_format($mrpUnit, 2, '.', ''),
+                'discount_amt'    => number_format($discountAmount, 2, '.', ''),
+                'taxable_value'   => number_format($taxableValue, 2, '.', ''),
+                'gst_rate'        => number_format($gstRate, 2, '.', ''),
+                'gst_amount'      => number_format($gstAmount, 2, '.', ''),
+                'receive_amount'  => number_format($totalRefundItem, 2, '.', '')
+            ];
+        }
+
+        // Format total_amount for each return header
+        foreach ($ret_grouped as &$return) {
+            $return['total_amount'] = number_format($return['total_amount'], 2, '.', '');
+        }
+        unset($return);
     }
-
-    $ret_grouped[$retId]['items'][] = [
-        'item_name'       => $row['medicine_name'],
-        'code'            => $row['hsn_code'],
-        'batch_no'        => $row['batch_number'],
-        'expiry'          => $row['expiry_date'],
-        'quantity'        => $qty,
-        'unit_price'      => number_format($mrpUnit, 2, '.', ''),
-        'discount_amt'    => number_format($discountAmount, 2, '.', ''),
-        'taxable_value'   => number_format($taxableValue, 2, '.', ''),
-        'gst_rate'        => number_format($gstRate, 2, '.', ''),
-        'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-        'receive_amount'   => number_format($totalRefundItem, 2, '.', '')
-    ];
-}
 
 // Merge Returns into Master Array
 foreach($ret_grouped as $return) {
@@ -4560,7 +4605,7 @@ foreach($ret_grouped as $return) {
         $all_transactions[] = $formatted_inv;
     }
 
-    // =========================================================================
+   // =========================================================================
     // PART 6: FELLOWSHIP / TRAINING SALES
     // =========================================================================
     $fellow_rows = $this->db->query("SELECT * FROM hms_fellowship_training WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 200")->result_array();
@@ -4569,28 +4614,31 @@ foreach($ret_grouped as $return) {
         $status_text = ($row['status'] == '1') ? 'approved' : 'cancel';
         $all_transactions[] = [
             'type'             => 'Fellowship',
-            'patient_id'       => $row['studentid'],
+            'patient_id'       => $row['studentid'] ?? '',
             'patient_name'     => ($row['name'] ?? '') . ' S/O ' . ($row['fname'] ?? ''),
             'billing_center'   => $row['place_of_supply'] ?? 'N/A',
             'origin_center'    => 'N/A',
-			'center_code'      => 'N/A', 
+            'center_code'      => 'N/A', 
             'receipt_number'   => $row['receipt'] ?? '',
             'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
-			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
+            // फिक्स: $sale की जगह $row का इस्तेमाल और Safe Fallback Check
+            'updated_date'     => !empty($row["modified_on"]) ? date("d-m-Y", strtotime($row["modified_on"])) : (!empty($row["updated_at"]) ? date("d-m-Y", strtotime($row["updated_at"])) : ''),
             'biller_name'      => 'N/A', 
-            'payment_method'   => $row['payment_method'],
+            'payment_method'   => $row['payment_method'] ?? '',
             'status'           => $status_text,
-			'total_amount'     => "",
+            'total_amount'     => "",
             'items'            => [[
                 'item_name'       => 'Fellowship: ' . ($row['course'] ?? ''),
                 'code'            => $row['code'] ?? '',
-                'batch_no'        => '', 'expiry' => '', 'quantity' => 1,
-                'unit_price'      => number_format((float)($row['price']??0), 2, '.', ''),
-                'discount_amt'    => number_format((float)($row['discount_amount']??0), 2, '.', ''),
+                'batch_no'        => '', 
+                'expiry'          => '', 
+                'quantity'        => 1,
+                'unit_price'      => number_format((float)($row['price'] ?? 0), 2, '.', ''),
+                'discount_amt'    => number_format((float)($row['discount_amount'] ?? 0), 2, '.', ''),
                 'taxable_value'   => '', 
-                'gst_rate'        => number_format((float)($row['gst']??0), 2, '.', ''),
-                'gst_amount'      => number_format((float)($row['gst_amount']??0), 2, '.', ''),
-                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
+                'gst_rate'        => number_format((float)($row['gst'] ?? 0), 2, '.', ''),
+                'gst_amount'      => number_format((float)($row['gst_amount'] ?? 0), 2, '.', ''),
+                'receive_amount'  => number_format((float)($row['payment_done'] ?? 0), 2, '.', '')
             ]]
         ];
     }
@@ -4870,102 +4918,105 @@ public function sales_completion_order()
     // =========================================================================
     // PART 1: MEDICINE SALES
     // =========================================================================
-    $sql_med = "
-       SELECT 
-    s.id AS sale_id, s.patient_id, s.patient_name, c.center_name, c.state_name, c.center_gst,c.center_code,
-    s.sale_number, s.sale_date, s.payment_method, s.payment_status,
-    s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
-    mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
-    sm.quantity_change, sm.total_value, s.tally_status
-FROM sales s
-INNER JOIN hms_centers c ON s.center_id = c.id
-INNER JOIN stock_movements sm ON s.id = sm.reference_id
-INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
-INNER JOIN medicines m ON mb.medicine_id = m.id
-WHERE sm.movement_type = 'SALE' 
-    AND sm.to_location_type = 'SALE'
-    AND s.payment_status = 'PAID' 
-    AND s.tally_status = 'APPROVED_TALLY' -- Added tally status filter
-	AND s.sale_date > '2026-07-28'
-ORDER BY s.updated_at ASC 
-LIMIT 700";
     
-	// Change result_array() to row_array()
-	// 1. Change back to result_array() to handle all 50 potential records
-$med_results = $this->db->query($sql_med)->result_array();
+    // आज की तारीख (रात 12:00 AM के बाद का टाइमस्टैम्प)
+    $today_start = date('Y-m-d 00:00:00');
 
-$med_grouped = [];
-$prefix = $this->config->item('db_prefix');
+    $sql_med = "
+        SELECT 
+            s.id AS sale_id, s.patient_id, s.patient_name, c.center_name, c.state_name, c.center_gst, c.center_code,
+            s.sale_number, s.sale_date, s.updated_at, s.payment_method, s.payment_status,
+            s.payment_approved_by_name, s.series_number, m.medicine_name, mb.batch_number,
+            mb.expiry_date, m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
+            sm.quantity_change, sm.total_value, s.tally_status
+        FROM sales s
+        INNER JOIN hms_centers c ON s.center_id = c.id
+        INNER JOIN stock_movements sm ON s.id = sm.reference_id
+        INNER JOIN medicine_batches mb ON sm.batch_id = mb.id
+        INNER JOIN medicines m ON mb.medicine_id = m.id
+        WHERE sm.movement_type = 'SALE' 
+            AND sm.to_location_type = 'SALE'
+            AND s.payment_status = 'PAID' 
+            AND s.tally_status = 'APPROVED_TALLY'
+            AND s.tally_send_date >= '{$today_start}'
+        ORDER BY s.id DESC 
+        LIMIT 700";
+    
+    $med_results = $this->db->query($sql_med)->result_array();
 
-if (!empty($med_results)) {
-    foreach ($med_results as $row) {
-        $saleId = $row['sale_id'];
-        $patient_id = $row['patient_id'];
+    $med_grouped = [];
+    $prefix = $this->config->item('db_prefix');
 
-        // 2. Fetch Appointment for THIS specific row
-        $sql_app = "SELECT * FROM {$prefix}appointments WHERE paitent_id = '$patient_id' AND paitent_type = 'new_patient' LIMIT 1";
-        $app_result = run_select_query($sql_app);
+    if (!empty($med_results)) {
+        foreach ($med_results as $row) {
+            $saleId = $row['sale_id'];
+            $patient_id = $row['patient_id'];
 
-        // 3. Fetch Center info based on the appointment
-        $app_center_name = "N/A"; // Default if not found
-        if (!empty($app_result['appoitment_for'])) {
-            $sql_center = "SELECT center_name FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
-            $center_data = run_select_query($sql_center);
-            $app_center_name = $center_data['center_name'] ?? "N/A";
-        }
+            // Fetch Appointment for THIS specific row
+            $sql_app = "SELECT * FROM {$prefix}appointments WHERE paitent_id = '$patient_id' AND paitent_type = 'new_patient' LIMIT 1";
+            $app_result = run_select_query($sql_app);
 
-        // 4. Calculations
-        $qty            = abs((int) $row['quantity_change']);
-        $packSize       = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
-        $mrpUnit        = $row['mrp'] / $packSize; 
-        $gstRate        = (float) $row['gst_rate'];
-        $total          = (float) $row['total_value'];
+            // Fetch Center info based on the appointment
+            $app_center_name = "N/A"; 
+            if (!empty($app_result['appoitment_for'])) {
+                $sql_center = "SELECT center_name FROM {$prefix}centers WHERE center_number = '" . $app_result['appoitment_for'] . "' LIMIT 1";
+                $center_data = run_select_query($sql_center);
+                $app_center_name = $center_data['center_name'] ?? "N/A";
+            }
 
-        $mrpValue       = $mrpUnit * $qty;
-        $taxableValue   = ($total * 100) / (100 + $gstRate);
-        $gstAmount      = $total - $taxableValue;
-        $discountAmount = $mrpValue - $total;
-        
-        // 5. Grouping Logic
-        if (!isset($med_grouped[$saleId])) {
-            $med_grouped[$saleId] = [
-                'type'             => 'Medicine',
-                'patient_id'       => $row['patient_id'],
-                'patient_name'     => $row['patient_name'],
-                'billing_center'   => $row['center_name'],
-                'origin_center'    => $app_center_name, // Now correctly populated
-				'cost_center'      => $row['center_name'], // Now correctly populated
-				'center_code'      => $row['center_code'],
-                'receipt_number'   => $row['sale_number'],
-                'on_date'          => date("d-m-Y", strtotime($row['sale_date'])),
-                'biller_name'      => $row['payment_approved_by_name'],
-                'payment_method'   => $row['payment_method'],
-                'status'           => $row['payment_status'],
-                'series_number'    => $row['series_number'],
-				'company_state'    => $row['state_name'] ?? '', 
-        		'company_gstin'    => $row['center_gst'] ?? '', // [FIX] यहाँ gst_number की जगह center_gst कर दिया है
-        		'party_state'      => $row['state_name'] ?? '',
-        		'place_of_supply'  => $row['state_name'] ?? '',
-                'items'            => []
+            // Calculations & Null Safeguards
+            $qty            = abs((int) ($row['quantity_change'] ?? 0));
+            $packSize       = (!empty($row['pack_size']) && $row['pack_size'] > 0) ? $row['pack_size'] : 1;
+            $mrpUnit        = ($row['mrp'] ?? 0) / $packSize; 
+            $gstRate        = (float) ($row['gst_rate'] ?? 0);
+            $total          = (float) ($row['total_value'] ?? 0);
+
+            $mrpValue       = $mrpUnit * $qty;
+            $taxableValue   = ($gstRate > 0) ? (($total * 100) / (100 + $gstRate)) : $total;
+            $gstAmount      = $total - $taxableValue;
+            $discountAmount = $mrpValue - $total;
+            
+            // Grouping Logic
+            if (!isset($med_grouped[$saleId])) {
+                $med_grouped[$saleId] = [
+                    'type'             => 'Medicine',
+                    'patient_id'       => $row['patient_id'] ?? '',
+                    'patient_name'     => $row['patient_name'] ?? '',
+                    'billing_center'   => $row['center_name'] ?? 'N/A',
+                    'origin_center'    => $app_center_name,
+                    'cost_center'      => $row['center_name'] ?? 'N/A',
+                    'center_code'      => $row['center_code'] ?? '',
+                    'receipt_number'   => $row['sale_number'] ?? '',
+                    'on_date'          => !empty($row['sale_date']) ? date("d-m-Y", strtotime($row['sale_date'])) : '',
+                    'updated_date'     => !empty($row['updated_at']) ? date("d-m-Y", strtotime($row['updated_at'])) : '',
+                    'biller_name'      => $row['payment_approved_by_name'] ?? 'N/A',
+                    'payment_method'   => $row['payment_method'] ?? '',
+                    'status'           => $row['payment_status'] ?? '',
+                    'series_number'    => $row['series_number'] ?? '',
+                    'company_state'    => $row['state_name'] ?? '', 
+                    'company_gstin'    => $row['center_gst'] ?? '',
+                    'party_state'      => $row['state_name'] ?? '',
+                    'place_of_supply'  => $row['state_name'] ?? '',
+                    'items'            => []
+                ];
+            }
+
+            // Add medicine as an item to this Sale ID
+            $med_grouped[$saleId]['items'][] = [
+                'item_name'       => $row['medicine_name'] ?? 'Unknown',
+                'code'            => $row['hsn_code'] ?? '',
+                'batch_no'        => $row['batch_number'] ?? '',
+                'expiry'          => $row['expiry_date'] ?? '',
+                'quantity'        => $qty,
+                'unit_price'      => number_format($mrpUnit, 2, '.', ''),
+                'discount_amt'    => number_format($discountAmount, 2, '.', ''),
+                'taxable_value'   => number_format($taxableValue, 2, '.', ''),
+                'gst_rate'        => number_format($gstRate, 2, '.', ''),
+                'gst_amount'      => number_format($gstAmount, 2, '.', ''),
+                'receive_amount'  => number_format($total, 2, '.', '')
             ];
         }
-
-        // 6. Add medicine as an item to this Sale ID
-        $med_grouped[$saleId]['items'][] = [
-            'item_name'       => $row['medicine_name'],
-            'code'            => $row['hsn_code'],
-            'batch_no'        => $row['batch_number'],
-            'expiry'          => $row['expiry_date'],
-            'quantity'        => $qty,
-            'unit_price'      => number_format($mrpUnit, 2, '.', ''),
-            'discount_amt'    => number_format($discountAmount, 2, '.', ''),
-            'taxable_value'   => number_format($taxableValue, 2, '.', ''),
-            'gst_rate'        => number_format($gstRate, 2, '.', ''),
-            'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-            'receive_amount'  => number_format($total, 2, '.', '')
-        ];
     }
-}
 
 // 7. Final Merge into Master Array
 if (!empty($med_grouped)) {
@@ -4975,87 +5026,95 @@ if (!empty($med_grouped)) {
 }
     
 // =========================================================================
-// PART 2: MEDICINE RETURNS
-// =========================================================================
-$sql_ret = "
-    SELECT 
-    r.id AS return_id, r.patient_id, r.patient_name, c.center_name, c.state_name, c.center_gst,c.center_code,
-    r.return_number, r.return_date, r.status, r.return_reason,
-    m.medicine_name, mb.batch_number, mb.expiry_date, 
-    m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
-    ri.quantity_returned, ri.total_amount AS item_total,
-    ri.final_amount AS item_final, ri.discount_amount AS item_discount,
-    r.tally_status
-FROM medicine_returns r
-LEFT JOIN hms_centers c ON r.center_id = c.id
-LEFT JOIN medicine_return_items ri ON r.id = ri.return_id
-LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
-LEFT JOIN medicines m ON mb.medicine_id = m.id
-WHERE r.status = 'APPROVED' 
-AND r.tally_status = '1'
-AND r.return_date > '2026-07-15'
-ORDER BY r.id DESC
-";
-
-$ret_results = $this->db->query($sql_ret)->result_array();
-
-// Group items by Return ID
-$ret_grouped = [];
-
-foreach ($ret_results as $row) {
-    $retId = $row['return_id'];
+    // PART 2: MEDICINE RETURNS
+    // =========================================================================
     
-    $qty      = (int) $row['quantity_returned'];
-    $packSize = ($row['pack_size'] > 0) ? $row['pack_size'] : 1;
-    $mrpUnit  = $row['mrp'] / $packSize; 
-    $gstRate  = (float) $row['gst_rate'];
-    
-    // final_amount is usually the amount being refunded to the patient
-    $totalRefundItem = (float) $row['item_final']; 
+    // आज की तारीख (रात 12:00 AM के बाद का टाइमस्टैम्प)
+    $today_start = date('Y-m-d 00:00:00');
 
-    // Calculations (Reverse Tax calculation)
-    $taxableValue   = ($totalRefundItem * 100) / (100 + $gstRate);
-    $gstAmount      = $totalRefundItem - $taxableValue;
-    $mrpTotalValue  = $mrpUnit * $qty;
-    $discountAmount = $row['item_discount']; // or $mrpTotalValue - $totalRefundItem;
-    
-    if (!isset($ret_grouped[$retId])) {
-        $ret_grouped[$retId] = [
-            'type'             => 'Medicine Return',
-            'patient_id'       => $row['patient_id'],
-            'patient_name'     => $row['patient_name'],
-            'billing_center'   => $row['center_name'],
-            'origin_center'    => $row['center_name'],
-			'center_code'      => $row['center_code'],
-            'receipt_number'   => $row['return_number'],
-            'on_date'          => date("d-m-Y", strtotime($row['return_date'])),
-            'biller_name'      => 'System Approved', // Or join with employee table
-            'payment_method'   => 'Refund',
-            'status'           => $row['status'],
-            'reason'           => $row['return_reason'],
-			'series_number'    => '',
-			'company_state'    => $row['state_name'] ?? '', 
-        	'company_gstin'    => $row['center_gst'] ?? '', // [FIX] यहाँ gst_number की जगह center_gst कर दिया है
-        	'party_state'      => $row['state_name'] ?? '',
-        	'place_of_supply'  => $row['state_name'] ?? '',
-            'items'            => []
-        ];
+    $sql_ret = "
+        SELECT 
+            r.id AS return_id, r.patient_id, r.patient_name, c.center_name, c.state_name, c.center_gst, c.center_code,
+            r.return_number, r.return_date, r.status, r.return_reason, r.updated_at,
+            m.medicine_name, mb.batch_number, mb.expiry_date, 
+            m.hsn_code, m.gst_rate, m.pack_size, mb.mrp,
+            ri.quantity_returned, ri.total_amount AS item_total,
+            ri.final_amount AS item_final, ri.discount_amount AS item_discount,
+            r.tally_status
+        FROM medicine_returns r
+        LEFT JOIN hms_centers c ON r.center_id = c.id
+        LEFT JOIN medicine_return_items ri ON r.id = ri.return_id
+        LEFT JOIN medicine_batches mb ON ri.batch_id = mb.id
+        LEFT JOIN medicines m ON mb.medicine_id = m.id
+        WHERE r.status = 'APPROVED' 
+            AND r.tally_status = '1'
+            AND r.tally_send_date >= '{$today_start}'
+        ORDER BY r.id DESC
+        LIMIT 700
+    ";
+
+    $ret_results = $this->db->query($sql_ret)->result_array();
+
+    // Group items by Return ID
+    $ret_grouped = [];
+
+    if (!empty($ret_results)) {
+        foreach ($ret_results as $row) {
+            $retId = $row['return_id'];
+            
+            $qty             = abs((int) ($row['quantity_returned'] ?? 0));
+            $packSize        = (!empty($row['pack_size']) && $row['pack_size'] > 0) ? (float) $row['pack_size'] : 1;
+            $mrpUnit         = ($row['mrp'] ?? 0) / $packSize; 
+            $gstRate         = (float) ($row['gst_rate'] ?? 0);
+            
+            // final_amount is usually the amount being refunded to the patient
+            $totalRefundItem = (float) ($row['item_final'] ?? 0); 
+
+            // Calculations (Reverse Tax calculation)
+            $taxableValue    = ($gstRate > 0) ? (($totalRefundItem * 100) / (100 + $gstRate)) : $totalRefundItem;
+            $gstAmount       = $totalRefundItem - $taxableValue;
+            $mrpTotalValue   = $mrpUnit * $qty;
+            $discountAmount  = (float) ($row['item_discount'] ?? 0);
+            
+            if (!isset($ret_grouped[$retId])) {
+                $ret_grouped[$retId] = [
+                    'type'             => 'Medicine Return',
+                    'patient_id'       => $row['patient_id'] ?? '',
+                    'patient_name'     => $row['patient_name'] ?? '',
+                    'billing_center'   => $row['center_name'] ?? 'N/A',
+                    'origin_center'    => $row['center_name'] ?? 'N/A',
+                    'center_code'      => $row['center_code'] ?? '',
+                    'receipt_number'   => $row['return_number'] ?? '',
+                    'on_date'          => !empty($row['return_date']) ? date("d-m-Y", strtotime($row['return_date'])) : '',
+                    'updated_date'     => !empty($row['updated_at']) ? date("d-m-Y", strtotime($row['updated_at'])) : '',
+                    'biller_name'      => 'System Approved',
+                    'payment_method'   => 'Refund',
+                    'status'           => $row['status'] ?? '',
+                    'reason'           => $row['return_reason'] ?? '',
+                    'series_number'    => '',
+                    'company_state'    => $row['state_name'] ?? '', 
+                    'company_gstin'    => $row['center_gst'] ?? '',
+                    'party_state'      => $row['state_name'] ?? '',
+                    'place_of_supply'  => $row['state_name'] ?? '',
+                    'items'            => []
+                ];
+            }
+
+            $ret_grouped[$retId]['items'][] = [
+                'item_name'       => $row['medicine_name'] ?? 'Unknown',
+                'code'            => $row['hsn_code'] ?? '',
+                'batch_no'        => $row['batch_number'] ?? '',
+                'expiry'          => $row['expiry_date'] ?? '',
+                'quantity'        => $qty,
+                'unit_price'      => number_format($mrpUnit, 2, '.', ''),
+                'discount_amt'    => number_format($discountAmount, 2, '.', ''),
+                'taxable_value'   => number_format($taxableValue, 2, '.', ''),
+                'gst_rate'        => number_format($gstRate, 2, '.', ''),
+                'gst_amount'      => number_format($gstAmount, 2, '.', ''),
+                'receive_amount'  => number_format($totalRefundItem, 2, '.', '')
+            ];
+        }
     }
-
-    $ret_grouped[$retId]['items'][] = [
-        'item_name'       => $row['medicine_name'],
-        'code'            => $row['hsn_code'],
-        'batch_no'        => $row['batch_number'],
-        'expiry'          => $row['expiry_date'],
-        'quantity'        => $qty,
-        'unit_price'      => number_format($mrpUnit, 2, '.', ''),
-        'discount_amt'    => number_format($discountAmount, 2, '.', ''),
-        'taxable_value'   => number_format($taxableValue, 2, '.', ''),
-        'gst_rate'        => number_format($gstRate, 2, '.', ''),
-        'gst_amount'      => number_format($gstAmount, 2, '.', ''),
-        'receive_amount'   => number_format($totalRefundItem, 2, '.', '')
-    ];
-}
 
 // Merge Returns into Master Array
 foreach($ret_grouped as $return) {
@@ -5378,41 +5437,62 @@ if (!empty($embryo['date_of_procedure']) &&
     // =========================================================================
     // PART 6: FELLOWSHIP / TRAINING SALES
     // =========================================================================
-    $fellow_rows = $this->db->query("SELECT * FROM hms_fellowship_training WHERE `status` IN ('1', '3') AND `tally_status`='1' LIMIT 700")->result_array();
+    
+    // आज की तारीख (रात 12:00 AM के बाद का टाइमस्टैम्प)
+    $today_start = date('Y-m-d 00:00:00');
 
-    foreach ($fellow_rows as $row) {
-        $status_text = ($row['status'] == '1') ? 'approved' : 'cancel';
-        $price = $row['price'] ?? 0;
-        $discount = $row['discount_amount'] ?? 0;
-        
-        $all_transactions[] = [
-            'type'             => 'Fellowship',
-            'patient_id'       => $row['studentid'],
-            'patient_name'     => ($row['name'] ?? '') . ' S/O ' . ($row['fname'] ?? ''),
-            'billing_center'   => $row['place_of_supply'] ?? 'N/A',
-            'origin_center'    => 'N/A',
-			'center_code'      => 'N/A',  
-            'receipt_number'   => $row['receipt'] ?? '',
-            'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
-			'updated_date'          => date("d-m-Y", strtotime($sale["modified_on"])),
-            'biller_name'      => 'N/A', 
-            'payment_method'   => $row['payment_method'],
-            'status'           => $status_text,
-			'series_number'    => '',
-            'items'            => [[
-                'item_name'       => 'Fellowship: ' . ($row['course'] ?? ''),
-                'code'            => $row['code'] ?? '',
-                'batch_no'        => '',
-                'expiry'          => '',
-                'quantity'        => 1,
-                'unit_price'      => number_format((float)$price, 2, '.', ''),
-                'discount_amt'    => number_format((float)$discount, 2, '.', ''),
-                'taxable_value'   => '',
-                'gst_rate'        => number_format((float)($row['gst']??0), 2, '.', ''),
-                'gst_amount'      => number_format((float)($row['gst_amount']??0), 2, '.', ''),
-                'receive_amount'    => number_format((float)($row['payment_done']??0), 2, '.', '')
-            ]]
-        ];
+    $fellow_rows = $this->db->query("
+        SELECT * FROM hms_fellowship_training 
+        WHERE `status` IN ('1', '3') 
+          AND `tally_status` = '1' 
+          AND `tally_send_date` >= '{$today_start}' 
+        ORDER BY id DESC 
+        LIMIT 700
+    ")->result_array();
+
+    if (!empty($fellow_rows)) {
+        foreach ($fellow_rows as $row) {
+            $status_text = ($row['status'] == '1') ? 'approved' : 'cancel';
+            $price       = $row['price'] ?? 0;
+            $discount    = $row['discount_amount'] ?? 0;
+            
+            // Safe updated date check
+            $updated_date = '';
+            if (!empty($row['modified_on'])) {
+                $updated_date = date("d-m-Y", strtotime($row['modified_on']));
+            } elseif (!empty($row['updated_at'])) {
+                $updated_date = date("d-m-Y", strtotime($row['updated_at']));
+            }
+
+            $all_transactions[] = [
+                'type'             => 'Fellowship',
+                'patient_id'       => $row['studentid'] ?? '',
+                'patient_name'     => trim(($row['name'] ?? '') . ' S/O ' . ($row['fname'] ?? '')),
+                'billing_center'   => $row['place_of_supply'] ?? 'N/A',
+                'origin_center'    => 'N/A',
+                'center_code'      => 'N/A',  
+                'receipt_number'   => $row['receipt'] ?? '',
+                'on_date'          => !empty($row["on_date"]) ? date("d-m-Y", strtotime($row["on_date"])) : '',
+                'updated_date'     => $updated_date,
+                'biller_name'      => 'N/A', 
+                'payment_method'   => $row['payment_method'] ?? '',
+                'status'           => $status_text,
+                'series_number'    => $row['series_number'] ?? '',
+                'items'            => [[
+                    'item_name'       => 'Fellowship: ' . ($row['course'] ?? ''),
+                    'code'            => $row['code'] ?? '',
+                    'batch_no'        => '',
+                    'expiry'          => '',
+                    'quantity'        => 1,
+                    'unit_price'      => number_format((float)$price, 2, '.', ''),
+                    'discount_amt'    => number_format((float)$discount, 2, '.', ''),
+                    'taxable_value'   => '',
+                    'gst_rate'        => number_format((float)($row['gst'] ?? 0), 2, '.', ''),
+                    'gst_amount'      => number_format((float)($row['gst_amount'] ?? 0), 2, '.', ''),
+                    'receive_amount'  => number_format((float)($row['payment_done'] ?? 0), 2, '.', '')
+                ]]
+            ];
+        }
     }
 
     // =========================================================================

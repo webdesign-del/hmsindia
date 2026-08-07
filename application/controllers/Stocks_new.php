@@ -11472,33 +11472,36 @@ public function confirm_sale($id)
         }
     }
 
-    public function send_to_tally($id)
-    {
-        $logg = checklogin();
-        if ($logg["status"] != true) {
-            redirect(base_url());
-            return;
-        }
-        
-        if (!$id || !is_numeric($id)) {
-            $this->session->set_flashdata('error', 'Invalid sale ID');
-            redirect('stocks_new/sales');
-            return;
-        }
-        
-        $this->db->where('id', $id)
-            ->update('sales', [
-                'tally_status' => 'APPROVED_TALLY'
-            ]);
-        
-        if ($this->db->affected_rows() > 0) {
-            $this->session->set_flashdata('success', 'Sale approved for Tally successfully');
-        } else {
-            $this->session->set_flashdata('error', 'Failed to approve sale or sale not found');
-        }
-        
-        redirect('stocks_new/sales');
+   public function send_to_tally($id)
+{
+    $logg = checklogin();
+    if ($logg["status"] != true) {
+        redirect(base_url());
+        return;
     }
+    
+    if (!$id || !is_numeric($id)) {
+        $this->session->set_flashdata('error', 'Invalid sale ID');
+        redirect('stocks_new/sales');
+        return;
+    }
+    
+    $current_datetime = date('Y-m-d H:i:s');
+
+    $this->db->where('id', $id)
+        ->update('sales', [
+            'tally_status'    => 'APPROVED_TALLY',
+            'tally_send_date' => $current_datetime
+        ]);
+    
+    if ($this->db->affected_rows() > 0) {
+        $this->session->set_flashdata('success', 'Sale approved for Tally successfully');
+    } else {
+        $this->session->set_flashdata('error', 'Failed to approve sale or sale not found');
+    }
+    
+    redirect('stocks_new/sales');
+}
 
     private function get_current_user_id() 
     {
@@ -11872,6 +11875,9 @@ public function export_daily_medicine_report()
 
 
 public function bulk_returns_tally() {
+    // Force une sortie JSON propre
+    header('Content-Type: application/json');
+
     // Ensure only authorized users can call this
     if (!$this->session->userdata('logged_accountant')) {
         echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
@@ -11885,6 +11891,8 @@ public function bulk_returns_tally() {
     }
 
     $success_count = 0;
+    $current_datetime = date('Y-m-d H:i:s'); // Date et heure actuelles
+
     foreach ($ids as $id) {
         // Verify it exists and is approved before updating
         $this->db->where('id', $id);
@@ -11893,9 +11901,14 @@ public function bulk_returns_tally() {
         $query = $this->db->get('medicine_returns'); // Adjust table name if different
 
         if ($query->num_rows() > 0) {
-            // Update tally status to 1
+            // Update tally status to 1 and record the timestamp
             $this->db->where('id', $id);
-            if ($this->db->update('medicine_returns', ['tally_status' => 1])) {
+            $update_data = [
+                'tally_status'    => 1,
+                'tally_send_date' => $current_datetime
+            ];
+            
+            if ($this->db->update('medicine_returns', $update_data)) {
                 $success_count++;
             }
         }
