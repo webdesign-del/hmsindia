@@ -2258,7 +2258,7 @@ if (isset($export_billing)) {
 	} 
 	
 	
-	   public function consultation_origin(){
+	public function consultation_origin(){
 		$logg = checklogin();
 		error_reporting(0);
 		if($logg['status'] == true){
@@ -2284,90 +2284,84 @@ if (isset($export_billing)) {
 			$paid_amount = 0;
 			$discounted_package = 0;
 			$total_package = 0;
-			if (isset($export_billing)){
+			if (isset($export_billing)) {
 				$data = $this->accounts_model->export_consultation_origin_data($start_date, $end_date, $center, $patient_id, $reason_of_visit);
+				
+				// Centers Lookup Array (ताकि बार-बार DB से न पूछना पड़े)
+				$centers_query = $this->db->get('hms_centers')->result_array();
+				$centers_map = array_column($centers_query, 'center_name', 'center_number');
+
+				// Procedures Lookup Array
+				$proc_query = $this->db->get('hms_procedures')->result_array();
+				$proc_map = array_column($proc_query, 'category', 'ID');
+
 				header('Content-Type: text/csv; charset=utf-8');
-				header('Content-Disposition: attachment; filename=Consultation-Reports-'.$start_date.'-'.$end_date.'.csv');
-				$fp = fopen('php://output','w');
-				$headers = 'UHID, IIC ID, Patient Name,Receipt number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At, Billing Type,Reason OF Visit, Date, Status, Lead ID, Lead Source,Agent,councellor, Doctor Name,Booking Status';
-				//Add the headers
-				fwrite($fp, $headers. "\r\n");
-				foreach ($data as $key => $val) {//var_dump($val);die;
-					$billing_from = $val['billing_from'];
-					if($billing_from != "IndiaIVF"){
-						$billing_from = get_center_name($billing_from);
-					}
-					$paid_amount = $paid_amount +  (int)$val['payment_done'];
-					$total_package = $total_package +  (int)$val['totalpackage'];
-					$discounted_package = $discounted_package +  (int)$val['discounted_package'];
-					$billing_at = get_center_name($val['billing_at']);
+				header('Content-Disposition: attachment; filename=Consultation-Reports-' . $start_date . '-' . $end_date . '.csv');
+				$fp = fopen('php://output', 'w');
+
+				// Updated headers (23 Columns)
+				$headers = [
+					'UHID', 'IIC ID', 'Patient Name', 'Receipt Number', 'Total Package', 
+					'Discounted Package', 'Paid Amount', 'Remaining Amount', 'Payment Method', 
+					'Billing From', 'Billing At', 'Billing Type', 'Reason Of Visit', 'Date', 
+					'Status', 'Lead ID', 'Lead Source', 'Agent', 'Councellor', 
+					'Doctor Name', 'Booking Status', 'Visit Type', 'Appointment Status'
+				];
+				fputcsv($fp, $headers);
+
+				foreach ($data as $val) {
+					$paid_amount += (int)$val['payment_done'];
+					$total_package += (int)$val['totalpackage'];
+					$discounted_package += (int)$val['discounted_package'];
+
+					$billing_from = ($val['billing_from'] != "IndiaIVF") ? ($centers_map[$val['billing_from']] ?? $val['billing_from']) : "IndiaIVF";
+					$billing_at = $centers_map[$val['billing_at']] ?? $val['billing_at'];
 					
-					$sql = "SELECT * FROM hms_appointments WHERE paitent_id='" . $val['patient_id'] . "' and paitent_type='new_patient'";
-                    $select_result = run_select_query($sql);
-                    					
-                    $sql4 = "SELECT * FROM hms_centers WHERE center_number='" . $select_result['appoitment_for'] . "'";
-                    $select_result3 = run_select_query($sql4);
+					$uhid = !empty($val['uhid']) ? ($val['center_code'] . "/" . $val['uhid']) : "";
+					$visit_type = !empty($val['camp_selection']) ? "Camp Visit" : "Center Visit";
 
-					$sql_consultation = "SELECT * FROM hms_doctor_consultation WHERE appointment_id='" . $val['appointment_id'] . "' order by id ASC limit 1";
-                    $select_consultation_result = run_select_query($sql_consultation);
-                    					
-                    $uhid = $select_result3['center_code']."/".$select_result['uhid'];
-					$lead_id = $select_result['crm_id']; 
-					$lead_source = $select_result['lead_source']; 
-					$camp_selection = $select_result['camp_selection'] ?? "";
-					$visit_type = (!empty($camp_selection)) ? "Camp Visit" : "Center Visit";
-					$agent = $select_result['agent']; 
-					$councellor = $select_result['councellor'];
-					$status = $select_result['status'];  
-
-					// 1. INITIALIZE $category BEFORE the main if block to guarantee scope
-					$category = 'not booked'; // Default value (safer than 'not found')
-
-					$sql4 = "SELECT * FROM hms_patient_procedure WHERE patient_id='" . $val['patient_id'] . "'";
-					$select_result4 = run_select_query($sql4);
-
-					// Check if 'data' exists and is not empty before proceeding
-					if (!empty($select_result4['data'])) {
-						
-						$unserialized_data = unserialize($select_result4['data']);
-
-						// 2. CRITICAL FIX: Access the array structure using index [0] for the sub_procedure
+					// Category determination from pre-fetched procedure data
+					$category = 'not booked';
+					if (!empty($val['procedure_data'])) {
+						$unserialized_data = @unserialize($val['procedure_data']);
 						if (isset($unserialized_data['patient_procedures']['sub_procedure'])) {
-							
-							$sub_procedure = $unserialized_data['patient_procedures']['sub_procedure'];
-							
-							// 3. Use the correct SQL variable ($sql5)
-							$sql5 = "SELECT * FROM hms_procedures WHERE ID='" . $sub_procedure . "'"; 
-							$select_result5 = run_select_query($sql5);
-							
-							// --- Category Determination ---
-							if (!empty($select_result5) && isset($select_result5['category'])) {
-								$category = $select_result5['category']; 
-							} else {
-								$category = 'not found';
-							}
-							
-							// Optional: Echo the booking status if needed
-							if($category == 'IVF with Bed'){
-								echo ' booked';
-							} else {
-								echo ' not booked';
-							}
-							
+							$sub_proc_id = $unserialized_data['patient_procedures']['sub_procedure'];
+							$category = $proc_map[$sub_proc_id] ?? 'not found';
 						} else {
-							// Procedure data structure exists but 'sub_procedure' is missing.
 							$category = 'data missing';
 						}
-					} 				
-					$sql1 = "Select * from ".$this->config->item('db_prefix')."doctors where ID='".$select_consultation_result['doctor_id']."'";
-	                $select_appoint = run_select_query($sql1);
+					}
 
-					$doctor = $select_appoint['name'];
+					$lead_arr = [
+						$uhid,
+						$val['patient_id'],
+						$val['patient_name'],
+						$val['receipt_number'],
+						$val['totalpackage'],
+						$val['discounted_package'],
+						$val['payment_done'],
+						$val['remaining_amount'],
+						$val['payment_method'],
+						$billing_from,
+						$billing_at,
+						'Consultation',
+						$val['reason_of_visit'],
+						!empty($val['date']) ? date('Y-m-d H:i:s', strtotime($val['date'])) : '',
+						$val['status'],
+						$val['lead_id'],
+						$val['lead_source'],
+						$val['agent'],
+						$val['councellor'],
+						$val['doctor_name'],
+						$category,
+						$visit_type,
+						$val['appointment_status']
+					];
 					
-					$lead_arr = array($uhid, $val['patient_id'], $val['wife_name'], $val['receipt_number'], $val['totalpackage'], $val['discounted_package'], $val['payment_done'], $val['remaining_amount'], $val['payment_method'], $billing_from, $billing_at, $val['billing_type'],$val['reason_of_visit'], date('Y-m-d H:i:s', strtotime($val['date'])), $val['status'], $lead_id, $lead_source, $agent, $councellor, $doctor,$category, $visit_type, $status);
 					fputcsv($fp, $lead_arr);
 				}
-				$final_arr = array("", "", "", "", $total_package, $discounted_package, $paid_amount, "", "", "", "", "", "", "");
+
+				$final_arr = ["", "", "", "Total:", $total_package, $discounted_package, $paid_amount];
 				fputcsv($fp, $final_arr);
 				fclose($fp);
 				exit();

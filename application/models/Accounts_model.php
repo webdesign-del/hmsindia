@@ -2915,60 +2915,53 @@ function export_consultation_patients_data($start_date,$status, $end_date, $cent
         return $response;
     }
 
-	function export_consultation_origin_data($start_date, $end_date, $center, $patient_id, $reason_of_visit){
-        $consultation_result = $response = array();
-        $conditions = '';
-        if(isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])){ 
-            $center = $_SESSION['logged_accountant']['center'];
-        }
-        if(!empty($center)){
-            $conditions .= ' and billing_at="'.$center.'"';
-        }
-         if(!empty($patient_id)){
-            $conditions .= ' and patient_id="'.$patient_id.'"';
-        }
-         if(!empty($reason_of_visit)){
-            $conditions .= ' and reason_of_visit="'.$reason_of_visit.'"';
-        }
-        if (!empty($start_date) && !empty($end_date)){
-        $conditions .= " AND on_date BETWEEN '".$start_date."' AND '".$end_date."'";
-        }
-        else if (!empty($start_date) && empty($end_date)){
-            $conditions .= " AND on_date='$start_date'";
-        }
-        else if (empty($start_date) && !empty($end_date)){
-            $conditions .= " AND on_date='$end_date'";
-        }
-        
-       $consultation_sql = "Select DISTINCT patient_id,appointment_id, receipt_number, totalpackage,doctor_id, fees as discounted_package,payment_done,remaining_amount,payment_method,billing_from,billing_at,reason_of_visit,on_date as date,status from ".$this->config->item('db_prefix')."consultation where 1 $conditions order by on_date desc";
-        $consultation_q = $this->db->query($consultation_sql);
-        $consultation_result = $consultation_q->result_array();
-        if(!empty($consultation_result)){
-            foreach($consultation_result as $key => $val){
-                $patient_name = $this->get_patient_name($val['patient_id']);
-                //$patient_name1 = strtoupper($patient_name);
-                $response[] = array(
-                        'patient_id' => $val['patient_id'],
-						'appointment_id' => $val['appointment_id'],
-                        'wife_name' => $patient_name,
-                        'receipt_number' => $val['receipt_number'],
-                        'totalpackage' => $val['totalpackage'],
-                        'discounted_package' => $val['discounted_package'],
-                        'payment_done' => $val['payment_done'],
-                        'remaining_amount' => $val['remaining_amount'],
-                        'payment_method' => $val['payment_method'],
-                        'billing_from' => $val['billing_from'],
-                        'billing_at' => $val['billing_at'],
-                        'reason_of_visit' => $val['reason_of_visit'],
-                        'doctor_id' => $val['doctor_id'],
-                        'date' => $val['date'],
-                        'status' => $val['status'],
-                        'billing_type' => 'Consultation',
-                );
-            }
-        }    
-        return $response;
+function export_consultation_origin_data($start_date, $end_date, $center, $patient_id, $reason_of_visit) {
+    $prefix = $this->config->item('db_prefix');
+    $conditions = " WHERE 1=1 ";
+
+    if (isset($_SESSION['logged_accountant']['center']) && !empty($_SESSION['logged_accountant']['center'])) { 
+        $center = $_SESSION['logged_accountant']['center'];
     }
+    if (!empty($center)) {
+        $conditions .= " AND c.billing_at = '".$this->db->escape_str($center)."'";
+    }
+    if (!empty($patient_id)) {
+        $conditions .= " AND c.patient_id = '".$this->db->escape_str($patient_id)."'";
+    }
+    if (!empty($reason_of_visit)) {
+        $conditions .= " AND c.reason_of_visit = '".$this->db->escape_str($reason_of_visit)."'";
+    }
+    if (!empty($start_date) && !empty($end_date)) {
+        $conditions .= " AND c.on_date BETWEEN '".$this->db->escape_str($start_date)."' AND '".$this->db->escape_str($end_date)."'";
+    } else if (!empty($start_date)) {
+        $conditions .= " AND c.on_date = '".$this->db->escape_str($start_date)."'";
+    } else if (!empty($end_date)) {
+        $conditions .= " AND c.on_date = '".$this->db->escape_str($end_date)."'";
+    }
+
+    $sql = "SELECT DISTINCT 
+                c.patient_id, c.appointment_id, c.receipt_number, c.totalpackage, 
+                c.doctor_id, c.fees AS discounted_package, c.payment_done, 
+                c.remaining_amount, c.payment_method, c.billing_from, c.billing_at, 
+                c.reason_of_visit, c.on_date AS date, c.status,
+                CONCAT(IFNULL(p.firstname,''), ' ', IFNULL(p.lastname,'')) AS patient_name,
+                a.uhid, a.crm_id AS lead_id, a.lead_source, a.camp_selection, 
+                a.agent, a.councellor, a.status AS appointment_status, a.appoitment_for,
+                ctr.center_code,
+                d.name AS doctor_name,
+                pp.data AS procedure_data
+            FROM {$prefix}consultation c
+            LEFT JOIN {$prefix}patients p ON p.patient_id = c.patient_id
+            LEFT JOIN {$prefix}appointments a ON a.paitent_id = c.patient_id AND a.paitent_type = 'new_patient'
+            LEFT JOIN {$prefix}centers ctr ON ctr.center_number = a.appoitment_for
+            LEFT JOIN {$prefix}doctor_consultation dc ON dc.appointment_id = c.appointment_id
+            LEFT JOIN {$prefix}doctors d ON d.ID = dc.doctor_id
+            LEFT JOIN {$prefix}patient_procedure pp ON pp.patient_id = c.patient_id
+            $conditions 
+            ORDER BY c.on_date DESC";
+
+    return $this->db->query($sql)->result_array();
+}
 	
 	// Count function for pagination
 function patient_consultation_report_count($center, $start_date, $end_date, $patient_id, $reason_of_visit, $doctor_id,$category,$agent, $lead_source = ''){
