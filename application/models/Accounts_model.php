@@ -2944,7 +2944,7 @@ function export_consultation_origin_data($start_date, $end_date, $center, $patie
                 c.doctor_id, c.fees AS discounted_package, c.payment_done, 
                 c.remaining_amount, c.payment_method, c.billing_from, c.billing_at, 
                 c.reason_of_visit, c.on_date AS date, c.status,
-                CONCAT(IFNULL(p.firstname,''), ' ', IFNULL(p.lastname,'')) AS patient_name,
+                CONCAT(IFNULL(p.wife_name,''), ' ') AS patient_name,
                 a.uhid, a.crm_id AS lead_id, a.lead_source, a.camp_selection, 
                 a.agent, a.councellor, a.status AS appointment_status, a.appoitment_for,
                 ctr.center_code,
