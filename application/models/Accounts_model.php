@@ -2939,7 +2939,7 @@ function export_consultation_origin_data($start_date, $end_date, $center, $patie
         $conditions .= " AND c.on_date = '".$this->db->escape_str($end_date)."'";
     }
 
-    $sql = "SELECT DISTINCT 
+    $sql = "SELECT 
                 c.patient_id, c.appointment_id, c.receipt_number, c.totalpackage, 
                 c.doctor_id, c.fees AS discounted_package, c.payment_done, 
                 c.remaining_amount, c.payment_method, c.billing_from, c.billing_at, 
@@ -2949,15 +2949,15 @@ function export_consultation_origin_data($start_date, $end_date, $center, $patie
                 a.agent, a.councellor, a.status AS appointment_status, a.appoitment_for,
                 ctr.center_code,
                 d.name AS doctor_name,
-                pp.data AS procedure_data
+                (SELECT pp.data FROM {$prefix}patient_procedure pp WHERE pp.patient_id = c.patient_id ORDER BY pp.id DESC LIMIT 1) AS procedure_data
             FROM {$prefix}consultation c
             LEFT JOIN {$prefix}patients p ON p.patient_id = c.patient_id
             LEFT JOIN {$prefix}appointments a ON a.paitent_id = c.patient_id AND a.paitent_type = 'new_patient'
             LEFT JOIN {$prefix}centers ctr ON ctr.center_number = a.appoitment_for
             LEFT JOIN {$prefix}doctor_consultation dc ON dc.appointment_id = c.appointment_id
             LEFT JOIN {$prefix}doctors d ON d.ID = dc.doctor_id
-            LEFT JOIN {$prefix}patient_procedure pp ON pp.patient_id = c.patient_id
             $conditions 
+            GROUP BY c.receipt_number
             ORDER BY c.on_date DESC";
 
     return $this->db->query($sql)->result_array();
