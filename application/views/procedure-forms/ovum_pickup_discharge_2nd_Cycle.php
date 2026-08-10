@@ -123,7 +123,7 @@
         }
 
         // Form data fetch
-        $sql = "SELECT * FROM `ovum_pickup_discharge_summary` WHERE patient_id='$patient_id'";
+        $sql = "SELECT * FROM `ovum_pickup_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
         $select_result = run_select_query($sql);
         
         $sql4 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id='$patient_id'";
@@ -141,7 +141,7 @@
         }
 
         // Module Checks
-        $sql_trigger = "SELECT id FROM trigger_module WHERE patient_id='".$patient_id."' LIMIT 1";
+        $sql_trigger = "SELECT id FROM trigger_module WHERE patient_id='".$patient_id."' and receipt_number='$receipt_number'";
         $res_trigger = run_select_query($sql_trigger);
 
         $sql_opu = "SELECT id FROM hms_opu WHERE patient_id='".$patient_id."' LIMIT 1";
