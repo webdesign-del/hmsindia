@@ -140,14 +140,6 @@
             if(!empty($res3)) { $select_result3 = $res3; }
         }
 
-        // Module Checks
-        $sql_trigger = "SELECT id FROM trigger_module WHERE patient_id='".$patient_id."' and receipt_number='$receipt_number'";
-        $res_trigger = run_select_query($sql_trigger);
-
-        $sql_opu = "SELECT id FROM hms_opu WHERE patient_id='".$patient_id."' LIMIT 1";
-        $res_opu = run_select_query($sql_opu);
-
-        $is_complete = (!empty($res_ovulation) && !empty($res_trigger) && !empty($res_opu));
     }
 
     $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
@@ -209,17 +201,7 @@
            </tr>
         </table>
         
-        <?php if (!$is_complete): ?>
-    <div class="alert alert-danger" style="background-color: #ffe6e6; border-left: 5px solid red; color: red; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
-        <strong><i class="fa fa-warning"></i> Access Denied!</strong> 
-        Please complete the following before submitting this form:
-        <ul style="margin-top: 10px;">
-            <li>Ovulation Induction Protocol <?php echo empty($res_ovulation) ? '<span class="badge badge-danger">Pending</span>' : '<span class="badge badge-success">Done</span>'; ?></li>
-            <li>Trigger Module <?php echo empty($res_trigger) ? '<span class="badge badge-danger">Pending</span>' : '<span class="badge badge-success">Done</span>'; ?></li>
-            <li>OPU (Oocyte Pick-up) <?php echo empty($res_opu) ? '<span class="badge badge-danger">Pending</span>' : '<span class="badge badge-success">Done</span>'; ?></li>
-        </ul>
-    </div>
-<?php endif; ?>
+       
 
 <div class="col-sm-12 col-md-12"> 
 <div class="col-sm-12 col-md-3" style="margin-bottom: 10px;">
@@ -783,8 +765,7 @@
 <div class="sec2">
 <label for="other">Please take prescribed medicines / injections only. Dont skip/ stop any medicine on your own unless advised by the doctor.</label>
 </div> 
-<input type="submit" name="submit" value="submit" <?php echo (!$is_complete) ? 'disabled title="Complete all 3 forms to enable submission"' : ''; ?> 
-        style="<?php echo (!$is_complete) ? 'cursor: not-allowed; opacity: 0.6; background-color: #ccc; border-color: #bbb;' : ''; ?>">
+<input type="submit" name="submit" value="submit">
 </form>
 
 <input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
