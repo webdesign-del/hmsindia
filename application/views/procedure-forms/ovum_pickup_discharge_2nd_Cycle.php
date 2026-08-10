@@ -170,6 +170,126 @@
     if(!empty($select_result['applicablemedicine'])){
         $applicablemedicine = explode(',', $select_result['applicablemedicine']);             
     }
+
+    // Master List of All Available Medicines and Details
+    $master_medicines = array(
+        'TabCrocin' => array(
+            'name' => 'Tab Crocin', 'dosage' => '500 mg', 'route' => 'Oral', 
+            'times' => 'SOS (Max 3 times at interval of 6 hrs)', 'timings' => 'After meals', 
+            'start' => 'SOS (if pain)', 'days' => '3 Days'
+        ),
+        'Sypcremaffin' => array(
+            'name' => 'Sypcremaffin', 'dosage' => 'ONE TSF', 'route' => 'Oral', 
+            'times' => 'SOS', 'timings' => 'After dinner', 
+            'start' => 'SOS (if constipation)', 'days' => '-'
+        ),
+        'EndofertTab2MG' => array(
+            'name' => 'Endofert Tab 2MG', 'dosage' => '1TAB', 'route' => 'Oral', 
+            'times_opt' => array('gufitwice' => 'Twice', 'gufithrice' => 'Thrice', 'gufifour' => '4 times daily'),
+            'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'TabEcosprin75mg' => array(
+            'name' => 'Tab Ecosprin 75 mg', 'dosage' => '1TAB', 'route' => 'Oral', 
+            'times_opt' => array('eco75once' => 'Once', 'eco75twice' => 'Twice'),
+            'timings' => 'After meals', 'start' => 'Tomorrow', 'days' => '6 Days'
+        ),
+        'Aquagest25MG' => array(
+            'name' => 'Aquagest 25 MG', 'dosage' => '25 mg', 'route' => 'Intramuscular', 
+            'times_opt' => array('natOncedaily' => 'Once daily', 'natalternate' => 'Alternate', 'natbiweekly' => 'Biweekly', 'natweekly' => 'Weekly'),
+            'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'TabWysolone5mg' => array(
+            'name' => 'Tab Wysolone 5mg', 'dosage' => '5mg', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Tomorrow', 'days' => '-'
+        ),
+        'TabWysolone' => array(
+            'name' => 'Tab Wysolone 10mg', 'dosage' => '10mg', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Tomorrow', 'days' => '-'
+        ),
+        'TabWysolone15mg' => array(
+            'name' => 'Tab Wysolone 15mg', 'dosage' => '15mg', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Tomorrow', 'days' => '-'
+        ),
+        'Genprogel' => array(
+            'name' => 'Genpro gel', 'dosage' => '8%', 'route' => 'Vaginal', 
+            'times' => 'Once daily', 'timings' => 'Before sleep', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'INFAGEST10MG' => array(
+            'name' => 'INFAGEST 10MG', 'dosage' => '1TAB', 'route' => 'Oral', 
+            'times' => 'Thrice daily', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'BiophilL' => array(
+            'name' => 'Biophil L', 'dosage' => '1 CAP', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'BiophilO' => array(
+            'name' => 'Biophil O', 'dosage' => '1 CAP', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'BiophilQ3' => array(
+            'name' => 'Biophil Q3', 'dosage' => '1 CAP', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'BIOLARG' => array(
+            'name' => 'BIOLARG', 'dosage' => '1 SACHET', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'BIOPHILVITA' => array(
+            'name' => 'BIOPHIL VITA', 'dosage' => '1 CAP', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'IPARIN40MG' => array(
+            'name' => 'INJ IPARIN 40 MG', 'dosage' => '40 mg', 'route' => 'Subcutaneous', 
+            'times_opt' => array('oxyOncedaily' => 'Once daily', 'oxyalternate' => 'Alternate', 'oxybiweekly' => 'Biweekly', 'oxyweekly' => 'Weekly'),
+            'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'Injcoriosurge10000' => array(
+            'name' => 'Inj coriosurge 10000', 'dosage' => '-', 'route' => 'Subcutaneous', 
+            'times_opt' => array('corOncedaily' => 'Once daily', 'coralternate' => 'Alternate', 'corbiweekly' => 'Biweekly', 'corweekly' => 'Weekly'),
+            'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'TabAllegra' => array(
+            'name' => 'Tab Allegra', 'dosage' => '1 TAB', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'TabMontairLC' => array(
+            'name' => 'Tab Montair LC', 'dosage' => '1 TAB', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'TabShelcal500mg' => array(
+            'name' => 'Tab Shelcal 500 mg', 'dosage' => '1 TAB', 'route' => 'Oral', 
+            'times' => 'Once daily', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'INFAGESTRONSR200' => array(
+            'name' => 'INFAGESTRON SR 200', 'dosage' => '400mg', 
+            'route_opt' => array('genOral' => 'Oral', 'genvaginally' => 'Vaginally'),
+            'times_opt' => array('genonce' => 'Once', 'gentwice' => 'Twice', 'genthrice' => 'Four times daily'),
+            'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'Estogel' => array(
+            'name' => 'Estogel', 'dosage' => '2.5 gm', 'route' => 'Locally', 
+            'times_opt' => array('estoonce' => 'Once', 'estotwice' => 'Twice', 'estothrice' => 'Thrice', 'estofour' => '4 times daily'),
+            'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'Lenzettospray' => array(
+            'name' => 'Lenzetto Spray', 'dosage' => '1 spray', 'route' => 'Locally', 
+            'times_opt' => array('lenonce' => 'Once', 'lentwice' => 'Twice'),
+            'timings' => '-', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'Luprorin4MGInj' => array(
+            'name' => 'Luprorin 4MG Inj', 'dosage' => '4ml s.c. stat', 'route' => 'Subcutaneous', 
+            'times_opt' => array('eurodaily' => 'Daily', 'euroalternate' => 'Alternate day', 'eurobiweekly' => 'Biweekly', 'euroweekly' => 'Weekly'),
+            'timings' => '-', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'CapCalcitasD3' => array(
+            'name' => 'Cap Calcitas D3', 'dosage' => '60000IU', 'route' => 'Oral', 
+            'times' => 'Weekly', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '6 Days'
+        ),
+        'CEROXITUM500' => array(
+            'name' => 'CEROXITUM 500', 'dosage' => '500MG', 'route' => '1 Tab', 
+            'times' => 'Twice Daily', 'timings' => 'After meals', 'start' => 'Immediately', 'days' => '3 Days'
+        )
+    );
 ?>
 <div class="ga-pro">
 <form action="" enctype='multipart/form-data' class="searchform" method="post">
@@ -333,7 +453,7 @@
 
 <div class="sec3">
 <h4>Advice on discharge:</h4>   
-<table width="585">
+<table width="100%">
 <tbody>
 <tr>
 <td width="38"><p>Check</p></td>
@@ -769,7 +889,10 @@
 </form>
 
 <input type="button" id="btn" value="Print" class="btn btn-primary pull-right ptable">
-  
+
+<!-- ============================================================================== -->
+<!-- 3. PRINT CONTAINER MODE (FILTERED SELECTED MEDICINES ONLY) -->
+<!-- ============================================================================== -->
 <div class="printtable prtable" id="printtable" style="display:none;"> 
 <div class="ga-pro">
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
@@ -920,27 +1043,103 @@
 <tr>
 <td colspan="8" style="border:1px solid;padding:5px;" ><h4>ADVICE ON DISCHARGE</h4></td>
 </tr>
-<tr>
-<td width="100%" colspan="8" style="border:1px solid;padding:5px;">
-<p><?php echo isset($select_result['applicablemedicine']) ? $select_result['applicablemedicine'] : ''; ?></p>
-</td>
-</tr>
+</tbody>
+</table>
 
+<!-- Dynamic Only Selected Medicines Table for Print -->
+<div class="sec3" style="border:1px solid #000; padding:0px;">
+<table width="100%" style="border-collapse:collapse; width:100%;">
+<thead>
+<tr style="background:#f2f2f2;">
+<th style="border:1px solid #000; padding:5px; text-align:left;" width="25%">Medication</th>
+<th style="border:1px solid #000; padding:5px; text-align:left;" width="12%">Dosage</th>
+<th style="border:1px solid #000; padding:5px; text-align:left;" width="12%">Route</th>
+<th style="border:1px solid #000; padding:5px; text-align:left;" width="23%">Times</th>
+<th style="border:1px solid #000; padding:5px; text-align:left;" width="10%">Timings</th>
+<th style="border:1px solid #000; padding:5px; text-align:left;" width="10%">When to start</th>
+<th style="border:1px solid #000; padding:5px; text-align:left;" width="8%">Days</th>
+</tr>
+</thead>
+<tbody>
+<?php 
+$has_medicine = false;
+foreach($master_medicines as $key => $med) {
+    if(!empty($applicablemedicine) && in_array($key, $applicablemedicine)) {
+        $has_medicine = true;
+        
+        // Route Resolution
+        $route_text = $med['route'] ?? '-';
+        if(isset($med['route_opt'])) {
+            $selected_routes = array();
+            foreach($med['route_opt'] as $r_key => $r_label) {
+                if(in_array($r_key, $applicablemedicine)) {
+                    $selected_routes[] = $r_label;
+                }
+            }
+            if(!empty($selected_routes)) {
+                $route_text = implode(', ', $selected_routes);
+            }
+        }
+        
+        // Times Resolution
+        $times_text = $med['times'] ?? '-';
+        if(isset($med['times_opt'])) {
+            $selected_times = array();
+            foreach($med['times_opt'] as $t_key => $t_label) {
+                if(in_array($t_key, $applicablemedicine)) {
+                    $selected_times[] = $t_label;
+                }
+            }
+            if(!empty($selected_times)) {
+                $times_text = implode(', ', $selected_times);
+            }
+        }
+        
+        echo '<tr>';
+        echo '<td style="border:1px solid #000; padding:5px; text-align:left;"><strong>'.htmlentities($med['name']).'</strong></td>';
+        echo '<td style="border:1px solid #000; padding:5px; text-align:left;">'.htmlentities($med['dosage']).'</td>';
+        echo '<td style="border:1px solid #000; padding:5px; text-align:left;">'.htmlentities($route_text).'</td>';
+        echo '<td style="border:1px solid #000; padding:5px; text-align:left;">'.htmlentities($times_text).'</td>';
+        echo '<td style="border:1px solid #000; padding:5px; text-align:left;">'.htmlentities($med['timings']).'</td>';
+        echo '<td style="border:1px solid #000; padding:5px; text-align:left;">'.htmlentities($med['start']).'</td>';
+        echo '<td style="border:1px solid #000; padding:5px; text-align:left;">'.htmlentities($med['days']).'</td>';
+        echo '</tr>';
+    }
+}
+
+if(!$has_medicine) {
+    echo '<tr><td colspan="7" style="border:1px solid #000; padding:5px; text-align:center;">No Medicines Prescribed</td></tr>';
+}
+?>
+</tbody>
+</table>
+</div>
+
+<table width="100%">
+<tbody>
+<?php if(!empty($select_result['Other_Medication1'])): ?>
 <tr>
 <td width="100%" colspan="8" style="border:1px solid;padding:5px;">
-<p>Other Medication1: <?php echo isset($select_result['Other_Medication1'])?$select_result['Other_Medication1']:""; ?></p>
+<p><strong>Other Medication 1:</strong> <?php echo $select_result['Other_Medication1']; ?></p>
 </td>
 </tr>
+<?php endif; ?>
+
+<?php if(!empty($select_result['Other_Medication2'])): ?>
 <tr>
 <td width="100%" colspan="8" style="border:1px solid;padding:5px;">
-<p>Other Medication2: <?php echo isset($select_result['Other_Medication2'])?$select_result['Other_Medication2']:""; ?></p>
+<p><strong>Other Medication 2:</strong> <?php echo $select_result['Other_Medication2']; ?></p>
 </td>
 </tr>
+<?php endif; ?>
+
+<?php if(!empty($select_result['Other_Medication3'])): ?>
 <tr>
 <td width="100%" colspan="8" style="border:1px solid;padding:5px;">
-<p>Other Medication3: <?php echo isset($select_result['Other_Medication3'])?$select_result['Other_Medication3']:""; ?></p>
+<p><strong>Other Medication 3:</strong> <?php echo $select_result['Other_Medication3']; ?></p>
 </td>
 </tr>
+<?php endif; ?>
 
 <tr>
 <td width="100%" colspan="8" style="border:1px solid;padding:5px;">
@@ -1003,7 +1202,7 @@ input[type=checkbox], input[type=radio] {
     opacity: 1 !important;
     left: 0 !important;
     position: unset !important;
-    margin: 9px !important;
+    margin: 4px !important;
 }
 .sec3 {   
     border: 1px solid #000;
