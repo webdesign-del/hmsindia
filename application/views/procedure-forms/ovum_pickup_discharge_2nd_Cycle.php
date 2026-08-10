@@ -46,7 +46,7 @@
         }
         
         // Check if record exists in ovum_pickup_discharge_summary
-        $sql = "SELECT * FROM `ovum_pickup_discharge_summary` WHERE patient_id='$patient_id'";
+        $sql = "SELECT * FROM `ovum_pickup_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
         $select_result = run_select_query($sql);
         
         $sqlArr = array();
@@ -113,7 +113,7 @@
 
     if (!empty($patient_id)) {
         // Ovulation Induction Protocol check
-        $sql_ovulation = "SELECT receipt_number FROM ovulation_induction_protocol WHERE patient_id='".$patient_id."' LIMIT 1";
+        $sql_ovulation = "SELECT * FROM `ovum_pickup_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
         $res_ovulation = run_select_query($sql_ovulation);
 
         if (!empty($res_ovulation) && isset($res_ovulation['receipt_number'])) {
