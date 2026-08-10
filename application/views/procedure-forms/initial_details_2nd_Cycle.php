@@ -2,7 +2,7 @@
 	    if(isset($_POST['submit'])){
 			unset($_POST['submit']);
 					
-			$select_query = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+			$select_query = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id' and receipt_number='$receipt_number' and type='Second Cycle'";
 			$select_result = run_select_query($select_query); 
 			if(empty($select_result)){
 				// mysql query to insert data
@@ -33,19 +33,16 @@
     					die();
             }
 		}
-		$select_query = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+		$select_query = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id' and receipt_number='$receipt_number' and type='Second Cycle'";
 		$select_result = run_select_query($select_query);
 		
 		$sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
 		$select_result3 = run_select_query($sql3); 	
 	
-		$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
+		$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."' and paitent_type='new_patient' ";
 		$select_result1 = run_select_query($sql1);
 	
-		$sql4 = "Select * from ".$this->config->item('db_prefix')."appointments where wife_phone='".$select_result1['wife_phone']."' and paitent_type='new_patient'";
-		$select_result4 = run_select_query($sql4);
-	
-		$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
+		$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result1['appoitment_for']."'";
 		$select_result5 = run_select_query($sql5);
 ?>
 
@@ -70,7 +67,7 @@
 <tr style="background: #b3b9b7;">
 
 <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
-<strong>UHID : <?php echo $select_result5['center_code']."/".$select_result4['uhid']; ?></strong>
+<strong>UHID : <?php echo $select_result5['center_code']."/".$select_result1['uhid']; ?></strong>
 </td>
 <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
 <strong>Patient Name : <?php echo $select_result3['wife_name']; ?> </strong>
@@ -210,7 +207,7 @@
 <tr style="background: #b3b9b7;">
 
 <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
-<strong>UHID : <?php echo $select_result5['center_code']."/".$select_result4['uhid']; ?></strong>
+<strong>UHID : <?php echo $select_result5['center_code']."/".$select_result1['uhid']; ?></strong>
 </td>
 <td colspan="2" width="33%" style="border:1px solid;padding:5px;">
 <strong>Patient Name : <?php echo $select_result3['wife_name']; ?> </strong>
