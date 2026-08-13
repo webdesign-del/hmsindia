@@ -2234,7 +2234,7 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
     $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
     $this->db->join($payment_subquery, 'pm.billing_id = p.receipt_number', 'left', false);
 
-    // 🎯 Status Filter strictly added as per requirement
+    // 🎯 Status Filter
     $this->db->where_in('p.status', ['pending', 'approved']);
 
     // Dynamic Filters
@@ -2245,6 +2245,9 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
     if (!empty($start) && !empty($end)) {
         $this->db->where("p.on_date BETWEEN " . $this->db->escape($start) . " AND " . $this->db->escape($end), null, false);
     }
+
+    // 🎯 FIX: Group By added to eliminate duplicate rows per receipt
+    $this->db->group_by('p.receipt_number');
 
     $this->db->order_by('p.on_date', 'DESC');
 
@@ -2310,13 +2313,11 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
         $husband_name = $val['husband_name'] ?? '';
         $formatted_name = !empty($husband_name) ? $wife_name . ' w/o ' . $husband_name : $wife_name;
 
-        // 🎯 SUM OF PAYMENTS & REMAINING CALCULATION
+        // SUM OF PAYMENTS & REMAINING CALCULATION
         $initial_paid = (float)$val['initial_paid'];
         $partial_paid = (float)$val['partial_paid_sum'];
         
-        // Sum of both initial and additional payments
         $sum_payment_done = $initial_paid + $partial_paid;
-
         $discounted_pkg = (float)$val['discounted_package'];
         $remaining_amount = max(0, $discounted_pkg - $sum_payment_done);
 
