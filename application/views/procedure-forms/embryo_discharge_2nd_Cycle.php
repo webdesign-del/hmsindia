@@ -3,7 +3,7 @@
     if(isset($_POST['submit'])){
         unset($_POST['submit']);
       
-        $select_query = "SELECT * FROM `embryology_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+        $select_query = "SELECT * FROM `embryology_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number' and type='Second Cycle'";
         $select_result = run_select_query($select_query); 
         if(empty($select_result)){
             // mysql query to insert data
@@ -34,7 +34,7 @@
                     die();
         }
     }
-    $select_query = "SELECT * FROM `embryology_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
+    $select_query = "SELECT * FROM `embryology_discharge_summary` WHERE patient_id='$patient_id' and receipt_number='$receipt_number' and type='Second Cycle'";
     $select_result = run_select_query($select_query);  
     
     $sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";

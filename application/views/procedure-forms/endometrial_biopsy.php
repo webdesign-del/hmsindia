@@ -51,6 +51,12 @@
 
 	$select_prp = "SELECT * FROM `hms_prp` WHERE patient_id='$patient_id'";
 	$select_result_prp = run_select_query($select_prp);
+
+	// Dynamic Logo handling
+    $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : '';
+    if(empty($page_logo)) {
+        $page_logo = base_url('assets/center/default-logo.png');
+    }  
 ?>
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
 <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
@@ -63,7 +69,7 @@
   <input type="hidden" value="pending" name="status">
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
-   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
    <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">ENDOMETRIAL BIOPSY</h3></td>
    </tr>
 </table>
@@ -349,7 +355,7 @@
     	<table style="width:100%; border:1px solid #cdcdcd;" id="printtable" border="1">
     	<table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
-   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
    <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">ENDOMETRIAL BIOPSY</h3></td>
    </tr>
 </table>

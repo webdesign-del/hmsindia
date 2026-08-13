@@ -48,41 +48,6 @@
             }
             $query .= implode(',' , $sqlArr);
             $query .= " WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
-			
-			$payload = json_encode([
-				"patient_id" => $patient_id,
-				"receipt_number" => $receipt_number,
-				"wife_name" => $select_result3['wife_name'],
-				"payment_freezing" => $select_result_pro['fees'],
-				"spoke" => $select_center['center_name'],
-				"hub" => $select_result5['center_name'],
-				"date" => $select_result['date'],
-				"no_of_straw_0" => $select_result['no_of_embryos_frozen'],
-				"procedure_id" => $result_pro['code'],
-				"lead_id" => $select_result4['crm_id']
-		]);
-
-		$curl = curl_init();
-
-		curl_setopt_array($curl, array(
-			CURLOPT_URL => 'https://staging.flertility.in/lead/embryo-freezing/',
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_ENCODING => '',
-			CURLOPT_MAXREDIRS => 10,
-			CURLOPT_TIMEOUT => 0,
-			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-			CURLOPT_CUSTOMREQUEST => 'POST',
-			CURLOPT_POSTFIELDS => $payload,
-			CURLOPT_HTTPHEADER => array(
-				'Content-Type: application/json'
-			),
-		));
-
-		$response = curl_exec($curl);
-		curl_close($curl);
-
-		//echo $response;	
         }
         $result = run_form_query($query); 
 		
@@ -94,6 +59,12 @@
           header("location:" .$_SERVER['HTTP_REFERER']."?m=".base64_encode('Something went wrong!').'&t='.base64_encode('error'));
 					die();
         }
+    }
+
+	// Dynamic Logo handling
+    $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : '';
+    if(empty($page_logo)) {
+        $page_logo = base_url('assets/center/default-logo.png');
     }
 ?>
 
@@ -109,7 +80,7 @@
 	<div class="container2 red-field form mt-5 mb-5">
     			<table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
-   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
    <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">EMBRYO FREEZING</h3></td>
    </tr>
 </table>
@@ -349,7 +320,7 @@
 
 	    			<table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
-   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
    <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">EMBRYO FREEZING</h3></td>
    </tr>
 </table>

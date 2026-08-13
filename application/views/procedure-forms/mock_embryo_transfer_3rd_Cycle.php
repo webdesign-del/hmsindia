@@ -68,7 +68,7 @@
 	$select_result = run_select_query($select_query);  
   
 	$sql3 = "SELECT * FROM `hms_patients` WHERE patient_id='$patient_id'";
-    $select_result3 = run_select_query($sql3); 	
+  $select_result3 = run_select_query($sql3); 	
 	
 	$sql1 = "Select * from ".$this->config->item('db_prefix')."appointments where paitent_id='".$patient_id."'";
 	$select_result1 = run_select_query($sql1);
@@ -77,7 +77,13 @@
 	$select_result4 = run_select_query($sql4);
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
-	$select_result5 = run_select_query($sql5);	
+	$select_result5 = run_select_query($sql5);
+  
+  // Dynamic Logo handling
+  $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : '';
+  if(empty($page_logo)) {
+      $page_logo = base_url('assets/center/default-logo.png');
+  }
 
 ?>
 
@@ -98,7 +104,7 @@
   <input type="hidden" value="pending" name="status"> 
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
-   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
    <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">MOCK EMBRYO TRANSFER 3RD CYCLE</h3></td>
    </tr>
 </table>
@@ -501,7 +507,7 @@
 
  <thead>
 			<tr>
-                <th width="50%" colspan="3"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></th>
+                <th width="50%" colspan="3"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></th>
 				<th width="50%" colspan="3"><center><h2>MOCK EMBRYO TRANSFER 3RD CYCLE<h2></center></th>
 				
 			</tr>

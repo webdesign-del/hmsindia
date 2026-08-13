@@ -44,7 +44,13 @@
         }
     }
     $select_query = "SELECT * FROM `donor_sperm_personal_details` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
-    $select_result = run_select_query($select_query);  
+    $select_result = run_select_query($select_query);
+	
+	// Dynamic Logo handling
+    $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : '';
+    if(empty($page_logo)) {
+        $page_logo = base_url('assets/center/default-logo.png');
+    }
 	
 ?>
 
@@ -1233,7 +1239,7 @@ else if(isset($select_result['paternal_malignancy']) && $select_result['paternal
 
     <table class="table-bordered" style="border:1px solid #cdcdcd; width:100%;">
 	 <tr>
-                <td width="50%" colspan="2" style="border:1px solid #cdcdcd;"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+                <td width="50%" colspan="2" style="border:1px solid #cdcdcd;"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
 			 <td width="50%" colspan="2" style="border:1px solid #cdcdcd;"><center><h2>NATURAL CYCLE  PROTOCOL</h2></center></td>
 					
 </tr>

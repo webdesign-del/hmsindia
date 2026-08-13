@@ -51,6 +51,12 @@
 	
 	$query_oocyte_freezing = "SELECT * FROM `hms_oocyte_freezing` WHERE patient_id='$patient_id' and type='Second Cycle'";
     $result_oocyte_freezing = run_select_query($query_oocyte_freezing); 
+
+	 // Dynamic Logo handling
+    $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : '';
+    if(empty($page_logo)) {
+        $page_logo = base_url('assets/center/default-logo.png');
+    }
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
@@ -65,7 +71,7 @@
     			<div class="container2 red-field form mt-5 mb-5">
 				<table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
-   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
    <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">OOCYTE THAWING SECOND CYCLE</h3></td>
    </tr>
 </table>
@@ -279,7 +285,7 @@
 
 <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
-   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
    <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">OOCYTE THAWING SECOND CYCLE</h3></td>
    </tr>
 </table>

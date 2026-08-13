@@ -10,7 +10,7 @@
         <p class="text-muted">Process patient refunds and calculate deductions</p>
       </div>
     </div>
-  </div>
+  </div>z
 
   <!-- Dynamic Wallet Display Section -->
   <div class="row" id="wallet_section" style="margin-bottom: 25px;">

@@ -12,6 +12,7 @@ class Accounts extends CI_Controller {
         $this->load->helper('url_helper');
 	    $this->load->library('session');
 		$this->load->model('accounts_model');
+		$this->load->model('Accounts_model');
 		$this->load->model('billings_model');
 		$this->load->helper('billing');
 		$this->load->model('procedures_model');
@@ -23,7 +24,25 @@ class Accounts extends CI_Controller {
 		$this->load->helper('myhelper');
 		$this->load->library("pagination");
 		
-	}	
+	}
+	
+	private function _init_email() {
+		$this->load->library('email');
+		
+		$config['protocol']     = 'smtp';
+		$config['smtp_host']    = 'smtp.gmail.com'; 
+		$config['smtp_port']    = 587;                     
+		$config['smtp_crypto']  = 'tls'; // 👈 Port 587 के लिए यह लाइन अनिवार्य है
+		$config['smtp_user']    = 'noreply@indiaivf.in'; 
+		$config['smtp_pass']    = 'fvve bzgn oesk tava'; // App Password
+		$config['mailtype']     = 'html';
+		$config['charset']      = 'utf-8';
+		$config['newline']      = "\r\n";
+		$config['crlf']         = "\r\n";
+		$config['smtp_timeout'] = '30';
+		
+		$this->email->initialize($config);
+	}
 	
 		function htmltopdf(){
         	$formname = $_POST['formname'];
@@ -14108,12 +14127,96 @@ public function get_patient_wallet_info() {
         exit;
     }
 
-    // 2. STEP 1: Center Head / Counselor Submits Initial Refund Request
+ // 🎯 SCREEN-SHOT EXACT EMAIL TEMPLATE BUILDER
+    private function _generate_refund_email_html($data, $deductions, $bank, $w1_balance, $total_deductions, $net_refund, $action_link = '', $button_text = 'Click Here to Approve') {
+        
+        $deduction_html = "";
+        if (isset($deductions['opd']['total']) && $deductions['opd']['total'] > 0) 
+            $deduction_html .= "<tr><td align='right' style='padding:4px 8px;'>OPD Consultations:</td><td style='color:red; text-align:right; padding:4px 8px;'>- Rs. " . number_format($deductions['opd']['total'], 2) . "</td></tr>";
+        if (isset($deductions['usg']['total']) && $deductions['usg']['total'] > 0) 
+            $deduction_html .= "<tr><td align='right' style='padding:4px 8px;'>Ultrasounds (USG):</td><td style='color:red; text-align:right; padding:4px 8px;'>- Rs. " . number_format($deductions['usg']['total'], 2) . "</td></tr>";
+        if (isset($deductions['file']['total']) && $deductions['file']['total'] > 0) 
+            $deduction_html .= "<tr><td align='right' style='padding:4px 8px;'>File Charges:</td><td style='color:red; text-align:right; padding:4px 8px;'>- Rs. " . number_format($deductions['file']['total'], 2) . "</td></tr>";
+        if (isset($deductions['reg']['total']) && $deductions['reg']['total'] > 0) 
+            $deduction_html .= "<tr><td align='right' style='padding:4px 8px;'>Registration Charges:</td><td style='color:red; text-align:right; padding:4px 8px;'>- Rs. " . number_format($deductions['reg']['total'], 2) . "</td></tr>";
+        if (isset($deductions['inj']['total']) && $deductions['inj']['total'] > 0) 
+            $deduction_html .= "<tr><td align='right' style='padding:4px 8px;'>Injection Amount:</td><td style='color:red; text-align:right; padding:4px 8px;'>- Rs. " . number_format($deductions['inj']['total'], 2) . "</td></tr>";
+        if (isset($deductions['con']['total']) && $deductions['con']['total'] > 0) 
+            $deduction_html .= "<tr><td align='right' style='padding:4px 8px;'>Consumables:</td><td style='color:red; text-align:right; padding:4px 8px;'>- Rs. " . number_format($deductions['con']['total'], 2) . "</td></tr>";
+        if (isset($deductions['sub']['total']) && $deductions['sub']['total'] > 0) 
+            $deduction_html .= "<tr><td align='right' style='padding:4px 8px;'>Subvention Charges (EMI):</td><td style='color:red; text-align:right; padding:4px 8px;'>- Rs. " . number_format($deductions['sub']['total'], 2) . "</td></tr>";
+        if (isset($deductions['misc']['total']) && $deductions['misc']['total'] > 0) 
+            $deduction_html .= "<tr><td align='right' style='padding:4px 8px;'>Miscellaneous:</td><td style='color:red; text-align:right; padding:4px 8px;'>- Rs. " . number_format($deductions['misc']['total'], 2) . "</td></tr>";
+
+        if (empty($deduction_html)) {
+            $deduction_html = "<tr><td align='right' style='padding:4px 8px;'>No Deductions</td><td style='color:gray; text-align:right; padding:4px 8px;'>Rs. 0.00</td></tr>";
+        }
+
+        $patient_name = isset($data['patient_name']) ? $data['patient_name'] : '';
+        $patient_id   = isset($data['patient_id']) ? $data['patient_id'] : '';
+        $service      = isset($data['service_purchased']) ? $data['service_purchased'] : '';
+        $receipt      = isset($data['receipt_number']) ? $data['receipt_number'] : '';
+        $reason       = isset($data['refund_reason']) ? $data['refund_reason'] : '';
+        $other_reason = isset($data['other_reason']) ? $data['other_reason'] : '';
+        $remarks      = isset($data['accountant_comments']) ? $data['accountant_comments'] : (isset($data['admin_remarks']) ? $data['admin_remarks'] : '');
+
+        $full_reason  = $reason . (!empty($other_reason) ? " - " . $other_reason : "");
+
+        $html = "<div style='font-family: Arial, sans-serif; font-size: 13px; color: #333; line-height: 1.5;'>";
+        $html .= "<h3 style='margin-bottom: 5px; color: #111; font-size: 15px;'>Refund Request Overview</h3>";
+        $html .= "<p style='margin-top: 0; color: #555; font-size: 12px;'>Please review the details below regarding the refund request process.</p>";
+        
+        if(!empty($remarks)) {
+            $html .= "<p style='margin-bottom: 15px; font-size: 13px;'><b>Remarks:</b> " . htmlspecialchars($remarks) . "</p>";
+        }
+        
+        $html .= "<table border='1' cellpadding='8' cellspacing='0' style='border-collapse: collapse; width: 100%; max-width: 650px; border-color: #e2e2e2; font-size: 13px;'>";
+        
+        // Section 1
+        $html .= "<tr style='background-color: #f2f2f2;'><th colspan='2' align='left' style='padding: 8px;'>Patient & Request Details</th></tr>";
+        $html .= "<tr><td width='35%' style='padding: 8px;'><b>Patient Name:</b></td><td style='padding: 8px;'>{$patient_name} (ID: {$patient_id})</td></tr>";
+        $html .= "<tr><td style='padding: 8px;'><b>Service / Receipt:</b></td><td style='padding: 8px;'>{$service} (Receipt: {$receipt})</td></tr>";
+        $html .= "<tr><td style='padding: 8px;'><b>Reason for Refund:</b></td><td style='padding: 8px;'>{$full_reason}</td></tr>";
+        
+        // Section 2
+        $html .= "<tr style='background-color: #f2f2f2;'><th colspan='2' align='left' style='padding: 8px;'>Financial Summary</th></tr>";
+        $html .= "<tr><td style='padding: 8px;'><b>Actual Wallet Balance (W1):</b></td><td style='padding: 8px;'><b style='font-size: 14px;'>Rs. " . number_format($w1_balance, 2) . "</b></td></tr>";
+        
+        // Red Box
+        $html .= "<tr><td colspan='2' style='padding: 0;'>";
+        $html .= "<table width='100%' cellpadding='4' cellspacing='0' style='background-color: #fff5f5; border-collapse: collapse;'>";
+        $html .= "<tr><td colspan='2' style='padding: 8px 8px 4px 8px; color: #d9534f; font-weight: bold;'>Deductions Breakdown:</td></tr>";
+        $html .= $deduction_html;
+        $html .= "<tr>";
+        $html .= "<td align='right' style='padding: 6px 8px; border-top: 1px solid #ffcccc;'><b>Total Deductions:</b></td>";
+        $html .= "<td style='padding: 6px 8px; border-top: 1px solid #ffcccc; color: red; font-weight: bold; text-align: right;'>- Rs. " . number_format($total_deductions, 2) . "</td>";
+        $html .= "</tr>";
+        $html .= "</table></td></tr>";
+        
+        // Final Refund Row
+        $html .= "<tr><td style='padding: 10px 8px;'><b>Final Refund Amount:</b></td>";
+        $html .= "<td style='padding: 10px 8px;'><b style='color: #28a745; font-size: 16px;'>Rs. " . number_format($net_refund, 2) . "</b></td></tr>";
+        
+        // Section 3
+        $html .= "<tr style='background-color: #f2f2f2;'><th colspan='2' align='left' style='padding: 8px;'>Bank Details For Transfer</th></tr>";
+        $html .= "<tr><td style='padding: 8px;'><b>Bank Name:</b></td><td style='padding: 8px;'>" . (isset($bank['bank_name']) ? $bank['bank_name'] : '') . "</td></tr>";
+        $html .= "<tr><td style='padding: 8px;'><b>A/C Holder Name:</b></td><td style='padding: 8px;'>" . (isset($bank['account_holder_name']) ? $bank['account_holder_name'] : '') . "</td></tr>";
+        $html .= "<tr><td style='padding: 8px;'><b>A/C Number:</b></td><td style='padding: 8px;'>" . (isset($bank['account_number']) ? $bank['account_number'] : '') . "</td></tr>";
+        $html .= "<tr><td style='padding: 8px;'><b>IFSC Code:</b></td><td style='padding: 8px;'>" . (isset($bank['ifsc_code']) ? $bank['ifsc_code'] : '') . "</td></tr>";
+        $html .= "</table>";
+        
+        if (!empty($action_link)) {
+            $html .= "<div style='margin-top: 20px;'>";
+            $html .= "<a href='{$action_link}' style='background-color: #28a745; color: #ffffff; padding: 12px 22px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block;'>{$button_text}</a>";
+            $html .= "</div>";
+        }
+
+        $html .= "</div>";
+        return $html;
+    }
+
+    // 1. STEP 1: Billing Manager Submits Request
     public function save_refund() {
-
-	$this->load->model('Accounts_model', 'Accounts_model');
-    $this->load->helper('billing');
-
         $patient_id    = $this->input->post('patient_id');
         $patient_name  = $this->input->post('patient_name');
         $contact       = $this->input->post('contact_number');
@@ -14123,14 +14226,8 @@ public function get_patient_wallet_info() {
         $reason        = $this->input->post('refund_reason');
         $other_reason  = $this->input->post('other_reason');
         
-        // 🎯 Actual Wallet Balance
         $wallet            = get_universal_wallet($patient_id); 
         $actual_w1_balance = isset($wallet['wallet_1']) ? (float)$wallet['wallet_1'] : 0;
-
-        // 🎯 Deductions & Net Calculation
-        $total_deductions  = (float) $this->input->post('total_deductions');
-        $net_refund        = $actual_w1_balance - $total_deductions;
-        if ($net_refund < 0) { $net_refund = 0; }
 
         $bank_details = array(
             'bank_name'           => $this->input->post('bank_name'),
@@ -14146,6 +14243,140 @@ public function get_patient_wallet_info() {
             'expiration_date'     => $this->input->post('expiration_date')
         );
 
+        $manager_email = isset($_SESSION['logged_billing_manager']['username']) ? $_SESSION['logged_billing_manager']['username'] : '';
+
+        $data = array(
+            'patient_id'          => $patient_id,
+            'patient_name'        => $patient_name,
+            'contact_number'      => $contact,
+            'email_address'       => $email_address,
+            'purchase_date'       => $this->input->post('purchase_date'),
+            'receipt_number'      => $receipt,
+            'service_purchased'   => $service,
+            'total_amount_paid'   => $actual_w1_balance, 
+            'refund_reason'       => $reason,
+            'other_reason'        => $other_reason,
+            'return_details'      => json_encode($return_details),
+            'bank_details'        => json_encode($bank_details),
+            'status'              => 'Pending Administrator Review',
+            'created_by_email'    => $manager_email
+        );
+
+        $this->Accounts_model->insert_refund_request($data);
+        $refund_id = $this->db->insert_id(); 
+
+        // Generate Exact Structure Email
+        $admin_review_link = site_url("Accounts/admin_review_form/" . $refund_id); 
+        $email_body = $this->_generate_refund_email_html($data, array(), $bank_details, $actual_w1_balance, 0, $actual_w1_balance, $admin_review_link, 'Review & Approve Request');
+
+        // Mail to Admin
+        $admins = $this->db->get_where('hms_employees', array('role' => 'administrator'))->result_array();
+        foreach ($admins as $admin) {
+            if (!empty($admin['email'])) {
+                $this->email->clear();
+                $this->_init_email();
+                $this->email->from('noreply@indiaivf.in', 'HMS System'); 
+                $this->email->to($admin['email']);
+                $this->email->subject('Action Required: New Refund Request - Receipt: ' . $receipt);
+                $this->email->message($email_body);
+                @$this->email->send();
+            }
+        }
+
+        // Intimation to Manager
+        if(!empty($manager_email)) {
+            $this->email->clear();
+            $this->_init_email();
+            $this->email->from('info@indiaivf.in', 'HMS System');
+            $this->email->to($manager_email);
+            $this->email->subject('Confirmation: Refund Request Filed - Receipt: ' . $receipt);
+            $this->email->message($email_body);
+            @$this->email->send();
+        }
+
+        $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : base_url();
+        header("location:" . $redirect_url . "?m=" . base64_encode('Refund Request Sent to Administrator.') . "&t=success");
+        die();
+    }
+
+    // 2. STEP 2: Administrator Form Page
+    public function admin_review_form($refund_id) {
+        $data['refund_data'] = $this->Accounts_model->get_refund_by_id($refund_id);
+        if(empty($data['refund_data'])) { show_404(); }
+        $data['refund_id'] = $refund_id;
+        $this->load->view('billing_view/admin_review_form', $data); 
+    }
+
+    // Administrator Submits Approval
+    public function submit_admin_decision() {
+        $refund_id     = $this->input->post('refund_id');
+        $decision      = $this->input->post('decision');
+        $admin_remarks = $this->input->post('admin_remarks');
+
+        $refund_data   = $this->Accounts_model->get_refund_by_id($refund_id);
+        $manager_email = $refund_data['created_by_email'];
+        $bank          = json_decode($refund_data['bank_details'], true);
+
+        $status = ($decision == 'approved') ? 'Approved by Admin' : 'Disapproved by Admin';
+
+        $this->db->where('id', $refund_id)->update('hms_refund_requests', [
+            'status'        => $status,
+            'admin_remarks' => $admin_remarks
+        ]);
+
+        $accountant_process_link = site_url("Accounts/review_refund_form/" . $refund_id);
+        
+        // Exact Email Layout
+        $email_body = $this->_generate_refund_email_html($refund_data, array(), $bank, $refund_data['total_amount_paid'], 0, $refund_data['total_amount_paid'], ($decision == 'approved' ? $accountant_process_link : ''), 'Process Deductions & Wallet Deduction');
+
+        $recipients = array();
+        if (!empty($manager_email)) { $recipients[] = $manager_email; }
+
+        $accountants = $this->db->get_where('hms_employees', array('role' => 'accountant'))->result_array();
+        foreach($accountants as $acc) {
+            if(!empty($acc['email'])) { $recipients[] = $acc['email']; }
+        }
+
+        $this->_init_email();
+        $this->email->from('info@indiaivf.in', 'HMS System');
+        $this->email->to(implode(',', $recipients));
+        $this->email->subject("Status Notice: Refund Request " . strtoupper($decision) . " - Receipt: " . $refund_data['receipt_number']);
+        $this->email->message($email_body);
+        @$this->email->send();
+
+        echo "<div style='text-align:center; margin-top:80px; font-family:Arial, sans-serif;'><h2>Decision Recorded ({$status})</h2><p>Notifications dispatched.</p></div>";
+        exit;
+    }
+
+    // 3. STEP 3: Accountant Form Page
+    public function review_refund_form($refund_id = '') {
+        if(empty($refund_id)) { show_404(); }
+        $data['refund_data'] = $this->Accounts_model->get_refund_by_id($refund_id);
+        if(empty($data['refund_data'])) { show_404(); }
+        $data['refund_id'] = $refund_id;
+        $this->load->view('billing_view/review_refund_form', $data); 
+    }
+
+    // Accountant Final Submission & Deductions Application
+    public function accountant_final_submit() {
+        $this->load->model('Stock_model_new');
+        
+        $refund_id           = $this->input->post('refund_id');
+        $accountant_comments = $this->input->post('accountant_comments');
+        $total_deductions    = (float) $this->input->post('total_deductions');
+        $wallet_type         = $this->input->post('wallet_type'); 
+        
+        $refund_data         = $this->Accounts_model->get_refund_by_id($refund_id);
+        $patient_id          = $refund_data['patient_id'];
+        $bank                = json_decode($refund_data['bank_details'], true);
+
+        $wallet              = get_universal_wallet($patient_id);
+        $actual_w1_balance   = isset($wallet['wallet_1']) ? (float)$wallet['wallet_1'] : 0;
+        $actual_w2_balance   = isset($wallet['wallet_2']) ? (float)$wallet['wallet_2'] : 0;
+
+        $net_refund = ($wallet_type == 'w2' ? $actual_w2_balance : $actual_w1_balance) - $total_deductions;
+        if ($net_refund < 0) { $net_refund = 0; }
+
         $deduction_details = array(
             'opd'  => array('qty' => $this->input->post('deduct_opd_qty'), 'total' => (float)$this->input->post('deduct_opd_total')),
             'usg'  => array('qty' => $this->input->post('deduct_usg_qty'), 'total' => (float)$this->input->post('deduct_usg_total')),
@@ -14157,303 +14388,38 @@ public function get_patient_wallet_info() {
             'misc' => array('qty' => $this->input->post('deduct_misc_qty'), 'total' => (float)$this->input->post('deduct_misc_total'))
         );
 
-        $data = array(
-            'patient_id'          => $patient_id,
-            'patient_name'        => $patient_name,
-            'contact_number'      => $contact,
-            'email_address'       => $email_address,
-            'purchase_date'       => $this->input->post('purchase_date'),
-            'receipt_number'      => $receipt,
-            'service_purchased'   => $service,
-            'total_amount_paid'   => $actual_w1_balance, 
+        // Wallet Deduction Call
+        $logged_user = isset($_SESSION['logged_billing_manager']['id']) ? $_SESSION['logged_billing_manager']['id'] : 1;
+        if ($total_deductions > 0) {
+            $this->Stock_model_new->deduct_wallet_balance($patient_id, $total_deductions, 'Refund-Deduction-ID-' . $refund_id, $logged_user, $wallet_type);
+        }
+
+        // DB Update
+        $this->db->where('id', $refund_id)->update('hms_refund_requests', array(
             'total_deductions'    => $total_deductions,
             'net_refund_amount'   => $net_refund,
-            'refund_reason'       => $reason,
-            'other_reason'        => $other_reason,
-            'return_details'      => json_encode($return_details),
-            'bank_details'        => json_encode($bank_details),
             'deduction_details'   => json_encode($deduction_details),
-            'satisfaction_rating' => $this->input->post('satisfaction'),
-            'feedback_comments'   => $this->input->post('feedback_comments'),
-            // 🔄 Step 1 Status Updated: Accountant verification ke liye bheja gaya
-            'status'              => 'Pending Accountant Review',
-            'created_by'          => isset($_SESSION['logged_billing_manager']['employee_number']) ? $_SESSION['logged_billing_manager']['employee_number'] : 'Center Head'
-        );
-
-        $this->Accounts_model->insert_refund_request($data);
-        $refund_id = $this->db->insert_id(); 
-
-        // Email Details HTML Builder
-        $full_details_html = $this->_generate_refund_email_html($data, $deduction_details, $bank_details, $actual_w1_balance, $total_deductions, $net_refund);
-
-        $this->load->library('email');
-
-        // A. Patient Acknowledgement Email
-        if (!empty($email_address)) {
-            $this->email->clear();
-            $this->email->from('webdesign@indiaivf.in', 'India IVF Accounts'); 
-            $this->email->to($email_address);
-            $this->email->subject('Refund Request Initiated Successfully');
-            
-            $msg1 = "<h3>Refund Request Acknowledgement</h3>";
-            $msg1 .= "<p>Dear <b>{$patient_name}</b>,</p>";
-            $msg1 .= "<p>Your refund request has been initiated by the Center Head and is currently under verification by our Accounts Team. Details below:</p>";
-            $msg1 .= $full_details_html;
-            $msg1 .= "<p>We will keep you updated as it moves through verification and approval.</p>";
-            
-            $this->email->message($msg1);
-            $this->email->set_mailtype("html");
-            @$this->email->send();
-        }
-
-        // B. Send Email to ACCOUNTANTS for Review
-        $accountants = $this->db->get_where('hms_employees', array('role' => 'accountant'))->result_array();
-        $review_link = site_url("Accounts/review_refund_form/" . $refund_id); 
-
-        foreach ($accountants as $acc) {
-            if (!empty($acc['email'])) {
-                $this->email->clear();
-                $this->email->from('info@indiaivf.in', 'HMS System'); 
-                $this->email->to($acc['email']);
-                $this->email->subject('Action Required: New Refund Request for Verification');
-                
-                $msg2 = "<h3>New Refund Request Initiated</h3>";
-                $msg2 .= "<p>A new refund request has been initiated by the Center Head. Please verify the deductions and forward it to the CEO with your suggestions.</p>";
-                $msg2 .= $full_details_html;
-                $msg2 .= '<a href="' . $review_link . '" style="padding:12px 24px; background-color:#ff9800; color:white; text-decoration:none; border-radius:4px; font-weight:bold; display:inline-block;">Review & Verify Deductions</a><br><br>';
-                
-                $this->email->message($msg2);
-                $this->email->set_mailtype("html");
-                @$this->email->send();
-            }
-        }
-
-        $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : base_url();
-        header("location:" . $redirect_url . "?m=" . base64_encode('Refund Request Sent to Accounts Team for Review.') . "&t=success");
-        die();
-    }
-
-    // 3. STEP 2: Accountant Reviews, Adjusts Deductions & Forwards to CEO
-   public function accountant_submit_review() {
-        $this->load->model('Accounts_model');
-        
-        $refund_id           = $this->input->post('refund_id');
-        $accountant_comments = $this->input->post('accountant_comments');
-        $adjusted_deductions = (float) $this->input->post('total_deductions');
-        
-        $refund_data         = $this->Accounts_model->get_refund_by_id($refund_id);
-        $actual_w1_balance   = (float) $refund_data['total_amount_paid'];
-        $new_net_refund      = $actual_w1_balance - $adjusted_deductions;
-        if ($new_net_refund < 0) { $new_net_refund = 0; }
-
-        $update_data = array(
-            'total_deductions'    => $adjusted_deductions,
-            'net_refund_amount'   => $new_net_refund,
             'accountant_comments' => $accountant_comments,
-            'status'              => 'Pending CEO Approval',
-            'accountant_id'       => isset($_SESSION['logged_billing_manager']['employee_number']) ? $_SESSION['logged_billing_manager']['employee_number'] : 'Accountant (Email Link)'
-        );
+            'deducted_from_wallet'=> $wallet_type,
+            'status'              => 'Refund Completed & Wallet Deducted'
+        ));
 
-        $this->db->where('id', $refund_id);
-        $this->db->update('hms_refund_requests', $update_data);
+        // Generate Full Mail Layout
+        $refund_data['accountant_comments'] = $accountant_comments;
+        $email_body = $this->_generate_refund_email_html($refund_data, $deduction_details, $bank, $actual_w1_balance, $total_deductions, $net_refund);
 
-        // Fetch Fresh Data for Email
-        $updated_refund = $this->Accounts_model->get_refund_by_id($refund_id);
-        $bank           = json_decode($updated_refund['bank_details'], true);
-        $deductions     = json_decode($updated_refund['deduction_details'], true);
-        
-        $full_details_html = $this->_generate_refund_email_html($updated_refund, $deductions, $bank, $actual_w1_balance, $adjusted_deductions, $new_net_refund);
+        $recipients = array('accounts@indiaivf.in', 'admin@indiaivf.in');
+        if (!empty($refund_data['created_by_email'])) { $recipients[] = $refund_data['created_by_email']; }
 
-        // Send Email to ADMINISTRATORS (CEO)
-        $this->load->library('email');
-        $admins = $this->db->get_where('hms_employees', array('role' => 'administrator'))->result_array();
-        $approve_link = site_url("Accounts/ceo_approve_refund/" . $refund_id); 
+        $this->_init_email();
+        $this->email->from('info@indiaivf.in', 'HMS Accounts');
+        $this->email->to(implode(',', $recipients));
+        $this->email->subject("Final Success: Refund Processed & Wallet Deducted - Receipt: " . $refund_data['receipt_number']);
+        $this->email->message($email_body);
+        @$this->email->send();
 
-        foreach ($admins as $admin) {
-            if (!empty($admin['email'])) {
-                $this->email->clear();
-                $this->email->from('info@indiaivf.in', 'HMS System'); 
-                $this->email->to($admin['email']);
-                $this->email->subject('Action Required: Refund Request Verified by Accountant');
-                
-                $msg = "<h3>Refund Request Ready for Final Approval</h3>";
-                $msg .= "<p>The Accountant has verified the refund request and added suggestions. Please review and provide final approval.</p>";
-                $msg .= "<p><b>Accountant Remarks:</b> " . nl2br($accountant_comments) . "</p>";
-                $msg .= $full_details_html;
-                $msg .= '<a href="' . $approve_link . '" style="padding:12px 24px; background-color:#28a745; color:white; text-decoration:none; border-radius:4px; font-weight:bold; display:inline-block;">Click Here to Final Approve Refund</a><br><br>';
-                
-                $this->email->message($msg);
-                $this->email->set_mailtype("html");
-                @$this->email->send();
-            }
-        }
-
-        // 🔓 बिना लॉगिन वाले यूजर को सुंदर सफलता संदेश दिखाएं
-        echo "<div style='text-align:center; margin-top:80px; font-family:Arial, sans-serif;'>";
-        echo "<div style='display:inline-block; border:1px solid #d6e9c6; padding:30px 50px; background:#f2dede; background-color:#dff0d8; color:#3c763d; border-radius:8px;'>";
-        echo "<h2><i class='fa fa-check-circle'></i> Verified & Forwarded Successfully!</h2>";
-        echo "<p style='font-size:16px;'>The refund deductions have been verified and forwarded to the CEO for final approval.</p>";
-        echo "<p style='color:#777;'>You may close this browser tab now.</p>";
-        echo "</div></div>";
+        echo "<div style='text-align:center; margin-top:80px; font-family:Arial, sans-serif;'><h2>Refund Processed & Wallet Deducted Successfully!</h2></div>";
         exit;
-    }
-
-    // 4. STEP 3: CEO Approves Request & Notifies Accounts
-    // ==========================================
-    // 3. CEO APPROVE REFUND (PUBLIC / WITHOUT LOGIN)
-    // ==========================================
-    public function ceo_approve_refund($refund_id) {
-        $this->load->model('Accounts_model');
-        $this->load->library('email');
-
-        $this->Accounts_model->update_refund_status($refund_id, 'Approved by CEO');
-        $refund_data = $this->Accounts_model->get_refund_by_id($refund_id);
-        
-        $bank       = json_decode($refund_data['bank_details'], true);
-        $deductions = json_decode($refund_data['deduction_details'], true);
-
-        $full_details_html = $this->_generate_refund_email_html($refund_data, $deductions, $bank, $refund_data['total_amount_paid'], $refund_data['total_deductions'], $refund_data['net_refund_amount']);
-
-        // Send Email to Accountants to Execute Payment
-        $accountants  = $this->db->get_where('hms_employees', array('role' => 'accountant'))->result_array();
-        $process_link = site_url("Accounts/accounts_process_refund/" . $refund_id); 
-
-        foreach ($accountants as $acc) {
-            if (!empty($acc['email'])) {
-                $this->email->clear();
-                $this->email->from('webdesign@indiaivf.in', 'HMS System');
-                $this->email->to($acc['email']); 
-                $this->email->subject('Action Required: CEO Approved Refund - Process Payment');
-                
-                $msg = "<h3>CEO Refund Approval Notice</h3>";
-                $msg .= "<p>The CEO has approved the refund request. Please process the bank transfer and execute final wallet deduction.</p>";
-                if(!empty($refund_data['accountant_comments'])) {
-                    $msg .= "<p><b>Accountant Notes:</b> " . nl2br($refund_data['accountant_comments']) . "</p>";
-                }
-                $msg .= $full_details_html;
-                $msg .= '<a href="' . $process_link . '" style="padding:12px 24px; background-color:#007bff; color:white; text-decoration:none; border-radius:4px; font-weight:bold; display:inline-block;">Process Payment & Deduct Wallet Balance</a>';
-                
-                $this->email->message($msg);
-                $this->email->set_mailtype("html");
-                @$this->email->send();
-            }
-        }
-
-        // 🔓 बिना लॉगिन के लिंक खोलने पर सीधा कन्फर्मेशन पेज दिखेगा
-        echo "<div style='text-align:center; margin-top:80px; font-family:Arial, sans-serif;'>";
-        echo "<div style='display:inline-block; border:1px solid #d6e9c6; padding:30px 50px; background-color:#dff0d8; color:#3c763d; border-radius:8px;'>";
-        echo "<h2><i class='fa fa-check-circle'></i> Approved Successfully!</h2>";
-        echo "<p style='font-size:16px;'>The refund request (ID: <b>{$refund_id}</b>) has been approved by CEO.</p>";
-        echo "<p>Notification email dispatched to the accounts department to process the payout.</p>";
-        echo "<p style='color:#777;'>You can close this window now.</p>";
-        echo "</div></div>";
-        exit;
-    }
-
-    // 5. STEP 4: Accounts Executes Payment & Deducts Wallet Balance
-    public function accounts_process_refund($refund_id) {
-        $this->load->model('Stock_model_new'); 
-
-        $refund_data = $this->Accounts_model->get_refund_by_id($refund_id);
-
-        if ($refund_data['status'] == 'Approved by CEO') {
-            $patient_id    = $refund_data['patient_id'];
-            $refund_amount = $refund_data['net_refund_amount'];
-            $logged_user   = isset($_SESSION['logged_billing_manager']['id']) ? $_SESSION['logged_billing_manager']['id'] : 1;
-
-            if ($refund_amount > 0) {
-                $this->Stock_model_new->deduct_wallet_balance($patient_id, $refund_amount, 'RefundID-' . $refund_id, $logged_user);
-            }
-
-            $this->Accounts_model->update_refund_status($refund_id, 'Processed');
-
-            $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : base_url();
-            header("location:" . $redirect_url . "?m=" . base64_encode('Refund processed successfully and Wallet balance deducted.') . "&t=success");
-            die();
-        } else {
-            $redirect_url = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : base_url();
-            header("location:" . $redirect_url . "?m=" . base64_encode('Error: Request is not approved by CEO yet.') . "&t=error");
-            die();
-        }
-    }
-
-    // 🎯 HELPER PRIVATE FUNCTION: Standard HTML Email Builder
-    private function _generate_refund_email_html($data, $deductions, $bank, $w1_balance, $total_deductions, $net_refund) {
-        $deduction_html = "";
-        if (isset($deductions['opd']) && $deductions['opd']['total'] > 0) $deduction_html .= "<tr><td align='right'>OPD Consultations:</td><td style='color:red;'>- Rs. " . number_format($deductions['opd']['total'], 2) . "</td></tr>";
-        if (isset($deductions['usg']) && $deductions['usg']['total'] > 0) $deduction_html .= "<tr><td align='right'>Ultrasounds (USG):</td><td style='color:red;'>- Rs. " . number_format($deductions['usg']['total'], 2) . "</td></tr>";
-        if (isset($deductions['file']) && $deductions['file']['total'] > 0) $deduction_html .= "<tr><td align='right'>File Charges:</td><td style='color:red;'>- Rs. " . number_format($deductions['file']['total'], 2) . "</td></tr>";
-        if (isset($deductions['reg']) && $deductions['reg']['total'] > 0) $deduction_html .= "<tr><td align='right'>Registration Charges:</td><td style='color:red;'>- Rs. " . number_format($deductions['reg']['total'], 2) . "</td></tr>";
-        if (isset($deductions['inj']) && $deductions['inj']['total'] > 0) $deduction_html .= "<tr><td align='right'>Injection Amount:</td><td style='color:red;'>- Rs. " . number_format($deductions['inj']['total'], 2) . "</td></tr>";
-        if (isset($deductions['con']) && $deductions['con']['total'] > 0) $deduction_html .= "<tr><td align='right'>Consumables:</td><td style='color:red;'>- Rs. " . number_format($deductions['con']['total'], 2) . "</td></tr>";
-        if (isset($deductions['sub']) && $deductions['sub']['total'] > 0) $deduction_html .= "<tr><td align='right'>Subvention Charges (EMI):</td><td style='color:red;'>- Rs. " . number_format($deductions['sub']['total'], 2) . "</td></tr>";
-        if (isset($deductions['misc']) && $deductions['misc']['total'] > 0) $deduction_html .= "<tr><td align='right'>Miscellaneous:</td><td style='color:red;'>- Rs. " . number_format($deductions['misc']['total'], 2) . "</td></tr>";
-        
-        if ($deduction_html == "") {
-            $deduction_html = "<tr><td align='right'>No Deductions</td><td style='color:gray;'>Rs. 0.00</td></tr>";
-        }
-
-        $patient_name = isset($data['patient_name']) ? $data['patient_name'] : '';
-        $patient_id   = isset($data['patient_id']) ? $data['patient_id'] : '';
-        $service      = isset($data['service_purchased']) ? $data['service_purchased'] : '';
-        $receipt      = isset($data['receipt_number']) ? $data['receipt_number'] : '';
-        $reason       = isset($data['refund_reason']) ? $data['refund_reason'] : '';
-        $other_reason = isset($data['other_reason']) ? $data['other_reason'] : '';
-
-        return "
-        <table border='1' cellpadding='8' cellspacing='0' style='border-collapse: collapse; width: 100%; max-width: 650px; font-family: Arial, sans-serif;'>
-            <tr style='background-color: #f8f9fa;'><th colspan='2' style='text-align: left;'>Patient & Request Details</th></tr>
-            <tr><td width='35%'><b>Patient Name:</b></td><td>{$patient_name} (ID: {$patient_id})</td></tr>
-            <tr><td><b>Service / Receipt:</b></td><td>{$service} (Receipt: {$receipt})</td></tr>
-            <tr><td><b>Reason for Refund:</b></td><td>{$reason} " . (!empty($other_reason) ? " - " . $other_reason : "") . "</td></tr>
-            
-            <tr style='background-color: #e9ecef;'><th colspan='2' style='text-align: left;'>Financial Summary</th></tr>
-            <tr><td><b>Actual Wallet Balance (W1):</b></td><td><b style='font-size: 15px;'>Rs. " . number_format($w1_balance, 2) . "</b></td></tr>
-            <tr>
-                <td colspan='2' style='padding: 0;'>
-                    <table width='100%' cellpadding='6' cellspacing='0' style='background-color: #fff5f5;'>
-                        <tr><th colspan='2' align='left' style='border-bottom: 1px solid #ffcccc; color:#d9534f;'>Deductions Breakdown:</th></tr>
-                        {$deduction_html}
-                        <tr>
-                            <td align='right' style='border-top: 1px solid #ffcccc;'><b>Total Deductions:</b></td>
-                            <td style='border-top: 1px solid #ffcccc; color:red; font-weight:bold;'>- Rs. " . number_format($total_deductions, 2) . "</td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-            <tr><td style='font-size: 15px;'><b>Final Refund Amount:</b></td><td><b style='color:green; font-size: 18px;'>Rs. " . number_format($net_refund, 2) . "</b></td></tr>
-            
-            <tr style='background-color: #f8f9fa;'><th colspan='2' style='text-align: left;'>Bank Details For Transfer</th></tr>
-            <tr><td><b>Bank Name:</b></td><td>" . (isset($bank['bank_name']) ? $bank['bank_name'] : '') . "</td></tr>
-            <tr><td><b>A/C Holder Name:</b></td><td>" . (isset($bank['account_holder_name']) ? $bank['account_holder_name'] : '') . "</td></tr>
-            <tr><td><b>A/C Number:</b></td><td>" . (isset($bank['account_number']) ? $bank['account_number'] : '') . "</td></tr>
-            <tr><td><b>IFSC Code:</b></td><td>" . (isset($bank['ifsc_code']) ? $bank['ifsc_code'] : '') . "</td></tr>
-        </table><br>";
-    }
-
-	// ==========================================
-    // ACCOUNTANT REVIEW FORM PAGE (Loads ID from URL)
-    // ==========================================
-  public function review_refund_form($refund_id = '') {
-        // 🔓 लॉगिन चेकिंग हटा दी गई है ताकि ईमेल से डायरेक्ट खुल सके
-        if(empty($refund_id)) {
-            show_404();
-        }
-
-        $this->load->model('Accounts_model', 'Accounts_model');
-        $data = array();
-        
-        // डेटाबेस से रिफंड डेटा फेच करें
-        $data['refund_data'] = $this->Accounts_model->get_refund_by_id($refund_id);
-        
-        if(empty($data['refund_data'])) {
-            show_404();
-        }
-
-        $data['refund_id'] = $refund_id;
-
-        // बिना एडमिन/डैशबोर्ड हेडर के एक क्लीन स्टैंडअलोन व्यू लोड करें
-        $this->load->view('billing_view/review_refund_form', $data); 
     }
 
 public function search_doctor() {

@@ -314,6 +314,12 @@ if($result){
 $select_query = "SELECT * FROM `donor_egg_personal_details` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
 $select_result = run_select_query($select_query); 
 
+// Dynamic Logo handling
+    $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : '';
+    if(empty($page_logo)) {
+        $page_logo = base_url('assets/center/default-logo.png');
+    }
+
 ?>
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
 <input type="hidden" value="<?php echo $updated_by; ?>" class="form" name="updated_by">
@@ -1634,7 +1640,7 @@ $select_result = run_select_query($select_query);
 
 	 <table class="table-bordered" style="width:100%; border:1px solid #cdcdcd;">
 	 <tr>
-                <td width="100%" colspan="4" style="border:1px solid #cdcdcd;"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+                <td width="100%" colspan="4" style="border:1px solid #cdcdcd;"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
 					
 </tr>
 <tr>

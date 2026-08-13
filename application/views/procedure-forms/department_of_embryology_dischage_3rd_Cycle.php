@@ -46,6 +46,12 @@
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);	
+
+    // Dynamic Logo handling
+    $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : '';
+    if(empty($page_logo)) {
+        $page_logo = base_url('assets/center/default-logo.png');
+    }
 ?>
 
 <form enctype='multipart/form-data' class ="searchform" name="form" action="" method="POST">
@@ -60,15 +66,7 @@
 <div class="container2 red-field form mt-5 mb-5">
 				<table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
-   <td style="width:50%;padding:5px;" colspan="10"><?php 
-                // Header se set kiya hua global session uthayenge
-                $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : ''; 
-                
-                if(!empty($page_logo)): ?>
-                    <img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;">
-                <?php else: ?>
-                    <img src="<?php echo base_url('assets/center/default-logo.png'); ?>" class="center" style="width:250px; display: block; margin: 0 auto;">
-                <?php endif; ?></td>
+   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
    <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">Department of Embryology</h3></td>
    </tr>
 </table>
@@ -231,15 +229,7 @@
 <div class="ga-pro">
 <table style="border:1px solid;width:100%;" class="fg45yu">
    <tr>
-   <td style="width:50%;padding:5px;" colspan="2"><?php 
-                // Header se set kiya hua global session uthayenge
-                $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : ''; 
-                
-                if(!empty($page_logo)): ?>
-                    <img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;">
-                <?php else: ?>
-                    <img src="<?php echo base_url('assets/center/default-logo.png'); ?>" class="center" style="width:250px; display: block; margin: 0 auto;">
-                <?php endif; ?></td>
+   <td style="width:50%;padding:5px;" colspan="2"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
    <td style="width:50%;padding:5px;" colspan="2"><h3 style="margin-top:10px;">Department of Embryology</h3><strong>Discharge Summary</strong></td>
    </tr>
 </table>

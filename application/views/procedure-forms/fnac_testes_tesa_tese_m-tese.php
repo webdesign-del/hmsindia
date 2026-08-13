@@ -47,6 +47,12 @@ $select_result = run_select_query($select_query);
 	
 	$sql5 = "Select * from ".$this->config->item('db_prefix')."centers where center_number='".$select_result4['appoitment_for']."'";
 	$select_result5 = run_select_query($sql5);
+
+	// Dynamic Logo handling
+    $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : '';
+    if(empty($page_logo)) {
+        $page_logo = base_url('assets/center/default-logo.png');
+    } 
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
@@ -62,7 +68,7 @@ $select_result = run_select_query($select_query);
     			<div class="container1 red-field form mt-5 mb-5">
   <table style="border:1px solid;width:100%;padding:5px;" class="fg45yu">
    <tr>
-   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+   <td style="width:50%;padding:5px;" colspan="10"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
    <td style="width:50%;padding:5px;" colspan="10"><h3 style="margin-top:20px;">FNAC TESTES AND TESA</h3></td>
    </tr>
 </table>
@@ -280,7 +286,7 @@ $select_result = run_select_query($select_query);
 	
     			    <table class="table-bordered"  style="width:100%;border:1px solid #cdcdcd;">
 					<tr>
-                <td width="50%" colspan="2" style="border:1px solid #cdcdcd;"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+                <td width="50%" colspan="2" style="border:1px solid #cdcdcd;"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
 			 <td width="50%" colspan="2" style="border:1px solid #cdcdcd;"><center><h2 class="text-alogn-center">FNAC TESTES AND TESA</h2></center></td>
 					
 </tr>

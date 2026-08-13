@@ -36,6 +36,12 @@ if(isset($_POST['submit'])){
 $select_query = "SELECT * FROM `evaluation_for_oocyte_donor` WHERE patient_id='$patient_id' and receipt_number='$receipt_number'";
 $select_result = run_select_query($select_query);
 
+// Dynamic Logo handling
+    $page_logo = isset($_SESSION['global_center_logo']) ? $_SESSION['global_center_logo'] : '';
+    if(empty($page_logo)) {
+        $page_logo = base_url('assets/center/default-logo.png');
+    }  
+
 ?>
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
     
@@ -227,7 +233,7 @@ $select_result = run_select_query($select_query);
 <!-- evaluation_for_oocyte_donor  --->
 	<table class="table-bordered"  style="border:1px solid #cdcdcd; width:100%;">
 	<tr>
-                <td width="50%" colspan="2" style="border:1px solid #cdcdcd;"><img src="<?php echo base_url(); ?>/assets/images/India-IVF-Logo-Option-5.png" style="width:220px"></td>
+                <td width="50%" colspan="2" style="border:1px solid #cdcdcd;"><img src="<?php echo $page_logo; ?>" class="center" style="width:250px; display: block; margin: 0 auto;" alt="Center Logo"></td>
 				<td colspan="2"><center><h3>1. Identifying Information</h3></center></td>	
 </tr>
 <tr>
