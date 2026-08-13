@@ -29,7 +29,7 @@ if(isset($_POST['submit'])){
     $p_id_escaped = addslashes($patient_id ?? '');
     $rec_num_escaped = addslashes($receipt_number ?? '');
 
-    $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$p_id_escaped' AND receipt_number='$rec_num_escaped'";
+    $sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$p_id_escaped' AND receipt_number='$rec_num_escaped' AND type='Second Cycle'";
     $select_result = run_select_query($sql);
     
     // Dynamic array query generator for embryo_transfer_discharge_summary
@@ -48,7 +48,7 @@ if(isset($_POST['submit'])){
         $query = "INSERT INTO `embryo_transfer_discharge_summary` SET " . implode(', ', $sqlArr);
     } else {
         // UPDATE embryo_transfer_discharge_summary
-        $query = "UPDATE `embryo_transfer_discharge_summary` SET " . implode(', ', $sqlArr) . " WHERE patient_id='$p_id_escaped' AND receipt_number='$rec_num_escaped'";
+        $query = "UPDATE `embryo_transfer_discharge_summary` SET " . implode(', ', $sqlArr) . " WHERE patient_id='$p_id_escaped' AND receipt_number='$rec_num_escaped' AND type='Second Cycle'";
     }
     $result = run_form_query($query); 
 
@@ -98,7 +98,7 @@ if(isset($_POST['submit'])){
 $p_id_escaped = addslashes($patient_id ?? '');
 $rec_num_escaped = addslashes($receipt_number ?? '');
 
-$sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$p_id_escaped' AND receipt_number='$rec_num_escaped'";
+$sql = "SELECT * FROM `embryo_transfer_discharge_summary` WHERE patient_id='$p_id_escaped' AND receipt_number='$rec_num_escaped' AND type='Second Cycle'";
 $select_result = run_select_query($sql);
 
 $sql4 = "SELECT patient_id, female_pregnancy_other_p, female_pregnancy_other_l, female_pregnancy_other_a, details_management_advised FROM `hms_patient_medical_info` WHERE patient_id='$p_id_escaped'";
@@ -157,7 +157,7 @@ if(!empty($select_result['applicablemedicine'])){
   <input type="hidden" value="<?php echo $receipt_number;?>" class="form" name="receipt_number">
   <input type="hidden" value="<?php echo $patient_data['wife_address']; ?>" class="form" name="wife_address">
   <input type="hidden" value="<?php echo $patient_data['wife_age']; ?>" class="form" name="wife_age">
-  <input type="hidden" value="First Cycle" name="type"> 
+  <input type="hidden" value="Second Cycle" name="type"> 
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_p']; ?>" class="form" name="female_pregnancy_other_p">
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_l']; ?>" class="form" name="female_pregnancy_other_l">
   <input type="hidden" value="<?php echo $select_result4['female_pregnancy_other_a']; ?>" class="form" name="female_pregnancy_other_a">
