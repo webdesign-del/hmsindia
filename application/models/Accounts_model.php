@@ -2234,7 +2234,7 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
     $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
     $this->db->join($payment_subquery, 'pm.billing_id = p.receipt_number', 'left', false);
 
-    // 🎯 Status Filter
+    // Status Filter
     $this->db->where_in('p.status', ['pending', 'approved']);
 
     // Dynamic Filters
@@ -2246,9 +2246,7 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
         $this->db->where("p.on_date BETWEEN " . $this->db->escape($start) . " AND " . $this->db->escape($end), null, false);
     }
 
-    // 🎯 FIX: Group By added to eliminate duplicate rows per receipt
     $this->db->group_by('p.receipt_number');
-
     $this->db->order_by('p.on_date', 'DESC');
 
     $procedure_result = $this->db->get()->result_array();
@@ -2285,9 +2283,19 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
         }
     }
 
-    // 3. Build response array
+    // 3. Build response array with GUARANTEED DEDUPLICATION
     $response = [];
+    $seen_receipts = []; // 🎯 ट्रैकर ऐरे (डुप्लीकेट रोकने के लिए)
+
     foreach ($procedure_result as $val) {
+        $receipt_no = trim($val['receipt_number']);
+
+        // 🎯 यदि यह Receipt Number पहले आ चुका है, तो दोबारा ऐड न करें
+        if (in_array($receipt_no, $seen_receipts)) {
+            continue;
+        }
+        $seen_receipts[] = $receipt_no;
+
         $hms_procedures_result = @unserialize($val['data']);
         $procedure_nameArr = [];
         $category = '';
@@ -2324,7 +2332,7 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
         $response[] = [
             'patient_id'         => $val['patient_id'],
             'wife_name'          => $formatted_name,
-            'receipt_number'     => $val['receipt_number'],
+            'receipt_number'     => $receipt_no,
             'totalpackage'       => $val['totalpackage'],
             'discounted_package' => $discounted_pkg,
             'payment_done'       => $sum_payment_done,
