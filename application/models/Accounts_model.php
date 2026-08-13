@@ -2216,10 +2216,10 @@ function approve_procedure_billing($request, $type, $status, $reason, $reason_of
 public function export_procedure_data($start, $end, $center, $patient_id, $payment_method, $biller_id) {
     $prefix = $this->config->item('db_prefix');
 
-    // 1. Subquery से Payments का सही Total Sum निकालें (ताकि Duplicate Join न बने)
+    // 1. Subquery for Payments Table (status IN 0, 1)
     $payment_subquery = "(SELECT billing_id, SUM(payment_done) as total_pm_paid 
                           FROM hms_patient_payments 
-                          WHERE status = 1 
+                          WHERE status IN (0, 1) 
                           GROUP BY billing_id) pm";
 
     $this->db->select("
@@ -2231,12 +2231,11 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
     ", false);
 
     $this->db->from($prefix . 'patient_procedure p');
-    
-    // Join Patient Info
     $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
-    
-    // Join Payment Subquery
     $this->db->join($payment_subquery, 'pm.billing_id = p.receipt_number', 'left', false);
+
+    // 🎯 Status Filter strictly added as per requirement
+    $this->db->where_in('p.status', ['pending', 'approved']);
 
     // Dynamic Filters
     if (!empty($patient_id))     $this->db->where('p.patient_id', $patient_id);
@@ -2283,7 +2282,7 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
         }
     }
 
-    // 3. Build response array with Corrected Paid Amount Calculation
+    // 3. Build response array
     $response = [];
     foreach ($procedure_result as $val) {
         $hms_procedures_result = @unserialize($val['data']);
@@ -2311,20 +2310,15 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
         $husband_name = $val['husband_name'] ?? '';
         $formatted_name = !empty($husband_name) ? $wife_name . ' w/o ' . $husband_name : $wife_name;
 
-        // 🎯 FIX: Correct Total Paid Calculation
+        // 🎯 SUM OF PAYMENTS & REMAINING CALCULATION
         $initial_paid = (float)$val['initial_paid'];
-        $payments_table_sum = (float)$val['partial_paid_sum'];
-
-        // अगर hms_patient_payments टेबल में रिकॉर्ड्स हैं, तो वही कुल जमा रकम (Total Paid) है।
-        // अगर payments टेबल में कोई रिकॉर्ड नहीं है, तो initial_paid लिया जाएगा।
-        if ($payments_table_sum > 0) {
-            $total_paid_done = $payments_table_sum;
-        } else {
-            $total_paid_done = $initial_paid;
-        }
+        $partial_paid = (float)$val['partial_paid_sum'];
+        
+        // Sum of both initial and additional payments
+        $sum_payment_done = $initial_paid + $partial_paid;
 
         $discounted_pkg = (float)$val['discounted_package'];
-        $final_remaining = max(0, $discounted_pkg - $total_paid_done);
+        $remaining_amount = max(0, $discounted_pkg - $sum_payment_done);
 
         $response[] = [
             'patient_id'         => $val['patient_id'],
@@ -2332,8 +2326,8 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
             'receipt_number'     => $val['receipt_number'],
             'totalpackage'       => $val['totalpackage'],
             'discounted_package' => $discounted_pkg,
-            'payment_done'       => $total_paid_done,
-            'remaining_amount'   => $final_remaining,
+            'payment_done'       => $sum_payment_done,
+            'remaining_amount'   => $remaining_amount,
             'payment_method'     => $val['payment_method'],
             'billing_from'       => $val['billing_from'],
             'billing_at'         => $val['billing_at'],
