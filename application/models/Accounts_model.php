@@ -2216,13 +2216,18 @@ function approve_procedure_billing($request, $type, $status, $reason, $reason_of
 public function export_procedure_data($start, $end, $center, $patient_id, $payment_method, $biller_id) {
     $prefix = $this->config->item('db_prefix');
 
-    // 1. Single Optimized Query using JOINs & Aggregation
+    // 1. Subquery से Payments का सही Total Sum निकालें (ताकि Duplicate Join न बने)
+    $payment_subquery = "(SELECT billing_id, SUM(payment_done) as total_pm_paid 
+                          FROM hms_patient_payments 
+                          WHERE status = 1 
+                          GROUP BY billing_id) pm";
+
     $this->db->select("
         p.patient_id, p.receipt_number, p.totalpackage, p.fees as discounted_package, 
         p.payment_done as initial_paid, p.payment_method, p.billing_from, p.billing_at, 
         p.biller_id, p.data, p.on_date, p.status, p.hospital_id, p.series_number,
         pt.wife_name, pt.husband_name,
-        COALESCE(SUM(pm.payment_done), 0) as total_partial_payment
+        COALESCE(pm.total_pm_paid, 0) as partial_paid_sum
     ", false);
 
     $this->db->from($prefix . 'patient_procedure p');
@@ -2230,8 +2235,8 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
     // Join Patient Info
     $this->db->join('hms_patients pt', 'pt.patient_id = p.patient_id', 'left');
     
-    // Join Payments Info (for partial payment sum)
-    $this->db->join('hms_patient_payments pm', 'pm.billing_id = p.receipt_number AND pm.status = 1', 'left');
+    // Join Payment Subquery
+    $this->db->join($payment_subquery, 'pm.billing_id = p.receipt_number', 'left', false);
 
     // Dynamic Filters
     if (!empty($patient_id))     $this->db->where('p.patient_id', $patient_id);
@@ -2242,8 +2247,6 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
         $this->db->where("p.on_date BETWEEN " . $this->db->escape($start) . " AND " . $this->db->escape($end), null, false);
     }
 
-    // Grouping by unique receipt
-    $this->db->group_by('p.receipt_number');
     $this->db->order_by('p.on_date', 'DESC');
 
     $procedure_result = $this->db->get()->result_array();
@@ -2280,7 +2283,7 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
         }
     }
 
-    // 3. Build array response without inside queries
+    // 3. Build response array with Corrected Paid Amount Calculation
     $response = [];
     foreach ($procedure_result as $val) {
         $hms_procedures_result = @unserialize($val['data']);
@@ -2303,15 +2306,22 @@ public function export_procedure_data($start, $end, $center, $patient_id, $payme
 
         $procedure_name1 = implode(',', array_unique($procedure_nameArr));
 
-        // Format Patient Name directly from SQL Result
+        // Format Patient Name
         $wife_name = $val['wife_name'] ?? '';
         $husband_name = $val['husband_name'] ?? '';
         $formatted_name = !empty($husband_name) ? $wife_name . ' w/o ' . $husband_name : $wife_name;
 
-        // Paid & Remaining Calculation
+        // 🎯 FIX: Correct Total Paid Calculation
         $initial_paid = (float)$val['initial_paid'];
-        $partial_paid = (float)$val['total_partial_payment'];
-        $total_paid_done = $initial_paid + $partial_paid;
+        $payments_table_sum = (float)$val['partial_paid_sum'];
+
+        // अगर hms_patient_payments टेबल में रिकॉर्ड्स हैं, तो वही कुल जमा रकम (Total Paid) है।
+        // अगर payments टेबल में कोई रिकॉर्ड नहीं है, तो initial_paid लिया जाएगा।
+        if ($payments_table_sum > 0) {
+            $total_paid_done = $payments_table_sum;
+        } else {
+            $total_paid_done = $initial_paid;
+        }
 
         $discounted_pkg = (float)$val['discounted_package'];
         $final_remaining = max(0, $discounted_pkg - $total_paid_done);

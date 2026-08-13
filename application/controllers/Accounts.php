@@ -2149,7 +2149,7 @@ if (isset($export_billing)) {
 			if (isset($export_billing)){
 				$data = $this->accounts_model->export_psychological_data($start_date, $end_date, $center, $patient_id, $payment_method);
 				header('Content-Type: text/csv; charset=utf-8');
-				header('Content-Disposition: attachment; filename=Procedure-Reports-'.$start_date.'-'.$end_date.'.csv');
+				header('Content-Disposition: attachment; filename=Procedure-Psychological-Reports-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
 				$headers = 'IIC ID, Patient Name,Receipt Number, Total package, Discounted Package, Paid Amount, Remaining Amount, Payment Method, Billing From, Billing At,Procedure Name, Billing Type, Date, Status';
 				//Add the headers
