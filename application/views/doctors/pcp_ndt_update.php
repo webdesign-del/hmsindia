@@ -10,6 +10,7 @@ if (isset($_POST['submit'])) {
         'husband_name'                 => $this->input->post('husband_name', true),
         'wife_address'                 => $this->input->post('wife_address', true),
         'wife_phone'                   => $this->input->post('wife_phone', true),
+        'husband_age'                  => $this->input->post('husband_age', true),
         'female_pregnancy_other_p'     => $this->input->post('female_pregnancy_other_p', true),
         'female_pregnancy_other_l'     => $this->input->post('female_pregnancy_other_l', true),
         'female_pregnancy_other_a'     => $this->input->post('female_pregnancy_other_a', true),
@@ -96,13 +97,19 @@ foreach ($select_result1 as $res_val) {
         </div>
 
         <div class="row">
-          <div class="col-md-6">
+          <div class="col-md-4 col-sm-6">
             <div class="form-group">
               <label>Husband Name</label>
-              <input type="text" class="form-control" name="husband_name" value="<?php echo html_escape($res_val->husband_name); ?>">
+              <input type="text" class="form-control" name="husband_age" value="<?php echo html_escape($res_val->husband_age); ?>">
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-3 col-sm-6">
+            <div class="form-group">
+              <label>Age</label>
+              <input type="text" class="form-control" name="wife_age" value="<?php echo html_escape($res_val->wife_age); ?>">
+            </div>
+          </div>
+          <div class="col-md-4 col-sm-6">
             <div class="form-group">
               <label>Wife Phone</label>
               <input type="text" class="form-control" name="wife_phone" value="<?php echo html_escape($res_val->wife_phone); ?>">
