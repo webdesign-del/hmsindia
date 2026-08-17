@@ -1398,7 +1398,7 @@ function patient_medical_info($data, $doctor_id = null) {
 
 /**********PCP NDT*********/
 
-function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $ID){
+function patient_pcpndt_count($center, $start_date, $end_date, $patient_id, $type, $ID){
 		$investigation_result = array();
 		$conditions = '';
 		
@@ -1412,8 +1412,8 @@ function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $
 		if (!empty($type)){
 			$conditions .= " and type='$type'";
 		}
-		if (!empty($iic_id)){
-			$conditions .= " and iic_id='$iic_id'";
+		if (!empty($patient_id)){
+			$conditions .= " and patient_id='$patient_id'";
 		}
 		if (!empty($start_date) && !empty($end_date)){
 			//$conditions .= " and on_date >='$start_date' and  on_date <= '$end_date'";
@@ -1434,7 +1434,7 @@ function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $
 		
 	}
 	
-	function patient_pcpndt_list_patination($limit, $page, $center, $start_date, $end_date, $iic_id, $type, $ID){
+	function patient_pcpndt_list_patination($limit, $page, $center, $start_date, $end_date, $patient_id, $type, $ID){
 		$investigation_result = array();
 		$conditions = '';
 		if(empty($page)){
@@ -1452,8 +1452,8 @@ function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $
 		if (!empty($type)){
 			$conditions .= " and type='$type'";
 		}
-		if (!empty($iic_id)){
-			$conditions .= " and iic_id='$iic_id'";
+		if (!empty($patient_id)){
+			$conditions .= " and patient_id='$patient_id'";
 		}
 		if (!empty($start_date) && !empty($end_date)){
 			//$conditions .= " and on_date >='$start_date' and  on_date <= '$end_date'";
@@ -1473,7 +1473,7 @@ function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $
 	}
 	
 	
-	function export_pcpndt_data($start, $end, $center, $iic_id, $test_type){
+	function export_pcpndt_data($start, $end, $center, $patient_id, $test_type){
 
 		
 		$investigation_result = $response = array();
@@ -1491,7 +1491,7 @@ function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $
             $conditions .= " and date between '".$start."' AND '".$end."' ";
         }
 		
-	    $investigation_sql = "Select DISTINCT iic_id, wife_name, husband_name, wife_phone, wife_age, female_issues, wife_address, details_management_advised,IVF_Consultant,procedure_done,outcome_of_tretment,center,test_type, date from pcp_ndt where 1 $conditions order by date desc";
+	    $investigation_sql = "Select DISTINCT patient_id, wife_name, husband_name, wife_phone, wife_age, female_issues, wife_address, details_management_advised,IVF_Consultant,procedure_done,outcome_of_tretment,center,test_type, date from pcp_ndt where 1 $conditions order by date desc";
         //echo $investigation_sql;
 		//exit();
 		$investigation_q = $this->db->query($investigation_sql);
@@ -1500,7 +1500,7 @@ function patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $
             foreach($investigation_result as $key => $val){
 				
 				 $response[] = array(
-                        'iic_id' => $val['iic_id'],
+                        'patient_id' => $val['patient_id'],
                         'wife_name' => $val['wife_name'],
 						'husband_name' => $val['husband_name'],
 						'wife_phone' => $val['wife_phone'],

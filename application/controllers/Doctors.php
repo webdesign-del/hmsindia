@@ -4202,12 +4202,12 @@ foreach ($urls as $key => $url) {
 			//var_dump($center);die;
 			$start_date = $this->input->get('start_date', true);
 			$end_date = $this->input->get('end_date', true);
-			$iic_id = $this->input->get('patient_id', true);
+			$patient_id = $this->input->get('patient_id', true);
 			$type = $this->input->get('type', true);
 			$ID = $this->input->get('ID', true);
 			$export_billing = $this->input->get('export-billing', true);
 			if (isset($export_billing)){
-				$data = $this->doctors_model->export_pcpndt_data($start_date, $end_date, $center, $iic_id, $type,$ID);
+				$data = $this->doctors_model->export_pcpndt_data($start_date, $end_date, $center, $patient_id, $type,$ID);
 				header('Content-Type: text/csv; charset=utf-8');
 				header('Content-Disposition: attachment; filename=Pcp-Ndt-'.$start_date.'-'.$end_date.'.csv');
 				$fp = fopen('php://output','w');
@@ -4228,7 +4228,7 @@ foreach ($urls as $key => $url) {
 
 			$config = array();
         	$config["base_url"] = base_url() . "doctors/pcp_ndt";
-        	$config["total_rows"] = $this->doctors_model->patient_pcpndt_count($center, $start_date, $end_date, $iic_id, $type, $ID);
+        	$config["total_rows"] = $this->doctors_model->patient_pcpndt_count($center, $start_date, $end_date, $patient_id, $type, $ID);
         	//var_dump($patient_pcpndt_count);die;
 			$config["per_page"] = 100;
         	$config["uri_segment"] = 2;
@@ -4240,7 +4240,7 @@ foreach ($urls as $key => $url) {
         	$page = ($this->uri->segment(2)) ? $this->uri->segment(2) : 0;
 			
         	$data["links"] = $this->pagination->create_links();
-			$data['investigate_result'] = $this->doctors_model->patient_pcpndt_list_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $iic_id, $type, $ID);
+			$data['investigate_result'] = $this->doctors_model->patient_pcpndt_list_patination($config["per_page"], $per_page, $center, $start_date, $end_date, $patient_id, $type, $ID);
 			$data["billing_at"] = $center;
 			$data["start_date"] = $start_date;
 			$data["end_date"] = $end_date;
