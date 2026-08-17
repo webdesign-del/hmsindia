@@ -4202,7 +4202,7 @@ foreach ($urls as $key => $url) {
 			//var_dump($center);die;
 			$start_date = $this->input->get('start_date', true);
 			$end_date = $this->input->get('end_date', true);
-			$iic_id = $this->input->get('iic_id', true);
+			$iic_id = $this->input->get('patient_id', true);
 			$type = $this->input->get('type', true);
 			$ID = $this->input->get('ID', true);
 			$export_billing = $this->input->get('export-billing', true);
