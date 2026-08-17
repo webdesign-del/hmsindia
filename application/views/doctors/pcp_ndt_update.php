@@ -100,13 +100,13 @@ foreach ($select_result1 as $res_val) {
           <div class="col-md-4 col-sm-6">
             <div class="form-group">
               <label>Husband Name</label>
-              <input type="text" class="form-control" name="husband_age" value="<?php echo html_escape($res_val->husband_age); ?>">
+              <input type="text" class="form-control" name="husband_name" value="<?php echo html_escape($res_val->husband_name); ?>">
             </div>
           </div>
           <div class="col-md-3 col-sm-6">
             <div class="form-group">
               <label>Age</label>
-              <input type="text" class="form-control" name="wife_age" value="<?php echo html_escape($res_val->wife_age); ?>">
+              <input type="text" class="form-control" name="husband_age" value="<?php echo html_escape($res_val->husband_age); ?>">
             </div>
           </div>
           <div class="col-md-4 col-sm-6">
