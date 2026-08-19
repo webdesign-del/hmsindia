@@ -88,7 +88,7 @@
                             <option value="OT Basant Lok" <?php echo ($selected_department == 'OT Basant Lok') ? 'selected' : ''; ?>>OT Basant Lok</option>
                             <option value="Embryology Basant Lok" <?php echo ($selected_department == 'Embryology Basant Lok') ? 'selected' : ''; ?>>Embryology Basant Lok</option>
                             <option value="Embryology Srinagar" <?php echo ($selected_department == 'Embryology Srinagar') ? 'selected' : ''; ?>>Embryology Srinagar</option>
-                            <option value="OT Srinagar" <?php echo ($selected_department == 'OT Srinagar') ? 'selected' : ''; ?>>OT Srinagar</option>
+                            <option value="CASH MEDICINE" <?php echo ($selected_department == 'CASH MEDICINE') ? 'selected' : ''; ?>>CASH MEDICINE</option>
                             <option value="Embryology" <?php echo ($selected_department == 'Embryology') ? 'selected' : ''; ?>>Embryology</option>
                             <option value="OT" <?php echo ($selected_department == 'OT') ? 'selected' : ''; ?>>OT</option>
                             <option value="Hormonal" <?php echo ($selected_department == 'Hormonal') ? 'selected' : ''; ?>>Hormonal</option>
@@ -284,7 +284,7 @@
                     <option value="OT Basant Lok">OT Basant Lok</option>
                     <option value="Embryology Basant Lok">Embryology Basant Lok</option>
                     <option value="Embryology Srinagar">Embryology Srinagar</option>
-                    <option value="OT Srinagar">OT Srinagar</option>
+                    <option value="CASH MEDICINE">CASH MEDICINE</option>
                     <option value="OT">OT</option>
                     <option value="Embryology">Embryology</option>
                     <option value="Hormonal">Hormonal</option>
