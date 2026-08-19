@@ -108,7 +108,6 @@
                                 <option value="OT Basant Lok">OT Basant Lok</option>
                                 <option value="Embryology Basant Lok">Embryology Basant Lok</option>
                                 <option value="Embryology Srinagar">Embryology Srinagar</option>
-                                <option value="OT Srinagar">OT Srinagar</option>
                                 <option value="CASH MEDICINE">CASH MEDICINE</option>
                                 <option value="Embryology">Embryology</option>
                                 <option value="OT">OT</option>
