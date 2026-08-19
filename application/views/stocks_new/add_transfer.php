@@ -158,7 +158,7 @@
                                                     <option value="CASH MEDICINE GHAZIABAD">CASH MEDICINE GHAZIABAD</option>
                                                     <option value="CASH MEDICINE ROHINI">CASH MEDICINE ROHINI</option>
                                                     <option value="CASH MEDICINE GWALIOR">CASH MEDICINE GWALIOR</option>
-                                                     <option value="CASH MEDICINE">CASH MEDICINE</option>
+                                                    <option value="CASH MEDICINE">CASH MEDICINE</option>
                                                     <option value="HORMONAL ROHINI">HORMONAL ROHINI</option>
                                                     <option value="Hormonal Ghaziabad">Hormonal Ghaziabad</option>
                                                     <option value="HORMONAL SRINAGAR">HORMONAL SRINAGAR</option>
@@ -170,7 +170,6 @@
                                                     <option value="OT Basant Lok">OT Basant Lok</option>
                                                     <option value="Embryology Basant Lok">Embryology Basant Lok</option>
                                                     <option value="Embryology Srinagar">Embryology Srinagar</option>
-                                                    <option value="OT Srinagar">OT Srinagar</option>
                                                     <option value="Embryologist">Embryologist</option>
                                                     <option value="OT">OT</option>
                                                     <option value="Hormonal">Hormonal</option>
