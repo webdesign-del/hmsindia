@@ -108,6 +108,7 @@
                                 <option value="OT Basant Lok">OT Basant Lok</option>
                                 <option value="Embryology Basant Lok">Embryology Basant Lok</option>
                                 <option value="Embryology Srinagar">Embryology Srinagar</option>
+                                <option value="OT Srinagar">OT Srinagar</option>
                                 <option value="CASH MEDICINE">CASH MEDICINE</option>
                                 <option value="Embryology">Embryology</option>
                                 <option value="OT">OT</option>
@@ -119,7 +120,7 @@
             </div>
 
             <hr>
-                           
+
             <div class="row">
                 <div class="col-md-12">
                     <h4><i class="fa fa-list"></i> Consumables</h4>
