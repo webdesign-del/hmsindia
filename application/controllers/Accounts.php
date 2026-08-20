@@ -14376,7 +14376,6 @@ public function action_cancel_request($request_id, $action, $token) {
         $this->load->view('billing_view/manual_refund_confirm', $data);
     }
 
-    // 6. STEP 5: Final Action - Process & Deduct Wallet via Existing Wallet System
    // 6. STEP 5: Final Action - Process & Actual Deduct Wallet
     public function execute_manual_refund() {
         $this->load->model('Accounts_model');
@@ -14549,6 +14548,57 @@ public function action_cancel_request($request_id, $action, $token) {
 
         $data['refund_id'] = $refund_id;
         $this->load->view('billing_view/review_refund_form', $data); 
+    }
+
+	// 🎯 Patient Wallet Freeze / Unfreeze Toggle
+    public function toggle_wallet_freeze() {
+        $patient_id    = $this->input->post('patient_id');
+        $status        = (int) $this->input->post('status'); // 1 = Freeze, 0 = Unfreeze
+        $freeze_reason = $this->input->post('freeze_reason');
+        $logged_user   = isset($_SESSION['logged_billing_manager']['id']) ? $_SESSION['logged_billing_manager']['id'] : 1;
+
+        if (!empty($patient_id)) {
+            
+            // 1. Fetch Current Wallet Balance
+            $wallet = $this->db->get_where('hms_patient_wallets', array('patient_id' => $patient_id))->row_array();
+            
+            if (empty($wallet)) {
+                echo json_encode(['status' => 'error', 'message' => 'Wallet not found for this patient.']);
+                exit;
+            }
+
+            // 2. Update Freeze Status in hms_patient_wallets
+            $this->db->where('patient_id', $patient_id)->update('hms_patient_wallets', array(
+                'is_frozen'     => $status,
+                'freeze_reason' => $freeze_reason,
+                'updated_at'    => date('Y-m-d H:i:s')
+            ));
+
+            // 3. Insert Action Entry into hms_wallet_logs
+            $action_label = ($status == 1) ? 'FREEZE' : 'UNFREEZE';
+            $log_data = array(
+                'patient_id'    => $patient_id,
+                'amount'        => 0,
+                'action_type'   => $action_label,
+                'opening_w1'    => $wallet['wallet_1_balance'],
+                'closing_w1'    => $wallet['wallet_1_balance'],
+                'opening_w2'    => $wallet['wallet_2_balance'],
+                'closing_w2'    => $wallet['wallet_2_balance'],
+                'remarks'       => 'Wallet ' . $action_label . 'D. Reason: ' . $freeze_reason,
+                'created_by'    => $logged_user,
+                'created_at'    => date('Y-m-d H:i:s'),
+                'updated_at'    => date('Y-m-d H:i:s'),
+                'status'        => 'completed'
+            );
+
+            $this->db->insert('hms_wallet_logs', $log_data);
+
+            $msg = ($status == 1) ? 'Patient Wallet has been FROZEN.' : 'Patient Wallet has been UNFROZEN.';
+            echo json_encode(['status' => 'success', 'message' => $msg]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Patient ID is missing.']);
+        }
+        exit;
     }
 
 public function search_doctor() {

@@ -1,71 +1,121 @@
 <?php 
     $all_method =& get_instance(); 
-    // Load the helper if not loaded in controller
-  //  $this->load->helper('billing');
+    $CI =& get_instance();
+
+    // 🎯 1. Safely fetch Patient ID
+    $current_patient_id = isset($patient_data['patient_id']) ? $patient_data['patient_id'] : (isset($paitent_id) ? $paitent_id : '');
+
+    // 🎯 2. Fetch real-time wallet balance
+    $w = get_final_wallet_balance($current_patient_id); 
+    $balance = $w['balance'] ?? 0; 
+
+    // 🎯 3. Freeze Status & Reason Check
+    $is_frozen     = !empty($wallets['is_frozen']) && $wallets['is_frozen'] == 1;
+    $freeze_reason = $wallets['freeze_reason'] ?? 'No reason provided';
+
+    // 🎯 4. Current Financial Year Suffix (2026 => 2627)
+    $current_year_suffix = date("y") . (date("y") + 1); 
+
+    // 🎯 5. Center Code & Receipt Number Generator
+    $db_prefix = $all_method->config->item('db_prefix');
+    $center_session = $_SESSION['logged_billing_manager']['center'] ?? $_SESSION['logged_accountant']['center'] ?? '';
     
-    // Fetch real-time balance using the function we built
-    $w = get_final_wallet_balance($patient_data['patient_id']); 
-    $balance = $w['balance']; 
+    $sql2 = "SELECT * FROM `".$db_prefix."centers` WHERE center_number='".$center_session."'"; 
+    $center_result = run_select_query($sql2);
+    $center_code = !empty($center_result['state_prefix']) ? $center_result['state_prefix'] : 'CENTER';
+
+    $sql_receipt = "SELECT MAX(CAST(SUBSTRING_INDEX(receipt_number, '/', -1) AS UNSIGNED)) as last_number 
+                    FROM `hms_wallet_logs` 
+                    WHERE receipt_number LIKE 'PR/".$center_code."/".$current_year_suffix."/%'";
+    $query_res = $CI->db->query($sql_receipt)->row_array();
+
+    $last_receipt_num = (!empty($query_res['last_number'])) ? intval($query_res['last_number']) : 0;
+    $next_receipt_num = str_pad(($last_receipt_num + 1), 4, '0', STR_PAD_LEFT);
+    $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_receipt_num;
+
+    // 🎯 6. Role Checking (Checks Accountant & Billing Manager Sessions)
+    $user_role = '';
+    if (isset($_SESSION['logged_accountant']['role'])) {
+        $user_role = $_SESSION['logged_accountant']['role'];
+    } elseif (isset($_SESSION['logged_billing_manager']['role'])) {
+        $user_role = $_SESSION['logged_billing_manager']['role'];
+    }
 ?>
-<?php 
-$all_method =& get_instance();
-$CI =& get_instance();
 
-// 1. Current Financial Year nikalyein (2026 ke liye: 2627)
-$current_year_suffix = date("y") . (date("y") + 1); 
-
-// 2. Billing manager ke session se center number ke hisab se prefix uthayein
-$db_prefix = $all_method->config->item('db_prefix');
-$sql2 = "SELECT * FROM `".$db_prefix."centers` WHERE center_number='".$_SESSION['logged_billing_manager']['center']."'"; 
-$center_result = run_select_query($sql2);
-
-$center_code = !empty($center_result['state_prefix']) ? $center_result['state_prefix'] : 'CENTER';
-
-// 🎯 [CRITICAL FIX]: SUBSTRING_INDEX mein -1 kiya taaki last 4-digit (0001) mile, aur LIKE filter ko robust kiya
-$sql_receipt = "SELECT MAX(CAST(SUBSTRING_INDEX(receipt_number, '/', -1) AS UNSIGNED)) as last_number 
-                FROM `hms_wallet_logs` 
-                WHERE receipt_number LIKE 'PR/".$center_code."/".$current_year_suffix."/%'";
-$query_res = $CI->db->query($sql_receipt)->row_array();
-
-// 4. Agar is saal ka pehla receipt hai toh 0, nahi toh purana max number uthayein
-$last_receipt_num = (!empty($query_res['last_number'])) ? intval($query_res['last_number']) : 0;
-
-// 5. Agle number ko 4 digit format mein badhayein (e.g., 0002, 0003)
-$next_receipt_num = str_pad(($last_receipt_num + 1), 4, '0', STR_PAD_LEFT);
-
-// 6. Final String taiyar karein (PR/BSL/2627/0002)
-$final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_receipt_num;
-?>
 <div class="container-fluid mt-4">
+
+    <!-- 🚨 1. PROMINENT FREEZE WARNING BANNER -->
+    <?php if ($is_frozen): ?>
+        <div class="row" style="margin-bottom: 20px;">
+            <div class="col-md-12">
+                <div class="alert alert-danger shadow-sm" style="border-left: 6px solid #d9534f; background-color: #f2dede; color: #a94442; padding: 15px 20px; border-radius: 6px;">
+                    <h4 style="margin-top: 0; font-weight: bold; font-size: 18px;">
+                        <i class="fa fa-lock" style="font-size: 22px; margin-right: 8px;"></i> WALLET IS CURRENTLY FROZEN!
+                    </h4>
+                    <p style="margin-bottom: 0; font-size: 14px;">
+                        <b>Reason:</b> <?php echo htmlspecialchars($freeze_reason); ?>
+                    </p>
+                    <small style="color: #8a6d3b; margin-top: 5px; display: block;">
+                        * All add money, transfers, and deductions are blocked until unfrozen by the Accounts Team.
+                    </small>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- Top Wallet Cards Row -->
     <div class="row">
+        <!-- Money Wallet Card -->
         <div class="col-md-4 mb-3">
-            <div class="card shadow-sm" style="border-left: 5px solid #28a745; background: #f8fff9; min-height: 160px;">
+            <div class="card shadow-sm" style="border-left: 5px solid <?php echo $is_frozen ? '#d9534f' : '#28a745'; ?>; background: <?php echo $is_frozen ? '#fff5f5' : '#f8fff9'; ?>; min-height: 160px; padding: 15px;">
                 <div class="card-body">
-                    <h6 class="text-success font-weight-bold">Money Wallet</h6>
-                    <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallets['wallet_1_balance'], 2); ?></h2>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="text-success font-weight-bold" style="display:inline-block;">Money Wallet</h6>
+                        <!-- 🏷️ FREEZE BADGE -->
+                        <?php if ($is_frozen): ?>
+                            <span class="label label-danger pull-right" style="font-size: 12px; padding: 4px 8px;"><i class="fa fa-lock"></i> FROZEN</span>
+                        <?php else: ?>
+                            <span class="label label-success pull-right" style="font-size: 12px; padding: 4px 8px;"><i class="fa fa-check"></i> ACTIVE</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format(($wallets['wallet_1_balance'] ?? 0), 2); ?></h2>
+                    
+                    <!-- Buttons Disabled if Frozen -->
                     <div class="btn-group">
-                        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addMoneyModal">+ Add Money</button>
-                        <button type="button" class="btn btn-warning btn-sm text-white" data-toggle="modal" data-target="#transferModal" style="margin-left:5px;">⇆ Transfer</button>
+                        <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#addMoneyModal" <?php echo $is_frozen ? 'disabled title="Wallet is Frozen"' : ''; ?>>+ Add Money</button>
+                        <button type="button" class="btn btn-warning btn-sm text-white" data-toggle="modal" data-target="#transferModal" style="margin-left:5px;" <?php echo $is_frozen ? 'disabled title="Wallet is Frozen"' : ''; ?>>⇆ Transfer</button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Package Wallet Card -->
         <div class="col-md-4 mb-3">
-            <div class="card shadow-sm" style="border-left: 5px solid #ff9800; background: #fffaf2; min-height: 160px;">
+            <div class="card shadow-sm" style="border-left: 5px solid <?php echo $is_frozen ? '#d9534f' : '#ff9800'; ?>; background: <?php echo $is_frozen ? '#fff5f5' : '#fffaf2'; ?>; min-height: 160px; padding: 15px;">
                 <div class="card-body">
-                    <h6 class="text-warning font-weight-bold">Package Wallet</h6>
-                    <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format($wallets['wallet_2_balance'], 2); ?></h2>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="text-warning font-weight-bold" style="display:inline-block;">Package Wallet</h6>
+                        <?php if ($is_frozen): ?>
+                            <span class="label label-danger pull-right" style="font-size: 12px; padding: 4px 8px;"><i class="fa fa-lock"></i> FROZEN</span>
+                        <?php else: ?>
+                            <span class="label label-success pull-right" style="font-size: 12px; padding: 4px 8px;"><i class="fa fa-check"></i> ACTIVE</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <h2 class="display-5" style="margin: 10px 0;">₹ <?php echo number_format(($wallets['wallet_2_balance'] ?? 0), 2); ?></h2>
+                    
                     <div class="btn-group">
-                        <button class="btn btn-success btn-sm" data-target="#addPackageMoneyModal" data-toggle="modal">+ Add Money</button>
-                        <button type="button" class="btn btn-outline-warning btn-sm" data-toggle="modal" data-target="#transferBackModal" style="margin-left:5px;">⇆ Transfer Back</button>
+                        <button class="btn btn-success btn-sm" data-target="#addPackageMoneyModal" data-toggle="modal" <?php echo $is_frozen ? 'disabled title="Wallet is Frozen"' : ''; ?>>+ Add Money</button>
+                        <button type="button" class="btn btn-outline-warning btn-sm" data-toggle="modal" data-target="#transferBackModal" style="margin-left:5px;" <?php echo $is_frozen ? 'disabled title="Wallet is Frozen"' : ''; ?>>⇆ Transfer Back</button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Coupons Card -->
         <div class="col-md-4 mb-3">
-            <div class="card shadow-sm" style="border-left: 5px solid #007bff; background: #f0f7ff; min-height: 160px;">
+            <div class="card shadow-sm" style="border-left: 5px solid #007bff; background: #f0f7ff; min-height: 160px; padding: 15px;">
                 <div class="card-body">
                     <h6 class="text-primary font-weight-bold">Available Promo Coupons</h6>
                     <?php 
@@ -81,59 +131,65 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                     <p class="text-muted small" style="margin-top: 8px; margin-bottom: 0;">Check validity & minimum bill</p>
                 </div>
             </div>
+        </div> 
+    </div>
+
+    <!-- Wallet Freeze / Unfreeze Action Row (Restricted to Accountants / Admins) -->
+    <?php if (in_array(strtolower($user_role), ['accountant', 'administrator', 'admin'])) : ?>
+        <div class="row" style="margin-top: 10px; margin-bottom: 15px;">
+            <div class="col-md-12">
+                <div class="wallet-freeze-action">
+                    <?php if (!$is_frozen): ?>
+                        <button type="button" class="btn btn-warning btn-sm" onclick="toggleWalletFreeze('<?php echo $current_patient_id; ?>', 1)">
+                            <i class="fa fa-lock"></i> Freeze Wallet
+                        </button>
+                    <?php else: ?>
+                        <button type="button" class="btn btn-success btn-sm" onclick="toggleWalletFreeze('<?php echo $current_patient_id; ?>', 0)">
+                            <i class="fa fa-unlock"></i> Unfreeze Wallet
+                        </button>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="row" style="margin-bottom: 20px;">
-    <div class="col-md-12">
-        <div class="container-fluid mt-4">
-    <div class="row" style="margin-bottom: 20px;">
-        <div class="col-md-12">
-            <table class="table table-bordered" style="background-color: #fff; border-left: 5px solid #5db85d; margin-bottom: 0;">
-                <tbody>
-                    <tr>
-                        <td style="width: 15%; font-weight: bold; border-right: 2px solid #007bff; color:#000;">IIC Id</td>
-                        <td style="width: 35%; border-right: 4px solid #b3b3b3; color:#000;">
-                            <?php echo $patient_data['patient_id'] ?? $patient_data['uhid'] ?? 'N/A'; ?>
-                        </td>
-                        <td style="width: 35%; font-weight: bold; border-right: 2px solid #007bff; color:#000;">General Wallet</td>
-                        <td style="width: 15%; text-align: right; text-decoration: underline; font-weight: bold; color:#000;">
-                            ₹ <?php echo number_format(($wallets['wallet_1_balance'] ?? 0), 2); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: bold; border-right: 2px solid #007bff; color:#000;">Name</td>
-                        <td style="border-right: 4px solid #b3b3b3; color:#000;">
-                            <?php 
-                                // This line checks all common name keys to avoid the Warning
-                                echo $patient_data['patient_name'] ?? $patient_data['name'] ?? $patient_data['p_name'] ?? 'N/A'; 
-                            ?>
-                        </td>
-                        <td style="font-weight: bold; border-right: 2px solid #007bff; color:#000;">Package Wallet</td>
-                        <td style="text-align: right; text-decoration: underline; font-weight: bold; color:#000;">
-                            ₹ <?php echo number_format(($wallets['wallet_2_balance'] ?? 0), 2); ?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight: bold; border-right: 2px solid #007bff; color:#000;">Origin Centre</td>
-                        <td style="border-right: 4px solid #b3b3b3; color:#000;">
-                            <?php echo $patient_data['origin_centre'] ?? 'Main Center'; ?>
-                        </td>
-                        <td style="font-weight: bold; border-right: 2px solid #007bff; color:#000;">Coupon Wallet*</td>
-                        <td style="text-align: right; text-decoration: underline; font-weight: bold; color:#000;">
-                            <?php 
-                                $cp_count = $this->db->where('status', 1)->where('expiry_date >=', date('Y-m-d'))->count_all_results('hms_coupons');
-                                echo "₹ " . number_format($cp_count, 2);
-                            ?>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-        <small class="pull-right text-muted">*Coupon Wallet displays the count of active promo codes available.</small>
-    </div>
-</div>
+
+        <script>
+        function toggleWalletFreeze(patientId, statusVal) {
+            if (!patientId || patientId.trim() === "") {
+                alert("Error: Patient ID is missing!");
+                return;
+            }
+
+            var actionText = (statusVal == 1) ? "FREEZE" : "UNFREEZE";
+            var reason = prompt("Enter reason to " + actionText + " wallet:");
+            
+            if (reason === null || reason.trim() === "") {
+                alert("Reason is required to " + actionText.toLowerCase() + " the wallet!");
+                return;
+            }
+
+            $.ajax({
+                url: "<?php echo site_url('Accounts/toggle_wallet_freeze'); ?>",
+                type: "POST",
+                dataType: "JSON",
+                data: {
+                    patient_id: patientId,
+                    status: statusVal,
+                    freeze_reason: reason
+                },
+                success: function(res) {
+                    alert(res.message);
+                    if(res.status === 'success') {
+                        location.reload();
+                    }
+                },
+                error: function(xhr) {
+                    console.log(xhr.responseText);
+                    alert("Something went wrong or access denied.");
+                }
+            });
+        }
+        </script>
+    <?php endif; ?>
 </div>
 
 <div class="modal fade" id="viewCouponsModal" tabindex="-1" role="dialog">
@@ -364,23 +420,6 @@ $final_receipt_number = "PR/".$center_code."/".$current_year_suffix."/".$next_re
                 </div>
             </form>
         </div>
-    </div>
-</div>
-
-
-<div class="row" style="margin-top: 20px;">
-    <div class="col-md-6">
-        <div class="well" style="background: #ecf0f5; border-left: 5px solid #00a65a;">
-            <h4 style="margin-top:0;">Wallet Summary</h4>
-            <p>Total Added: <strong><?php echo number_format($w['total_added'], 2); ?></strong></p>
-            <p>Total Spent: <strong><?php echo number_format($w['total_spent'], 2); ?></strong></p>
-            <p>Available Balance: <span style="color:green; font-size: 20px; font-weight:bold;">₹<?php echo number_format($balance, 2); ?></span></p>
-        </div>
-    </div>
-    <div class="col-md-6 text-right">
-        <a href="<?php echo base_url('accounts/export_wallet_used_history/' . $patient_data['patient_id']); ?>" class="btn btn-success">
-           <i class="fa fa-file-excel-o"></i> Download CSV History
-        </a>
     </div>
 </div>
 
