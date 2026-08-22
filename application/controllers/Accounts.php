@@ -4586,7 +4586,7 @@ foreach($ret_grouped as $return) {
             'company_gstin'    => $bill_c['center_gst'] ?? '',
             'party_state'      => $bill_c['state_name'] ?? '',
             'place_of_supply'  => $bill_c['state_name'] ?? '',
-			'totalamount'      => $sale['payment_done'] ?? '',
+			'total_amount'      => $sale['payment_done'] ?? '',
             'items'            => []
         ];
 
