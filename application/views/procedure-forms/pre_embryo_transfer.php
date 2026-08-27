@@ -169,18 +169,26 @@
     ];
 
     // send API
-    $curl = curl_init();
-    curl_setopt_array($curl, [
-        CURLOPT_URL => 'https://flertility.in/lead/lead-journey/',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => json_encode($data),
-        CURLOPT_HTTPHEADER => [
-            'Content-Type: application/json'
-        ],
-    ]);
-    $response = curl_exec($curl);
-    curl_close($curl);
+   $curl = curl_init();
+
+curl_setopt_array($curl, [
+    CURLOPT_URL => 'https://flertility.in/lead/lead-journey/',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_ENCODING => '',
+    CURLOPT_MAXREDIRS => 10,
+    CURLOPT_TIMEOUT => 0,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_CUSTOMREQUEST => 'POST',
+    CURLOPT_POSTFIELDS => json_encode($data),
+    CURLOPT_HTTPHEADER => [
+        'Content-Type: application/json',
+        'X-Hms-Api-Token: _dkGEDrhpSCpaZVx8-tRbTkq66MHvl_4R5O4fCZ6NPGB7eO7JOThQw'
+    ],
+]);
+
+$response = curl_exec($curl);
+curl_close($curl);
       
 ?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.15/css/bootstrap-multiselect.css" type="text/css">

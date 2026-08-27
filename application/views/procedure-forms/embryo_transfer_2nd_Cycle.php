@@ -90,7 +90,8 @@
 		CURLOPT_CUSTOMREQUEST => 'POST',
 		CURLOPT_POSTFIELDS => json_encode($data),
 		CURLOPT_HTTPHEADER => [
-			'Content-Type: application/json'
+			'Content-Type: application/json',
+			'X-Hms-Api-Token: _dkGEDrhpSCpaZVx8-tRbTkq66MHvl_4R5O4fCZ6NPGB7eO7JOThQw'
 		],
 	]);
 

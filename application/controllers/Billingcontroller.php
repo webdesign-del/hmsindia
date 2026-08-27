@@ -2070,47 +2070,46 @@ public function consultation($appointment_id){
 
 						$jsonData = json_encode($data);
 
-						// 3. Send to APIs
-						$urls = [
-							'lead_1' => 'https://flertility.in/lead/lead-journey/',
-							'lead_2' => 'https://staging.flertility.in/lead/lead-journey/'
-						];
+						// API Endpoint
+						$url = 'https://flertility.in/lead/lead-journey/';
 
 						// Variable to store agent name if received from API
 						$agent_to_update = null;
 
-						foreach ($urls as $label => $url) {
-							$curl = curl_init();
-							curl_setopt_array($curl, array(
-								CURLOPT_URL => $url,
-								CURLOPT_RETURNTRANSFER => true,
-								CURLOPT_ENCODING => '',
-								CURLOPT_MAXREDIRS => 10,
-								CURLOPT_TIMEOUT => 5, 
-								CURLOPT_FOLLOWLOCATION => true,
-								CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-								CURLOPT_CUSTOMREQUEST => 'POST',
-								CURLOPT_POSTFIELDS => $jsonData,
-								CURLOPT_HTTPHEADER => array(
-									'Content-Type: application/json',
-									'Accept: application/json'
-								),
-							));
-							
-							// API Response capture
-							$response = curl_exec($curl);
-							$http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-							curl_close($curl);
+						$curl = curl_init();
+						curl_setopt_array($curl, array(
+							CURLOPT_URL => $url,
+							CURLOPT_RETURNTRANSFER => true,
+							CURLOPT_ENCODING => '',
+							CURLOPT_MAXREDIRS => 10,
+							CURLOPT_TIMEOUT => 5, 
+							CURLOPT_FOLLOWLOCATION => true,
+							CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+							CURLOPT_CUSTOMREQUEST => 'POST',
+							CURLOPT_POSTFIELDS => $jsonData,
+							CURLOPT_HTTPHEADER => array(
+								'Content-Type: application/json',
+								'Accept: application/json',
+								'X-Hms-Api-Token: _dkGEDrhpSCpaZVx8-tRbTkq66MHvl_4R5O4fCZ6NPGB7eO7JOThQw'
+							),
+						));
 
-							// Check if API call was successful
-							if ($http_code == 200 || $http_code == 201) {
-								$response_data = json_decode($response, true);
-								
-								// Extract agent name if it exists in the response
-								if (isset($response_data['current_agent_name']) && !empty($response_data['current_agent_name'])) {
-									$agent_to_update = $response_data['current_agent_name'];
-								}
+						$response = curl_exec($curl);
+						$http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+						$curl_error = curl_error($curl);
+						curl_close($curl);
+
+						// Check if API call was successful
+						if (!$curl_error && ($http_code == 200 || $http_code == 201)) {
+							$response_data = json_decode($response, true);
+							
+							// Extract agent name if it exists in the response
+							if (isset($response_data['current_agent_name']) && !empty($response_data['current_agent_name'])) {
+								$agent_to_update = $response_data['current_agent_name'];
 							}
+						} else {
+							// Log or handle request failure
+							error_log("API Request Failed. HTTP Code: {$http_code}, Error: {$curl_error}");
 						}
 
 						// 4. Update the specific record in Database
@@ -2479,43 +2478,47 @@ public function consultation($appointment_id){
 
                             $jsonData = json_encode($data);
 
-                            $urls = [
-                                'lead_1' => 'https://flertility.in/lead/lead-journey/',
-                                'lead_2' => 'https://staging.flertility.in/lead/lead-journey/'
-                            ];
+							// API Endpoint
+							$url = 'https://flertility.in/lead/lead-journey/';
 
-                            // Ek variable banayenge agent name hold karne ke liye
-                            $agent_name = null;
+							// Variable to store agent name if received from API
+							$agent_to_update = null;
 
-                            foreach ($urls as $label => $url) {
-                                $curl = curl_init();
-                                curl_setopt_array($curl, array(
-                                    CURLOPT_URL => $url,
-                                    CURLOPT_RETURNTRANSFER => true,
-                                    CURLOPT_ENCODING => '',
-                                    CURLOPT_MAXREDIRS => 10,
-                                    CURLOPT_TIMEOUT => 5, 
-                                    CURLOPT_FOLLOWLOCATION => true,
-                                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                                    CURLOPT_CUSTOMREQUEST => 'POST',
-                                    CURLOPT_POSTFIELDS => $jsonData,
-                                    CURLOPT_HTTPHEADER => array(
-                                        'Content-Type: application/json',
-                                        'Accept: application/json'
-                                    ),
-                                ));
-                                $response = curl_exec($curl);
-                                
-                                // NEW: Response handle kar rahe hain yahan
-                                if ($response) {
-                                    $decoded_response = json_decode($response, true);
-                                    if (isset($decoded_response['current_agent_name']) && !empty($decoded_response['current_agent_name'])) {
-                                        $agent_name = $decoded_response['current_agent_name'];
-                                    }
-                                }
-                                
-                                curl_close($curl);
-                            }
+							$curl = curl_init();
+							curl_setopt_array($curl, array(
+								CURLOPT_URL => $url,
+								CURLOPT_RETURNTRANSFER => true,
+								CURLOPT_ENCODING => '',
+								CURLOPT_MAXREDIRS => 10,
+								CURLOPT_TIMEOUT => 5, 
+								CURLOPT_FOLLOWLOCATION => true,
+								CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+								CURLOPT_CUSTOMREQUEST => 'POST',
+								CURLOPT_POSTFIELDS => $jsonData,
+								CURLOPT_HTTPHEADER => array(
+									'Content-Type: application/json',
+									'Accept: application/json',
+									'X-Hms-Api-Token: _dkGEDrhpSCpaZVx8-tRbTkq66MHvl_4R5O4fCZ6NPGB7eO7JOThQw'
+								),
+							));
+
+							$response = curl_exec($curl);
+							$http_code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+							$curl_error = curl_error($curl);
+							curl_close($curl);
+
+							// Check if API call was successful
+							if (!$curl_error && ($http_code == 200 || $http_code == 201)) {
+								$response_data = json_decode($response, true);
+								
+								// Extract agent name if it exists in the response
+								if (isset($response_data['current_agent_name']) && !empty($response_data['current_agent_name'])) {
+									$agent_to_update = $response_data['current_agent_name'];
+								}
+							} else {
+								// Log or handle request failure
+								error_log("API Request Failed. HTTP Code: {$http_code}, Error: {$curl_error}");
+							}
 
                             // NEW: Specific Data row update kar rahe hain
                             if (!empty($agent_name)) {

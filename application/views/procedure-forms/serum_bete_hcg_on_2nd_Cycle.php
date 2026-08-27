@@ -96,26 +96,27 @@
 				// Convert PHP array to JSON
 				$jsonData = json_encode($data);
 
-				$curl = curl_init();
+$curl = curl_init();
 
-				curl_setopt_array($curl, array(
-				  CURLOPT_URL => 'https://flertility.in/lead/lead-journey/',
-				  CURLOPT_RETURNTRANSFER => true,
-				  CURLOPT_ENCODING => '',
-				  CURLOPT_MAXREDIRS => 10,
-				  CURLOPT_TIMEOUT => 0,
-				  CURLOPT_FOLLOWLOCATION => true,
-				  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-				  CURLOPT_CUSTOMREQUEST => 'POST',
-				  CURLOPT_POSTFIELDS => $jsonData,  // Send JSON Data
-				  CURLOPT_HTTPHEADER => array(
-					'Content-Type: application/json',  // Specify JSON Content Type
-					'Accept: application/json'         // Expect JSON Response
-				  ),
-				));
+curl_setopt_array($curl, array(
+  CURLOPT_URL => 'https://flertility.in/lead/lead-journey/',
+  CURLOPT_RETURNTRANSFER => true,
+  CURLOPT_ENCODING => '',
+  CURLOPT_MAXREDIRS => 10,
+  CURLOPT_TIMEOUT => 0,
+  CURLOPT_FOLLOWLOCATION => true,
+  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  CURLOPT_CUSTOMREQUEST => 'POST',
+  CURLOPT_POSTFIELDS => $jsonData,  // Send JSON Data
+  CURLOPT_HTTPHEADER => array(
+    'Content-Type: application/json',  // Specify JSON Content Type
+    'Accept: application/json',         // Expect JSON Response
+    'X-Hms-Api-Token: _dkGEDrhpSCpaZVx8-tRbTkq66MHvl_4R5O4fCZ6NPGB7eO7JOThQw'
+  ),
+));
 
-				$response = curl_exec($curl);
-				curl_close($curl);	
+$response = curl_exec($curl);
+curl_close($curl);
 ?>
 
 <form enctype='multipart/form-data'  class ="searchform" name="form" action="" method="POST">
