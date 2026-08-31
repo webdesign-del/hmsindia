@@ -1466,7 +1466,7 @@ function patient_pcpndt_count($center, $start_date, $end_date, $patient_id, $typ
 		else if (empty($start_date) && !empty($end_date)){
 			$conditions .= " and date='$end_date'";
 		}
-	    $investigation_sql = "Select * from pcp_ndt where 1".$conditions." order by date DESC limit ". $limit." OFFSET ".$offset."";
+	    $investigation_sql = "Select * from pcp_ndt where 1".$conditions." order by date ASC limit ". $limit." OFFSET ".$offset."";
 		$investigation_q = $this->db->query($investigation_sql);
 		$investigation_result = $investigation_q->result_array();
 		return $investigation_result;
