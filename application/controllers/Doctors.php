@@ -2016,7 +2016,6 @@ class Doctors extends CI_Controller {
 				$do_result = run_select_query($dosql);
 
 				// Step 5: Final data array
-				
 				$curl = curl_init();
 				$data = [
 					"doctor" => $do_result['name'],
@@ -2031,29 +2030,30 @@ class Doctors extends CI_Controller {
 					"male_medicine_suggestion_list" => implode(', ', $item_name),
 					"lead_id" => $lead_id
 				];
-					
-						curl_setopt_array($curl, array(
-						CURLOPT_URL => 'https://flertility.in/lead/consultations/',
-						CURLOPT_RETURNTRANSFER => true,
-						CURLOPT_ENCODING => '',
-						CURLOPT_MAXREDIRS => 10,
-						CURLOPT_TIMEOUT => 0,
-						CURLOPT_FOLLOWLOCATION => true,
-						CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-						CURLOPT_CUSTOMREQUEST => 'POST',
-						CURLOPT_POSTFIELDS => json_encode($data),
-						CURLOPT_HTTPHEADER => array(
-							'Content-Type: application/json'
-						),
-					));
 
-					$response = curl_exec($curl);
+				curl_setopt_array($curl, array(
+					CURLOPT_URL => 'https://flertility.in/lead/consultations/',
+					CURLOPT_RETURNTRANSFER => true,
+					CURLOPT_ENCODING => '',
+					CURLOPT_MAXREDIRS => 10,
+					CURLOPT_TIMEOUT => 0,
+					CURLOPT_FOLLOWLOCATION => true,
+					CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+					CURLOPT_CUSTOMREQUEST => 'POST',
+					CURLOPT_POSTFIELDS => json_encode($data),
+					CURLOPT_HTTPHEADER => array(
+						'Content-Type: application/json',
+						'X-Hms-Api-Token: _dkGEDrhpSCpaZVx8-tRbTkq66MHvl_4R5O4fCZ6NPGB7eO7JOThQw'
+					),
+				));
 
-					if (curl_errno($curl)) {
-						echo 'Error: ' . curl_error($curl);
-					}
+				$response = curl_exec($curl);
 
-					curl_close($curl);
+				if (curl_errno($curl)) {
+					echo 'Error: ' . curl_error($curl);
+				}
+
+				curl_close($curl);
 				
 				$patient_medical_info['doctor_id'] = isset($_POST['doctor_id']) ? $_POST['doctor_id'] : (isset($logg['doctor_id']) ? $logg['doctor_id'] : '');
 				if($consultation_done > 0){
@@ -3030,14 +3030,12 @@ $data = [
     "male_medicine_suggestion_list" => implode(', ', $item_name),
     "lead_id" => $crm_lead_id // <--- CRITICAL: Using the updated ID
 ];
-
 // =================================================================
 // STEP 3: SEND CONSULTATION DATA (POST)
 // =================================================================
 
 $urls = [
-    'lead_1' => 'https://flertility.in/lead/consultations/',
-    'lead_2' => 'https://staging.flertility.in/lead/consultations/'
+    'lead_1' => 'https://flertility.in/lead/consultations/'
 ];
 
 foreach ($urls as $key => $url) {
@@ -3054,7 +3052,8 @@ foreach ($urls as $key => $url) {
         CURLOPT_CUSTOMREQUEST => 'POST',
         CURLOPT_POSTFIELDS => json_encode($data),
         CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/json'
+            'Content-Type: application/json',
+            'X-Hms-Api-Token: _dkGEDrhpSCpaZVx8-tRbTkq66MHvl_4R5O4fCZ6NPGB7eO7JOThQw'
         ),
     ));
 
@@ -3062,7 +3061,6 @@ foreach ($urls as $key => $url) {
     $post_err = curl_error($curl);
 
     if ($post_err) {
-        // Changed echo to log_message for production safety
         log_message('error', "Consultation POST [$key] Error: " . $post_err);
     } else {
         log_message('info', "Consultation POST [$key] Response: " . $response);
@@ -3592,45 +3590,54 @@ foreach ($urls as $key => $url) {
 	 * @param array $consultation_data - Consultation data
 	 */
 	private function send_consultation_to_external_apis($consultation_data) {
-		try {
-			// Get investigation names for external API
-			$investigation_data = $this->get_investigation_names_for_api($consultation_data);
-			$medicine_data = $this->get_medicine_names_for_api($consultation_data);
-			$procedure_data = $this->get_procedure_names_for_api($consultation_data);
-			$package_data = $this->get_package_names_for_api($consultation_data);
-			// Get lead ID
-			$patient_id = $consultation_data['patient_id'];
-			$fosql = "SELECT * FROM hms_appointments WHERE paitent_id = ?";
-			$fo_result = $this->db->query($fosql, [$patient_id])->row_array();
-			$lead_id = isset($fo_result['crm_id']) ? $fo_result['crm_id'] : '';
-			// Get doctor details
-			$doctor_id = $consultation_data['doctor_id'];
-			$dosql = "SELECT * FROM hms_doctors WHERE ID = ?";
-			$do_result = $this->db->query($dosql, [$doctor_id])->row_array();
-			$data = [
-				"doctor" => isset($do_result['name']) ? $do_result['name'] : '',
-				"wife_phone" => isset($consultation_data['wife_phone']) ? $consultation_data['wife_phone'] : '',
-				"patient_id" => $patient_id,
-				"appointment_id" => $consultation_data['appointment_id'],
-				"female_investigation_suggestion_list" => isset($investigation_data['female']) ? $investigation_data['female'] : [],
-				"male_minvestigation_suggestion_list" => isset($investigation_data['male']) ? $investigation_data['male'] : [],
-				"package_suggestion_list" => $package_data,
-				"sub_procedure_suggestion_list" => $procedure_data,
-				"female_medicine_suggestion_list" => isset($medicine_data['female']) ? $medicine_data['female'] : [],
-				"male_medicine_suggestion_list" => isset($medicine_data['male']) ? $medicine_data['male'] : [],
-				"lead_id" => $lead_id
-			];
-			$urls = [
-				'lead_1' => 'https://flertility.in/lead/consultations/',
-				'lead_2' => 'https://staging.flertility.in/lead/consultations/'
-			];
-			foreach ($urls as $key => $url) {
-				$this->send_api_request($url, $data, $key);
-			}
-		} catch (Exception $e) {
-			log_message('error', 'Error sending consultation to external APIs: ' . $e->getMessage());
-		}
-	}
+    try {
+        // Get investigation names for external API
+        $investigation_data = $this->get_investigation_names_for_api($consultation_data);
+        $medicine_data = $this->get_medicine_names_for_api($consultation_data);
+        $procedure_data = $this->get_procedure_names_for_api($consultation_data);
+        $package_data = $this->get_package_names_for_api($consultation_data);
+        
+        // Get lead ID
+        $patient_id = $consultation_data['patient_id'];
+        $fosql = "SELECT * FROM hms_appointments WHERE paitent_id = ?";
+        $fo_result = $this->db->query($fosql, [$patient_id])->row_array();
+        $lead_id = isset($fo_result['crm_id']) ? $fo_result['crm_id'] : '';
+
+        // Get doctor details
+        $doctor_id = $consultation_data['doctor_id'];
+        $dosql = "SELECT * FROM hms_doctors WHERE ID = ?";
+        $do_result = $this->db->query($dosql, [$doctor_id])->row_array();
+
+        $data = [
+            "doctor" => isset($do_result['name']) ? $do_result['name'] : '',
+            "wife_phone" => isset($consultation_data['wife_phone']) ? $consultation_data['wife_phone'] : '',
+            "patient_id" => $patient_id,
+            "appointment_id" => $consultation_data['appointment_id'],
+            "female_investigation_suggestion_list" => isset($investigation_data['female']) ? $investigation_data['female'] : [],
+            "male_minvestigation_suggestion_list" => isset($investigation_data['male']) ? $investigation_data['male'] : [],
+            "package_suggestion_list" => $package_data,
+            "sub_procedure_suggestion_list" => $procedure_data,
+            "female_medicine_suggestion_list" => isset($medicine_data['female']) ? $medicine_data['female'] : [],
+            "male_medicine_suggestion_list" => isset($medicine_data['male']) ? $medicine_data['male'] : [],
+            "lead_id" => $lead_id
+        ];
+
+        $headers = [
+            'Content-Type: application/json',
+            'X-Hms-Api-Token: _dkGEDrhpSCpaZVx8-tRbTkq66MHvl_4R5O4fCZ6NPGB7eO7JOThQw'
+        ];
+
+        $urls = [
+            'lead_1' => 'https://flertility.in/lead/consultations/'
+        ];
+
+        foreach ($urls as $key => $url) {
+            $this->send_api_request($url, $data, $key, $headers);
+        }
+    } catch (Exception $e) {
+        log_message('error', 'Error sending consultation to external APIs: ' . $e->getMessage());
+    }
+}
 	
 	/**
 	 * Send API request to external service
@@ -3639,36 +3646,41 @@ foreach ($urls as $key => $url) {
 	 * @param array $data - Data to send
 	 * @param string $key - API key identifier
 	 */
-	private function send_api_request($url, $data, $key) {
-		try {
-			$curl = curl_init();
-			curl_setopt_array($curl, array(
-				CURLOPT_URL => $url,
-				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_ENCODING => '',
-				CURLOPT_MAXREDIRS => 10,
-				CURLOPT_TIMEOUT => 10,
-				CURLOPT_FOLLOWLOCATION => true,
-				CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-				CURLOPT_CUSTOMREQUEST => 'POST',
-				CURLOPT_POSTFIELDS => json_encode($data),
-				CURLOPT_HTTPHEADER => array(
-					'Content-Type: application/json'
-				),
-			));
+	private function send_api_request($url, $data, $key, $headers = []) {
+    $curl = curl_init();
 
-			$response = curl_exec($curl);
-			if (curl_errno($curl)) {
-				log_message('error', "[$key] API Error: " . curl_error($curl));
-			} else {
-				log_message('info', "[$key] API Response: " . $response);
-			}
-			curl_close($curl);
-			
-		} catch (Exception $e) {
-			log_message('error', "[$key] API Exception: " . $e->getMessage());
-		}
-	}
+    // Default headers if none are passed
+    if (empty($headers)) {
+        $headers = [
+            'Content-Type: application/json',
+            'X-Hms-Api-Token: _dkGEDrhpSCpaZVx8-tRbTkq66MHvl_4R5O4fCZ6NPGB7eO7JOThQw'
+        ];
+    }
+
+    curl_setopt_array($curl, array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => json_encode($data),
+        CURLOPT_HTTPHEADER => $headers,
+    ));
+
+    $response = curl_exec($curl);
+    $post_err = curl_error($curl);
+
+    if ($post_err) {
+        log_message('error', "Consultation POST [$key] Error: " . $post_err);
+    } else {
+        log_message('info', "Consultation POST [$key] Response: " . $response);
+    }
+
+    curl_close($curl);
+}
 	/**
 	 * Send advisory emails if templates are selected
 	 * 
