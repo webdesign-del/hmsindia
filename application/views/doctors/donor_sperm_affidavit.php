@@ -42,12 +42,12 @@
                             </tr>
                             <tr>
                                 <td colspan="2" style="padding: 5px 5px;">
-                                    4. We say that we have had full discussion with Dr. <span id="username10" class="underline"><input type="text" name="doctor_name_discussion" id="name10" value="Richika Sahay" class="fill-in medium" /></span> regarding the treatment on <span id="username11" class="underline"><input type="text" name="discussion_date" id="name11" value="<?php echo date('d-m-Y'); ?>" class="fill-in short" /></span>.
+                                    4. We say that we have had full discussion with Dr. <span id="username10" class="underline"><input type="text" name="doctor_name_discussion" id="name10" value="" class="fill-in medium" /></span> regarding the treatment on <span id="username11" class="underline"><input type="text" name="discussion_date" id="name11" value="<?php echo date('d-m-Y'); ?>" class="fill-in short" /></span>.
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="2" style="padding: 5px 5px;">
-                                    5. We say that we have been counselled by Dr. <span id="username12" class="underline"><input type="text" name="doctor_name_counselling" id="name12" value="Richika Sahay" class="fill-in medium" /></span> on <span id="username13" class="underline"><input type="text" name="counselling_date" id="name13" value="<?php echo date('d-m-Y'); ?>" class="fill-in short" /></span>.
+                                    5. We say that we have been counselled by Dr. <span id="username12" class="underline"><input type="text" name="doctor_name_counselling" id="name12" value="" class="fill-in medium" /></span> on <span id="username13" class="underline"><input type="text" name="counselling_date" id="name13" value="<?php echo date('d-m-Y'); ?>" class="fill-in short" /></span>.
                                 </td>
                             </tr>
                             <tr>
